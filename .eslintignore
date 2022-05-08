@@ -1,0 +1,50 @@
+# dotfiles
+
+!.*.js
+!.*._js
+!.*.jsx
+!.*.mjs
+!.*.cjs
+!.*.es
+!.*.es6
+!.*.assetgen
+!.*.ts
+!.*.tsx
+!.*.json
+!.eslintrc.js
+
+# Dependencies and vendor
+vendor
+node_modules
+bower_components
+jspm_packages
+package-lock.json
+/.pnp
+.pnp.js
+.serverless
+.webpack
+.next/
+
+# Build outputs
+bundle.js
+*.bundle.js
+.serverless
+build/Release
+*.min.*
+*-min.*
+
+# Cache
+.git
+.eslintcache
+.tmp
+.temp
+.cache
+.fuse_hidden*
+.fusebox
+.dynamodb
+
+# Test coverage and snapshots
+lib-cov
+coverage
+.nyc_output
+__snapshots__

@@ -1,0 +1,3 @@
+{
+  "extends": "@balsamic/eslint-config/tsconfig.json"
+}

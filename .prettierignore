@@ -1,0 +1,36 @@
+# Dependencies and vendor
+vendor
+node_modules
+bower_components
+jspm_packages
+package-lock.json
+/.pnp
+.pnp.js
+.serverless
+.webpack
+.next/
+
+# Build outputs
+bundle.js
+*.bundle.js
+.serverless
+build/Debug
+build/Release
+*.min.*
+*-min.*
+
+# Cache
+.tmp
+.temp
+.cache
+.fuse_hidden*
+.fusebox
+.dynamodb
+
+# Test coverage and snapshots
+lib-cov
+coverage
+.nyc_output
+__snapshots__
+
+.vercel

@@ -1,0 +1,113 @@
+# excluded files for security
+.npmrc
+.env
+.env.test
+*.pem
+
+# Diagnostic reports (https://nodejs.org/api/report.html)
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Dependency directories
+bower_components
+node_modules
+jspm_packages
+/.pnp
+.pnp.js
+
+# Build outputs
+.serverless
+.webpack
+/build
+/out/
+.next/
+build/Release
+build/Debug
+*.tgz
+*.tmp-browserify-*
+ipch
+
+# Go
+goMakeIt
+*.iml
+
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# logs
+logs
+*.log
+lerna-debug.log*
+
+# Cache and lockfiles
+.clangd
+.cache
+.fuse_hidden*
+.fusebox
+.dynamodb
+*.tsbuildinfo
+.npm
+.history
+.node_repl_history
+.yarn-integrity
+.grunt
+.lock-wscript
+pids
+*.pid
+*.seed
+*.pid.lock
+.eslintcache
+.prettiercache
+
+# Test coverage
+lib-cov
+coverage
+.nyc_output
+*.lcov
+
+# IDEs and OS
+.idea
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.Trash-*
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDouble
+.LSOverride
+.apdisk
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN
+*.lnk
+.DS_Store
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local env files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# vercel
+.vercel
