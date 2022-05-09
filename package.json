@@ -4,7 +4,9 @@
   "description": "js13k-2022",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint . --fix && prettier --write --loglevel=warn .",
+    "test": "mocha -r ts-node/register -r tsconfig-paths/register --recursive ./test/**/*.test.ts",
+    "typecheck": "tsc --noEmit",
     "precommit": "lint-staged && pretty-quick --staged"
   },
   "repository": {
@@ -21,6 +23,9 @@
   "engines": {
     "node": ">=16.0.0"
   },
+  "workspaces": [
+    "packages/*"
+  ],
   "keywords": [
     "js13k-2022"
   ],
