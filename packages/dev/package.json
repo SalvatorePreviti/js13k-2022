@@ -1,0 +1,25 @@
+{
+  "name": "@project/dev",
+  "version": "13.13.13",
+  "description": "js13k-2022 dev tools",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SalvatorePreviti/js13k-2022.git",
+    "directory": "packages/dev"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SalvatorePreviti/js13k-2022/issues"
+  },
+  "homepage": "https://github.com/SalvatorePreviti/js13k-2022#readme",
+  "private": true,
+  "dependencies": {
+    "react": "^18.1.0",
+    "react-dom": "^18.1.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.9",
+    "@types/react-dom": "^18.0.3"
+  }
+}

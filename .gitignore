@@ -1,3 +1,5 @@
+dist
+
 # excluded files for security
 .npmrc
 .env
