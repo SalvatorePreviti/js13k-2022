@@ -1,39 +1,34 @@
-import type { OutputAsset } from "rollup";
 import { minify as htmlMinify } from "html-minifier";
 import { getHtmlMinifierOptions } from "../options/html-minify-options";
-import { devBeginOperation, devEndOperation } from "./utils";
-import { prettySize, toUTF8 } from "@balsamic/dev";
 import { JSDOM } from "jsdom";
+import { ViteBundledOutput } from "./process-vite-output";
+import { OutputAsset } from "rollup";
 
-export interface BundleHtmlInput {
-  indexHtml: string;
-  script?: string;
-  stylesheet?: string;
-  assets?: OutputAsset[];
+export interface BundledHtmlOutput {
+  html: string;
+  assets: OutputAsset[];
+  assetsBytes: number;
 }
 
-export async function bundleHtml(input: BundleHtmlInput) {
-  console.log();
-  devBeginOperation("bundle html");
-
-  const dom = new JSDOM(toUTF8(input.indexHtml));
+export async function bundleHtml(input: ViteBundledOutput): Promise<BundledHtmlOutput> {
+  const dom = new JSDOM(input.html);
 
   // Append styles at the beginning
-  if (input.stylesheet) {
+  if (input.css) {
     const styleTag = dom.window.document.createElement("style");
-    styleTag.textContent = input.stylesheet;
+    styleTag.textContent = input.css;
     dom.window.document.head.appendChild(styleTag);
   }
 
   // Append the script at the end of body
-  if (input.script) {
+  if (input.js) {
     const scriptTag = dom.window.document.createElement("script");
-    scriptTag.textContent = input.script;
+    scriptTag.textContent = input.js;
     dom.window.document.body.appendChild(scriptTag);
   }
 
   let bundled = dom.window.document.querySelector("html")?.innerHTML || "";
-  bundled = htmlMinify(bundled, getHtmlMinifierOptions({ minifyCss: false, minifyJs: false })) || bundled;
+  bundled = htmlMinify(bundled, getHtmlMinifierOptions({ minifyCss: true, minifyJs: false })) || bundled;
 
   // Remove tag closures
   for (const endTag of ["</html>", "</body>", "</script>"]) {
@@ -42,10 +37,9 @@ export async function bundleHtml(input: BundleHtmlInput) {
     }
   }
 
-  devEndOperation(prettySize(bundled));
-
   return {
     html: bundled,
     assets: input.assets,
+    assetsBytes: input.assetsBytes,
   };
 }

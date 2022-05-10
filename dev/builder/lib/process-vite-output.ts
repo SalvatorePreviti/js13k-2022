@@ -1,10 +1,19 @@
+import { toUTF8 } from "@balsamic/dev";
 import type { RollupOutput, OutputChunk, OutputAsset, RollupWatcher } from "rollup";
 
 export interface ViteBuildOutput {
-  indexHtml: OutputAsset;
-  scripts: OutputChunk[];
-  stylesheets: OutputAsset[];
+  html: OutputAsset;
+  js: OutputChunk[];
+  css: OutputAsset[];
   assets: OutputAsset[];
+}
+
+export interface ViteBundledOutput {
+  js: string;
+  css: string;
+  html: string;
+  assets: OutputAsset[];
+  assetsBytes: number;
 }
 
 export function processViteBuildOutput(
@@ -21,36 +30,53 @@ export function processViteBuildOutput(
     throw new Error("ViteBuildOutput: expected a RollupOutput, received something else");
   }
 
-  let indexHtml: OutputAsset | undefined;
-  const scripts: OutputChunk[] = [];
-  const stylesheets: OutputAsset[] = [];
+  let html: OutputAsset | undefined;
+  const js: OutputChunk[] = [];
+  const css: OutputAsset[] = [];
   const assets: OutputAsset[] = [];
 
   for (const o of viteBuildOutput.output) {
     if (o.type === "asset") {
       if (o.fileName.endsWith(".css")) {
-        stylesheets.push(o);
+        css.push(o);
       } else if (o.fileName === "index.html") {
-        if (indexHtml) {
+        if (html) {
           throw new Error("ViteBuildOutput: multiple index.html found");
         }
-        indexHtml = o;
+        html = o;
       } else {
         assets.push(o);
       }
     } else if (o.type === "chunk") {
-      scripts.push(o);
+      js.push(o);
     }
   }
 
-  if (!indexHtml) {
+  if (!html) {
     throw new Error("ViteBuildOutput: index.html not found in vite build outputs");
   }
 
-  return {
-    indexHtml,
-    scripts,
-    stylesheets,
-    assets,
+  return { html, js, css, assets };
+}
+
+export function bundleViteOutput(input: ViteBuildOutput): ViteBundledOutput {
+  if (input.js.length > 1) {
+    throw new Error(
+      `${input.js.length} js files from vite, it should be only one: ${input.js
+        .map((script) => script.fileName)
+        .join(", ")}`,
+    );
+  }
+  let css = "";
+  for (const stylesheet of input.css) {
+    css += `${toUTF8(stylesheet.source)}\n`;
+  }
+  const result: ViteBundledOutput = {
+    js: input.js[0]?.code || "",
+    css,
+    html: toUTF8(input.html.source),
+    assets: input.assets,
+    assetsBytes: input.assets.reduce((r, a) => r + a.source.length, 0),
   };
+  return result;
 }

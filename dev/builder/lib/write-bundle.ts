@@ -1,8 +1,8 @@
 import path from "path";
 import type { OutputAsset } from "rollup";
-import { devBeginOperation, devEndOperation, devWriteOutputFile } from "./utils";
+import { devWriteOutputFile } from "./utils";
 import fs from "fs/promises";
-import { prettySize, utf8ByteLength } from "@balsamic/dev";
+import { devLog, utf8ByteLength } from "@balsamic/dev";
 
 export interface WriteBundleInput {
   html: string;
@@ -10,9 +10,6 @@ export interface WriteBundleInput {
 }
 
 export async function writeBundle(input: WriteBundleInput, outputFolder = "dist/bundle") {
-  console.log();
-  devBeginOperation("write bundle");
-
   await fs.rm("dist/bundle", { force: true, maxRetries: 5, recursive: true });
   await fs.mkdir("dist/bundle", { force: true, recursive: true });
 
@@ -39,9 +36,7 @@ export async function writeBundle(input: WriteBundleInput, outputFolder = "dist/
     await Promise.all(promises);
   }
 
-  console.log();
-  devEndOperation(prettySize(totalSize));
-  console.log();
+  devLog.log();
 
   return {
     input,

@@ -1,45 +1,53 @@
-import {
-  devBeginOperation,
-  devEndOperation,
-  devLogBuilding,
-  devPrintJS13KFinalBundleSize,
-  devWriteOutputFile,
-} from "./lib/utils";
+import { devLogBuilding, devPrintJS13KFinalBundleSize, devWriteOutputFile, printFileSizes } from "./lib/utils";
 import fs from "fs/promises";
 import config from "../config";
 import { build as viteBuild, mergeConfig as viteMergeConfig } from "vite";
-import { processViteBuildOutput } from "./lib/process-vite-output";
-import { colors, devLog } from "@balsamic/dev";
+import { bundleViteOutput, processViteBuildOutput, ViteBuildOutput } from "./lib/process-vite-output";
+import { devLog } from "@balsamic/dev";
 import { viteConfigBuild, viteOutDir } from "./build-config";
-import { optimizeViteBuildOutput } from "./lib/optimize-vite-build-output";
 import { writeBundle } from "./lib/write-bundle";
 import { zipBundle } from "./lib/zip-bundle";
 import { bundleHtml } from "./lib/bundle-html";
+import { optimizeViteOutput } from "./lib/optimize-vite-output";
+
+devLog.options.titlePaddingWidth = 16;
 
 export async function build() {
-  devLog.hr(colors.rgb(110, 100, 255));
-  devLog.log(colors.rgb(80, 220, 255).bold("GREETINGS PROFESSOR FALKEN."));
-  devLog.hr(colors.rgb(110, 100, 255));
-  devLog.log();
-
-  devBeginOperation("build");
+  devLog.greetings();
 
   devLogBuilding("src", "dist");
 
-  devBeginOperation("vite build");
+  const viteBuiltOutput = await devLog.timed("vite build", viteBuildOutput, { printStarted: false });
 
-  await fs.rm(viteOutDir, { maxRetries: 5, recursive: true, force: true });
+  const viteOutput = bundleViteOutput(viteBuiltOutput);
 
-  const viteBuilt = await viteBuild(viteMergeConfig(config, viteConfigBuild, true));
-  devEndOperation();
+  printFileSizes({
+    js: viteOutput.js,
+    css: viteOutput.css,
+    html: viteOutput.html,
+    assets: viteOutput.assetsBytes || undefined,
+    total: true,
+  });
 
-  const viteBuildOutput = processViteBuildOutput(viteBuilt);
+  const optimized = await optimizeViteOutput(viteOutput);
 
-  const optimized = await optimizeViteBuildOutput(viteBuildOutput);
+  printFileSizes({
+    js: optimized.js,
+    css: optimized.css,
+    html: optimized.html,
+    assets: optimized.assetsBytes || undefined,
+    total: true,
+  });
 
-  const bundled = await bundleHtml(optimized);
+  const bundled = await devLog.timed("bundle html", () => bundleHtml(optimized), { spinner: true });
 
-  await writeBundle(bundled);
+  printFileSizes({
+    html: bundled.html,
+    assets: bundled.assetsBytes || undefined,
+    total: true,
+  });
+
+  await devLog.timed("files written", () => writeBundle(bundled), { printStarted: false });
 
   const zippedBuffer = await zipBundle(bundled);
 
@@ -49,10 +57,12 @@ export async function build() {
 
   devPrintJS13KFinalBundleSize(zippedBuffer.length);
 
-  devEndOperation();
-
   devLog.log();
-  devLog.hr(colors.rgb(110, 100, 255));
-  console.log(colors.rgb(80, 220, 255).bold("SHALL WE PLAY A GAME?"));
-  devLog.hr(colors.rgb(110, 100, 255));
+  devLog.greetings("SHALL WE PLAY A GAME?");
+}
+
+async function viteBuildOutput(): Promise<ViteBuildOutput> {
+  await fs.rm(viteOutDir, { maxRetries: 5, recursive: true, force: true });
+  const viteBuilt = await viteBuild(viteMergeConfig(config, viteConfigBuild, true));
+  return processViteBuildOutput(viteBuilt);
 }
