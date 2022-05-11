@@ -4,6 +4,7 @@ import zlib from "zlib";
 import { zipBundleOptions } from "../options/zip-bundle-options";
 import { WriteBundleInput } from "./write-bundle";
 import { colors, devLog } from "@balsamic/dev";
+import { getCompressionRatioPercent, printNotice } from "./utils";
 
 export type ZipFileEntry = { name?: string; source?: Buffer | Uint8Array | string | undefined; fileName?: string };
 
@@ -41,6 +42,8 @@ export async function zipEntries(input: ZipFileEntry[]) {
 
   const entries: { name: string; data: Buffer }[] = [];
 
+  let totalUnzipped = 0;
+
   const zippedBuffer = await devLog.timed(
     "compress",
     async () => {
@@ -68,6 +71,7 @@ export async function zipEntries(input: ZipFileEntry[]) {
 
         if (data) {
           entries.push({ name: fname, data });
+          totalUnzipped += data.length;
         }
       }
 
@@ -82,7 +86,7 @@ export async function zipEntries(input: ZipFileEntry[]) {
     { spinner: true },
   );
 
-  devLog.timed(
+  await devLog.timed(
     "zip verify",
     () => {
       const unzip = new ADMZip(zippedBuffer);
@@ -109,6 +113,9 @@ export async function zipEntries(input: ZipFileEntry[]) {
     },
     { spinner: true },
   );
+
+  devLog.log();
+  printNotice("compression ratio", getCompressionRatioPercent(totalUnzipped, zippedBuffer.length));
 
   return zippedBuffer;
 }

@@ -11,6 +11,12 @@ const _colorFileSize = colors.rgb(100, 200, 255);
 const _boxColor = colors.rgb(50, 100, 200);
 const _boxLine = "─".repeat(32);
 
+const _noticeColor = colors.rgb(120, 190, 255);
+
+export function printNotice(...args: unknown[]) {
+  devLog.logColor(_noticeColor, "⬢", ...args);
+}
+
 function _getFileSizeRow(name: string, value: string | number | Uint8Array | Buffer | string | null | undefined) {
   const bytes = Math.round(utf8ByteLength(value));
   if (path.isAbsolute(name)) {
@@ -45,18 +51,31 @@ export function printFileSizes(
     devLog.log(`${_boxColor("│")} ${_getFileSizeRow(key, value)} ${_boxColor("│")}`);
   }
 
+  let total = 0;
+  for (const value of Object.values(values)) {
+    if (typeof value !== "boolean") {
+      total += utf8ByteLength(value);
+    }
+  }
+
   if (count > 1 && printTotal) {
     devLog.log(_boxColor(`├${_boxLine}┤`));
-    let total = 0;
-    for (const value of Object.values(values)) {
-      if (typeof value !== "boolean") {
-        total += utf8ByteLength(value);
-      }
-    }
     devLog.log(`${_boxColor("│")} ${_getFileSizeRow("total", total)} ${_boxColor("│")}`);
   }
 
   devLog.log(_boxColor(`└${_boxLine}┘\n`));
+
+  return total;
+}
+
+export function getCompressionRatioPercent(inputSize: number, compressedSize: number) {
+  const ratio = compressedSize / inputSize || 0;
+  return `${(ratio * 100).toLocaleString("en", {
+    useGrouping: false,
+    decimalDigits: 3,
+    minimumFractionDigits: 3,
+    maximumFractionDigits: 3,
+  })}%`;
 }
 
 export function devLogBuilding(sourceFilder: string, targetFolder: string) {

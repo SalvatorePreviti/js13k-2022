@@ -1,4 +1,11 @@
-import { devLogBuilding, devPrintJS13KFinalBundleSize, devWriteOutputFile, printFileSizes } from "./lib/utils";
+import {
+  devLogBuilding,
+  devPrintJS13KFinalBundleSize,
+  devWriteOutputFile,
+  getCompressionRatioPercent,
+  printFileSizes,
+  printNotice,
+} from "./lib/utils";
 import fs from "fs/promises";
 import config from "../config";
 import { build as viteBuild, mergeConfig as viteMergeConfig } from "vite";
@@ -21,7 +28,7 @@ export async function build() {
 
   const viteOutput = bundleViteOutput(viteBuiltOutput);
 
-  printFileSizes({
+  const initialSize = printFileSizes({
     js: viteOutput.js,
     css: viteOutput.css,
     html: viteOutput.html,
@@ -31,7 +38,7 @@ export async function build() {
 
   const optimized = await optimizeViteOutput(viteOutput);
 
-  printFileSizes({
+  const optimizedSize = printFileSizes({
     js: optimized.js,
     css: optimized.css,
     html: optimized.html,
@@ -39,21 +46,27 @@ export async function build() {
     total: true,
   });
 
+  printNotice("size ratio", getCompressionRatioPercent(initialSize, optimizedSize));
+  devLog.log();
+
   const bundled = await devLog.timed("bundle html", () => bundleHtml(optimized), { spinner: true });
 
-  printFileSizes({
+  const bundledSize = printFileSizes({
     html: bundled.html,
     assets: bundled.assetsBytes || undefined,
     total: true,
   });
 
+  printNotice("size ratio", getCompressionRatioPercent(optimizedSize, bundledSize));
+  devLog.log();
+
   await devLog.timed("files written", () => writeBundle(bundled), { printStarted: false });
 
   const zippedBuffer = await zipBundle(bundled);
 
-  console.log();
+  devLog.log();
   await devWriteOutputFile("dist/bundle.zip", zippedBuffer);
-  console.log();
+  devLog.log();
 
   devPrintJS13KFinalBundleSize(zippedBuffer.length);
 
