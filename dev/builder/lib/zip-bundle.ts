@@ -8,7 +8,16 @@ import { colors, devLog } from "@balsamic/dev";
 export type ZipFileEntry = { name?: string; source?: Buffer | Uint8Array | string | undefined; fileName?: string };
 
 export function zipBundle(bundle: WriteBundleInput) {
-  return zipEntries([{ name: "index.html", source: bundle.html }, ...(bundle.assets || [])]);
+  let html = bundle.html;
+
+  // Remove tag closures
+  for (const endTag of ["</html>", "</body>"]) {
+    if (html.endsWith(endTag)) {
+      html = html.slice(0, -endTag.length).trim();
+    }
+  }
+
+  return zipEntries([{ name: "index.html", source: html }, ...(bundle.assets || [])]);
 }
 
 export async function zipEntries(input: ZipFileEntry[]) {

@@ -8,25 +8,30 @@ export const ESBUILD_TARGETS = ["chrome99", "firefox99", "edge99"];
 
 export const CSS_TARGETS = { chrome: 99 << 16, edge: 99 << 16, firefox: 99 << 16, safari: 15 << 16 };
 
+export const ECMA = 2021;
+
 export const viteConfigBuild: ViteUserConfig = {
   build: {
     outDir: path.resolve("dist/vite"),
+    polyfillModulePreload: false,
+    emptyOutDir: true,
+    cssCodeSplit: false,
+    ssr: false,
+    minify: "esbuild",
+    target: `es${ECMA}`,
   },
 
   esbuild: {
-    define: {
-      this: "window",
-    },
     treeShaking: true,
-    sourcemap: true,
+    sourcemap: false,
     target: ESBUILD_TARGETS,
     charset: "utf8",
-    format: "esm",
-    keepNames: true,
-    minify: false,
-    minifySyntax: false,
-    minifyIdentifiers: false,
-    minifyWhitespace: false,
+    legalComments: "none",
+    keepNames: false,
+    minify: true,
+    minifySyntax: true,
+    minifyIdentifiers: true,
+    minifyWhitespace: true,
   },
 
   plugins: [rollupPluginSpglsl({})],

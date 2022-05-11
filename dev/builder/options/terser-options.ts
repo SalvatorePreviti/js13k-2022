@@ -1,4 +1,14 @@
-import type { ECMA, MinifyOptions as TerserMinifyOptions, SourceMapOptions as TerserSourceMapOptions } from "terser";
+import { UnsafeAny } from "@balsamic/dev";
+import type {
+  CompressOptions,
+  ECMA as ECMAVersion,
+  FormatOptions,
+  MangleOptions,
+  MinifyOptions as TerserMinifyOptions,
+  ParseOptions,
+  SourceMapOptions as TerserSourceMapOptions,
+} from "terser";
+import { ECMA } from "../build-config";
 import { browserPureFunctions } from "./browser-globals";
 
 export { TerserMinifyOptions, TerserSourceMapOptions };
@@ -11,19 +21,35 @@ export interface TerserMinifySettings {
   sourceMap?: boolean | TerserSourceMapOptions;
 }
 
-const ecma = 2021 as ECMA;
+export interface CustomCompressOptions extends Required<CompressOptions> {
+  keep_classnames: boolean;
+  keep_fnames: boolean;
+}
+
+export interface CustomMinifyOptions extends TerserMinifyOptions {
+  compress: CustomCompressOptions;
+  ecma: ECMAVersion;
+  mangle: false | MangleOptions;
+  module: boolean;
+  format: FormatOptions;
+  parse: ParseOptions;
+  safari10: false;
+  toplevel: boolean;
+  keep_classnames: boolean;
+  keep_fnames: boolean;
+}
 
 export function getTerserMinifyOptions(
   settings: TerserMinifySettings,
   terserNameCache?: Record<string, unknown>,
-): TerserMinifyOptions {
+): CustomMinifyOptions {
   const module = settings.sourceType === "module";
   const toplevel = module;
   const passes = settings.passes;
   const mangle = !!settings.mangle;
   const preserve_annotations = !!settings.preserve_annotations;
 
-  const options: TerserMinifyOptions = {
+  const options: CustomMinifyOptions = {
     // Use when minifying an ES6 module.
     // "use strict" is implied and names can be mangled on the top scope.
     // If compress or mangle is enabled then the toplevel option will be enabled.
@@ -38,7 +64,7 @@ export function getTerserMinifyOptions(
 
     nameCache: terserNameCache,
 
-    ecma,
+    ecma: ECMA as ECMAVersion,
     ie8: false,
     safari10: false,
     keep_classnames: !mangle,
@@ -47,14 +73,17 @@ export function getTerserMinifyOptions(
     // Parser options
     parse: {
       bare_returns: settings.sourceType !== "script",
-      ecma: 2022 as ECMA,
+      ecma: ECMA as ECMAVersion,
       html5_comments: true,
       shebang: true,
     },
 
     // Compress options
     compress: {
-      ecma,
+      ecma: ECMA as ECMAVersion,
+
+      defaults: true,
+
       ie8: false,
 
       // Global definitions for conditional compilation
@@ -298,7 +327,7 @@ export function getTerserMinifyOptions(
       ie8: false,
 
       // set desired EcmaScript standard version for output.
-      ecma,
+      ecma: ECMA as ECMAVersion,
 
       /** Emit shorthand properties {a} instead of {a: a} */
       shorthand: true,
@@ -328,7 +357,7 @@ export function getTerserMinifyOptions(
       // when passed it must be a string and it will be prepended to the output literally.
       // The source map will adjust for this text.
       // Can be used to insert a comment containing licensing information, for example.
-      preamble: undefined,
+      preamble: undefined as UnsafeAny,
 
       // pass true to quote all keys in literal objects
       quote_keys: false,

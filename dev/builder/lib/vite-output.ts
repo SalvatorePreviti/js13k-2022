@@ -60,19 +60,16 @@ export function processViteBuildOutput(
 }
 
 export function bundleViteOutput(input: ViteBuildOutput): ViteBundledOutput {
-  if (input.js.length > 1) {
-    throw new Error(
-      `${input.js.length} js files from vite, it should be only one: ${input.js
-        .map((script) => script.fileName)
-        .join(", ")}`,
-    );
+  let js = "";
+  for (const stylesheet of input.js) {
+    js += `${toUTF8(stylesheet.code)}\n`;
   }
   let css = "";
   for (const stylesheet of input.css) {
     css += `${toUTF8(stylesheet.source)}\n`;
   }
   const result: ViteBundledOutput = {
-    js: input.js[0]?.code || "",
+    js,
     css,
     html: toUTF8(input.html.source),
     assets: input.assets,

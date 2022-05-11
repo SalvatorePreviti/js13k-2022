@@ -2,7 +2,7 @@ import { minify as htmlMinify } from "html-minifier";
 import { minify as terserMinify } from "terser";
 import { getHtmlMinifierOptions } from "../options/html-minify-options";
 import { getTerserMinifyOptions } from "../options/terser-options";
-import type { ViteBundledOutput } from "./process-vite-output";
+import type { ViteBundledOutput } from "./vite-output";
 import { devLog } from "@balsamic/dev";
 import { CSS_TARGETS } from "../build-config";
 import parcelCss from "@parcel/css";
@@ -28,7 +28,7 @@ function optimizeHtml(html: string) {
   // Remove all external styles
   Array.from(dom.window.document.querySelectorAll("link[href]")).forEach((el) => el.remove());
 
-  let indexHtml = dom.window.document.querySelector("html")?.innerHTML || "";
+  let indexHtml = dom.window.document.querySelector("html")?.outerHTML || "";
 
   indexHtml = htmlMinify(indexHtml, getHtmlMinifierOptions({ minifyCss: true, minifyJs: true })) || indexHtml;
 
@@ -55,13 +55,14 @@ function optimizeCss(css: string) {
 }
 
 async function optimizeJS(script: string) {
-  script =
-    (
-      await terserMinify(
-        script,
-        getTerserMinifyOptions({ sourceType: "script", mangle: true, preserve_annotations: false, passes: 9 }),
-      )
-    ).code || script;
+  const options = getTerserMinifyOptions({
+    sourceType: "module",
+    mangle: true,
+    preserve_annotations: false,
+    passes: 6,
+  });
+
+  script = (await terserMinify(script, options)).code || script;
 
   // Remove final semicolon
   while (script.endsWith(";")) {

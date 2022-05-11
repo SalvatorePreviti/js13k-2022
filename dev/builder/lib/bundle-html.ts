@@ -1,7 +1,7 @@
 import { minify as htmlMinify } from "html-minifier";
 import { getHtmlMinifierOptions } from "../options/html-minify-options";
 import { JSDOM } from "jsdom";
-import { ViteBundledOutput } from "./process-vite-output";
+import { ViteBundledOutput } from "./vite-output";
 import { OutputAsset } from "rollup";
 
 export interface BundledHtmlOutput {
@@ -27,15 +27,8 @@ export async function bundleHtml(input: ViteBundledOutput): Promise<BundledHtmlO
     dom.window.document.body.appendChild(scriptTag);
   }
 
-  let bundled = dom.window.document.querySelector("html")?.innerHTML || "";
+  let bundled = dom.window.document.querySelector("html")?.outerHTML || "";
   bundled = htmlMinify(bundled, getHtmlMinifierOptions({ minifyCss: true, minifyJs: false })) || bundled;
-
-  // Remove tag closures
-  for (const endTag of ["</html>", "</body>", "</script>"]) {
-    if (bundled.endsWith(endTag)) {
-      bundled = bundled.slice(0, -endTag.length).trim();
-    }
-  }
 
   return {
     html: bundled,

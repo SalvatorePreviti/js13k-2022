@@ -2,13 +2,13 @@ import { devLogBuilding, devPrintJS13KFinalBundleSize, devWriteOutputFile, print
 import fs from "fs/promises";
 import config from "../config";
 import { build as viteBuild, mergeConfig as viteMergeConfig } from "vite";
-import { bundleViteOutput, processViteBuildOutput, ViteBuildOutput } from "./lib/process-vite-output";
+import { bundleViteOutput, processViteBuildOutput, ViteBuildOutput } from "./lib/vite-output";
 import { devLog } from "@balsamic/dev";
 import { viteConfigBuild, viteOutDir } from "./build-config";
 import { writeBundle } from "./lib/write-bundle";
 import { zipBundle } from "./lib/zip-bundle";
 import { bundleHtml } from "./lib/bundle-html";
-import { optimizeViteOutput } from "./lib/optimize-vite-output";
+import { optimizeViteOutput } from "./lib/optimize";
 
 devLog.options.titlePaddingWidth = 16;
 
