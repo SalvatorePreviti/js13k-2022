@@ -150,7 +150,6 @@ export function devPrintJS13KFinalBundleSize(totalBytes: number) {
 
   devLog.log();
   devLog.capacityBar({ value: totalBytes, max: JS13K_SIZE_IN_BYTES, width: 59 });
-  devLog.log();
 
   return bytesLeft >= 0;
 }
