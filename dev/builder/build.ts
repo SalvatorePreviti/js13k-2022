@@ -44,6 +44,7 @@ export async function build() {
   );
 
   await writeBundle(bundled);
+  devLog.log();
 
   printFileSizes(
     {

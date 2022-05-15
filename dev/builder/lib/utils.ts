@@ -133,16 +133,17 @@ export function devPrintJS13KFinalBundleSize(totalBytes: number) {
     )
     .writeln(
       clr(
-        `${"total".padEnd(5)} ${coloredBytesTotal(
-          prettySize(totalBytes, { appendBytes: false }).padStart(9),
-        )} ${coloredBytesTotal(`${totalBytes.toString().padStart(7)} Bytes`)}`,
-      ),
-    )
-    .writeln(
-      clr(
         `${"left".padEnd(5)} ${coloredBytesLeft(
           prettySize(bytesLeft, { appendBytes: false }).padStart(9),
         )} ${coloredBytesLeft(`${bytesLeft.toString().padStart(7)} Bytes ${emoji} `)}`,
+      ),
+    )
+    .hr2()
+    .writeln(
+      clr(
+        `${"total".padEnd(5)} ${coloredBytesTotal(
+          prettySize(totalBytes, { appendBytes: false }).padStart(9),
+        )} ${coloredBytesTotal(`${totalBytes.toString().padStart(7)} Bytes`)}`,
       ),
     )
     .print();

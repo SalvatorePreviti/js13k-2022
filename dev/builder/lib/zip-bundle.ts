@@ -22,8 +22,6 @@ export function zipBundle(bundle: WriteBundleInput) {
 }
 
 export async function zipEntries(input: ZipFileEntry[]) {
-  devLog.log();
-
   const entries: { name: string; data: Buffer }[] = [];
 
   let totalUnzipped = 0;
