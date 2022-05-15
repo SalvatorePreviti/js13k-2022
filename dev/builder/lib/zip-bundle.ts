@@ -2,9 +2,9 @@ import ADMZip from "adm-zip";
 import fs from "fs";
 import zlib from "zlib";
 import { zipBundleOptions } from "../options/zip-bundle-options";
-import { WriteBundleInput } from "./write-bundle";
-import { colors, devLog } from "@balsamic/dev";
-import { getCompressionRatioPercent, printNotice } from "./utils";
+import type { WriteBundleInput } from "./write-bundle";
+import { devLog } from "@balsamic/dev";
+import { sizeDifference } from "./utils";
 
 export type ZipFileEntry = { name?: string; source?: Buffer | Uint8Array | string | undefined; fileName?: string };
 
@@ -24,29 +24,15 @@ export function zipBundle(bundle: WriteBundleInput) {
 export async function zipEntries(input: ZipFileEntry[]) {
   devLog.log();
 
-  devLog.log(
-    colors.rgb(
-      120,
-      190,
-      255,
-    )(
-      `⬢ ${input.length} file${input.length !== 1 ? "s" : ""}, ${
-        zipBundleOptions.implementation === "zopfli"
-          ? `zopfli, ${zipBundleOptions.zopfli.numiterations} iterations`
-          : `zlib, level ${zipBundleOptions.zlib.level}`
-      }`,
-    ),
-  );
-
-  devLog.log();
-
   const entries: { name: string; data: Buffer }[] = [];
 
   let totalUnzipped = 0;
 
   const zippedBuffer = await devLog.timed(
-    "compress",
-    async () => {
+    zipBundleOptions.implementation === "zopfli"
+      ? `zip zopfli ${zipBundleOptions.zopfli.numiterations}`
+      : `zip zlib ${zipBundleOptions.zlib.level}`,
+    async function compress() {
       const admZip = new ADMZip();
       for (const item of input) {
         const fname = item.name || item.fileName;
@@ -81,14 +67,17 @@ export async function zipEntries(input: ZipFileEntry[]) {
         admZip.addFile(entry.name, entry.data);
       }
 
-      return new Promise<Buffer>((resolve, reject) => admZip.toBuffer(resolve, reject));
+      const zipped = await new Promise<Buffer>((resolve, reject) => admZip.toBuffer(resolve, reject));
+
+      this.setSuccessText(sizeDifference(totalUnzipped, zipped));
+
+      return zipped;
     },
     { spinner: true },
   );
 
-  await devLog.timed(
-    "zip verify",
-    () => {
+  devLog.timed(
+    function zip_verify() {
       const unzip = new ADMZip(zippedBuffer);
 
       const unzippedEntries: { name: string; data: Buffer }[] = [];
@@ -113,9 +102,6 @@ export async function zipEntries(input: ZipFileEntry[]) {
     },
     { spinner: true },
   );
-
-  devLog.log();
-  printNotice("compression ratio", getCompressionRatioPercent(totalUnzipped, zippedBuffer.length));
 
   return zippedBuffer;
 }

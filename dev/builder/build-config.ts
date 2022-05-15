@@ -1,6 +1,8 @@
 import path from "path";
-import { UserConfig as ViteUserConfig } from "vite";
+import type { UserConfig as ViteUserConfig } from "vite";
 import { rollupPluginSpglsl } from "spglsl";
+import { browserPureFunctions } from "./options/browser-globals";
+import { getTerserMinifyOptions } from "./options/terser-minify-options";
 
 export const viteOutDir = path.resolve("dist/vite");
 
@@ -17,8 +19,13 @@ export const viteConfigBuild: ViteUserConfig = {
     emptyOutDir: true,
     cssCodeSplit: false,
     ssr: false,
-    minify: "esbuild",
+    minify: "terser",
     target: `es${ECMA}`,
+    terserOptions: getTerserMinifyOptions({
+      mangle: "all",
+      preserve_annotations: true,
+      sourceType: "module",
+    }),
   },
 
   esbuild: {
@@ -30,8 +37,10 @@ export const viteConfigBuild: ViteUserConfig = {
     keepNames: false,
     minify: true,
     minifySyntax: true,
-    minifyIdentifiers: true,
-    minifyWhitespace: true,
+    minifyIdentifiers: false,
+    minifyWhitespace: false,
+    ignoreAnnotations: false,
+    pure: browserPureFunctions,
   },
 
   plugins: [rollupPluginSpglsl({})],

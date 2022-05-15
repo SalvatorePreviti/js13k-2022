@@ -1,4 +1,5 @@
-import { createServer, mergeConfig, UserConfig } from "vite";
+import type { UserConfig } from "vite";
+import { createServer, mergeConfig } from "vite";
 import { devLog } from "@balsamic/dev";
 import vitePluginReact from "@vitejs/plugin-react";
 
@@ -46,6 +47,9 @@ function parseCommandLine(argv: string[]) {
         devLog.log("--host [host]  [string|boolean] specify hostname");
         devLog.log("--port <port>  [number] specify port");
         return null;
+
+      default:
+        break;
     }
   }
   if (!host) {

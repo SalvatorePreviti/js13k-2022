@@ -11,7 +11,7 @@ export interface WriteBundleInput {
 
 export async function writeBundle(input: WriteBundleInput, outputFolder = "dist/bundle") {
   await fs.rm("dist/bundle", { force: true, maxRetries: 5, recursive: true });
-  await fs.mkdir("dist/bundle", { force: true, recursive: true });
+  await fs.mkdir("dist/bundle", { recursive: true });
 
   const filenames = [];
   let totalSize = 0;
@@ -35,8 +35,6 @@ export async function writeBundle(input: WriteBundleInput, outputFolder = "dist/
     }
     await Promise.all(promises);
   }
-
-  devLog.log();
 
   return {
     input,

@@ -1,55 +1,35 @@
-import { UnsafeAny } from "@balsamic/dev";
-import type {
-  CompressOptions,
-  ECMA as ECMAVersion,
-  FormatOptions,
-  MangleOptions,
-  MinifyOptions as TerserMinifyOptions,
-  ParseOptions,
-  SourceMapOptions as TerserSourceMapOptions,
-} from "terser";
-import { ECMA } from "../build-config";
+import type { JsMinifyOptions } from "@swc/core";
 import { browserPureFunctions } from "./browser-globals";
 
-export { TerserMinifyOptions, TerserSourceMapOptions };
-
-export interface TerserMinifySettings {
+export interface SwcMinifySettings {
   sourceType: "module" | "script" | "inline";
   mangle: boolean;
   preserve_annotations: boolean;
-  passes: number;
-  sourceMap?: boolean | TerserSourceMapOptions;
+  sourceMap?: boolean | undefined;
 }
 
-export interface CustomCompressOptions extends Required<CompressOptions> {
-  keep_classnames: boolean;
-  keep_fnames: boolean;
+const ecma = 2020;
+
+// fixes for incomplete types in @swc/core minify that is still experimental
+declare module "@swc/core" {
+  export interface TerserMangleOptions {
+    keepClassNames?: boolean | undefined;
+    keepFnNames?: boolean | undefined;
+  }
+  export interface TerserCompressOptions {
+    const_to_let?: boolean | undefined;
+    pristine_globals?: boolean | undefined;
+  }
 }
 
-export interface CustomMinifyOptions extends TerserMinifyOptions {
-  compress: CustomCompressOptions;
-  ecma: ECMAVersion;
-  mangle: false | MangleOptions;
-  module: boolean;
-  format: FormatOptions;
-  parse: ParseOptions;
-  safari10: false;
-  toplevel: boolean;
-  keep_classnames: boolean;
-  keep_fnames: boolean;
-}
-
-export function getTerserMinifyOptions(
-  settings: TerserMinifySettings,
-  terserNameCache?: Record<string, unknown>,
-): CustomMinifyOptions {
+export function getSwcMinifyOptions(
+  settings: SwcMinifySettings,
+): JsMinifyOptions & { keepClassnames?: boolean | undefined; keepFnames?: boolean | undefined } {
+  const mangle = !!settings.mangle;
   const module = settings.sourceType === "module";
   const toplevel = module;
-  const passes = settings.passes;
-  const mangle = !!settings.mangle;
-  const preserve_annotations = !!settings.preserve_annotations;
 
-  const options: CustomMinifyOptions = {
+  return {
     // Use when minifying an ES6 module.
     // "use strict" is implied and names can be mangled on the top scope.
     // If compress or mangle is enabled then the toplevel option will be enabled.
@@ -62,25 +42,16 @@ export function getTerserMinifyOptions(
     // Sourcemap support
     sourceMap: !!settings.sourceMap,
 
-    nameCache: terserNameCache,
-
-    ecma: ECMA as ECMAVersion,
-    ie8: false,
+    ecma,
     safari10: false,
-    keep_classnames: !mangle,
-    keep_fnames: !mangle,
+    keepClassnames: !mangle,
+    keepFnames: !mangle,
 
-    // Parser options
-    parse: {
-      bare_returns: settings.sourceType !== "script",
-      ecma: ECMA as ECMAVersion,
-      html5_comments: true,
-      shebang: true,
-    },
+    inlineSourcesContent: false,
 
     // Compress options
     compress: {
-      ecma: ECMA as ECMAVersion,
+      ecma,
 
       defaults: true,
 
@@ -158,7 +129,7 @@ export function getTerserMinifyOptions(
       if_return: true,
 
       // inline calls to function with simple/return statement
-      inline: true,
+      inline: 1,
 
       // join consecutive var statements
       join_vars: true,
@@ -189,9 +160,8 @@ export function getTerserMinifyOptions(
       // to avoid the parens that the code generator would insert.
       negate_iife: true,
 
-      // The maximum number of times to run compress.
-      // In some cases more than one pass leads to further compressed code.
-      passes,
+      // The maximum number of times to run compress. 0 means infinite.
+      passes: 0,
 
       // Rewrite property access using the dot notation, for example foo["bar"] → foo.bar
       properties: true,
@@ -246,9 +216,6 @@ export function getTerserMinifyOptions(
       // This could cause change in execution order after operands in the comparison are switching.
       unsafe_comps: true,
 
-      // compress and mangle Function(args, code) when both args and code are string literals.
-      unsafe_Function: true,
-
       // optimize numerical expressions like 2 * x * 3 into 6 * x, which may give imprecise floating point results.
       unsafe_math: true,
 
@@ -275,34 +242,33 @@ export function getTerserMinifyOptions(
       // drop unreferenced functions and variables (simple direct variable assignments
       // do not count as references unless set to "keep_assign")
       unused: true,
+
+      const_to_let: true,
+      pristine_globals: true,
     },
 
     // Mangle options
     mangle: mangle && {
       safari10: false,
 
-      // Pass true to mangle names visible in scopes where eval or with are used.
-      eval: true,
-
       // Pass true to not mangle class names.
       // Pass a regular expression to only keep class names matching that regex.
       // See also: the keep_classnames compress option.
-      keep_classnames: false,
+      keepClassNames: false,
 
       // Pass true to not mangle function names.
       // Pass a regular expression to only keep class names matching that regex.
       // Useful for code relying on Function.prototype.name.
       // See also: the keep_fnames compress option.
-      keep_fnames: false,
+      keepFnNames: false,
 
-      // Pass true an ES6 modules, where the toplevel scope is not the global scope. Implies toplevel.
-      module,
+      keep_private_props: false,
 
       // Pass an array of identifiers that should be excluded from mangling. Example: ["foo", "bar"].
       reserved: undefined,
 
       // Mangle properties - optimizes a lot but is very dangerous. Enables only with properties starting with $
-      properties: {
+      props: {
         // Use true to allow the mangling of builtin DOM properties. Not recommended to override this setting.
         builtins: false,
 
@@ -313,28 +279,13 @@ export function getTerserMinifyOptions(
         //  true: Quoted property names are automatically reserved and any unquoted property names will not be mangled.
         //  'strict': Advanced, all unquoted property names are mangled unless explicitly reserved.
         keep_quoted: false,
-
-        // Pass a RegExp literal or pattern string to only mangle property matching the regular expression.
-        regex: /^[$_]/,
       },
-
-      // Pass true to mangle names declared in the top level scope.
-      toplevel,
     },
 
     // Output options
     format: {
-      ie8: false,
-
       // set desired EcmaScript standard version for output.
-      ecma: ECMA as ECMAVersion,
-
-      /** Emit shorthand properties {a} instead of {a: a} */
-      shorthand: true,
-
-      // escape Unicode characters in strings and regexps
-      // (affects directives with non-ascii characters becoming invalid)
-      ascii_only: true,
+      ecma,
 
       // whether to actually beautify the output
       beautify: false,
@@ -343,58 +294,7 @@ export function getTerserMinifyOptions(
       braces: false,
 
       // false to omit comments in the output
-      comments: false,
-
-      // escape HTML comments and the slash in occurrences of </script> in strings
-      inline_script: true,
-
-      // when turned on, prevents stripping quotes from property names in object literals.
-      keep_quoted_props: false,
-
-      // maximum line length (for minified code)
-      max_line_len: false,
-
-      // when passed it must be a string and it will be prepended to the output literally.
-      // The source map will adjust for this text.
-      // Can be used to insert a comment containing licensing information, for example.
-      preamble: undefined as UnsafeAny,
-
-      // pass true to quote all keys in literal objects
-      quote_keys: false,
-
-      // preferred quote style for strings (affects quoted property names and directives as well):
-      //  0 -- prefers double quotes, switches to single quotes when there are more double quotes in the string itself. 0 is best for gzip size.
-      //  1 -- always use single quotes
-      //  2 -- always use double quotes
-      //  3 -- always use the original quotes
-      quote_style: 0,
-
-      // Preserve Terser annotations in the output.
-      preserve_annotations,
-
-      // set this option to true to work around the Safari 10/11 await bug.
-      safari10: false,
-
-      // separate statements with semicolons.
-      // If you pass false then whenever possible we will use a newline instead of a semicolon,
-      // leading to more readable output of minified code (size before gzip could be smaller; size after gzip insignificantly larger).
-      semicolons: true,
-
-      // preserve shebang #! in preamble (bash scripts)
-      shebang: false,
-
-      // enable workarounds for WebKit bugs. PhantomJS users should set this option to true.
-      webkit: false,
-
-      // pass true to wrap immediately invoked function expressions.
-      wrap_iife: true,
-
-      // pass false if you do not want to wrap function expressions that are passed as arguments, in parenthesis.
-      // Passing to true, optimize for faster initial execution and parsing,
-      // by wrapping all immediately-invoked functions or likely-to-be-invoked functions in parentheses.
-      wrap_func_args: false,
+      comments: settings.preserve_annotations ? "all" : false,
     },
   };
-
-  return options;
 }

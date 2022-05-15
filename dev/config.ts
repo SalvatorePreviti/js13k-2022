@@ -1,4 +1,4 @@
-import { UserConfig } from "vite";
+import type { UserConfig } from "vite";
 import path from "path";
 
 const config: UserConfig = {

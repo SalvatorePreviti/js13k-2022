@@ -2,4 +2,4 @@
 
 const { devRunMain } = require("@balsamic/dev");
 
-devRunMain(() => require("./builder/build.ts").build(), { initTsNode: true });
+void devRunMain(() => require("./builder/build.ts").build(), { initTsNode: true, title: "build" });
