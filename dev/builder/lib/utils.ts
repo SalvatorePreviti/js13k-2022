@@ -138,7 +138,7 @@ export function devPrintJS13KFinalBundleSize(totalBytes: number) {
         )} ${coloredBytesLeft(`${bytesLeft.toString().padStart(7)} Bytes ${emoji} `)}`,
       ),
     )
-    .hr2()
+    .hr()
     .writeln(
       clr(
         `${"total".padEnd(5)} ${coloredBytesTotal(
