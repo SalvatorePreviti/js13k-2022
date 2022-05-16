@@ -1,6 +1,15 @@
 import path from "path";
-import fs from "fs";
-import { colors, devLog, numberFixedString, prettySize, TermBox, utf8ByteLength } from "@balsamic/dev";
+import fsp from "fs/promises";
+import {
+  colors,
+  devChildTask,
+  devLog,
+  numberFixedRound,
+  numberFixedString,
+  prettySize,
+  TermBox,
+  utf8ByteLength,
+} from "@balsamic/dev";
 import { makePathRelative } from "@balsamic/dev/path";
 
 export const JS13K_SIZE_IN_BYTES = 13312;
@@ -19,18 +28,39 @@ export function coloredPrettySize(bytes: SizeType): string {
   return _colorFileSize(psize) + _colorByteSize(pbytes);
 }
 
-function _getFileSizeRow(name: string, value: SizeType) {
-  const bytes = Math.round(utf8ByteLength(value));
-  if (path.isAbsolute(name)) {
-    name = makePathRelative(name);
-  }
-  const pname = _colorFileType(name.padEnd(9));
-  return `${pname} ${coloredPrettySize(bytes)}`;
+export interface GlobalReportRow {
+  group: string;
+  name: string;
+  value: number | string | number[];
 }
+
+export const globalReport = {
+  date: new Date().toISOString(),
+  commit: "",
+  files: {} as Record<string, number>,
+  rows: [] as GlobalReportRow[],
+
+  async append(): Promise<void> {
+    const commit = (
+      await devChildTask.spawn("git", ["rev-parse", "HEAD"], { shell: true, captureOutputText: true })
+    ).stdoutText.trim();
+    await fsp.appendFile(
+      "build-history.log",
+      `${JSON.stringify({ ...globalReport, commit, uptime: numberFixedRound(process.uptime(), 2) })}\n`,
+      "utf8",
+    );
+  },
+};
 
 export class FilesSizeTermBox extends TermBox {
   public totalValue: number = 0;
   private _total: number = 0;
+  public group: string;
+
+  public constructor(group: string, options?: TermBox.Options | undefined) {
+    super(options);
+    this.group = group;
+  }
 
   public row(name: string, value: string): this {
     if (path.isAbsolute(name)) {
@@ -43,6 +73,7 @@ export class FilesSizeTermBox extends TermBox {
   public sizeRow(name: string, ...values: SizeType[]): this {
     const bytes = Math.round(utf8ByteLength(...values)) || 0;
     this._total += bytes;
+    globalReport.rows.push({ group: this.group, name, value: bytes });
     return this.row(name, coloredPrettySize(bytes));
   }
 
@@ -79,6 +110,7 @@ export class FilesSizeTermBox extends TermBox {
     } else {
       this.totalValue = Math.round(utf8ByteLength(...values)) || 0;
     }
+    globalReport.rows.push({ group: this.group, name, value: this.totalValue });
     this.row(name, coloredPrettySize(this.totalValue));
     return this;
   }
@@ -90,6 +122,9 @@ export class FilesSizeTermBox extends TermBox {
       }
       b = this.totalValue;
     }
+    a = utf8ByteLength(a);
+    b = utf8ByteLength(b);
+    globalReport.rows.push({ group: this.group, name, value: [a, b] });
     return this.row(name, sizeDifference(a, b, { pad: true, colors: true }));
   }
 
@@ -101,8 +136,8 @@ export class FilesSizeTermBox extends TermBox {
     return this;
   }
 
-  public static override begin(options?: TermBox.Options): FilesSizeTermBox {
-    return new FilesSizeTermBox(options);
+  public static new(group: string, options?: TermBox.Options | undefined): FilesSizeTermBox {
+    return new FilesSizeTermBox(group, options);
   }
 
   public static final(totalBytes: number): boolean {
@@ -121,8 +156,7 @@ export class FilesSizeTermBox extends TermBox {
     }
 
     const clr = devLog.getColor("notice");
-    devLog
-      .termBox({ boxColor: coloredBytesLeft })
+    FilesSizeTermBox.new("final", { boxColor: coloredBytesLeft })
       .writeln(
         clr(
           `${"max".padEnd(6)} ${prettySize(JS13K_SIZE_IN_BYTES, { appendBytes: false }).padStart(
@@ -154,47 +188,6 @@ export class FilesSizeTermBox extends TermBox {
   }
 }
 
-export function printFileSizes(
-  values: Record<string, number | string | Uint8Array | null | undefined>,
-  { total, previousTotal }: { total?: boolean | number | undefined; previousTotal?: number | undefined } = {},
-) {
-  const box = devLog.termBox();
-
-  let count = 0;
-  for (const [key, value] of Object.entries(values)) {
-    if (value !== undefined) {
-      ++count;
-      box.writeln(_getFileSizeRow(key, value));
-    }
-  }
-
-  let tot = 0;
-  if (typeof total === "number") {
-    tot = total;
-  } else {
-    for (const value of Object.values(values)) {
-      if (typeof value !== "boolean") {
-        tot += utf8ByteLength(value);
-      }
-    }
-  }
-
-  const shouldPrintTotal = count > 1 && total;
-  if (shouldPrintTotal || previousTotal) {
-    box.hr();
-    if (shouldPrintTotal) {
-      box.writeln(_getFileSizeRow("total", tot));
-    }
-    if (previousTotal) {
-      box.writeln(_colorFileType("difference ") + sizeDifference(previousTotal, tot, { pad: true }));
-    }
-  }
-
-  box.print();
-  devLog.log();
-  return tot;
-}
-
 export function sizeDifference(
   a: SizeType,
   b: SizeType,
@@ -221,15 +214,15 @@ export function devLogBuilding(sourceFilder: string, targetFolder: string) {
 export function devPrintOjutputFileWritten(outputFilePath: string, content: string | Buffer | Uint8Array) {
   outputFilePath = path.resolve(outputFilePath);
   const size = utf8ByteLength(content);
+  const relativePath = makePathRelative(outputFilePath);
+  globalReport.files = { [relativePath]: size, ...globalReport.files, [relativePath]: size };
   console.log(
-    `${colors.greenBright("💾 write")} ${_colorFilePath(
-      makePathRelative(outputFilePath).padEnd(26, " "),
-    )} ${coloredPrettySize(size)}`,
+    `${colors.greenBright("💾 write")} ${_colorFilePath(relativePath.padEnd(26, " "))} ${coloredPrettySize(size)}`,
   );
 }
 
 export async function devWriteOutputFile(outputFilePath: string, content: string | Buffer | Uint8Array) {
   outputFilePath = path.resolve(outputFilePath);
-  await fs.promises.writeFile(outputFilePath, content);
+  await fsp.writeFile(outputFilePath, content);
   devPrintOjutputFileWritten(outputFilePath, content);
 }

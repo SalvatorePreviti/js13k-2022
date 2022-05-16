@@ -1,4 +1,4 @@
-import { devLogBuilding, devWriteOutputFile, FilesSizeTermBox } from "./lib/utils";
+import { devLogBuilding, devWriteOutputFile, FilesSizeTermBox, globalReport } from "./lib/utils";
 import fs from "fs/promises";
 import config from "../config";
 import { build as viteBuild, mergeConfig as viteMergeConfig } from "vite";
@@ -22,7 +22,7 @@ export async function build() {
 
   const viteOutput = bundleViteOutput(viteBuiltOutput);
 
-  const viteOutputSize = FilesSizeTermBox.begin()
+  const viteOutputSize = FilesSizeTermBox.new("vite")
     .sizeRow("js", viteOutput.js)
     .sizeRow("html", viteOutput.html)
     .sizeRow("css", viteOutput.css)
@@ -39,7 +39,7 @@ export async function build() {
 
   const bundled = bundleHtml(optimized);
 
-  const optimizedSize = FilesSizeTermBox.begin()
+  const optimizedSize = FilesSizeTermBox.new("optimized")
     .sizeRow("js", optimized.js)
     .sizeRow("html", optimized.html)
     .sizeRow("css", optimized.css)
@@ -49,7 +49,7 @@ export async function build() {
     .diffRow("difference", viteOutputSize)
     .print().totalValue;
 
-  FilesSizeTermBox.begin()
+  FilesSizeTermBox.new("bundle")
     .sizeRow("bundle", bundled.html, viteOutput.assetsBytes)
     .diffRow("difference", optimizedSize)
     .print("");
@@ -65,6 +65,8 @@ export async function build() {
   if (!FilesSizeTermBox.final(zippedBuffer.length)) {
     process.exitCode = 1;
   }
+
+  await globalReport.append();
 }
 
 async function viteBuildOutput(): Promise<ViteBuildOutput> {

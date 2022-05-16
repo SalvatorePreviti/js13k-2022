@@ -1,6 +1,5 @@
-import { toUTF8, utf8ByteLength } from "@balsamic/dev";
+import { toUTF8 } from "@balsamic/dev";
 import type { RollupOutput, OutputChunk, OutputAsset, RollupWatcher } from "rollup";
-import { FilesSizeTermBox } from "./utils";
 
 export interface ViteBuildOutput {
   html: OutputAsset;
