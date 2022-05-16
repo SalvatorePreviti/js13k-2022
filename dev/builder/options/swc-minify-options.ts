@@ -115,7 +115,7 @@ export function getSwcMinifyOptions(
       expression: false,
 
       // hoist function declarations
-      hoist_funs: true,
+      hoist_funs: false,
 
       // hoist properties from constant object and array literals into regular variables subject to a set of constraints.
       // For example: var o={p:1, q:2}; f(o.p, o.q); is converted to f(1, 2)

@@ -1,11 +1,7 @@
 import type { UnsafeAny } from "@balsamic/dev";
 import type {
-  CompressOptions,
   ECMA as ECMAVersion,
-  FormatOptions,
-  MangleOptions,
   MinifyOptions as TerserMinifyOptions,
-  ParseOptions,
   SourceMapOptions as TerserSourceMapOptions,
 } from "terser";
 import { ECMA } from "../build-config";
@@ -21,28 +17,10 @@ export interface TerserMinifySettings {
   sourceMap?: boolean | TerserSourceMapOptions;
 }
 
-export interface CustomCompressOptions extends Required<CompressOptions> {
-  keep_classnames: boolean;
-  keep_fnames: boolean;
-}
-
-export interface CustomMinifyOptions extends TerserMinifyOptions {
-  compress: CustomCompressOptions;
-  ecma: ECMAVersion;
-  mangle: false | MangleOptions;
-  module: boolean;
-  format: FormatOptions;
-  parse: ParseOptions;
-  safari10: false;
-  toplevel: boolean;
-  keep_classnames: boolean;
-  keep_fnames: boolean;
-}
-
 export function getTerserMinifyOptions(
   settings: TerserMinifySettings,
   terserNameCache?: Record<string, unknown>,
-): CustomMinifyOptions {
+): TerserMinifyOptions {
   const module = settings.sourceType === "module";
   const toplevel = module;
   const passes = settings.passes ?? 12;
@@ -50,7 +28,7 @@ export function getTerserMinifyOptions(
   const mangleAll = settings.mangle === "all";
   const preserve_annotations = !!settings.preserve_annotations;
 
-  const options: CustomMinifyOptions = {
+  const options: TerserMinifyOptions = {
     // Use when minifying an ES6 module.
     // "use strict" is implied and names can be mangled on the top scope.
     // If compress or mangle is enabled then the toplevel option will be enabled.
@@ -108,7 +86,7 @@ export function getTerserMinifyOptions(
       booleans: true,
 
       // Turn booleans into 0 and 1, also makes comparisons with booleans use == and != instead of === and !==
-      booleans_as_integers: false,
+      booleans_as_integers: true,
 
       // Collapse single-use non-constant variables, side effects permitting.
       collapse_vars: true,
@@ -145,7 +123,8 @@ export function getTerserMinifyOptions(
       expression: false,
 
       // hoist function declarations
-      hoist_funs: true,
+      // SP: seems to increase the size of the output.
+      hoist_funs: false,
 
       // hoist properties from constant object and array literals into regular variables subject to a set of constraints.
       // For example: var o={p:1, q:2}; f(o.p, o.q); is converted to f(1, 2)
@@ -377,9 +356,9 @@ export function getTerserMinifyOptions(
       safari10: false,
 
       // separate statements with semicolons.
-      // If you pass false then whenever possible we will use a newline instead of a semicolon,
-      // leading to more readable output of minified code (size before gzip could be smaller; size after gzip insignificantly larger).
-      semicolons: true,
+      // If you pass false then whenever possible we will use a newline instead of a semicolon.
+      // SP: seems that false generates smaller zip files
+      semicolons: false,
 
       // preserve shebang #! in preamble (bash scripts)
       shebang: false,
@@ -388,7 +367,8 @@ export function getTerserMinifyOptions(
       webkit: false,
 
       // pass true to wrap immediately invoked function expressions.
-      wrap_iife: true,
+      // SP: seems that false generates smaller bundle
+      wrap_iife: false,
 
       // pass false if you do not want to wrap function expressions that are passed as arguments, in parenthesis.
       // Passing to true, optimize for faster initial execution and parsing,

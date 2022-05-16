@@ -6,6 +6,7 @@ import type { ViteBuildOutput, ViteBundledOutput } from "./lib/vite-output";
 import { bundleViteOutput, processViteBuildOutput } from "./lib/vite-output";
 import { devLog } from "@balsamic/dev";
 import { viteConfigBuild, viteOutDir } from "./build-config";
+import type { WriteBundleInput } from "./lib/write-bundle";
 import { writeBundle } from "./lib/write-bundle";
 import { zipBundle } from "./lib/zip-bundle";
 import { bundleHtml } from "./lib/bundle-html";
@@ -20,7 +21,7 @@ export async function build() {
 
   const viteBuiltOutput = await devLog.timed("vite build", viteBuildOutput, { printStarted: false });
 
-  const viteOutput = bundleViteOutput(viteBuiltOutput);
+  const viteOutput = await bundleViteOutput(viteBuiltOutput);
 
   const viteOutputSize = FilesSizeTermBox.new("vite")
     .sizeRow("js", viteOutput.js)
@@ -37,20 +38,24 @@ export async function build() {
 
   const optimized: ViteBundledOutput = { ...viteOutput, js, html, css };
 
-  const bundled = bundleHtml(optimized);
-
   const optimizedSize = FilesSizeTermBox.new("optimized")
     .sizeRow("js", optimized.js)
     .sizeRow("html", optimized.html)
     .sizeRow("css", optimized.css)
-    .sizeRowOptional("assets", viteOutput.assetsBytes)
+    .sizeRowOptional("assets", optimized.assetsBytes)
     .hr()
     .totalRow("total")
     .diffRow("difference", viteOutputSize)
     .print().totalValue;
 
+  const bundled: WriteBundleInput = {
+    html: bundleHtml(optimized).html,
+    assets: optimized.assets,
+    assetsBytes: optimized.assetsBytes,
+  };
+
   FilesSizeTermBox.new("bundle")
-    .sizeRow("bundle", bundled.html, viteOutput.assetsBytes)
+    .sizeRow("bundle", bundled.html, bundled.assetsBytes)
     .diffRow("difference", optimizedSize)
     .print("");
 
@@ -58,6 +63,7 @@ export async function build() {
   devLog.log();
 
   const zippedBuffer = await zipBundle(bundled);
+
   devLog.log();
   await devWriteOutputFile("dist/bundle.zip", zippedBuffer);
   devLog.log();

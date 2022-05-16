@@ -2,11 +2,12 @@ import path from "path";
 import type { OutputAsset } from "rollup";
 import { devWriteOutputFile } from "./utils";
 import fs from "fs/promises";
-import { devLog, utf8ByteLength } from "@balsamic/dev";
+import { utf8ByteLength } from "@balsamic/dev";
 
 export interface WriteBundleInput {
   html: string;
-  assets?: OutputAsset[];
+  assets: OutputAsset[];
+  assetsBytes: number;
 }
 
 export async function writeBundle(input: WriteBundleInput, outputFolder = "dist/bundle") {

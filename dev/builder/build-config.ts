@@ -14,32 +14,39 @@ export const ECMA = 2021;
 
 export const viteConfigBuild: ViteUserConfig = {
   build: {
-    outDir: path.resolve("dist/vite"),
+    outDir: viteOutDir,
     polyfillModulePreload: false,
     emptyOutDir: true,
     cssCodeSplit: false,
     ssr: false,
-    minify: "terser",
+    minify: false, // "terser",
+    manifest: "esbuild",
+    write: true,
+    reportCompressedSize: false,
+    ssrManifest: false,
+    cssTarget: ESBUILD_TARGETS,
     target: `es${ECMA}`,
-    terserOptions: getTerserMinifyOptions({
+    sourcemap: true,
+    rollupOptions: {
+      output: {
+        entryFileNames: `assets/[name].js`,
+        chunkFileNames: `assets/[name].js`,
+        assetFileNames: `assets/[name].[ext]`,
+      },
+    },
+    /* terserOptions: getTerserMinifyOptions({
       mangle: "all",
       preserve_annotations: true,
       sourceType: "module",
-    }),
+    }), */
   },
 
   esbuild: {
     treeShaking: true,
-    sourcemap: false,
+    sourcemap: "external",
     target: ESBUILD_TARGETS,
     charset: "utf8",
     legalComments: "none",
-    keepNames: false,
-    minify: true,
-    minifySyntax: true,
-    minifyIdentifiers: false,
-    minifyWhitespace: false,
-    ignoreAnnotations: false,
     pure: browserPureFunctions,
   },
 

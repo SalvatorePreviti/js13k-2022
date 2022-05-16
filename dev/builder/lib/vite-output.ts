@@ -1,5 +1,10 @@
-import { toUTF8 } from "@balsamic/dev";
+import { devError, devLog, toUTF8, utf8ByteLength } from "@balsamic/dev";
 import type { RollupOutput, OutputChunk, OutputAsset, RollupWatcher } from "rollup";
+import { ESBUILD_TARGETS, viteOutDir } from "../build-config";
+import { build as esbuildBuild } from "esbuild";
+import { browserPureFunctions } from "../options/browser-globals";
+import path from "path";
+import { sizeDifference } from "./utils";
 
 export interface ViteBuildOutput {
   html: OutputAsset;
@@ -44,7 +49,7 @@ export function processViteBuildOutput(
           throw new Error("ViteBuildOutput: multiple index.html found");
         }
         html = o;
-      } else {
+      } else if (o.fileName !== "esbuild") {
         assets.push(o);
       }
     } else if (o.type === "chunk") {
@@ -59,22 +64,105 @@ export function processViteBuildOutput(
   return { html, js, css, assets };
 }
 
-export function bundleViteOutput(input: ViteBuildOutput): ViteBundledOutput {
-  let js = "";
-  for (const stylesheet of input.js) {
-    js += `${toUTF8(stylesheet.code)}\n`;
-  }
-  let css = "";
-  for (const stylesheet of input.css) {
-    css += `${toUTF8(stylesheet.source)}\n`;
-  }
-  const result: ViteBundledOutput = {
-    js,
-    css,
-    html: toUTF8(input.html.source),
-    assets: input.assets,
-    assetsBytes: input.assets.reduce((r, a) => r + a.source.length, 0),
-  };
+export async function bundleViteOutput(input: ViteBuildOutput): Promise<ViteBundledOutput> {
+  let mainfile = "";
 
-  return result;
+  const inputSize =
+    input.css.reduce((c, v) => c + utf8ByteLength(v.source), 0) +
+    input.js.reduce((c, v) => c + utf8ByteLength(v.code), 0);
+
+  return devLog.timed(
+    async function esbuild() {
+      const sourcesByFilename = new Map<string, string>();
+
+      const mergedFilenames = new Set<string>();
+      for (const script of input.js) {
+        const fname = `/${script.fileName}`;
+        sourcesByFilename.set(fname, script.code);
+        mainfile += `import ${JSON.stringify(`.${fname}`)};\n`;
+        mergedFilenames.add(script.fileName);
+      }
+
+      for (const css of input.css) {
+        const fname = `/${css.fileName}`;
+        sourcesByFilename.set(fname, toUTF8(css.source));
+        mainfile += `import ${JSON.stringify(`.${fname}`)};\n`;
+        mergedFilenames.add(css.fileName);
+      }
+
+      const buildResult = await esbuildBuild({
+        stdin: { resolveDir: viteOutDir, contents: mainfile, loader: "js" },
+
+        treeShaking: true,
+        sourcemap: "external",
+        target: ESBUILD_TARGETS,
+        charset: "utf8",
+        legalComments: "none",
+        minify: true,
+        keepNames: false,
+        minifySyntax: true,
+        minifyIdentifiers: false,
+        minifyWhitespace: false,
+        ignoreAnnotations: false,
+        pure: browserPureFunctions,
+        bundle: true,
+        format: "esm",
+        splitting: false,
+        platform: "browser",
+        outdir: viteOutDir,
+        write: false,
+        plugins: [
+          {
+            name: "loader",
+            setup(build) {
+              build.onResolve({ filter: /\.*/ }, ({ path: p }) => {
+                const absolute = p.slice(1);
+                return sourcesByFilename.has(absolute) ? { path: absolute } : null;
+              });
+
+              build.onLoad({ filter: /\// }, ({ path: p }) => {
+                const source = sourcesByFilename.get(p);
+                return source !== undefined
+                  ? { contents: source, loader: path.extname(p) === ".css" ? "css" : "js" }
+                  : null;
+              });
+            },
+          },
+        ],
+      });
+
+      if (buildResult.errors.length) {
+        throw devError(`Failed compiling bundle.\n ${buildResult.errors.map((e) => e.text).join("\n ")}`);
+      }
+
+      let js = "";
+      let css = "";
+      for (const item of buildResult.outputFiles) {
+        if (item.path.endsWith(".js")) {
+          js += item.text;
+        } else if (item.path.endsWith(".css")) {
+          const text = item.text.trim();
+          if (text) {
+            if (css.length > 0) {
+              css += "\n";
+            }
+            css += text;
+          }
+        }
+      }
+
+      const finalSize = utf8ByteLength(css) + utf8ByteLength(js);
+
+      this.setSuccessText(sizeDifference(inputSize, finalSize));
+
+      return {
+        html: toUTF8(input.html.source),
+        css,
+        js,
+        assets: input.assets,
+        assetsBytes: input.assets.reduce((r, a) => r + a.source.length, 0),
+      };
+    },
+    { spinner: true },
+  );
 }

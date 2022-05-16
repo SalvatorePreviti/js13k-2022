@@ -25,7 +25,7 @@ export function coloredPrettySize(bytes: SizeType): string {
   bytes = utf8ByteLength(bytes);
   const psize = prettySize(bytes).padStart(9);
   const pbytes = ` ${bytes | 0} Bytes`.padStart(14);
-  return _colorFileSize(psize) + _colorByteSize(pbytes);
+  return `${_colorFileSize(psize)} ${_colorByteSize(pbytes)}`;
 }
 
 export interface GlobalReportRow {
@@ -159,30 +159,30 @@ export class FilesSizeTermBox extends TermBox {
     FilesSizeTermBox.new("final", { boxColor: coloredBytesLeft })
       .writeln(
         clr(
-          `${"max".padEnd(6)} ${prettySize(JS13K_SIZE_IN_BYTES, { appendBytes: false }).padStart(
+          `${"max".padEnd(10)} ${prettySize(JS13K_SIZE_IN_BYTES, { appendBytes: false }).padStart(
             9,
-          )} ${JS13K_SIZE_IN_BYTES.toString().padStart(7)} Bytes`,
+          )} ${`${JS13K_SIZE_IN_BYTES.toString()} Bytes`.padStart(14)}`,
         ),
       )
       .writeln(
         clr(
-          `${"left".padEnd(6)} ${coloredBytesLeft(
+          `${"left".padEnd(10)} ${coloredBytesLeft(
             prettySize(bytesLeft, { appendBytes: false }).padStart(9),
-          )} ${coloredBytesLeft(`${bytesLeft.toString().padStart(7)} Bytes ${emoji} `)}`,
+          )} ${coloredBytesLeft(`${bytesLeft.toString()} Bytes`.padStart(14))}`,
         ),
       )
       .hr()
       .writeln(
         clr(
-          `${"total".padEnd(6)} ${coloredBytesTotal(
+          `${"total".padEnd(10)} ${coloredBytesTotal(
             prettySize(totalBytes, { appendBytes: false }).padStart(9),
-          )} ${coloredBytesTotal(`${totalBytes.toString().padStart(7)} Bytes`)}`,
+          )} ${coloredBytesTotal(`${totalBytes.toString()} Bytes`.padStart(14))}`,
         ),
       )
       .print();
 
     devLog.log();
-    devLog.capacityBar({ value: totalBytes, max: JS13K_SIZE_IN_BYTES, width: 59 });
+    devLog.capacityBar({ label: emoji, value: totalBytes, max: JS13K_SIZE_IN_BYTES, width: 59 });
 
     return bytesLeft >= 0;
   }
@@ -196,7 +196,10 @@ export function sizeDifference(
   a = utf8ByteLength(a);
   b = utf8ByteLength(b);
   const d = b - a;
-  const r = b / a || 0;
+  let r = b / a;
+  if (!isFinite(r)) {
+    r = 1;
+  }
   const percent = numberFixedString(r * 100, { decimalDigits: 2, padStart: pad ? 8 : undefined, postix: "%" });
   const size = numberFixedString(d, { decimalDigits: 0, padStart: pad ? 14 : undefined, sign: true, postix: " Bytes" });
   const text = `${percent} ${size}`;
@@ -217,7 +220,7 @@ export function devPrintOjutputFileWritten(outputFilePath: string, content: stri
   const relativePath = makePathRelative(outputFilePath);
   globalReport.files = { [relativePath]: size, ...globalReport.files, [relativePath]: size };
   console.log(
-    `${colors.greenBright("💾 write")} ${_colorFilePath(relativePath.padEnd(26, " "))} ${coloredPrettySize(size)}`,
+    `${colors.greenBright("💾 write")} ${_colorFilePath(relativePath.padEnd(26))} ${coloredPrettySize(size)}`,
   );
 }
 
