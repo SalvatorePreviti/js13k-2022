@@ -42,7 +42,7 @@ export const globalReport = {
 
   async append(): Promise<void> {
     const commit = (
-      await devChildTask.spawn("git", ["rev-parse", "HEAD"], { shell: true, captureOutputText: true })
+      await devChildTask.spawn("git", ["rev-parse", "HEAD"], { shell: true, captureOutputText: true, timed: false })
     ).stdoutText.trim();
     await fsp.appendFile(
       "build-history.log",
