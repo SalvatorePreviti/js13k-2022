@@ -1,4 +1,4 @@
-import { devLogBuilding, devPrintJS13KFinalBundleSize, devWriteOutputFile, printFileSizes } from "./lib/utils";
+import { devLogBuilding, devWriteOutputFile, FilesSizeTermBox } from "./lib/utils";
 import fs from "fs/promises";
 import config from "../config";
 import { build as viteBuild, mergeConfig as viteMergeConfig } from "vite";
@@ -22,15 +22,14 @@ export async function build() {
 
   const viteOutput = bundleViteOutput(viteBuiltOutput);
 
-  const initialSize = printFileSizes(
-    {
-      js: viteOutput.js,
-      css: viteOutput.css,
-      html: viteOutput.html,
-      assets: viteOutput.assetsBytes || undefined,
-    },
-    { total: true },
-  );
+  const viteOutputSize = FilesSizeTermBox.begin()
+    .sizeRow("js", viteOutput.js)
+    .sizeRow("html", viteOutput.html)
+    .sizeRow("css", viteOutput.css)
+    .sizeRowOptional("assets", viteOutput.assetsBytes)
+    .hr()
+    .totalRow("total")
+    .print().totalValue;
 
   const js = await optimizeJS(viteOutput.js);
   const html = optimizeHtml(viteOutput.html);
@@ -38,25 +37,22 @@ export async function build() {
 
   const optimized: ViteBundledOutput = { ...viteOutput, js, html, css };
 
-  const optimizedSize = printFileSizes(
-    {
-      js: optimized.js,
-      css: optimized.css,
-      html: optimized.html,
-      assets: optimized.assetsBytes || undefined,
-    },
-    { total: true, previousTotal: initialSize },
-  );
-
   const bundled = bundleHtml(optimized);
 
-  printFileSizes(
-    {
-      html: bundled.html,
-      assets: viteOutput.assetsBytes || undefined,
-    },
-    { total: true, previousTotal: optimizedSize },
-  );
+  const optimizedSize = FilesSizeTermBox.begin()
+    .sizeRow("js", optimized.js)
+    .sizeRow("html", optimized.html)
+    .sizeRow("css", optimized.css)
+    .sizeRowOptional("assets", viteOutput.assetsBytes)
+    .hr()
+    .totalRow("total")
+    .diffRow("difference", viteOutputSize)
+    .print().totalValue;
+
+  FilesSizeTermBox.begin()
+    .sizeRow("bundle", bundled.html, viteOutput.assetsBytes)
+    .diffRow("difference", optimizedSize)
+    .print("");
 
   await writeBundle(bundled);
   devLog.log();
@@ -66,7 +62,7 @@ export async function build() {
   await devWriteOutputFile("dist/bundle.zip", zippedBuffer);
   devLog.log();
 
-  if (!devPrintJS13KFinalBundleSize(zippedBuffer.length)) {
+  if (!FilesSizeTermBox.final(zippedBuffer.length)) {
     process.exitCode = 1;
   }
 }

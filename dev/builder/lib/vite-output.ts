@@ -1,5 +1,6 @@
-import { toUTF8 } from "@balsamic/dev";
+import { toUTF8, utf8ByteLength } from "@balsamic/dev";
 import type { RollupOutput, OutputChunk, OutputAsset, RollupWatcher } from "rollup";
+import { FilesSizeTermBox } from "./utils";
 
 export interface ViteBuildOutput {
   html: OutputAsset;
@@ -75,5 +76,6 @@ export function bundleViteOutput(input: ViteBuildOutput): ViteBundledOutput {
     assets: input.assets,
     assetsBytes: input.assets.reduce((r, a) => r + a.source.length, 0),
   };
+
   return result;
 }

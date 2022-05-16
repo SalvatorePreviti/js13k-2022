@@ -149,7 +149,7 @@ function ZopliDeflater(input: Buffer) {
     deflateAsync(callback: (input: Buffer | null) => void) {
       _requireZopfli().deflate(input, zipBundleOptions.zopfli, (error: Error | null, deflated: Buffer) => {
         if (error) {
-          devLog.logException("zopli compression failed", error);
+          devLog.logException("zopli decompression failed", error);
           callback(null);
         } else {
           callback(deflated);
