@@ -12,6 +12,13 @@
         "node/no-extraneous-import": 0,
         "node/no-extraneous-require": 0
       }
+    },
+
+    {
+      "files": ["app/**/*", "packages/**/*"],
+      "rules": {
+        "prefer-template": 0
+      }
     }
   ]
 }
