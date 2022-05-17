@@ -1,22 +1,10 @@
 import type { Options as HtmlMinifierOptions } from "html-minifier";
 
-import type { OptionsOutput as CleanCssOptions } from "clean-css";
-
-export { CleanCssOptions };
-
-export const cleanCssOptions: CleanCssOptions = {
-  compatibility: "*",
-  inline: ["all"],
-  level: 2,
-  rebase: false,
-  sourceMap: false,
-};
-
 export { HtmlMinifierOptions };
 
 export interface HtmlMinifierSettings {
   minifyCss: boolean;
-  minifyJs: boolean;
+  minifyJs?: boolean;
 }
 
 export function getHtmlMinifierOptions(settings: HtmlMinifierSettings): HtmlMinifierOptions {
@@ -55,10 +43,19 @@ export function getHtmlMinifierOptions(settings: HtmlMinifierSettings): HtmlMini
     keepClosingSlash: false,
 
     // Minify CSS in style elements and style attributes (uses clean-css or function specified)
-    minifyCSS: settings.minifyCss ? cleanCssOptions : false,
+    minifyCSS: settings.minifyCss
+      ? {
+          compatibility: "*",
+          inline: ["all"],
+          level: 2,
+          rebase: false,
+          sourceMap: false,
+          sourceMapInlineSources: false,
+        }
+      : false,
 
     // Minify JavaScript in script elements and event attributes (uses UglifyJS or function specified)
-    minifyJS: settings.minifyJs,
+    minifyJS: !!settings.minifyJs,
 
     // Minify URLs in various attributes (uses relateurl or function specified)
     minifyURLs: false,

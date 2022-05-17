@@ -1,26 +1,9 @@
 import { minify as terserMinify } from "terser";
 import { getTerserMinifyOptions } from "../options/terser-minify-options";
 import { devLog } from "@balsamic/dev";
-// import { minify as swcMinify } from "@swc/core";
-// import { getSwcMinifyOptions } from "../options/swc-minify-options";
-import { sizeDifference } from "./utils";
+import { sizeDifference } from "./logging";
 
-export async function optimizeJS(input: string) {
-  // await devLog.timed(
-  //   async function js_swc() {
-  //     const swcMinifyOptions = getSwcMinifyOptions({
-  //       sourceType: "module",
-  //       mangle: true,
-  //       preserve_annotations: true,
-  //     });
-
-  //     const result = removeEndingSemicolons((await swcMinify(input, swcMinifyOptions)).code) || input;
-  //     this.setSuccessText(sizeDifference(input, result));
-  //     input = result.length < input.length ? result : input;
-  //   },
-  //   { spinner: true },
-  // );
-
+export async function jsOptimizeTerser(input: string) {
   await devLog.timed(
     async function js_terser() {
       const terserOptions = getTerserMinifyOptions({

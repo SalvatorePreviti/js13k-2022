@@ -1,11 +1,11 @@
 import { devLog } from "@balsamic/dev";
 import { CSS_TARGETS } from "../build-config";
 import parcelCss from "@parcel/css";
-import { sizeDifference } from "./utils";
+import { sizeDifference } from "./logging";
 
-export function optimizeCss(css: string) {
+export function cssOptimizeParcel(css: string) {
   devLog.timed(
-    function optimize_css() {
+    function parcel_css() {
       const result =
         css &&
         parcelCss

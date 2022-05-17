@@ -1,23 +1,23 @@
 import path from "path";
 import type { OutputAsset } from "rollup";
-import { devWriteOutputFile } from "./utils";
+import { devWriteOutputFile } from "./logging";
 import fs from "fs/promises";
 import { utf8ByteLength } from "@balsamic/dev";
+import { htmlBundleOutDir } from "../build-config";
 
 export interface WriteBundleInput {
   html: string;
   assets: OutputAsset[];
-  assetsBytes: number;
 }
 
-export async function writeBundle(input: WriteBundleInput, outputFolder = "dist/bundle") {
-  await fs.rm("dist/bundle", { force: true, maxRetries: 5, recursive: true });
-  await fs.mkdir("dist/bundle", { recursive: true });
+export async function writeBundle(input: WriteBundleInput) {
+  await fs.rm(htmlBundleOutDir, { force: true, maxRetries: 5, recursive: true });
+  await fs.mkdir(htmlBundleOutDir, { recursive: true });
 
   const filenames = [];
   let totalSize = 0;
 
-  const indexHtmlPath = path.resolve(outputFolder, "index.html");
+  const indexHtmlPath = path.resolve(htmlBundleOutDir, "index.html");
   filenames.push(indexHtmlPath);
 
   await devWriteOutputFile(indexHtmlPath, input.html);
@@ -28,7 +28,7 @@ export async function writeBundle(input: WriteBundleInput, outputFolder = "dist/
     for (const asset of input.assets) {
       let fname = asset.fileName || asset.name;
       if (fname) {
-        fname = path.resolve(outputFolder, fname);
+        fname = path.resolve(htmlBundleOutDir, fname);
         filenames.push(fname);
         promises.push(devWriteOutputFile(fname, asset.source));
         totalSize += utf8ByteLength(asset.source);

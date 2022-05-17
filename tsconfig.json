@@ -13,6 +13,7 @@
     "lib": ["ESNext"],
     "target": "es2021",
     "compilerOptions": {
+      "preserveConstEnums": true,
       "module": "CommonJS"
     }
   },

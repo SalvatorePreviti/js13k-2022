@@ -4,7 +4,7 @@ import zlib from "zlib";
 import { zipBundleOptions } from "../options/zip-bundle-options";
 import type { WriteBundleInput } from "./write-bundle";
 import { devLog } from "@balsamic/dev";
-import { sizeDifference } from "./utils";
+import { sizeDifference } from "./logging";
 
 export type ZipFileEntry = { name?: string; source?: Buffer | Uint8Array | string | undefined; fileName?: string };
 

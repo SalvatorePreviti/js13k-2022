@@ -128,11 +128,8 @@ export class FilesSizeTermBox extends TermBox {
     return this.row(name, sizeDifference(a, b, { pad: true, colors: true }));
   }
 
-  public override print(append?: string | undefined): this {
+  public override print(): this {
     super.print();
-    if (append !== undefined) {
-      this.output.log(append);
-    }
     return this;
   }
 
@@ -200,7 +197,7 @@ export function sizeDifference(
   if (!isFinite(r)) {
     r = 1;
   }
-  const percent = numberFixedString(r * 100, { decimalDigits: 2, padStart: pad ? 8 : undefined, postix: "%" });
+  const percent = numberFixedString(r * 100, { decimalDigits: 2, padStart: pad ? 9 : undefined, postix: "%" });
   const size = numberFixedString(d, { decimalDigits: 0, padStart: pad ? 14 : undefined, sign: true, postix: " Bytes" });
   const text = `${percent} ${size}`;
   return withColors ? (d <= 0 ? colors.green(text) : colors.yellow(text)) : text;
@@ -220,7 +217,7 @@ export function devPrintOjutputFileWritten(outputFilePath: string, content: stri
   const relativePath = makePathRelative(outputFilePath);
   globalReport.files = { [relativePath]: size, ...globalReport.files, [relativePath]: size };
   console.log(
-    `${colors.greenBright("💾 write")} ${_colorFilePath(relativePath.padEnd(26))} ${coloredPrettySize(size)}`,
+    `${colors.greenBright("💾 write")} ${_colorFilePath(relativePath.padEnd(27))} ${coloredPrettySize(size)}`,
   );
 }
 

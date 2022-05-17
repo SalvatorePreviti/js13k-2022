@@ -1,71 +1,67 @@
-import { devLogBuilding, devWriteOutputFile, FilesSizeTermBox, globalReport } from "./lib/utils";
-import fs from "fs/promises";
-import config from "../config";
-import { build as viteBuild, mergeConfig as viteMergeConfig } from "vite";
-import type { ViteBuildOutput, ViteBundledOutput } from "./lib/vite-output";
-import { bundleViteOutput, processViteBuildOutput } from "./lib/vite-output";
-import { devLog } from "@balsamic/dev";
-import { viteConfigBuild, viteOutDir } from "./build-config";
+import { devLogBuilding, devWriteOutputFile, FilesSizeTermBox, globalReport } from "./lib/logging";
+import { bundleWithVite } from "./lib/bundle-vite";
+import { devLog, path } from "@balsamic/dev";
 import type { WriteBundleInput } from "./lib/write-bundle";
 import { writeBundle } from "./lib/write-bundle";
 import { zipBundle } from "./lib/zip-bundle";
 import { bundleHtml } from "./lib/bundle-html";
-import { optimizeJS } from "./lib/optimize-js";
-import { optimizeHtml } from "./lib/optimize-html";
-import { optimizeCss } from "./lib/optimize-css";
+import { jsOptimizeTerser } from "./lib/js-optimize-terser";
+import { cssOptimizeParcel } from "./lib/css-optimize-parcel";
+import { bundleWithSwc } from "./lib/bundle-swc";
+import { zipOutputPath } from "./build-config";
 
 devLog.titlePaddingWidth = 18;
 
 export async function build() {
   devLogBuilding("src", "dist");
 
-  const viteBuiltOutput = await devLog.timed("vite build", viteBuildOutput, { printStarted: false });
+  const bundledVite = await bundleWithVite();
 
-  const viteOutput = await bundleViteOutput(viteBuiltOutput);
+  devLog.log();
 
-  const viteOutputSize = FilesSizeTermBox.new("vite")
-    .sizeRow("js", viteOutput.js)
-    .sizeRow("html", viteOutput.html)
-    .sizeRow("css", viteOutput.css)
-    .sizeRowOptional("assets", viteOutput.assetsBytes)
+  const bundledSwc = await bundleWithSwc(bundledVite);
+
+  bundledSwc.js = await jsOptimizeTerser(bundledSwc.js);
+
+  bundledSwc.css = cssOptimizeParcel(bundledSwc.css);
+
+  devLog.log();
+  FilesSizeTermBox.new("optimized")
+    .sizeRow("js", bundledSwc.js)
+    .sizeRow("html", bundledSwc.html)
+    .sizeRow("css", bundledSwc.css)
+    .sizeRowOptional(
+      "assets",
+      bundledSwc.assets.reduce((r, a) => r + a.source.length, 0),
+    )
     .hr()
     .totalRow("total")
-    .print().totalValue;
-
-  const js = await optimizeJS(viteOutput.js);
-  const html = optimizeHtml(viteOutput.html);
-  const css = optimizeCss(viteOutput.css);
-
-  const optimized: ViteBundledOutput = { ...viteOutput, js, html, css };
-
-  const optimizedSize = FilesSizeTermBox.new("optimized")
-    .sizeRow("js", optimized.js)
-    .sizeRow("html", optimized.html)
-    .sizeRow("css", optimized.css)
-    .sizeRowOptional("assets", optimized.assetsBytes)
-    .hr()
-    .totalRow("total")
-    .diffRow("difference", viteOutputSize)
-    .print().totalValue;
+    .print();
+  devLog.log();
 
   const bundled: WriteBundleInput = {
-    html: bundleHtml(optimized).html,
-    assets: optimized.assets,
-    assetsBytes: optimized.assetsBytes,
+    html: bundleHtml(bundledSwc).html,
+    assets: bundledSwc.assets,
   };
 
+  devLog.log();
   FilesSizeTermBox.new("bundle")
-    .sizeRow("bundle", bundled.html, bundled.assetsBytes)
-    .diffRow("difference", optimizedSize)
-    .print("");
+    .sizeRow(
+      "bundle",
+      bundled.html,
+      bundled.assets.reduce((r, a) => r + a.source.length, 0),
+    )
+    .print();
+  devLog.log();
 
   await writeBundle(bundled);
+
   devLog.log();
 
   const zippedBuffer = await zipBundle(bundled);
 
   devLog.log();
-  await devWriteOutputFile("dist/bundle.zip", zippedBuffer);
+  await devWriteOutputFile(zipOutputPath, zippedBuffer);
   devLog.log();
 
   if (!FilesSizeTermBox.final(zippedBuffer.length)) {
@@ -73,10 +69,4 @@ export async function build() {
   }
 
   await globalReport.append();
-}
-
-async function viteBuildOutput(): Promise<ViteBuildOutput> {
-  await fs.rm(viteOutDir, { maxRetries: 5, recursive: true, force: true });
-  const viteBuilt = await viteBuild(viteMergeConfig(config, viteConfigBuild, true));
-  return processViteBuildOutput(viteBuilt);
 }

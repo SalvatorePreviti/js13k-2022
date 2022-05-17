@@ -5,7 +5,7 @@ import type {
   SourceMapOptions as TerserSourceMapOptions,
 } from "terser";
 import { ECMA } from "../build-config";
-import { browserPureFunctions } from "./browser-globals";
+import { browserPureFunctions } from "./browser-pure-functions";
 
 export { TerserMinifyOptions, TerserSourceMapOptions };
 
@@ -67,6 +67,7 @@ export function getTerserMinifyOptions(
 
       // Global definitions for conditional compilation
       global_defs: {
+        DEV: false,
         DEBUG: false,
         NO_DEBUG: true,
       },

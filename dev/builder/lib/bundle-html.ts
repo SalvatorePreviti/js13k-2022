@@ -2,7 +2,8 @@ import { minify as htmlMinify } from "html-minifier";
 import { getHtmlMinifierOptions } from "../options/html-minify-options";
 import { JSDOM } from "jsdom";
 import { devLog, utf8ByteLength } from "@balsamic/dev";
-import { sizeDifference } from "./utils";
+import { sizeDifference } from "./logging";
+import { stripHtmlEndTags } from "./html-strip-end-tag";
 
 export interface BundleHtmlInput {
   html: string;
@@ -37,7 +38,8 @@ export function bundleHtml(input: BundleHtmlInput): BundleHtmlOutput {
       }
 
       let bundled = dom.window.document.querySelector("html")?.outerHTML || "";
-      bundled = htmlMinify(bundled, getHtmlMinifierOptions({ minifyCss: true, minifyJs: false })) || bundled;
+      bundled = htmlMinify(bundled, getHtmlMinifierOptions({ minifyCss: true })) || bundled;
+      bundled = stripHtmlEndTags(bundled);
 
       const finalSize = utf8ByteLength(bundled);
 

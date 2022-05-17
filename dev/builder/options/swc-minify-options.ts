@@ -1,5 +1,5 @@
 import type { JsMinifyOptions } from "@swc/core";
-import { browserPureFunctions } from "./browser-globals";
+import { browserPureFunctions } from "./browser-pure-functions";
 
 export interface SwcMinifySettings {
   sourceType: "module" | "script" | "inline";
@@ -15,6 +15,7 @@ declare module "@swc/core" {
   export interface TerserMangleOptions {
     keepClassNames?: boolean | undefined;
     keepFnNames?: boolean | undefined;
+    toplevel?: boolean | undefined;
   }
   export interface TerserCompressOptions {
     const_to_let?: boolean | undefined;
@@ -59,6 +60,7 @@ export function getSwcMinifyOptions(
 
       // Global definitions for conditional compilation
       global_defs: {
+        DEV: false,
         DEBUG: false,
         NO_DEBUG: true,
       },
@@ -119,7 +121,7 @@ export function getSwcMinifyOptions(
 
       // hoist properties from constant object and array literals into regular variables subject to a set of constraints.
       // For example: var o={p:1, q:2}; f(o.p, o.q); is converted to f(1, 2)
-      hoist_props: true,
+      hoist_props: false,
 
       // hoist var declarations
       // (this is false by default because it seems to increase the size of the output in general)
@@ -250,6 +252,8 @@ export function getSwcMinifyOptions(
     // Mangle options
     mangle: mangle && {
       safari10: false,
+
+      toplevel,
 
       // Pass true to not mangle class names.
       // Pass a regular expression to only keep class names matching that regex.
