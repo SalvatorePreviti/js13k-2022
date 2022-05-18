@@ -211,7 +211,7 @@ export function devLogBuilding(sourceFilder: string, targetFolder: string) {
   );
 }
 
-export function devPrintOjutputFileWritten(outputFilePath: string, content: string | Buffer | Uint8Array) {
+export function devPrintOjutputFileWritten(outputFilePath: string, content: SizeType) {
   outputFilePath = path.resolve(outputFilePath);
   const size = utf8ByteLength(content);
   const relativePath = makePathRelative(outputFilePath);
