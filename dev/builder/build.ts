@@ -16,7 +16,6 @@ import { bundleWithVite } from "./steps/bundle-vite";
 import { bundleHtml } from "./steps/bundle-html";
 import { jsOptimizeTerser } from "./steps/js-optimize-terser";
 import { cssOptimize } from "./steps/css-optimize";
-import { jsOptimizeSwc } from "./steps/js-optimize-swc";
 import { htmlMinify } from "./steps/html-minify";
 
 import { jsOptimizeEsbuild } from "./steps/js-optimize-esbuild";
@@ -30,14 +29,16 @@ export async function build() {
 
   try {
     // sources.js = await jsOptimizeSwc(sources.js);
-    // sources.js = await jsOptimizeEsbuild(sources.js, { mangle: true });
-    // sources.js = await jsOptimizeSwc(sources.js);
+
     sources.js = await jsOptimizeTerser(sources.js, { mangle: false, hoist: true });
+
     sources.js = await jsOptimizeEsbuild(sources.js, { mangle: true });
-    sources.js = await jsOptimizeTerser(sources.js, { mangle: "all", hoist: true });
+
+    sources.js = await jsOptimizeTerser(sources.js, { mangle: true, hoist: true });
+
+    sources.css = await cssOptimize(sources.css);
 
     sources.html = await htmlMinify(sources.html);
-    sources.css = await cssOptimize(sources.css);
   } finally {
     await writeOptimizedBundle(sources);
   }
