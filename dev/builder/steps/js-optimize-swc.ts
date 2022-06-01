@@ -1,18 +1,18 @@
 import { devLog } from "@balsamic/dev";
 import type { JsMinifyOptions } from "@swc/core";
 import { transform as swcTransform } from "@swc/core";
-import { browserPureFunctions } from "../lib/browser-pure-functions";
+import { browserPureFunctions } from "../lib/code-utils";
 import { sizeDifference } from "../lib/logging";
 import { outPath_build } from "../out-paths";
+
+export interface SwcMinifySettings {
+  sourceMap?: boolean | undefined;
+}
 
 export async function jsOptimizeSwc(input: string): Promise<string> {
   return devLog.timed(
     async function js_swc() {
-      const swcMinifyOptions = getSwcMinifyOptions({
-        sourceType: "module",
-        mangle: true,
-        preserve_annotations: true,
-      });
+      const swcMinifyOptions = getSwcMinifyOptions();
 
       const result = (
         await swcTransform(input, {
@@ -23,6 +23,7 @@ export async function jsOptimizeSwc(input: string): Promise<string> {
           filename: "index.js",
           isModule: true,
           minify: true,
+          swcrc: false,
           jsc: {
             keepClassNames: false,
             minify: swcMinifyOptions,
@@ -36,13 +37,6 @@ export async function jsOptimizeSwc(input: string): Promise<string> {
     },
     { spinner: true },
   );
-}
-
-export interface SwcMinifySettings {
-  sourceType: "module" | "script" | "inline";
-  mangle: boolean;
-  preserve_annotations: boolean;
-  sourceMap?: boolean | undefined;
 }
 
 const ecma = 2020;
@@ -60,30 +54,27 @@ declare module "@swc/core" {
   }
 }
 
-export function getSwcMinifyOptions(
-  settings: SwcMinifySettings,
-): JsMinifyOptions & { keepClassnames?: boolean | undefined; keepFnames?: boolean | undefined } {
-  const mangle = !!settings.mangle;
-  const module = settings.sourceType === "module";
-  const toplevel = module;
-
+export function getSwcMinifyOptions(): JsMinifyOptions & {
+  keepClassnames?: boolean | undefined;
+  keepFnames?: boolean | undefined;
+} {
   return {
     // Use when minifying an ES6 module.
     // "use strict" is implied and names can be mangled on the top scope.
     // If compress or mangle is enabled then the toplevel option will be enabled.
-    module,
+    module: true,
 
     // set to true if you wish to enable top level variable and function name mangling
     // and to drop unused variables and functions.
-    toplevel,
+    toplevel: true,
 
     // Sourcemap support
-    sourceMap: !!settings.sourceMap,
+    sourceMap: false,
 
     ecma,
     safari10: false,
-    keepClassnames: !mangle,
-    keepFnames: !mangle,
+    keepClassnames: false,
+    keepFnames: false,
 
     inlineSourcesContent: false,
 
@@ -100,6 +91,7 @@ export function getSwcMinifyOptions(
         DEV: false,
         DEBUG: false,
         NO_DEBUG: true,
+        PRODUCTION: true,
       },
 
       // Inline single-use functions when possible. Depends on reduce_vars being enabled.
@@ -117,7 +109,7 @@ export function getSwcMinifyOptions(
       booleans: true,
 
       // Turn booleans into 0 and 1, also makes comparisons with booleans use == and != instead of === and !==
-      booleans_as_integers: false,
+      booleans_as_integers: true,
 
       // Collapse single-use non-constant variables, side effects permitting.
       collapse_vars: true,
@@ -126,10 +118,6 @@ export function getSwcMinifyOptions(
       //  e.g. !(a <= b) → a > b (only when unsafe_comps), attempts to negate binary nodes,
       //  e.g. a = !b && !c && !d && !e → a=!(b||c||d||e) etc.
       comparisons: true,
-
-      // Transforms constant computed properties into regular ones:
-      // {["computed"]: 1} is converted to {computed: 1}
-      computed_props: true,
 
       // apply optimizations for if-s and conditional expressions
       conditionals: true,
@@ -154,28 +142,28 @@ export function getSwcMinifyOptions(
       expression: false,
 
       // hoist function declarations
-      hoist_funs: false,
+      hoist_funs: true,
 
       // hoist properties from constant object and array literals into regular variables subject to a set of constraints.
       // For example: var o={p:1, q:2}; f(o.p, o.q); is converted to f(1, 2)
-      hoist_props: false,
+      hoist_props: true,
 
       // hoist var declarations
       // (this is false by default because it seems to increase the size of the output in general)
-      hoist_vars: false,
+      hoist_vars: true,
 
       // optimizations for if/return and if/continue
       if_return: true,
 
       // inline calls to function with simple/return statement
-      inline: 1,
+      inline: 3,
 
       // join consecutive var statements
       join_vars: true,
 
       // Pass true to prevent the compressor from discarding class names.
       // Pass a regular expression to only keep class names matching that regex.
-      keep_classnames: !mangle,
+      keep_classnames: false,
 
       // Prevents the compressor from discarding unused function arguments.
       // You need this for code which relies on Function.length
@@ -183,7 +171,7 @@ export function getSwcMinifyOptions(
 
       // Pass true to prevent the compressor from discarding function names.
       // Pass a regular expression to only keep function names matching that regex
-      keep_fnames: !mangle,
+      keep_fnames: false,
 
       // Pass true to prevent Infinity from being compressed into 1/0,
       // which may cause performance issues on Chrome.
@@ -193,7 +181,7 @@ export function getSwcMinifyOptions(
       loops: true,
 
       // Pass true when compressing an ES6 module. Strict mode is implied and the toplevel option as well.
-      module,
+      module: true,
 
       // negate "Immediately-Called Function Expressions" where the return value is discarded,
       // to avoid the parens that the code generator would insert.
@@ -203,7 +191,11 @@ export function getSwcMinifyOptions(
       passes: 0,
 
       // Rewrite property access using the dot notation, for example foo["bar"] → foo.bar
-      properties: true,
+      properties: false,
+
+      // Transforms constant computed properties into regular ones:
+      // {["computed"]: 1} is converted to {computed: 1}
+      computed_props: false,
 
       // You can pass an array of names and Terser will assume that those functions do not produce side effects. DANGER: will not check if the name is redefined in scope.
       pure_funcs: browserPureFunctions,
@@ -230,7 +222,7 @@ export function getSwcMinifyOptions(
 
       // drop unreferenced functions ("funcs") and/or variables ("vars") in the top level scope.
       // Set to true to drop both unreferenced functions and variables)
-      toplevel,
+      toplevel: true,
 
       // prevent specific toplevel functions and variables from unused removal. Implies toplevel.
       top_retain: null,
@@ -287,10 +279,10 @@ export function getSwcMinifyOptions(
     },
 
     // Mangle options
-    mangle: mangle && {
+    mangle: {
       safari10: false,
 
-      toplevel,
+      toplevel: true,
 
       // Pass true to not mangle class names.
       // Pass a regular expression to only keep class names matching that regex.
@@ -303,7 +295,7 @@ export function getSwcMinifyOptions(
       // See also: the keep_fnames compress option.
       keepFnNames: false,
 
-      keep_private_props: false,
+      keep_private_props: true,
 
       // Pass an array of identifiers that should be excluded from mangling. Example: ["foo", "bar"].
       reserved: undefined,
@@ -319,7 +311,7 @@ export function getSwcMinifyOptions(
         // Only mangle unquoted property names.
         //  true: Quoted property names are automatically reserved and any unquoted property names will not be mangled.
         //  'strict': Advanced, all unquoted property names are mangled unless explicitly reserved.
-        keep_quoted: false,
+        keep_quoted: true,
       },
     },
 
@@ -335,7 +327,7 @@ export function getSwcMinifyOptions(
       braces: false,
 
       // false to omit comments in the output
-      comments: settings.preserve_annotations ? "all" : false,
+      comments: false,
     },
   };
 }

@@ -2,8 +2,7 @@ import { minify as terserMinify } from "terser";
 import type { UnsafeAny } from "@balsamic/dev";
 import { devLog } from "@balsamic/dev";
 import { sizeDifference } from "../lib/logging";
-import { jsRemoveEndingSemicolons } from "../lib/code-utils";
-import { browserPureFunctions } from "../lib/browser-pure-functions";
+import { browserPureFunctions, jsRemoveEndingSemicolons } from "../lib/code-utils";
 import type {
   ECMA as ECMAVersion,
   MinifyOptions as TerserMinifyOptions,
@@ -12,16 +11,14 @@ import type {
 
 export { TerserMinifyOptions, TerserSourceMapOptions };
 
-export async function jsOptimizeTerser(input: string) {
+export async function jsOptimizeTerser(input: string, settings: TerserMinifySettings) {
   return devLog.timed(
     async function js_terser() {
-      const terserOptions = getTerserMinifyOptions({
-        sourceType: "module",
-        mangle: "all",
-        preserve_annotations: false,
-      });
+      const terserOptions = getTerserMinifyOptions(settings);
 
-      const result = jsRemoveEndingSemicolons((await terserMinify(input, terserOptions)).code || input);
+      let result = (await terserMinify(input, terserOptions)).code || input;
+      result = jsRemoveEndingSemicolons(result);
+
       this.setSuccessText(sizeDifference(input, result));
       return result;
     },
@@ -30,23 +27,19 @@ export async function jsOptimizeTerser(input: string) {
 }
 
 export interface TerserMinifySettings {
-  sourceType: "module" | "script" | "inline";
   mangle: boolean | "all";
-  preserve_annotations: boolean;
-  passes?: number;
-  sourceMap?: boolean | TerserSourceMapOptions;
+  hoist: boolean;
 }
 
 export function getTerserMinifyOptions(
   settings: TerserMinifySettings,
   terserNameCache?: Record<string, unknown>,
 ): TerserMinifyOptions {
-  const module = settings.sourceType === "module";
-  const toplevel = module;
-  const passes = settings.passes ?? 12;
-  const mangle = !!settings.mangle;
-  const mangleAll = settings.mangle === "all";
-  const preserve_annotations = !!settings.preserve_annotations;
+  const module = true;
+  const toplevel = true;
+  const passes = 12;
+  const mangle = settings.mangle;
+  const hoist = settings.hoist;
 
   const options: TerserMinifyOptions = {
     // Use when minifying an ES6 module.
@@ -59,7 +52,7 @@ export function getTerserMinifyOptions(
     toplevel,
 
     // Sourcemap support
-    sourceMap: !!settings.sourceMap,
+    sourceMap: false,
 
     nameCache: terserNameCache,
 
@@ -71,7 +64,7 @@ export function getTerserMinifyOptions(
 
     // Parser options
     parse: {
-      bare_returns: settings.sourceType !== "script",
+      bare_returns: false,
       ecma: 2022 as ECMAVersion,
       html5_comments: true,
       shebang: true,
@@ -118,10 +111,6 @@ export function getTerserMinifyOptions(
       //  e.g. a = !b && !c && !d && !e → a=!(b||c||d||e) etc.
       comparisons: true,
 
-      // Transforms constant computed properties into regular ones:
-      // {["computed"]: 1} is converted to {computed: 1}
-      computed_props: true,
-
       // apply optimizations for if-s and conditional expressions
       conditionals: true,
 
@@ -145,8 +134,7 @@ export function getTerserMinifyOptions(
       expression: false,
 
       // hoist function declarations
-      // SP: seems to increase the size of the output.
-      hoist_funs: false,
+      hoist_funs: hoist,
 
       // hoist properties from constant object and array literals into regular variables subject to a set of constraints.
       // For example: var o={p:1, q:2}; f(o.p, o.q); is converted to f(1, 2)
@@ -154,7 +142,7 @@ export function getTerserMinifyOptions(
 
       // hoist var declarations
       // (this is false by default because it seems to increase the size of the output in general)
-      hoist_vars: false,
+      hoist_vars: hoist,
 
       // optimizations for if/return and if/continue
       if_return: true,
@@ -197,6 +185,10 @@ export function getTerserMinifyOptions(
 
       // Rewrite property access using the dot notation, for example foo["bar"] → foo.bar
       properties: true,
+
+      // Transforms constant computed properties into regular ones:
+      // {["computed"]: 1} is converted to {computed: 1}
+      computed_props: true,
 
       // You can pass an array of names and Terser will assume that those functions do not produce side effects. DANGER: will not check if the name is redefined in scope.
       pure_funcs: browserPureFunctions,
@@ -280,49 +272,51 @@ export function getTerserMinifyOptions(
     },
 
     // Mangle options
-    mangle: mangle && {
-      safari10: false,
+    mangle: mangle
+      ? {
+          safari10: false,
 
-      // Pass true to mangle names visible in scopes where eval or with are used.
-      eval: true,
+          // Pass true to mangle names visible in scopes where eval or with are used.
+          eval: true,
 
-      // Pass true to not mangle class names.
-      // Pass a regular expression to only keep class names matching that regex.
-      // See also: the keep_classnames compress option.
-      keep_classnames: false,
+          // Pass true to not mangle class names.
+          // Pass a regular expression to only keep class names matching that regex.
+          // See also: the keep_classnames compress option.
+          keep_classnames: false,
 
-      // Pass true to not mangle function names.
-      // Pass a regular expression to only keep class names matching that regex.
-      // Useful for code relying on Function.prototype.name.
-      // See also: the keep_fnames compress option.
-      keep_fnames: false,
+          // Pass true to not mangle function names.
+          // Pass a regular expression to only keep class names matching that regex.
+          // Useful for code relying on Function.prototype.name.
+          // See also: the keep_fnames compress option.
+          keep_fnames: false,
 
-      // Pass true an ES6 modules, where the toplevel scope is not the global scope. Implies toplevel.
-      module,
+          // Pass true an ES6 modules, where the toplevel scope is not the global scope. Implies toplevel.
+          module,
 
-      // Pass an array of identifiers that should be excluded from mangling. Example: ["foo", "bar"].
-      reserved: undefined,
+          // Pass an array of identifiers that should be excluded from mangling. Example: ["foo", "bar"].
+          reserved: undefined,
 
-      // Mangle properties - optimizes a lot but is very dangerous. Enables only with properties starting with $
-      properties: {
-        // Use true to allow the mangling of builtin DOM properties. Not recommended to override this setting.
-        builtins: false,
+          // Mangle properties - optimizes a lot but is very dangerous. Enables only with properties starting with $
+          properties: {
+            // Use true to allow the mangling of builtin DOM properties. Not recommended to override this setting.
+            builtins: false,
 
-        // Mangle names with the original name still present. Pass an empty string "" to enable, or a non-empty string to set the debug suffix.
-        debug: false,
+            // Mangle names with the original name still present. Pass an empty string "" to enable, or a non-empty string to set the debug suffix.
+            debug: false,
 
-        // Only mangle unquoted property names.
-        //  true: Quoted property names are automatically reserved and any unquoted property names will not be mangled.
-        //  'strict': Advanced, all unquoted property names are mangled unless explicitly reserved.
-        keep_quoted: false,
+            // Only mangle unquoted property names.
+            //  true: Quoted property names are automatically reserved and any unquoted property names will not be mangled.
+            //  'strict': Advanced, all unquoted property names are mangled unless explicitly reserved.
+            keep_quoted: true,
 
-        // Pass a RegExp literal or pattern string to only mangle property matching the regular expression.
-        regex: mangleAll ? undefined : /^[$_]/,
-      },
+            // Pass a RegExp literal or pattern string to only mangle property matching the regular expression.
+            regex: mangle === "all" ? undefined : /^[$_]/,
+          },
 
-      // Pass true to mangle names declared in the top level scope.
-      toplevel,
-    },
+          // Pass true to mangle names declared in the top level scope.
+          toplevel,
+        }
+      : false,
 
     // Output options
     format: {
@@ -372,15 +366,14 @@ export function getTerserMinifyOptions(
       quote_style: 0,
 
       // Preserve Terser annotations in the output.
-      preserve_annotations,
+      preserve_annotations: false,
 
       // set this option to true to work around the Safari 10/11 await bug.
       safari10: false,
 
       // separate statements with semicolons.
       // If you pass false then whenever possible we will use a newline instead of a semicolon.
-      // SP: seems that false generates smaller zip files
-      semicolons: false,
+      semicolons: true,
 
       // preserve shebang #! in preamble (bash scripts)
       shebang: false,
@@ -389,7 +382,6 @@ export function getTerserMinifyOptions(
       webkit: false,
 
       // pass true to wrap immediately invoked function expressions.
-      // SP: seems that false generates smaller bundle
       wrap_iife: false,
 
       // pass false if you do not want to wrap function expressions that are passed as arguments, in parenthesis.

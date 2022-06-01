@@ -15,46 +15,42 @@ import type { ViteBundledOutput } from "./steps/bundle-vite";
 import { bundleWithVite } from "./steps/bundle-vite";
 import { bundleHtml } from "./steps/bundle-html";
 import { jsOptimizeTerser } from "./steps/js-optimize-terser";
-import { cssOptimizeParcel } from "./steps/css-optimize-parcel";
-import { bundleWithSwc } from "./steps/bundle-swc";
-import { jsOptimizeTde } from "./steps/js-optimize-tde";
+import { cssOptimize } from "./steps/css-optimize";
 import { jsOptimizeSwc } from "./steps/js-optimize-swc";
 import { htmlMinify } from "./steps/html-minify";
+
+import { jsOptimizeEsbuild } from "./steps/js-optimize-esbuild";
 
 devLog.titlePaddingWidth = 18;
 
 export async function build() {
   devLogBuilding("src", "dist");
 
-  const bundledVite = await bundleWithVite();
+  const sources = await bundleWithVite();
 
-  devLog.log();
+  try {
+    // sources.js = await jsOptimizeSwc(sources.js);
+    // sources.js = await jsOptimizeEsbuild(sources.js, { mangle: true });
+    // sources.js = await jsOptimizeSwc(sources.js);
+    sources.js = await jsOptimizeTerser(sources.js, { mangle: false, hoist: true });
+    sources.js = await jsOptimizeEsbuild(sources.js, { mangle: true });
+    sources.js = await jsOptimizeTerser(sources.js, { mangle: "all", hoist: true });
 
-  const bundledSwc = await bundleWithSwc(bundledVite);
+    sources.html = await htmlMinify(sources.html);
+    sources.css = await cssOptimize(sources.css);
+  } finally {
+    await writeOptimizedBundle(sources);
+  }
 
-  bundledSwc.html = htmlMinify(bundledSwc.html, { minifyCss: true });
-
-  bundledSwc.css = cssOptimizeParcel(bundledSwc.css);
-
-  bundledSwc.js = await jsOptimizeTde(bundledSwc.js, { iife: false });
-
-  bundledSwc.js = await jsOptimizeSwc(bundledSwc.js);
-
-  bundledSwc.js = await jsOptimizeTde(bundledSwc.js, { iife: true });
-
-  bundledSwc.js = await jsOptimizeTerser(bundledSwc.js);
-
-  await writeOptimizedBundle(bundledSwc);
-
-  const optimizedTotalSize = logTableOptimized(bundledSwc);
+  const optimizedTotalSize = logTableOptimized(sources);
 
   devLog.log();
   devPrintOjutputFileWritten(outPath_minify, optimizedTotalSize);
   devLog.log();
 
   const bundled: WriteBundleInput = {
-    html: bundleHtml(bundledSwc).html,
-    assets: bundledSwc.assets,
+    html: (await bundleHtml(sources)).html,
+    assets: sources.assets,
   };
 
   logTableBundled(bundled);

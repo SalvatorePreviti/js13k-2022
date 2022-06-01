@@ -1,5 +1,5 @@
-import { devLog, utf8ByteLength } from "@balsamic/dev";
-import type { RollupOutput, OutputChunk, OutputAsset, RollupWatcher } from "rollup";
+import { devLog, toUTF8, utf8ByteLength } from "@balsamic/dev";
+import type { RollupOutput, OutputAsset, RollupWatcher } from "rollup";
 import { build as viteBuild, mergeConfig as viteMergeConfig } from "vite";
 import config from "../../config";
 import fs from "fs/promises";
@@ -7,14 +7,8 @@ import { outPath_build } from "../out-paths";
 import { coloredPrettySize } from "../lib/logging";
 import type { UserConfig as ViteUserConfig } from "vite";
 import { rollupPluginSpglsl } from "spglsl";
-import { browserPureFunctions } from "../lib/browser-pure-functions";
-
-export interface ViteBuildOutput {
-  js: OutputChunk[];
-  css: OutputAsset[];
-  html: OutputAsset;
-  assets: OutputAsset[];
-}
+import { browserPureFunctions, domRemoveExternalCssAndScripts } from "../lib/code-utils";
+import { JSDOM } from "jsdom";
 
 export interface ViteBundledOutput {
   js: string;
@@ -23,7 +17,7 @@ export interface ViteBundledOutput {
   assets: OutputAsset[];
 }
 
-const ESBUILD_TARGETS = ["chrome99", "firefox99", "edge99"];
+export const ESBUILD_TARGETS = ["chrome99", "firefox99"];
 
 export const viteConfigBuild: ViteUserConfig = {
   build: {
@@ -31,7 +25,7 @@ export const viteConfigBuild: ViteUserConfig = {
     sourcemap: true,
     emptyOutDir: true,
     outDir: outPath_build,
-    minify: false,
+    minify: "esbuild",
     cssTarget: ESBUILD_TARGETS,
     cssCodeSplit: false,
     manifest: false,
@@ -39,7 +33,7 @@ export const viteConfigBuild: ViteUserConfig = {
     ssr: false,
     polyfillModulePreload: false,
     reportCompressedSize: false,
-    target: "es2022",
+    target: ESBUILD_TARGETS,
     commonjsOptions: { transformMixedEsModules: true, esmExternals: true },
     rollupOptions: {
       output: {
@@ -57,6 +51,9 @@ export const viteConfigBuild: ViteUserConfig = {
     target: ESBUILD_TARGETS,
     charset: "utf8",
     keepNames: false,
+    minifyIdentifiers: false,
+    minifySyntax: true,
+    minifyWhitespace: true,
     minify: false,
     globalName: "window",
     pure: browserPureFunctions,
@@ -65,17 +62,17 @@ export const viteConfigBuild: ViteUserConfig = {
   plugins: [rollupPluginSpglsl({})],
 };
 
-export async function bundleWithVite(): Promise<ViteBuildOutput> {
+export async function bundleWithVite(): Promise<ViteBundledOutput> {
   return devLog.timed(
     async function vite_build() {
       await fs.rm(outPath_build, { maxRetries: 5, recursive: true, force: true });
       const result = processViteBuildOutput(await viteBuild(viteMergeConfig(config, viteConfigBuild, true)));
       this.setSuccessText(
         coloredPrettySize(
-          result.js.reduce((p, c) => p + utf8ByteLength(c.code), 0) +
-            result.css.reduce((p, c) => p + utf8ByteLength(c.source), 0) +
-            result.assets.reduce((p, c) => p + utf8ByteLength(c.source), 0) +
-            utf8ByteLength(result.html.source),
+          utf8ByteLength(result.js) +
+            utf8ByteLength(result.css) +
+            utf8ByteLength(result.html) +
+            result.assets.reduce((p, c) => p + utf8ByteLength(c.source), 0),
         ),
       );
       return result;
@@ -84,7 +81,7 @@ export async function bundleWithVite(): Promise<ViteBuildOutput> {
   );
 }
 
-function processViteBuildOutput(viteBuildOutput: RollupOutput | RollupOutput[] | RollupWatcher): ViteBuildOutput {
+function processViteBuildOutput(viteBuildOutput: RollupOutput | RollupOutput[] | RollupWatcher): ViteBundledOutput {
   if (Array.isArray(viteBuildOutput)) {
     if (viteBuildOutput.length !== 1) {
       throw new Error(`ViteBuildOutput: expected 1 output, received ${viteBuildOutput.length}`);
@@ -96,30 +93,56 @@ function processViteBuildOutput(viteBuildOutput: RollupOutput | RollupOutput[] |
     throw new Error("ViteBuildOutput: expected a RollupOutput, received something else");
   }
 
-  let html: OutputAsset | undefined;
-  const js: OutputChunk[] = [];
-  const css: OutputAsset[] = [];
   const assets: OutputAsset[] = [];
+
+  let js = "";
+  let css = "";
+  let html = "";
 
   for (const o of viteBuildOutput.output) {
     if (o.type === "asset") {
       if (o.fileName.endsWith(".css")) {
-        css.push(o);
+        if (css.length > 0) {
+          css += "\n";
+        }
+        css += toUTF8(o.source);
       } else if (o.fileName === "index.html") {
         if (html) {
           throw new Error("ViteBuildOutput: multiple index.html found");
         }
-        html = o;
+        html = toUTF8(o.source);
       } else if (o.fileName !== "esbuild") {
         assets.push(o);
       }
     } else if (o.type === "chunk") {
-      js.push(o);
+      if (js.length > 0) {
+        js += "\n";
+      }
+      js += o.code;
     }
   }
 
-  if (!html) {
-    throw new Error("ViteBuildOutput: index.html not found in vite build outputs");
+  if (html) {
+    const dom = new JSDOM(html);
+
+    domRemoveExternalCssAndScripts(dom);
+
+    if (css.length) {
+      const link = dom.window.document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = "/index.css";
+      dom.window.document.head.appendChild(link);
+    }
+
+    if (js.length) {
+      const script = dom.window.document.createElement("script");
+      script.type = "module";
+      script.src = "/index.js";
+      script.toggleAttribute("crossorigin", true);
+      dom.window.document.body.appendChild(script);
+    }
+
+    html = dom.window.document.querySelector("html")?.outerHTML || "";
   }
 
   return { html, js, css, assets };

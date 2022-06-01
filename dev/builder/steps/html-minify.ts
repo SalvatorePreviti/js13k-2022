@@ -1,17 +1,15 @@
-import { minify as htmlMinifier } from "html-minifier";
+import { minify as htmlMinifier } from "html-minifier-terser";
 
-import type { Options as HtmlMinifierOptions } from "html-minifier";
+import type { Options as HtmlMinifierOptions } from "html-minifier-terser";
 import { devLog } from "@balsamic/dev";
 import { sizeDifference } from "../lib/logging";
 import { htmlStripBodyHtmlEndTags } from "../lib/code-utils";
 
-export function htmlMinify(input: string, options: HtmlMinifierSettings = {}) {
+export async function htmlMinify(input: string, options: { timed?: boolean } = { timed: true }) {
   const timed = options.timed ?? true;
   return devLog.timed(
-    function html_minify() {
-      const result = htmlStripBodyHtmlEndTags(
-        htmlMinifier(input, getHtmlMinifierOptions({ minifyCss: true })) || input,
-      );
+    async function html_minify() {
+      const result = htmlStripBodyHtmlEndTags((await htmlMinifier(input, getHtmlMinifierOptions())) || input);
       if (timed) {
         this.setSuccessText(sizeDifference(input, result));
       }
@@ -24,12 +22,10 @@ export function htmlMinify(input: string, options: HtmlMinifierSettings = {}) {
 export { HtmlMinifierOptions };
 
 export interface HtmlMinifierSettings {
-  minifyCss?: boolean | undefined;
-  minifyJs?: boolean | undefined;
   timed?: boolean | undefined;
 }
 
-export function getHtmlMinifierOptions(settings: HtmlMinifierSettings): HtmlMinifierOptions {
+export function getHtmlMinifierOptions(): HtmlMinifierOptions {
   const result: HtmlMinifierOptions = {
     /** Treat attributes in case sensitive manner (useful for custom HTML tags) */
     caseSensitive: false,
@@ -65,19 +61,10 @@ export function getHtmlMinifierOptions(settings: HtmlMinifierSettings): HtmlMini
     keepClosingSlash: false,
 
     // Minify CSS in style elements and style attributes (uses clean-css or function specified)
-    minifyCSS: settings.minifyCss
-      ? {
-          compatibility: "*",
-          inline: ["all"],
-          level: 2,
-          rebase: false,
-          sourceMap: false,
-          sourceMapInlineSources: false,
-        }
-      : false,
+    minifyCSS: false,
 
     // Minify JavaScript in script elements and event attributes (uses UglifyJS or function specified)
-    minifyJS: !!settings.minifyJs,
+    minifyJS: false,
 
     // Minify URLs in various attributes (uses relateurl or function specified)
     minifyURLs: false,
