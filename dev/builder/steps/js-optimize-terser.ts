@@ -28,7 +28,6 @@ export async function jsOptimizeTerser(input: string, settings: TerserMinifySett
 
 export interface TerserMinifySettings {
   mangle: boolean | "all";
-  hoist: boolean;
 }
 
 export function getTerserMinifyOptions(
@@ -37,9 +36,8 @@ export function getTerserMinifyOptions(
 ): TerserMinifyOptions {
   const module = true;
   const toplevel = true;
-  const passes = 12;
+  const passes = 16;
   const mangle = settings.mangle;
-  const hoist = settings.hoist;
 
   const options: TerserMinifyOptions = {
     // Use when minifying an ES6 module.
@@ -134,7 +132,7 @@ export function getTerserMinifyOptions(
       expression: false,
 
       // hoist function declarations
-      hoist_funs: hoist,
+      hoist_funs: true,
 
       // hoist properties from constant object and array literals into regular variables subject to a set of constraints.
       // For example: var o={p:1, q:2}; f(o.p, o.q); is converted to f(1, 2)
@@ -142,7 +140,7 @@ export function getTerserMinifyOptions(
 
       // hoist var declarations
       // (this is false by default because it seems to increase the size of the output in general)
-      hoist_vars: hoist,
+      hoist_vars: false,
 
       // optimizations for if/return and if/continue
       if_return: true,

@@ -30,11 +30,11 @@ export async function build() {
   try {
     // sources.js = await jsOptimizeSwc(sources.js);
 
-    sources.js = await jsOptimizeTerser(sources.js, { mangle: false, hoist: true });
+    sources.js = await jsOptimizeTerser(sources.js, { mangle: false });
 
     sources.js = await jsOptimizeEsbuild(sources.js, { mangle: true });
 
-    sources.js = await jsOptimizeTerser(sources.js, { mangle: true, hoist: true });
+    sources.js = await jsOptimizeTerser(sources.js, { mangle: true });
 
     sources.css = await cssOptimize(sources.css);
 
