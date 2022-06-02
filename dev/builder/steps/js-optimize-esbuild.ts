@@ -2,7 +2,7 @@ import { devLog } from "@balsamic/dev";
 import { browserPureFunctions } from "../lib/code-utils";
 import { sizeDifference } from "../lib/logging";
 import { transform } from "esbuild";
-import { ESBUILD_TARGETS } from "./bundle-vite";
+import { ESBUILD_TARGETS } from "./build-vite";
 
 export interface JsOptimizeEsbuildOptions {
   mangle: boolean;

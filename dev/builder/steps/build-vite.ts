@@ -9,6 +9,7 @@ import type { UserConfig as ViteUserConfig } from "vite";
 import { rollupPluginSpglsl } from "spglsl";
 import { browserPureFunctions, domRemoveExternalCssAndScripts } from "../lib/code-utils";
 import { JSDOM } from "jsdom";
+import { rollupPluginSwcTransform } from "./plugin-swc-transform";
 
 export interface ViteBundledOutput {
   js: string;
@@ -59,10 +60,10 @@ export const viteConfigBuild: ViteUserConfig = {
     pure: browserPureFunctions,
   },
 
-  plugins: [rollupPluginSpglsl({})],
+  plugins: [rollupPluginSpglsl({}), rollupPluginSwcTransform()],
 };
 
-export async function bundleWithVite(): Promise<ViteBundledOutput> {
+export async function buildWithVite(): Promise<ViteBundledOutput> {
   return devLog.timed(
     async function vite_build() {
       await fs.rm(outPath_build, { maxRetries: 5, recursive: true, force: true });

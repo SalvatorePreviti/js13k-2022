@@ -2,6 +2,7 @@ import type { UserConfig } from "vite";
 import { createServer, mergeConfig } from "vite";
 import { devLog } from "@balsamic/dev";
 import vitePluginReact from "@vitejs/plugin-react";
+import { rollupPluginSpglsl, SpglslCompileMode } from "spglsl";
 
 import config from "../config";
 
@@ -13,7 +14,11 @@ export async function startServer(argv = process.argv) {
   }
 
   const serverConfig: UserConfig = {
-    plugins: [...(config.plugins || []), vitePluginReact()],
+    plugins: [
+      ...(config.plugins || []),
+      rollupPluginSpglsl({ compileMode: SpglslCompileMode.Validate }),
+      vitePluginReact(),
+    ],
 
     server: { host: parsedCmd.host, port: parsedCmd.port },
   };

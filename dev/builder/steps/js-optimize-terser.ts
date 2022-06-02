@@ -82,6 +82,9 @@ export function getTerserMinifyOptions(
         DEBUG: false,
         NO_DEBUG: true,
         __REACT_DEVTOOLS_GLOBAL_HOOK__: undefined,
+        "import.meta.hot": false,
+        "import.meta.url": "index.js",
+        "import.meta": { url: "index.js", hot: false },
       },
 
       // Inline single-use functions when possible. Depends on reduce_vars being enabled.

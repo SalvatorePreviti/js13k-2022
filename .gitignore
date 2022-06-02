@@ -1,5 +1,5 @@
-app/src
-
+app/src/**/*
+!app/src/webgl-context-wrapper.ts
 
 dist
 

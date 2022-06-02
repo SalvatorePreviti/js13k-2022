@@ -1,0 +1,6 @@
+{
+  "rules": {
+    "array-callback-return": 0,
+    "@typescript-eslint/no-explicit-any": 0
+  }
+}

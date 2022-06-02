@@ -7,12 +7,12 @@ import {
 } from "./lib/logging";
 import { devLog } from "@balsamic/dev";
 import { writeFinalBundle, writeOptimizedBundle } from "./lib/write-bundle";
-import { zipBundle } from "./steps/zip-bundle";
+import { zipBundle } from "./steps/bundle-zip";
 import { outPath_minify, outPath_zip } from "./out-paths";
 import type { WriteBundleInput } from "./lib/write-bundle";
 
-import type { ViteBundledOutput } from "./steps/bundle-vite";
-import { bundleWithVite } from "./steps/bundle-vite";
+import type { ViteBundledOutput } from "./steps/build-vite";
+import { buildWithVite } from "./steps/build-vite";
 import { bundleHtml } from "./steps/bundle-html";
 import { jsOptimizeTerser } from "./steps/js-optimize-terser";
 import { cssOptimize } from "./steps/css-optimize";
@@ -25,7 +25,7 @@ devLog.titlePaddingWidth = 18;
 export async function build() {
   devLogBuilding("src", "dist");
 
-  const sources = await bundleWithVite();
+  const sources = await buildWithVite();
 
   try {
     // sources.js = await jsOptimizeSwc(sources.js);
