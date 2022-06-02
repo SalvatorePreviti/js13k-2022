@@ -9,7 +9,7 @@ import type { UserConfig as ViteUserConfig } from "vite";
 import { rollupPluginSpglsl } from "spglsl";
 import { browserPureFunctions, domRemoveExternalCssAndScripts } from "../lib/code-utils";
 import { JSDOM } from "jsdom";
-import { rollupPluginSwcTransform } from "./plugin-swc-transform";
+import { rollupPluginSwcTransform } from "./build-swc-transform";
 
 export interface ViteBundledOutput {
   js: string;

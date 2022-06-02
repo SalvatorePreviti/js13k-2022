@@ -19,6 +19,7 @@ import { cssOptimize } from "./steps/css-optimize";
 import { htmlMinify } from "./steps/html-minify";
 
 import { jsOptimizeEsbuild } from "./steps/js-optimize-esbuild";
+import { jsTransformSwc } from "./steps/js-transform-swc";
 
 devLog.titlePaddingWidth = 18;
 
@@ -33,6 +34,8 @@ export async function build() {
     sources.js = await jsOptimizeTerser(sources.js, { mangle: false });
 
     sources.js = await jsOptimizeEsbuild(sources.js, { mangle: true });
+
+    sources.js = await jsTransformSwc(sources.js);
 
     sources.js = await jsOptimizeTerser(sources.js, { mangle: true });
 
