@@ -2,40 +2,41 @@ import path from "path";
 import type { OutputAsset } from "rollup";
 import { devWriteOutputFile } from "./logging";
 import fs from "fs/promises";
-import { utf8ByteLength } from "@balsamic/dev";
-import { outPath_bundle, outPath_minify } from "../out-paths";
+import { devLog, utf8ByteLength } from "@balsamic/dev";
+import { outPath_minify } from "../out-paths";
 
 export interface WriteBundleInput {
   html: string;
   assets: OutputAsset[];
 }
 
-export async function writeFinalBundle(input: WriteBundleInput) {
-  await fs.rm(outPath_bundle, { force: true, maxRetries: 5, recursive: true });
-  await fs.mkdir(outPath_bundle, { recursive: true });
+export async function writeFinalBundle(input: WriteBundleInput, outputPath: string) {
+  await fs.rm(outputPath, { force: true, maxRetries: 5, recursive: true });
+  await fs.mkdir(outputPath, { recursive: true });
 
   const filenames = [];
   let totalSize = 0;
 
-  const indexHtmlPath = path.resolve(outPath_bundle, "index.html");
+  const indexHtmlPath = path.resolve(outputPath, "index.html");
   filenames.push(indexHtmlPath);
 
-  await devWriteOutputFile(indexHtmlPath, input.html);
+  await devWriteOutputFile(indexHtmlPath, input.html, "utf8");
   totalSize += utf8ByteLength(input.html);
 
   if (input.assets) {
     const promises = [];
     for (const asset of input.assets) {
-      let fname = asset.fileName || asset.name;
+      const fname = asset.fileName || asset.name;
       if (fname) {
-        fname = path.resolve(outPath_bundle, fname);
         filenames.push(fname);
-        promises.push(devWriteOutputFile(fname, asset.source));
+        promises.push(devWriteOutputFile(fname, asset.source, null));
         totalSize += utf8ByteLength(asset.source);
       }
     }
     await Promise.all(promises);
   }
+
+  devLog.log();
 
   return {
     input,

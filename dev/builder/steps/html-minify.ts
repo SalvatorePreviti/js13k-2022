@@ -3,13 +3,31 @@ import { minify as htmlMinifier } from "html-minifier-terser";
 import type { Options as HtmlMinifierOptions } from "html-minifier-terser";
 import { devLog } from "@balsamic/dev";
 import { sizeDifference } from "../lib/logging";
-import { htmlStripBodyHtmlEndTags } from "../lib/code-utils";
+import { htmlStripBodyHtmlEndTags, stripUtf8BOM } from "../lib/code-utils";
+import { JSDOM } from "jsdom";
 
-export async function htmlMinify(input: string, options: { timed?: boolean } = { timed: true }) {
+export async function htmlMinify(input: string, options: { prependUtf8BOM: boolean; timed?: boolean }) {
   const timed = options.timed ?? true;
   return devLog.timed(
     async function html_minify() {
-      const result = htmlStripBodyHtmlEndTags((await htmlMinifier(input, getHtmlMinifierOptions())) || input);
+      const dom = new JSDOM(stripUtf8BOM(input));
+
+      // Remove <meta charset="utf8" />, we are going to prepend UTF8 BOM in any case.
+
+      Array.from(dom.window.document.querySelectorAll("meta"))
+        .filter((tag) => (tag.getAttribute("charset") || "").toLowerCase() === "utf8")
+        .forEach((tag) => tag.remove());
+
+      input = dom.window.document.querySelector("html")?.outerHTML || "";
+
+      let result = htmlStripBodyHtmlEndTags((await htmlMinifier(input, getHtmlMinifierOptions())) || input);
+      if (options.prependUtf8BOM) {
+        if (!result.startsWith("\ufeff")) {
+          result = `\ufeff${result}`;
+        }
+      } else {
+        result = stripUtf8BOM(result);
+      }
       if (timed) {
         this.setSuccessText(sizeDifference(input, result));
       }

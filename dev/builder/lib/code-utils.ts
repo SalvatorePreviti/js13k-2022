@@ -15,6 +15,10 @@ export function domRemoveExternalCssAndScripts(dom: JSDOM) {
   Array.from(dom.window.document.querySelectorAll("script[src], link[href]")).forEach((el) => el.remove());
 }
 
+export function stripUtf8BOM(s: string): string {
+  return s.startsWith("\ufeff") ? s.slice(1) : s;
+}
+
 export const browserPureFunctions = [
   "Math.abs",
   "Math.acos",

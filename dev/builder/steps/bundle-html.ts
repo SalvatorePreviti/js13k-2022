@@ -2,7 +2,7 @@ import { JSDOM } from "jsdom";
 import { devLog, utf8ByteLength } from "@balsamic/dev";
 import { sizeDifference } from "../lib/logging";
 import { htmlMinify } from "./html-minify";
-import { domRemoveExternalCssAndScripts } from "../lib/code-utils";
+import { domRemoveExternalCssAndScripts, stripUtf8BOM } from "../lib/code-utils";
 
 export interface BundleHtmlInput {
   html: string;
@@ -19,7 +19,7 @@ export async function bundleHtml(input: BundleHtmlInput): Promise<BundleHtmlOutp
     async function bundle_html() {
       const initialSize = utf8ByteLength(input.js) + utf8ByteLength(input.css) + utf8ByteLength(input.html);
 
-      const dom = new JSDOM(input.html);
+      const dom = new JSDOM(stripUtf8BOM(input.html));
 
       domRemoveExternalCssAndScripts(dom);
 
@@ -38,7 +38,7 @@ export async function bundleHtml(input: BundleHtmlInput): Promise<BundleHtmlOutp
 
       let bundled = dom.window.document.querySelector("html")?.outerHTML || "";
 
-      bundled = await htmlMinify(bundled, { timed: false });
+      bundled = await htmlMinify(bundled, { prependUtf8BOM: true, timed: false });
 
       const finalSize = utf8ByteLength(bundled);
 

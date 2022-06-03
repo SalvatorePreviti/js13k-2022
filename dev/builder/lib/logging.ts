@@ -8,6 +8,7 @@ import {
   numberFixedString,
   prettySize,
   TermBox,
+  toUTF8,
   utf8ByteLength,
 } from "@balsamic/dev";
 import { makePathRelative } from "@balsamic/dev/path";
@@ -221,8 +222,20 @@ export function devPrintOjutputFileWritten(outputFilePath: string, content: Size
   );
 }
 
-export async function devWriteOutputFile(outputFilePath: string, content: string | Buffer | Uint8Array) {
+export async function devWriteOutputFile(
+  outputFilePath: string,
+  content: string | Buffer | Uint8Array,
+  encoding: "utf8" | undefined | null,
+) {
   outputFilePath = path.resolve(outputFilePath);
-  await fsp.writeFile(outputFilePath, content);
+  if (encoding === "utf8") {
+    content = toUTF8(content);
+    if (!content.startsWith("\ufeff")) {
+      content = `\ufeff${content}`;
+    }
+    await fsp.writeFile(outputFilePath, content, "utf8");
+  } else {
+    await fsp.writeFile(outputFilePath, content);
+  }
   devPrintOjutputFileWritten(outputFilePath, content);
 }

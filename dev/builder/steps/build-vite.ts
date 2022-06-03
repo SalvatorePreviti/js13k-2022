@@ -7,7 +7,7 @@ import { outPath_build } from "../out-paths";
 import { coloredPrettySize } from "../lib/logging";
 import type { UserConfig as ViteUserConfig } from "vite";
 import { rollupPluginSpglsl } from "spglsl";
-import { browserPureFunctions, domRemoveExternalCssAndScripts } from "../lib/code-utils";
+import { browserPureFunctions, domRemoveExternalCssAndScripts, stripUtf8BOM } from "../lib/code-utils";
 import { JSDOM } from "jsdom";
 import { rollupPluginSwcTransform } from "./build-swc-transform";
 
@@ -124,7 +124,7 @@ function processViteBuildOutput(viteBuildOutput: RollupOutput | RollupOutput[] |
   }
 
   if (html) {
-    const dom = new JSDOM(html);
+    const dom = new JSDOM(stripUtf8BOM(html));
 
     domRemoveExternalCssAndScripts(dom);
 
