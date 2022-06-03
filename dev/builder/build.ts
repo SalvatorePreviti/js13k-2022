@@ -27,7 +27,9 @@ devLog.titlePaddingWidth = 18;
 export async function build() {
   devLogBuilding("src", "dist");
 
-  const sources = await buildWithVite();
+  const includeDevTools = process.argv.includes("--with-dev-tools");
+
+  const sources = await buildWithVite({ stripDevTools: !includeDevTools });
 
   try {
     sources.css = await cssOptimize(sources.css);

@@ -1,11 +1,11 @@
 import { devLog, toUTF8, utf8ByteLength } from "@balsamic/dev";
-import type { RollupOutput, OutputAsset, RollupWatcher } from "rollup";
+import type { RollupOutput, OutputAsset, RollupWatcher, LoadResult } from "rollup";
 import { build as viteBuild, mergeConfig as viteMergeConfig } from "vite";
 import config from "../../config";
 import fs from "fs/promises";
 import { outPath_build } from "../out-paths";
 import { coloredPrettySize } from "../lib/logging";
-import type { UserConfig as ViteUserConfig } from "vite";
+import type { UserConfig as ViteUserConfig, PluginOption } from "vite";
 import { rollupPluginSpglsl } from "spglsl";
 import { browserPureFunctions, domRemoveExternalCssAndScripts, stripUtf8BOM } from "../lib/code-utils";
 import { JSDOM } from "jsdom";
@@ -20,52 +20,69 @@ export interface ViteBundledOutput {
 
 export const ESBUILD_TARGETS = ["chrome99", "firefox99"];
 
-export const viteConfigBuild: ViteUserConfig = {
-  build: {
-    write: true,
-    sourcemap: true,
-    emptyOutDir: true,
-    outDir: outPath_build,
-    minify: "esbuild",
-    cssTarget: ESBUILD_TARGETS,
-    cssCodeSplit: false,
-    manifest: false,
-    ssrManifest: false,
-    ssr: false,
-    polyfillModulePreload: false,
-    reportCompressedSize: false,
-    target: ESBUILD_TARGETS,
-    commonjsOptions: { transformMixedEsModules: true, esmExternals: true },
-    rollupOptions: {
-      output: {
-        inlineDynamicImports: true,
-        entryFileNames: `[name].js`,
-        chunkFileNames: `[name].js`,
-        assetFileNames: ({ name }) => (name?.endsWith(".css") ? "[name].[ext]" : `assets/[name].[ext]`),
-      },
+function rollupPluginStripDevTools(): PluginOption {
+  return {
+    name: "strip-dev-tools",
+    load(id: string): LoadResult {
+      if (id.includes("dev-tools/dev-main")) {
+        console.log("SKIP!!!", id);
+        return "";
+      }
+      return undefined;
     },
-  },
+  };
+}
 
-  esbuild: {
-    treeShaking: true,
-    sourcemap: "external",
-    target: ESBUILD_TARGETS,
-    charset: "utf8",
-    keepNames: false,
-    minifyIdentifiers: false,
-    minifySyntax: true,
-    minifyWhitespace: true,
-    minify: false,
-    globalName: "window",
-    pure: browserPureFunctions,
-  },
-
-  plugins: [rollupPluginSpglsl({}), rollupPluginSwcTransform()],
-};
-
-export async function buildWithVite(): Promise<ViteBundledOutput> {
+export async function buildWithVite(options: { stripDevTools: boolean }): Promise<ViteBundledOutput> {
   return devLog.timed(
     async function vite_build() {
+      const viteConfigBuild: ViteUserConfig = {
+        build: {
+          write: true,
+          sourcemap: true,
+          emptyOutDir: true,
+          outDir: outPath_build,
+          minify: "esbuild",
+          cssTarget: ESBUILD_TARGETS,
+          cssCodeSplit: false,
+          manifest: false,
+          ssrManifest: false,
+          ssr: false,
+          polyfillModulePreload: false,
+          reportCompressedSize: false,
+          target: ESBUILD_TARGETS,
+          commonjsOptions: { transformMixedEsModules: true, esmExternals: true },
+          rollupOptions: {
+            output: {
+              inlineDynamicImports: true,
+              entryFileNames: `[name].js`,
+              chunkFileNames: `[name].js`,
+              assetFileNames: ({ name }) => (name?.endsWith(".css") ? "[name].[ext]" : `assets/[name].[ext]`),
+            },
+          },
+        },
+
+        esbuild: {
+          treeShaking: true,
+          sourcemap: "external",
+          target: ESBUILD_TARGETS,
+          charset: "utf8",
+          keepNames: false,
+          minifyIdentifiers: false,
+          minifySyntax: true,
+          minifyWhitespace: true,
+          minify: false,
+          globalName: "window",
+          pure: browserPureFunctions,
+        },
+
+        plugins: [
+          options.stripDevTools ? rollupPluginStripDevTools() : undefined,
+          rollupPluginSpglsl({}),
+          rollupPluginSwcTransform(),
+        ],
+      };
+
       await fs.rm(outPath_build, { maxRetries: 5, recursive: true, force: true });
       const result = processViteBuildOutput(await viteBuild(viteMergeConfig(config, viteConfigBuild, true)));
       this.setSuccessText(
