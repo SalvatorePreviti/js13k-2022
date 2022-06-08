@@ -1,6 +1,14 @@
 {
   "rules": {
     "array-callback-return": 0,
-    "@typescript-eslint/no-explicit-any": 0
-  }
+    "@typescript-eslint/no-explicit-any": 0,
+    "no-sequences": 0,
+    "no-restricted-syntax": 0
+  },
+  "overrides": [
+    {
+      "files": "math/**/*.ts",
+      "rules": {}
+    }
+  ]
 }
