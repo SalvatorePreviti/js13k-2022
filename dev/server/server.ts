@@ -20,6 +20,11 @@ export async function startServer(argv = process.argv) {
       vitePluginReact(),
     ],
 
+    define: {
+      DEBUG: true,
+      NO_DEBUG: false,
+    },
+
     server: { host: parsedCmd.host, port: parsedCmd.port },
   };
 
