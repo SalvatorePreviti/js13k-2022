@@ -3,7 +3,7 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "ES2022",
-    "baseUrl": "."
+    "strictPropertyInitialization": false
     //    "exactOptionalPropertyTypes": false
   },
   "ts-node": {
@@ -14,7 +14,8 @@
     "target": "es2021",
     "compilerOptions": {
       "preserveConstEnums": true,
-      "module": "CommonJS"
+      "module": "CommonJS",
+      "baseUrl": "."
     }
   },
   "exclude": ["node_modules/**/*", "**/node_modules", "**/dist", "**/dist/**/*"]

@@ -3,12 +3,11 @@
     "array-callback-return": 0,
     "@typescript-eslint/no-explicit-any": 0,
     "no-sequences": 0,
-    "no-restricted-syntax": 0
-  },
-  "overrides": [
-    {
-      "files": "math/**/*.ts",
-      "rules": {}
-    }
-  ]
+    "no-restricted-syntax": 0,
+    "@typescript-eslint/no-implied-eval": 0,
+    "no-new-func": 0,
+    "no-console": 0,
+    "no-lone-blocks": 0,
+    "no-multi-assign": 0
+  }
 }
