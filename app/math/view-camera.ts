@@ -52,11 +52,6 @@ export const ViewCamera_new = (): ViewCamera => ({
   $view: mat4_new_zero(),
 });
 
-export const ViewCamera_reset = (out: ViewCamera) => {
-  vec3_set(out.$position, 0, 0, 0);
-  vec3_set(out.$rotation, 0, 0, 0);
-};
-
 export const ViewCamera_update = ({
   $position: { x: posX, y: posY, z: posZ },
   $rotation: { x: rotX, y: rotY, z: rotZ },

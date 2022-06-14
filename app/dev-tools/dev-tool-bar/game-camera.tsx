@@ -2,7 +2,7 @@ import type { FC } from "react";
 import { useState, useEffect } from "react";
 import { camera } from "../../camera";
 import { radToDeg } from "../../math/math";
-import { ViewCamera_reset } from "../../math/view-camera";
+import { vec3_set } from "../../math/vectors";
 
 let updateCounter = 1;
 
@@ -35,8 +35,19 @@ export const GameCameraComponent: FC = () => {
         </div>
       </div>
       <div>
-        <button onClick={() => ViewCamera_reset(camera)}>reset</button>
-        <button onClick={() => console.log(camera)}>log</button>
+        <button
+          onClick={() => {
+            vec3_set(camera.$position, 0, 0, 10);
+            vec3_set(camera.$rotation, 0, 0, 0);
+            update();
+          }}
+          title="clear"
+        >
+          ❌
+        </button>
+        <button onClick={() => console.log(camera)} title="log">
+          📜
+        </button>
       </div>
     </div>
   );
