@@ -3,8 +3,7 @@
 #define iResolution iR
 uniform vec2 iResolution;
 
-// Screen position, in pixels. Bottom left is (0, 0), top right is
-// (iResolution.x-1, iResolution.y-1).
+// Screen position, in pixels. Bottom left is (0, 0), top right is (iResolution.x-1, iResolution.y-1).
 #define fragCoord FC
 out vec2 fragCoord;
 

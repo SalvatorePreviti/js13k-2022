@@ -55,3 +55,13 @@ export const loadShader = (vertexShaderCode: string, fragmentShaderCode: string)
 };
 
 export type UseShaderFunction = ReturnType<typeof loadShader>;
+
+/*
+  // MDN advertises to use something like this here: https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/WebGL_best_practices#always_enable_vertex_attrib_0_as_an_array
+  // However, I did not find any performance improvement.
+  gl.enableVertexAttribArray(0);
+  const array = new Float32Array([-1, 3, -1, -1, 3, -1]);
+  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+  gl.bufferData(gl.ARRAY_BUFFER, array, gl.STATIC_DRAW);
+  gl.vertexAttribPointer(0, 2 , gl.FLOAT, false, 0, 0);
+  gl.bindAttribLocation(program, 0, "V"); */

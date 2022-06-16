@@ -20,12 +20,6 @@ function updateWorld() {
 
   camera_update(gameTimeDelta);
 
-  // camera.$position.x = 2;
-  // camera.$position.z = 30;
-  // camera.$position.y = 3;
-
-  // camera.$rotation.y = (Math.sin(performance.now() / 1000) * Math.PI) / 7;
-
   ViewCamera_update(camera);
 }
 

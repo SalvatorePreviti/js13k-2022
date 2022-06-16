@@ -15,6 +15,7 @@ import type { ViteBundledOutput } from "./steps/build-vite";
 import { buildWithVite } from "./steps/build-vite";
 import { bundleHtml } from "./steps/bundle-html";
 import { jsOptimizeTerser } from "./steps/js-optimize-terser";
+import { jsUglify } from "./steps/js-uglify";
 import { cssOptimize } from "./steps/css-optimize";
 
 import { jsOptimizeEsbuild } from "./steps/js-optimize-esbuild";
@@ -47,6 +48,8 @@ export async function build() {
     sources.js = await jsTransformSwc(sources.js);
 
     sources.js = await jsOptimizeTerser(sources.js, { mangle: true });
+
+    sources.js = await jsUglify(sources.js, { mangle: true });
   } finally {
     await writeOptimizedBundle(sources);
   }
