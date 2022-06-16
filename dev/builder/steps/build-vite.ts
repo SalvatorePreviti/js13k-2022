@@ -25,7 +25,6 @@ function rollupPluginStripDevTools(): PluginOption {
     name: "strip-dev-tools",
     load(id: string): LoadResult {
       if (id.includes("dev-tools/dev-main")) {
-        console.log("SKIP!!!", id);
         return "";
       }
       return undefined;
@@ -37,6 +36,10 @@ export async function buildWithVite(options: { stripDevTools: boolean }): Promis
   return devLog.timed(
     async function vite_build() {
       const viteConfigBuild: ViteUserConfig = {
+        define: {
+          DEBUG: false,
+        },
+
         build: {
           write: true,
           sourcemap: true,

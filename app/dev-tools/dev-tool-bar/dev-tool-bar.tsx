@@ -1,6 +1,7 @@
 import type { FC } from "react";
-import { useState, useRef } from "react";
+import { useState } from "react";
 import Draggable from "react-draggable";
+import { GameCameraComponent } from "./game-camera";
 import { FpsGraph } from "./fps-graph";
 
 export const DevToolBar: FC = () => {
@@ -24,6 +25,7 @@ export const DevToolBar: FC = () => {
         {hidden ? null : (
           <div className="dev-tool-bar-body">
             <FpsGraph />
+            <GameCameraComponent />
           </div>
         )}
       </div>

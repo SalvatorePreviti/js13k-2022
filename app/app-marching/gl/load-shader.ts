@@ -1,4 +1,4 @@
-import { gl } from "../gl";
+import { gl } from "./gl";
 import { debug_checkShaderCompileStatus, debug_checkShaderProgramLinkStatus } from "../../dev-tools";
 
 export const loadShader = (vertexShaderCode: string, fragmentShaderCode: string) => {

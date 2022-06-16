@@ -14,18 +14,17 @@ export async function startServer(argv = process.argv) {
   }
 
   const serverConfig: UserConfig = {
+    define: {
+      DEBUG: true,
+    },
+
+    server: { host: parsedCmd.host, port: parsedCmd.port },
+
     plugins: [
       ...(config.plugins || []),
       rollupPluginSpglsl({ compileMode: SpglslCompileMode.Validate }),
       vitePluginReact(),
     ],
-
-    define: {
-      DEBUG: true,
-      NO_DEBUG: false,
-    },
-
-    server: { host: parsedCmd.host, port: parsedCmd.port },
   };
 
   const server = await createServer(mergeConfig(config, serverConfig, true));

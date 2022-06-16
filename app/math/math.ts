@@ -192,9 +192,6 @@ export const INT16_MAX_VALUE = /* @__PURE__ */ 32767;
 /** Minimum value of a 16 bit signed integer, -32768 */
 export const INT16_MIN_NEGATIVE_VALUE = /* @__PURE__ */ -32768;
 
-/** The answer to life the universe and everything, 42 */
-export const LIFE_THE_UNIVERSE_AND_EVERYTHING = /* @__PURE__ */ 42;
-
 /** The value of the largest integer n such that n and n + 1 are both exactly representable as a Number value. The value of Number.MAX_SAFE_INTEGER is 9007199254740991 2^53 − 1. */
 export const MAX_SAFE_INTEGER = /* @__PURE__ */ 2 ** 53 - 1;
 
@@ -360,30 +357,6 @@ export const YARD_IN_METERS = /* @__PURE__ */ 0.9144;
 /** One mile in meters, 1609.344 */
 export const MILE_IN_METERS = /* @__PURE__ */ 1609.344;
 
-/** One nautical mile in meters, 1852 */
-export const NAUTICAL_MILE_IN_METERS = /* @__PURE__ */ 1852;
-
-/** One astronomical unit in meters, 149597870691 */
-export const ASTRONOMICAL_UNIT_IN_METERS = /* @__PURE__ */ 149597870691;
-
-/** One light year in meters, 9.46053620707e15 */
-export const LIGHT_YEAR_IN_METERS = /* @__PURE__ */ 9.46053620707e15;
-
-/** One parsec in meters, 3.08567758135e16 */
-export const PARSEC_IN_METERS = /* @__PURE__ */ 3.08567758135e16;
-
-/** One angstrom in meters, 1e-10 */
-export const ANGSTROM_IN_METERS = /* @__PURE__ */ 1e-10;
-
-/** The speed of light, in meters per second, 299792458 */
-export const SPEED_OF_LIGHT = /* @__PURE__ */ 299792458;
-
-/** The Gravitational Constant in m**3 / (kg * s), 6.673e-11 */
-export const GRAVITATIONAL_CONSTANT = /* @__PURE__ */ 6.673e-11;
-
-/** One solar mass in kilograms, 1.98892e30 */
-export const SOLAR_MASS_IN_KILOGRAMS = /* @__PURE__ */ 1.98892e30;
-
 /** 2 ** 28, 268435456 */
 export const TWO_POW_28 = /* @__PURE__ */ 2 ** 28;
 
@@ -429,7 +402,7 @@ export const max = (a: number, b: number | undefined | null): number => (a < b! 
  * @param x The base value of the expression.
  * @param y The exponent value of the expression.
  */
-export const pow = (a: number, b: number): number => a ** b;
+export const pow = (x: number, y: number): number => x ** y;
 
 /**
  * Computes the square of the given value.
@@ -495,25 +468,6 @@ export const isEven = (x: number): boolean => x % 2 === 0;
 
 /** Returns true if the given number is not divisible by two */
 export const isOdd = (x: number): boolean => x % 2 !== 0;
-
-/** Checks wether the given number is prime. Not particularly optimized, complexity is O(sqrt(n)). */
-export const isPrime = (n: number): boolean => {
-  if (n % 1 !== 0 || n < 2 || !isInteger(n)) {
-    return false;
-  }
-  if (n % 2 === 0) {
-    return n === 2;
-  }
-  if (n % 3 === 0) {
-    return n === 3;
-  }
-  for (let i = 5, m = sqrt(n); i <= m; i += 6) {
-    if (n % i === 0 || n % (i + 2) === 0) {
-      return false;
-    }
-  }
-  return true;
-};
 
 /**
  * Clamps a value between a minimum and a maximum
@@ -768,26 +722,6 @@ export const int32_ctz = (i32: int32): int32 => {
   return c;
 };
 
-/** Gets the power of two greater or equal the given value. 0=>1. 1=>1, 2=>2, 3=>4, 4=>4, 5=>8 ... */
-export const uint32_nextPowerOfTwo = (v: int32): int32 => {
-  v = v && v - 1;
-  v |= v >>> 1;
-  v |= v >>> 2;
-  v |= v >>> 4;
-  v |= v >>> 8;
-  return (v | (v >>> 16)) + 1;
-};
-
-/** Gets the power of two smaller or equal the given value.  */
-export const uint32_prevPowerOfTwo = (v: int32): int32 => {
-  v |= v >>> 1;
-  v |= v >>> 2;
-  v |= v >>> 4;
-  v |= v >>> 8;
-  v |= v >>> 16;
-  return v - (v >>> 1);
-};
-
 /**
  * Gets the hamming distance, the number of different bits, between two 32 bit integers.
  * @param a First value
@@ -1034,25 +968,11 @@ export const degToRad = (degrees: number): number => degrees * DEG_PER_RAD;
 export const radToDeg = (radians: number): number => radians / DEG_PER_RAD;
 
 /**
- * Trigonometry - Wrap an angle so it is always between 0 (included) and 2*PI (excluded)
- * @param radians The angle in radians to wrap between 0 (included) and 2*PI (excluded)
- * @returns The angle in radians wrapped so it is always between 0 (included) and 2*PI (excluded)
+ * Trigonometry - Wrap an angle so it is always between -PI and PI
+ * @param radians The angle in radians to wrap between -PI and PI
+ * @returns The angle in radians wrapped so it is always between -PI and PI
  */
-export const angle_wrap = (radians: number): number => wrap(radians, TWO_PI);
-
-/**
- * Trigonometry - Wrap an angle so it is always between -PI (excluded) and PI (included)
- * @param radians The angle in radians to wrap between -PI (excluded) ad PI (included)
- * @returns The angle in radians wrapped so it is always between -PI (excluded) ad PI (included)
- */
-export const angle_wrap_signed = (radians: number): number => wrap_signed(radians, TWO_PI);
-
-/**
- * Wraps an angle so that the returned value will be between 0 (included) and 2*PI (excluded) following a triangle wave shape.
- * @param radians The angle in radians to pingpong
- * @returns radians pingpong PI
- */
-export const angle_wrap_pingPong = (radians: number): number => wrap_pingPong(radians, TWO_PI);
+export const angle_wrap = (radians: number): number => atan2(sin(radians), cos(radians));
 
 /**
  * Gets the shortest difference betwee two angles, in a range between 0 (included) to 2*PI (excluded)
@@ -1062,15 +982,6 @@ export const angle_wrap_pingPong = (radians: number): number => wrap_pingPong(ra
  */
 export const angle_delta = (sourceRadians: number, targetRadians: number): number =>
   angle_wrap(targetRadians - sourceRadians);
-
-/**
- * Gets the shortest difference betwee two angles, in a range between -PI (excluded) to PI (included)
- * @param sourceRadians First angle
- * @param targetRadias Second angle
- * @returns The shortest angle between sourceRadians to targetRadians, in a range between -PI (excluded) to PI (included)
- */
-export const angle_delta_signed = (sourceRadians: number, targetRadians: number): number =>
-  angle_wrap_signed(targetRadians - sourceRadians);
 
 /** Gets the angle in radians between two vectors */
 export const angle_between2D = (ax: number, ay: number, bx: number, by: number): number => atan2(by - ay, bx - ax);
@@ -1182,6 +1093,9 @@ export const step_rect = (x: number): number => step_boxcar(x, -0.5, 0.5);
  * https://iquilezles.org/www/articles/functions/functions.htm
  */
 export const step_exp = (x: number, k: number, n: number): number => exp(-k * x ** n);
+
+/** Definition of a generic easing function */
+export type EasingFunction<T = number> = (t: T) => T;
 
 /** Linear interpolation */
 export const ease_linear = (t: number): number => t;
@@ -1355,15 +1269,6 @@ export const lerp_mod = (from: number, to: number, modulus: number, t: number): 
  * @param fromRadians The start angle, in radias
  * @param toRadians The end angle, in radians
  */
-export const angle_lerp_signed = (fromRadians: number, toRadians: number, t: number): number =>
-  angle_wrap_signed(fromRadians + angle_wrap_signed(toRadians - fromRadians) * t);
-
-/**
- * Linear interpolation between two angles in radians
- * @param t The amount to choose between from and to
- * @param fromRadians The start angle, in radias
- * @param toRadians The end angle, in radians
- */
 export const angle_lerp_unsigned = (fromRadians: number, toRadians: number, t: number): number =>
   angle_wrap(fromRadians + angle_wrap(toRadians - fromRadians) * t);
 
@@ -1373,7 +1278,7 @@ export const moveTowards = (current: number, target: number, maxDelta: number): 
 
 /** Moves an angle toward a target */
 export const angle_moveTowards = (currentRadians: number, targetRadians: number, maxDelta: number): number => {
-  const delta = angle_wrap_signed(currentRadians - targetRadians);
+  const delta = angle_wrap(currentRadians - targetRadians);
   return -maxDelta < delta && delta < maxDelta
     ? targetRadians
     : moveTowards(currentRadians, currentRadians + delta, maxDelta);

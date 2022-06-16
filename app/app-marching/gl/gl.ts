@@ -1,6 +1,5 @@
-import { initWebglContext } from "../webgl-context-wrapper";
-
-export const canvas = document.getElementById("C") as HTMLCanvasElement;
+import { canvas } from "../../canvas";
+import { initWebglContext } from "../../utils/webgl-context-wrapper";
 
 export const gl = canvas.getContext("webgl2", {
   /** Boolean that indicates if the canvas contains an alpha buffer. */
@@ -22,7 +21,3 @@ export const gl = canvas.getContext("webgl2", {
 })!;
 
 initWebglContext(gl);
-
-export const width = gl.canvas.clientWidth;
-
-export const height = gl.canvas.clientHeight;

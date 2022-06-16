@@ -20,16 +20,14 @@ export const FpsGraph: FC = () => {
     let msDisplayTime = lastTime;
     let maxFps = 70;
     let durationMs = 0;
-    // const renderTimeMs = 0;
 
-    const fpsGraph = createGraph(context, 0, "#09f", "#002");
-    const msGraph = createGraph(context, 1, "#09f", "#002");
+    const fpsGraph = createGraph(context, 0, "#4bf", "#002");
+    const msGraph = createGraph(context, 1, "#4bf", "#002");
 
     const animationFrame = () => {
       ++fpsFrames;
 
       const time = performance.now();
-      // if (time >= fpsTime + 1000) {
       if (time >= fpsTime + 250) {
         const fps = (fpsFrames * 1000) / (time - fpsTime) || 0;
 
@@ -46,17 +44,13 @@ export const FpsGraph: FC = () => {
 
       if (time >= msDisplayTime + 250) {
         msDisplayTime = time;
-        msGraph.updateGraph(durationMs, 20);
+        msGraph.updateGraph(durationMs, 30);
         msGraph.drawText("Frame:" + durationMs.toFixed(2).padStart(7) + "ms");
         durationMs = 0;
-        // msGraph.updateGraph(renderTimeMs, 30);
-        // msGraph.drawText(renderTimeMs.toFixed(2));
-        // renderTimeMs = 0;
       }
 
       durationMs = Math.max(durationMs, time - lastTime);
       lastTime = time;
-      // renderTimeMs = Math.max(renderTimeMs, time - renderTimeStart);
 
       rafRef.current = _requestAnimationFrame(animationFrame);
     };
@@ -67,7 +61,7 @@ export const FpsGraph: FC = () => {
 
   return (
     <div>
-      <canvas width="140" height="200" ref={canvasRef} />
+      <canvas width="145" height="126" ref={canvasRef} />
     </div>
   );
 };

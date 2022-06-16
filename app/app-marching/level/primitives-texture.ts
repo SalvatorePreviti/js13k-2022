@@ -1,4 +1,4 @@
-import { gl } from "../gl";
+import { gl } from "../gl/gl";
 import { primitiveWriter } from "./primitives";
 
 // Create a texture.
