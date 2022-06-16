@@ -1,7 +1,7 @@
 import type { Expression, MemberExpression } from "@swc/core";
 import { transform as swcTransform } from "@swc/core";
 import SwcVisitor from "@swc/core/Visitor";
-import { outPath_build } from "dev/builder/out-paths";
+import { outPath_build } from "../out-paths";
 import type { PluginOption } from "vite";
 import { glConstants, glFunctions } from "../lib/gl-context";
 

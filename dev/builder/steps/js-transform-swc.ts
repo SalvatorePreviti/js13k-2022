@@ -2,7 +2,7 @@ import { devLog } from "@balsamic/dev";
 import type { NumericLiteral } from "@swc/core";
 import { transform as swcTransform } from "@swc/core";
 import SwcVisitor from "@swc/core/Visitor";
-import { outPath_build } from "dev/builder/out-paths";
+import { outPath_build } from "../out-paths";
 import { sizeDifference } from "../lib/logging";
 
 class Transformer extends SwcVisitor {
