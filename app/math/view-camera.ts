@@ -1,4 +1,4 @@
-import { angle_wrap, clamp, cos, DEG_PER_RAD, sin } from "./math";
+import { angle_wrap, clamp, clamp_distance, cos, DEG_PER_RAD, sin } from "./math";
 import { mat4_new_zero } from "./matrix";
 import { vec3_new, vec3_set } from "./vectors";
 
@@ -27,11 +27,7 @@ const CAMERA_ROTATION_MAX_PITCH_RADIANS = 87 * DEG_PER_RAD;
 
 export const ViewCamera_firstPersonRotate = ({ $rotation }: ViewCameraInput, x: number, y: number) => {
   $rotation.y = angle_wrap($rotation.y + x);
-  $rotation.x = clamp(
-    angle_wrap($rotation.x + y),
-    -CAMERA_ROTATION_MAX_PITCH_RADIANS,
-    CAMERA_ROTATION_MAX_PITCH_RADIANS,
-  );
+  $rotation.x = clamp_distance(angle_wrap($rotation.x + y), CAMERA_ROTATION_MAX_PITCH_RADIANS);
 };
 
 export const ViewCamera_firstPersonMove = (

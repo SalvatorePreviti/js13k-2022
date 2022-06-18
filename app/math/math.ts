@@ -479,6 +479,8 @@ export const isOdd = (x: number): boolean => x % 2 !== 0;
 export const clamp = (value: number, minimum: number = 0, maximum: number = 1): number =>
   value < minimum ? minimum : value > maximum ? maximum : value;
 
+export const clamp_distance = (value: number, distance: number) => clamp(value, -distance, distance);
+
 /** Returns -n */
 export const negate = (n: number): number => -n;
 

@@ -1,17 +1,17 @@
-import "../dev-tools/dev-main";
-import "../index.css";
+import "./dev-tools/dev-main";
+import "./index.css";
 
-import { canvas } from "../canvas";
-import { initWebglContext } from "../utils/webgl-context-wrapper";
+import { canvas } from "./canvas";
+import { initWebglContext } from "./utils/webgl-context-wrapper";
 
 const gl = canvas.getContext("webgl2")!;
 
 initWebglContext(gl);
 
-import { mat4_new_zero, mat4_setPerspectiveValues } from "../math/matrix";
-import { DEG_PER_RAD } from "../math/math";
-import { camera, camera_update } from "../camera";
-import { ViewCamera_update } from "../math/view-camera";
+import { mat4_new_zero, mat4_setPerspectiveValues } from "./math/matrix";
+import { DEG_PER_RAD } from "./math/math";
+import { camera, camera_update } from "./camera";
+import { ViewCamera_update } from "./math/view-camera";
 
 const vsSource = `
     attribute vec4 aVertexPosition;
