@@ -18,6 +18,12 @@ export async function startServer(argv = process.argv) {
       DEBUG: true,
     },
 
+    esbuild: {
+      define: {
+        this: "window",
+      },
+    },
+
     server: { host: parsedCmd.host, port: parsedCmd.port },
 
     plugins: [
