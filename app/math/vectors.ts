@@ -86,3 +86,6 @@ export const vec3_mid = (out: Vec3, a: Vec3In, b: Vec3In) => vec3_set_each2(out,
 export const vec3_add_scalar = (out: Vec3, { x, y, z }: Vec3In, b: number) => vec3_set(out, x + b, x + y, x + z);
 
 export const vec3_sub_scalar = (out: Vec3, a: Vec3In, b: number) => vec3_add_scalar(out, a, -b);
+
+export const vec3_cross = (out: Vec3Out, { x: ax, y: ay, z: az }: Vec3In, { x: bx, y: by, z: bz }: Vec3In) =>
+  vec3_set(out, ay * bz - az * by, az * bx - ax * bz, ax * by - ay * bx);

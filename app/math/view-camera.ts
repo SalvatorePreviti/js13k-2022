@@ -48,6 +48,20 @@ export const ViewCamera_new = (): ViewCamera => ({
   $view: mat4_new_zero(),
 });
 
+export interface Transformation {}
+
+export interface Mat4TransformationInput {
+  $translationX?: number;
+  $translationY?: number;
+  $translationZ?: number;
+  $scaleX?: number;
+  $scaleY?: number;
+  $scaleZ?: number;
+  $rotationX?: number;
+  $rotationY?: number;
+  $rotationZ?: number;
+}
+
 export const ViewCamera_update = ({
   $position: { x: posX, y: posY, z: posZ },
   $rotation: { x: rotX, y: rotY, z: rotZ },

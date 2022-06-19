@@ -17,6 +17,8 @@ import { ViewCamera_new, ViewCamera_firstPersonMove, ViewCamera_firstPersonRotat
 
 export const camera: ViewCamera = ViewCamera_new();
 
+camera.$position.z = 5;
+
 export const PLAYER_SPEED_WALKING = 2.1;
 
 export const PLAYER_SPEED_RUNNING = DEBUG ? 20 : 5.5;
