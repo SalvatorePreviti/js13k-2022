@@ -52,9 +52,9 @@ const figure5 = solid_transform(
   identity.translate(-0.2).rotate(0, 10, 10).scale(0.15, 1.7, 0.15),
 );
 
-// if (DEBUG) {
-console.time("x");
-// }
+if (DEBUG) {
+  console.time("csg");
+}
 
 const csg0 = csg_subtract(figure0, figure1);
 const csg1 = csg_union(csg0, figure2);
@@ -64,9 +64,9 @@ const csg4 = csg_subtract(csg3, figure5);
 
 scene.push(csg_polygons(csg4));
 
-// if (DEBUG) {
-console.timeEnd("x");
-// }
+if (DEBUG) {
+  console.timeEnd("csg");
+}
 
 // scene.push(ttt);
 
@@ -82,10 +82,16 @@ console.timeEnd("x");
 
 // scene.push(extractCSGPolygons(makeCSGPolygons(figure0.$polygons)));
 
+if (DEBUG) {
+  console.time("triangles");
+}
 const sceneTriangles = solids_to_triangles(scene);
+if (DEBUG) {
+  console.timeEnd("triangles");
+}
 
 if (DEBUG) {
-  console.log({ vertices: sceneTriangles.$vertices.length, indices: sceneTriangles.$indices.length });
+  console.log({ vertices: sceneTriangles.$vertices.length / 9, indices: sceneTriangles.$indices.length });
 }
 
 // scene.push(...csg_union(figure0, figure1));

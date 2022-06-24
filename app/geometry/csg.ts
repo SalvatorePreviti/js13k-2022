@@ -59,11 +59,15 @@ export const csg_intersect = (a: CSGNode | readonly Polygon[], b: CSGNode | Poly
   return a;
 };
 
-export const csg_polygons = (tree: CSGNode | 0, result: CSGPolygon[] = []) => {
-  if (tree) {
-    result.push(...tree.$polygons);
-    csg_polygons(tree.$front, result);
-    csg_polygons(tree.$back, result);
-  }
+export const csg_polygons = (tree: CSGNode) => {
+  const result: CSGPolygon[] = [];
+  const recursion = (node: CSGNode | 0) => {
+    if (node) {
+      result.push(...node.$polygons);
+      recursion(node.$front);
+      recursion(node.$back);
+    }
+  };
+  recursion(tree);
   return result;
 };

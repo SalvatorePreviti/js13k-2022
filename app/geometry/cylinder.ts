@@ -1,3 +1,4 @@
+import { normal_snap, pos_snap } from "../math/math";
 import { plane_fromTriangle } from "../math/plane";
 import type { Vec3, Vec3In } from "../math/vectors";
 import { vec3_clone } from "../math/vectors";
@@ -12,7 +13,10 @@ export interface Polygon {
   $points: Vec3[];
 }
 
-export const vec3_transform = (v: Vec3In, m: DOMMatrix) => m.transformPoint(v);
+export const vec3_transform = (v: Vec3In, m: DOMMatrix) => {
+  const { x, y, z } = m.transformPoint(v);
+  return { x, y, z };
+};
 
 export const polygon_transform = ({ $material, $points }: Polygon, m: DOMMatrix): Polygon => ({
   $material,
@@ -86,31 +90,48 @@ export const solid_transform = (solid: Polygon[], m: DOMMatrix) =>
 export const solid_cylinder = (material: Material, segments: number): Polygon[] =>
   polygon_extrude(polygon_regular(material, segments));
 
-export const solids_to_triangles = (solids: Polygon[][]) => {
-  const $vertices: number[] = [];
-  const $indices: number[] = [];
-  const vertexMap = new Map<string, number>();
+type Vertex = [number, number, number, number, number, number, number, number, number] & {
+  $index: number;
+};
 
-  const getVertex = ({ x, y, z }: Vec3, { x: nx, y: ny, z: nz }: Vec3, material: Material) => {
-    const vertex = [x, y, z, nx, ny, nz, ...material].map(Math.fround);
+type Triangle = [Vertex, Vertex, Vertex];
+
+export const solids_to_triangles = (solids: Polygon[][]) => {
+  const vertexMap = new Map<string, Vertex>();
+  const triangles: Triangle[] = [];
+
+  const getVertex = ({ x, y, z }: Vec3, { x: $nx, y: $ny, z: $nz }: Vec3, $material: Material): Vertex => {
+    x = pos_snap(x);
+    y = pos_snap(y);
+    z = pos_snap(z);
+
+    $nx = normal_snap($nx);
+    $ny = normal_snap($ny);
+    $nz = normal_snap($nz);
+
+    const vertex = [x, y, z, $nx, $ny, $nz, ...$material] as Vertex;
+    vertex.$index = -1;
+
     const key = "" + vertex;
-    let result = vertexMap.get(key);
-    if (result === undefined) {
-      result = vertexMap.size;
-      vertexMap.set(key, result);
-      $vertices.push(...vertex);
+
+    const found = vertexMap.get(key);
+    if (found) {
+      return found;
     }
-    return result;
+    vertexMap.set(key, vertex);
+    return vertex;
   };
 
   const makePolygon = ({ $points, $material }: Polygon) => {
-    const plane = plane_fromTriangle({}, $points as [Vec3In, Vec3In, Vec3In]);
     for (let i = 2; i < $points.length; i++) {
-      $indices.push(
-        getVertex($points[0]!, plane, $material),
-        getVertex($points[i - 1]!, plane, $material),
-        getVertex($points[i]!, plane, $material),
-      );
+      const plane = plane_fromTriangle({}, $points[0]!, $points[i - 1]!, $points[i]!);
+      const a = getVertex($points[0]!, plane, $material);
+      const b = getVertex($points[i - 1]!, plane, $material);
+      const c = getVertex($points[i]!, plane, $material);
+      if (a !== b && a !== c && b !== c) {
+        const triangle: Triangle = [a, b, c];
+        triangles.push(triangle);
+      }
     }
   };
 
@@ -118,6 +139,25 @@ export const solids_to_triangles = (solids: Polygon[][]) => {
     for (const polygon of polygons) {
       makePolygon(polygon);
     }
+  }
+
+  const $vertices: number[] = [];
+  const $indices: number[] = [];
+
+  let verticesCount = 0;
+
+  const getVertexIndex = (vertex: Vertex): number => {
+    let { $index } = vertex;
+    if ($index === -1) {
+      $index = verticesCount++;
+      vertex.$index = $index;
+      $vertices.push(...vertex);
+    }
+    return $index;
+  };
+
+  for (const [a, b, c] of triangles) {
+    $indices.push(getVertexIndex(a), getVertexIndex(b), getVertexIndex(c));
   }
 
   return {

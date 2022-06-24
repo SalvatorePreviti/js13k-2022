@@ -58,3 +58,10 @@ export const clamp_distance = (value: number, distance: number) => clamp(value, 
 export const angle_wrap_radians = (radians: number): number => Math.atan2(Math.sin(radians), Math.cos(radians));
 
 export const angle_wrap_degrees = (degrees: number): number => angle_wrap_radians(degrees * DEG_TO_RAD) * RAD_PER_DEG;
+
+export const POSITION_PRECISION = 1e-4;
+
+export const pos_snap = (value: number): number =>
+  Math.fround(Math.floor(0.5 + value / POSITION_PRECISION) * POSITION_PRECISION);
+
+export const normal_snap = pos_snap;

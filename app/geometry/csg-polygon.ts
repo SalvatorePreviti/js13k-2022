@@ -7,7 +7,9 @@ export interface CSGPolygon extends Polygon, Plane {}
 export const CSGPolygon_new = (polygon: Polygon) =>
   plane_fromTriangle(
     { ...polygon, $points: polygon.$points.slice() } as CSGPolygon,
-    polygon.$points as [Vec3In, Vec3In, Vec3In],
+    polygon.$points[0]!,
+    polygon.$points[1]!,
+    polygon.$points[2]!,
   );
 
 export const PLANE_EPSILON = 1e-5;
