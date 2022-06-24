@@ -2,7 +2,7 @@ import { minify as terserMinify } from "terser";
 import type { UnsafeAny } from "@balsamic/dev";
 import { devLog } from "@balsamic/dev";
 import { sizeDifference } from "../lib/logging";
-import { browserPureFunctions, jsRemoveEndingSemicolons } from "../lib/code-utils";
+import { jsRemoveEndingSemicolons } from "../lib/code-utils";
 import type {
   ECMA as ECMAVersion,
   MinifyOptions as TerserMinifyOptions,
@@ -135,7 +135,7 @@ export function getTerserMinifyOptions(
       expression: false,
 
       // hoist function declarations
-      hoist_funs: false,
+      hoist_funs: true,
 
       // hoist properties from constant object and array literals into regular variables subject to a set of constraints.
       // For example: var o={p:1, q:2}; f(o.p, o.q); is converted to f(1, 2)
@@ -143,13 +143,13 @@ export function getTerserMinifyOptions(
 
       // hoist var declarations
       // (this is false by default because it seems to increase the size of the output in general)
-      hoist_vars: true,
+      hoist_vars: false,
 
       // optimizations for if/return and if/continue
       if_return: true,
 
       // inline calls to function with simple/return statement
-      inline: true,
+      inline: 3,
 
       // join consecutive var statements
       join_vars: true,
@@ -192,7 +192,7 @@ export function getTerserMinifyOptions(
       computed_props: true,
 
       // You can pass an array of names and Terser will assume that those functions do not produce side effects. DANGER: will not check if the name is redefined in scope.
-      pure_funcs: browserPureFunctions,
+      // pure_funcs: browserPureFunctions,
 
       // If you pass true for this, Terser will assume that object property access
       // (e.g. foo.bar or foo["bar"]) doesn't have any side effects. Specify "strict"
@@ -295,7 +295,7 @@ export function getTerserMinifyOptions(
           module,
 
           // Pass an array of identifiers that should be excluded from mangling. Example: ["foo", "bar"].
-          reserved: undefined,
+          // reserved: [..."abcdefghijklmnopqrstuvwxyz"],
 
           // Mangle properties - optimizes a lot but is very dangerous. Enables only with properties starting with $
           properties: {

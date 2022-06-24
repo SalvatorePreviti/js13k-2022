@@ -1,18 +1,17 @@
 import { devLog } from "@balsamic/dev";
 import type { JsMinifyOptions } from "@swc/core";
 import { transform as swcTransform } from "@swc/core";
-import { browserPureFunctions } from "../lib/code-utils";
 import { sizeDifference } from "../lib/logging";
 import { outPath_build } from "../out-paths";
 
 export interface SwcMinifySettings {
-  sourceMap?: boolean | undefined;
+  mangle: boolean;
 }
 
-export async function jsOptimizeSwc(input: string): Promise<string> {
+export async function jsOptimizeSwc(input: string, settings: SwcMinifySettings): Promise<string> {
   return devLog.timed(
     async function js_swc() {
-      const swcMinifyOptions = getSwcMinifyOptions();
+      const swcMinifyOptions = getSwcMinifyOptions(settings);
 
       const result = (
         await swcTransform(input, {
@@ -54,7 +53,7 @@ declare module "@swc/core" {
   }
 }
 
-export function getSwcMinifyOptions(): JsMinifyOptions & {
+export function getSwcMinifyOptions(settings: SwcMinifySettings): JsMinifyOptions & {
   keepClassnames?: boolean | undefined;
   keepFnames?: boolean | undefined;
 } {
@@ -102,8 +101,8 @@ export function getSwcMinifyOptions(): JsMinifyOptions & {
       // if the resultant code is shorter: m(){return x} becomes m:()=>x
       arrows: true,
 
-      // replace arguments[index] with function parameter name whenever possible.
-      arguments: true,
+      // this MUST be false, it causes invalid JS to be generated.
+      arguments: false,
 
       // various optimizations for boolean context, for example !!a ? b : c → a ? b : c
       booleans: true,
@@ -150,7 +149,7 @@ export function getSwcMinifyOptions(): JsMinifyOptions & {
 
       // hoist var declarations
       // (this is false by default because it seems to increase the size of the output in general)
-      hoist_vars: true,
+      hoist_vars: false,
 
       // optimizations for if/return and if/continue
       if_return: true,
@@ -198,7 +197,7 @@ export function getSwcMinifyOptions(): JsMinifyOptions & {
       computed_props: false,
 
       // You can pass an array of names and Terser will assume that those functions do not produce side effects. DANGER: will not check if the name is redefined in scope.
-      pure_funcs: browserPureFunctions,
+      // pure_funcs: browserPureFunctions,
 
       // If you pass true for this, Terser will assume that object property access
       // (e.g. foo.bar or foo["bar"]) doesn't have any side effects. Specify "strict"
@@ -279,41 +278,46 @@ export function getSwcMinifyOptions(): JsMinifyOptions & {
     },
 
     // Mangle options
-    mangle: {
-      safari10: false,
+    mangle: settings.mangle
+      ? {
+          safari10: false,
 
-      toplevel: true,
+          toplevel: true,
 
-      // Pass true to not mangle class names.
-      // Pass a regular expression to only keep class names matching that regex.
-      // See also: the keep_classnames compress option.
-      keepClassNames: false,
+          // Pass true to not mangle class names.
+          // Pass a regular expression to only keep class names matching that regex.
+          // See also: the keep_classnames compress option.
+          keepClassNames: false,
 
-      // Pass true to not mangle function names.
-      // Pass a regular expression to only keep class names matching that regex.
-      // Useful for code relying on Function.prototype.name.
-      // See also: the keep_fnames compress option.
-      keepFnNames: false,
+          // Pass true to not mangle function names.
+          // Pass a regular expression to only keep class names matching that regex.
+          // Useful for code relying on Function.prototype.name.
+          // See also: the keep_fnames compress option.
+          keepFnNames: false,
 
-      keep_private_props: true,
+          keep_private_props: true,
 
-      // Pass an array of identifiers that should be excluded from mangling. Example: ["foo", "bar"].
-      reserved: undefined,
+          // Pass an array of identifiers that should be excluded from mangling. Example: ["foo", "bar"].
+          reserved: undefined,
 
-      // Mangle properties - optimizes a lot but is very dangerous. Enables only with properties starting with $
-      props: {
-        // Use true to allow the mangling of builtin DOM properties. Not recommended to override this setting.
-        builtins: false,
+          // Mangle properties - optimizes a lot but is very dangerous. Enables only with properties starting with $
+          props: {
+            // Use true to allow the mangling of builtin DOM properties. Not recommended to override this setting.
+            builtins: false,
 
-        // Mangle names with the original name still present. Pass an empty string "" to enable, or a non-empty string to set the debug suffix.
-        debug: false,
+            // Mangle names with the original name still present. Pass an empty string "" to enable, or a non-empty string to set the debug suffix.
+            debug: false,
 
-        // Only mangle unquoted property names.
-        //  true: Quoted property names are automatically reserved and any unquoted property names will not be mangled.
-        //  'strict': Advanced, all unquoted property names are mangled unless explicitly reserved.
-        keep_quoted: true,
-      },
-    },
+            // Only mangle unquoted property names.
+            //  true: Quoted property names are automatically reserved and any unquoted property names will not be mangled.
+            //  'strict': Advanced, all unquoted property names are mangled unless explicitly reserved.
+            keep_quoted: true,
+
+            // Mangle regular expression
+            regex: "/^[$_]/",
+          },
+        }
+      : false,
 
     // Output options
     format: {

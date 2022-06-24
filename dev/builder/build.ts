@@ -17,11 +17,12 @@ import { bundleHtml } from "./steps/bundle-html";
 import { jsOptimizeTerser } from "./steps/js-optimize-terser";
 import { cssOptimize } from "./steps/css-optimize";
 
-import { jsOptimizeEsbuild } from "./steps/js-optimize-esbuild";
 import { jsTransformSwc } from "./steps/js-transform-swc";
 import { jsRoadroller } from "./steps/js-roadroller";
 import { htmlCssToJs } from "./steps/html-css-to-js";
 import zlib from "zlib";
+import { jsUglify } from "./steps/js-uglify";
+import { jsOptimizeEsbuild } from "./steps/js-optimize-esbuild";
 
 devLog.titlePaddingWidth = 18;
 
@@ -41,19 +42,14 @@ export async function build() {
     sources.html = htmlCssJsBundle.html;
     sources.js = htmlCssJsBundle.js;
 
-    // sources.js = await jsUglify(sources.js, { mangle: true, varify: false });
-
+    sources.js = await jsTransformSwc(sources.js, { mangle: false });
     sources.js = await jsOptimizeTerser(sources.js, { mangle: true });
+    sources.js = await jsUglify(sources.js, { mangle: false, varify: true });
 
-    sources.js = await jsOptimizeEsbuild(sources.js, { mangle: true });
-
+    // sources.js = await jsOptimizeEsbuild(sources.js);
+    // sources.js = await jsOptimizeSwc(sources.js);
+    // sources.js = await jsTransformSwc(sources.js);
     // sources.js = await jsTransformEslint(sources.js, { passes: 4, sourceType: "module" });
-
-    sources.js = await jsTransformSwc(sources.js);
-
-    sources.js = await jsOptimizeTerser(sources.js, { mangle: true });
-
-    // sources.js = await jsUglify(sources.js, { mangle: true, varify: false });
   } finally {
     await writeOptimizedBundle(sources);
   }

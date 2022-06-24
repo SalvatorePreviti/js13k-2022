@@ -8,7 +8,7 @@ export interface JsOptimizeEsbuildOptions {
   mangle: boolean;
 }
 
-export async function jsOptimizeEsbuild(input: string, options: JsOptimizeEsbuildOptions): Promise<string> {
+export async function jsOptimizeEsbuild(input: string, settings: { mangle: boolean }): Promise<string> {
   return devLog.timed(
     async function js_esbuild() {
       const result = (
@@ -21,11 +21,11 @@ export async function jsOptimizeEsbuild(input: string, options: JsOptimizeEsbuil
           treeShaking: true,
           target: ESBUILD_TARGETS,
           pure: browserPureFunctions,
-          keepNames: !options.mangle,
+          keepNames: false,
           minify: true,
           minifySyntax: true,
           minifyWhitespace: true,
-          minifyIdentifiers: options.mangle,
+          minifyIdentifiers: settings.mangle,
         })
       ).code;
 

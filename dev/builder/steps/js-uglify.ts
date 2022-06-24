@@ -3,7 +3,7 @@ import { minify as uglify } from "uglify-js";
 import type { UnsafeAny } from "@balsamic/dev";
 import { devLog } from "@balsamic/dev";
 import { sizeDifference } from "../lib/logging";
-import { browserPureFunctions, jsRemoveEndingSemicolons } from "../lib/code-utils";
+import { jsRemoveEndingSemicolons } from "../lib/code-utils";
 
 export async function jsUglify(input: string, settings: JsUglifySettings) {
   return devLog.timed(
@@ -74,7 +74,7 @@ export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: R
       reduce_funcs: true,
 
       // replace arguments[index] with function parameter name whenever possible.
-      arguments: true,
+      arguments: false,
 
       // various optimizations for boolean context, for example !!a ? b : c → a ? b : c
       booleans: true,
@@ -118,7 +118,7 @@ export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: R
 
       // hoist var declarations
       // (this is false by default because it seems to increase the size of the output in general)
-      hoist_vars: true,
+      hoist_vars: false,
 
       // optimizations for if/return and if/continue
       if_return: true,
@@ -159,7 +159,7 @@ export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: R
       properties: true,
 
       // You can pass an array of names and Terser will assume that those functions do not produce side effects. DANGER: will not check if the name is redefined in scope.
-      pure_funcs: browserPureFunctions,
+      // pure_funcs: browserPureFunctions,
 
       // If you pass true for this, Terser will assume that object property access
       // (e.g. foo.bar or foo["bar"]) doesn't have any side effects. Specify "strict"

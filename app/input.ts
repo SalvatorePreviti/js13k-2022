@@ -42,10 +42,10 @@ const keyMap: Partial<Record<KEY_CODE, number>> = {
   ShiftRight: KEY_RUN,
 };
 
-if (DEBUG) {
-  keyMap.KeyR = KEY_DEBUG_FLY_UP;
-  keyMap.KeyF = KEY_DEBUG_FLY_DOWN;
-}
+// if (DEBUG) {
+keyMap.KeyR = KEY_DEBUG_FLY_UP;
+keyMap.KeyF = KEY_DEBUG_FLY_DOWN;
+// }
 
 window.addEventListener("keydown", ({ code, defaultPrevented }) => {
   if (!defaultPrevented) {

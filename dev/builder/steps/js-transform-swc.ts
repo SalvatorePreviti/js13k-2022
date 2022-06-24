@@ -1,12 +1,14 @@
 import { devLog } from "@balsamic/dev";
-import type { NumericLiteral, VariableDeclaration } from "@swc/core";
+import type { VariableDeclaration } from "@swc/core";
 import { transform as swcTransform } from "@swc/core";
 import SwcVisitor from "@swc/core/Visitor";
 import { outPath_build } from "../out-paths";
 import { sizeDifference } from "../lib/logging";
+import type { SwcMinifySettings } from "./js-optimize-swc";
+import { getSwcMinifyOptions } from "./js-optimize-swc";
 
 class Transformer extends SwcVisitor {
-  override visitNumericLiteral(n: NumericLiteral): NumericLiteral {
+  /* override visitNumericLiteral(n: NumericLiteral): NumericLiteral {
     if (!Number.isFinite(n.value)) {
       return n;
     }
@@ -20,7 +22,7 @@ class Transformer extends SwcVisitor {
       n.value = Number.parseFloat(n.value.toPrecision(6));
     }
     return super.visitNumericLiteral(n);
-  }
+  } */
 
   override visitVariableDeclaration(n: VariableDeclaration): VariableDeclaration {
     if (n.kind === "const") {
@@ -30,7 +32,7 @@ class Transformer extends SwcVisitor {
   }
 }
 
-export async function jsTransformSwc(source: string): Promise<string> {
+export async function jsTransformSwc(source: string, settings: SwcMinifySettings): Promise<string> {
   return devLog.timed(
     async function js_transform_swc() {
       const output = await swcTransform(source, {
@@ -45,6 +47,7 @@ export async function jsTransformSwc(source: string): Promise<string> {
         jsc: {
           keepClassNames: false,
           target: "es2022",
+          minify: getSwcMinifyOptions(settings),
         },
         plugin: (m) => new Transformer().visitProgram(m),
       });

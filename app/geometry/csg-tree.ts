@@ -24,18 +24,18 @@ export const csg_tree_invert = (node: CSGNode | 0) => {
     return;
   }
   const { $front, $back } = node;
-  node.x = -node.x;
-  node.y = -node.y;
-  node.z = -node.z;
-  node.w = -node.w;
+  node.x *= -1;
+  node.y *= -1;
+  node.z *= -1;
+  node.w *= -1;
   node.$back = $front;
   node.$front = $back;
   for (const polygon of node.$polygons) {
     polygon.$points.reverse();
-    polygon.x = -polygon.x;
-    polygon.y = -polygon.y;
-    polygon.z = -polygon.z;
-    polygon.w = -polygon.w;
+    polygon.x *= -1;
+    polygon.y *= -1;
+    polygon.z *= -1;
+    polygon.w *= -1;
   }
   csg_tree_invert($front);
   csg_tree_invert($back);

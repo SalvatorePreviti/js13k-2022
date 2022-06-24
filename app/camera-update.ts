@@ -28,10 +28,10 @@ export const camera_update = (deltaTime: number) => {
 
   camera_firstPersonMove(movStrafe * playerSpeed, movForward * playerSpeed);
 
-  if (DEBUG) {
-    camera_position.y -=
-      ((keyboard_downKeys[KEY_DEBUG_FLY_UP] ? -1 : 0) + (keyboard_downKeys[KEY_DEBUG_FLY_DOWN] ? 1 : 0)) * movSpeed;
-  }
+  // if (DEBUG) {
+  camera_position.y -=
+    ((keyboard_downKeys[KEY_DEBUG_FLY_UP] ? -1 : 0) + (keyboard_downKeys[KEY_DEBUG_FLY_DOWN] ? 1 : 0)) * movSpeed;
+  // }
 
   camera_firstPersonRotate(mouse_movementX * 0.1, mouse_movementY * 0.1);
 

@@ -1,6 +1,5 @@
 import { plane_fromTriangle, type Plane } from "../math/plane";
-import type { Vec3, Vec3In } from "../math/vectors";
-import type { Polygon } from "./cylinder";
+import type { Polygon, Vertex } from "./cylinder";
 
 export interface CSGPolygon extends Polygon, Plane {}
 
@@ -50,13 +49,13 @@ export const CSGPolygon_split = (
     $back = polygon;
   } else if ($type) {
     // SPANNING
-    const f: Vec3[] = [];
-    const b: Vec3[] = [];
+    const f: Vertex[] = [];
+    const b: Vertex[] = [];
     const pointsLen = $points.length;
     for (let i = 0; i < pointsLen; ++i) {
       const iv = $points[i]!;
-      const { x: ix, y: iy, z: iz } = iv;
-      const { x: jx, y: jy, z: jz } = $points[(i + 1) % pointsLen]!;
+      const { x: ix, y: iy, z: iz, $nx: inx, $ny: iny, $nz: inz } = iv;
+      const { x: jx, y: jy, z: jz, $nx: jnx, $ny: jny, $nz: jnz } = $points[(i + 1) % pointsLen]!;
 
       const tid = ix * planeX + iy * planeY + iz * planeZ - planeW;
       const ti = tid < -PLANE_EPSILON ? BACK : tid > PLANE_EPSILON ? FRONT : COPLANAR;
@@ -68,7 +67,7 @@ export const CSGPolygon_split = (
         f.push(iv);
       }
       if (ti !== FRONT) {
-        b.push(ti !== BACK ? { x: ix, y: iy, z: iz } : iv);
+        b.push(ti !== BACK ? { ...iv } : iv);
       }
       if ((ti | tj) === SPANNING) {
         const t = -tid / (planeX * (jx - ix) + planeY * (jy - iy) + planeZ * (jz - iz));
@@ -76,8 +75,15 @@ export const CSGPolygon_split = (
         const vx = t * (jx - ix) + ix;
         const vy = t * (jy - iy) + iy;
         const vz = t * (jz - iz) + iz;
-        f.push({ x: vx, y: vy, z: vz });
-        b.push({ x: vx, y: vy, z: vz });
+
+        const $nx = t * (jnx - inx) + inx;
+        const $ny = t * (jny - iny) + iny;
+        const $nz = t * (jnz - inz) + inz;
+
+        const v: Vertex = { x: vx, y: vy, z: vz, $nx, $ny, $nz };
+
+        f.push(v);
+        b.push({ ...v });
       }
     }
     $front = f.length > 2 && { ...polygon, $points: f };

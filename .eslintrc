@@ -1,6 +1,9 @@
 {
   "extends": ["@balsamic"],
   "root": true,
+  "rules": {
+    "@typescript-eslint/no-explicit-any": 0
+  },
   "overrides": [
     {
       "files": "server/**/*",

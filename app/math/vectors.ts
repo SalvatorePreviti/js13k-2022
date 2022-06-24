@@ -4,10 +4,15 @@ export interface Vec2 {
 }
 
 export interface Vec3 extends Vec2 {
+  x: number;
+  y: number;
   z: number;
 }
 
 export interface Vec4 extends Vec3 {
+  x: number;
+  y: number;
+  z: number;
   w: number;
 }
 
