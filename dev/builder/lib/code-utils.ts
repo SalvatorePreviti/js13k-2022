@@ -5,8 +5,8 @@ export function jsRemoveEndingSemicolons(code: string | null | undefined) {
   return code ? code.trimStart().replace(/[\s;]+$/, "") : "";
 }
 
-/** Reduces HTML size by removing </body> and </html> at the end. */
-export function htmlStripBodyHtmlEndTags(html: string) {
+/** Reduces HTML size by removing </body> and </html> */
+export function htmlFinalise(html: string) {
   return html.replace(/(\s*<\s*\/\s*(html|body)\s*>\s*)*$/i, "");
 }
 

@@ -52,9 +52,9 @@ export async function jsRoadroller(html: string): Promise<string> {
         dom.window.document.body.appendChild(script);
       }
 
-      let bundled = dom.window.document.querySelector("html")?.outerHTML || "";
+      let bundled = `<!DOCTYPE html>${dom.window.document.documentElement.outerHTML || ""}`;
 
-      bundled = await htmlMinify(bundled, { prependUtf8BOM: true, timed: false });
+      bundled = await htmlMinify(bundled, { type: "page", prependUtf8BOM: true, timed: false });
 
       process.stdout.clearLine(-1);
       this.setSuccessText(sizeDifference(html, bundled));

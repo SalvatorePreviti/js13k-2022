@@ -1,7 +1,7 @@
-import { camera, camera_update } from "../camera";
+import { camera_updateView } from "../camera";
+import { camera_update } from "../camera-update";
 import { canvas } from "../canvas";
 import "../dev-tools/dev-main";
-import { ViewCamera_update } from "../math/view-camera";
 
 import { gl } from "./gl/gl";
 
@@ -19,8 +19,7 @@ function updateWorld() {
   gameTime = performance.now() / 1000;
 
   camera_update(gameTimeDelta);
-
-  ViewCamera_update(camera);
+  camera_updateView();
 }
 
 function render() {

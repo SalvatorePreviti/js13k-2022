@@ -1,6 +1,10 @@
 #version 300 es
 precision highp float;
+
+#define vNormal vN
 in highp vec4 vNormal;
+
+#define vColor vC
 in lowp vec4 vColor;
 
 out vec4 O;

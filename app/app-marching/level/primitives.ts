@@ -1,5 +1,4 @@
-import { type } from "os";
-import { angle_wrap, clamp, TWO_PI } from "../../math/math";
+import { clamp } from "../../math/math";
 import type { Vec2, Vec3In } from "../../math/vectors";
 
 // 32 maps unit = 1 meter

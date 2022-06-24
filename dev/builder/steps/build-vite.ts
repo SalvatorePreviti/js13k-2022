@@ -166,7 +166,7 @@ function processViteBuildOutput(viteBuildOutput: RollupOutput | RollupOutput[] |
       dom.window.document.body.appendChild(script);
     }
 
-    html = dom.window.document.querySelector("html")?.outerHTML || "";
+    html = `<!DOCTYPE html>${dom.window.document.documentElement.outerHTML || ""}`;
   }
 
   return { html, js, css, assets };

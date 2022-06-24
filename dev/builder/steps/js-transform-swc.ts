@@ -1,5 +1,5 @@
 import { devLog } from "@balsamic/dev";
-import type { NumericLiteral } from "@swc/core";
+import type { NumericLiteral, VariableDeclaration } from "@swc/core";
 import { transform as swcTransform } from "@swc/core";
 import SwcVisitor from "@swc/core/Visitor";
 import { outPath_build } from "../out-paths";
@@ -19,7 +19,14 @@ class Transformer extends SwcVisitor {
     } else {
       n.value = Number.parseFloat(n.value.toPrecision(6));
     }
-    return n;
+    return super.visitNumericLiteral(n);
+  }
+
+  override visitVariableDeclaration(n: VariableDeclaration): VariableDeclaration {
+    if (n.kind === "const") {
+      n.kind = "let";
+    }
+    return super.visitVariableDeclaration(n);
   }
 }
 

@@ -69,8 +69,8 @@ window.addEventListener("mouseup", () => {
 
 window.addEventListener("mousemove", ({ buttons, movementX, movementY }) => {
   if (((buttons > 0 && _mouseDown) || document.pointerLockElement) && document.activeElement) {
-    mouse_movementX = movementX;
-    mouse_movementY = movementY;
+    mouse_movementX += movementX;
+    mouse_movementY += movementY;
   }
 });
 

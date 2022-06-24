@@ -5,7 +5,7 @@ import { devLog } from "@balsamic/dev";
 import { sizeDifference } from "../lib/logging";
 import { browserPureFunctions, jsRemoveEndingSemicolons } from "../lib/code-utils";
 
-export async function jsUglify(input: string, settings: TerserMinifySettings) {
+export async function jsUglify(input: string, settings: JsUglifySettings) {
   return devLog.timed(
     async function js_uglify() {
       const uglifyOptions = getUglifyOptions(settings);
@@ -20,14 +20,12 @@ export async function jsUglify(input: string, settings: TerserMinifySettings) {
   );
 }
 
-export interface TerserMinifySettings {
+export interface JsUglifySettings {
   mangle: boolean | "all";
+  varify: boolean;
 }
 
-export function getUglifyOptions(
-  settings: TerserMinifySettings,
-  terserNameCache?: Record<string, unknown>,
-): UglifyOptions {
+export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: Record<string, unknown>): UglifyOptions {
   const module = true;
   const toplevel = true;
   const passes = 16;
@@ -112,7 +110,7 @@ export function getUglifyOptions(
       expression: false,
 
       // hoist function declarations
-      hoist_funs: true,
+      hoist_funs: false,
 
       // hoist properties from constant object and array literals into regular variables subject to a set of constraints.
       // For example: var o={p:1, q:2}; f(o.p, o.q); is converted to f(1, 2)
@@ -120,7 +118,7 @@ export function getUglifyOptions(
 
       // hoist var declarations
       // (this is false by default because it seems to increase the size of the output in general)
-      hoist_vars: false,
+      hoist_vars: true,
 
       // optimizations for if/return and if/continue
       if_return: true,
@@ -250,7 +248,7 @@ export function getUglifyOptions(
       templates: true,
 
       // convert block-scoped declaractions into var whenever safe to do so
-      varify: true,
+      varify: settings.varify,
 
       // Support non-standard Safari/Webkit. By default UglifyJS will not try to be Safari-proof.
       webkit: false,

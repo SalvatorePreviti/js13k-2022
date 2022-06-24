@@ -36,9 +36,9 @@ export async function bundleHtml(input: BundleHtmlInput): Promise<BundleHtmlOutp
         dom.window.document.body.appendChild(scriptTag);
       }
 
-      let bundled = dom.window.document.querySelector("html")?.outerHTML || "";
+      let bundled = `<!DOCTYPE html>${dom.window.document.documentElement.outerHTML || ""}`;
 
-      bundled = await htmlMinify(bundled, { prependUtf8BOM: true, timed: false });
+      bundled = await htmlMinify(bundled, { type: "page", prependUtf8BOM: true, timed: false });
 
       const finalSize = utf8ByteLength(bundled);
 

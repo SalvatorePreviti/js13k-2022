@@ -21,7 +21,7 @@ export async function htmlCssToJs(sources: ViteBundledOutput) {
       domRemoveExternalCssAndScripts(dom);
 
       let bodyHtml = dom.window.document.body.innerHTML;
-      bodyHtml = await htmlMinify(bodyHtml, { prependUtf8BOM: false, timed: false });
+      bodyHtml = await htmlMinify(bodyHtml, { type: "fragment", prependUtf8BOM: false, timed: false });
       dom.window.document.body.innerHTML = "";
 
       if (css) {
@@ -40,7 +40,8 @@ export async function htmlCssToJs(sources: ViteBundledOutput) {
         dom.window.document.body.appendChild(script);
       }
 
-      const finalHtml = await htmlMinify(dom.window.document.querySelector("html")?.outerHTML || "", {
+      const finalHtml = await htmlMinify(`<!DOCTYPE html>${dom.window.document.documentElement.outerHTML || ""}`, {
+        type: "page",
         prependUtf8BOM: true,
         timed: false,
       });

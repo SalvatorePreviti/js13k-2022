@@ -15,13 +15,13 @@ import type { ViteBundledOutput } from "./steps/build-vite";
 import { buildWithVite } from "./steps/build-vite";
 import { bundleHtml } from "./steps/bundle-html";
 import { jsOptimizeTerser } from "./steps/js-optimize-terser";
-import { jsUglify } from "./steps/js-uglify";
 import { cssOptimize } from "./steps/css-optimize";
 
 import { jsOptimizeEsbuild } from "./steps/js-optimize-esbuild";
 import { jsTransformSwc } from "./steps/js-transform-swc";
 import { jsRoadroller } from "./steps/js-roadroller";
 import { htmlCssToJs } from "./steps/html-css-to-js";
+import zlib from "zlib";
 
 devLog.titlePaddingWidth = 18;
 
@@ -41,15 +41,19 @@ export async function build() {
     sources.html = htmlCssJsBundle.html;
     sources.js = htmlCssJsBundle.js;
 
-    sources.js = await jsOptimizeTerser(sources.js, { mangle: false });
+    // sources.js = await jsUglify(sources.js, { mangle: true, varify: false });
+
+    sources.js = await jsOptimizeTerser(sources.js, { mangle: true });
 
     sources.js = await jsOptimizeEsbuild(sources.js, { mangle: true });
+
+    // sources.js = await jsTransformEslint(sources.js, { passes: 4, sourceType: "module" });
 
     sources.js = await jsTransformSwc(sources.js);
 
     sources.js = await jsOptimizeTerser(sources.js, { mangle: true });
 
-    sources.js = await jsUglify(sources.js, { mangle: true });
+    // sources.js = await jsUglify(sources.js, { mangle: true, varify: false });
   } finally {
     await writeOptimizedBundle(sources);
   }
@@ -65,7 +69,7 @@ export async function build() {
     assets: sources.assets,
   };
 
-  logTableBundled(bundled, "bundled");
+  logTableBundled(bundled, "bundled", true);
 
   await writeFinalBundle(bundled, outPath_bundle);
 
@@ -89,15 +93,21 @@ export async function build() {
   await globalReport.append();
 }
 
-function logTableBundled(bundled: WriteBundleInput, name: string) {
+function logTableBundled(bundled: WriteBundleInput, name: string, showGZippedSize: boolean = false) {
   devLog.log();
-  FilesSizeTermBox.new(name)
-    .sizeRow(
-      name,
-      bundled.html,
-      bundled.assets.reduce((r, a) => r + a.source.length, 0),
-    )
-    .print();
+  const box = FilesSizeTermBox.new(name).sizeRow(
+    name,
+    bundled.html,
+    bundled.assets.reduce((r, a) => r + a.source.length, 0),
+  );
+  if (showGZippedSize) {
+    const buffer = Buffer.concat([
+      Buffer.from(bundled.html),
+      ...bundled.assets.map((asset) => Buffer.from(asset.source)),
+    ]);
+    box.sizeRow("gzipped", zlib.gzipSync(buffer, { level: 9 }));
+  }
+  box.print();
   devLog.log();
 }
 

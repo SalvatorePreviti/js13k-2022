@@ -1,45 +1,42 @@
-import { SQRT2 } from "./math/math";
-import {
-  keyboard_downKeys,
-  KEY_DEBUG_FLY_DOWN,
-  KEY_DEBUG_FLY_UP,
-  KEY_DOWN,
-  KEY_LEFT,
-  KEY_RIGHT,
-  KEY_RUN,
-  KEY_UP,
-  mouse_movementReset,
-  mouse_movementX,
-  mouse_movementY,
-} from "./input";
-import type { ViewCamera } from "./math/view-camera";
-import { ViewCamera_new, ViewCamera_firstPersonMove, ViewCamera_firstPersonRotate } from "./math/view-camera";
+import { angle_wrap_degrees, clamp, DEG_TO_RAD } from "./math/math";
 
-export const camera: ViewCamera = ViewCamera_new();
+export const camera_position = { x: 0, y: 0, z: 5 };
 
-camera.$position.z = 5;
+export const camera_rotation = { x: 0, y: 0, z: 0 };
 
-export const PLAYER_SPEED_WALKING = 2.1;
+export const camera_view = new DOMMatrix();
 
-export const PLAYER_SPEED_RUNNING = DEBUG ? 20 : 5.5;
+export const camera_projection = new Float32Array(16);
 
-export const camera_update = (deltaTime: number) => {
-  const movStrafe = (keyboard_downKeys[KEY_LEFT] ? -1 : 0) + (keyboard_downKeys[KEY_RIGHT] ? 1 : 0);
-  const movForward = (keyboard_downKeys[KEY_UP] ? -1 : 0) + (keyboard_downKeys[KEY_DOWN] ? 1 : 0);
-
-  const movSpeed = (keyboard_downKeys[KEY_RUN] ? PLAYER_SPEED_RUNNING : PLAYER_SPEED_WALKING) * deltaTime;
-
-  // normalize the forward and strafe movements if both strafe and forward are set
-  const playerSpeed = movStrafe && movForward ? movSpeed / SQRT2 : movSpeed;
-
-  ViewCamera_firstPersonRotate(camera, mouse_movementX * 0.002, mouse_movementY * 0.002);
-
-  mouse_movementReset();
-
-  ViewCamera_firstPersonMove(camera, movStrafe * playerSpeed, movForward * playerSpeed);
-
-  if (DEBUG) {
-    camera.$position.y +=
-      ((keyboard_downKeys[KEY_DEBUG_FLY_UP] ? -1 : 0) + (keyboard_downKeys[KEY_DEBUG_FLY_DOWN] ? 1 : 0)) * movSpeed;
-  }
+export const camera_firstPersonRotate = (x: number, y: number) => {
+  camera_rotation.y = angle_wrap_degrees(camera_rotation.y + x);
+  camera_rotation.x = clamp(angle_wrap_degrees(camera_rotation.x + y), -87, 87);
 };
+
+export const camera_firstPersonMove = (x: number, z: number) => {
+  const yradians = camera_rotation.y * DEG_TO_RAD;
+  const c = Math.cos(yradians);
+  const s = Math.sin(yradians);
+  camera_position.x += x * c - z * s;
+  camera_position.z += x * s + z * c;
+};
+
+export const camera_updateView = () => {
+  camera_view
+    .setMatrixValue("none")
+    .rotateSelf(-camera_rotation.x, -camera_rotation.y, -camera_rotation.z)
+    .invertSelf()
+    .translateSelf(-camera_position.x, -camera_position.y, -camera_position.z);
+};
+
+export const camera_firstPersonPerspective = (fovyRadians: number, aspectRatio: number, near: number, far: number) => {
+  const nf = near - far;
+  const f = 1 / Math.tan(fovyRadians / 2);
+  camera_projection[0] = f / aspectRatio;
+  camera_projection[5] = f;
+  camera_projection[10] = (far + near) / nf;
+  camera_projection[11] = -1;
+  camera_projection[14] = (2 * far * near) / nf;
+};
+
+// mat4_translate(mat4_from(m, -rotX * DEG_TO_RAD, -rotY * DEG_TO_RAD, -rotZ * DEG_TO_RAD), -posX, -posY, -posZ);

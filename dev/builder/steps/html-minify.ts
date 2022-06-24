@@ -3,14 +3,21 @@ import { minify as htmlMinifier } from "html-minifier-terser";
 import type { Options as HtmlMinifierOptions } from "html-minifier-terser";
 import { devLog } from "@balsamic/dev";
 import { sizeDifference } from "../lib/logging";
-import { htmlStripBodyHtmlEndTags, stripUtf8BOM } from "../lib/code-utils";
+import { htmlFinalise, stripUtf8BOM } from "../lib/code-utils";
 import { JSDOM } from "jsdom";
 
-export async function htmlMinify(input: string, options: { prependUtf8BOM: boolean; timed?: boolean }) {
+export async function htmlMinify(
+  input: string,
+  options: { prependUtf8BOM: boolean; timed?: boolean; type: "page" | "fragment" },
+) {
   const timed = options.timed ?? true;
   return devLog.timed(
     async function html_minify() {
-      const dom = new JSDOM(stripUtf8BOM(input));
+      const dom = new JSDOM(
+        options.type === "page"
+          ? stripUtf8BOM(input)
+          : `<!DOCTYPE html>\n<html><head></head><body>${stripUtf8BOM(input)}</body></html>`,
+      );
 
       // Remove <meta charset="utf8" />, we are going to prepend UTF8 BOM in any case.
 
@@ -18,9 +25,18 @@ export async function htmlMinify(input: string, options: { prependUtf8BOM: boole
         .filter((tag) => (tag.getAttribute("charset") || "").toLowerCase() === "utf8")
         .forEach((tag) => tag.remove());
 
-      input = dom.window.document.querySelector("html")?.outerHTML || "";
+      let html: string;
+      if (options.type === "page") {
+        html = `<!DOCTYPE html>${dom.window.document.documentElement.outerHTML || ""}`;
+      } else {
+        html = dom.window.document.body.innerHTML;
+      }
 
-      let result = htmlStripBodyHtmlEndTags((await htmlMinifier(input, getHtmlMinifierOptions())) || input);
+      let result = (await htmlMinifier(html, getHtmlMinifierOptions())) || html;
+      if (options.type === "page") {
+        result = htmlFinalise(result);
+      }
+
       if (options.prependUtf8BOM) {
         if (!result.startsWith("\ufeff")) {
           result = `\ufeff${result}`;
