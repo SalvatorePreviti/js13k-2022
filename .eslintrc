@@ -4,6 +4,7 @@
   "rules": {
     "@typescript-eslint/no-explicit-any": 0
   },
+  "plugins": ["eslint-plugin-prefer-arrow"],
   "overrides": [
     {
       "files": "server/**/*",
@@ -16,11 +17,18 @@
         "node/no-extraneous-require": 0
       }
     },
-
     {
       "files": ["app/**/*", "packages/**/*"],
       "rules": {
-        "prefer-template": 0
+        "prefer-template": 0,
+        "prefer-arrow/prefer-arrow-functions": [
+          "warn",
+          {
+            "disallowPrototype": false,
+            "singleReturnOnly": false,
+            "classPropertiesAllowed": true
+          }
+        ]
       }
     }
   ]

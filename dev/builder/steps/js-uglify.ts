@@ -110,7 +110,7 @@ export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: R
       expression: false,
 
       // hoist function declarations
-      hoist_funs: false,
+      hoist_funs: true,
 
       // hoist properties from constant object and array literals into regular variables subject to a set of constraints.
       // For example: var o={p:1, q:2}; f(o.p, o.q); is converted to f(1, 2)
@@ -118,7 +118,7 @@ export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: R
 
       // hoist var declarations
       // (this is false by default because it seems to increase the size of the output in general)
-      hoist_vars: false,
+      hoist_vars: true,
 
       // optimizations for if/return and if/continue
       if_return: true,
@@ -267,7 +267,7 @@ export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: R
           keep_fnames: false,
 
           // Pass an array of identifiers that should be excluded from mangling. Example: ["foo", "bar"].
-          reserved: undefined,
+          reserved: ["x", "y", "z", "w", "X", "Y", "Z", "W"],
 
           // Mangle properties - optimizes a lot but is very dangerous. Enables only with properties starting with $
           properties: {

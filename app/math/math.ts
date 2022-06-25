@@ -38,6 +38,9 @@ export const min = (a: number, b: number | undefined | null): number => (b! < a 
  */
 export const max = (a: number, b: number | undefined | null): number => (a < b! ? b! : a);
 
+/** Linear interpolation */
+export const lerp = (from: number, to: number, t: number) => t * (to - from) + from;
+
 /**
  * Clamps a value between a minimum and a maximum
  * @param value The value to clamp

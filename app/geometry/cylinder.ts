@@ -33,7 +33,7 @@ export const polygon_clone = ({ $material, $points }: Polygon): Polygon => ({
   $points: $points.map((v) => ({ ...v })),
 });
 
-export const polygon_flip = (polygon: Polygon) => {
+export const polygon_flipSelf = (polygon: Polygon) => {
   for (const v of polygon.$points.reverse()) {
     v.$nx *= -1;
     v.$ny *= -1;
@@ -42,7 +42,67 @@ export const polygon_flip = (polygon: Polygon) => {
   return polygon;
 };
 
-export const polygon_flipped = (polygon: Polygon): Polygon => polygon_flip(polygon_clone(polygon));
+export const polygon_flipped = (polygon: Polygon): Polygon => polygon_flipSelf(polygon_clone(polygon));
+
+/** Creates a regular polygon */
+export const polygon_regular = (material: Material, segments: number, y = 0): Polygon => {
+  const points: Vertex[] = [];
+  for (let i = 0; i <= segments; i++) {
+    const a = ((Math.PI * 2) / segments) * (i % segments);
+    points[i] = { x: Math.cos(a), y, z: Math.sin(a), $nx: 0, $ny: -1, $nz: 0 };
+  }
+  return { $material: material, $points: points };
+};
+
+export const solid_cylinder = ($material: Material, segments: number, smoothed?: boolean | 1) => {
+  const top = polygon_flipSelf(polygon_regular($material, segments, 1));
+  const btm = polygon_regular($material, segments, -1);
+
+  const rp: Polygon[] = [];
+  for (let i = 0; i < segments; ++i) {
+    const j = (i + 1) % segments;
+    const { x: ax, z: az } = btm.$points[i]!;
+    const { x: bx, z: bz } = btm.$points[j]!;
+
+    let nax = ax - az;
+    let naz = ax + az;
+
+    let nbx = bx - bz;
+    let nbz = bx + bz;
+
+    if (!smoothed) {
+      nax = nbx = (nax + nbx) / 2;
+      naz = nbz = (naz + nbz) / 2;
+    }
+
+    rp.push({
+      $material,
+      $points: [
+        { x: ax, y: -1, z: az, $nx: nax, $ny: 0, $nz: naz },
+        { x: ax, y: 1, z: az, $nx: nax, $ny: 0, $nz: naz },
+        { x: bx, y: 1, z: bz, $nx: nbx, $ny: 0, $nz: nbz },
+        { x: bx, y: -1, z: bz, $nx: nbx, $ny: 0, $nz: nbz },
+      ],
+    });
+  }
+
+  /* const polygons: Polygon[] = [top, btm];
+
+  for (let i = 0; i < segments; i++) {
+    const t0 = i / segments;
+    const t1 = (i + 1) / segments;
+
+    const x = Math.cos(t0 * Math.PI * 2);
+    const z = Math.sin(t0 * Math.PI * 2);
+
+    const x1 = Math.cos(t1 * Math.PI * 2);
+    const z1 = Math.sin(t1 * Math.PI * 2);
+
+    top.$points[i] = { x, y: 1, z, $nx: 0, $ny: -1, $nz: 0 };
+    btm.$points[i] = { x, y: -1, z, $nx: 0, $ny: 1, $nz: 0 };
+  } */
+  return [top, ...rp, btm];
+};
 
 /** Builds the extruded sides of a polygon */
 export const polygon_extrudeSides = ({ $points, $material }: Polygon): Polygon[] => {
@@ -83,20 +143,10 @@ export const polygon_extrude = (polygon: Polygon): Polygon[] => {
   return [bottom, ...sides, top];
 };
 
-/** Creates a regular polygon */
-export const polygon_regular = (material: Material, segments: number): Polygon => {
-  const points: Vertex[] = [];
-  for (let i = 0; i <= segments; i++) {
-    const a = ((Math.PI * 2) / segments) * (i % segments);
-    points[i] = { x: Math.cos(a), y: 0, z: Math.sin(a), $nx: 0, $ny: -1, $nz: 0 };
-  }
-  return { $material: material, $points: points };
-};
-
 export const solid_transform = (solid: Polygon[], m: DOMMatrix) =>
   solid.map((polygon) => polygon_transform(polygon, m));
 
-export const solid_cylinder = (material: Material, segments: number): Polygon[] =>
+export const xxsolid_cylinder = (material: Material, segments: number): Polygon[] =>
   polygon_extrude(polygon_regular(material, segments));
 
 type TriangleVertex = [number, number, number, number, number, number, number, number, number] & {

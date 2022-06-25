@@ -62,7 +62,12 @@ const csg2 = csg_union(csg1, figure3);
 const csg3 = csg_subtract(csg2, figure4);
 const csg4 = csg_subtract(csg3, figure5);
 
-scene.push(csg_polygons(csg4));
+// scene.push(csg_polygons(csg4));
+
+const xxa = solid_transform(solid_cylinder(material0, 18), identity.translate(0.9).scale3d(0.7));
+const xxb = solid_transform(solid_cylinder(material0, 18, 1), identity.translate(-0.9).scale3d(0.7));
+
+scene.push(xxa, xxb);
 
 if (DEBUG) {
   console.timeEnd("csg");
@@ -110,34 +115,7 @@ if (DEBUG) {
   debug_lines_prepare(sceneTriangles.$indices);
 }
 
-// Initialize a shader program; this is where all the lighting
-// for the vertices and so forth is established.
-const shaderProgram = initShaderProgram(vsSource, fsSource);
-
-const projectionMatrixLoc = gl.getUniformLocation(shaderProgram, "uP");
-const modelViewMatrixLoc = gl.getUniformLocation(shaderProgram, "uM");
-
-function initShaderProgram(svsSource: string, sfsSource: string) {
-  const vertexShader = loadShader(gl.VERTEX_SHADER, svsSource);
-  const fragmentShader = loadShader(gl.FRAGMENT_SHADER, sfsSource);
-
-  // Create the shader program
-
-  const program = gl.createProgram()!;
-  gl.attachShader(program, vertexShader);
-  gl.attachShader(program, fragmentShader);
-  gl.linkProgram(program);
-
-  // If creating the shader program failed, alert
-
-  if (DEBUG && !gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    throw new Error("Unable to initialize the shader program: " + gl.getProgramInfoLog(program));
-  }
-
-  return program;
-}
-
-function loadShader(type: number, source: string) {
+const loadShader = (type: number, source: string) => {
   const shader = gl.createShader(type)!;
 
   // Send the source to the shader object
@@ -155,16 +133,41 @@ function loadShader(type: number, source: string) {
   }
 
   return shader;
-}
+};
+
+const initShaderProgram = (svsSource: string, sfsSource: string) => {
+  const vertexShader = loadShader(gl.VERTEX_SHADER, svsSource);
+  const fragmentShader = loadShader(gl.FRAGMENT_SHADER, sfsSource);
+
+  // Create the shader program
+
+  const program = gl.createProgram()!;
+  gl.attachShader(program, vertexShader);
+  gl.attachShader(program, fragmentShader);
+  gl.linkProgram(program);
+
+  // If creating the shader program failed, alert
+
+  if (DEBUG && !gl.getProgramParameter(program, gl.LINK_STATUS)) {
+    throw new Error("Unable to initialize the shader program: " + gl.getProgramInfoLog(program));
+  }
+
+  return program;
+};
+
+// Initialize a shader program; this is where all the lighting
+// for the vertices and so forth is established.
+const shaderProgram = initShaderProgram(vsSource, fsSource);
+
+const projectionMatrixLoc = gl.getUniformLocation(shaderProgram, "uP");
+const modelViewMatrixLoc = gl.getUniformLocation(shaderProgram, "uM");
+
 // const viewMatrix = mat4_setIdentityValues(mat4_new_zero());
 
 let gameTime = performance.now() / 1000;
 let lastGameTime = gameTime;
 
-draw();
-setInterval(draw, 10);
-
-function draw() {
+const draw = () => {
   const gameTimeDelta = gameTime - lastGameTime;
   lastGameTime = gameTime;
   gameTime = performance.now() / 1000;
@@ -227,4 +230,7 @@ function draw() {
   }
 
   // Update the rotation for the next draw
-}
+};
+
+draw();
+setInterval(draw, 10);

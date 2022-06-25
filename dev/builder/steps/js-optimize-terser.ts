@@ -143,7 +143,7 @@ export function getTerserMinifyOptions(
 
       // hoist var declarations
       // (this is false by default because it seems to increase the size of the output in general)
-      hoist_vars: false,
+      hoist_vars: true,
 
       // optimizations for if/return and if/continue
       if_return: true,
@@ -295,7 +295,7 @@ export function getTerserMinifyOptions(
           module,
 
           // Pass an array of identifiers that should be excluded from mangling. Example: ["foo", "bar"].
-          // reserved: [..."abcdefghijklmnopqrstuvwxyz"],
+          reserved: ["x", "y", "z", "w", "X", "Y", "Z", "W"],
 
           // Mangle properties - optimizes a lot but is very dangerous. Enables only with properties starting with $
           properties: {
