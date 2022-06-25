@@ -1,20 +1,21 @@
-import { plane_fromTriangle, type Plane } from "../math/plane";
+import { plane_distance, type Plane } from "../math/plane";
 import type { Material } from "./mesh";
 import type { Triangle } from "./triangle";
+import { triangle_plane } from "./triangle";
 import type { Vertex } from "./vertex";
+import { vertex_lerp } from "./vertex";
 
 export interface CSGPolygon extends Plane {
   $points: Vertex[];
   $material: Material;
 }
 
-export const CSGPolygon_fromTriangle = (triangle: Triangle) =>
-  plane_fromTriangle(
-    { $material: triangle.m, $points: [{ ...triangle.a }, { ...triangle.b }, { ...triangle.c }] } as CSGPolygon,
-    triangle.a,
-    triangle.b,
-    triangle.c,
-  );
+export const CSGPolygon_fromTriangle = (triangle: Triangle) => {
+  const result = triangle_plane(triangle) as CSGPolygon;
+  result.$points = [{ ...triangle.a }, { ...triangle.b }, { ...triangle.c }];
+  result.$material = triangle.m;
+  return result;
+};
 
 export const PLANE_EPSILON = 1e-5;
 
@@ -31,19 +32,17 @@ interface SplitPolygonResult {
   $front: CSGPolygon | undefined | false;
 }
 
-export const CSGPolygon_split = (
-  { x: planeX, y: planeY, z: planeZ, w: planeW }: Plane,
-  polygon: CSGPolygon,
-): SplitPolygonResult => {
+const classify = (t: number) => (t < -PLANE_EPSILON ? BACK : t > PLANE_EPSILON ? FRONT : COPLANAR);
+
+export const CSGPolygon_split = (plane: Plane, polygon: CSGPolygon): SplitPolygonResult => {
   let $front: CSGPolygon | false | undefined;
   let $back: CSGPolygon | false | undefined;
 
   const { $points } = polygon;
 
   let $type = 0 as PolygonCategory;
-  for (const { x, y, z } of $points) {
-    const t = x * planeX + y * planeY + z * planeZ - planeW;
-    $type |= t < -PLANE_EPSILON ? BACK : t > PLANE_EPSILON ? FRONT : COPLANAR;
+  for (const p of $points) {
+    $type |= classify(plane_distance(plane, p));
   }
 
   if ($type === FRONT) {
@@ -59,14 +58,15 @@ export const CSGPolygon_split = (
     const pointsLen = $points.length;
     for (let i = 0; i < pointsLen; ++i) {
       const iv = $points[i]!;
-      const { x: ix, y: iy, z: iz, f: inx, g: iny, h: inz } = iv;
-      const { x: jx, y: jy, z: jz, f: jnx, g: jny, h: jnz } = $points[(i + 1) % pointsLen]!;
+      const jv = $points[(i + 1) % pointsLen]!;
+      const { x: ix, y: iy, z: iz } = iv;
+      const { x: jx, y: jy, z: jz } = jv;
 
-      const tid = ix * planeX + iy * planeY + iz * planeZ - planeW;
-      const ti = tid < -PLANE_EPSILON ? BACK : tid > PLANE_EPSILON ? FRONT : COPLANAR;
+      const tid = plane_distance(plane, iv);
+      const ti = classify(tid);
 
-      const tjd = jx * planeX + jy * planeY + jz * planeZ - planeW;
-      const tj = tjd < -PLANE_EPSILON ? BACK : tjd > PLANE_EPSILON ? FRONT : COPLANAR;
+      const tjd = plane_distance(plane, jv);
+      const tj = classify(tjd);
 
       if (ti !== BACK) {
         f.push(iv);
@@ -75,25 +75,15 @@ export const CSGPolygon_split = (
         b.push(ti !== BACK ? { ...iv } : iv);
       }
       if ((ti | tj) === SPANNING) {
-        const t = -tid / (planeX * (jx - ix) + planeY * (jy - iy) + planeZ * (jz - iz));
-        // Lerp of i and j vertices
-        const vx = t * (jx - ix) + ix;
-        const vy = t * (jy - iy) + iy;
-        const vz = t * (jz - iz) + iz;
-
-        const nx = t * (jnx - inx) + inx;
-        const ny = t * (jny - iny) + iny;
-        const nz = t * (jnz - inz) + inz;
-
-        const v: Vertex = { x: vx, y: vy, z: vz, f: nx, g: ny, h: nz };
-
+        const t = -tid / (plane.x * (jx - ix) + plane.y * (jy - iy) + plane.z * (jz - iz));
+        const v = vertex_lerp(iv, jv, t);
         f.push(v);
         b.push({ ...v });
       }
     }
     $front = f.length > 2 && { ...polygon, $points: f };
     $back = b.length > 2 && { ...polygon, $points: b };
-  } else if (polygon.x * planeX + polygon.y * planeY + polygon.z * planeZ - planeW > 0) {
+  } else if (plane_distance(plane, polygon) > 0) {
     // COPLANAR front
     $front = polygon;
   } else {

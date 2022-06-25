@@ -13,6 +13,15 @@ export const vertex_transform = ({ x, y, z, f, g, h }: Vertex, m: DOMMatrix): Ve
   return { x: px, y: py, z: pz, f: nx, g: ny, h: nz };
 };
 
+export const vertex_lerp = ({ x, y, z, f, g, h }: Vertex, b: Vertex, t: number): Vertex => ({
+  x: t * (b.x - x) + x,
+  y: t * (b.y - y) + y,
+  z: t * (b.z - z) + z,
+  f: t * (b.f - f) + f,
+  g: t * (b.g - g) + g,
+  h: t * (b.h - h) + h,
+});
+
 export const vertex_flip = ({ x, y, z, f, g, h }: Vertex): Vertex => ({
   x,
   y,

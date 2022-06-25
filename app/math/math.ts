@@ -4,6 +4,8 @@ export const DEG_TO_RAD = Math.PI / 180;
 /** Amount to be multiplied to an angle in radians to obtain an angle in degrees, approximately 57.29577951308232 */
 export const RAD_PER_DEG = 1 / DEG_TO_RAD;
 
+export const TOLERANCE = 1e-5;
+
 /**
  * Returns the sign of the x, indicating whether x is positive, negative or zero.
  * Returs -1 if x is negative. Returns +1 if x is positive. Returns -0 if x is -0. Returns NaN if x is NaN.

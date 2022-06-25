@@ -28,12 +28,12 @@ const material5 = [0.4, 0, 0.9] as Material;
 const figure0 = mesh_cylinder(material0, 6);
 
 const figure1 = mesh_transform(
-  mesh_cylinder(material1, 118),
+  mesh_cylinder(material1, 118, 1),
   identity.translate(-0.2).rotate(90, 10, 10).scale(0.5, 2, 0.5),
 );
 
 const figure2 = mesh_transform(
-  mesh_cylinder(material2, 118),
+  mesh_cylinder(material2, 118, 1),
   identity.translate(-0.2).rotate(90, 10, 10).scale(0.22, 1.5, 0.22).skewY(10),
 );
 

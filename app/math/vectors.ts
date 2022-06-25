@@ -22,4 +22,54 @@ export type Vec3In = Readonly<Vec3>;
 
 export type Vec4In = Readonly<Vec4>;
 
-export const vec3_clone = ({ x, y, z }: Vec3In) => ({ x, y, z });
+/** Clones a vector */
+export const vec3_clone = ({ x, y, z }: Vec3In): Vec3 => ({ x, y, z });
+
+/** Computes the dot product of two vectors */
+export const vec3_dot = ({ x, y, z }: Vec3In, { x: bx, y: by, z: bz }: Vec3In): number => x * bx + y * by + z * bz;
+
+/** Computes the squared magnitude of a vector */
+export const vec3_lengthSquared = ({ x, y, z }: Vec3In): number => x * x + y * y + z * z;
+
+/** Computes the magnitude of a vector */
+export const vec3_length = ({ x, y, z }: Vec3In): number => Math.sqrt(x * x + y * y + z * z);
+
+export const vec3_add = ({ x, y, z }: Vec3In, { x: bx, y: by, z: bz }: Vec3In): Vec3 => ({
+  x: x + bx,
+  y: y + by,
+  z: z + bz,
+});
+
+export const vec3_addScaled = ({ x, y, z }: Vec3In, { x: bx, y: by, z: bz }: Vec3In, m: number): Vec3 => ({
+  x: x + bx * m,
+  y: y + by * m,
+  z: z + bz * m,
+});
+
+export const vec3_sub = ({ x, y, z }: Vec3In, { x: bx, y: by, z: bz }: Vec3In): Vec3 => ({
+  x: x - bx,
+  y: y - by,
+  z: z - bz,
+});
+
+export const vec3_mul = ({ x, y, z }: Vec3In, { x: bx, y: by, z: bz }: Vec3In): Vec3 => ({
+  x: x * bx,
+  y: y * by,
+  z: z * bz,
+});
+
+export const vec3_div = ({ x, y, z }: Vec3In, { x: bx, y: by, z: bz }: Vec3In): Vec3 => ({
+  x: x / bx,
+  y: y / by,
+  z: z / bz,
+});
+
+export const vec3_scaled = ({ x, y, z }: Vec3In, m: number): Vec3 => ({ x: x * m, y: y * m, z: z * m });
+
+export const vec3_normalized = (v: Vec3In): Vec3 => vec3_scaled(v, vec3_length(v) || 1);
+
+export const vec3_cross = ({ x, y, z }: Vec3In, { x: bx, y: by, z: bz }: Vec3In): Vec3 => ({
+  x: y * bz - z * by,
+  y: z * bx - x * bz,
+  z: x * by - y * bx,
+});
