@@ -7,8 +7,8 @@ import {
   csg_tree_invert,
   type CSGNode,
 } from "./csg-tree";
-import type { Mesh } from "./cylinder";
-import { mesh_fromConvexPolygon } from "./cylinder";
+import type { Mesh } from "./mesh";
+import { mesh_fromConvexPolygon } from "./mesh";
 
 /**
  * If is known that there is no intersection between the tree and a list of polygons,

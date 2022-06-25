@@ -1,5 +1,7 @@
 import { plane_fromTriangle, type Plane } from "../math/plane";
-import type { Material, Triangle, Vertex } from "./cylinder";
+import type { Material } from "./mesh";
+import type { Triangle } from "./triangle";
+import type { Vertex } from "./vertex";
 
 export interface CSGPolygon extends Plane {
   $points: Vertex[];

@@ -5,8 +5,8 @@ import fsSource from "./shaders/fragment.frag";
 
 import { DEG_TO_RAD } from "./math/math";
 import { gl } from "./gl";
-import type { Material, Mesh } from "./geometry/cylinder";
-import { mesh_transform, solids_to_triangles, mesh_cylinder } from "./geometry/cylinder";
+import type { Material, Mesh } from "./geometry/mesh";
+import { mesh_transform, solids_to_triangles, mesh_cylinder } from "./geometry/mesh";
 import { triangles_attributes, triangles_fill_buffer } from "./geometry/triangles-render";
 
 import { csg_union, csg_subtract, csg_triangles } from "./geometry/csg";

@@ -1,72 +1,9 @@
+import { triangle_map, triangle_translate, triangle_flip, type Triangle } from "./triangle";
+import { vertex_transform, type Vertex } from "./vertex";
+
 export type Material = [number, number, number];
 
-export interface Vertex {
-  x: number;
-  y: number;
-  z: number;
-  f: number;
-  g: number;
-  h: number;
-}
-
-export interface Triangle {
-  a: Vertex;
-  b: Vertex;
-  c: Vertex;
-
-  /** Polygon material */
-  m: Material;
-}
-
 export type Mesh = Triangle[];
-
-export const vertex_transform = ({ x, y, z, f, g, h }: Vertex, m: DOMMatrix): Vertex => {
-  const { x: px, y: py, z: pz } = m.transformPoint({ x, y, z });
-  const { x: nx, y: ny, z: nz } = m.transformPoint({ x: f, y: g, z: h, w: 0 });
-  return { x: px, y: py, z: pz, f: nx, g: ny, h: nz };
-};
-
-export const vertex_flip = ({ x, y, z, f, g, h }: Vertex): Vertex => ({
-  x,
-  y,
-  z,
-  f: -f,
-  g: -g,
-  h: -h,
-});
-
-export const vertex_translate = ({ x, y, z, f, g, h }: Vertex, tx: number, ty: number = 0, tz: number = 0): Vertex => ({
-  x: x + tx,
-  y: y + ty,
-  z: z + tz,
-  f,
-  g,
-  h,
-});
-
-export const triangle_map = ({ a, b, c, m }: Triangle, fn: (p: Vertex) => Vertex): Triangle => ({
-  a: fn(a),
-  b: fn(b),
-  c: fn(c),
-  m,
-});
-
-export const triangle_vertices = ({ a, b, c }: Triangle): Vertex[] => [a, b, c];
-
-export const triangle_translate = (triangle: Triangle, tx: number, ty?: number, tz?: number): Triangle =>
-  triangle_map(triangle, (v) => vertex_translate(v, tx, ty, tz));
-
-export const triangle_transform = (triangle: Triangle, m: DOMMatrix): Triangle =>
-  triangle_map(triangle, (v) => vertex_transform(v, m));
-
-export const triangle_clone = (triangle: Triangle): Triangle => triangle_map(triangle, (v) => ({ ...v }));
-
-export const triangle_flip = ({ a, b, c, m }: Triangle) => ({
-  c: vertex_flip(a),
-  b: vertex_flip(b),
-  a: vertex_flip(c),
-  m,
-});
 
 export const mesh_map = (triangles: Iterable<Triangle>, fn: (triangle: Triangle, index: number) => Triangle): Mesh =>
   Array.from(triangles, fn);

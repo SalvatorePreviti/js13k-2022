@@ -1,6 +1,6 @@
 import type { Plane } from "../math/plane";
 import { CSGPolygon_fromTriangle, CSGPolygon_split, type CSGPolygon } from "./csg-polygon";
-import type { Mesh } from "./cylinder";
+import type { Mesh } from "./mesh";
 
 export interface CSGNode extends Plane {
   $polygons: CSGPolygon[];
