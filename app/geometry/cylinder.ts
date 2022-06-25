@@ -58,7 +58,8 @@ export const solid_cylinder = ($material: Material, segments: number, smoothed?:
   const top = polygon_flipSelf(polygon_regular($material, segments, 1));
   const btm = polygon_regular($material, segments, -1);
 
-  const rp: Polygon[] = [];
+  const result: Polygon[] = [top, btm];
+
   for (let i = 0; i < segments; ++i) {
     const j = (i + 1) % segments;
     const { x: ax, z: az } = btm.$points[i]!;
@@ -75,7 +76,7 @@ export const solid_cylinder = ($material: Material, segments: number, smoothed?:
       naz = nbz = (naz + nbz) / 2;
     }
 
-    rp.push({
+    result.push({
       $material,
       $points: [
         { x: ax, y: -1, z: az, $nx: nax, $ny: 0, $nz: naz },
@@ -86,22 +87,7 @@ export const solid_cylinder = ($material: Material, segments: number, smoothed?:
     });
   }
 
-  /* const polygons: Polygon[] = [top, btm];
-
-  for (let i = 0; i < segments; i++) {
-    const t0 = i / segments;
-    const t1 = (i + 1) / segments;
-
-    const x = Math.cos(t0 * Math.PI * 2);
-    const z = Math.sin(t0 * Math.PI * 2);
-
-    const x1 = Math.cos(t1 * Math.PI * 2);
-    const z1 = Math.sin(t1 * Math.PI * 2);
-
-    top.$points[i] = { x, y: 1, z, $nx: 0, $ny: -1, $nz: 0 };
-    btm.$points[i] = { x, y: -1, z, $nx: 0, $ny: 1, $nz: 0 };
-  } */
-  return [top, ...rp, btm];
+  return result;
 };
 
 /** Builds the extruded sides of a polygon */
