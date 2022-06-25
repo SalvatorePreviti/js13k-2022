@@ -333,7 +333,7 @@ export function getSwcMinifyOptions(settings: SwcTransformSettings): JsMinifyOpt
           keep_private_props: true,
 
           // Pass an array of identifiers that should be excluded from mangling. Example: ["foo", "bar"].
-          reserved: ["x", "y", "z", "w"],
+          reserved: ["x", "y", "z", "w", "a", "b", "c", "m"],
 
           // Mangle properties - optimizes a lot but is very dangerous. Enables only with properties starting with $
           props: {

@@ -1,69 +1,130 @@
-import { plane_fromTriangle } from "../math/plane";
-import type { Vec3 } from "../math/vectors";
-
 export type Material = [number, number, number];
 
-export interface Vertex extends Vec3 {
-  $nx: number;
-  $ny: number;
-  $nz: number;
+export interface Vertex {
+  x: number;
+  y: number;
+  z: number;
+  f: number;
+  g: number;
+  h: number;
 }
 
-export interface Polygon {
+export interface Triangle {
+  a: Vertex;
+  b: Vertex;
+  c: Vertex;
+
   /** Polygon material */
-  $material: Material;
-
-  /** Polygon points */
-  $points: Vertex[];
+  m: Material;
 }
 
-export const vertex_transform = ({ x, y, z, $nx, $ny, $nz }: Vertex, m: DOMMatrix): Vertex => {
+export type Mesh = Triangle[];
+
+export const vertex_transform = ({ x, y, z, f, g, h }: Vertex, m: DOMMatrix): Vertex => {
   const { x: px, y: py, z: pz } = m.transformPoint({ x, y, z });
-  const { x: nx, y: ny, z: nz } = m.transformPoint({ x: $nx, y: $ny, z: $nz, w: 0 });
-  return { x: px, y: py, z: pz, $nx: nx, $ny: ny, $nz: nz };
+  const { x: nx, y: ny, z: nz } = m.transformPoint({ x: f, y: g, z: h, w: 0 });
+  return { x: px, y: py, z: pz, f: nx, g: ny, h: nz };
 };
 
-export const polygon_transform = ({ $material, $points }: Polygon, m: DOMMatrix): Polygon => ({
-  $material,
-  $points: $points.map((v) => vertex_transform(v, m)),
+export const vertex_flip = ({ x, y, z, f, g, h }: Vertex): Vertex => ({
+  x,
+  y,
+  z,
+  f: -f,
+  g: -g,
+  h: -h,
 });
 
-export const polygon_clone = ({ $material, $points }: Polygon): Polygon => ({
-  $material,
-  $points: $points.map((v) => ({ ...v })),
+export const vertex_translate = ({ x, y, z, f, g, h }: Vertex, tx: number, ty: number = 0, tz: number = 0): Vertex => ({
+  x: x + tx,
+  y: y + ty,
+  z: z + tz,
+  f,
+  g,
+  h,
 });
 
-export const polygon_flipSelf = (polygon: Polygon) => {
-  for (const v of polygon.$points.reverse()) {
-    v.$nx *= -1;
-    v.$ny *= -1;
-    v.$nz *= -1;
+export const triangle_map = ({ a, b, c, m }: Triangle, fn: (p: Vertex) => Vertex): Triangle => ({
+  a: fn(a),
+  b: fn(b),
+  c: fn(c),
+  m,
+});
+
+export const triangle_vertices = ({ a, b, c }: Triangle): Vertex[] => [a, b, c];
+
+export const triangle_translate = (triangle: Triangle, tx: number, ty?: number, tz?: number): Triangle =>
+  triangle_map(triangle, (v) => vertex_translate(v, tx, ty, tz));
+
+export const triangle_transform = (triangle: Triangle, m: DOMMatrix): Triangle =>
+  triangle_map(triangle, (v) => vertex_transform(v, m));
+
+export const triangle_clone = (triangle: Triangle): Triangle => triangle_map(triangle, (v) => ({ ...v }));
+
+export const triangle_flip = ({ a, b, c, m }: Triangle) => ({
+  c: vertex_flip(a),
+  b: vertex_flip(b),
+  a: vertex_flip(c),
+  m,
+});
+
+export const mesh_map = (triangles: Iterable<Triangle>, fn: (triangle: Triangle, index: number) => Triangle): Mesh =>
+  Array.from(triangles, fn);
+
+export const mesh_mapVertices = (triangles: Iterable<Triangle>, fn: (vertex: Vertex) => Vertex): Mesh =>
+  Array.from(triangles, (triangle) => triangle_map(triangle, fn));
+
+export const mesh_translate = (
+  triangles: Iterable<Triangle>,
+  tx: number,
+  ty?: number,
+  tz?: number,
+): Iterable<Triangle> => mesh_map(triangles, (t) => triangle_translate(t, tx, ty, tz));
+
+export const mesh_transform = (triangles: Iterable<Triangle>, m: DOMMatrix): Mesh =>
+  mesh_mapVertices(triangles, (v) => vertex_transform(v, m));
+
+export const mesh_clone = (triangles: Iterable<Triangle>): Mesh => mesh_mapVertices(triangles, (v) => ({ ...v }));
+
+export const mesh_flipped = (triangles: Iterable<Triangle>): Mesh => mesh_map(triangles, triangle_flip);
+
+export const mesh_fromConvexPolygon = (material: Material, polygon: Vertex[]): Mesh => {
+  const result: Mesh = [];
+  for (let i = 2; i < polygon.length; i++) {
+    result.push({
+      a: polygon[0]!,
+      b: polygon[i - 1]!,
+      c: polygon[i]!,
+      m: material,
+    });
   }
-  return polygon;
+  return result;
 };
-
-export const polygon_flipped = (polygon: Polygon): Polygon => polygon_flipSelf(polygon_clone(polygon));
 
 /** Creates a regular polygon */
-export const polygon_regular = (material: Material, segments: number, y = 0): Polygon => {
+export const mesh_regularPolygon = (material: Material, segments: number, y = 0): Mesh => {
   const points: Vertex[] = [];
-  for (let i = 0; i <= segments; i++) {
+  for (let i = 0; i < segments; i++) {
     const a = ((Math.PI * 2) / segments) * (i % segments);
-    points[i] = { x: Math.cos(a), y, z: Math.sin(a), $nx: 0, $ny: -1, $nz: 0 };
+    points[i] = { x: Math.cos(a), y, z: Math.sin(a), f: 0, g: -1, h: 0 };
   }
-  return { $material: material, $points: points };
+  return mesh_fromConvexPolygon(material, points);
 };
 
-export const solid_cylinder = ($material: Material, segments: number, smoothed?: boolean | 1) => {
-  const top = polygon_flipSelf(polygon_regular($material, segments, 1));
-  const btm = polygon_regular($material, segments, -1);
+export const mesh_cylinder = ($material: Material, segments: number, smoothed?: boolean | 1): Mesh => {
+  const top = mesh_flipped(mesh_regularPolygon($material, segments, 1));
+  const btm = mesh_regularPolygon($material, segments, -1);
 
-  const result: Polygon[] = [top, btm];
+  const result: Mesh = [...top, ...btm];
 
   for (let i = 0; i < segments; ++i) {
-    const j = (i + 1) % segments;
-    const { x: ax, z: az } = btm.$points[i]!;
-    const { x: bx, z: bz } = btm.$points[j]!;
+    const ra = ((Math.PI * 2) / segments) * (i % segments);
+    const rb = ((Math.PI * 2) / segments) * ((i + 1) % segments);
+
+    const ax = Math.cos(ra);
+    const az = Math.sin(ra);
+    const bx = Math.cos(rb);
+    const bz = Math.sin(rb);
 
     let nax = ax - az;
     let naz = ax + az;
@@ -76,85 +137,36 @@ export const solid_cylinder = ($material: Material, segments: number, smoothed?:
       naz = nbz = (naz + nbz) / 2;
     }
 
-    result.push({
-      $material,
-      $points: [
-        { x: ax, y: -1, z: az, $nx: nax, $ny: 0, $nz: naz },
-        { x: ax, y: 1, z: az, $nx: nax, $ny: 0, $nz: naz },
-        { x: bx, y: 1, z: bz, $nx: nbx, $ny: 0, $nz: nbz },
-        { x: bx, y: -1, z: bz, $nx: nbx, $ny: 0, $nz: nbz },
-      ],
-    });
+    const a: Vertex = { x: ax, y: -1, z: az, f: nax, g: 0, h: naz };
+    const b: Vertex = { x: ax, y: 1, z: az, f: nax, g: 0, h: naz };
+    const c: Vertex = { x: bx, y: 1, z: bz, f: nbx, g: 0, h: nbz };
+    const d: Vertex = { x: bx, y: -1, z: bz, f: nbx, g: 0, h: nbz };
+    result.push({ a, b, c, m: $material }, { a, b: c, c: d, m: $material });
   }
 
   return result;
 };
 
-/** Builds the extruded sides of a polygon */
-export const polygon_extrudeSides = ({ $points, $material }: Polygon): Polygon[] => {
-  const result: Polygon[] = [];
-  for (let i = 0, len = $points.length; i <= len; ++i) {
-    const { x: ax, z: az } = $points[i % len]!;
-    const { x: bx, z: bz } = $points[(i + 1) % len]!;
-
-    const {
-      x: $nx,
-      y: $ny,
-      z: $nz,
-    } = plane_fromTriangle({}, { x: ax, y: -1, z: az }, { x: ax, y: 1, z: az }, { x: bx, y: 1, z: bz });
-
-    result[i] = {
-      $material,
-      $points: [
-        { x: ax, y: -1, z: az, $nx, $ny, $nz },
-        { x: ax, y: 1, z: az, $nx, $ny, $nz },
-        { x: bx, y: 1, z: bz, $nx, $ny, $nz },
-        { x: bx, y: -1, z: bz, $nx, $ny, $nz },
-      ],
-    };
-  }
-  return result;
-};
-
-export const polygon_extrude = (polygon: Polygon): Polygon[] => {
-  const sides = polygon_extrudeSides(polygon);
-  const top = polygon_clone(polygon);
-  const bottom = polygon_clone(polygon);
-  for (const p of top.$points.reverse()) {
-    p.y = 1;
-  }
-  for (const p of bottom.$points) {
-    p.y = -1;
-  }
-  return [bottom, ...sides, top];
-};
-
-export const solid_transform = (solid: Polygon[], m: DOMMatrix) =>
-  solid.map((polygon) => polygon_transform(polygon, m));
-
-export const xxsolid_cylinder = (material: Material, segments: number): Polygon[] =>
-  polygon_extrude(polygon_regular(material, segments));
-
-type TriangleVertex = [number, number, number, number, number, number, number, number, number] & {
+type FinalTriangleVertex = [number, number, number, number, number, number, number, number, number] & {
   $index: number;
 };
 
-type Triangle = [TriangleVertex, TriangleVertex, TriangleVertex];
+type FinalTriangle = [FinalTriangleVertex, FinalTriangleVertex, FinalTriangleVertex];
 
-export const solids_to_triangles = (solids: Polygon[][]) => {
-  const vertexMap = new Map<string, TriangleVertex>();
-  const triangles: Triangle[] = [];
+export const solids_to_triangles = (solids: Triangle[][]) => {
+  const vertexMap = new Map<string, FinalTriangleVertex>();
+  const triangles: FinalTriangle[] = [];
 
-  const getVertex = ({ x, y, z, $nx, $ny, $nz }: Vertex, $material: Material): TriangleVertex => {
+  const getVertex = ({ x, y, z, f, g, h }: Vertex, $material: Material): FinalTriangleVertex => {
     x = Math.fround(x);
     y = Math.fround(y);
     z = Math.fround(z);
 
-    $nx = Math.fround($nx);
-    $ny = Math.fround($ny);
-    $nz = Math.fround($nz);
+    f = Math.fround(f);
+    g = Math.fround(g);
+    h = Math.fround(h);
 
-    const vertex = [x, y, z, $nx, $ny, $nz, ...$material] as TriangleVertex;
+    const vertex = [x, y, z, f, g, h, ...$material] as FinalTriangleVertex;
     vertex.$index = -1;
 
     const key = "" + vertex;
@@ -167,14 +179,12 @@ export const solids_to_triangles = (solids: Polygon[][]) => {
     return vertex;
   };
 
-  const makePolygon = ({ $points, $material }: Polygon) => {
-    for (let i = 2; i < $points.length; i++) {
-      const a = getVertex($points[0]!, $material);
-      const b = getVertex($points[i - 1]!, $material);
-      const c = getVertex($points[i]!, $material);
-      if (a !== b && a !== c && b !== c) {
-        triangles.push([a, b, c]);
-      }
+  const makePolygon = ({ a, b, c, m }: Triangle) => {
+    const va = getVertex(a, m);
+    const vb = getVertex(b, m);
+    const vc = getVertex(c, m);
+    if (va !== vb && va !== vc && vb !== vc) {
+      triangles.push([va, vb, vc]);
     }
   };
 
@@ -189,7 +199,7 @@ export const solids_to_triangles = (solids: Polygon[][]) => {
 
   let verticesCount = 0;
 
-  const getVertexIndex = (vertex: TriangleVertex): number => {
+  const getVertexIndex = (vertex: FinalTriangleVertex): number => {
     let { $index } = vertex;
     if ($index === -1) {
       $index = verticesCount++;

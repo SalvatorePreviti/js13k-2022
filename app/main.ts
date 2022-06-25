@@ -5,18 +5,18 @@ import fsSource from "./shaders/fragment.frag";
 
 import { DEG_TO_RAD } from "./math/math";
 import { gl } from "./gl";
-import type { Material, Polygon } from "./geometry/cylinder";
-import { solid_transform, solids_to_triangles, solid_cylinder } from "./geometry/cylinder";
+import type { Material, Mesh } from "./geometry/cylinder";
+import { mesh_transform, solids_to_triangles, mesh_cylinder } from "./geometry/cylinder";
 import { triangles_attributes, triangles_fill_buffer } from "./geometry/triangles-render";
 
-import { csg_union, csg_subtract, csg_polygons } from "./geometry/csg";
+import { csg_union, csg_subtract, csg_triangles } from "./geometry/csg";
 import { debug_lines_draw, debug_lines_prepare } from "./debug-lines-render";
 import { camera_update } from "./camera-update";
 import { camera_firstPersonPerspective, camera_projection, camera_updateView, camera_view } from "./camera";
 
 const identity = new DOMMatrix();
 
-const scene: Polygon[][] = [];
+const scene: Mesh[] = [];
 
 const material0 = [1, 0.3, 0] as Material;
 const material1 = [0, 0.5, 0.7] as Material;
@@ -25,30 +25,30 @@ const material3 = [0.2, 0, 0.9] as Material;
 const material4 = [0.4, 0.9, 0] as Material;
 const material5 = [0.4, 0, 0.9] as Material;
 
-const figure0 = solid_cylinder(material0, 6);
+const figure0 = mesh_cylinder(material0, 6);
 
-const figure1 = solid_transform(
-  solid_cylinder(material1, 118),
+const figure1 = mesh_transform(
+  mesh_cylinder(material1, 118),
   identity.translate(-0.2).rotate(90, 10, 10).scale(0.5, 2, 0.5),
 );
 
-const figure2 = solid_transform(
-  solid_cylinder(material2, 118),
+const figure2 = mesh_transform(
+  mesh_cylinder(material2, 118),
   identity.translate(-0.2).rotate(90, 10, 10).scale(0.22, 1.5, 0.22).skewY(10),
 );
 
-const figure3 = solid_transform(
-  solid_cylinder(material3, 18),
+const figure3 = mesh_transform(
+  mesh_cylinder(material3, 18),
   identity.translate(-0.2).rotate(0, 10, 10).scale(0.3, 1.4, 0.3),
 );
 
-const figure4 = solid_transform(
-  solid_cylinder(material4, 8),
+const figure4 = mesh_transform(
+  mesh_cylinder(material4, 8),
   identity.translate(-0.2).rotate(0, 0, 90).scale(0.15, 2, 0.15),
 );
 
-const figure5 = solid_transform(
-  solid_cylinder(material5, 5),
+const figure5 = mesh_transform(
+  mesh_cylinder(material5, 5),
   identity.translate(-0.2).rotate(0, 10, 10).scale(0.15, 1.7, 0.15),
 );
 
@@ -64,10 +64,12 @@ const csg4 = csg_subtract(csg3, figure5);
 
 // scene.push(csg_polygons(csg4));
 
-const xxa = solid_transform(solid_cylinder(material0, 18), identity.translate(0.9).scale3d(0.7));
-const xxb = solid_transform(solid_cylinder(material0, 18, 1), identity.translate(-0.9).scale3d(0.7));
+const xxa = mesh_transform(mesh_cylinder(material0, 18), identity.translate(0.9).scale3d(0.7));
+const xxb = mesh_transform(mesh_cylinder(material0, 18, 1), identity.translate(-0.9).scale3d(0.7));
 
-scene.push(xxa, xxb);
+// scene.push(xxa, xxb);
+
+scene.push(csg_triangles(csg4));
 
 if (DEBUG) {
   console.timeEnd("csg");

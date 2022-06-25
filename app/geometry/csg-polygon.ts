@@ -1,14 +1,17 @@
 import { plane_fromTriangle, type Plane } from "../math/plane";
-import type { Polygon, Vertex } from "./cylinder";
+import type { Material, Triangle, Vertex } from "./cylinder";
 
-export interface CSGPolygon extends Polygon, Plane {}
+export interface CSGPolygon extends Plane {
+  $points: Vertex[];
+  $material: Material;
+}
 
-export const CSGPolygon_new = (polygon: Polygon) =>
+export const CSGPolygon_fromTriangle = (triangle: Triangle) =>
   plane_fromTriangle(
-    { ...polygon, $points: polygon.$points.slice() } as CSGPolygon,
-    polygon.$points[0]!,
-    polygon.$points[1]!,
-    polygon.$points[2]!,
+    { $material: triangle.m, $points: [{ ...triangle.a }, { ...triangle.b }, { ...triangle.c }] } as CSGPolygon,
+    triangle.a,
+    triangle.b,
+    triangle.c,
   );
 
 export const PLANE_EPSILON = 1e-5;
@@ -54,8 +57,8 @@ export const CSGPolygon_split = (
     const pointsLen = $points.length;
     for (let i = 0; i < pointsLen; ++i) {
       const iv = $points[i]!;
-      const { x: ix, y: iy, z: iz, $nx: inx, $ny: iny, $nz: inz } = iv;
-      const { x: jx, y: jy, z: jz, $nx: jnx, $ny: jny, $nz: jnz } = $points[(i + 1) % pointsLen]!;
+      const { x: ix, y: iy, z: iz, f: inx, g: iny, h: inz } = iv;
+      const { x: jx, y: jy, z: jz, f: jnx, g: jny, h: jnz } = $points[(i + 1) % pointsLen]!;
 
       const tid = ix * planeX + iy * planeY + iz * planeZ - planeW;
       const ti = tid < -PLANE_EPSILON ? BACK : tid > PLANE_EPSILON ? FRONT : COPLANAR;
@@ -76,11 +79,11 @@ export const CSGPolygon_split = (
         const vy = t * (jy - iy) + iy;
         const vz = t * (jz - iz) + iz;
 
-        const $nx = t * (jnx - inx) + inx;
-        const $ny = t * (jny - iny) + iny;
-        const $nz = t * (jnz - inz) + inz;
+        const nx = t * (jnx - inx) + inx;
+        const ny = t * (jny - iny) + iny;
+        const nz = t * (jnz - inz) + inz;
 
-        const v: Vertex = { x: vx, y: vy, z: vz, $nx, $ny, $nz };
+        const v: Vertex = { x: vx, y: vy, z: vz, f: nx, g: ny, h: nz };
 
         f.push(v);
         b.push({ ...v });

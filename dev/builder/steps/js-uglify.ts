@@ -267,7 +267,7 @@ export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: R
           keep_fnames: false,
 
           // Pass an array of identifiers that should be excluded from mangling. Example: ["foo", "bar"].
-          reserved: ["x", "y", "z", "w", "X", "Y", "Z", "W"],
+          reserved: ["x", "y", "z", "w", "a", "b", "c", "m"],
 
           // Mangle properties - optimizes a lot but is very dangerous. Enables only with properties starting with $
           properties: {

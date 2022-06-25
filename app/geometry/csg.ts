@@ -1,5 +1,4 @@
-import type { Polygon } from "./cylinder";
-import { CSGPolygon_new, type CSGPolygon } from "./csg-polygon";
+import { CSGPolygon_fromTriangle } from "./csg-polygon";
 import {
   csg_tree,
   csg_tree_addPolygons,
@@ -8,19 +7,21 @@ import {
   csg_tree_invert,
   type CSGNode,
 } from "./csg-tree";
+import type { Mesh } from "./cylinder";
+import { mesh_fromConvexPolygon } from "./cylinder";
 
 /**
  * If is known that there is no intersection between the tree and a list of polygons,
  * just adding them is much faster than union.
  */
-export const csg_unionFast = (a: CSGNode | readonly Polygon[], polygons: readonly Polygon[]) => {
+export const csg_unionFast = (a: CSGNode | Mesh, polygons: Mesh) => {
   a = csg_tree(a);
-  const csgPolygons = polygons.map(CSGPolygon_new);
+  const csgPolygons = polygons.map(CSGPolygon_fromTriangle);
   csg_tree_addPolygons(a, csgPolygons);
   return a;
 };
 
-export const csg_union = (a: CSGNode | readonly Polygon[], b: CSGNode | Polygon[]): CSGNode => {
+export const csg_union = (a: CSGNode | Mesh, b: CSGNode | Mesh): CSGNode => {
   a = csg_tree(a);
   b = csg_tree(b);
   csg_tree_clipTo(a, b);
@@ -32,7 +33,7 @@ export const csg_union = (a: CSGNode | readonly Polygon[], b: CSGNode | Polygon[
   return a;
 };
 
-export const csg_subtract = (a: CSGNode | readonly Polygon[], b: CSGNode | Polygon[]): CSGNode => {
+export const csg_subtract = (a: CSGNode | Mesh, b: CSGNode | Mesh): CSGNode => {
   a = csg_tree(a);
   b = csg_tree(b);
   csg_tree_invert(a);
@@ -46,7 +47,7 @@ export const csg_subtract = (a: CSGNode | readonly Polygon[], b: CSGNode | Polyg
   return a;
 };
 
-export const csg_intersect = (a: CSGNode | readonly Polygon[], b: CSGNode | Polygon[]): CSGNode => {
+export const csg_intersect = (a: CSGNode | Mesh, b: CSGNode | Mesh): CSGNode => {
   a = csg_tree(a);
   b = csg_tree(b);
   csg_tree_invert(a);
@@ -59,11 +60,13 @@ export const csg_intersect = (a: CSGNode | readonly Polygon[], b: CSGNode | Poly
   return a;
 };
 
-export const csg_polygons = (tree: CSGNode) => {
-  const result: CSGPolygon[] = [];
+export const csg_triangles = (tree: CSGNode) => {
+  const result: Mesh = [];
   const recursion = (node: CSGNode | 0) => {
     if (node) {
-      result.push(...node.$polygons);
+      for (const polygon of node.$polygons) {
+        result.push(...mesh_fromConvexPolygon(polygon.$material, polygon.$points));
+      }
       recursion(node.$front);
       recursion(node.$back);
     }

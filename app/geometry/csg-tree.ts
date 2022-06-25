@@ -1,6 +1,6 @@
 import type { Plane } from "../math/plane";
-import { CSGPolygon_new, CSGPolygon_split, type CSGPolygon } from "./csg-polygon";
-import type { Polygon } from "./cylinder";
+import { CSGPolygon_fromTriangle, CSGPolygon_split, type CSGPolygon } from "./csg-polygon";
+import type { Mesh } from "./cylinder";
 
 export interface CSGNode extends Plane {
   $polygons: CSGPolygon[];
@@ -31,7 +31,11 @@ export const csg_tree_invert = (node: CSGNode | 0) => {
   node.$back = $front;
   node.$front = $back;
   for (const polygon of node.$polygons) {
-    polygon.$points.reverse();
+    for (const p of polygon.$points.reverse()) {
+      p.f *= -1;
+      p.g *= -1;
+      p.h *= -1;
+    }
     polygon.x *= -1;
     polygon.y *= -1;
     polygon.z *= -1;
@@ -113,10 +117,10 @@ export const csg_tree_addTree = (node: CSGNode, source: CSGNode | 0) => {
  * If the given argument is a list of polygons, a new BSP tree built from the list of polygons is returned.
  * If the given argument is already a BSP tree, return it as is.
  */
-export const csg_tree = (n: CSGNode | readonly Polygon[]): CSGNode => {
+export const csg_tree = (n: CSGNode | Mesh): CSGNode => {
   if ((n as any).map) {
     // Build a BSP tree from a list of polygons
-    const csgPolygons = (n as readonly Polygon[]).map(CSGPolygon_new);
+    const csgPolygons = (n as Mesh).map(CSGPolygon_fromTriangle);
     n = CSGNode_new(csgPolygons[0]!);
     csg_tree_addPolygons(n, csgPolygons);
   }

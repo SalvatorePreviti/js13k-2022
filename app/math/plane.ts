@@ -34,3 +34,5 @@ export const plane_fromTriangle = <TOut extends Partial<Plane>>(
   out.w = (out.x = nx / nlength) * ax + (out.y = ny / nlength) * ay + (out.z = nz / nlength) * az;
   return out as TOut & Plane;
 };
+
+export const plane_distance = ({ x, y, z, w }: Plane, { x: vx, y: vy, z: vz }: Vec3In) => vx * x + vy * y + vz * z - w;
