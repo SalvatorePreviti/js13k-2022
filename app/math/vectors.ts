@@ -34,6 +34,8 @@ export const vec3_lengthSquared = ({ x, y, z }: Vec3In): number => x * x + y * y
 /** Computes the magnitude of a vector */
 export const vec3_length = ({ x, y, z }: Vec3In): number => Math.sqrt(x * x + y * y + z * z);
 
+export const vec3_negate = ({ x, y, z }: Vec3In): Vec3 => ({ x: -x, y: -y, z: -z });
+
 export const vec3_add = ({ x, y, z }: Vec3In, { x: bx, y: by, z: bz }: Vec3In): Vec3 => ({
   x: x + bx,
   y: y + by,
