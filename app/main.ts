@@ -64,8 +64,8 @@ const csg4 = csg_subtract(csg3, figure5);
 
 // scene.push(csg_polygons(csg4));
 
-const xxa = mesh_transform(mesh_cylinder(material0, 18), identity.translate(0.9).scale3d(0.7));
-const xxb = mesh_transform(mesh_cylinder(material0, 18, 1), identity.translate(-0.9).scale3d(0.7));
+// const xxa = mesh_transform(mesh_cylinder(material0, 18), identity.translate(0.9).scale3d(0.7));
+// const xxb = mesh_transform(mesh_cylinder(material0, 18, 1), identity.translate(-0.9).scale3d(0.7));
 
 // scene.push(xxa, xxb);
 

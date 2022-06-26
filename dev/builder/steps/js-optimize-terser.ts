@@ -129,8 +129,9 @@ export function getTerserMinifyOptions(
       // remove debugger; statements
       drop_debugger: false,
 
-      // attempt to evaluate constant expressions
-      evaluate: true,
+      // attempt to evaluate constant expressions.
+      // Disabled because terser will dump long floating point numbers for math operations
+      evaluate: false,
 
       // Pass true to preserve completion values from terminal statements without return, e.g. in bookmarklets.
       expression: false,
