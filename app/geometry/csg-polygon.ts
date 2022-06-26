@@ -59,8 +59,6 @@ export const CSGPolygon_split = (plane: Plane, polygon: CSGPolygon): SplitPolygo
     for (let i = 0; i < pointsLen; ++i) {
       const iv = $points[i]!;
       const jv = $points[(i + 1) % pointsLen]!;
-      const { x: ix, y: iy, z: iz } = iv;
-      const { x: jx, y: jy, z: jz } = jv;
 
       const tid = plane_distance(plane, iv);
       const ti = classify(tid);
@@ -75,6 +73,8 @@ export const CSGPolygon_split = (plane: Plane, polygon: CSGPolygon): SplitPolygo
         b.push(ti !== BACK ? { ...iv } : iv);
       }
       if ((ti | tj) === SPANNING) {
+        const { x: ix, y: iy, z: iz } = iv;
+        const { x: jx, y: jy, z: jz } = jv;
         const t = -tid / (plane.x * (jx - ix) + plane.y * (jy - iy) + plane.z * (jz - iz));
         const v = vertex_lerp(iv, jv, t);
         f.push(v);
