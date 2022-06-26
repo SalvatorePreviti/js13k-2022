@@ -22,7 +22,7 @@ export const vertex_lerp = ({ x, y, z, f, g, h }: Vertex, b: Vertex, t: number):
   h: t * (b.h - h) + h,
 });
 
-export const vertex_flip = ({ x, y, z, f, g, h }: Vertex): Vertex => ({
+export const vertex_flipped = ({ x, y, z, f, g, h }: Vertex): Vertex => ({
   x,
   y,
   z,
@@ -31,7 +31,12 @@ export const vertex_flip = ({ x, y, z, f, g, h }: Vertex): Vertex => ({
   h: -h,
 });
 
-export const vertex_translate = ({ x, y, z, f, g, h }: Vertex, tx: number, ty: number = 0, tz: number = 0): Vertex => ({
+export const vertex_translated = (
+  { x, y, z, f, g, h }: Vertex,
+  tx: number,
+  ty: number = 0,
+  tz: number = 0,
+): Vertex => ({
   x: x + tx,
   y: y + ty,
   z: z + tz,

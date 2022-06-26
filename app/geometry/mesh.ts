@@ -1,4 +1,4 @@
-import { triangle_map, triangle_translate, triangle_flip, type Triangle } from "./triangle";
+import { triangle_map, triangle_translated, triangle_flipped, type Triangle } from "./triangle";
 import { vertex_transform, type Vertex } from "./vertex";
 
 export type Material = [number, number, number];
@@ -16,14 +16,14 @@ export const mesh_translate = (
   tx: number,
   ty?: number,
   tz?: number,
-): Iterable<Triangle> => mesh_map(triangles, (t) => triangle_translate(t, tx, ty, tz));
+): Iterable<Triangle> => mesh_map(triangles, (t) => triangle_translated(t, tx, ty, tz));
 
 export const mesh_transform = (triangles: Iterable<Triangle>, m: DOMMatrix): Mesh =>
   mesh_mapVertices(triangles, (v) => vertex_transform(v, m));
 
 export const mesh_clone = (triangles: Iterable<Triangle>): Mesh => mesh_mapVertices(triangles, (v) => ({ ...v }));
 
-export const mesh_flipped = (triangles: Iterable<Triangle>): Mesh => mesh_map(triangles, triangle_flip);
+export const mesh_flipped = (triangles: Iterable<Triangle>): Mesh => mesh_map(triangles, triangle_flipped);
 
 export const mesh_fromConvexPolygon = (material: Material, polygon: Vertex[]): Mesh => {
   const result: Mesh = [];

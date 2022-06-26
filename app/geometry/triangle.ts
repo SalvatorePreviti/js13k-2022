@@ -1,4 +1,4 @@
-import { vertex_flip, vertex_transform, vertex_translate, type Vertex } from "./vertex";
+import { vertex_flipped, vertex_transform, vertex_translated, type Vertex } from "./vertex";
 import type { Material } from "./mesh";
 import type { Vec3In } from "../math/vectors";
 import { vec3_dot, vec3_cross, vec3_sub, type Vec3, type Vec4 } from "../math/vectors";
@@ -27,18 +27,18 @@ export const triangle_map = ({ a, b, c, m }: Triangle, fn: (p: Vertex) => Vertex
 
 export const triangle_vertices = ({ a, b, c }: Triangle): Vertex[] => [a, b, c];
 
-export const triangle_translate = (triangle: Triangle, tx: number, ty?: number, tz?: number): Triangle =>
-  triangle_map(triangle, (v) => vertex_translate(v, tx, ty, tz));
+export const triangle_translated = (triangle: Triangle, tx: number, ty?: number, tz?: number): Triangle =>
+  triangle_map(triangle, (v) => vertex_translated(v, tx, ty, tz));
 
 export const triangle_transform = (triangle: Triangle, m: DOMMatrix): Triangle =>
   triangle_map(triangle, (v) => vertex_transform(v, m));
 
 export const triangle_clone = (triangle: Triangle): Triangle => triangle_map(triangle, (v) => ({ ...v }));
 
-export const triangle_flip = ({ a, b, c, m }: Triangle) => ({
-  c: vertex_flip(a),
-  b: vertex_flip(b),
-  a: vertex_flip(c),
+export const triangle_flipped = ({ a, b, c, m }: Triangle) => ({
+  c: vertex_flipped(a),
+  b: vertex_flipped(b),
+  a: vertex_flipped(c),
   m,
 });
 
