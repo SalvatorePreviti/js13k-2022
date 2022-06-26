@@ -40,6 +40,12 @@ export const vec3_add = ({ x, y, z }: Vec3In, { x: bx, y: by, z: bz }: Vec3In): 
   z: z + bz,
 });
 
+export const vec3_lerp = ({ x, y, z }: Vec3In, b: Vec3In, t: number): Vec3 => ({
+  x: t * (b.x - x) + x,
+  y: t * (b.y - y) + y,
+  z: t * (b.z - z) + z,
+});
+
 export const vec3_addScaled = ({ x, y, z }: Vec3In, { x: bx, y: by, z: bz }: Vec3In, m: number): Vec3 => ({
   x: x + bx * m,
   y: y + by * m,
