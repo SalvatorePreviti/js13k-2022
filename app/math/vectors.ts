@@ -81,3 +81,12 @@ export const vec3_cross = ({ x, y, z }: Vec3In, { x: bx, y: by, z: bz }: Vec3In)
   y: z * bx - x * bz,
   z: x * by - y * bx,
 });
+
+export const vec3_distanceSquared = ({ x, y, z }: Vec3In, { x: bx, y: by, z: bz }: Vec3In): number => {
+  x -= bx;
+  y -= by;
+  z -= bz;
+  return x * x + y * y + z * z;
+};
+
+export const vec3_distance = (a: Vec3In, b: Vec3In): number => Math.sqrt(vec3_distanceSquared(a, b));

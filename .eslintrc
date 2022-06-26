@@ -22,7 +22,7 @@
       "rules": {
         "prefer-template": 0,
         "prefer-arrow/prefer-arrow-functions": [
-          "warn",
+          0,
           {
             "disallowPrototype": false,
             "singleReturnOnly": false,
