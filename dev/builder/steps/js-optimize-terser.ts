@@ -8,6 +8,7 @@ import type {
   MinifyOptions as TerserMinifyOptions,
   SourceMapOptions as TerserSourceMapOptions,
 } from "terser";
+import { mangleConfig } from "../lib/mangle-config";
 
 export { TerserMinifyOptions, TerserSourceMapOptions };
 
@@ -27,7 +28,7 @@ export async function jsOptimizeTerser(input: string, settings: TerserMinifySett
 }
 
 export interface TerserMinifySettings {
-  mangle: boolean | "all";
+  mangle: boolean;
 }
 
 export function getTerserMinifyOptions(
@@ -128,8 +129,9 @@ export function getTerserMinifyOptions(
       // remove debugger; statements
       drop_debugger: false,
 
-      // attempt to evaluate constant expressions
-      evaluate: true,
+      // attempt to evaluate constant expressions.
+      // Disabled because terser will dump long floating point numbers for math operations
+      evaluate: false,
 
       // Pass true to preserve completion values from terminal statements without return, e.g. in bookmarklets.
       expression: false,
@@ -295,7 +297,7 @@ export function getTerserMinifyOptions(
           module,
 
           // Pass an array of identifiers that should be excluded from mangling. Example: ["foo", "bar"].
-          reserved: ["x", "y", "z", "w", "X", "Y", "Z", "W"],
+          reserved: [...mangleConfig.reserved],
 
           // Mangle properties - optimizes a lot but is very dangerous. Enables only with properties starting with $
           properties: {
@@ -311,7 +313,7 @@ export function getTerserMinifyOptions(
             keep_quoted: true,
 
             // Pass a RegExp literal or pattern string to only mangle property matching the regular expression.
-            regex: mangle === "all" ? undefined : /^[$_]/,
+            regex: /^[$_]/,
           },
 
           // Pass true to mangle names declared in the top level scope.

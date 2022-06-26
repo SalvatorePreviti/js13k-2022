@@ -4,6 +4,7 @@ import type { UnsafeAny } from "@balsamic/dev";
 import { devLog } from "@balsamic/dev";
 import { sizeDifference } from "../lib/logging";
 import { jsRemoveEndingSemicolons } from "../lib/code-utils";
+import { mangleConfig } from "../lib/mangle-config";
 
 export async function jsUglify(input: string, settings: JsUglifySettings) {
   return devLog.timed(
@@ -21,7 +22,7 @@ export async function jsUglify(input: string, settings: JsUglifySettings) {
 }
 
 export interface JsUglifySettings {
-  mangle: boolean | "all";
+  mangle: boolean;
   varify: boolean;
 }
 
@@ -267,7 +268,7 @@ export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: R
           keep_fnames: false,
 
           // Pass an array of identifiers that should be excluded from mangling. Example: ["foo", "bar"].
-          reserved: ["x", "y", "z", "w", "X", "Y", "Z", "W"],
+          reserved: [...mangleConfig.reserved],
 
           // Mangle properties - optimizes a lot but is very dangerous. Enables only with properties starting with $
           properties: {
@@ -283,7 +284,7 @@ export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: R
             keep_quoted: true,
 
             // Pass a RegExp literal or pattern string to only mangle property matching the regular expression.
-            regex: mangle === "all" ? undefined : /^[$_]/,
+            regex: /^[$_]/,
           },
 
           // Pass true to mangle names declared in the top level scope.

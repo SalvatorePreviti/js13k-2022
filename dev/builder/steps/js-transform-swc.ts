@@ -4,6 +4,7 @@ import { transform as swcTransform } from "@swc/core";
 import SwcVisitor from "@swc/core/Visitor";
 import { outPath_build } from "../out-paths";
 import { sizeDifference } from "../lib/logging";
+import { mangleConfig } from "../lib/mangle-config";
 
 export interface SwcTransformSettings {
   mangle: boolean;
@@ -333,7 +334,7 @@ export function getSwcMinifyOptions(settings: SwcTransformSettings): JsMinifyOpt
           keep_private_props: true,
 
           // Pass an array of identifiers that should be excluded from mangling. Example: ["foo", "bar"].
-          reserved: ["x", "y", "z", "w"],
+          reserved: [...mangleConfig.reserved],
 
           // Mangle properties - optimizes a lot but is very dangerous. Enables only with properties starting with $
           props: {
