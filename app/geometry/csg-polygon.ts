@@ -1,4 +1,5 @@
 import { plane_distance, type Plane } from "../math/plane";
+import type { Vec3 } from "../math/vectors";
 import type { Material } from "./mesh";
 import type { Triangle } from "./triangle";
 import { triangle_plane } from "./triangle";
@@ -34,6 +35,8 @@ interface SplitPolygonResult {
 
 const classify = (t: number) => (t < -PLANE_EPSILON ? BACK : t > PLANE_EPSILON ? FRONT : COPLANAR);
 
+const planeDet = ({ x, y, z }: Vec3, i: Vec3, j: Vec3) => x * (j.x - i.x) + y * (j.y - i.y) + z * (j.z - i.z);
+
 export const CSGPolygon_split = (plane: Plane, polygon: CSGPolygon): SplitPolygonResult => {
   let $front: CSGPolygon | false | undefined;
   let $back: CSGPolygon | false | undefined;
@@ -63,8 +66,7 @@ export const CSGPolygon_split = (plane: Plane, polygon: CSGPolygon): SplitPolygo
       const tid = plane_distance(plane, iv);
       const ti = classify(tid);
 
-      const tjd = plane_distance(plane, jv);
-      const tj = classify(tjd);
+      const tj = classify(plane_distance(plane, jv));
 
       if (ti !== BACK) {
         f.push(iv);
@@ -73,10 +75,7 @@ export const CSGPolygon_split = (plane: Plane, polygon: CSGPolygon): SplitPolygo
         b.push(ti !== BACK ? { ...iv } : iv);
       }
       if ((ti | tj) === SPANNING) {
-        const { x: ix, y: iy, z: iz } = iv;
-        const { x: jx, y: jy, z: jz } = jv;
-        const t = -tid / (plane.x * (jx - ix) + plane.y * (jy - iy) + plane.z * (jz - iz));
-        const v = vertex_lerp(iv, jv, t);
+        const v = vertex_lerp(iv, jv, -tid / planeDet(plane, iv, jv));
         f.push(v);
         b.push({ ...v });
       }
