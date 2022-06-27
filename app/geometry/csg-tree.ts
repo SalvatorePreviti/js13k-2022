@@ -4,17 +4,18 @@ import type { Polygon, Vertex } from "./cylinder";
 import { polygon_flipSelf } from "./cylinder";
 
 export interface CSGNode extends Plane {
-  $polygons: Polygon[];
   $front: CSGNode | 0;
   $back: CSGNode | 0;
+  $polygons: Polygon[];
 }
 
 export const CSGNode_new = (polygon: Polygon): CSGNode => {
+  // polygon: Polygon
   const node = vec3_triangleNormal(polygon.$points as [Vertex, Vertex, Vertex]) as CSGNode;
   node.w = vec3_dot(node, polygon.$points[0]!);
-  node.$polygons = [polygon];
   node.$front = 0;
   node.$back = 0;
+  node.$polygons = [polygon];
   return node;
 };
 

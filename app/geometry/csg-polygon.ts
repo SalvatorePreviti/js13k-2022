@@ -42,14 +42,10 @@ export const CSGPolygon_split = (plane: Plane, polygon: Polygon): SplitPolygonRe
     // SPANNING
     const f: Vertex[] = [];
     const b: Vertex[] = [];
-
     let iv: Vertex = $points[pointsLen - 1]!;
     let id: number = vec3_dot(plane, iv) - planeW;
     let v: Vertex;
-    for (let i = 0; i < pointsLen; ) {
-      // const iv = $points[i]!;
-      // const tid = vec3_dot(plane, iv) - planeW;
-      const jv = $points[i++]!;
+    for (const jv of $points) {
       const jd = vec3_dot(plane, jv) - planeW;
 
       if (id > -PLANE_EPSILON) {
