@@ -47,7 +47,7 @@ export const polygon_flipped = (polygon: Polygon): Polygon => polygon_flipSelf(p
 /** Creates a regular polygon */
 export const polygon_regular = (material: Material, segments: number, y = 0): Polygon => {
   const points: Vertex[] = [];
-  for (let i = 0; i <= segments; i++) {
+  for (let i = 0; i < segments; i++) {
     const a = ((Math.PI * 2) / segments) * (i % segments);
     points[i] = { x: Math.cos(a), y, z: Math.sin(a), $nx: 0, $ny: -1, $nz: 0 };
   }
@@ -173,6 +173,7 @@ export const solids_to_triangles = (solids: Polygon[][]) => {
       const b = getVertex($points[i - 1]!, $material);
       const c = getVertex($points[i]!, $material);
       if (a !== b && a !== c && b !== c) {
+        // TODO: This check seems to be unnecessary, we don't have anymore empty triangles - clean up
         triangles.push([a, b, c]);
       }
     }

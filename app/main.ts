@@ -62,12 +62,12 @@ const csg2 = csg_union(csg1, figure3);
 const csg3 = csg_subtract(csg2, figure4);
 const csg4 = csg_subtract(csg3, figure5);
 
-// scene.push(csg_polygons(csg4));
+scene.push(csg_polygons(csg4));
 
-const xxa = solid_transform(solid_cylinder(material0, 18), identity.translate(0.9).scale3d(0.7));
-const xxb = solid_transform(solid_cylinder(material0, 18, 1), identity.translate(-0.9).scale3d(0.7));
+// const xxa = solid_transform(solid_cylinder(material0, 18), identity.translate(0.9).scale3d(0.7));
+// const xxb = solid_transform(solid_cylinder(material0, 18, 1), identity.translate(-0.9).scale3d(0.7));
 
-scene.push(xxa, xxb);
+// scene.push(xxa, xxb);
 
 if (DEBUG) {
   console.timeEnd("csg");
