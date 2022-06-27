@@ -1,5 +1,5 @@
 import type { Polygon } from "./cylinder";
-import { CSGPolygon_new, type CSGPolygon } from "./csg-polygon";
+import { polygon_clone } from "./cylinder";
 import {
   csg_tree,
   csg_tree_addPolygons,
@@ -13,10 +13,9 @@ import {
  * If is known that there is no intersection between the tree and a list of polygons,
  * just adding them is much faster than union.
  */
-export const csg_unionFast = (a: CSGNode | readonly Polygon[], polygons: readonly Polygon[]) => {
+export const csg_unionFast = (a: CSGNode | readonly Polygon[], polygons: Polygon[]) => {
   a = csg_tree(a);
-  const csgPolygons = polygons.map(CSGPolygon_new);
-  csg_tree_addPolygons(a, csgPolygons);
+  csg_tree_addPolygons(a, polygons.map(polygon_clone));
   return a;
 };
 
@@ -60,7 +59,7 @@ export const csg_intersect = (a: CSGNode | readonly Polygon[], b: CSGNode | Poly
 };
 
 export const csg_polygons = (tree: CSGNode) => {
-  const result: CSGPolygon[] = [];
+  const result: Polygon[] = [];
   const recursion = (node: CSGNode | 0) => {
     if (node) {
       result.push(...node.$polygons);

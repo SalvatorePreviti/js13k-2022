@@ -1,21 +1,23 @@
 import type { Plane } from "../math/plane";
-import { CSGPolygon_new, CSGPolygon_split, type CSGPolygon } from "./csg-polygon";
+import { plane_fromTriangle } from "../math/plane";
+import { CSGPolygon_split } from "./csg-polygon";
 import type { Polygon } from "./cylinder";
+import { polygon_flipSelf } from "./cylinder";
 
 export interface CSGNode extends Plane {
-  $polygons: CSGPolygon[];
+  $polygons: Polygon[];
   $front: CSGNode | 0;
   $back: CSGNode | 0;
 }
 
 export const CSGNode_new = ({ x, y, z, w }: Plane): CSGNode => ({
   $polygons: [],
-  $front: 0,
-  $back: 0,
   x,
   y,
   z,
   w,
+  $front: 0,
+  $back: 0,
 });
 
 /** Convert solid space to empty space and empty space to solid space. */
@@ -31,17 +33,18 @@ export const csg_tree_invert = (node: CSGNode | 0) => {
   node.$back = $front;
   node.$front = $back;
   for (const polygon of node.$polygons) {
-    polygon.$points.reverse();
-    polygon.x *= -1;
-    polygon.y *= -1;
-    polygon.z *= -1;
-    polygon.w *= -1;
+    polygon_flipSelf(polygon);
+    // polygon.$points.reverse();
+    // polygon.x *= -1;
+    // polygon.y *= -1;
+    // polygon.z *= -1;
+    // polygon.w *= -1;
   }
   csg_tree_invert($front);
   csg_tree_invert($back);
 };
 
-export const csg_tree_clipPolygon = (node: CSGNode, polygon: CSGPolygon, result: CSGPolygon[]) => {
+export const csg_tree_clipPolygon = (node: CSGNode, polygon: Polygon, result: Polygon[]) => {
   const { $front, $back } = CSGPolygon_split(node, polygon);
   if ($front) {
     if (node.$front) {
@@ -57,7 +60,7 @@ export const csg_tree_clipPolygon = (node: CSGNode, polygon: CSGPolygon, result:
 
 export const csg_tree_clipTo = (node: CSGNode | 0, bsp: CSGNode) => {
   if (node) {
-    const result: CSGPolygon[] = [];
+    const result: Polygon[] = [];
     for (const polygon of node.$polygons) {
       csg_tree_clipPolygon(bsp, polygon, result);
     }
@@ -67,7 +70,7 @@ export const csg_tree_clipTo = (node: CSGNode | 0, bsp: CSGNode) => {
   }
 };
 
-export const csg_tree_addPolygon = (node: CSGNode, polygon: CSGPolygon) => {
+export const csg_tree_addPolygon = (node: CSGNode, polygon: Polygon) => {
   const { $type, $front, $back } = CSGPolygon_split(node, polygon);
   if ($front) {
     if (!$type) {
@@ -78,7 +81,8 @@ export const csg_tree_addPolygon = (node: CSGNode, polygon: CSGPolygon) => {
       csg_tree_addPolygon(node.$front, $front);
     } else {
       // A new leaf
-      (node.$front = CSGNode_new($front)).$polygons.push($front);
+      const p = plane_fromTriangle({}, $front.$points[0]!, $front.$points[1]!, $front.$points[2]!);
+      (node.$front = CSGNode_new(p)).$polygons.push($front);
     }
   }
   if ($back) {
@@ -90,14 +94,15 @@ export const csg_tree_addPolygon = (node: CSGNode, polygon: CSGPolygon) => {
       csg_tree_addPolygon(node.$back, $back);
     } else {
       // A new leaf
-      (node.$back = CSGNode_new($back)).$polygons.push($back);
+      const p = plane_fromTriangle({}, $back.$points[0]!, $back.$points[1]!, $back.$points[2]!);
+      (node.$back = CSGNode_new(p)).$polygons.push($back);
     }
   }
 };
 
-export const csg_tree_addPolygons = (node: CSGNode, polygons: CSGPolygon[]) => {
-  for (let i = 0, len = polygons.length; i < len; ++i) {
-    csg_tree_addPolygon(node, polygons[i]!);
+export const csg_tree_addPolygons = (node: CSGNode, polygons: Polygon[]) => {
+  for (const polygon of polygons) {
+    csg_tree_addPolygon(node, polygon);
   }
 };
 
@@ -116,8 +121,11 @@ export const csg_tree_addTree = (node: CSGNode, source: CSGNode | 0) => {
 export const csg_tree = (n: CSGNode | readonly Polygon[]): CSGNode => {
   if ((n as any).map) {
     // Build a BSP tree from a list of polygons
-    const csgPolygons = (n as readonly Polygon[]).map(CSGPolygon_new);
-    n = CSGNode_new(csgPolygons[0]!);
+    const csgPolygons = n as Polygon[];
+
+    const $back = csgPolygons[0]!;
+    const p = plane_fromTriangle({}, $back.$points[0]!, $back.$points[1]!, $back.$points[2]!);
+    n = CSGNode_new(p);
     csg_tree_addPolygons(n, csgPolygons);
   }
   return n as CSGNode;

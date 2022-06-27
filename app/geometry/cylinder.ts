@@ -9,6 +9,15 @@ export interface Vertex extends Vec3 {
   $nz: number;
 }
 
+export const vertex_lerp = ({ x, y, z, $nx, $ny, $nz }: Vertex, b: Vertex, t: number): Vertex => ({
+  x: x + (b.x - x) * t,
+  y: y + (b.y - y) * t,
+  z: z + (b.z - z) * t,
+  $nx: $nx + (b.$nx - $nx) * t,
+  $ny: $ny + (b.$ny - $ny) * t,
+  $nz: $nz + (b.$nz - $nz) * t,
+});
+
 export interface Polygon {
   /** Polygon material */
   $material: Material;

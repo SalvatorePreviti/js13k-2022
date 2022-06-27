@@ -27,6 +27,9 @@ const material5 = [0.4, 0, 0.9] as Material;
 
 const figure0 = solid_cylinder(material0, 6);
 
+const figure01 = solid_transform(solid_cylinder(material5, 6), identity.scale(1, 0.6, 1).translate(0, 1, 0));
+// const figure02 = solid_transform(solid_cylinder(material0, 6);
+
 const figure1 = solid_transform(
   solid_cylinder(material1, 118),
   identity.translate(-0.2).rotate(90, 10, 10).scale(0.5, 2, 0.5),
@@ -56,7 +59,7 @@ if (DEBUG) {
   console.time("csg");
 }
 
-const csg0 = csg_subtract(figure0, figure1);
+const csg0 = csg_subtract(csg_union(figure01, figure0), figure1);
 const csg1 = csg_union(csg0, figure2);
 const csg2 = csg_union(csg1, figure3);
 const csg3 = csg_subtract(csg2, figure4);
