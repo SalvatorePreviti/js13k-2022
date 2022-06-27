@@ -151,7 +151,7 @@ export function getTerserMinifyOptions(
       if_return: true,
 
       // inline calls to function with simple/return statement
-      inline: 3,
+      inline: true,
 
       // join consecutive var statements
       join_vars: true,

@@ -1,4 +1,3 @@
-import { plane_fromTriangle } from "../math/plane";
 import type { Vec3 } from "../math/vectors";
 
 export type Material = [number, number, number];
@@ -99,50 +98,46 @@ export const solid_cylinder = ($material: Material, segments: number, smoothed?:
   return result;
 };
 
-/** Builds the extruded sides of a polygon */
-export const polygon_extrudeSides = ({ $points, $material }: Polygon): Polygon[] => {
-  const result: Polygon[] = [];
-  for (let i = 0, len = $points.length; i <= len; ++i) {
-    const { x: ax, z: az } = $points[i % len]!;
-    const { x: bx, z: bz } = $points[(i + 1) % len]!;
+// export const polygon_extrudeSides = ({ $points, $material }: Polygon): Polygon[] => {
+//   const result: Polygon[] = [];
+//   for (let i = 0, len = $points.length; i <= len; ++i) {
+//     const { x: ax, z: az } = $points[i % len]!;
+//     const { x: bx, z: bz } = $points[(i + 1) % len]!;
 
-    const {
-      x: $nx,
-      y: $ny,
-      z: $nz,
-    } = plane_fromTriangle({}, { x: ax, y: -1, z: az }, { x: ax, y: 1, z: az }, { x: bx, y: 1, z: bz });
+//     const {
+//       x: $nx,
+//       y: $ny,
+//       z: $nz,
+//     } = triangleNormal({ x: ax, y: -1, z: az }, { x: ax, y: 1, z: az }, { x: bx, y: 1, z: bz });
 
-    result[i] = {
-      $material,
-      $points: [
-        { x: ax, y: -1, z: az, $nx, $ny, $nz },
-        { x: ax, y: 1, z: az, $nx, $ny, $nz },
-        { x: bx, y: 1, z: bz, $nx, $ny, $nz },
-        { x: bx, y: -1, z: bz, $nx, $ny, $nz },
-      ],
-    };
-  }
-  return result;
-};
+//     result[i] = {
+//       $material,
+//       $points: [
+//         { x: ax, y: -1, z: az, $nx, $ny, $nz },
+//         { x: ax, y: 1, z: az, $nx, $ny, $nz },
+//         { x: bx, y: 1, z: bz, $nx, $ny, $nz },
+//         { x: bx, y: -1, z: bz, $nx, $ny, $nz },
+//       ],
+//     };
+//   }
+//   return result;
+// };
 
-export const polygon_extrude = (polygon: Polygon): Polygon[] => {
-  const sides = polygon_extrudeSides(polygon);
-  const top = polygon_clone(polygon);
-  const bottom = polygon_clone(polygon);
-  for (const p of top.$points.reverse()) {
-    p.y = 1;
-  }
-  for (const p of bottom.$points) {
-    p.y = -1;
-  }
-  return [bottom, ...sides, top];
-};
+// export const polygon_extrude = (polygon: Polygon): Polygon[] => {
+//   const sides = polygon_extrudeSides(polygon);
+//   const top = polygon_clone(polygon);
+//   const bottom = polygon_clone(polygon);
+//   for (const p of top.$points.reverse()) {
+//     p.y = 1;
+//   }
+//   for (const p of bottom.$points) {
+//     p.y = -1;
+//   }
+//   return [bottom, ...sides, top];
+// };
 
 export const solid_transform = (solid: Polygon[], m: DOMMatrix) =>
   solid.map((polygon) => polygon_transform(polygon, m));
-
-export const xxsolid_cylinder = (material: Material, segments: number): Polygon[] =>
-  polygon_extrude(polygon_regular(material, segments));
 
 type TriangleVertex = [number, number, number, number, number, number, number, number, number] & {
   $index: number;

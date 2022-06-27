@@ -191,7 +191,7 @@ export function getSwcMinifyOptions(settings: SwcTransformSettings): JsMinifyOpt
       if_return: true,
 
       // inline calls to function with simple/return statement
-      inline: 3,
+      inline: 0,
 
       // join consecutive var statements
       join_vars: true,

@@ -1,7 +1,6 @@
-import type { Plane } from "../math/plane";
-import { plane_fromTriangle } from "../math/plane";
+import { vec3_dot, vec3_triangleNormal, type Plane } from "../math/vectors";
 import { CSGPolygon_split } from "./csg-polygon";
-import type { Polygon } from "./cylinder";
+import type { Polygon, Vertex } from "./cylinder";
 import { polygon_flipSelf } from "./cylinder";
 
 export interface CSGNode extends Plane {
@@ -10,15 +9,14 @@ export interface CSGNode extends Plane {
   $back: CSGNode | 0;
 }
 
-export const CSGNode_new = ({ x, y, z, w }: Plane): CSGNode => ({
-  $polygons: [],
-  x,
-  y,
-  z,
-  w,
-  $front: 0,
-  $back: 0,
-});
+export const CSGNode_new = (polygon: Polygon): CSGNode => {
+  const node = vec3_triangleNormal(polygon.$points as [Vertex, Vertex, Vertex]) as CSGNode;
+  node.w = vec3_dot(node, polygon.$points[0]!);
+  node.$polygons = [polygon];
+  node.$front = 0;
+  node.$back = 0;
+  return node;
+};
 
 /** Convert solid space to empty space and empty space to solid space. */
 export const csg_tree_invert = (node: CSGNode | 0) => {
@@ -34,11 +32,6 @@ export const csg_tree_invert = (node: CSGNode | 0) => {
   node.$front = $back;
   for (const polygon of node.$polygons) {
     polygon_flipSelf(polygon);
-    // polygon.$points.reverse();
-    // polygon.x *= -1;
-    // polygon.y *= -1;
-    // polygon.z *= -1;
-    // polygon.w *= -1;
   }
   csg_tree_invert($front);
   csg_tree_invert($back);
@@ -81,8 +74,7 @@ export const csg_tree_addPolygon = (node: CSGNode, polygon: Polygon) => {
       csg_tree_addPolygon(node.$front, $front);
     } else {
       // A new leaf
-      const p = plane_fromTriangle({}, $front.$points[0]!, $front.$points[1]!, $front.$points[2]!);
-      (node.$front = CSGNode_new(p)).$polygons.push($front);
+      node.$front = CSGNode_new($front);
     }
   }
   if ($back) {
@@ -94,8 +86,7 @@ export const csg_tree_addPolygon = (node: CSGNode, polygon: Polygon) => {
       csg_tree_addPolygon(node.$back, $back);
     } else {
       // A new leaf
-      const p = plane_fromTriangle({}, $back.$points[0]!, $back.$points[1]!, $back.$points[2]!);
-      (node.$back = CSGNode_new(p)).$polygons.push($back);
+      node.$back = CSGNode_new($back);
     }
   }
 };
@@ -124,9 +115,10 @@ export const csg_tree = (n: CSGNode | readonly Polygon[]): CSGNode => {
     const csgPolygons = n as Polygon[];
 
     const $back = csgPolygons[0]!;
-    const p = plane_fromTriangle({}, $back.$points[0]!, $back.$points[1]!, $back.$points[2]!);
-    n = CSGNode_new(p);
-    csg_tree_addPolygons(n, csgPolygons);
+    n = CSGNode_new($back);
+    for (let i = 1; i < csgPolygons.length; i++) {
+      csg_tree_addPolygon(n, csgPolygons[i]!);
+    }
   }
   return n as CSGNode;
 };
