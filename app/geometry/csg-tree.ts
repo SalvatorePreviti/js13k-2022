@@ -21,21 +21,20 @@ export const CSGNode_new = (polygon: Polygon): CSGNode => {
 
 /** Convert solid space to empty space and empty space to solid space. */
 export const csg_tree_invert = (node: CSGNode | 0) => {
-  if (!node) {
-    return;
+  if (node) {
+    const { $front, $back } = node;
+    node.x *= -1;
+    node.y *= -1;
+    node.z *= -1;
+    node.w *= -1;
+    node.$back = $front;
+    node.$front = $back;
+    for (const polygon of node.$polygons) {
+      polygon_flipSelf(polygon);
+    }
+    csg_tree_invert($front);
+    csg_tree_invert($back);
   }
-  const { $front, $back } = node;
-  node.x *= -1;
-  node.y *= -1;
-  node.z *= -1;
-  node.w *= -1;
-  node.$back = $front;
-  node.$front = $back;
-  for (const polygon of node.$polygons) {
-    polygon_flipSelf(polygon);
-  }
-  csg_tree_invert($front);
-  csg_tree_invert($back);
 };
 
 export const csg_tree_clipPolygon = (node: CSGNode, polygon: Polygon, result: Polygon[]) => {
@@ -92,15 +91,11 @@ export const csg_tree_addPolygon = (node: CSGNode, polygon: Polygon) => {
   }
 };
 
-export const csg_tree_addPolygons = (node: CSGNode, polygons: Polygon[]) => {
-  for (const polygon of polygons) {
-    csg_tree_addPolygon(node, polygon);
-  }
-};
-
 export const csg_tree_addTree = (node: CSGNode, source: CSGNode | 0) => {
   if (source) {
-    csg_tree_addPolygons(node, source.$polygons);
+    for (const polygon of source.$polygons) {
+      csg_tree_addPolygon(node, polygon);
+    }
     csg_tree_addTree(node, source.$back);
     csg_tree_addTree(node, source.$front);
   }
