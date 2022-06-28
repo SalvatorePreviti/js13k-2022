@@ -32,12 +32,12 @@ const figure01 = solid_transform(solid_cylinder(material5, 6), identity.scale(1,
 // const figure02 = solid_transform(solid_cylinder(material0, 6);
 
 const figure1 = solid_transform(
-  solid_cylinder(material1, 18, true),
+  solid_cylinder(material1, 118, true),
   identity.translate(-0.2).rotate(90, 10, 10).scale(0.5, 2, 0.5),
 );
 
 const figure2 = solid_transform(
-  solid_cylinder(material2, 18, true),
+  solid_cylinder(material2, 118, true),
   identity.translate(-0.2).rotate(90, 10, 10).scale(0.22, 1.5, 0.22).skewY(10),
 );
 

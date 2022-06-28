@@ -1,6 +1,7 @@
 import type { Polygon } from "./cylinder";
 import { polygon_clone, polygon_flipped } from "./cylinder";
 import {
+  csg_tree_each,
   csg_tree,
   csg_tree_addPolygon,
   csg_tree_addTree,
@@ -62,15 +63,10 @@ export const csg_intersect = (a: CSGNode | readonly Polygon[], b: CSGNode | Poly
 
 export const csg_polygons = (tree: CSGNode) => {
   const result: Polygon[] = [];
-  const recursion = (node: CSGNode | null) => {
-    if (node) {
-      for (const polygon of node.p) {
-        result.push(polygon.$flipped ? polygon_flipped(polygon) : polygon_clone(polygon));
-      }
-      recursion(node.f);
-      recursion(node.b);
+  csg_tree_each(tree, (node) => {
+    for (const polygon of node.p) {
+      result.push(polygon.$flipped ? polygon_flipped(polygon) : polygon_clone(polygon));
     }
-  };
-  recursion(tree);
+  });
   return result;
 };
