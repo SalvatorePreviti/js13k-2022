@@ -149,14 +149,18 @@ export const solids_to_triangles = (solids: Polygon[][]) => {
   const vertexMap = new Map<string, TriangleVertex>();
   const triangles: Triangle[] = [];
 
+  // { x: $nx, y: $ny, z: $nz }
+
   const getVertex = ({ x, y, z, $nx, $ny, $nz }: Vertex, $material: Material): TriangleVertex => {
     x = Math.fround(x);
     y = Math.fround(y);
     z = Math.fround(z);
 
-    $nx = Math.fround($nx);
-    $ny = Math.fround($ny);
-    $nz = Math.fround($nz);
+    // Normalize the normal, and round it to the nearest integer
+    const m = 32767 * Math.sqrt($nx * $nx + $ny * $ny + $nz * $nz);
+    $nx = ($nx * m) | 0;
+    $ny = ($ny * m) | 0;
+    $nz = ($nz * m) | 0;
 
     const vertex = [x, y, z, $nx, $ny, $nz, ...$material] as TriangleVertex;
     vertex.$index = -1;
@@ -173,11 +177,12 @@ export const solids_to_triangles = (solids: Polygon[][]) => {
 
   const makePolygon = ({ $points, $material }: Polygon) => {
     for (let i = 2; i < $points.length; i++) {
+      // const normal = vec3_triangleNormal($points as [Vertex, Vertex, Vertex]);
+
       const a = getVertex($points[0]!, $material);
       const b = getVertex($points[i - 1]!, $material);
       const c = getVertex($points[i]!, $material);
       if (a !== b && a !== c && b !== c) {
-        // TODO: This check seems to be unnecessary, we don't have anymore empty triangles - clean up
         triangles.push([a, b, c]);
       }
     }

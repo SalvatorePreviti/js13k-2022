@@ -33,6 +33,14 @@ export const vec3_clone = ({ x, y, z }: Vec3In) => ({ x, y, z });
 
 export const vec3_dot = ({ x, y, z }: Vec3In, b: Vec3In) => x * b.x + y * b.y + z * b.z;
 
+export const vec3_normalizeSelf = (v: Vec3): Vec3 => {
+  const len = Math.sqrt(vec3_dot(v, v));
+  v.x /= len;
+  v.y /= len;
+  v.z /= len;
+  return v;
+};
+
 export const vec3_triangleNormal = ([{ x, y, z }, { x: bx, y: by, z: bz }, { x: cx, y: cy, z: cz }]: [
   Vec3,
   Vec3,
