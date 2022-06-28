@@ -69,9 +69,8 @@ export const solid_cylinder = ($material: Material, segments: number, smoothed?:
   const result: Polygon[] = [top, btm];
 
   for (let i = 0; i < segments; ++i) {
-    const j = (i + 1) % segments;
     const { x: ax, z: az } = btm.$points[i]!;
-    const { x: bx, z: bz } = btm.$points[j]!;
+    const { x: bx, z: bz } = btm.$points[(i + 1) % segments]!;
 
     let nax = ax - az;
     let naz = ax + az;
