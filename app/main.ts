@@ -9,7 +9,7 @@ import type { Material, Polygon } from "./geometry/cylinder";
 import { solid_transform, solids_to_triangles, solid_cylinder } from "./geometry/cylinder";
 import { triangles_attributes, triangles_fill_buffer } from "./geometry/triangles-render";
 
-import { csg_union, csg_subtract, csg_polygons } from "./geometry/csg";
+import { csg_union, csg_subtract, csg_polygons, csg_unionFast } from "./geometry/csg";
 import { debug_lines_draw, debug_lines_prepare } from "./debug-lines-render";
 import { camera_update } from "./camera-update";
 import { camera_firstPersonPerspective, camera_projection, camera_updateView, camera_view } from "./camera";
@@ -24,6 +24,7 @@ const material2 = [0, 0.2, 0.9] as Material;
 const material3 = [0.2, 0, 0.9] as Material;
 const material4 = [0.4, 0.9, 0] as Material;
 const material5 = [0.4, 0, 0.9] as Material;
+// const material6 = [0.7, 0.6, 0] as Material;
 
 const figure0 = solid_cylinder(material0, 6);
 
@@ -31,12 +32,12 @@ const figure01 = solid_transform(solid_cylinder(material5, 6), identity.scale(1,
 // const figure02 = solid_transform(solid_cylinder(material0, 6);
 
 const figure1 = solid_transform(
-  solid_cylinder(material1, 118, true),
+  solid_cylinder(material1, 18, true),
   identity.translate(-0.2).rotate(90, 10, 10).scale(0.5, 2, 0.5),
 );
 
 const figure2 = solid_transform(
-  solid_cylinder(material2, 118, true),
+  solid_cylinder(material2, 18, true),
   identity.translate(-0.2).rotate(90, 10, 10).scale(0.22, 1.5, 0.22).skewY(10),
 );
 
@@ -55,15 +56,21 @@ const figure5 = solid_transform(
   identity.translate(-0.2).rotate(0, 10, 10).scale(0.15, 1.7, 0.15),
 );
 
-if (DEBUG) {
-  console.time("csg");
-}
+/* const figure6 = solid_transform(
+  solid_cylinder(material6, 12),
+  identity.translate(-1.2).rotate(0, 10, 10).scale(1, 0.5, 1),
+); */
+
+// if (DEBUG) {
+console.time("csg");
+// }
 
 const csg0 = csg_subtract(csg_union(figure01, figure0), figure1);
 const csg1 = csg_union(csg0, figure2);
 const csg2 = csg_union(csg1, figure3);
 const csg3 = csg_subtract(csg2, figure4);
 const csg4 = csg_subtract(csg3, figure5);
+// const csg6 = csg_union(csg4, figure6);
 
 scene.push(csg_polygons(csg4));
 
@@ -72,9 +79,9 @@ scene.push(csg_polygons(csg4));
 
 // scene.push(xxa, xxb);
 
-if (DEBUG) {
-  console.timeEnd("csg");
-}
+// if (DEBUG) {
+console.timeEnd("csg");
+// }
 
 // scene.push(ttt);
 

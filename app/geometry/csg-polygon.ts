@@ -1,4 +1,4 @@
-import { vec3_triangleNormal, vec3_dot, type Plane } from "../math/vectors";
+import { vec3_dot, type Plane } from "../math/vectors";
 import type { Polygon, Vertex } from "./cylinder";
 import { vertex_lerp } from "./cylinder";
 
@@ -6,72 +6,54 @@ export const PLANE_EPSILON = 1e-5;
 
 export const LERP_EPSILON = PLANE_EPSILON;
 
-type PolygonCategory = typeof COPLANAR | typeof FRONT | typeof BACK | typeof SPANNING;
-
-const COPLANAR = 0;
-const FRONT = 1;
-const BACK = 2;
-const SPANNING = 3;
-
-interface SplitPolygonResult {
-  $type: PolygonCategory;
-  $back: Polygon | undefined | false;
-  $front: Polygon | undefined | false;
+export interface CSGPolygon extends Polygon {
+  $flipped: boolean;
 }
 
-export const CSGPolygon_split = (plane: Plane, polygon: Polygon): SplitPolygonResult => {
-  const planeW = plane.w;
+interface SplitPolygonResult {
+  f?: CSGPolygon | undefined | false;
+  b?: CSGPolygon | undefined | false;
+}
+
+export const CSGPolygon_split = (plane: Plane, polygon: CSGPolygon): SplitPolygonResult => {
   const { $points } = polygon;
-  const pointsLen = $points.length;
+  let f: CSGPolygon | undefined | false;
+  let b: CSGPolygon | undefined | false;
 
-  let $front: Polygon | false | undefined;
-  let $back: Polygon | false | undefined;
-  let $type: PolygonCategory = 0 as PolygonCategory;
-  for (let i = 0; i < pointsLen && $type < 3; ++i) {
-    const t = vec3_dot(plane, $points[i]!) - planeW;
-    $type |= t < -PLANE_EPSILON ? BACK : t > PLANE_EPSILON ? FRONT : COPLANAR;
+  const w = plane.w;
+  for (let i = 0, len = $points.length; i < len && (!f || !b); ) {
+    const t = vec3_dot(plane, $points[i++]!) - w;
+    if (t < -PLANE_EPSILON) {
+      b = polygon;
+    } else if (t > PLANE_EPSILON) {
+      f = polygon;
+    }
   }
-
-  if ($type === FRONT) {
-    // FRONT
-    $front = polygon;
-  } else if ($type === BACK) {
-    // BACK
-    $back = polygon;
-  } else if ($type) {
+  if (b && f) {
     // SPANNING
-    const f: Vertex[] = [];
-    const b: Vertex[] = [];
-    let iv: Vertex = $points[pointsLen - 1]!;
-    let id: number = vec3_dot(plane, iv) - planeW;
+    const fpoints: Vertex[] = [];
+    const bpoints: Vertex[] = [];
+    let iv: Vertex = $points[$points.length - 1]!;
+    let id: number = vec3_dot(plane, iv) - w;
     let v: Vertex;
     for (const jv of $points) {
-      const jd = vec3_dot(plane, jv) - planeW;
-
+      const jd = vec3_dot(plane, jv) - w;
       if (id > -PLANE_EPSILON) {
-        f.push(iv);
+        fpoints.push(iv);
       }
       if (id < PLANE_EPSILON) {
-        b.push(id > -PLANE_EPSILON ? { ...iv } : iv);
+        bpoints.push(iv);
       }
       if ((id < -PLANE_EPSILON && jd > PLANE_EPSILON) || (id > PLANE_EPSILON && jd < -PLANE_EPSILON)) {
-        // SPANNING
         v = vertex_lerp(iv, jv, -id / (plane.x * (jv.x - iv.x) + plane.y * (jv.y - iv.y) + plane.z * (jv.z - iv.z)));
-        f.push(v);
-        b.push({ ...v });
+        fpoints.push(v);
+        bpoints.push(v);
       }
       iv = jv;
       id = jd;
     }
-    $front = f.length > 2 && { ...polygon, $points: f };
-    $back = b.length > 2 && { ...polygon, $points: b };
-  } else if (vec3_dot(plane, vec3_triangleNormal($points as [Vertex, Vertex, Vertex])) > planeW) {
-    // COPLANAR front
-    $front = polygon;
-  } else {
-    // COPLANAR back
-    $back = polygon;
+    f = fpoints.length > 2 && { ...polygon, $points: fpoints };
+    b = bpoints.length > 2 && { ...polygon, $points: bpoints };
   }
-
-  return { $front, $back, $type };
+  return { f, b };
 };

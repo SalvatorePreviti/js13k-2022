@@ -1,103 +1,106 @@
 import { vec3_dot, vec3_triangleNormal, type Plane } from "../math/vectors";
+import type { CSGPolygon } from "./csg-polygon";
 import { CSGPolygon_split } from "./csg-polygon";
 import type { Polygon, Vertex } from "./cylinder";
-import { polygon_flipSelf } from "./cylinder";
 
 export interface CSGNode extends Plane {
-  $front: CSGNode | 0;
-  $back: CSGNode | 0;
-  $polygons: Polygon[];
+  /** Coplanar polygons */
+  p: CSGPolygon[];
+  /** Front child */
+  f: CSGNode | null;
+  /** Back child */
+  b: CSGNode | null;
 }
 
-export const CSGNode_new = (polygon: Polygon): CSGNode => {
-  // polygon: Polygon
-  const node = vec3_triangleNormal(polygon.$points as [Vertex, Vertex, Vertex]) as CSGNode;
-  node.w = vec3_dot(node, polygon.$points[0]!);
-  node.$front = 0;
-  node.$back = 0;
-  node.$polygons = [polygon];
-  return node;
-};
-
 /** Convert solid space to empty space and empty space to solid space. */
-export const csg_tree_invert = (node: CSGNode | 0) => {
+export const csg_tree_flip = (node: CSGNode | null) => {
   if (node) {
-    const { $front, $back } = node;
+    const { f, b } = node;
+    node.b = f;
+    node.f = b;
     node.x *= -1;
     node.y *= -1;
     node.z *= -1;
     node.w *= -1;
-    node.$back = $front;
-    node.$front = $back;
-    for (const polygon of node.$polygons) {
-      polygon_flipSelf(polygon);
+    for (const polygon of node.p) {
+      polygon.$flipped = !polygon.$flipped;
     }
-    csg_tree_invert($front);
-    csg_tree_invert($back);
+    csg_tree_flip(f);
+    csg_tree_flip(b);
   }
 };
 
-export const csg_tree_clipPolygon = (node: CSGNode, polygon: Polygon, result: Polygon[]) => {
-  const { $front, $back } = CSGPolygon_split(node, polygon);
-  if ($front) {
-    if (node.$front) {
-      csg_tree_clipPolygon(node.$front, $front, result);
+export const PLANE_EPSILON = 1e-5;
+
+export const csg_tree_addPolygon = (node: CSGNode | null | undefined, polygon: CSGPolygon): CSGNode => {
+  if (!node) {
+    node = vec3_triangleNormal(polygon.$points as [Vertex, Vertex, Vertex]) as CSGNode;
+    node.w = vec3_dot(node, polygon.$points[0]!);
+    node.p = [polygon];
+    node.f = null;
+    node.b = null;
+    return node;
+  }
+  const { f, b } = CSGPolygon_split(node, polygon);
+  if (!f && !b) {
+    // Coplanar
+    node.p.push(polygon);
+    return node;
+  }
+  if (f) {
+    // Front
+    node.f = csg_tree_addPolygon(node.f, f);
+  }
+  if (b) {
+    // Back
+    node.b = csg_tree_addPolygon(node.b, b);
+  }
+  return node;
+};
+
+export const csg_tree_clipPolygon = (node: CSGNode, polygon: CSGPolygon, result: CSGPolygon[]) => {
+  let { f, b } = CSGPolygon_split(node, polygon);
+  if (!f && !b) {
+    if (
+      vec3_dot(node, vec3_triangleNormal(polygon.$points as [Vertex, Vertex, Vertex])) * (polygon.$flipped ? -1 : 1) >
+      node.w
+    ) {
+      f = polygon;
     } else {
-      result.push($front);
+      b = polygon;
     }
   }
-  if ($back && node.$back) {
-    csg_tree_clipPolygon(node.$back, $back, result);
+  if (f) {
+    if (node.f) {
+      csg_tree_clipPolygon(node.f, f, result);
+    } else {
+      result.push(f);
+    }
+  }
+  if (b && node.b) {
+    csg_tree_clipPolygon(node.b, b, result);
   }
 };
 
-export const csg_tree_clipTo = (node: CSGNode | 0, bsp: CSGNode) => {
+export const csg_tree_clipTo = (node: CSGNode | null, bsp: CSGNode) => {
   if (node) {
-    const result: Polygon[] = [];
-    for (const polygon of node.$polygons) {
+    const result: CSGPolygon[] = [];
+    for (const polygon of node.p) {
       csg_tree_clipPolygon(bsp, polygon, result);
     }
-    node.$polygons = result;
-    csg_tree_clipTo(node.$front, bsp);
-    csg_tree_clipTo(node.$back, bsp);
+    node.p = result;
+    csg_tree_clipTo(node.f, bsp);
+    csg_tree_clipTo(node.b, bsp);
   }
 };
 
-export const csg_tree_addPolygon = (node: CSGNode, polygon: Polygon) => {
-  const { $type, $front, $back } = CSGPolygon_split(node, polygon);
-  if ($front) {
-    if (!$type) {
-      // Coplanar
-      node.$polygons.push($front);
-    } else if (node.$front) {
-      // We need to go down one level
-      csg_tree_addPolygon(node.$front, $front);
-    } else {
-      // A new leaf
-      node.$front = CSGNode_new($front);
-    }
-  }
-  if ($back) {
-    if (!$type) {
-      // Coplanar
-      node.$polygons.push($back);
-    } else if (node.$back) {
-      // We need to go down one level
-      csg_tree_addPolygon(node.$back, $back);
-    } else {
-      // A new leaf
-      node.$back = CSGNode_new($back);
-    }
-  }
-};
-
-export const csg_tree_addTree = (node: CSGNode, source: CSGNode | 0) => {
+export const csg_tree_addTree = (node: CSGNode | null, source: CSGNode | null) => {
   if (source) {
-    for (const polygon of source.$polygons) {
+    for (const polygon of source.p) {
       csg_tree_addPolygon(node, polygon);
     }
-    csg_tree_addTree(node, source.$back);
-    csg_tree_addTree(node, source.$front);
+    csg_tree_addTree(node, source.b);
+    csg_tree_addTree(node, source.f);
   }
 };
 
@@ -106,15 +109,13 @@ export const csg_tree_addTree = (node: CSGNode, source: CSGNode | 0) => {
  * If the given argument is already a BSP tree, return it as is.
  */
 export const csg_tree = (n: CSGNode | readonly Polygon[]): CSGNode => {
-  if ((n as any).map) {
+  if ((n as Polygon[]).map) {
     // Build a BSP tree from a list of polygons
-    const csgPolygons = n as Polygon[];
-
-    const $back = csgPolygons[0]!;
-    n = CSGNode_new($back);
-    for (let i = 1; i < csgPolygons.length; i++) {
-      csg_tree_addPolygon(n, csgPolygons[i]!);
+    let root: CSGNode | undefined;
+    for (const polygon of n as CSGPolygon[]) {
+      root = csg_tree_addPolygon(root, { ...polygon, $flipped: false });
     }
+    return root!;
   }
   return n as CSGNode;
 };
