@@ -1,3 +1,5 @@
 export const mangleConfig = {
-  reserved: ["x", "y", "z", "w"],
+  reserved: [
+    // "x", "y", "z", "w"
+  ],
 };

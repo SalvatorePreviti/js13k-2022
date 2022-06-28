@@ -32,7 +32,7 @@
   "devDependencies": {
     "@balsamic/dev": "^0.3.25",
     "@balsamic/eslint-config": "^0.2.2",
-    "@swc/core": "^1.2.206",
+    "@swc/core": "^1.2.207",
     "@types/adm-zip": "^0.5.0",
     "@types/chai": "^4.3.1",
     "@types/csso": "^5.0.0",

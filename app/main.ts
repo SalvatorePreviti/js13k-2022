@@ -9,7 +9,7 @@ import type { Material, Polygon } from "./geometry/cylinder";
 import { solid_transform, solids_to_triangles, solid_cylinder } from "./geometry/cylinder";
 import { triangles_attributes, triangles_fill_buffer } from "./geometry/triangles-render";
 
-import { csg_union, csg_subtract, csg_polygons, csg_unionFast } from "./geometry/csg";
+import { csg_union, csg_subtract, csg_polygons } from "./geometry/csg";
 import { debug_lines_draw, debug_lines_prepare } from "./debug-lines-render";
 import { camera_update } from "./camera-update";
 import { camera_firstPersonPerspective, camera_projection, camera_updateView, camera_view } from "./camera";
@@ -191,8 +191,8 @@ const draw = () => {
 
   // camera.$rotation.y = (Math.sin(performance.now() / 1000) * Math.PI) / 7;
 
-  gl.clearColor(0.0, 0.0, 0.0, 1.0); // Clear to black, fully opaque
-  gl.clearDepth(1.0); // Clear everything
+  gl.clearColor(0, 0, 0, 1); // Clear to black, fully opaque
+  gl.clearDepth(1); // Clear everything
   gl.enable(gl.DEPTH_TEST); // Enable depth testing
   gl.depthFunc(gl.LEQUAL); // Near things obscure far things
 

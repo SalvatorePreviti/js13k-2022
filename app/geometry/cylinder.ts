@@ -8,13 +8,15 @@ export interface Vertex extends Vec3 {
   $nz: number;
 }
 
+export const vertex_flipped = ({ x, y, z, $nx, $ny, $nz }: Vertex) => ({ x, y, z, $nx: -$nx, $ny: -$ny, $nz: -$nz });
+
 export const vertex_lerp = ({ x, y, z, $nx, $ny, $nz }: Vertex, b: Vertex, t: number): Vertex => ({
-  x: x + (b.x - x) * t,
-  y: y + (b.y - y) * t,
-  z: z + (b.z - z) * t,
-  $nx: $nx + (b.$nx - $nx) * t,
-  $ny: $ny + (b.$ny - $ny) * t,
-  $nz: $nz + (b.$nz - $nz) * t,
+  x: (b.x - x) * t + x,
+  y: (b.y - y) * t + y,
+  z: (b.z - z) * t + z,
+  $nx: (b.$nx - $nx) * t + $nx,
+  $ny: (b.$ny - $ny) * t + $ny,
+  $nz: (b.$nz - $nz) * t + $nz,
 });
 
 export interface Polygon {
@@ -25,15 +27,13 @@ export interface Polygon {
   $points: Vertex[];
 }
 
-export const vertex_transform = ({ x, y, z, $nx, $ny, $nz }: Vertex, m: DOMMatrix): Vertex => {
-  const { x: px, y: py, z: pz } = m.transformPoint({ x, y, z });
-  const { x: nx, y: ny, z: nz } = m.transformPoint({ x: $nx, y: $ny, z: $nz, w: 0 });
-  return { x: px, y: py, z: pz, $nx: nx, $ny: ny, $nz: nz };
-};
-
 export const polygon_transform = ({ $material, $points }: Polygon, m: DOMMatrix): Polygon => ({
   $material,
-  $points: $points.map((v) => vertex_transform(v, m)),
+  $points: $points.map(({ x, y, z, $nx, $ny, $nz }: Vertex): Vertex => {
+    ({ x, y, z } = m.transformPoint({ x, y, z }));
+    ({ x: $nx, y: $ny, z: $nz } = m.transformPoint({ x: $nx, y: $ny, z: $nz, w: 0 }));
+    return { x, y, z, $nx, $ny, $nz };
+  }),
 });
 
 export const polygon_clone = ({ $material, $points }: Polygon): Polygon => ({
@@ -41,16 +41,10 @@ export const polygon_clone = ({ $material, $points }: Polygon): Polygon => ({
   $points: $points.map((v) => ({ ...v })),
 });
 
-export const polygon_flipSelf = (polygon: Polygon) => {
-  for (const v of polygon.$points.reverse()) {
-    v.$nx *= -1;
-    v.$ny *= -1;
-    v.$nz *= -1;
-  }
-  return polygon;
-};
-
-export const polygon_flipped = (polygon: Polygon): Polygon => polygon_flipSelf(polygon_clone(polygon));
+export const polygon_flipped = ({ $material, $points }: Polygon): Polygon => ({
+  $material,
+  $points: $points.map(vertex_flipped).reverse(),
+});
 
 /** Creates a regular polygon */
 export const polygon_regular = (material: Material, segments: number, y = 0): Polygon => {
@@ -63,7 +57,7 @@ export const polygon_regular = (material: Material, segments: number, y = 0): Po
 };
 
 export const solid_cylinder = ($material: Material, segments: number, smoothed?: boolean | 1) => {
-  const top = polygon_flipSelf(polygon_regular($material, segments, 1));
+  const top = polygon_flipped(polygon_regular($material, segments, 1));
   const btm = polygon_regular($material, segments, -1);
 
   const result: Polygon[] = [top, btm];
@@ -96,44 +90,6 @@ export const solid_cylinder = ($material: Material, segments: number, smoothed?:
 
   return result;
 };
-
-// export const polygon_extrudeSides = ({ $points, $material }: Polygon): Polygon[] => {
-//   const result: Polygon[] = [];
-//   for (let i = 0, len = $points.length; i <= len; ++i) {
-//     const { x: ax, z: az } = $points[i % len]!;
-//     const { x: bx, z: bz } = $points[(i + 1) % len]!;
-
-//     const {
-//       x: $nx,
-//       y: $ny,
-//       z: $nz,
-//     } = triangleNormal({ x: ax, y: -1, z: az }, { x: ax, y: 1, z: az }, { x: bx, y: 1, z: bz });
-
-//     result[i] = {
-//       $material,
-//       $points: [
-//         { x: ax, y: -1, z: az, $nx, $ny, $nz },
-//         { x: ax, y: 1, z: az, $nx, $ny, $nz },
-//         { x: bx, y: 1, z: bz, $nx, $ny, $nz },
-//         { x: bx, y: -1, z: bz, $nx, $ny, $nz },
-//       ],
-//     };
-//   }
-//   return result;
-// };
-
-// export const polygon_extrude = (polygon: Polygon): Polygon[] => {
-//   const sides = polygon_extrudeSides(polygon);
-//   const top = polygon_clone(polygon);
-//   const bottom = polygon_clone(polygon);
-//   for (const p of top.$points.reverse()) {
-//     p.y = 1;
-//   }
-//   for (const p of bottom.$points) {
-//     p.y = -1;
-//   }
-//   return [bottom, ...sides, top];
-// };
 
 export const solid_transform = (solid: Polygon[], m: DOMMatrix) =>
   solid.map((polygon) => polygon_transform(polygon, m));
@@ -217,3 +173,41 @@ export const solids_to_triangles = (solids: Polygon[][]) => {
     $indices,
   };
 };
+
+// export const polygon_extrudeSides = ({ $points, $material }: Polygon): Polygon[] => {
+//   const result: Polygon[] = [];
+//   for (let i = 0, len = $points.length; i <= len; ++i) {
+//     const { x: ax, z: az } = $points[i % len]!;
+//     const { x: bx, z: bz } = $points[(i + 1) % len]!;
+
+//     const {
+//       x: $nx,
+//       y: $ny,
+//       z: $nz,
+//     } = triangleNormal({ x: ax, y: -1, z: az }, { x: ax, y: 1, z: az }, { x: bx, y: 1, z: bz });
+
+//     result[i] = {
+//       $material,
+//       $points: [
+//         { x: ax, y: -1, z: az, $nx, $ny, $nz },
+//         { x: ax, y: 1, z: az, $nx, $ny, $nz },
+//         { x: bx, y: 1, z: bz, $nx, $ny, $nz },
+//         { x: bx, y: -1, z: bz, $nx, $ny, $nz },
+//       ],
+//     };
+//   }
+//   return result;
+// };
+
+// export const polygon_extrude = (polygon: Polygon): Polygon[] => {
+//   const sides = polygon_extrudeSides(polygon);
+//   const top = polygon_clone(polygon);
+//   const bottom = polygon_clone(polygon);
+//   for (const p of top.$points.reverse()) {
+//     p.y = 1;
+//   }
+//   for (const p of bottom.$points) {
+//     p.y = -1;
+//   }
+//   return [bottom, ...sides, top];
+// };
