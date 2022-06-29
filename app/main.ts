@@ -5,14 +5,15 @@ import fsSource from "./shaders/fragment.frag";
 
 import { DEG_TO_RAD } from "./math/math";
 import { gl } from "./gl";
-import type { Material, Polygon } from "./geometry/cylinder";
-import { solid_transform, solids_to_triangles, solid_cylinder } from "./geometry/cylinder";
+import type { Polygon } from "./geometry/geometry";
+import { solid_transform, solids_to_triangles, solid_cylinder } from "./geometry/geometry";
 import { triangles_attributes, triangles_fill_buffer } from "./geometry/triangles-render";
 
 import { csg_union, csg_subtract, csg_polygons } from "./geometry/csg";
 import { debug_lines_draw, debug_lines_prepare } from "./debug-lines-render";
 import { camera_update } from "./camera-update";
 import { camera_firstPersonPerspective, camera_projection, camera_updateView, camera_view } from "./camera";
+import type { Material } from "./geometry/vertex";
 
 const identity = new DOMMatrix();
 

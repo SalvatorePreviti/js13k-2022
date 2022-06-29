@@ -1,6 +1,6 @@
 import { vec3_dot, type Plane } from "../math/vectors";
-import type { Polygon, Vertex } from "./cylinder";
-import { vertex_lerp } from "./cylinder";
+import type { Polygon } from "./geometry";
+import { vertex_lerp, type Vertex } from "./vertex";
 
 export const PLANE_EPSILON = 1e-5;
 

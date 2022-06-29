@@ -1,23 +1,5 @@
-import type { Vec3 } from "../math/vectors";
-
-export type Material = [number, number, number];
-
-export interface Vertex extends Vec3 {
-  $nx: number;
-  $ny: number;
-  $nz: number;
-}
-
-export const vertex_flipped = ({ x, y, z, $nx, $ny, $nz }: Vertex) => ({ x, y, z, $nx: -$nx, $ny: -$ny, $nz: -$nz });
-
-export const vertex_lerp = ({ x, y, z, $nx, $ny, $nz }: Vertex, b: Vertex, t: number): Vertex => ({
-  x: (b.x - x) * t + x,
-  y: (b.y - y) * t + y,
-  z: (b.z - z) * t + z,
-  $nx: (b.$nx - $nx) * t + $nx,
-  $ny: (b.$ny - $ny) * t + $ny,
-  $nz: (b.$nz - $nz) * t + $nz,
-});
+import type { Material, Vertex } from "./vertex";
+import { vertex_flipped } from "./vertex";
 
 export interface Polygon {
   /** Polygon material */
@@ -104,18 +86,18 @@ export const solids_to_triangles = (solids: Polygon[][]) => {
   const vertexMap = new Map<string, TriangleVertex>();
   const triangles: Triangle[] = [];
 
-  // { x: $nx, y: $ny, z: $nz }
-
   const getVertex = ({ x, y, z, $nx, $ny, $nz }: Vertex, $material: Material): TriangleVertex => {
     x = Math.fround(x);
     y = Math.fround(y);
     z = Math.fround(z);
 
-    // Normalize the normal, and round it to the nearest integer
+    // Normalize the normal, and round it to the nearest 8 bit integer
     const m = 32767 * Math.sqrt($nx * $nx + $ny * $ny + $nz * $nz);
     $nx = ($nx * m) | 0;
     $ny = ($ny * m) | 0;
     $nz = ($nz * m) | 0;
+
+    // Build the vertex
 
     const vertex = [x, y, z, $nx, $ny, $nz, ...$material] as TriangleVertex;
     vertex.$index = -1;
@@ -132,8 +114,6 @@ export const solids_to_triangles = (solids: Polygon[][]) => {
 
   const makePolygon = ({ $points, $material }: Polygon) => {
     for (let i = 2; i < $points.length; i++) {
-      // const normal = vec3_triangleNormal($points as [Vertex, Vertex, Vertex]);
-
       const a = getVertex($points[0]!, $material);
       const b = getVertex($points[i - 1]!, $material);
       const c = getVertex($points[i]!, $material);

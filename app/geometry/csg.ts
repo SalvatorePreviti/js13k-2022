@@ -1,5 +1,5 @@
-import type { Polygon } from "./cylinder";
-import { polygon_clone, polygon_flipped } from "./cylinder";
+import type { Polygon } from "./geometry";
+import { polygon_clone, polygon_flipped } from "./geometry";
 import {
   csg_tree_each,
   csg_tree,

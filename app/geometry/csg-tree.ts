@@ -1,7 +1,8 @@
 import { vec3_dot, vec3_triangleNormal, type Plane } from "../math/vectors";
 import type { CSGPolygon } from "./csg-polygon";
 import { CSGPolygon_split } from "./csg-polygon";
-import type { Polygon, Vertex } from "./cylinder";
+import type { Polygon } from "./geometry";
+import type { Vertex } from "./vertex";
 
 export interface CSGNode extends Plane {
   /** Coplanar polygons */
@@ -22,11 +23,6 @@ export const csg_tree_addPolygon = (node: CSGNode | null | undefined, polygon: C
     return node;
   }
   const { f, b } = CSGPolygon_split(node, polygon);
-  if (!f && !b) {
-    // Coplanar
-    node.p.push(polygon);
-    return node;
-  }
   if (f) {
     // Front
     node.f = csg_tree_addPolygon(node.f, f);
@@ -34,6 +30,10 @@ export const csg_tree_addPolygon = (node: CSGNode | null | undefined, polygon: C
   if (b) {
     // Back
     node.b = csg_tree_addPolygon(node.b, b);
+  }
+  if (!f && !b) {
+    // Coplanar
+    node.p.push(polygon);
   }
   return node;
 };
@@ -66,12 +66,12 @@ export const csg_tree_each = (node: CSGNode | null, fn: (node: CSGNode) => void)
 export const csg_tree_flip = (root: CSGNode | null) =>
   csg_tree_each(root, (node) => {
     const { f, b } = node;
-    node.b = f;
-    node.f = b;
     node.x *= -1;
     node.y *= -1;
     node.z *= -1;
     node.w *= -1;
+    node.b = f;
+    node.f = b;
     for (const polygon of node.p) {
       polygon.$flipped = !polygon.$flipped;
     }
@@ -80,6 +80,7 @@ export const csg_tree_flip = (root: CSGNode | null) =>
 const csg_tree_clipPolygon = (node: CSGNode, polygon: CSGPolygon, result: CSGPolygon[]) => {
   let { f, b } = CSGPolygon_split(node, polygon);
   if (!f && !b) {
+    // Coplanar
     if (
       vec3_dot(node, vec3_triangleNormal(polygon.$points as [Vertex, Vertex, Vertex])) * (polygon.$flipped ? -1 : 1) >
       node.w
@@ -90,6 +91,7 @@ const csg_tree_clipPolygon = (node: CSGNode, polygon: CSGPolygon, result: CSGPol
     }
   }
   if (f) {
+    // Front
     if (node.f) {
       csg_tree_clipPolygon(node.f, f, result);
     } else {
@@ -97,6 +99,7 @@ const csg_tree_clipPolygon = (node: CSGNode, polygon: CSGPolygon, result: CSGPol
     }
   }
   if (b && node.b) {
+    // Back
     csg_tree_clipPolygon(node.b, b, result);
   }
 };
