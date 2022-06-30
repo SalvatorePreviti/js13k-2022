@@ -1,3 +1,6 @@
+/** The identity matrix */
+export const identity: DOMMatrixReadOnly = /* @__PURE__ */ new DOMMatrix();
+
 export interface Vec2 {
   x: number;
   y: number;

@@ -109,7 +109,17 @@ type TriangleVertex = [number, number, number, number, number, number, number, n
 
 type Triangle = [TriangleVertex, TriangleVertex, TriangleVertex];
 
-export const solids_to_triangles = (solids: Polygon[][]) => {
+export interface SceneTriangles {
+  $vertices: number[];
+  $indices: number[];
+}
+
+export interface TriangulatedSolids {
+  $vertices: number[];
+  $indices: number[];
+}
+
+export const solids_to_triangles = (solids: Polygon[][]): TriangulatedSolids => {
   const vertexMap = new Map<string, TriangleVertex>();
   const triangles: Triangle[] = [];
 
