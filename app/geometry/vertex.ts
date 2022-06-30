@@ -15,11 +15,16 @@ export const vertex_clone = ({ x, y, z, $nx, $ny, $nz }: Vertex) => ({ x, y, z, 
 
 export const vertex_flipped = ({ x, y, z, $nx, $ny, $nz }: Vertex) => ({ x, y, z, $nx: -$nx, $ny: -$ny, $nz: -$nz });
 
-export const vertex_lerp = ({ x, y, z, $nx, $ny, $nz }: Vertex, b: Vertex, t: number): Vertex => ({
-  x: (b.x - x) * t + x,
-  y: (b.y - y) * t + y,
-  z: (b.z - z) * t + z,
-  $nx: (b.$nx - $nx) * t + $nx,
-  $ny: (b.$ny - $ny) * t + $ny,
-  $nz: (b.$nz - $nz) * t + $nz,
+export const vertex_lerp = (
+  { x, y, z, $nx, $ny, $nz }: Vertex,
+  b: Vertex,
+  posLerp: number,
+  normalLerp: number = posLerp,
+): Vertex => ({
+  x: (b.x - x) * posLerp + x,
+  y: (b.y - y) * posLerp + y,
+  z: (b.z - z) * posLerp + z,
+  $nx: (b.$nx - $nx) * normalLerp + $nx,
+  $ny: (b.$ny - $ny) * normalLerp + $ny,
+  $nz: (b.$nz - $nz) * normalLerp + $nz,
 });

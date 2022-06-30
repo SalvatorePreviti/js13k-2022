@@ -1,4 +1,6 @@
-import { vertex_clone, vertex_flipped, type Material, type Vertex } from "./vertex";
+import type { Vec3 } from "../math/vectors";
+import { vec3_triangleNormal } from "../math/vectors";
+import { vertex_clone, vertex_flipped, vertex_lerp, type Material, type Vertex } from "./vertex";
 
 export interface Polygon {
   /** Polygon material */
@@ -27,25 +29,78 @@ export const polygon_flipped = ({ $material, $points }: Polygon): Polygon => ({
   $points: $points.map(vertex_flipped).reverse(),
 });
 
+export const polygon_fromPoints = (material: Material, points: Vec3[]): Polygon => {
+  const { x: $nx, y: $ny, z: $nz } = vec3_triangleNormal(points as [Vec3, Vec3, Vec3]);
+  return {
+    $material: material,
+    $points: points.map(({ x, y, z }: Vec3): Vertex => ({ x, y, z, $nx, $ny, $nz })),
+  };
+};
+
 /** Creates a regular polygon */
-export const polygon_regular = (material: Material, segments: number, y = 0): Polygon => {
-  const points: Vertex[] = [];
-  for (let i = 0; i < segments; i++) {
-    const a = ((Math.PI * 2) / segments) * (i % segments);
-    points[i] = { x: Math.cos(a), y, z: Math.sin(a), $nx: 0, $ny: -1, $nz: 0 };
+export const polygon_regular = (material: Material, segments: number, radius: number, y = 0): Polygon => {
+  const result: Vertex[] = [];
+  const arc = (Math.PI * 2) / segments;
+  for (let i = 0; i < segments; ++i) {
+    result[i] = { x: Math.cos(arc * i) * radius, y, z: Math.sin(arc * i) * radius, $nx: 0, $ny: -1, $nz: 0 };
   }
-  return { $material: material, $points: points };
+  return { $material: material, $points: result };
+};
+
+/**
+ * Connects a top and a bottom polygon with side polygons.
+ * Top and bottom polygons must have the same length.
+ * Top polygon is supposed to be flipped.
+ */
+export const polygon_sides = (
+  $material: Material,
+  { $points: btm }: Polygon,
+  { $points: top }: Polygon,
+  smoothed?: boolean | 1 | 0,
+): Polygon[] => {
+  const len = btm.length;
+  const sides = btm.map((btmi, i) =>
+    polygon_fromPoints($material, [btmi, top[len - i - 1]!, top[len - ((i + 1) % len) - 1]!, btm[(i + 1) % len]!]),
+  );
+  if (smoothed) {
+    let a = sides[len - 2]!.$points;
+    let b = sides[len - 1]!.$points;
+    return sides.map(({ $points: c, $material: m }) => {
+      const result = {
+        $material: m,
+        $points: [
+          vertex_lerp(b[0]!, a[3]!, 0, 0.5),
+          vertex_lerp(b[1]!, a[2]!, 0, 0.5),
+          vertex_lerp(b[2]!, c[1]!, 0, 0.5),
+          vertex_lerp(b[3]!, c[0]!, 0, 0.5),
+        ],
+      };
+      a = b;
+      b = c;
+      return result;
+    });
+  }
+  return sides;
 };
 
 export const solid_cylinder = ($material: Material, segments: number, smoothed?: boolean | 1) => {
-  const top = polygon_flipped(polygon_regular($material, segments, 1));
-  const btm = polygon_regular($material, segments, -1);
+  const top = polygon_flipped(polygon_regular($material, segments, 1, 1));
+  const btm = polygon_regular($material, segments, 1, -1);
 
-  const result: Polygon[] = [top, btm];
+  const result: Polygon[] = [top, btm, ...polygon_sides($material, btm, top, smoothed)];
 
-  for (let i = 0; i < segments; ++i) {
-    const { x: ax, z: az } = btm.$points[i]!;
-    const { x: bx, z: bz } = btm.$points[(i + 1) % segments]!;
+  /* for (let i = 0; i < segments; ++i) {
+    result.push(
+      polygon_fromPoints($material, [
+        btm.$points[i]!,
+        top.$points[segments - i - 1]!,
+        top.$points[segments - ((i + 1) % segments) - 1]!,
+        btm.$points[(i + 1) % segments]!,
+      ]),
+    ); */
+
+  /* const { x: ax, z: az } = top.$points[segments - i - 1]!;
+    const { x: bx, z: bz } = btm.$points[i]!;
 
     let nax = ax - az;
     let naz = ax + az;
@@ -67,7 +122,7 @@ export const solid_cylinder = ($material: Material, segments: number, smoothed?:
         { x: bx, y: -1, z: bz, $nx: nbx, $ny: 0, $nz: nbz },
       ],
     });
-  }
+  } */
 
   return result;
 };
