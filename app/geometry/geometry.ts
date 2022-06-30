@@ -52,79 +52,37 @@ export const polygon_regular = (material: Material, segments: number, radius: nu
  * Top and bottom polygons must have the same length.
  * Top polygon is supposed to be flipped.
  */
-export const polygon_sides = (
-  $material: Material,
-  { $points: btm }: Polygon,
-  { $points: top }: Polygon,
-  smoothed?: boolean | 1 | 0,
-): Polygon[] => {
+export const polygon_sides = ($material: Material, { $points: btm }: Polygon, { $points: top }: Polygon): Polygon[] => {
   const len = btm.length;
-  const sides = btm.map((btmi, i) =>
+  return btm.map((btmi, i) =>
     polygon_fromPoints($material, [btmi, top[len - i - 1]!, top[len - ((i + 1) % len) - 1]!, btm[(i + 1) % len]!]),
   );
-  if (smoothed) {
-    let a = sides[len - 2]!.$points;
-    let b = sides[len - 1]!.$points;
-    return sides.map(({ $points: c, $material: m }) => {
-      const result = {
-        $material: m,
-        $points: [
-          vertex_lerp(b[0]!, a[3]!, 0, 0.5),
-          vertex_lerp(b[1]!, a[2]!, 0, 0.5),
-          vertex_lerp(b[2]!, c[1]!, 0, 0.5),
-          vertex_lerp(b[3]!, c[0]!, 0, 0.5),
-        ],
-      };
-      a = b;
-      b = c;
-      return result;
-    });
-  }
-  return sides;
+};
+
+export const solid_smoothSidesQuads = (sides: Polygon[]): Polygon[] => {
+  let a = sides[sides.length - 2]!.$points;
+  let b = sides[sides.length - 1]!.$points;
+  return sides.map(({ $points: c, $material }) => {
+    const result = {
+      $material,
+      $points: [
+        vertex_lerp(b[0]!, a[3]!, 0, 0.5),
+        vertex_lerp(b[1]!, a[2]!, 0, 0.5),
+        vertex_lerp(b[2]!, c[1]!, 0, 0.5),
+        vertex_lerp(b[3]!, c[0]!, 0, 0.5),
+      ],
+    };
+    a = b;
+    b = c;
+    return result;
+  });
 };
 
 export const solid_cylinder = ($material: Material, segments: number, smoothed?: boolean | 1) => {
   const top = polygon_flipped(polygon_regular($material, segments, 1, 1));
   const btm = polygon_regular($material, segments, 1, -1);
-
-  const result: Polygon[] = [top, btm, ...polygon_sides($material, btm, top, smoothed)];
-
-  /* for (let i = 0; i < segments; ++i) {
-    result.push(
-      polygon_fromPoints($material, [
-        btm.$points[i]!,
-        top.$points[segments - i - 1]!,
-        top.$points[segments - ((i + 1) % segments) - 1]!,
-        btm.$points[(i + 1) % segments]!,
-      ]),
-    ); */
-
-  /* const { x: ax, z: az } = top.$points[segments - i - 1]!;
-    const { x: bx, z: bz } = btm.$points[i]!;
-
-    let nax = ax - az;
-    let naz = ax + az;
-
-    let nbx = bx - bz;
-    let nbz = bx + bz;
-
-    if (!smoothed) {
-      nax = nbx = (nax + nbx) / 2;
-      naz = nbz = (naz + nbz) / 2;
-    }
-
-    result.push({
-      $material,
-      $points: [
-        { x: ax, y: -1, z: az, $nx: nax, $ny: 0, $nz: naz },
-        { x: ax, y: 1, z: az, $nx: nax, $ny: 0, $nz: naz },
-        { x: bx, y: 1, z: bz, $nx: nbx, $ny: 0, $nz: nbz },
-        { x: bx, y: -1, z: bz, $nx: nbx, $ny: 0, $nz: nbz },
-      ],
-    });
-  } */
-
-  return result;
+  const sides = polygon_sides($material, btm, top);
+  return [btm, top, ...(smoothed ? solid_smoothSidesQuads(sides) : sides)];
 };
 
 export const solid_transform = (solid: Polygon[], m: DOMMatrix) =>
