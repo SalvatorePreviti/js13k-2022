@@ -11,6 +11,8 @@ export interface Vertex extends Vec3 {
   $nz: number;
 }
 
+export const vertex_clone = ({ x, y, z, $nx, $ny, $nz }: Vertex) => ({ x, y, z, $nx, $ny, $nz });
+
 export const vertex_flipped = ({ x, y, z, $nx, $ny, $nz }: Vertex) => ({ x, y, z, $nx: -$nx, $ny: -$ny, $nz: -$nz });
 
 export const vertex_lerp = ({ x, y, z, $nx, $ny, $nz }: Vertex, b: Vertex, t: number): Vertex => ({

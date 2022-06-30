@@ -1,5 +1,4 @@
-import type { Material, Vertex } from "./vertex";
-import { vertex_flipped } from "./vertex";
+import { vertex_clone, vertex_flipped, type Material, type Vertex } from "./vertex";
 
 export interface Polygon {
   /** Polygon material */
@@ -20,7 +19,7 @@ export const polygon_transform = ({ $material, $points }: Polygon, m: DOMMatrix)
 
 export const polygon_clone = ({ $material, $points }: Polygon): Polygon => ({
   $material,
-  $points: $points.map((v) => ({ ...v })),
+  $points: $points.map(vertex_clone),
 });
 
 export const polygon_flipped = ({ $material, $points }: Polygon): Polygon => ({

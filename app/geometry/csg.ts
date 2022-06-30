@@ -5,7 +5,7 @@ import { vertex_lerp, type Vertex } from "./vertex";
 export const PLANE_EPSILON = 1e-5;
 
 export interface CSGPolygon extends Polygon {
-  $flipped: boolean;
+  $flipped: -1 | 1;
 }
 
 interface SplitPolygonResult {
@@ -14,7 +14,7 @@ interface SplitPolygonResult {
 }
 
 const CSGPolygon_split = (plane: Plane, polygon: CSGPolygon): SplitPolygonResult => {
-  const { $points } = polygon;
+  const { $points, $material, $flipped } = polygon;
   let f: CSGPolygon | undefined | false;
   let b: CSGPolygon | undefined | false;
 
@@ -50,8 +50,8 @@ const CSGPolygon_split = (plane: Plane, polygon: CSGPolygon): SplitPolygonResult
       iv = jv;
       id = jd;
     }
-    f = fpoints.length > 2 && { ...polygon, $points: fpoints };
-    b = bpoints.length > 2 && { ...polygon, $points: bpoints };
+    f = fpoints.length > 2 && { $material, $points: fpoints, $flipped };
+    b = bpoints.length > 2 && { $material, $points: bpoints, $flipped };
   }
   return { f, b };
 };
@@ -98,8 +98,8 @@ export const csg_tree = (n: CSGNode | readonly Polygon[]): CSGNode => {
   if ((n as Polygon[]).map) {
     // Build a BSP tree from a list of polygons
     let root: CSGNode | undefined;
-    for (const polygon of n as CSGPolygon[]) {
-      root = csg_tree_addPolygon(root, { ...polygon, $flipped: false });
+    for (const { $material, $points } of n as Polygon[]) {
+      root = csg_tree_addPolygon(root, { $material, $points, $flipped: 1 });
     }
     return root!;
   }
@@ -125,7 +125,7 @@ export const csg_tree_flip = (root: CSGNode | null) =>
     node.b = f;
     node.f = b;
     for (const polygon of node.p) {
-      polygon.$flipped = !polygon.$flipped;
+      polygon.$flipped = -polygon.$flipped as -1 | 1;
     }
   });
 
@@ -133,10 +133,7 @@ const csg_tree_clipPolygon = (node: CSGNode, polygon: CSGPolygon, result: CSGPol
   let { f, b } = CSGPolygon_split(node, polygon);
   if (!f && !b) {
     // Coplanar
-    if (
-      vec3_dot(node, vec3_triangleNormal(polygon.$points as [Vertex, Vertex, Vertex])) * (polygon.$flipped ? -1 : 1) >
-      node.w
-    ) {
+    if (vec3_dot(node, vec3_triangleNormal(polygon.$points as [Vertex, Vertex, Vertex])) * polygon.$flipped > node.w) {
       f = polygon;
     } else {
       b = polygon;
@@ -179,8 +176,8 @@ export const csg_tree_addTree = (tree: CSGNode | null, source: CSGNode | null) =
  */
 export const csg_unionFast = (tree: CSGNode | readonly Polygon[], polygons: Polygon[]) => {
   tree = csg_tree(tree);
-  for (const polygon of polygons) {
-    csg_tree_addPolygon(tree, { ...polygon, $flipped: false });
+  for (const { $material, $points } of polygons) {
+    csg_tree_addPolygon(tree, { $material, $points, $flipped: 1 });
   }
   return tree;
 };
@@ -228,7 +225,7 @@ export const csg_polygons = (tree: CSGNode) => {
   const result: Polygon[] = [];
   csg_tree_each(tree, (node) => {
     for (const polygon of node.p) {
-      result.push(polygon.$flipped ? polygon_flipped(polygon) : polygon_clone(polygon));
+      result.push(polygon.$flipped < 0 ? polygon_flipped(polygon) : polygon_clone(polygon));
     }
   });
   return result;
