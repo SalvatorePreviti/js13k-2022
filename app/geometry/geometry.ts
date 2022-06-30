@@ -29,6 +29,12 @@ export const polygon_flipped = ({ $material, $points }: Polygon): Polygon => ({
   $points: $points.map(vertex_flipped).reverse(),
 });
 
+/**
+ * Creates a polygon from a list of point.
+ * The normal will be automatically calculated from the first 3 points.
+ * Remember that you can define only convex and planar polygons - concave polygons are NOT supported.
+ * To create a concave solid or holes, look at the csg.ts module
+ */
 export const polygon_fromPoints = (material: Material, points: Vec3[]): Polygon => {
   const { x: $nx, y: $ny, z: $nz } = vec3_triangleNormal(points as [Vec3, Vec3, Vec3]);
   return {
@@ -37,8 +43,11 @@ export const polygon_fromPoints = (material: Material, points: Vec3[]): Polygon 
   };
 };
 
-/** Creates a regular polygon */
-export const polygon_regular = (material: Material, segments: number, radius: number, y = 0): Polygon => {
+/**
+ * Creates a regular polygon
+ * The polygon will face up (normal 0, -1, 0).
+ */
+export const polygon_regular = (material: Material, segments: number, radius: number, y: number): Polygon => {
   const result: Vertex[] = [];
   const arc = (Math.PI * 2) / segments;
   for (let i = 0; i < segments; ++i) {
@@ -59,6 +68,11 @@ export const polygon_sides = ($material: Material, { $points: btm }: Polygon, { 
   );
 };
 
+/**
+ * Smooths the normals of a list of quads
+ * @param sides The side polygons returned by polygon_sides
+ * @returns
+ */
 export const solid_smoothSidesQuads = (sides: Polygon[]): Polygon[] => {
   let a = sides[sides.length - 2]!.$points;
   let b = sides[sides.length - 1]!.$points;
@@ -78,6 +92,7 @@ export const solid_smoothSidesQuads = (sides: Polygon[]): Polygon[] => {
   });
 };
 
+/** Simplest composition of polygon functions. */
 export const solid_cylinder = ($material: Material, segments: number, smoothed?: boolean | 1) => {
   const top = polygon_flipped(polygon_regular($material, segments, 1, 1));
   const btm = polygon_regular($material, segments, 1, -1);
@@ -165,41 +180,3 @@ export const solids_to_triangles = (solids: Polygon[][]) => {
     $indices,
   };
 };
-
-// export const polygon_extrudeSides = ({ $points, $material }: Polygon): Polygon[] => {
-//   const result: Polygon[] = [];
-//   for (let i = 0, len = $points.length; i <= len; ++i) {
-//     const { x: ax, z: az } = $points[i % len]!;
-//     const { x: bx, z: bz } = $points[(i + 1) % len]!;
-
-//     const {
-//       x: $nx,
-//       y: $ny,
-//       z: $nz,
-//     } = triangleNormal({ x: ax, y: -1, z: az }, { x: ax, y: 1, z: az }, { x: bx, y: 1, z: bz });
-
-//     result[i] = {
-//       $material,
-//       $points: [
-//         { x: ax, y: -1, z: az, $nx, $ny, $nz },
-//         { x: ax, y: 1, z: az, $nx, $ny, $nz },
-//         { x: bx, y: 1, z: bz, $nx, $ny, $nz },
-//         { x: bx, y: -1, z: bz, $nx, $ny, $nz },
-//       ],
-//     };
-//   }
-//   return result;
-// };
-
-// export const polygon_extrude = (polygon: Polygon): Polygon[] => {
-//   const sides = polygon_extrudeSides(polygon);
-//   const top = polygon_clone(polygon);
-//   const bottom = polygon_clone(polygon);
-//   for (const p of top.$points.reverse()) {
-//     p.y = 1;
-//   }
-//   for (const p of bottom.$points) {
-//     p.y = -1;
-//   }
-//   return [bottom, ...sides, top];
-// };
