@@ -127,7 +127,6 @@ export const solids_to_triangles = (solids: Polygon[][]) => {
     // Build the vertex
 
     const vertex = [x, y, z, $nx, $ny, $nz, ...$material] as TriangleVertex;
-    vertex.$index = -1;
 
     const key = "" + vertex;
 
@@ -163,7 +162,7 @@ export const solids_to_triangles = (solids: Polygon[][]) => {
 
   const getVertexIndex = (vertex: TriangleVertex): number => {
     let { $index } = vertex;
-    if ($index === -1) {
+    if ($index === undefined) {
       $index = verticesCount++;
       vertex.$index = $index;
       $vertices.push(...vertex);
