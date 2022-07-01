@@ -5,6 +5,7 @@ import SwcVisitor from "@swc/core/Visitor";
 import { outPath_build } from "../out-paths";
 import { sizeDifference } from "../lib/logging";
 import { mangleConfig } from "../lib/mangle-config";
+import { browserPureFunctions } from "../lib/code-utils";
 
 export interface SwcTransformSettings {
   mangle: boolean;
@@ -233,7 +234,7 @@ export function getSwcMinifyOptions(settings: SwcTransformSettings): JsMinifyOpt
       computed_props: true,
 
       // You can pass an array of names and Terser will assume that those functions do not produce side effects. DANGER: will not check if the name is redefined in scope.
-      // pure_funcs: browserPureFunctions,
+      pure_funcs: browserPureFunctions,
 
       // If you pass true for this, Terser will assume that object property access
       // (e.g. foo.bar or foo["bar"]) doesn't have any side effects. Specify "strict"

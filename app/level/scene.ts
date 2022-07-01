@@ -8,9 +8,15 @@ export let sceneTriangles: TriangulatedSolids;
 
 export const loadScene = () => {
   if (DEBUG) {
+    console.time("scene");
+  }
+  const scene = mainScene();
+
+  if (DEBUG) {
+    console.timeEnd("scene");
     console.time("triangles");
   }
-  sceneTriangles = solids_to_triangles(mainScene());
+  sceneTriangles = solids_to_triangles(scene);
   if (DEBUG) {
     console.timeEnd("triangles");
   }

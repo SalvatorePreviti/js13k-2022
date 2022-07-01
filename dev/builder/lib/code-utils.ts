@@ -76,6 +76,7 @@ export const browserPureFunctions = [
   "Reflect.isExtensible",
   "Reflect.ownKeys",
 
+  "DOMMatrix",
   "Object",
   "Function",
   "Array",

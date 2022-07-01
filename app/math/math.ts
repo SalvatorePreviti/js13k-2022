@@ -61,3 +61,6 @@ export const clamp_distance = (value: number, distance: number) => clamp(value, 
 export const angle_wrap_radians = (radians: number): number => Math.atan2(Math.sin(radians), Math.cos(radians));
 
 export const angle_wrap_degrees = (degrees: number): number => angle_wrap_radians(degrees * DEG_TO_RAD) * RAD_PER_DEG;
+
+/** Returns an array of n integers */
+export const integers = (n: number) => [...Array(n)].map((_, i) => i);

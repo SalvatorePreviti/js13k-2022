@@ -3,7 +3,7 @@ import { minify as uglify } from "uglify-js";
 import type { UnsafeAny } from "@balsamic/dev";
 import { devLog } from "@balsamic/dev";
 import { sizeDifference } from "../lib/logging";
-import { jsRemoveEndingSemicolons } from "../lib/code-utils";
+import { browserPureFunctions, jsRemoveEndingSemicolons } from "../lib/code-utils";
 import { mangleConfig } from "../lib/mangle-config";
 
 export async function jsUglify(input: string, settings: JsUglifySettings) {
@@ -160,7 +160,7 @@ export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: R
       properties: true,
 
       // You can pass an array of names and Terser will assume that those functions do not produce side effects. DANGER: will not check if the name is redefined in scope.
-      // pure_funcs: browserPureFunctions,
+      pure_funcs: browserPureFunctions,
 
       // If you pass true for this, Terser will assume that object property access
       // (e.g. foo.bar or foo["bar"]) doesn't have any side effects. Specify "strict"

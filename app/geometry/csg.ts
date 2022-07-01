@@ -4,6 +4,8 @@ import { vertex_lerp, type Vertex } from "./vertex";
 
 export const PLANE_EPSILON = 1e-5;
 
+export type CSGInput = CSGNode | readonly Polygon[];
+
 export interface CSGPolygon extends Polygon {
   $flipped: -1 | 1;
 }
@@ -94,8 +96,8 @@ export const csg_tree_addPolygon = (node: CSGNode | null | undefined, polygon: C
  * If the given argument is a list of polygons, a new BSP tree built from the list of polygons is returned.
  * If the given argument is already a BSP tree, return it as is.
  */
-export const csg_tree = (n: CSGNode | readonly Polygon[]): CSGNode => {
-  if ((n as Polygon[]).map) {
+export const csg_tree = (n: CSGInput): CSGNode => {
+  if (Array.isArray(n)) {
     // Build a BSP tree from a list of polygons
     let root: CSGNode | undefined;
     for (const { $material, $points } of n as Polygon[]) {
@@ -170,45 +172,31 @@ export const csg_tree_addTree = (tree: CSGNode | null, source: CSGNode | null) =
     }
   });
 
-/**
- * If is known that there is no intersection between the tree and a list of polygons,
- * just adding them is much faster than union.
- */
-export const csg_unionFast = (tree: CSGNode | readonly Polygon[], polygons: Polygon[]) => {
-  tree = csg_tree(tree);
-  for (const { $material, $points } of polygons) {
-    csg_tree_addPolygon(tree, { $material, $points, $flipped: 1 });
+export const csg_union_op = (a: CSGInput, b: CSGInput | undefined): CSGNode => {
+  a = csg_tree(a);
+  if (b) {
+    b = csg_tree(b);
+    csg_tree_clipTo(a, b);
+    csg_tree_clipTo(b, a);
+    csg_tree_flip(b);
+    csg_tree_clipTo(b, a);
+    csg_tree_flip(b);
+    csg_tree_addTree(a, b);
   }
-  return tree;
-};
-
-export const csg_union = (a: CSGNode | readonly Polygon[], b: CSGNode | Polygon[]): CSGNode => {
-  a = csg_tree(a);
-  b = csg_tree(b);
-  csg_tree_clipTo(a, b);
-  csg_tree_clipTo(b, a);
-  csg_tree_flip(b);
-  csg_tree_clipTo(b, a);
-  csg_tree_flip(b);
-  csg_tree_addTree(a, b);
   return a;
 };
 
-export const csg_subtract = (a: CSGNode | readonly Polygon[], b: CSGNode | Polygon[]): CSGNode => {
+export const csg_union = (inputs: CSGInput[]): CSGNode => inputs.reduce(csg_union_op) as CSGNode;
+
+export const csg_subtract = (a: CSGInput, b: CSGInput): CSGNode => {
   a = csg_tree(a);
   csg_tree_flip(a);
-  b = csg_tree(b);
-  csg_tree_clipTo(a, b);
-  csg_tree_clipTo(b, a);
-  csg_tree_flip(b);
-  csg_tree_clipTo(b, a);
-  csg_tree_flip(b);
-  csg_tree_addTree(a, b);
+  csg_union_op(a, b);
   csg_tree_flip(a);
   return a;
 };
 
-export const csg_intersect = (a: CSGNode | readonly Polygon[], b: CSGNode | Polygon[]): CSGNode => {
+export const csg_intersect = (a: CSGInput, b: CSGInput): CSGNode => {
   a = csg_tree(a);
   csg_tree_flip(a);
   b = csg_tree(b);

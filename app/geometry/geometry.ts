@@ -1,5 +1,5 @@
-import type { Vec3 } from "../math/vectors";
-import { vec3_triangleNormal } from "../math/vectors";
+import { integers } from "../math/math";
+import { identityTranslateBtm, identityTranslateTop, vec3_triangleNormal, type Vec3 } from "../math/vectors";
 import { vertex_clone, vertex_flipped, vertex_lerp, type Material, type Vertex } from "./vertex";
 
 export interface Polygon {
@@ -47,26 +47,47 @@ export const polygon_fromPoints = (material: Material, points: Vec3[]): Polygon 
  * Creates a regular polygon
  * The polygon will face up (normal 0, -1, 0).
  */
-export const polygon_regular = (material: Material, segments: number, radius: number, y: number): Polygon => {
-  const result: Vertex[] = [];
-  const arc = (Math.PI * 2) / segments;
-  for (let i = 0; i < segments; ++i) {
-    result[i] = { x: Math.cos(arc * i) * radius, y, z: Math.sin(arc * i) * radius, $nx: 0, $ny: -1, $nz: 0 };
-  }
-  return { $material: material, $points: result };
-};
+export const polygon_regular = ($material: Material, segments: number, arc = (Math.PI / segments) * 2): Polygon => ({
+  $material,
+  $points: integers(segments).map((i) => ({
+    x: Math.cos(arc * i),
+    y: 0,
+    z: Math.sin(arc * i),
+    $nx: 0,
+    $ny: -1,
+    $nz: 0,
+  })),
+});
+
+export const polygon_quad = (material: Material, y: number = 0): Polygon =>
+  polygon_fromPoints(material, [
+    { x: -1, y, z: -1 },
+    { x: 1, y, z: -1 },
+    { x: 1, y, z: 1 },
+    { x: -1, y, z: 1 },
+  ]);
 
 /**
  * Connects a top and a bottom polygon with side polygons.
  * Top and bottom polygons must have the same length.
  * Top polygon is supposed to be flipped.
  */
-export const polygon_sides = ($material: Material, { $points: btm }: Polygon, { $points: top }: Polygon): Polygon[] => {
-  const len = btm.length;
-  return btm.map((btmi, i) =>
-    polygon_fromPoints($material, [btmi, top[len - i - 1]!, top[len - ((i + 1) % len) - 1]!, btm[(i + 1) % len]!]),
+export const polygon_sides = ($material: Material, { $points: btm }: Polygon, { $points: top }: Polygon): Polygon[] =>
+  btm.map((btmi, i, { length }) =>
+    polygon_fromPoints($material, [
+      btmi,
+      top[length - i - 1]!,
+      top[length - ((i + 1) % length) - 1]!,
+      btm[(i + 1) % length]!,
+    ]),
   );
-};
+
+/**
+ * Returns a new solid with all materials changed.
+ * Warning: this function does not clone the polygons points.
+ */
+export const solid_material = (solid: Polygon[], $material: Material): Polygon[] =>
+  solid.map((polygon: Polygon): Polygon => ({ ...polygon, $material }));
 
 /**
  * Smooths the normals of a list of quads
@@ -92,12 +113,37 @@ export const solid_smoothSidesQuads = (sides: Polygon[]): Polygon[] => {
   });
 };
 
+/**
+ * Flips a solid. The interior becomes exterior, the exterior becomes interior.
+ * It flips the vertices normals and reverses the order of the points.
+ */
+export const solid_flipped = (solid: Polygon[]): Polygon[] => solid.map(polygon_flipped);
+
+/**
+ * Extrudes a polygon into a solid.
+ * To remove bottom and top polygons, use solid_extrude(...).slice(2).
+ * The solid will be centered at 0 vertically and its height will be 2 (from -1 to 1)
+ */
+export const solid_extrude = (
+  $material: Material,
+  bottom: Polygon,
+  top: Polygon = polygon_flipped(bottom),
+): Polygon[] => {
+  bottom = polygon_transform(bottom, identityTranslateBtm);
+  top = polygon_transform(top, identityTranslateTop);
+  const sides = polygon_sides($material, bottom, top);
+  return [bottom, top, ...sides];
+};
+
+export const solid_box = ($material: Material) => solid_extrude($material, polygon_quad($material));
+
+export const solid_regular = ($material: Material, sides: number) =>
+  solid_extrude($material, polygon_regular($material, sides));
+
 /** Simplest composition of polygon functions. */
-export const solid_cylinder = ($material: Material, segments: number, smoothed?: boolean | 1) => {
-  const top = polygon_flipped(polygon_regular($material, segments, 1, 1));
-  const btm = polygon_regular($material, segments, 1, -1);
-  const sides = polygon_sides($material, btm, top);
-  return [btm, top, ...(smoothed ? solid_smoothSidesQuads(sides) : sides)];
+export const solid_cylinder = ($material: Material, segments: number, smoothed?: boolean | 0 | 1): Polygon[] => {
+  const solid = solid_extrude($material, polygon_regular($material, segments));
+  return smoothed ? [solid[0]!, solid[1]!, ...solid_smoothSidesQuads(solid.slice(2))] : solid;
 };
 
 export const solid_transform = (solid: Polygon[], m: DOMMatrix) =>

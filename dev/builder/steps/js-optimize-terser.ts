@@ -2,7 +2,7 @@ import { minify as terserMinify } from "terser";
 import type { UnsafeAny } from "@balsamic/dev";
 import { devLog } from "@balsamic/dev";
 import { sizeDifference } from "../lib/logging";
-import { jsRemoveEndingSemicolons } from "../lib/code-utils";
+import { browserPureFunctions, jsRemoveEndingSemicolons } from "../lib/code-utils";
 import type {
   ECMA as ECMAVersion,
   MinifyOptions as TerserMinifyOptions,
@@ -194,7 +194,7 @@ export function getTerserMinifyOptions(
       computed_props: true,
 
       // You can pass an array of names and Terser will assume that those functions do not produce side effects. DANGER: will not check if the name is redefined in scope.
-      // pure_funcs: browserPureFunctions,
+      pure_funcs: browserPureFunctions,
 
       // If you pass true for this, Terser will assume that object property access
       // (e.g. foo.bar or foo["bar"]) doesn't have any side effects. Specify "strict"
