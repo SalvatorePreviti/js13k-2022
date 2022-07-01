@@ -1,17 +1,15 @@
-import { csg_subtract, csg_union, csg_polygons, csg_union_op } from "../geometry/csg";
-import type { Polygon } from "../geometry/geometry";
-import { solid_box, solid_flipped } from "../geometry/geometry";
-import { solid_cylinder, solid_transform } from "../geometry/geometry";
+import { csg_subtract, csg_union, csg_polygons } from "../geometry/csg";
+import { solid_box, solid_cylinder, solid_transform, type Polygon } from "../geometry/geometry";
 import type { Material } from "../geometry/vertex";
 import { integers } from "../math/math";
 import { identity } from "../math/vectors";
 
 const material0 = [1, 0.3, 0] as Material;
 const material1 = [0, 0.5, 0.7] as Material;
-const material2 = [0, 0.2, 0.9] as Material;
-const material3 = [0.2, 0, 0.9] as Material;
-const material4 = [0.4, 0.9, 0] as Material;
-const material5 = [0.4, 0, 0.9] as Material;
+// const material2 = [0, 0.2, 0.9] as Material;
+// const material3 = [0.2, 0, 0.9] as Material;
+// const material4 = [0.4, 0.9, 0] as Material;
+// const material5 = [0.4, 0, 0.9] as Material;
 
 const alienCorridor = (): Polygon[][] => {
   const a = solid_transform(solid_box(material1), identity.translate(0, 0, 0).scale(3, 3, 22));
