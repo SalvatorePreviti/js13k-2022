@@ -64,10 +64,10 @@ export const vec3_normalize = (v: Vec3In): Vec3 => vec3_scale(v, 1 / vec3_length
 
 export const vec3_dot = ({ x, y, z }: Vec3In, b: Vec3In): number => x * b.x + y * b.y + z * b.z;
 
-export const vec3_triangleNormal = ([{ x, y, z }, { x: bx, y: by, z: bz }, { x: cx, y: cy, z: cz }]: [
-  Vec3,
-  Vec3,
-  Vec3,
+export const vec3_triangleNormal = ([{ x, y, z }, { x: bx, y: by, z: bz }, { x: cx, y: cy, z: cz }]: readonly [
+  Vec3In,
+  Vec3In,
+  Vec3In,
 ]) => {
   // b - a
   const bax = bx - x;
@@ -86,6 +86,12 @@ export const vec3_triangleNormal = ([{ x, y, z }, { x: bx, y: by, z: bz }, { x: 
 
   const nlength = Math.sqrt(nx * nx + ny * ny + nz * nz) || 1;
   return { x: nx / nlength, y: ny / nlength, z: nz / nlength };
+};
+
+export const vec3_trianglePlane = (triangle: readonly [Vec3In, Vec3In, Vec3In]): Vec4 => {
+  const result = vec3_triangleNormal(triangle) as Vec4;
+  result.w = vec3_dot(result, triangle[0]!);
+  return result;
 };
 
 // This version would minify better if there was an higher use of other vec3 functions
