@@ -1,4 +1,4 @@
-import { vec3_dot, vec3_triangleNormal, vec3_trianglePlane, type Plane } from "../math/vectors";
+import { vec3_dot, vec3_trianglePlane, type Plane } from "../math/vectors";
 import { polygon_clone, polygon_flipped, type Polygon } from "./geometry";
 import { vertex_lerp, type Vertex } from "./vertex";
 
@@ -8,8 +8,7 @@ export type CSGInput = CSGNode | readonly Polygon[];
 
 export interface CSGPolygon extends Polygon {
   $flipped: -1 | 1;
-  $parent?: CSGPolygon | undefined;
-  $sibling?: CSGPolygon | undefined;
+  $parent: CSGPolygon | 0;
 }
 
 interface SplitPolygonResult {
@@ -56,10 +55,6 @@ const CSGPolygon_split = (plane: Plane, polygon: CSGPolygon): SplitPolygonResult
     }
     f = fpoints.length > 2 && { $material, $points: fpoints, $flipped, $parent: polygon };
     b = bpoints.length > 2 && { $material, $points: bpoints, $flipped, $parent: polygon };
-    if (f && b) {
-      f.$sibling = b;
-      b.$sibling = f;
-    }
   }
   return { f, b };
 };
@@ -116,7 +111,7 @@ export const csg_tree = (n: CSGInput): CSGNode => {
     for (const { $material, $points } of n as Polygon[]) {
       root = csg_tree_addPolygon(
         root,
-        { $material, $points, $flipped: 1 },
+        { $material, $points, $flipped: 1, $parent: 0 },
         vec3_trianglePlane($points as [Vertex, Vertex, Vertex]),
       );
     }
@@ -185,7 +180,7 @@ export const csg_tree_clipTo = (root: CSGNode | null, bsp: CSGNode) => {
 export const csg_tree_addTree = (tree: CSGNode | null, source: CSGNode | null) =>
   csg_tree_each(source, (sourceNode) => {
     for (const polygon of sourceNode.p) {
-      csg_tree_addPolygon(tree, polygon, vec3_trianglePlane(polygon.$points as [Vertex, Vertex, Vertex]));
+      csg_tree_addPolygon(tree, polygon, sourceNode);
     }
   });
 
@@ -226,69 +221,34 @@ export const csg_intersect = (a: CSGInput, b: CSGInput): CSGNode => {
   return a;
 };
 
-const mapOfArraysPush = <TKey, TValue>(map: Map<TKey, TValue[]>, key: TKey, value: TValue) => {
-  const polygonsArray = map.get(key);
-  if (polygonsArray) {
-    polygonsArray.push(value);
-  } else {
-    map.set(key, [value]);
-  }
-};
-
 export const csg_polygons = (tree: CSGNode) => {
-  const result: Polygon[] = [];
-  csg_tree_each(tree, (node) => {
-    const set = new Set<CSGPolygon>(node.p);
+  const byParent = new Map<CSGPolygon, CSGPolygon>();
+  const allPolygons = new Map<CSGPolygon, boolean>();
 
-    let hasChanges: boolean | undefined;
-    do {
-      hasChanges = false;
-      for (const polygon of set) {
-        const sibling = polygon.$sibling;
-        if (sibling && sibling.$flipped === polygon.$flipped && set.has(sibling)) {
-          set.delete(polygon);
-          set.delete(sibling);
-          let parent = polygon.$parent!;
-          if (parent.$flipped !== polygon.$flipped) {
-            parent = { ...parent, $flipped: -parent.$flipped as -1 | 1 };
-          }
-          set.add(parent);
-          hasChanges = true;
-        }
+  const add = (polygon: CSGPolygon): CSGPolygon => {
+    const parent = polygon.$parent;
+    if (parent) {
+      const found = byParent.get(parent);
+      if (!found) {
+        byParent.set(parent, polygon);
+      } else {
+        allPolygons.delete(found);
+        polygon = add(parent);
       }
-    } while (hasChanges);
-    // console.log(node.p.length, set.size);
-
-    /*
-    const polygonsByGroup = new Map<number, CSGPolygon[]>();
-    for (const polygon of node.p) {
-      mapOfArraysPush(polygonsByGroup, polygon.$group, polygon);
     }
-    for (const polygons of polygonsByGroup.values()) {
-      const polygonsByDivision = new Map<number, CSGPolygon[]>();
-      for (const polygon of polygons) {
-        mapOfArraysPush(polygonsByDivision, polygon.$division, polygon);
-      }
-      for (const divisions of polygonsByDivision.values()) {
-        const [a, b] = divisions;
-        if (a && b && a.$flipped === b.$flipped) {
-          const t = [...a.$points.slice(0, a.$divisionPoint), ...b.$points.slice(b.$divisionPoint)];
-          for (let i = 0; i < a.$divisionPoint; ++i) {}
-        }
-      }
-      // const polygonsByVertex = new Map<Vertex, Polygon[]>();
-      // for (const polygon of polygons) {
-      //  for (const vertex of polygon.$points) {
-      //    mapOfArraysPush(polygonsByVertex, vertex, polygon);
-      //  }
-      // }
-    } */
+    return polygon;
+  };
 
-    // console.log(polygonsByGroup);
-
-    for (const polygon of set) {
-      result.push(polygon.$flipped < 0 ? polygon_flipped(polygon) : polygon_clone(polygon));
+  csg_tree_each(tree, (node) => {
+    for (const polygon of node.p) {
+      allPolygons.set(add(polygon), polygon.$flipped < 0);
     }
   });
+
+  const result = [...allPolygons].map(([polygon, flipped]) =>
+    flipped ? polygon_flipped(polygon) : polygon_clone(polygon),
+  );
+
+  console.log("polys:", result.length);
   return result;
 };

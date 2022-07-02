@@ -80,7 +80,8 @@ const weirdObject = () => {
 };
 
 export const mainScene = (): Polygon[][] => {
-  return [...corridor(), weirdObject()];
+  // weirdObject()
+  return [...corridor()];
 };
 
 //   // scene.push(extractCSGPolygons(makeCSGPolygons(figure0.$polygons)));
