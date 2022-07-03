@@ -8,12 +8,18 @@ export type CSGInput = CSGNode | readonly Polygon[];
 
 export interface CSGPolygon extends Polygon {
   $flipped: -1 | 1;
-  $parent: CSGPolygon | 0;
+
+  /**
+   * When a polygon is splitted, this will contain the polygon from which this polygon was splitted.
+   * This is then used by csg_polygons to merge back splitted polygons if they are both present,
+   * to reduce the number of vertices and triangles.
+   */
+  $parent: CSGPolygon | null;
 }
 
 interface SplitPolygonResult {
-  f?: CSGPolygon | undefined | false;
-  b?: CSGPolygon | undefined | false;
+  f: CSGPolygon | undefined | false;
+  b: CSGPolygon | undefined | false;
 }
 
 const CSGPolygon_split = (plane: Plane, polygon: CSGPolygon): SplitPolygonResult => {
@@ -111,7 +117,7 @@ export const csg_tree = (n: CSGInput): CSGNode => {
     for (const { $material, $points } of n as Polygon[]) {
       root = csg_tree_addPolygon(
         root,
-        { $material, $points, $flipped: 1, $parent: 0 },
+        { $material, $points, $flipped: 1, $parent: null },
         vec3_trianglePlane($points as [Vertex, Vertex, Vertex]),
       );
     }
@@ -225,15 +231,17 @@ export const csg_polygons = (tree: CSGNode) => {
   const byParent = new Map<CSGPolygon, CSGPolygon>();
   const allPolygons = new Map<CSGPolygon, boolean>();
 
+  /** Adds a polygon, and replaces two splitted polygons that have the same parent with the parent */
   const add = (polygon: CSGPolygon): CSGPolygon => {
     const parent = polygon.$parent;
+    let found: CSGPolygon | undefined;
     if (parent) {
-      const found = byParent.get(parent);
-      if (!found) {
-        byParent.set(parent, polygon);
-      } else {
+      found = byParent.get(parent);
+      if (found) {
         allPolygons.delete(found);
         polygon = add(parent);
+      } else {
+        byParent.set(parent, polygon);
       }
     }
     return polygon;
@@ -245,7 +253,7 @@ export const csg_polygons = (tree: CSGNode) => {
     }
   });
 
-  const result = [...allPolygons].map(([polygon, flipped]) =>
+  const result = Array.from(allPolygons, ([polygon, flipped]) =>
     flipped ? polygon_flipped(polygon) : polygon_clone(polygon),
   );
 
