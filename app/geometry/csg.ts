@@ -7,7 +7,7 @@ export const PLANE_EPSILON = 0.00008;
 export type CSGInput = CSGNode | readonly Polygon[];
 
 export interface CSGPolygon extends Polygon {
-  $flipped: -1 | 1;
+  $flipped: boolean;
 
   /**
    * When a polygon is splitted, this will contain the polygon from which this polygon was splitted.
@@ -22,47 +22,50 @@ interface SplitPolygonResult {
   b: CSGPolygon | undefined | false;
 }
 
-const CSGPolygon_split = (plane: Plane, polygon: CSGPolygon): SplitPolygonResult => {
+function splitSpanningPolygon(plane: Plane, polygon: CSGPolygon) {
   const { $points, $material, $flipped } = polygon;
+  const fpoints: Vertex[] = [];
+  const bpoints: Vertex[] = [];
+  let iv: Vertex = $points[$points.length - 1]!;
+  let id: number = vec3_dot(plane, iv) - plane.w;
+  let v: Vertex;
+  for (const jv of $points) {
+    const jd = vec3_dot(plane, jv) - plane.w;
+    if (id > -PLANE_EPSILON) {
+      fpoints.push(iv);
+    }
+    if (id < PLANE_EPSILON) {
+      bpoints.push(iv);
+    }
+    if ((id < -PLANE_EPSILON && jd > PLANE_EPSILON) || (id > PLANE_EPSILON && jd < -PLANE_EPSILON)) {
+      v = vertex_lerp(iv, jv, -id / (plane.x * (jv.x - iv.x) + plane.y * (jv.y - iv.y) + plane.z * (jv.z - iv.z)));
+      fpoints.push(v);
+      bpoints.push(v);
+    }
+    iv = jv;
+    id = jd;
+  }
+  return {
+    f: fpoints.length > 2 && { $material, $points: fpoints, $flipped, $parent: polygon },
+    b: bpoints.length > 2 && { $material, $points: bpoints, $flipped, $parent: polygon },
+  };
+}
+
+const CSGPolygon_split = (plane: Plane, polygon: CSGPolygon): SplitPolygonResult => {
+  const { $points } = polygon;
+  const len = $points.length;
+  const w = plane.w;
   let f: CSGPolygon | undefined | false;
   let b: CSGPolygon | undefined | false;
-
-  const w = plane.w;
-  for (let i = 0, len = $points.length; i < len && (!f || !b); ) {
-    const t = vec3_dot(plane, $points[i++]!) - w;
+  for (let i = 0; i < len && (!f || !b); ++i) {
+    const t = vec3_dot(plane, $points[i]!) - w;
     if (t < -PLANE_EPSILON) {
       b = polygon;
     } else if (t > PLANE_EPSILON) {
       f = polygon;
     }
   }
-  if (b && f) {
-    // SPANNING
-    const fpoints: Vertex[] = [];
-    const bpoints: Vertex[] = [];
-    let iv: Vertex = $points[$points.length - 1]!;
-    let id: number = vec3_dot(plane, iv) - w;
-    let v: Vertex;
-    for (const jv of $points) {
-      const jd = vec3_dot(plane, jv) - w;
-      if (id > -PLANE_EPSILON) {
-        fpoints.push(iv);
-      }
-      if (id < PLANE_EPSILON) {
-        bpoints.push(iv);
-      }
-      if ((id < -PLANE_EPSILON && jd > PLANE_EPSILON) || (id > PLANE_EPSILON && jd < -PLANE_EPSILON)) {
-        v = vertex_lerp(iv, jv, -id / (plane.x * (jv.x - iv.x) + plane.y * (jv.y - iv.y) + plane.z * (jv.z - iv.z)));
-        fpoints.push(v);
-        bpoints.push(v);
-      }
-      iv = jv;
-      id = jd;
-    }
-    f = fpoints.length > 2 && { $material, $points: fpoints, $flipped, $parent: polygon };
-    b = bpoints.length > 2 && { $material, $points: bpoints, $flipped, $parent: polygon };
-  }
-  return { f, b };
+  return f && b ? splitSpanningPolygon(plane, polygon) : { f, b };
 };
 
 export interface CSGNode extends Plane {
@@ -117,7 +120,7 @@ export const csg_tree = (n: CSGInput): CSGNode => {
     for (const { $material, $points } of n as Polygon[]) {
       root = csg_tree_addPolygon(
         root,
-        { $material, $points, $flipped: 1, $parent: null },
+        { $material, $points, $flipped: false, $parent: null },
         vec3_trianglePlane($points as [Vertex, Vertex, Vertex]),
       );
     }
@@ -145,7 +148,7 @@ export const csg_tree_flip = (root: CSGNode | null) =>
     node.b = f;
     node.f = b;
     for (const polygon of node.p) {
-      polygon.$flipped = -polygon.$flipped as -1 | 1;
+      polygon.$flipped = !polygon.$flipped;
     }
   });
 
@@ -249,7 +252,7 @@ export const csg_polygons = (tree: CSGNode) => {
 
   csg_tree_each(tree, (node) => {
     for (const polygon of node.p) {
-      allPolygons.set(add(polygon), polygon.$flipped < 0);
+      allPolygons.set(add(polygon), polygon.$flipped);
     }
   });
 
