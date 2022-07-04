@@ -22,7 +22,7 @@ interface SplitPolygonResult {
   b: CSGPolygon | undefined | false;
 }
 
-function splitSpanningPolygon(plane: Plane, polygon: CSGPolygon) {
+function CSGPolygon_splitSpanning(plane: Plane, polygon: CSGPolygon) {
   const { $points, $material, $flipped } = polygon;
   const fpoints: Vertex[] = [];
   const bpoints: Vertex[] = [];
@@ -65,7 +65,7 @@ const CSGPolygon_split = (plane: Plane, polygon: CSGPolygon): SplitPolygonResult
       f = polygon;
     }
   }
-  return f && b ? splitSpanningPolygon(plane, polygon) : { f, b };
+  return f && b ? CSGPolygon_splitSpanning(plane, polygon) : { f, b };
 };
 
 export interface CSGNode extends Plane {
