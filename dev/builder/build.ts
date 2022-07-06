@@ -49,9 +49,9 @@ export async function build() {
 
     sources.js = await jsUglify(sources.js, { mangle: false, varify: true });
 
-    sources.js = await jsOptimizeTerser(sources.js, { mangle: true });
+    sources.js = await jsOptimizeTerser(sources.js, { mangle: false });
 
-    sources.js = await jsTransformSwc(sources.js, { mangle: false, constToLet: true, repeat: 0 });
+    // sources.js = await jsTransformSwc(sources.js, { mangle: false, constToLet: true, repeat: 0 });
 
     sources.js = await jsOptimizeTerser(sources.js, { mangle: true });
   } finally {
