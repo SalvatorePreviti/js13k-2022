@@ -69,7 +69,7 @@ export function getTerserMinifyOptions(settings: TerserMinifySettings): TerserMi
     parse: {
       bare_returns: false,
       ecma: 2022 as ECMAVersion,
-      html5_comments: true,
+      html5_comments: false,
       shebang: true,
     },
 

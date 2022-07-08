@@ -260,6 +260,8 @@ export const csg_polygons = (tree: CSGNode) => {
     flipped ? polygon_flipped(polygon) : polygon_clone(polygon),
   );
 
-  console.log("polys:", result.length);
+  if (DEBUG) {
+    console.log("polys:", result.length);
+  }
   return result;
 };

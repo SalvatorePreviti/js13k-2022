@@ -53,7 +53,7 @@ export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: R
     // Parser options
     parse: {
       bare_returns: false,
-      html5_comments: true,
+      html5_comments: false,
       shebang: true,
     },
 
@@ -70,12 +70,15 @@ export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: R
         "import.meta": { url: "index.js", hot: false },
       },
 
+      // remove redundant or non-standard directives
+      directives: true,
+
       // Inline single-use functions when possible. Depends on reduce_vars being enabled.
       // Disabling this option sometimes improves performance of the output code.
       reduce_funcs: true,
 
       // replace arguments[index] with function parameter name whenever possible.
-      arguments: false,
+      arguments: true,
 
       // various optimizations for boolean context, for example !!a ? b : c → a ? b : c
       booleans: true,
@@ -93,9 +96,6 @@ export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: R
 
       // remove unreachable code
       dead_code: true,
-
-      // remove redundant or non-standard directives
-      directives: true,
 
       // discard calls to console.* functions.
       // If you wish to drop a specific function call such as console.info
@@ -227,7 +227,7 @@ export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: R
       // Apply optimizations to assignment expressions
       assignments: true,
 
-      // convert declarations from varto function whenever possible
+      // convert declarations from var to function whenever possible
       functions: true,
 
       // hoist export statements to facilitate various compress and mangle optimizations.
