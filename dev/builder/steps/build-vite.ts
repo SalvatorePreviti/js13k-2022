@@ -74,7 +74,6 @@ export async function buildWithVite(options: { stripDevTools: boolean }): Promis
           minifyIdentifiers: false,
           minifySyntax: true,
           minifyWhitespace: false,
-          minify: false,
           globalName: "window",
           pure: browserPureFunctions,
           define: {

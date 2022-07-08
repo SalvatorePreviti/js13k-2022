@@ -5,7 +5,7 @@ import SwcVisitor from "@swc/core/Visitor";
 import { outPath_build } from "../out-paths";
 import { sizeDifference } from "../lib/logging";
 import { mangleConfig } from "../lib/mangle-config";
-import { browserPureFunctions } from "../lib/code-utils";
+import { browserPureFunctions, jsRemoveEndingSemicolons } from "../lib/code-utils";
 
 export interface SwcTransformSettings {
   mangle: boolean;
@@ -67,6 +67,7 @@ export async function jsTransformSwc(source: string, settings: SwcTransformSetti
               plugin: (m) => new Transformer(settings).visitProgram(m),
             })
           ).code || result;
+        result = jsRemoveEndingSemicolons(result);
       }
       this.setSuccessText(sizeDifference(source, result));
       return result;

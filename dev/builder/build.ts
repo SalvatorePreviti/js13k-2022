@@ -21,6 +21,7 @@ import { jsTransformSwc } from "./steps/js-transform-swc";
 import { jsRoadroller } from "./steps/js-roadroller";
 import { htmlCssToJs } from "./steps/html-css-to-js";
 import { jsUglify } from "./steps/js-uglify";
+import { jsTdeMinify } from "./steps/js-tde-minify";
 import zlib from "zlib";
 
 devLog.titlePaddingWidth = 18;
@@ -45,15 +46,17 @@ export async function build() {
 
     sources.js = await jsOptimizeTerser(sources.js, { mangle: false });
 
-    sources.js = await jsTransformSwc(sources.js, { mangle: false, constToLet: true, repeat: 0 });
+    sources.js = await jsTransformSwc(sources.js, { mangle: false, constToLet: true, repeat: 2 });
 
     sources.js = await jsUglify(sources.js, { mangle: false, varify: true });
 
-    sources.js = await jsOptimizeTerser(sources.js, { mangle: false });
-
-    // sources.js = await jsTransformSwc(sources.js, { mangle: false, constToLet: true, repeat: 0 });
+    sources.js = await jsOptimizeTerser(sources.js, { mangle: true });
 
     sources.js = await jsOptimizeTerser(sources.js, { mangle: true });
+
+    sources.js = await jsTdeMinify(sources.js);
+
+    sources.js = await jsOptimizeTerser(sources.js, { mangle: false });
   } finally {
     await writeOptimizedBundle(sources);
   }

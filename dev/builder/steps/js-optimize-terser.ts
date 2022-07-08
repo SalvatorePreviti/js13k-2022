@@ -31,14 +31,18 @@ export interface TerserMinifySettings {
   mangle: boolean;
 }
 
-export function getTerserMinifyOptions(
-  settings: TerserMinifySettings,
-  terserNameCache?: Record<string, unknown>,
-): TerserMinifyOptions {
+export function getTerserMinifyOptions(settings: TerserMinifySettings): TerserMinifyOptions {
   const module = true;
   const toplevel = true;
   const passes = 16;
   const mangle = settings.mangle;
+
+  const singleLettersNameCache: Record<string, string> = {};
+  const letters = "abcdefghijklmnopqrstuvwxyx";
+  for (const char of letters) {
+    singleLettersNameCache[char] = char;
+    singleLettersNameCache[char.toUpperCase()] = char.toUpperCase();
+  }
 
   const options: TerserMinifyOptions = {
     // Use when minifying an ES6 module.
@@ -53,7 +57,7 @@ export function getTerserMinifyOptions(
     // Sourcemap support
     sourceMap: false,
 
-    nameCache: terserNameCache,
+    // nameCache: null,
 
     ecma: 2022 as ECMAVersion,
     ie8: false,
