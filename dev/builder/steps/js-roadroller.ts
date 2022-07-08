@@ -5,7 +5,6 @@ import { sizeDifference } from "../lib/logging";
 import { JSDOM } from "jsdom";
 import { htmlMinify } from "./html-minify";
 import { stripUtf8BOM } from "../lib/code-utils";
-import { setTimeout } from "timers/promises";
 
 /**
  * you can try to set LEVEL to 2 if you want to squeeze as much bytes as possible.
@@ -17,8 +16,6 @@ export async function jsRoadroller(html: string): Promise<string> {
   return devLog.timed(
     "roadroller",
     async function js_roadroller() {
-      await setTimeout(1);
-
       const dom = new JSDOM(stripUtf8BOM(html));
 
       const scriptsTags = Array.from(dom.window.document.querySelectorAll("script"));
@@ -45,9 +42,9 @@ export async function jsRoadroller(html: string): Promise<string> {
       const { firstLine, secondLine } = packer.makeDecoder();
       const compressedJs = firstLine + secondLine;
 
-      if (compressedJs.length) {
+      if (compressedJs) {
         const script = dom.window.document.createElement("script");
-        script.type = "module";
+        // script.type = "module";
         script.textContent = compressedJs;
         dom.window.document.body.appendChild(script);
       }

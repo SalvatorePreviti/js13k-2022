@@ -25,11 +25,11 @@ export async function htmlCssToJs(sources: ViteBundledOutput) {
       dom.window.document.body.innerHTML = "";
 
       if (css) {
-        bodyHtml = `<style>${css}</style>${bodyHtml}`;
+        bodyHtml += `<style>${css}`;
       }
 
       if (bodyHtml) {
-        js = `document.body.innerHTML=${JSON.stringify(bodyHtml)};${js}`;
+        js = `document.write(${JSON.stringify(bodyHtml)});${js}`;
       }
 
       if (js) {
