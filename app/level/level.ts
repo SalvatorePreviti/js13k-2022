@@ -4,6 +4,7 @@ import type { Material } from "../geometry/vertex";
 import { integers } from "../math/math";
 import { identity } from "../math/vectors";
 
+const materialWhite = [1, 1, 1] as Material;
 const material0 = [1, 0.3, 0] as Material;
 const material1 = [0, 0.5, 0.7] as Material;
 const material2 = [0, 0.2, 0.9] as Material;
@@ -70,15 +71,17 @@ const weirdObject = () => {
   const csg3 = csg_subtract(csg2, figure4);
   const csg4 = csg_subtract(csg3, figure5);
 
-  console.timeEnd("weird");
-
-  console.time("weird_merge");
   const result = csg_polygons(csg4);
-  console.timeEnd("weird_merge");
+
+  console.timeEnd("weird");
 
   return result;
 };
 
+export const pavement = (): Polygon[] => {
+  return solid_transform(solid_box(materialWhite), identity.translate(0, -10).scale(30, 0.5, 30));
+};
+
 export const mainScene = (): Polygon[][] => {
-  return [...corridor(), weirdObject()];
+  return [...corridor(), weirdObject(), pavement()];
 };

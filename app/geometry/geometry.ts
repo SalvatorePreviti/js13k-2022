@@ -195,7 +195,7 @@ export const solids_to_triangles = (solids: Polygon[][]): TriangulatedSolids => 
   };
 
   const makePolygon = ({ $points, $material }: Polygon) => {
-    $material = [Math.random(), Math.random(), Math.random()];
+    // $material = [Math.random(), Math.random(), Math.random()];
 
     for (let i = 2; i < $points.length; i++) {
       const a = getVertex($points[0]!, $material);
