@@ -1,0 +1,166 @@
+/* Licensed under a BSD license. See ../license.html for license */
+
+html {
+  box-sizing: border-box;
+}
+*,
+*:before,
+*:after {
+  box-sizing: inherit;
+  user-select: none;
+}
+
+body {
+  background-color: #aaa;
+  font-family: Sans-Serif;
+}
+
+canvas {
+  background-color: #fff;
+  border: 1px solid black;
+  /* NOTE: This size is changed if in iframe - see below '.iframe canvas' */
+  width: 400px;
+  height: 300px;
+  display: block;
+}
+
+#uiContainer {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 3;
+  font-family: monospace;
+  pointer-events: none;
+
+  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+}
+#ui {
+  opacity: 0.8;
+}
+#ui > div {
+  pointer-events: none;
+}
+#ui input,
+#ui select,
+#ui option,
+#ui canvas {
+  pointer-events: auto;
+}
+
+.gman-slider-label,
+.gman-widget-label,
+.gman-checkbox-label {
+  font-size: small;
+  min-width: 10em;
+  text-align: right;
+}
+.gman-checkbox-label {
+  pointer-events: auto;
+}
+.gman-widget-value {
+  float: right;
+  font-size: small;
+  order: 1;
+  min-width: 3em;
+}
+
+.gman-slider-upper {
+  height: 1.5em;
+}
+.gman-slider-outer,
+.gman-widget-outer {
+  float: right;
+  display: flex;
+  align-items: center;
+  height: 1.7em;
+}
+.gman-widget-slider,
+.gman-widget-checkbox,
+.gman-widget-select {
+  opacity: 0.5;
+  font-size: large;
+  margin-left: 0.3em;
+  margin-right: 0.3em;
+}
+.gman-widget-select {
+  font-size: small;
+}
+.gman-widget-slider {
+  min-width: 120px;
+}
+
+/* styles to apply if in an iframe */
+
+html.iframe {
+  height: 100vh;
+}
+body.iframe {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+}
+
+.iframe > .description {
+  display: none;
+}
+.iframe .divcanvas {
+  width: 100vw;
+  height: 100vh;
+}
+.iframe canvas {
+  width: 100vw;
+  height: 100vh;
+  max-width: 100vw;
+  border: none;
+}
+
+.iframe > #example {
+  width: 100%;
+  height: 100%;
+}
+#ui #rotation > canvas {
+  background-color: rgba(255, 255, 255, 0.6);
+}
+#ui {
+  width: 200px;
+}
+
+@media (max-width: 390px) {
+  pre {
+    font-size: xx-small !important;
+    max-width: 300px !important;
+  }
+  canvas {
+    width: 100vw;
+  }
+  .iframe canvas {
+    width: 100vw;
+    height: 100vh;
+    border: none;
+  }
+  #uiContainer {
+    top: 120px;
+  }
+  .iframe #uiContainer {
+    top: 10px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  #ui .ui-dark-support {
+    color: white;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+  }
+}
+
+body {
+  margin: 0;
+}
+canvas {
+  width: 100vw;
+  height: 100vh;
+  display: block;
+}
+.gman-widget-value {
+  min-width: 5em;
+}

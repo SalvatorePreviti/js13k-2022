@@ -9,11 +9,11 @@ layout(location = 1) in vec4 aVertexNormal;
 #define aVertexColor kC
 layout(location = 2) in vec4 aVertexColor;
 
-#define uModelViewMatrix uM
-uniform mat4 uModelViewMatrix;
+#define uMatrix uM
+uniform mat4 uMatrix;
 
-#define uProjectionMatrix uP
-uniform mat4 uProjectionMatrix;
+uniform mat4 projectionMatrix;
+uniform mat4 modelViewMatrix2;
 
 #define vNormal vN
 out highp vec4 vNormal;
@@ -21,8 +21,11 @@ out highp vec4 vNormal;
 #define vColor vC
 out lowp vec4 vColor;
 
+out highp vec4 Position;
+
 void main(void) {
-  gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
+  gl_Position = projectionMatrix * modelViewMatrix2 * aVertexPosition;
   vColor = aVertexColor;
   vNormal = aVertexNormal;
+  Position = modelViewMatrix2 * aVertexPosition;
 }

@@ -1,12 +1,10 @@
 import { angle_wrap_degrees, clamp, DEG_TO_RAD } from "./math/math";
 
-export const camera_position = { x: 0, y: 0, z: 5 };
+export const camera_position = { x: 20, y: 12, z: 38 };
 
-export const camera_rotation = { x: 0, y: 0, z: 0 };
+export const camera_rotation = { x: 0, y: -35, z: 0 };
 
 export const camera_view = new DOMMatrix();
-
-export const camera_projection = new Float32Array(16);
 
 export const camera_firstPersonRotate = (x: number, y: number) => {
   camera_rotation.y = angle_wrap_degrees(camera_rotation.y + x);
@@ -28,15 +26,3 @@ export const camera_updateView = () => {
     .invertSelf()
     .translateSelf(-camera_position.x, -camera_position.y, -camera_position.z);
 };
-
-export const camera_firstPersonPerspective = (fovyRadians: number, aspectRatio: number, near: number, far: number) => {
-  const nf = near - far;
-  const f = 1 / Math.tan(fovyRadians / 2);
-  camera_projection[0] = f / aspectRatio;
-  camera_projection[5] = f;
-  camera_projection[10] = (far + near) / nf;
-  camera_projection[11] = -1;
-  camera_projection[14] = (2 * far * near) / nf;
-};
-
-// mat4_translate(mat4_from(m, -rotX * DEG_TO_RAD, -rotY * DEG_TO_RAD, -rotZ * DEG_TO_RAD), -posX, -posY, -posZ);

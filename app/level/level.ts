@@ -23,7 +23,7 @@ const corridor = (): Polygon[][] => {
           identity
             .translate(0, 0.6, i * 6 - 14)
             .rotate(0, 0, 90)
-            .scale(1.5, 4, 1.5),
+            .scale(2.5, 4, 1.5),
         ),
       ),
     ]),
@@ -79,9 +79,11 @@ const weirdObject = () => {
 };
 
 export const pavement = (): Polygon[] => {
-  return solid_transform(solid_box(materialWhite), identity.translate(0, -10).scale(30, 0.5, 30));
+  // return solid_transform(solid_box(materialWhite), identity.translate(0, 0).scale(80, 0.5, 80));
+  return solid_transform(solid_box(materialWhite), identity.translate(0, -2).scale(1100, 0.5, 1100));
 };
 
 export const mainScene = (): Polygon[][] => {
-  return [...corridor(), weirdObject(), pavement()];
+  // weirdObject(),
+  return [...corridor().map((t) => solid_transform(t, identity.translate(0, 10, 0))), pavement()];
 };
