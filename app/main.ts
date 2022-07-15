@@ -8,7 +8,7 @@ import { triangles_attributes } from "./geometry/triangles-render";
 
 // import { debug_lines_draw } from "./debug-lines-render";
 import { camera_update } from "./camera-update";
-import { camera_updateView, camera_view } from "./camera";
+import { camera_debug_view, camera_updateView, camera_view } from "./camera";
 import { sceneTriangles, loadScene } from "./level/scene";
 import { camera_firstPersonPerspective, camera_projection, fieldOfView, zFar, zNear } from "./camera-projection";
 import { initShaderProgram } from "./shader-utils";
@@ -25,6 +25,7 @@ const projectionMatrixLoc = gl.getUniformLocation(shaderProgram, "projectionMatr
 const cascadedSplitsLoc = gl.getUniformLocation(shaderProgram, "cascadedSplits")!;
 const inverseViewMatrixLoc = gl.getUniformLocation(shaderProgram, "inverseViewMatrix")!;
 const lightDirectionLoc = gl.getUniformLocation(shaderProgram, "lightDirection")!;
+const modelViewMatrixLoc = gl.getUniformLocation(shaderProgram, "modelViewMatrix");
 const modelViewMatrix2Loc = gl.getUniformLocation(shaderProgram, "modelViewMatrix2");
 
 const viewProjecMatricesLocs = integers(TOTAL_SPLITS).map(
@@ -88,9 +89,11 @@ const draw = () => {
 
   gl.uniformMatrix4fv(projectionMatrixLoc, false, camera_projection);
 
-  gl.uniformMatrix4fv(modelViewMatrix2Loc, false, camera_view.toFloat32Array());
+  gl.uniformMatrix4fv(modelViewMatrixLoc, false, camera_view.toFloat32Array());
 
-  gl.uniformMatrix4fv(inverseViewMatrixLoc, false, camera_view.inverse().toFloat32Array());
+  gl.uniformMatrix4fv(modelViewMatrix2Loc, false, camera_debug_view.toFloat32Array());
+
+  gl.uniformMatrix4fv(inverseViewMatrixLoc, false, camera_debug_view.inverse().toFloat32Array());
 
   gl.uniform4f(
     cascadedSplitsLoc,

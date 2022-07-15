@@ -1,6 +1,6 @@
 export const TOTAL_SPLITS = 4;
 
-import { camera_view } from "../camera";
+import { camera_debug_view } from "../camera";
 import { zNear, zFar, camera_projection } from "../camera-projection";
 import { gl } from "../gl";
 import { lightMatrixLoc, lightShaderProgram } from "../light";
@@ -83,7 +83,7 @@ export class CSM {
     this.computeCascadeSplits(cascadeSplits);
 
     // Move the frustum coordinates to world space
-    const invViewProj = DOMMatrix.fromFloat32Array(camera_projection).multiply(camera_view).inverse();
+    const invViewProj = DOMMatrix.fromFloat32Array(camera_projection).multiply(camera_debug_view).inverse();
 
     for (let splitNumber = 0; splitNumber < TOTAL_SPLITS; splitNumber++) {
       let prevSplitDistance: number;
@@ -152,7 +152,7 @@ export class CSM {
 
       // Store the split distances
       const clipDist = zFar - zNear;
-      this.shadowSplits[splitNumber] = (zNear + actualsplitDistance * clipDist) * -1;
+      this.shadowSplits[splitNumber] = -(zNear + actualsplitDistance * clipDist);
 
       gl.useProgram(lightShaderProgram);
 

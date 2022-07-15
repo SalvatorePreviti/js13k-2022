@@ -4,7 +4,7 @@ export const fieldOfView = 45 * DEG_TO_RAD; // in radians
 
 export const zNear = 0.1;
 
-export const zFar = 100.0;
+export const zFar = 1000.0;
 
 export const camera_projection = new Float32Array(16);
 

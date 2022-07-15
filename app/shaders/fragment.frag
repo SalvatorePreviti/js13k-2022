@@ -113,7 +113,14 @@ void main() {
   vec4 prev_color = vec4(((ambientColor + inShadow * diffuse) * vColor.xyz), 1.0f);
 
   // prev_color.xyz * 0.1 +
-  O.xyz = fragmentShadowPosition.xyz;  // vec3(fragmentShadowPosition.w == 1. ? 1. : 0.);
+  // O.xyz = vec3(fragmentShadowPosition.xy, 1);  // vec3(fragmentShadowPosition.w == 1. ? 1. : 0.);
+
+  // O.xyz = fragmentShadowPosition.xyz;
+  O.x = fragmentShadowPosition.x >= 0. && fragmentShadowPosition.x <= 1. && fragmentShadowPosition.y >= 0. &&
+      fragmentShadowPosition.y <= 1.
+    ? 0.
+    : 1.;
+  O.z = (ambientColor.x + ambientColor.y + ambientColor.z) / 2.;
 
   // O.xyz = CascadeIndicator.xyz;
   //  O.xyz = vec3(float(cascadeIdx) / 4.);
