@@ -90,15 +90,22 @@ void main() {
 
   uint cascadeIdx = findCascade(depth);
 
+  // Take the corresponding projection matrix
+  mat4 lightViewProjectionMatrix = viewProjecMatrices[cascadeIdx];
+
   // Move the fragment to shadow coordinates
-  vec4 fragmentModelPosition = inverseViewMatrix * vec4(Position.xyz, 1);
-  vec4 fragmentShadowPosition = viewProjecMatrices[cascadeIdx] * fragmentModelPosition;
+  vec4 fragmentModelViewPosition = vec4(Position.xyz, 1.0f);
+  vec4 fragmentModelPosition = inverseViewMatrix * fragmentModelViewPosition;
+  vec4 fragmentShadowPosition = lightViewProjectionMatrix * fragmentModelPosition;
 
   // Perspective division
   fragmentShadowPosition.xyz /= fragmentShadowPosition.w;
 
   // Move from NDC to 0 - 1 coordinate system
-  fragmentShadowPosition = fragmentShadowPosition / 2. + .5f;
+  fragmentShadowPosition = fragmentShadowPosition * 0.5f + 0.5f;
+
+  // The depth will be the Z coordinate
+  float currentDepth = fragmentShadowPosition.z;
 
   float bias = max(angleBias * (1.0 - dot(vNormal.xyz, -lightDirection)), 0.0008);
 
@@ -116,14 +123,19 @@ void main() {
   // O.xyz = vec3(fragmentShadowPosition.xy, 1);  // vec3(fragmentShadowPosition.w == 1. ? 1. : 0.);
 
   // O.xyz = fragmentShadowPosition.xyz;
-  O.x = fragmentShadowPosition.x >= 0. && fragmentShadowPosition.x <= 1. && fragmentShadowPosition.y >= 0. &&
-      fragmentShadowPosition.y <= 1.
-    ? 0.
-    : 1.;
-  O.z = (ambientColor.x + ambientColor.y + ambientColor.z) / 2.;
+  // O.z = fragmentShadowPosition.x > 0. && fragmentShadowPosition.x < 1. && fragmentShadowPosition.y > 0. &&
+  //    fragmentShadowPosition.y < 1.
+  //  ? 0.
+  //  : 1.;
 
-  // O.xyz = CascadeIndicator.xyz;
-  //  O.xyz = vec3(float(cascadeIdx) / 4.);
+  O.z = fragmentShadowPosition.y < 0. ? 1. : 0.;
+
+  O.xy = fragmentShadowPosition.xy;
+
+  // O.z = (ambientColor.x + ambientColor.y + ambientColor.z) / 2.;
+
+  // O.xyz = inverseViewMatrix[2].xyz / 3.0;
+  //    O.xyz = vec3(float(cascadeIdx) / 4.);
 
   // O.xyz = Position.xyz / 1000.;
   // O.xyz = CascadeIndicator.xyz;

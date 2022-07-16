@@ -108,21 +108,31 @@ export class CSM {
 
       for (let i = 0; i < 8; i++) {
         // Move to world
-        const p = frustumPoints[i]!;
-        const inversePoint = invViewProj.transformPoint(p);
-        frustumPoints[i] = vec3_scale(inversePoint, 1 / inversePoint.w);
+        const inversePoint = invViewProj.transformPoint(frustumPoints[i]); // {x:p.x,y:p.y,z:p.z,w:1}
+        inversePoint.x /= inversePoint.w;
+        inversePoint.y /= inversePoint.w;
+        inversePoint.z /= inversePoint.w;
+        // inversePoint.w = 1;
+        frustumPoints[i] = inversePoint;
       }
 
       // Compute the real corners of the AABB
       for (let i = 0; i < 4; i++) {
         const frustumVec = vec3_sub(frustumPoints[i + 4]!, frustumPoints[i]!);
         // move vectors to real coordinates
-        const farVec = vec3_scale(frustumVec, actualsplitDistance);
         const nearVec = vec3_scale(frustumVec, prevSplitDistance);
+        const farVec = vec3_scale(frustumVec, actualsplitDistance);
         // Compute real points
         frustumPoints[i + 4] = vec3_add(frustumPoints[i]!, farVec);
         frustumPoints[i] = vec3_add(frustumPoints[i]!, nearVec);
       }
+
+      /* console.log(
+        frustumPoints
+          .slice(4, 5)
+          .map((p) => Math.round(p.x) + "," + Math.round(p.y) + "," + Math.round(p.z))
+          .join("\n"),
+      ); */
 
       // Obtain the Center of the frustum
       const frusCenter = this.getFrustumCenter(frustumPoints);
@@ -135,6 +145,18 @@ export class CSM {
       const minPoint = vec3_negate(maxPoint);
 
       // Position the viewmatrix looking down the center of the frustum with an arbitrary lighht direction
+
+      // Position the view matrix looking down the center of the frustum with an arbitrary light direction
+      // const lightDirVec = vec3_normalize(light_dir);
+      // const llhypot = Math.sqrt(lightDirVec.x * lightDirVec.x + lightDirVec.z * lightDirVec.z);
+      // const theta = Math.atan(lightDirVec.y / llhypot);
+
+      // const nn = Math.max(60.0 - frusCenter.y, -minPoint.z);
+      // const nl = nn / Math.sin(theta);
+
+      // const lightDirection = vec3_sub(frustumCenter, new Vector3f(Atlas.lightPositionProperty.getProperty()).negate().normalize().mul(nl));
+      // Matrix4f lightViewMatrix;
+      // lightViewMatrix = new Matrix4f().lookAt(lightDirection, frustumCenter, new Vector3f(0.0f, 1.0f, 0.0f));
 
       const lightViewMatrix = this.getViewMatrix(frusCenter, minPoint.z);
 

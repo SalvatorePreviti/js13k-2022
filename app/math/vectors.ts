@@ -63,7 +63,7 @@ export const vec4_sub = ({ x, y, z, w }: Vec4In, { x: bx, y: by, z: bz, w: bw }:
   w: w - bw,
 });
 
-export const vec3_distance = (a: Vec3In, b: Vec3In): number => vec3_length(vec3_sub(a, b));
+export const vec3_distance = (a: Vec3In, b: Vec3In): number => vec3_length(vec3_sub(b, a));
 
 export const vec3_cross = ({ x, y, z }: Vec3In, { x: bx, y: by, z: bz }: Vec3In): Vec3 => ({
   x: y * bz - z * by,

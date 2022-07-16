@@ -9,9 +9,6 @@ layout(location = 1) in vec4 aVertexNormal;
 #define aVertexColor kC
 layout(location = 2) in vec4 aVertexColor;
 
-#define uMatrix uM
-uniform mat4 uMatrix;
-
 uniform mat4 projectionMatrix;
 uniform mat4 modelViewMatrix;
 uniform mat4 modelViewMatrix2;

@@ -1,6 +1,6 @@
 import { angle_wrap_degrees, clamp, DEG_TO_RAD } from "./math/math";
 
-export let debug_camera_enabled = false;
+export let debug_camera_enabled = true;
 
 export function setDebugCamera(value: boolean) {
   console.log(value);
