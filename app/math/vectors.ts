@@ -38,6 +38,8 @@ export type Vec4In = Readonly<Vec4>;
 
 export const vec3 = (x: number, y: number, z: number): Vec3 => ({ x, y, z });
 
+export const vec4 = (x: number, y: number, z: number, w: number): Vec4 => ({ x, y, z, w });
+
 export const vec3_clone = ({ x, y, z }: Vec3In) => ({ x, y, z });
 
 export const vec3_length = ({ x, y, z }: Vec3In): number => Math.sqrt(x * x + y * y + z * z);
@@ -121,25 +123,90 @@ export const vec3_trianglePlane = (triangle: readonly [Vec3In, Vec3In, Vec3In]):
 //  vec3_normalize(vec3_cross(vec3_sub(b, a), vec3_sub(c, a)));
 
 export const mat4_lookAt = (eye: Vec3In, center: Vec3In, up: Vec3In) => {
-  const zAxis = vec3_normalize(vec3_sub(center, eye));
-  const xAxis = vec3_normalize(vec3_cross(up, zAxis));
-  const yAxis = vec3_normalize(vec3_cross(zAxis, xAxis));
+  let x0;
+  let x1;
+  let x2;
+  let y0;
+  let y1;
+  let y2;
+  let z0;
+  let z1;
+  let z2;
+  let len;
+  const eyex = eye.x;
+  const eyey = eye.y;
+  const eyez = eye.z;
+  const upx = up.x;
+  const upy = up.y;
+  const upz = up.z;
+  const centerx = center.x;
+  const centery = center.y;
+  const centerz = center.z;
+
+  // if (
+  //   Math.abs(eyex - centerx) < glMatrix.EPSILON &&
+  //   Math.abs(eyey - centery) < glMatrix.EPSILON &&
+  //   Math.abs(eyez - centerz) < glMatrix.EPSILON
+  // ) {
+  //   return identity(out);
+  // }
+
+  z0 = eyex - centerx;
+  z1 = eyey - centery;
+  z2 = eyez - centerz;
+
+  len = 1 / Math.hypot(z0, z1, z2);
+  z0 *= len;
+  z1 *= len;
+  z2 *= len;
+
+  x0 = upy * z2 - upz * z1;
+  x1 = upz * z0 - upx * z2;
+  x2 = upx * z1 - upy * z0;
+  len = Math.hypot(x0, x1, x2);
+  if (!len) {
+    x0 = 0;
+    x1 = 0;
+    x2 = 0;
+  } else {
+    len = 1 / len;
+    x0 *= len;
+    x1 *= len;
+    x2 *= len;
+  }
+
+  y0 = z1 * x2 - z2 * x1;
+  y1 = z2 * x0 - z0 * x2;
+  y2 = z0 * x1 - z1 * x0;
+
+  len = Math.hypot(y0, y1, y2);
+  if (!len) {
+    y0 = 0;
+    y1 = 0;
+    y2 = 0;
+  } else {
+    len = 1 / len;
+    y0 *= len;
+    y1 *= len;
+    y2 *= len;
+  }
+
   return new DOMMatrix([
-    xAxis.x,
-    xAxis.y,
-    xAxis.z,
+    x0,
+    y0,
+    z0,
     0,
-    yAxis.x,
-    yAxis.y,
-    yAxis.z,
+    x1,
+    y1,
+    z1,
     0,
-    zAxis.x,
-    zAxis.y,
-    zAxis.z,
+    x2,
+    y2,
+    z2,
     0,
-    -vec3_dot(xAxis, eye),
-    -vec3_dot(yAxis, eye),
-    -vec3_dot(zAxis, eye),
+    -(x0 * eyex + x1 * eyey + x2 * eyez),
+    -(y0 * eyex + y1 * eyey + y2 * eyez),
+    -(z0 * eyex + z1 * eyey + z2 * eyez),
     1,
   ]);
 };
@@ -166,4 +233,10 @@ export const mat4_ortho = (left: number, right: number, bottom: number, top: num
     (far + near) * nf,
     1,
   ]);
+};
+
+export const mat4_perspective = (fovyRadians: number, aspect: number, near: number, far: number) => {
+  const f = 1 / Math.tan(fovyRadians / 2);
+  const nf = near - far;
+  return new DOMMatrix([f / aspect, 0, 0, 0, 0, f, 0, 0, 0, 0, (far + near) / nf, -1, 0, 0, (2 * far * near) / nf, 0]);
 };
