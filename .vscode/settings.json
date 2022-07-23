@@ -72,5 +72,9 @@
   "prettier.singleQuote": false,
   "prettier.tabWidth": 2,
   "prettier.trailingComma": "all",
-  "prettier.useTabs": false
+  "prettier.useTabs": false,
+  "[glsl]": {
+    "editor.defaultFormatter": "xaver.clang-format"
+  },
+  "glsllint.supportedLangsWithStringLiterals": []
 }

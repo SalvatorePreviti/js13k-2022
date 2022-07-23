@@ -2,6 +2,6 @@
 
 layout(location = 0) in vec3 P;
 
-uniform mat4 M;
+uniform mat4 modelViewMatrix;
 
-void main(void) { gl_Position = M * vec4(P, 1); }
+void main(void) { gl_Position = modelViewMatrix * vec4(P, 1); }

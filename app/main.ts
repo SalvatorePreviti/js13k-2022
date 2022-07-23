@@ -1,9 +1,15 @@
 import "./dev-tools/dev-main";
 import "./index.css";
-import vsSource from "./shaders/main-vertex.vert";
-import fsSource from "./shaders/main-fragment.frag";
+import vsSource, { uniformName_projectionMatrix, uniformName_viewMatrix2 } from "./shaders/main-vertex.vert";
+import fsSource, {
+  uniformName_viewMatrix,
+  uniformName_viewPos,
+  uniformName_lightDir,
+  uniformName_lightSpaceMatrices,
+  uniformName_depthTextures,
+} from "./shaders/main-fragment.frag";
 
-import shadowVsSource from "./shaders/shadow-vertex.vert";
+import shadowVsSource, { uniformName_modelViewMatrix } from "./shaders/shadow-vertex.vert";
 import shadowFsSource from "./shaders/shadow-fragment.frag";
 
 import { gl } from "./gl";
@@ -16,7 +22,7 @@ import { sceneTriangles, loadScene } from "./level/scene";
 import { camera_firstPersonPerspective, camera_projection, fieldOfView, zFar, zNear } from "./camera-projection";
 import { initShaderProgram } from "./shader-utils";
 import { integers } from "./math/math";
-import { getLightSpaceMatrices, lightDir, ShadowMapSize, TOTAL_SPLITS } from "./cascaded/csm";
+import { getLightSpaceMatrices, lightDir, CSM_TEXTURE_SIZE, TOTAL_SPLITS } from "./cascaded/csm";
 
 loadScene();
 
@@ -25,24 +31,23 @@ loadScene();
 const shaderProgram = initShaderProgram(vsSource, fsSource);
 
 const shadowShaderProgram = initShaderProgram(shadowVsSource, shadowFsSource);
-const shadowMatrixLoc = gl.getUniformLocation(shadowShaderProgram, "M");
+const shadowMatrixLoc = gl.getUniformLocation(shadowShaderProgram, uniformName_modelViewMatrix);
 
-const projectionMatrixLoc = gl.getUniformLocation(shaderProgram, "projectionMatrix");
-const viewMatrixLoc = gl.getUniformLocation(shaderProgram, "viewMatrix");
-const viewMatrix2Loc = gl.getUniformLocation(shaderProgram, "viewMatrix2");
-const viewPosLoc = gl.getUniformLocation(shaderProgram, "viewPos");
+const projectionMatrixLoc = gl.getUniformLocation(shaderProgram, uniformName_projectionMatrix);
+const viewMatrixLoc = gl.getUniformLocation(shaderProgram, uniformName_viewMatrix);
+const viewMatrix2Loc = gl.getUniformLocation(shaderProgram, uniformName_viewMatrix2);
+const viewPosLoc = gl.getUniformLocation(shaderProgram, uniformName_viewPos);
 
-const lightDirLoc = gl.getUniformLocation(shaderProgram, "lightDir")!;
+const lightDirLoc = gl.getUniformLocation(shaderProgram, uniformName_lightDir)!;
 
 // const cascadedSplitsLoc = gl.getUniformLocation(shaderProgram, "cascadedSplits")!;
 // const inverseViewMatrixLoc = gl.getUniformLocation(shaderProgram, "inverseViewMatrix")!;
 
-const LightSpaceMatrices = integers(TOTAL_SPLITS).map(
-  (i) => gl.getUniformLocation(shaderProgram, `LightSpaceMatrices[${i}]`)!,
+const lightSpaceMatricesLocs = integers(TOTAL_SPLITS).map(
+  (i) => gl.getUniformLocation(shaderProgram, uniformName_lightSpaceMatrices + `[${i}]`)!,
 );
-
 const depthTexturesLocs = integers(TOTAL_SPLITS).map(
-  (i) => gl.getUniformLocation(shaderProgram, `depthTextures[${i}]`)!,
+  (i) => gl.getUniformLocation(shaderProgram, uniformName_depthTextures + `[${i}]`)!,
 );
 
 // const viewMatrix = mat4_setIdentityValues(mat4_new_zero());
@@ -57,16 +62,17 @@ const mCascadedShadowFBO = gl.createFramebuffer()!;
 
 gl.bindFramebuffer(gl.FRAMEBUFFER, mCascadedShadowFBO);
 
-const mCascadedTextures = integers(TOTAL_SPLITS).map(() => {
+const mCascadedTextures = integers(TOTAL_SPLITS).map((i) => {
   const result = gl.createTexture()!;
+  gl.activeTexture(gl.TEXTURE0 + i);
   gl.bindTexture(gl.TEXTURE_2D, result);
 
   gl.texImage2D(
     gl.TEXTURE_2D,
     0,
     gl.DEPTH_COMPONENT32F,
-    ShadowMapSize,
-    ShadowMapSize,
+    CSM_TEXTURE_SIZE,
+    CSM_TEXTURE_SIZE,
     0,
     gl.DEPTH_COMPONENT,
     gl.FLOAT,
@@ -118,11 +124,11 @@ const draw = () => {
 
   gl.useProgram(shadowShaderProgram);
   gl.bindFramebuffer(gl.FRAMEBUFFER, mCascadedShadowFBO);
-  gl.viewport(0, 0, ShadowMapSize, ShadowMapSize);
+  gl.viewport(0, 0, CSM_TEXTURE_SIZE, CSM_TEXTURE_SIZE);
   // gl.cullFace(gl.FRONT);
 
-  for (let splitNumber = 0; splitNumber < lightSpaceMatrices.length; splitNumber++) {
-    gl.uniformMatrix4fv(shadowMatrixLoc, false, lightSpaceMatrices[splitNumber]!.toFloat32Array());
+  for (let splitNumber = 0; splitNumber < TOTAL_SPLITS; splitNumber++) {
+    gl.uniformMatrix4fv(shadowMatrixLoc, false, lightSpaceMatrices[splitNumber]!);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, mCascadedTextures[splitNumber]!, 0);
 
     gl.clear(gl.DEPTH_BUFFER_BIT);
@@ -133,12 +139,6 @@ const draw = () => {
   }
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
-  // cascaded.renderCSM(() => {
-  //   const type = gl.UNSIGNED_SHORT;
-  //   const offset = 0;
-  //   gl.drawElements(gl.TRIANGLES, sceneTriangles.$indices.length, type, offset);
-  // });
 
   // *** MAIN RENDER ***
 
@@ -162,22 +162,9 @@ const draw = () => {
 
   gl.uniform3f(viewPosLoc, camera_position.x, camera_position.y, camera_position.z);
 
-  // gl.uniformMatrix4fv(inverseViewMatrixLoc, false, camera_debug_view.inverse().toFloat32Array());
-
-  /* gl.uniform4f(
-    cascadedSplitsLoc,
-    cascaded.shadowSplits[0]!,
-    cascaded.shadowSplits[1]!,
-    cascaded.shadowSplits[2]!,
-    cascaded.shadowSplits[3]!,
-  ); */
-
-  for (let i = 0; i < LightSpaceMatrices.length; i++) {
-    gl.uniformMatrix4fv(LightSpaceMatrices[i]!, false, lightSpaceMatrices[i]!.toFloat32Array());
-
-    gl.activeTexture(gl.TEXTURE0 + i);
-    gl.bindTexture(gl.TEXTURE_2D, mCascadedTextures[i]!);
+  for (let i = 0; i < TOTAL_SPLITS; i++) {
     gl.uniform1i(depthTexturesLocs[i]!, i);
+    gl.uniformMatrix4fv(lightSpaceMatricesLocs[i]!, false, lightSpaceMatrices[i]!);
   }
 
   gl.uniform3f(lightDirLoc, lightDir.x, lightDir.y, lightDir.z);
@@ -186,11 +173,6 @@ const draw = () => {
     const type = gl.UNSIGNED_SHORT;
     const offset = 0;
     gl.drawElements(gl.TRIANGLES, sceneTriangles.$indices.length, type, offset);
-  }
-
-  for (let i = 0; i < TOTAL_SPLITS; i++) {
-    gl.activeTexture(gl.TEXTURE0 + i);
-    gl.bindTexture(gl.TEXTURE_2D, null);
   }
 
   if (DEBUG) {

@@ -2,7 +2,7 @@ import { csg_subtract, csg_union, csg_polygons } from "../geometry/csg";
 import { solid_box, solid_cylinder, solid_transform, type Polygon } from "../geometry/geometry";
 import type { Material } from "../geometry/vertex";
 import { integers } from "../math/math";
-import { identity } from "../math/vectors";
+import { identity } from "../math/matrix";
 
 const materialWhite = [1, 1, 1] as Material;
 const material0 = [1, 0.3, 0] as Material;
@@ -63,7 +63,9 @@ const weirdObject = () => {
     identity.translate(-0.2).rotate(0, 10, 10).scale(0.15, 1.7, 0.15),
   );
 
-  console.time("weird");
+  if (DEBUG) {
+    console.time("weird");
+  }
 
   const csg0 = csg_subtract(csg_union([figure01, figure0]), figure1);
   const csg1 = csg_union([csg0, figure2]);
@@ -73,7 +75,9 @@ const weirdObject = () => {
 
   const result = csg_polygons(csg4);
 
-  console.timeEnd("weird");
+  if (DEBUG) {
+    console.timeEnd("weird");
+  }
 
   return result;
 };

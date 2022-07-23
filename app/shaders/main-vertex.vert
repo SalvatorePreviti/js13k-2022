@@ -11,7 +11,6 @@ uniform mat4 viewMatrix2;
 out highp vec3 FragPos;
 out highp vec3 Normal;
 out lowp vec4 Color;
-
 out highp vec4 Position;
 
 void main(void) {

@@ -1,0 +1,16 @@
+export default {
+  projectionMatrix: "A",
+  viewMatrix: "B",
+  viewMatrix2: "C",
+  aColor: "D",
+  aNormal: "E",
+  aPosition: "F",
+  depthTextures: "G",
+  lightDir: "H",
+  lightSpaceMatrices: "I",
+  viewPos: "J",
+  Color: "K",
+  FragPos: "L",
+  Normal: "M",
+  modelViewMatrix: "N",
+};

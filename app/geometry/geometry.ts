@@ -1,5 +1,6 @@
 import { integers } from "../math/math";
-import { identityTranslateBtm, identityTranslateTop, vec3_triangleNormal, type Vec3 } from "../math/vectors";
+import { identityTranslateBtm, identityTranslateTop } from "../math/matrix";
+import { vec3_triangleNormal, type Vec3 } from "../math/vectors";
 import { vertex_clone, vertex_flipped, vertex_lerp, type Material, type Vertex } from "./vertex";
 
 export interface Polygon {
@@ -17,6 +18,20 @@ export const polygon_transform = ({ $material, $points }: Polygon, m: DOMMatrix)
     ({ x: $nx, y: $ny, z: $nz } = m.transformPoint({ x: $nx, y: $ny, z: $nz, w: 0 }));
     return { x, y, z, $nx, $ny, $nz };
   }),
+});
+
+export const polygon_translate = ({ $material, $points }: Polygon, tx: number, ty: number, tz: number): Polygon => ({
+  $material,
+  $points: $points.map(
+    ({ x, y, z, $nx, $ny, $nz }: Vertex): Vertex => ({
+      x: x + tx,
+      y: y + ty,
+      z: z + tz,
+      $nx,
+      $ny,
+      $nz,
+    }),
+  ),
 });
 
 export const polygon_clone = ({ $material, $points }: Polygon): Polygon => ({

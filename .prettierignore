@@ -1,4 +1,5 @@
 *.frag
+dist
 
 # Dependencies and vendor
 vendor

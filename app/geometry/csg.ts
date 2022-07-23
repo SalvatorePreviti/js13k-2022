@@ -1,4 +1,4 @@
-import { vec3_dot, vec3_trianglePlane, type Plane } from "../math/vectors";
+import { vec3_triangleNormal, vec3_dot, type Plane } from "../math/vectors";
 import { polygon_clone, polygon_flipped, type Polygon } from "./geometry";
 import { vertex_lerp, type Vertex } from "./vertex";
 
@@ -118,11 +118,9 @@ export const csg_tree = (n: CSGInput): CSGNode => {
     // Build a BSP tree from a list of polygons
     let root: CSGNode | undefined;
     for (const { $material, $points } of n as Polygon[]) {
-      root = csg_tree_addPolygon(
-        root,
-        { $material, $points, $flipped: false, $parent: null },
-        vec3_trianglePlane($points as [Vertex, Vertex, Vertex]),
-      );
+      const plane = vec3_triangleNormal($points as [Vertex, Vertex, Vertex]) as Plane;
+      plane.w = vec3_dot(plane, $points[0]!);
+      root = csg_tree_addPolygon(root, { $material, $points, $flipped: false, $parent: null }, plane);
     }
     return root!;
   }

@@ -33,7 +33,7 @@ export const loadScene = () => {
 
 if (import.meta.hot) {
   import.meta.hot.accept((mod) => {
-    mod.loadScene();
-    sceneTriangles = mod.sceneTriangles;
+    mod!.loadScene();
+    sceneTriangles = mod!.sceneTriangles;
   });
 }

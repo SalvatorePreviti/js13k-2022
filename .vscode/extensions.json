@@ -5,6 +5,9 @@
     "eamodio.gitlens",
     "esbenp.prettier-vscode",
     "pflannery.vscode-versionlens",
-    "visualstudioexptteam.vscodeintellicode"
+    "visualstudioexptteam.vscodeintellicode",
+    "raczzalan.webgl-glsl-editor",
+    "dtoplak.vscode-glsllint",
+    "xaver.clang-format"
   ]
 }

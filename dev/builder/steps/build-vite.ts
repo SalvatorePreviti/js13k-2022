@@ -10,6 +10,7 @@ import { rollupPluginSpglsl } from "spglsl";
 import { browserPureFunctions, domRemoveExternalCssAndScripts, stripUtf8BOM } from "../lib/code-utils";
 import { JSDOM } from "jsdom";
 import { rollupPluginSwcTransform } from "./build-swc-transform";
+import shadersMangleGlobals from "../../../app/shaders/_mangle_globals";
 
 export interface ViteBundledOutput {
   js: string;
@@ -83,7 +84,9 @@ export async function buildWithVite(options: { stripDevTools: boolean }): Promis
 
         plugins: [
           options.stripDevTools ? rollupPluginStripDevTools() : undefined,
-          rollupPluginSpglsl({}),
+          rollupPluginSpglsl({
+            mangle_global_map: shadersMangleGlobals,
+          }),
           rollupPluginSwcTransform(),
         ],
       };
