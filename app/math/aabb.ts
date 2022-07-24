@@ -1,5 +1,3 @@
-import { max, min } from "./math";
-
 export interface AABB {
   $minX: number;
   $minY: number;
@@ -19,10 +17,10 @@ export const aabb_new = (): AABB => ({
 });
 
 export const aabb_addPoint = (aabb: AABB, x: number, y: number, z: number): void => {
-  aabb.$minX = min(aabb.$minX, x);
-  aabb.$maxX = max(aabb.$maxX, x);
-  aabb.$minY = min(aabb.$minY, y);
-  aabb.$maxY = max(aabb.$maxY, y);
-  aabb.$minZ = min(aabb.$minZ, z);
-  aabb.$maxZ = max(aabb.$maxZ, z);
+  aabb.$minX = Math.min(aabb.$minX, x);
+  aabb.$maxX = Math.max(aabb.$maxX, x);
+  aabb.$minY = Math.min(aabb.$minY, y);
+  aabb.$maxY = Math.max(aabb.$maxY, y);
+  aabb.$minZ = Math.min(aabb.$minZ, z);
+  aabb.$maxZ = Math.max(aabb.$maxZ, z);
 };

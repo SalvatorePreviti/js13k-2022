@@ -17,7 +17,7 @@ uniform vec3 viewPos;
 uniform vec3 lightDir;
 uniform mat4 viewMatrix;
 
-uniform mat4[4] lightSpaceMatrices;
+uniform mat4[4] csm_matrices;
 uniform sampler2DShadow depthTextures[4];
 
 float ShadowCalculation(float shadowBias) {
@@ -33,7 +33,7 @@ float ShadowCalculation(float shadowBias) {
                                                       : 3;
 
   // Gets the fragment position in light space
-  vec4 csmCoords = lightSpaceMatrices[cascadeLayer] * fragPos4;
+  vec4 csmCoords = csm_matrices[cascadeLayer] * fragPos4;
 
   // perform perspective divide and transform to [0,1] range
   csmCoords = (csmCoords / csmCoords.w) * .5 + .5;

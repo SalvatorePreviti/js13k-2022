@@ -1,14 +1,8 @@
-import { camera_debug_view } from "../camera";
+import { camera_view } from "../camera";
 import { fieldOfView, zNear, zFar } from "../camera-projection";
-import { gl } from "../gl";
-import { max, min } from "../math/math";
-import {
-  vec3_normalize,
-  DOMMatrix_ortho,
-  DOMMatrix_perspective,
-  type Vec3,
-  DOMMatrix_fromDirection,
-} from "../math/vectors";
+import { canvas } from "../canvas";
+import { DOMMatrix_fromDirection, DOMMatrix_ortho, DOMMatrix_perspective } from "../math/matrix";
+import { vec3_normalize, type Vec3 } from "../math/vectors";
 
 export const lightDir: Vec3 = vec3_normalize({ x: 40.0, y: 50, z: -20.0 });
 
@@ -20,16 +14,16 @@ const CSM_PLANE_DISTANCE0 = 25;
 const CSM_PLANE_DISTANCE1 = 100;
 const CSM_PLANE_DISTANCE2 = 200;
 
-const getLightSpaceMatrix = (nearPlane: number, farPlane: number): Float32Array => {
+const csm_buildMatrix = (nearPlane: number, farPlane: number): Float32Array => {
   const radius = (farPlane - nearPlane) / 2;
 
   const projViewInverse = DOMMatrix_perspective(
     fieldOfView,
-    gl.canvas.clientWidth / gl.canvas.clientHeight,
+    canvas.clientWidth / canvas.clientHeight,
     nearPlane,
     farPlane,
   )
-    .multiplySelf(camera_debug_view)
+    .multiplySelf(camera_view)
     .invertSelf();
 
   let cx = 0;
@@ -62,12 +56,12 @@ const getLightSpaceMatrix = (nearPlane: number, farPlane: number): Float32Array 
   let maxZ = -Infinity;
   for (const v of frustumCorners) {
     const trf = lightView.transformPoint(v);
-    minX = min(minX, trf.x);
-    maxX = max(maxX, trf.x);
-    minY = min(minY, trf.y);
-    maxY = max(maxY, trf.y);
-    minZ = min(minZ, trf.z);
-    maxZ = max(maxZ, trf.z);
+    minX = Math.min(minX, trf.x);
+    maxX = Math.max(maxX, trf.x);
+    minY = Math.min(minY, trf.y);
+    maxY = Math.max(maxY, trf.y);
+    minZ = Math.min(minZ, trf.z);
+    maxZ = Math.max(maxZ, trf.z);
   }
 
   // Tune this parameter if needed
@@ -85,9 +79,9 @@ const getLightSpaceMatrix = (nearPlane: number, farPlane: number): Float32Array 
   return shadowMatrix.toFloat32Array();
 };
 
-export const getLightSpaceMatrices = (): Float32Array[] => [
-  getLightSpaceMatrix(zNear, CSM_PLANE_DISTANCE0),
-  getLightSpaceMatrix(CSM_PLANE_DISTANCE0, CSM_PLANE_DISTANCE1),
-  getLightSpaceMatrix(CSM_PLANE_DISTANCE1, CSM_PLANE_DISTANCE2),
-  getLightSpaceMatrix(CSM_PLANE_DISTANCE2, zFar),
+export const csm_buildMatrices = (): Float32Array[] => [
+  csm_buildMatrix(zNear, CSM_PLANE_DISTANCE0),
+  csm_buildMatrix(CSM_PLANE_DISTANCE0, CSM_PLANE_DISTANCE1),
+  csm_buildMatrix(CSM_PLANE_DISTANCE1, CSM_PLANE_DISTANCE2),
+  csm_buildMatrix(CSM_PLANE_DISTANCE2, zFar),
 ];

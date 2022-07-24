@@ -1,4 +1,4 @@
-import { angle_wrap_degrees, clamp, DEG_TO_RAD } from "./math/math";
+import { angle_wrap_degrees, DEG_TO_RAD } from "./math/math";
 
 export let debug_camera_enabled = true;
 
@@ -15,7 +15,7 @@ export const camera_view = new DOMMatrix();
 
 export const camera_firstPersonRotate = (x: number, y: number) => {
   camera_rotation.y = angle_wrap_degrees(camera_rotation.y + x);
-  camera_rotation.x = clamp(angle_wrap_degrees(camera_rotation.x + y), -87, 87);
+  camera_rotation.x = Math.max(Math.min(camera_rotation.x + y, 87), -87);
 };
 
 export const camera_firstPersonMove = (x: number, z: number) => {
@@ -25,8 +25,6 @@ export const camera_firstPersonMove = (x: number, z: number) => {
   camera_position.x += x * c - z * s;
   camera_position.z += x * s + z * c;
 };
-
-export let camera_debug_view: DOMMatrix;
 
 export const camera_updateView = () => {
   /* camera_view
@@ -41,12 +39,6 @@ export const camera_updateView = () => {
     .rotateSelf(0, camera_rotation.y, 0)
     // .rotateSelf(0, 0, camera_rotation.z)
     .translateSelf(-camera_position.x, -camera_position.y, -camera_position.z);
-
-  if (debug_camera_enabled) {
-    camera_debug_view = new DOMMatrix([...camera_view.toFloat32Array()]);
-  }
 };
 
 camera_updateView();
-
-camera_debug_view = new DOMMatrix([...camera_view.toFloat32Array()]);
