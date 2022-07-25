@@ -18,3 +18,12 @@ export const angle_wrap_degrees = (degrees: number): number => angle_wrap_radian
 
 /** Returns an array of n integers */
 export const integers = (n: number) => [...Array(n)].map((_, i) => i);
+
+/* export const integers_map = <T>(n: number, fn: (i: number) => T) => Array.from(Array(n), (_, i) => fn(i));
+
+export const integers_each = (n: number, fn: (i: number) => void) => {
+  for (let i = 0; i < n; ++i) {
+    fn(i);
+  }
+};
+*/

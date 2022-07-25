@@ -27,18 +27,18 @@ export const camera_firstPersonMove = (x: number, z: number) => {
 };
 
 export const camera_updateView = () => {
-  /* camera_view
+  camera_view
     .setMatrixValue("none")
     .rotateSelf(-camera_rotation.x, -camera_rotation.y, -camera_rotation.z)
     .invertSelf()
-    .translateSelf(-camera_position.x, -camera_position.y, -camera_position.z); */
-
-  camera_view
-    .setMatrixValue("none")
-    .rotateSelf(camera_rotation.x, 0, 0)
-    .rotateSelf(0, camera_rotation.y, 0)
-    // .rotateSelf(0, 0, camera_rotation.z)
     .translateSelf(-camera_position.x, -camera_position.y, -camera_position.z);
+
+  // camera_view
+  //   .setMatrixValue("none")
+  //   .rotateSelf(camera_rotation.x, 0, 0)
+  //   .rotateSelf(0, camera_rotation.y, 0)
+  //   // .rotateSelf(0, 0, camera_rotation.z)
+  //   .translateSelf(-camera_position.x, -camera_position.y, -camera_position.z);
 };
 
 camera_updateView();

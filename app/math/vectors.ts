@@ -66,17 +66,17 @@ export const vec3_scale = ({ x, y, z }: Vec3In, m: number): Vec3 => ({ x: x * m,
 
 export const vec3_dot = ({ x, y, z }: Vec3In, b: Vec3In): number => x * b.x + y * b.y + z * b.z;
 
-export const vec3_length = ({ x, y, z }: Vec3In): number => Math.sqrt(x * x + y * y + z * z);
+export const vec3_length = ({ x, y, z }: Vec3In): number => Math.hypot(x, y, z);
 
 export const vec3_distance = (a: Vec3In, b: Vec3In): number => {
   const dx = a.x - b.x;
   const dy = a.y - b.y;
   const dz = a.z - b.z;
-  return Math.sqrt(dx * dx + dy * dy + dz * dz);
+  return Math.hypot(dx, dy, dz);
 };
 
 export const vec3_normalize = ({ x, y, z }: Vec3In): Vec3 => {
-  const len = Math.sqrt(x * x + y * y + z * z);
+  const len = Math.hypot(x, y, z);
   return { x: x / len, y: y / len, z: z / len };
 };
 
@@ -100,6 +100,6 @@ export const vec3_triangleNormal = ([{ x, y, z }, { x: bx, y: by, z: bz }, { x: 
   const ny = baz * cax - bax * caz;
   const nz = bax * cay - bay * cax;
 
-  const nlength = Math.sqrt(nx * nx + ny * ny + nz * nz) || 1;
+  const nlength = Math.hypot(nx, ny, nz) || 1;
   return { x: nx / nlength, y: ny / nlength, z: nz / nlength };
 };

@@ -190,7 +190,7 @@ export const solids_to_triangles = (solids: Polygon[][]): TriangulatedSolids => 
     z = Math.fround(z);
 
     // Normalize the normal, and round it to the nearest 8 bit integer
-    const m = 32767 * Math.sqrt($nx * $nx + $ny * $ny + $nz * $nz);
+    const m = 32767 * Math.hypot($nx, $ny, $nz);
     $nx = ($nx * m) | 0;
     $ny = ($ny * m) | 0;
     $nz = ($nz * m) | 0;

@@ -1,4 +1,4 @@
-import { gl } from "./gl";
+import { gl } from "../gl";
 
 export const debugLines_indexBuffer = gl.createBuffer();
 

@@ -134,8 +134,7 @@ export function getTerserMinifyOptions(settings: TerserMinifySettings): TerserMi
       drop_debugger: false,
 
       // attempt to evaluate constant expressions.
-      // Disabled because terser will dump long floating point numbers for math operations
-      evaluate: false,
+      evaluate: true,
 
       // Pass true to preserve completion values from terminal statements without return, e.g. in bookmarklets.
       expression: false,

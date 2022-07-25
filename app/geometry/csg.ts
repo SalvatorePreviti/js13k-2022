@@ -27,23 +27,23 @@ function CSGPolygon_splitSpanning(plane: Plane, polygon: CSGPolygon) {
   const fpoints: Vertex[] = [];
   const bpoints: Vertex[] = [];
   let iv: Vertex = $points[$points.length - 1]!;
-  let id: number = vec3_dot(plane, iv) - plane.w;
+  let d: number = vec3_dot(plane, iv) - plane.w;
   let v: Vertex;
   for (const jv of $points) {
     const jd = vec3_dot(plane, jv) - plane.w;
-    if (id > -PLANE_EPSILON) {
+    if (d > -PLANE_EPSILON) {
       fpoints.push(iv);
     }
-    if (id < PLANE_EPSILON) {
+    if (d < PLANE_EPSILON) {
       bpoints.push(iv);
     }
-    if ((id < -PLANE_EPSILON && jd > PLANE_EPSILON) || (id > PLANE_EPSILON && jd < -PLANE_EPSILON)) {
-      v = vertex_lerp(iv, jv, -id / (plane.x * (jv.x - iv.x) + plane.y * (jv.y - iv.y) + plane.z * (jv.z - iv.z)));
+    if ((d < -PLANE_EPSILON && jd > PLANE_EPSILON) || (d > PLANE_EPSILON && jd < -PLANE_EPSILON)) {
+      v = vertex_lerp(iv, jv, -d / (plane.x * (jv.x - iv.x) + plane.y * (jv.y - iv.y) + plane.z * (jv.z - iv.z)));
       fpoints.push(v);
       bpoints.push(v);
     }
     iv = jv;
-    id = jd;
+    d = jd;
   }
   return {
     f: fpoints.length > 2 && { $material, $points: fpoints, $flipped, $parent: polygon },
@@ -258,8 +258,5 @@ export const csg_polygons = (tree: CSGNode) => {
     flipped ? polygon_flipped(polygon) : polygon_clone(polygon),
   );
 
-  if (DEBUG) {
-    console.log("polys:", result.length);
-  }
   return result;
 };

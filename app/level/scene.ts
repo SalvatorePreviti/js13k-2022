@@ -1,4 +1,3 @@
-import { debug_lines_prepare } from "../debug-lines-render";
 import type { TriangulatedSolids } from "../geometry/geometry";
 import { solids_to_triangles } from "../geometry/geometry";
 import { triangles_fill_buffer } from "../geometry/triangles-render";
@@ -26,9 +25,6 @@ export const loadScene = () => {
   }
 
   triangles_fill_buffer(sceneTriangles.$vertices, sceneTriangles.$indices);
-  if (DEBUG) {
-    debug_lines_prepare(sceneTriangles.$indices);
-  }
 };
 
 if (import.meta.hot) {
