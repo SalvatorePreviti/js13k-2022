@@ -76,5 +76,6 @@
   "[glsl]": {
     "editor.defaultFormatter": "xaver.clang-format"
   },
-  "glsllint.supportedLangsWithStringLiterals": []
+  "glsllint.supportedLangsWithStringLiterals": [],
+  "typescript.tsserver.experimental.enableProjectDiagnostics": true
 }

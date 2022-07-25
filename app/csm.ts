@@ -1,7 +1,7 @@
 import { camera_view } from "./camera";
 import { fieldOfView } from "./camera-projection";
 import { canvas } from "./canvas";
-import { integers } from "./math/math";
+import { integers_map } from "./math/math";
 import { DOMMatrix_fromDirection, DOMMatrix_ortho, DOMMatrix_perspective } from "./math/matrix";
 import { vec3_normalize, type Vec3 } from "./math/vectors";
 
@@ -23,7 +23,7 @@ export const csm_buildMatrix = (nearPlane: number, farPlane: number): Float32Arr
   let cy = 0;
   let cz = 0;
 
-  const frustumCorners = integers(8).map((i) => {
+  const frustumCorners = integers_map(8, (i) => {
     let { x, y, z, w } = projViewInverse.transformPoint({
       x: i & 4 ? 1 : -1,
       y: i & 2 ? 1 : -1,
@@ -68,7 +68,7 @@ export const csm_buildMatrix = (nearPlane: number, farPlane: number): Float32Arr
     bottom,
     top,
     near * (near < 0 ? CSM_Z_MULTIPLIER : CSM_Z_MULTIPLIER_INV),
-    near * (far < 0 ? CSM_Z_MULTIPLIER_INV : CSM_Z_MULTIPLIER),
+    far * (far < 0 ? CSM_Z_MULTIPLIER_INV : CSM_Z_MULTIPLIER),
   )
     .multiplySelf(lightView)
     .toFloat32Array();

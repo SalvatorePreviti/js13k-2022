@@ -254,9 +254,5 @@ export const csg_polygons = (tree: CSGNode) => {
     }
   });
 
-  const result = Array.from(allPolygons, ([polygon, flipped]) =>
-    flipped ? polygon_flipped(polygon) : polygon_clone(polygon),
-  );
-
-  return result;
+  return Array.from(allPolygons, ([polygon, flipped]) => (flipped ? polygon_flipped(polygon) : polygon_clone(polygon)));
 };

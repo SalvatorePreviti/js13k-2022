@@ -1,4 +1,4 @@
-import type { Expression, MemberExpression } from "@swc/core";
+import type { MemberExpression } from "@swc/core";
 import { transform as swcTransform } from "@swc/core";
 import SwcVisitor from "@swc/core/Visitor";
 import { outPath_build } from "../out-paths";
@@ -6,19 +6,21 @@ import type { PluginOption } from "vite";
 import { glConstants, glFunctions } from "../lib/gl-context";
 
 class Transformer extends SwcVisitor {
-  override visitMemberExpression(n: MemberExpression): Expression {
+  override visitMemberExpression(n: MemberExpression): MemberExpression {
     if (n.property.type === "Identifier") {
-      const glConstant = glConstants.get(n.property.value);
-      if (typeof glConstant === "number") {
-        return { type: "NumericLiteral", value: glConstant, span: n.span };
-      }
+      if (n.object.type === "Identifier" && /ctx|context|gl/i.test(n.object.value)) {
+        const glConstant = glConstants.get(n.property.value);
+        if (typeof glConstant === "number") {
+          return { type: "NumericLiteral", value: glConstant, span: n.span } as unknown as MemberExpression;
+        }
 
-      if (
-        n.object.type === "Identifier" &&
-        glFunctions.has(n.property.value) &&
-        /ctx|context|gl/i.test(n.object.value)
-      ) {
-        return { ...n, property: { ...n.property, value: glFunctions.get(n.property.value)! } };
+        if (
+          n.object.type === "Identifier" &&
+          glFunctions.has(n.property.value) &&
+          /ctx|context|gl/i.test(n.object.value)
+        ) {
+          return { ...n, property: { ...n.property, value: glFunctions.get(n.property.value)! } };
+        }
       }
     }
 

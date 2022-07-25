@@ -1,4 +1,4 @@
-import { integers } from "../math/math";
+import { integers_map } from "../math/math";
 import { identityTranslateBtm, identityTranslateTop } from "../math/matrix";
 import { vec3_triangleNormal, type Vec3 } from "../math/vectors";
 import { vertex_clone, vertex_flipped, vertex_lerp, type Material, type Vertex } from "./vertex";
@@ -18,20 +18,6 @@ export const polygon_transform = ({ $material, $points }: Polygon, m: DOMMatrix)
     ({ x: $nx, y: $ny, z: $nz } = m.transformPoint({ x: $nx, y: $ny, z: $nz, w: 0 }));
     return { x, y, z, $nx, $ny, $nz };
   }),
-});
-
-export const polygon_translate = ({ $material, $points }: Polygon, tx: number, ty: number, tz: number): Polygon => ({
-  $material,
-  $points: $points.map(
-    ({ x, y, z, $nx, $ny, $nz }: Vertex): Vertex => ({
-      x: x + tx,
-      y: y + ty,
-      z: z + tz,
-      $nx,
-      $ny,
-      $nz,
-    }),
-  ),
 });
 
 export const polygon_clone = ({ $material, $points }: Polygon): Polygon => ({
@@ -62,17 +48,15 @@ export const polygon_fromPoints = (material: Material, points: Vec3[]): Polygon 
  * Creates a regular polygon
  * The polygon will face up (normal 0, -1, 0).
  */
-export const polygon_regular = ($material: Material, segments: number, arc = (Math.PI / segments) * 2): Polygon => ({
-  $material,
-  $points: integers(segments).map((i) => ({
-    x: Math.cos(arc * i),
-    y: 0,
-    z: Math.sin(arc * i),
-    $nx: 0,
-    $ny: -1,
-    $nz: 0,
-  })),
-});
+export const polygon_regular = ($material: Material, segments: number, arc = (Math.PI / segments) * 2): Polygon =>
+  polygon_fromPoints(
+    $material,
+    integers_map(segments, (i) => ({
+      x: Math.cos(arc * i),
+      y: 0,
+      z: Math.sin(arc * i),
+    })),
+  );
 
 export const polygon_quad = (material: Material, y: number = 0): Polygon =>
   polygon_fromPoints(material, [

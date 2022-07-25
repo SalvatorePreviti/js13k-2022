@@ -1,7 +1,7 @@
 import { csg_subtract, csg_union, csg_polygons } from "../geometry/csg";
 import { solid_box, solid_cylinder, solid_transform, type Polygon } from "../geometry/geometry";
 import type { Material } from "../geometry/vertex";
-import { integers } from "../math/math";
+import { integers_map } from "../math/math";
 import { identity } from "../math/matrix";
 
 const materialWhite = [1, 1, 1] as Material;
@@ -17,7 +17,7 @@ const corridor = (): Polygon[][] => {
     solid_transform(solid_box(material0), identity.scale(3.5, 3.5, 20)),
     csg_union([
       solid_transform(solid_box(material1), identity.scale(3, 3, 22)),
-      ...integers(6).map((i) =>
+      ...integers_map(6, (i) =>
         solid_transform(
           solid_cylinder(material1, 6),
           identity
