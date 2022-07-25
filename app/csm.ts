@@ -5,6 +5,7 @@ import { integers_map } from "./math/math";
 import { DOMMatrix_perspective } from "./math/matrix";
 import { vec3_normalize, type Vec3 } from "./math/vectors";
 
+// TODO: this should be a constant, precalculated, and not a vector.
 export const lightDir: Vec3 = vec3_normalize({ x: 40.0, y: 50, z: -20.0 });
 
 export const csm_buildMatrix = (nearPlane: number, farPlane: number): Float32Array => {
@@ -18,7 +19,7 @@ export const csm_buildMatrix = (nearPlane: number, farPlane: number): Float32Arr
   let near = Infinity;
   let far = -Infinity;
 
-  const radius = (farPlane - nearPlane) / 1.3;
+  const roundingRadius = (farPlane - nearPlane) / 1.35;
 
   const projViewInverse = DOMMatrix_perspective(
     fieldOfView,
@@ -37,15 +38,16 @@ export const csm_buildMatrix = (nearPlane: number, farPlane: number): Float32Arr
     });
 
     // To reduce shimmering, we round the corners of the frustum.
-    const r = v.w * radius;
-    x -= v.x = ((v.x * radius) | 0) / r;
-    y -= v.y = ((v.y * radius) | 0) / r;
-    z -= v.z = ((v.z * radius) | 0) / r;
+    const r = v.w * roundingRadius;
+    x -= v.x = ((v.x * roundingRadius) | 0) / r;
+    y -= v.y = ((v.y * roundingRadius) | 0) / r;
+    z -= v.z = ((v.z * roundingRadius) | 0) / r;
     v.w = 1;
     return v;
   });
 
   // Similar to lookat, up is [0,1,0] and as input we have a center and a direction. Direction must be normalised.
+  // TODO: If light direction is fixed, the direction matrix can be precalculated.
   const lightView = new DOMMatrix([
     lightDir.z,
     -lightDir.y * lightDir.x,

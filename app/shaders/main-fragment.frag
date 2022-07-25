@@ -56,7 +56,7 @@ float ShadowCalculation(float shadowBias) {
       }
     }
   }
-  return mix(0.3, 1., shadow / 9.);
+  return shadow / 9.;
 }
 
 void main() {
@@ -76,7 +76,7 @@ void main() {
   // calculate shadow
   float shadow = ShadowCalculation(max(0.002 * (1. - dot(normal, lightDir)), 0.0005));
 
-  vec3 lighting = (ambient + shadow * (diffuse + specular)) * Color.xyz;
+  vec3 lighting = (ambient + mix(diffuse * .3, diffuse + specular, shadow)) * Color.xyz;
 
   O = vec4(lighting, 1.0f);
 }
