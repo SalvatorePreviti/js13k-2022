@@ -139,8 +139,8 @@ const draw = () => {
 
   gl.useProgram(shaderProgram);
 
-  for (let i = 0; i < 4; i++) {
-    gl.uniformMatrix4fv(csm_matricesLocs[i]!, false, lightSpaceMatrices[i]!);
+  for (let csmSplit = 0; csmSplit < 4; ++csmSplit) {
+    gl.uniformMatrix4fv(csm_matricesLocs[csmSplit]!, false, lightSpaceMatrices[csmSplit]!);
   }
 
   gl.uniformMatrix4fv(
