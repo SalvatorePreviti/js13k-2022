@@ -2,7 +2,7 @@ import { camera_view } from "./camera";
 import { fieldOfView } from "./camera-projection";
 import { canvas } from "./canvas";
 import { integers_map } from "./math/math";
-import { DOMMatrix_fromDirection, DOMMatrix_perspective } from "./math/matrix";
+import { DOMMatrix_perspective } from "./math/matrix";
 import { vec3_normalize, type Vec3 } from "./math/vectors";
 
 export const lightDir: Vec3 = vec3_normalize({ x: 40.0, y: 50, z: -20.0 });
@@ -18,7 +18,7 @@ export const csm_buildMatrix = (nearPlane: number, farPlane: number): Float32Arr
   let near = Infinity;
   let far = -Infinity;
 
-  const radius = (farPlane - nearPlane) / 2;
+  const radius = (farPlane - nearPlane) / 1.3;
 
   const projViewInverse = DOMMatrix_perspective(
     fieldOfView,
@@ -45,7 +45,25 @@ export const csm_buildMatrix = (nearPlane: number, farPlane: number): Float32Arr
     return v;
   });
 
-  const lightView = DOMMatrix_fromDirection(lightDir).translateSelf(x / 8, y / 8, z / 8);
+  // Similar to lookat, up is [0,1,0] and as input we have a center and a direction. Direction must be normalised.
+  const lightView = new DOMMatrix([
+    lightDir.z,
+    -lightDir.y * lightDir.x,
+    lightDir.x,
+    0,
+    0,
+    lightDir.z * lightDir.z + lightDir.x * lightDir.x,
+    lightDir.y,
+    0,
+    -lightDir.x,
+    -lightDir.y * lightDir.z,
+    lightDir.z,
+    0,
+    0,
+    0,
+    0,
+    1,
+  ]).translateSelf(x / 8, y / 8, z / 8);
 
   // Compute the frustum bouding box
   for (let i = 0; i < 8; ++i) {

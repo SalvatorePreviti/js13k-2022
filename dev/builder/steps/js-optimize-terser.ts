@@ -29,12 +29,13 @@ export async function jsOptimizeTerser(input: string, settings: TerserMinifySett
 
 export interface TerserMinifySettings {
   mangle: boolean;
+  module?: boolean;
 }
 
 export function getTerserMinifyOptions(settings: TerserMinifySettings): TerserMinifyOptions {
-  const module = true;
+  const module = settings.module === undefined || !!settings.module;
   const toplevel = true;
-  const passes = 16;
+  const passes = 26;
   const mangle = settings.mangle;
 
   const singleLettersNameCache: Record<string, string> = {};

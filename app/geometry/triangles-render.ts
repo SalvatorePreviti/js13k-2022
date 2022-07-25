@@ -17,7 +17,7 @@ export const triangles_fill_buffer = (vertices: number[], indices: number[]) => 
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
 };
 
-export const triangles_bindBuffers = () => {
+const triangles_bindBuffers = () => {
   gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
 };

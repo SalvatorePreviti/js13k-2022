@@ -216,6 +216,7 @@ export function getSwcMinifyOptions(settings: SwcTransformSettings): JsMinifyOpt
 
       // negate "Immediately-Called Function Expressions" where the return value is discarded,
       // to avoid the parens that the code generator would insert.
+      // This must be true, with false seems to generate invalid code.
       negate_iife: true,
 
       // The maximum number of times to run compress. 0 means infinite.
@@ -332,22 +333,22 @@ export function getSwcMinifyOptions(settings: SwcTransformSettings): JsMinifyOpt
           // Pass an array of identifiers that should be excluded from mangling. Example: ["foo", "bar"].
           reserved: [...mangleConfig.reserved],
 
-          // Mangle properties - optimizes a lot but is very dangerous. Enables only with properties starting with $
-          props: {
-            // Use true to allow the mangling of builtin DOM properties. Not recommended to override this setting.
-            builtins: false,
+          // // Mangle properties - optimizes a lot but is very dangerous. Enables only with properties starting with $
+          // props: {
+          //   // Use true to allow the mangling of builtin DOM properties. Not recommended to override this setting.
+          //   builtins: false,
 
-            // Mangle names with the original name still present. Pass an empty string "" to enable, or a non-empty string to set the debug suffix.
-            debug: false,
+          //   // Mangle names with the original name still present. Pass an empty string "" to enable, or a non-empty string to set the debug suffix.
+          //   debug: false,
 
-            // Only mangle unquoted property names.
-            //  true: Quoted property names are automatically reserved and any unquoted property names will not be mangled.
-            //  'strict': Advanced, all unquoted property names are mangled unless explicitly reserved.
-            keep_quoted: true,
+          //   // Only mangle unquoted property names.
+          //   //  true: Quoted property names are automatically reserved and any unquoted property names will not be mangled.
+          //   //  'strict': Advanced, all unquoted property names are mangled unless explicitly reserved.
+          //   keep_quoted: true,
 
-            // Mangle regular expression
-            regex: "/^[$_]/",
-          },
+          //   // Mangle regular expression
+          //   regex: "/^[$_]/",
+          // },
         }
       : false,
 

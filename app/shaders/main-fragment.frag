@@ -44,6 +44,7 @@ float ShadowCalculation(float shadowBias) {
   // The idea is to adjust the blur size depending on the distance and/or cascade index.
 
   float shadow = 0.;
+
   for (float x = -1.; x <= 1.; ++x) {
     for (float y = -1.; y <= 1.; ++y) {
       vec3 c = vec3(csmCoords.xy + vec2(x, y) / CSM_TEXTURE_SIZE, csmCoords.z - shadowBias);
@@ -55,7 +56,7 @@ float ShadowCalculation(float shadowBias) {
       }
     }
   }
-  return shadow / 9.;
+  return mix(0.3, 1., shadow / 9.);
 }
 
 void main() {
@@ -73,7 +74,7 @@ void main() {
   vec3 specular = pow(max(dot(normal, halfwayDir), 0.0), 64.0) * lightColor;
 
   // calculate shadow
-  float shadow = ShadowCalculation(max(0.001 * (1. - dot(normal, lightDir)), 0.0005));
+  float shadow = ShadowCalculation(max(0.002 * (1. - dot(normal, lightDir)), 0.0005));
 
   vec3 lighting = (ambient + shadow * (diffuse + specular)) * Color.xyz;
 

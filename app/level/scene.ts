@@ -15,7 +15,9 @@ export const loadScene = () => {
     console.timeEnd("scene");
     console.time("triangles");
   }
+
   sceneTriangles = solids_to_triangles(scene);
+
   if (DEBUG) {
     console.timeEnd("triangles");
   }
