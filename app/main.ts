@@ -17,7 +17,6 @@ import shadowVsSource, { uniformName_modelViewMatrix } from "./shaders/shadow-ve
 import shadowFsSource from "./shaders/shadow-fragment.frag";
 
 import { gl } from "./gl";
-import { triangles_attributes } from "./geometry/triangles-render";
 
 import { camera_update } from "./camera-update";
 import { camera_position, camera_updateView, camera_view } from "./camera";
@@ -25,7 +24,6 @@ import { sceneTriangles, loadScene } from "./level/scene";
 import { fieldOfView, zFar, zNear } from "./camera-projection";
 import { initShaderProgram } from "./shader-utils";
 import { lightDir, csm_buildMatrix } from "./csm";
-import { canvas } from "./canvas";
 import { DOMMatrix_perspective } from "./math/matrix";
 
 loadScene();
@@ -105,8 +103,6 @@ const draw = () => {
 
   camera_updateView();
 
-  triangles_attributes();
-
   const lightSpaceMatrices = [
     csm_buildMatrix(zNear, CSM_PLANE_DISTANCE0),
     csm_buildMatrix(CSM_PLANE_DISTANCE0, CSM_PLANE_DISTANCE1),
@@ -146,7 +142,7 @@ const draw = () => {
   gl.uniformMatrix4fv(
     projectionMatrixLoc,
     false,
-    DOMMatrix_perspective(fieldOfView, canvas.clientWidth / canvas.clientHeight, zNear, zFar).toFloat32Array(),
+    DOMMatrix_perspective(fieldOfView, hC.clientWidth / hC.clientHeight, zNear, zFar).toFloat32Array(),
   );
 
   gl.uniformMatrix4fv(viewMatrixLoc, false, camera_view.toFloat32Array());

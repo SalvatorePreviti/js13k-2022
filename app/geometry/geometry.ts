@@ -1,5 +1,5 @@
 import { integers_map } from "../math/math";
-import { identityTranslateBtm, identityTranslateTop } from "../math/matrix";
+import { identity } from "../math/matrix";
 import { vec3_polygonNormal, type Vec3 } from "../math/vectors";
 import { vertex_clone, vertex_flipped, vertex_lerp, type Material, type Vertex } from "./vertex";
 
@@ -94,17 +94,13 @@ export const solid_material = (solid: Polygon[], $material: Material): Polygon[]
  * @returns
  */
 export const solid_smoothSidesQuads = (sides: Polygon[]): Polygon[] => {
-  let a = sides[sides.length - 2]!.$points;
-  let b = sides[sides.length - 1]!.$points;
+  const len = sides.length;
+  let a = sides[len - 2]!.$points;
+  let b = sides[len - 1]!.$points;
   return sides.map(({ $points: c, $material }) => {
     const result = {
       $material,
-      $points: [
-        vertex_lerp(b[0]!, a[3]!, 0, 0.5),
-        vertex_lerp(b[1]!, a[2]!, 0, 0.5),
-        vertex_lerp(b[2]!, c[1]!, 0, 0.5),
-        vertex_lerp(b[3]!, c[0]!, 0, 0.5),
-      ],
+      $points: integers_map(4, (i) => vertex_lerp(b[i]!, a[3 - i]!, 0, 0.5)),
     };
     a = b;
     b = c;
@@ -128,8 +124,8 @@ export const solid_extrude = (
   bottom: Polygon,
   top: Polygon = polygon_flipped(bottom),
 ): Polygon[] => {
-  bottom = polygon_transform(bottom, identityTranslateBtm);
-  top = polygon_transform(top, identityTranslateTop);
+  bottom = polygon_transform(bottom, identity.translate(0, -1));
+  top = polygon_transform(top, identity.translate(0, 1));
   const sides = polygon_sides($material, bottom, top);
   return [bottom, top, ...sides];
 };
@@ -152,8 +148,6 @@ type TriangleVertex = [number, number, number, number, number, number, number, n
   $index: number;
 };
 
-type Triangle = [TriangleVertex, TriangleVertex, TriangleVertex];
-
 export interface SceneTriangles {
   $vertices: number[];
   $indices: number[];
@@ -166,7 +160,7 @@ export interface TriangulatedSolids {
 
 export const solids_to_triangles = (solids: Polygon[][]): TriangulatedSolids => {
   const vertexMap = new Map<string, TriangleVertex>();
-  const triangles: Triangle[] = [];
+  const trianglesVertices: TriangleVertex[] = [];
 
   const getVertex = ({ x, y, z, $nx, $ny, $nz }: Vertex, $material: Material): TriangleVertex => {
     x = Math.fround(x);
@@ -199,7 +193,7 @@ export const solids_to_triangles = (solids: Polygon[][]): TriangulatedSolids => 
       const b = getVertex($points[i - 1]!, $material);
       const c = getVertex($points[i]!, $material);
       if (a !== b && a !== c && b !== c) {
-        triangles.push([a, b, c]);
+        trianglesVertices.push(a, b, c);
       }
     }
   };
@@ -210,10 +204,8 @@ export const solids_to_triangles = (solids: Polygon[][]): TriangulatedSolids => 
     }
   }
 
-  const $vertices: number[] = [];
-  const $indices: number[] = [];
-
   let verticesCount = 0;
+  const $vertices: number[] = [];
 
   const getVertexIndex = (vertex: TriangleVertex): number => {
     let { $index } = vertex;
@@ -225,12 +217,8 @@ export const solids_to_triangles = (solids: Polygon[][]): TriangulatedSolids => 
     return $index;
   };
 
-  for (const [a, b, c] of triangles) {
-    $indices.push(getVertexIndex(a), getVertexIndex(b), getVertexIndex(c));
-  }
-
   return {
     $vertices,
-    $indices,
+    $indices: trianglesVertices.map(getVertexIndex),
   };
 };

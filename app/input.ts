@@ -1,4 +1,3 @@
-import { canvas } from "./canvas";
 import type { KEY_CODE } from "./utils/keycodes";
 
 export const KEY_LEFT = 0;
@@ -21,9 +20,9 @@ export let mouse_movementX = 0;
 
 export let mouse_movementY = 0;
 
-export const mouse_movementReset = () => {
-  mouse_movementX = mouse_movementY = 0;
-};
+export const mouse_movementReset = () => (mouse_movementX = mouse_movementY = 0);
+
+let _mouseDown: boolean | 0 | undefined;
 
 const keyMap: Partial<Record<KEY_CODE, number>> = {
   KeyA: KEY_LEFT,
@@ -45,35 +44,29 @@ const keyMap: Partial<Record<KEY_CODE, number>> = {
   KeyF: KEY_DEBUG_FLY_DOWN,
 };
 
-window.addEventListener("keydown", ({ code, defaultPrevented }) => {
-  if (!defaultPrevented) {
+oncontextmenu = () => false;
+
+onblur = () => (keyboard_downKeys.length = _mouseDown = mouse_movementX = mouse_movementY = 0);
+
+onkeydown = ({ code, target }) => {
+  if (target === document.body) {
     keyboard_downKeys[keyMap[code as KEY_CODE]!] = 1;
   }
-});
+};
 
-window.addEventListener("keyup", ({ code }) => {
-  keyboard_downKeys[keyMap[code as KEY_CODE]!] = 0;
-});
+onkeyup = ({ code }) => (keyboard_downKeys[keyMap[code as KEY_CODE]!] = 0);
 
-let _mouseDown: boolean | 0 | undefined;
+onmousedown = ({ target, buttons }: MouseEvent) => {
+  _mouseDown = (buttons === 1 && target === document.body) || target === hC;
+};
 
-document.body.addEventListener("mousedown", ({ target, buttons }: MouseEvent) => {
-  _mouseDown = (buttons === 1 && target === document.body) || target === canvas;
-});
-
-window.addEventListener("mouseup", () => {
+onmouseup = () => {
   _mouseDown = 0;
-});
+};
 
-window.addEventListener("mousemove", ({ buttons, movementX, movementY }) => {
+onmousemove = ({ buttons, movementX, movementY }) => {
   if (((buttons > 0 && _mouseDown) || document.pointerLockElement) && document.activeElement) {
     mouse_movementX += movementX;
     mouse_movementY += movementY;
   }
-});
-
-window.addEventListener("blur", () => {
-  keyboard_downKeys.length = 0;
-  _mouseDown = 0;
-  mouse_movementReset();
-});
+};

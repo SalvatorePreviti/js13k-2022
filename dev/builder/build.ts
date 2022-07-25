@@ -1,3 +1,4 @@
+import path from "path";
 import {
   devLogBuilding,
   devPrintOjutputFileWritten,
@@ -5,6 +6,7 @@ import {
   FilesSizeTermBox,
   globalReport,
 } from "./lib/logging";
+import fs from "fs/promises";
 import { devLog } from "@balsamic/dev";
 import { writeFinalBundle, writeOptimizedBundle } from "./lib/write-bundle";
 import { zipBundle } from "./steps/bundle-zip";
@@ -17,13 +19,13 @@ import { bundleHtml } from "./steps/bundle-html";
 import { jsOptimizeTerser } from "./steps/js-optimize-terser";
 import { cssOptimize } from "./steps/css-optimize";
 
-import { jsTransformSwc } from "./steps/js-transform-swc";
+import { jsBeautify, jsTransformSwc } from "./steps/js-transform-swc";
 import { jsRoadroller } from "./steps/js-roadroller";
 import { htmlCssToJs } from "./steps/html-css-to-js";
 import { jsUglify } from "./steps/js-uglify";
-import { jsTdeMinify } from "./steps/js-tde-minify";
 import zlib from "zlib";
-import { jsEsbuildMinify } from "./steps/js-esbuild";
+import { jsTdeMinify } from "./steps/js-tde-minify";
+// import { jsEsbuildMinify } from "./steps/js-esbuild";
 
 devLog.titlePaddingWidth = 18;
 
@@ -43,27 +45,31 @@ export async function build() {
     sources.html = htmlCssJsBundle.html;
     sources.js = htmlCssJsBundle.js;
 
-    sources.js = await jsTransformSwc(sources.js, { mangle: false, constToLet: false, repeat: 2 });
+    // sources.js = await jsEsbuildMinify(sources.js);
+
+    sources.js = await jsTransformSwc(sources.js, { mangle: false, constToLet: false, repeat: 1 });
 
     sources.js = await jsOptimizeTerser(sources.js, { mangle: false });
 
-    sources.js = await jsTransformSwc(sources.js, { mangle: false, constToLet: true, repeat: 2 });
+    sources.js = await jsTransformSwc(sources.js, { mangle: false, constToLet: true, repeat: 1 });
+
+    sources.js = await jsTdeMinify(sources.js);
 
     sources.js = await jsUglify(sources.js, { mangle: false, varify: true });
 
-    sources.js = await jsEsbuildMinify(sources.js);
-
     sources.js = await jsOptimizeTerser(sources.js, { mangle: true });
 
     sources.js = await jsOptimizeTerser(sources.js, { mangle: true });
 
-    sources.js = await jsTdeMinify(sources.js);
+    // sources.js = await jsOptimizeTerser(sources.js, { mangle: false });
 
-    sources.js = await jsOptimizeTerser(sources.js, { mangle: false });
-
-    sources.js = await jsTdeMinify(sources.js);
+    // sources.js = await jsTdeMinify(sources.js);
   } finally {
     await writeOptimizedBundle(sources);
+
+    try {
+      await fs.writeFile(path.resolve(outPath_minify, "index-beautified.js"), await jsBeautify(sources.js));
+    } catch {}
   }
 
   const optimizedTotalSize = logTableOptimized(sources);

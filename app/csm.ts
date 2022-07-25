@@ -1,6 +1,5 @@
 import { camera_view } from "./camera";
 import { fieldOfView } from "./camera-projection";
-import { canvas } from "./canvas";
 import { integers_map } from "./math/math";
 import { DOMMatrix_perspective } from "./math/matrix";
 import { vec3_normalize, type Vec3 } from "./math/vectors";
@@ -21,12 +20,7 @@ export const csm_buildMatrix = (nearPlane: number, farPlane: number): Float32Arr
 
   const roundingRadius = (farPlane - nearPlane) / 1.35;
 
-  const projViewInverse = DOMMatrix_perspective(
-    fieldOfView,
-    canvas.clientWidth / canvas.clientHeight,
-    nearPlane,
-    farPlane,
-  )
+  const projViewInverse = DOMMatrix_perspective(fieldOfView, hC.clientWidth / hC.clientHeight, nearPlane, farPlane)
     .multiplySelf(camera_view)
     .invertSelf();
 
@@ -68,8 +62,8 @@ export const csm_buildMatrix = (nearPlane: number, farPlane: number): Float32Arr
   ]).translateSelf(x / 8, y / 8, z / 8);
 
   // Compute the frustum bouding box
-  for (let i = 0; i < 8; ++i) {
-    ({ x, y, z } = lightView.transformPoint(frustumCorners[i]));
+  for (const v of frustumCorners) {
+    ({ x, y, z } = lightView.transformPoint(v));
     left = Math.min(left, x);
     right = Math.max(right, x);
     bottom = Math.min(bottom, y);

@@ -263,7 +263,7 @@ export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: R
           reserved: [...mangleConfig.reserved],
 
           // Mangle properties - optimizes a lot but is very dangerous. Enables only with properties starting with $
-          properties: {
+          /* properties: {
             // Use true to allow the mangling of builtin DOM properties. Not recommended to override this setting.
             builtins: false,
 
@@ -277,7 +277,7 @@ export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: R
 
             // Pass a RegExp literal or pattern string to only mangle property matching the regular expression.
             regex: /^[$_]/,
-          },
+          }, */
 
           // Pass true to mangle names declared in the top level scope.
           toplevel,

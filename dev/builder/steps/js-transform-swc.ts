@@ -36,11 +36,36 @@ class Transformer extends SwcVisitor {
   override visitVariableDeclaration(n: VariableDeclaration): VariableDeclaration {
     if (this.settings.constToLet) {
       if (n.kind === "const") {
-        n.kind = "let";
+        n = {
+          ...n,
+          kind: "let",
+        };
       }
     }
     return super.visitVariableDeclaration(n);
   }
+}
+
+export async function jsBeautify(source: string) {
+  for (let i = 0; i < 2; ++i) {
+    source = (
+      await swcTransform(source, {
+        cwd: outPath_build,
+        inputSourceMap: false,
+        sourceMaps: false,
+        configFile: false,
+        filename: "index.js",
+        isModule: true,
+        minify: false,
+        swcrc: false,
+        jsc: {
+          keepClassNames: false,
+          target: "es2022",
+        },
+      })
+    ).code;
+  }
+  return source;
 }
 
 export async function jsTransformSwc(source: string, settings: SwcTransformSettings): Promise<string> {
@@ -53,7 +78,7 @@ export async function jsTransformSwc(source: string, settings: SwcTransformSetti
             await swcTransform(result, {
               cwd: outPath_build,
               inputSourceMap: false,
-              sourceMaps: true,
+              sourceMaps: false,
               configFile: false,
               filename: "index.js",
               isModule: true,
