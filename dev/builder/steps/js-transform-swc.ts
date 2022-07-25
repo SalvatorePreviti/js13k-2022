@@ -4,7 +4,7 @@ import { transform as swcTransform } from "@swc/core";
 import SwcVisitor from "@swc/core/Visitor";
 import { outPath_build } from "../out-paths";
 import { sizeDifference } from "../lib/logging";
-import { mangleConfig } from "../lib/mangle-config";
+import { global_defs, mangleConfig } from "../lib/js-config";
 import { browserPureFunctions, jsRemoveEndingSemicolons } from "../lib/code-utils";
 
 export interface SwcTransformSettings {
@@ -124,15 +124,9 @@ export function getSwcMinifyOptions(settings: SwcTransformSettings): JsMinifyOpt
       ie8: false,
 
       // Global definitions for conditional compilation
-      global_defs: {
-        DEV: false,
-        DEBUG: false,
-        NO_DEBUG: true,
-        PRODUCTION: true,
-      },
+      global_defs,
 
       // Inline single-use functions when possible. Depends on reduce_vars being enabled.
-      // Disabling this option sometimes improves performance of the output code.
       reduce_funcs: true,
 
       // Class and object literal methods are converted will also be converted to arrow expressions

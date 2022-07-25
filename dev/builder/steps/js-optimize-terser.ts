@@ -8,7 +8,7 @@ import type {
   MinifyOptions as TerserMinifyOptions,
   SourceMapOptions as TerserSourceMapOptions,
 } from "terser";
-import { mangleConfig } from "../lib/mangle-config";
+import { global_defs, mangleConfig } from "../lib/js-config";
 
 export { TerserMinifyOptions, TerserSourceMapOptions };
 
@@ -82,15 +82,7 @@ export function getTerserMinifyOptions(settings: TerserMinifySettings): TerserMi
       ie8: false,
 
       // Global definitions for conditional compilation
-      global_defs: {
-        DEV: false,
-        DEBUG: false,
-        NO_DEBUG: true,
-        __REACT_DEVTOOLS_GLOBAL_HOOK__: undefined,
-        "import.meta.hot": false,
-        "import.meta.url": "index.js",
-        "import.meta": { url: "index.js", hot: false },
-      },
+      global_defs,
 
       // Inline single-use functions when possible. Depends on reduce_vars being enabled.
       // Disabling this option sometimes improves performance of the output code.

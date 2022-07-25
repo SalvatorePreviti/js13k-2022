@@ -23,6 +23,7 @@ import { htmlCssToJs } from "./steps/html-css-to-js";
 import { jsUglify } from "./steps/js-uglify";
 import { jsTdeMinify } from "./steps/js-tde-minify";
 import zlib from "zlib";
+import { jsEsbuildMinify } from "./steps/js-esbuild";
 
 devLog.titlePaddingWidth = 18;
 
@@ -42,13 +43,15 @@ export async function build() {
     sources.html = htmlCssJsBundle.html;
     sources.js = htmlCssJsBundle.js;
 
-    sources.js = await jsTransformSwc(sources.js, { mangle: false, constToLet: false, repeat: 3 });
+    sources.js = await jsTransformSwc(sources.js, { mangle: false, constToLet: true, repeat: 2 });
 
     sources.js = await jsOptimizeTerser(sources.js, { mangle: false });
 
     sources.js = await jsTransformSwc(sources.js, { mangle: false, constToLet: true, repeat: 2 });
 
     sources.js = await jsUglify(sources.js, { mangle: false, varify: true });
+
+    sources.js = await jsEsbuildMinify(sources.js);
 
     sources.js = await jsOptimizeTerser(sources.js, { mangle: true });
 
@@ -57,6 +60,8 @@ export async function build() {
     sources.js = await jsTdeMinify(sources.js);
 
     sources.js = await jsOptimizeTerser(sources.js, { mangle: false });
+
+    sources.js = await jsTdeMinify(sources.js);
   } finally {
     await writeOptimizedBundle(sources);
   }

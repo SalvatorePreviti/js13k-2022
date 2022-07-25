@@ -4,7 +4,7 @@ import type { UnsafeAny } from "@balsamic/dev";
 import { devLog } from "@balsamic/dev";
 import { sizeDifference } from "../lib/logging";
 import { browserPureFunctions, jsRemoveEndingSemicolons } from "../lib/code-utils";
-import { mangleConfig } from "../lib/mangle-config";
+import { global_defs, mangleConfig } from "../lib/js-config";
 
 export async function jsUglify(input: string, settings: JsUglifySettings) {
   return devLog.timed(
@@ -60,15 +60,7 @@ export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: R
     // Compress options
     compress: {
       // Global definitions for conditional compilation
-      global_defs: {
-        DEV: false,
-        DEBUG: false,
-        NO_DEBUG: true,
-        __REACT_DEVTOOLS_GLOBAL_HOOK__: undefined,
-        "import.meta.hot": false,
-        "import.meta.url": "index.js",
-        "import.meta": { url: "index.js", hot: false },
-      },
+      global_defs,
 
       // remove redundant or non-standard directives
       directives: true,

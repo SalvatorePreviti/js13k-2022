@@ -29,26 +29,6 @@ export const DOMMatrix_perspective = (fovyRadians: number, aspect: number, near:
   ]);
 };
 
-export const DOMMatrix_ortho = (left: number, right: number, bottom: number, top: number, near: number, far: number) =>
-  new DOMMatrix([
-    2 / (right - left),
-    0,
-    0,
-    0,
-    0,
-    2 / (top - bottom),
-    0,
-    0,
-    0,
-    0,
-    2 / (near - far),
-    0,
-    (left + right) / (left - right),
-    (top + bottom) / (bottom - top),
-    (far + near) / (near - far),
-    1,
-  ]);
-
 /** Similar to lookat, up is [0,1,0] and as input we have a center and a direction. Direction is assumed to be normalised. */
 export const DOMMatrix_fromDirection = ({ x: dirX, y: dirY, z: dirZ }: Vec3In) =>
   new DOMMatrix([
