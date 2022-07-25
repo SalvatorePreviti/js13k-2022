@@ -11,9 +11,9 @@ export const KEY_DOWN = 3;
 
 export const KEY_RUN = 4;
 
-export const KEY_DEBUG_FLY_UP = 50;
+export const KEY_DEBUG_FLY_UP = 5;
 
-export const KEY_DEBUG_FLY_DOWN = 51;
+export const KEY_DEBUG_FLY_DOWN = 6;
 
 export const keyboard_downKeys: (0 | 1 | undefined)[] = [];
 
@@ -40,12 +40,10 @@ const keyMap: Partial<Record<KEY_CODE, number>> = {
 
   ShiftLeft: KEY_RUN,
   ShiftRight: KEY_RUN,
-};
 
-// if (DEBUG) {
-keyMap.KeyR = KEY_DEBUG_FLY_UP;
-keyMap.KeyF = KEY_DEBUG_FLY_DOWN;
-// }
+  KeyR: KEY_DEBUG_FLY_UP,
+  KeyF: KEY_DEBUG_FLY_DOWN,
+};
 
 window.addEventListener("keydown", ({ code, defaultPrevented }) => {
   if (!defaultPrevented) {

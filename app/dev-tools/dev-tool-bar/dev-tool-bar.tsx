@@ -3,7 +3,6 @@ import { useState } from "react";
 import Draggable from "react-draggable";
 import { GameCameraComponent } from "./game-camera";
 import { FpsGraph } from "./fps-graph";
-import { setDebugCamera } from "../../camera";
 
 export const DevToolBar: FC = () => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -29,12 +28,6 @@ export const DevToolBar: FC = () => {
             <GameCameraComponent />
           </div>
         )}
-        <div>
-          <label>
-            <input type="checkbox" onChange={(e) => setDebugCamera(e.target.checked)}></input>
-            debug camera
-          </label>
-        </div>
       </div>
     </Draggable>
   );

@@ -1,4 +1,4 @@
-import { vec3_triangleNormal, vec3_dot, type Plane } from "../math/vectors";
+import { vec3_polygonNormal, vec3_dot, type Plane } from "../math/vectors";
 import { polygon_clone, polygon_flipped, type Polygon } from "./geometry";
 import { vertex_lerp, type Vertex } from "./vertex";
 
@@ -54,11 +54,10 @@ function CSGPolygon_splitSpanning(plane: Plane, polygon: CSGPolygon) {
 const CSGPolygon_split = (plane: Plane, polygon: CSGPolygon): SplitPolygonResult => {
   const { $points } = polygon;
   const len = $points.length;
-  const w = plane.w;
   let f: CSGPolygon | undefined | false;
   let b: CSGPolygon | undefined | false;
   for (let i = 0; i < len && (!f || !b); ++i) {
-    const t = vec3_dot(plane, $points[i]!) - w;
+    const t = vec3_dot(plane, $points[i]!) - plane.w;
     if (t < -PLANE_EPSILON) {
       b = polygon;
     } else if (t > PLANE_EPSILON) {
@@ -118,7 +117,7 @@ export const csg_tree = (n: CSGInput): CSGNode => {
     // Build a BSP tree from a list of polygons
     let root: CSGNode | undefined;
     for (const { $material, $points } of n as Polygon[]) {
-      const plane = vec3_triangleNormal($points as [Vertex, Vertex, Vertex]) as Plane;
+      const plane = vec3_polygonNormal($points as [Vertex, Vertex, Vertex]) as Plane;
       plane.w = vec3_dot(plane, $points[0]!);
       root = csg_tree_addPolygon(root, { $material, $points, $flipped: false, $parent: null }, plane);
     }

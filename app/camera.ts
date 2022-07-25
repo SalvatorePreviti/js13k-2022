@@ -1,12 +1,5 @@
 import { angle_wrap_degrees, DEG_TO_RAD } from "./math/math";
 
-export let debug_camera_enabled = true;
-
-export function setDebugCamera(value: boolean) {
-  console.log(value);
-  debug_camera_enabled = value;
-}
-
 export const camera_position = { x: 20, y: 12, z: 38 };
 
 export const camera_rotation = { x: 0, y: -35, z: 0 };

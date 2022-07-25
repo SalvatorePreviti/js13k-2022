@@ -1,6 +1,6 @@
 import { integers_map } from "../math/math";
 import { identityTranslateBtm, identityTranslateTop } from "../math/matrix";
-import { vec3_triangleNormal, type Vec3 } from "../math/vectors";
+import { vec3_polygonNormal, type Vec3 } from "../math/vectors";
 import { vertex_clone, vertex_flipped, vertex_lerp, type Material, type Vertex } from "./vertex";
 
 export interface Polygon {
@@ -37,7 +37,7 @@ export const polygon_flipped = ({ $material, $points }: Polygon): Polygon => ({
  * To create a concave solid or holes, look at the csg.ts module
  */
 export const polygon_fromPoints = (material: Material, points: Vec3[]): Polygon => {
-  const { x: $nx, y: $ny, z: $nz } = vec3_triangleNormal(points as [Vec3, Vec3, Vec3]);
+  const { x: $nx, y: $ny, z: $nz } = vec3_polygonNormal(points as [Vec3, Vec3, Vec3]);
   return {
     $material: material,
     $points: points.map(({ x, y, z }: Vec3): Vertex => ({ x, y, z, $nx, $ny, $nz })),

@@ -80,7 +80,7 @@ export const vec3_normalize = ({ x, y, z }: Vec3In): Vec3 => {
   return { x: x / len, y: y / len, z: z / len };
 };
 
-export const vec3_triangleNormal = ([{ x, y, z }, { x: bx, y: by, z: bz }, { x: cx, y: cy, z: cz }]: readonly [
+export const vec3_polygonNormal = ([{ x, y, z }, { x: bx, y: by, z: bz }, { x: cx, y: cy, z: cz }]: readonly [
   Vec3In,
   Vec3In,
   Vec3In,
@@ -103,3 +103,18 @@ export const vec3_triangleNormal = ([{ x, y, z }, { x: bx, y: by, z: bz }, { x: 
   const nlength = Math.hypot(nx, ny, nz) || 1;
   return { x: nx / nlength, y: ny / nlength, z: nz / nlength };
 };
+
+// export const vec3_polygonNormal = (points: readonly Vec3In[]): Vec3 => {
+//   let nx = 0;
+//   let ny = 0;
+//   let nz = 0;
+//   for (let i = 0, len = points.length; i < len; i++) {
+//     const { x, y, z } = points[i]!;
+//     const { x: bx, y: by, z: bz } = points[(i + 1) % len]!;
+//     nx += y * bz - z * by;
+//     ny += z * bx - x * bz;
+//     nz += x * by - y * bx;
+//   }
+//   const nlength = Math.hypot(nx, ny, nz) || 1;
+//   return { x: nx / nlength, y: ny / nlength, z: nz / nlength };
+// };
