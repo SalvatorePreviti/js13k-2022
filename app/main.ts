@@ -23,16 +23,11 @@ import { fieldOfView, zFar, zNear } from "./camera-projection";
 import { initShaderProgram, loadShader } from "./shader-utils";
 import { lightDir, csm_buildMatrix } from "./csm";
 import { DOMMatrix_perspective, identity } from "./math/matrix";
+import { integers_map } from "./math/math";
 
 loadScene();
 
 const vertexShader = loadShader(gl.VERTEX_SHADER, vsSource);
-
-const csmShader = initShaderProgram(vertexShader, voidFsSource);
-
-const csmShader_viewMatrixLoc = gl.getUniformLocation(csmShader, uniformName_viewMatrix);
-
-gl.uniformMatrix4fv(gl.getUniformLocation(csmShader, uniformName_projectionMatrix), false, identity.toFloat32Array());
 
 const mainShader = initShaderProgram(vertexShader, fsSource);
 
@@ -44,14 +39,18 @@ const mainShader_lightDirLoc = gl.getUniformLocation(mainShader, uniformName_lig
 const csm_matricesLocs: WebGLUniformLocation[] = [];
 const csm_framebuffers: WebGLFramebuffer[] = [];
 
-for (let csmSplit = 0; csmSplit < 4; ++csmSplit) {
+integers_map(4, (csmSplit) => {
   const texture = gl.createTexture()!;
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, (csm_framebuffers[csmSplit] = gl.createFramebuffer()!));
 
-  csm_matricesLocs[csmSplit] = gl.getUniformLocation(mainShader, uniformName_csm_matrices + `[${csmSplit}]`)!;
+  // Disable rendering to the color buffer, we just need the depth buffer
+  gl.drawBuffers([gl.NONE]);
+  gl.readBuffer(gl.NONE);
 
   gl.uniform1i(gl.getUniformLocation(mainShader, uniformName_csm_textures + `[${csmSplit}]`), csmSplit);
+
+  csm_matricesLocs[csmSplit] = gl.getUniformLocation(mainShader, uniformName_csm_matrices + `[${csmSplit}]`)!;
 
   gl.activeTexture(gl.TEXTURE0 + csmSplit);
   gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -75,7 +74,11 @@ for (let csmSplit = 0; csmSplit < 4; ++csmSplit) {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_MODE, gl.COMPARE_REF_TO_TEXTURE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_FUNC, gl.LESS); // Can also be LEQUAL
-}
+});
+
+const csmShader = initShaderProgram(vertexShader, voidFsSource);
+const csmShader_viewMatrixLoc = gl.getUniformLocation(csmShader, uniformName_viewMatrix);
+gl.uniformMatrix4fv(gl.getUniformLocation(csmShader, uniformName_projectionMatrix), false, identity.toFloat32Array());
 
 gl.enable(gl.DEPTH_TEST); // Enable depth testing
 gl.enable(gl.CULL_FACE); // Don't render triangle backs
@@ -83,7 +86,7 @@ gl.enable(gl.CULL_FACE); // Don't render triangle backs
 gl.clearColor(0, 0.7, 1, 1); // Clear to black, fully opaque
 // gl.clearDepth(1); // Clear everything. Default value is 1
 // gl.cullFace(gl.BACK); // Default value is already BACK
-// gl.depthFunc(gl.LEQUAL); // Default is LESS, seems both are OK
+// gl.depthFunc(gl.LEQUAL); // Default is LESS, seems LEQUAL and LESS both are OK
 
 let gameTime = performance.now() / 1000;
 let lastGameTime = gameTime;
@@ -93,6 +96,8 @@ const renderScene = () => {
 };
 
 const draw = () => {
+  requestAnimationFrame(draw);
+
   const gameTimeDelta = gameTime - lastGameTime;
   lastGameTime = gameTime;
   gameTime = performance.now() / 1000;
@@ -150,8 +155,6 @@ const draw = () => {
   gl.uniform3f(mainShader_lightDirLoc, lightDir.x, lightDir.y, lightDir.z);
 
   renderScene();
-
-  requestAnimationFrame(draw);
 };
 
 requestAnimationFrame(draw);

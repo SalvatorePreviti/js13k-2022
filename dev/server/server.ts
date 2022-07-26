@@ -28,7 +28,7 @@ export async function startServer(argv = process.argv) {
 
     plugins: [
       ...(config.plugins || []),
-      rollupPluginSpglsl({ compileMode: SpglslCompileMode.Validate }),
+      rollupPluginSpglsl({ compileMode: SpglslCompileMode.Validate, throwOnError: true }),
       vitePluginReact(),
     ],
   };
