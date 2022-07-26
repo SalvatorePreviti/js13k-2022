@@ -1,8 +1,7 @@
 import "./dev-tools/dev-main";
 import "./index.css";
-import vsSource, { uniformName_projectionMatrix } from "./shaders/main-vertex.vert";
+import vsSource, { uniformName_projectionMatrix, uniformName_viewMatrix } from "./shaders/main-vertex.vert";
 import fsSource, {
-  uniformName_viewMatrix,
   uniformName_viewPos,
   uniformName_lightDir,
   uniformName_csm_matrices,
@@ -13,8 +12,7 @@ import fsSource, {
   constDef_CSM_PLANE_DISTANCE2 as CSM_PLANE_DISTANCE2,
 } from "./shaders/main-fragment.frag";
 
-import shadowVsSource, { uniformName_modelViewMatrix } from "./shaders/shadow-vertex.vert";
-import shadowFsSource from "./shaders/shadow-fragment.frag";
+import voidFsSource from "./shaders/void-fragment.frag";
 
 import { gl } from "./gl";
 
@@ -22,26 +20,26 @@ import { camera_update } from "./camera-update";
 import { camera_position, camera_updateView, camera_view } from "./camera";
 import { sceneTriangles, loadScene } from "./level/scene";
 import { fieldOfView, zFar, zNear } from "./camera-projection";
-import { initShaderProgram } from "./shader-utils";
+import { initShaderProgram, loadShader } from "./shader-utils";
 import { lightDir, csm_buildMatrix } from "./csm";
-import { DOMMatrix_perspective } from "./math/matrix";
+import { DOMMatrix_perspective, identity } from "./math/matrix";
 
 loadScene();
 
-// Initialize a shader program; this is where all the lighting
-// for the vertices and so forth is established.
-const shaderProgram = initShaderProgram(vsSource, fsSource);
+const vertexShader = loadShader(gl.VERTEX_SHADER, vsSource);
 
-const shadowShaderProgram = initShaderProgram(shadowVsSource, shadowFsSource);
+const csmShader = initShaderProgram(vertexShader, voidFsSource);
 
-const shadowMatrixLoc = gl.getUniformLocation(shadowShaderProgram, uniformName_modelViewMatrix);
+const csmShader_viewMatrixLoc = gl.getUniformLocation(csmShader, uniformName_viewMatrix);
 
-const projectionMatrixLoc = gl.getUniformLocation(shaderProgram, uniformName_projectionMatrix);
-const viewMatrixLoc = gl.getUniformLocation(shaderProgram, uniformName_viewMatrix);
-const viewPosLoc = gl.getUniformLocation(shaderProgram, uniformName_viewPos);
-const lightDirLoc = gl.getUniformLocation(shaderProgram, uniformName_lightDir)!;
+gl.uniformMatrix4fv(gl.getUniformLocation(csmShader, uniformName_projectionMatrix), false, identity.toFloat32Array());
 
-gl.useProgram(shaderProgram);
+const mainShader = initShaderProgram(vertexShader, fsSource);
+
+const mainShader_projectionMatrixLoc = gl.getUniformLocation(mainShader, uniformName_projectionMatrix);
+const mainShader_viewMatrixLoc = gl.getUniformLocation(mainShader, uniformName_viewMatrix);
+const mainShader_viewPosLoc = gl.getUniformLocation(mainShader, uniformName_viewPos);
+const mainShader_lightDirLoc = gl.getUniformLocation(mainShader, uniformName_lightDir)!;
 
 const csm_matricesLocs: WebGLUniformLocation[] = [];
 const csm_framebuffers: WebGLFramebuffer[] = [];
@@ -51,9 +49,9 @@ for (let csmSplit = 0; csmSplit < 4; ++csmSplit) {
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, (csm_framebuffers[csmSplit] = gl.createFramebuffer()!));
 
-  csm_matricesLocs[csmSplit] = gl.getUniformLocation(shaderProgram, uniformName_csm_matrices + `[${csmSplit}]`)!;
+  csm_matricesLocs[csmSplit] = gl.getUniformLocation(mainShader, uniformName_csm_matrices + `[${csmSplit}]`)!;
 
-  gl.uniform1i(gl.getUniformLocation(shaderProgram, uniformName_csm_textures + `[${csmSplit}]`), csmSplit);
+  gl.uniform1i(gl.getUniformLocation(mainShader, uniformName_csm_textures + `[${csmSplit}]`), csmSplit);
 
   gl.activeTexture(gl.TEXTURE0 + csmSplit);
   gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -112,12 +110,12 @@ const draw = () => {
 
   // *** CASCADED SHADOWMAPS ***
 
-  gl.useProgram(shadowShaderProgram);
+  gl.useProgram(csmShader);
 
   gl.viewport(0, 0, CSM_TEXTURE_SIZE, CSM_TEXTURE_SIZE);
   for (let csmSplit = 0; csmSplit < 4; ++csmSplit) {
     gl.bindFramebuffer(gl.FRAMEBUFFER, csm_framebuffers[csmSplit]!);
-    gl.uniformMatrix4fv(shadowMatrixLoc, false, lightSpaceMatrices[csmSplit]!);
+    gl.uniformMatrix4fv(csmShader_viewMatrixLoc, false, lightSpaceMatrices[csmSplit]!);
     gl.clear(gl.DEPTH_BUFFER_BIT);
     renderScene();
   }
@@ -133,23 +131,23 @@ const draw = () => {
 
   // *** MAIN RENDERER ***
 
-  gl.useProgram(shaderProgram);
+  gl.useProgram(mainShader);
 
   for (let csmSplit = 0; csmSplit < 4; ++csmSplit) {
     gl.uniformMatrix4fv(csm_matricesLocs[csmSplit]!, false, lightSpaceMatrices[csmSplit]!);
   }
 
   gl.uniformMatrix4fv(
-    projectionMatrixLoc,
+    mainShader_projectionMatrixLoc,
     false,
     DOMMatrix_perspective(fieldOfView, hC.clientWidth / hC.clientHeight, zNear, zFar).toFloat32Array(),
   );
 
-  gl.uniformMatrix4fv(viewMatrixLoc, false, camera_view.toFloat32Array());
+  gl.uniformMatrix4fv(mainShader_viewMatrixLoc, false, camera_view.toFloat32Array());
 
-  gl.uniform3f(viewPosLoc, camera_position.x, camera_position.y, camera_position.z);
+  gl.uniform3f(mainShader_viewPosLoc, camera_position.x, camera_position.y, camera_position.z);
 
-  gl.uniform3f(lightDirLoc, lightDir.x, lightDir.y, lightDir.z);
+  gl.uniform3f(mainShader_lightDirLoc, lightDir.x, lightDir.y, lightDir.z);
 
   renderScene();
 

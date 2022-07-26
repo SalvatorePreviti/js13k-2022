@@ -12,5 +12,4 @@ export default {
   Color: "J",
   FragPos: "K",
   Normal: "L",
-  modelViewMatrix: "M",
 };

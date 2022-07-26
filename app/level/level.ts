@@ -83,11 +83,9 @@ const weirdObject = () => {
 };
 
 export const pavement = (): Polygon[] => {
-  // return solid_transform(solid_box(materialWhite), identity.translate(0, 0).scale(80, 0.5, 80));
   return solid_transform(solid_box(materialWhite), identity.translate(0, -2).scale(1100, 0.5, 1100));
 };
 
 export const mainScene = (): Polygon[][] => {
-  // ,
   return [...corridor().map((t) => solid_transform(t, identity.translate(0, 10, 0))), pavement(), weirdObject()];
 };

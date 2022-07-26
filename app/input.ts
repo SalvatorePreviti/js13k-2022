@@ -44,7 +44,9 @@ const keyMap: Partial<Record<KEY_CODE, number>> = {
   KeyF: KEY_DEBUG_FLY_DOWN,
 };
 
-oncontextmenu = () => false;
+if (!DEBUG) {
+  oncontextmenu = () => false;
+}
 
 onblur = () => (keyboard_downKeys.length = _mouseDown = mouse_movementX = mouse_movementY = 0);
 
