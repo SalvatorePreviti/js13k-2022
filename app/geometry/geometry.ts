@@ -100,7 +100,12 @@ export const solid_smoothSidesQuads = (sides: Polygon[]): Polygon[] => {
   return sides.map(({ $points: c, $material }) => {
     const result = {
       $material,
-      $points: integers_map(4, (i) => vertex_lerp(b[i]!, a[3 - i]!, 0, 0.5)),
+      $points: [
+        vertex_lerp(b[0]!, a[3]!, 0, 0.5),
+        vertex_lerp(b[1]!, a[2]!, 0, 0.5),
+        vertex_lerp(b[2]!, c[1]!, 0, 0.5),
+        vertex_lerp(b[3]!, c[0]!, 0, 0.5),
+      ],
     };
     a = b;
     b = c;
