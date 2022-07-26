@@ -73,7 +73,7 @@ export const csm_buildMatrix = (nearPlane: number, farPlane: number): Float32Arr
   }
 
   // Tuneable fix
-  const CSM_Z_MULTIPLIER = 10;
+  const CSM_Z_MULTIPLIER = 7;
 
   const CSM_Z_MULTIPLIER_INV = 1 / CSM_Z_MULTIPLIER;
 
