@@ -33,7 +33,8 @@ function CSGPolygon_splitSpanning(plane: Plane, polygon: CSGPolygon): { f: CSGPo
     const jd = vec3_dot(plane, jv) - plane.w;
     if (d > -PLANE_EPSILON) {
       fpoints.push(iv);
-    } else if (d < PLANE_EPSILON) {
+    }
+    if (d < PLANE_EPSILON) {
       bpoints.push(iv);
     }
     if ((d < -PLANE_EPSILON && jd > PLANE_EPSILON) || (d > PLANE_EPSILON && jd < -PLANE_EPSILON)) {
