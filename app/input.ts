@@ -44,7 +44,9 @@ export const mouse_movementReset = () => (mouse_movementX = mouse_movementY = 0)
 
 let _mouseDown: boolean | 0 | undefined;
 
-oncontextmenu = () => false;
+if (!DEBUG) {
+  oncontextmenu = () => false;
+}
 
 onblur = () => (keyboard_downKeys.length = _mouseDown = mouse_movementX = mouse_movementY = 0);
 

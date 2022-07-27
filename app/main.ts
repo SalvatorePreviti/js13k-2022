@@ -24,7 +24,7 @@ import { DOMMatrix_perspective } from "./math/matrix";
 import { camera_update } from "./camera-update";
 import { buildWorld, renderMainScene } from "./level/scene";
 import { fieldOfView, zFar, zNear, camera_position, camera_rotation, camera_view } from "./camera";
-import { csm_buildMatrix, lightDir } from "./csm";
+import { csm_buildMatrix, lightMatrix } from "./csm";
 
 buildWorld();
 
@@ -140,7 +140,7 @@ const draw = () => {
 
   gl.uniform3f(mainShader_viewPosLoc, camera_position.x, camera_position.y, camera_position.z);
 
-  gl.uniform3f(mainShader_lightDirLoc, lightDir.x, lightDir.y, lightDir.z);
+  gl.uniform3f(mainShader_lightDirLoc, lightMatrix.m13, lightMatrix.m23, lightMatrix.m33);
 
   renderMainScene();
 };

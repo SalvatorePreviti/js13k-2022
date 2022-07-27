@@ -1,32 +1,12 @@
 import { camera_view, fieldOfView } from "./camera";
 import { integers_map } from "./math/math";
-import { DOMMatrix_perspective } from "./math/matrix";
-import { vec3_normalize, type Vec3 } from "./math/vectors";
+import { DOMMatrix_perspective, identity } from "./math/matrix";
 
-// TODO: this should be a constant, precalculated, and not a vector.
-export const lightDir: Vec3 = vec3_normalize({ x: 40.0, y: 50, z: -20.0 });
-
-// Similar to lookat, up is [0,1,0] and as input we have a center and a direction. Direction must be normalised.
-// TODO: If light direction is fixed, the direction matrix can be precalculated.
-// We could use a rotation matrix and compute the lightDir from the rotation matrix itself.
-const lightView = new DOMMatrix([
-  lightDir.z,
-  -lightDir.y * lightDir.x,
-  lightDir.x,
-  0,
-  0,
-  lightDir.z * lightDir.z + lightDir.x * lightDir.x,
-  lightDir.y,
-  0,
-  -lightDir.x,
-  -lightDir.y * lightDir.z,
-  lightDir.z,
-  0,
-  0,
-  0,
-  0,
-  1,
-]);
+/**
+ * The main directional light rotation matrix.
+ * Normalized light direction is { x: m13, y: m23, z: m33 }
+ */
+export const lightMatrix = identity.rotate(292, 216);
 
 export const csm_buildMatrix = (nearPlane: number, farPlane: number, zmultiplier: number): Float32Array => {
   let x = 0;
@@ -61,7 +41,7 @@ export const csm_buildMatrix = (nearPlane: number, farPlane: number, zmultiplier
     return v;
   });
 
-  const lightViewTranslated = lightView.translate(x / 8, y / 8, z / 8);
+  const lightViewTranslated = lightMatrix.translate(x / 8, y / 8, z / 8);
 
   // Compute the frustum bouding box
   for (const v of frustumCorners) {
