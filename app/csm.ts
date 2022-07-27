@@ -1,5 +1,4 @@
-import { camera_view } from "./camera";
-import { fieldOfView } from "./camera-projection";
+import { camera_view, fieldOfView } from "./camera";
 import { integers_map } from "./math/math";
 import { DOMMatrix_perspective } from "./math/matrix";
 import { vec3_normalize, type Vec3 } from "./math/vectors";
@@ -7,7 +6,29 @@ import { vec3_normalize, type Vec3 } from "./math/vectors";
 // TODO: this should be a constant, precalculated, and not a vector.
 export const lightDir: Vec3 = vec3_normalize({ x: 40.0, y: 50, z: -20.0 });
 
-export const csm_buildMatrix = (nearPlane: number, farPlane: number): Float32Array => {
+// Similar to lookat, up is [0,1,0] and as input we have a center and a direction. Direction must be normalised.
+// TODO: If light direction is fixed, the direction matrix can be precalculated.
+// We could use a rotation matrix and compute the lightDir from the rotation matrix itself.
+const lightView = new DOMMatrix([
+  lightDir.z,
+  -lightDir.y * lightDir.x,
+  lightDir.x,
+  0,
+  0,
+  lightDir.z * lightDir.z + lightDir.x * lightDir.x,
+  lightDir.y,
+  0,
+  -lightDir.x,
+  -lightDir.y * lightDir.z,
+  lightDir.z,
+  0,
+  0,
+  0,
+  0,
+  1,
+]);
+
+export const csm_buildMatrix = (nearPlane: number, farPlane: number, zmultiplier: number): Float32Array => {
   let x = 0;
   let y = 0;
   let z = 0;
@@ -18,7 +39,7 @@ export const csm_buildMatrix = (nearPlane: number, farPlane: number): Float32Arr
   let near = Infinity;
   let far = -Infinity;
 
-  const roundingRadius = (farPlane - nearPlane) / 1.35;
+  const roundingRadius = (farPlane - nearPlane) / 2;
 
   const projViewInverse = DOMMatrix_perspective(fieldOfView, hC.clientWidth / hC.clientHeight, nearPlane, farPlane)
     .multiplySelf(camera_view)
@@ -40,30 +61,11 @@ export const csm_buildMatrix = (nearPlane: number, farPlane: number): Float32Arr
     return v;
   });
 
-  // Similar to lookat, up is [0,1,0] and as input we have a center and a direction. Direction must be normalised.
-  // TODO: If light direction is fixed, the direction matrix can be precalculated.
-  const lightView = new DOMMatrix([
-    lightDir.z,
-    -lightDir.y * lightDir.x,
-    lightDir.x,
-    0,
-    0,
-    lightDir.z * lightDir.z + lightDir.x * lightDir.x,
-    lightDir.y,
-    0,
-    -lightDir.x,
-    -lightDir.y * lightDir.z,
-    lightDir.z,
-    0,
-    0,
-    0,
-    0,
-    1,
-  ]).translateSelf(x / 8, y / 8, z / 8);
+  const lightViewTranslated = lightView.translate(x / 8, y / 8, z / 8);
 
   // Compute the frustum bouding box
   for (const v of frustumCorners) {
-    ({ x, y, z } = lightView.transformPoint(v));
+    ({ x, y, z } = lightViewTranslated.transformPoint(v));
     left = Math.min(left, x);
     right = Math.max(right, x);
     bottom = Math.min(bottom, y);
@@ -72,13 +74,8 @@ export const csm_buildMatrix = (nearPlane: number, farPlane: number): Float32Arr
     far = Math.max(far, z);
   }
 
-  // Tuneable fix
-  const CSM_Z_MULTIPLIER = 7;
-
-  const CSM_Z_MULTIPLIER_INV = 1 / CSM_Z_MULTIPLIER;
-
-  near *= near < 0 ? CSM_Z_MULTIPLIER : CSM_Z_MULTIPLIER_INV;
-  far *= far < 0 ? CSM_Z_MULTIPLIER_INV : CSM_Z_MULTIPLIER;
+  near *= near < 0 ? zmultiplier : 1 / zmultiplier;
+  far *= far > 0 ? zmultiplier : 1 / zmultiplier;
 
   // Build the ortographic matrix, multiply it with the light space view matrix.
   return new DOMMatrix([
@@ -99,6 +96,6 @@ export const csm_buildMatrix = (nearPlane: number, farPlane: number): Float32Arr
     (far + near) / (near - far),
     1,
   ])
-    .multiplySelf(lightView)
+    .multiplySelf(lightViewTranslated)
     .toFloat32Array();
 };

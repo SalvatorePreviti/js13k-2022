@@ -14,16 +14,6 @@ export const KEY_DEBUG_FLY_UP = 5;
 
 export const KEY_DEBUG_FLY_DOWN = 6;
 
-export const keyboard_downKeys: (0 | 1 | undefined)[] = [];
-
-export let mouse_movementX = 0;
-
-export let mouse_movementY = 0;
-
-export const mouse_movementReset = () => (mouse_movementX = mouse_movementY = 0);
-
-let _mouseDown: boolean | 0 | undefined;
-
 const keyMap: Partial<Record<KEY_CODE, number>> = {
   KeyA: KEY_LEFT,
   ArrowLeft: KEY_LEFT,
@@ -44,9 +34,17 @@ const keyMap: Partial<Record<KEY_CODE, number>> = {
   KeyF: KEY_DEBUG_FLY_DOWN,
 };
 
-if (!DEBUG) {
-  oncontextmenu = () => false;
-}
+export const keyboard_downKeys: (0 | 1 | undefined)[] = [];
+
+export let mouse_movementX = 0;
+
+export let mouse_movementY = 0;
+
+export const mouse_movementReset = () => (mouse_movementX = mouse_movementY = 0);
+
+let _mouseDown: boolean | 0 | undefined;
+
+oncontextmenu = () => false;
 
 onblur = () => (keyboard_downKeys.length = _mouseDown = mouse_movementX = mouse_movementY = 0);
 
@@ -62,9 +60,7 @@ onmousedown = ({ target, buttons }: MouseEvent) => {
   _mouseDown = (buttons === 1 && target === document.body) || target === hC;
 };
 
-onmouseup = () => {
-  _mouseDown = 0;
-};
+onmouseup = () => (_mouseDown = 0);
 
 onmousemove = ({ buttons, movementX, movementY }) => {
   if (((buttons > 0 && _mouseDown) || document.pointerLockElement) && document.activeElement) {

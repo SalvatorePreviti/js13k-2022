@@ -1,6 +1,6 @@
 import type { Vec3 } from "../math/vectors";
 
-export type Material = [number, number, number];
+export type Material = number;
 
 export interface Vertex extends Vec3 {
   /** Vertex normal X */

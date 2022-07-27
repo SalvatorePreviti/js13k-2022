@@ -1,16 +1,19 @@
 import { csg_subtract, csg_union, csg_polygons } from "../geometry/csg";
 import { solid_box, solid_cylinder, solid_transform, type Polygon } from "../geometry/geometry";
-import type { Material } from "../geometry/vertex";
 import { integers_map } from "../math/math";
 import { identity } from "../math/matrix";
 
-const materialWhite = [1, 1, 1] as Material;
-const material0 = [1, 0.3, 0] as Material;
-const material1 = [0, 0.5, 0.7] as Material;
-const material2 = [0, 0.2, 0.9] as Material;
-const material3 = [0.2, 0, 0.9] as Material;
-const material4 = [0.4, 0.9, 0] as Material;
-const material5 = [0.4, 0, 0.9] as Material;
+const rgb = (r: number, g: number, b: number): number => {
+  return ((Math.round(b * 255) << 16) | (Math.round(g * 255) << 8) | Math.round(r * 255)) >>> 0;
+};
+
+const materialWhite = rgb(1, 1, 1);
+const material0 = rgb(1, 0.3, 0);
+const material1 = rgb(0, 0.5, 0.7);
+const material2 = rgb(0, 0.2, 0.9);
+const material3 = rgb(0.2, 0, 0.9);
+const material4 = rgb(0.4, 0.9, 0);
+const material5 = rgb(0.4, 0, 0.9);
 
 const corridor = (): Polygon[][] => {
   const p = csg_subtract(
@@ -88,4 +91,19 @@ export const pavement = (): Polygon[] => {
 
 export const mainScene = (): Polygon[][] => {
   return [...corridor().map((t) => solid_transform(t, identity.translate(0, 10, 0))), pavement(), weirdObject()];
+
+  // const c = corridor().map((t) => solid_transform(t, identity.translate(0, 10, 0)));
+
+  // const merged: Polygon[][] = [];
+  // for (let z = -8; z < 8; ++z) {
+  //   for (let x = -8; x < 8; ++x) {
+  //     for (let y = -2; y < 2; ++y) {
+  //       for (const solid of c) {
+  //         merged.push(solid_transform(solid, identity.translate(x * 20, y * 20, z * 20).scale(1, 1, 0.3)));
+  //       }
+  //     }
+  //   }
+  // }
+
+  // return [...merged, pavement(), weirdObject()];
 };

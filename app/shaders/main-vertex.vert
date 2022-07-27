@@ -11,9 +11,9 @@ out highp vec4 FragPos;
 out highp vec3 Normal;
 out lowp vec4 Color;
 
-void main(void) {
+void main() {
+  gl_Position = projectionMatrix * viewMatrix * aPosition;
   FragPos = aPosition;
   Normal = aNormal;
   Color = aColor;
-  gl_Position = projectionMatrix * viewMatrix * aPosition;
 }

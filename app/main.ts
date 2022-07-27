@@ -1,7 +1,10 @@
 import "./dev-tools/dev-main";
+
 import "./index.css";
-import vsSource, { uniformName_projectionMatrix, uniformName_viewMatrix } from "./shaders/main-vertex.vert";
-import fsSource, {
+
+import csm_vsSource from "./shaders/csm-vertex.vert";
+import main_vsSource, { uniformName_projectionMatrix, uniformName_viewMatrix } from "./shaders/main-vertex.vert";
+import main_fsSource, {
   uniformName_viewPos,
   uniformName_lightDir,
   uniformName_csm_matrices,
@@ -14,32 +17,29 @@ import fsSource, {
 
 import voidFsSource from "./shaders/void-fragment.frag";
 
-import { gl } from "./gl";
+import { gl, initShaderProgram } from "./gl";
 
-import { camera_update } from "./camera-update";
-import { camera_position, camera_updateView, camera_view } from "./camera";
-import { sceneTriangles, loadScene } from "./level/scene";
-import { fieldOfView, zFar, zNear } from "./camera-projection";
-import { initShaderProgram, loadShader } from "./shader-utils";
-import { lightDir, csm_buildMatrix } from "./csm";
-import { DOMMatrix_perspective, identity } from "./math/matrix";
 import { integers_map } from "./math/math";
+import { DOMMatrix_perspective } from "./math/matrix";
+import { camera_update } from "./camera-update";
+import { buildWorld, renderMainScene } from "./level/scene";
+import { fieldOfView, zFar, zNear, camera_position, camera_rotation, camera_view } from "./camera";
+import { csm_buildMatrix, lightDir } from "./csm";
 
-loadScene();
+buildWorld();
 
-const vertexShader = loadShader(gl.VERTEX_SHADER, vsSource);
+const csm_framebuffers: WebGLFramebuffer[] = [];
 
-const mainShader = initShaderProgram(vertexShader, fsSource);
+const csmShader = initShaderProgram(csm_vsSource, voidFsSource);
+const csmShader_viewMatrixLoc = gl.getUniformLocation(csmShader, uniformName_viewMatrix);
 
+const mainShader = initShaderProgram(main_vsSource, main_fsSource);
 const mainShader_projectionMatrixLoc = gl.getUniformLocation(mainShader, uniformName_projectionMatrix);
 const mainShader_viewMatrixLoc = gl.getUniformLocation(mainShader, uniformName_viewMatrix);
 const mainShader_viewPosLoc = gl.getUniformLocation(mainShader, uniformName_viewPos);
 const mainShader_lightDirLoc = gl.getUniformLocation(mainShader, uniformName_lightDir)!;
 
-const csm_matricesLocs: WebGLUniformLocation[] = [];
-const csm_framebuffers: WebGLFramebuffer[] = [];
-
-integers_map(4, (csmSplit) => {
+const csm_matricesLocs = integers_map(4, (csmSplit) => {
   const texture = gl.createTexture()!;
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, (csm_framebuffers[csmSplit] = gl.createFramebuffer()!));
@@ -49,8 +49,6 @@ integers_map(4, (csmSplit) => {
   gl.readBuffer(gl.NONE);
 
   gl.uniform1i(gl.getUniformLocation(mainShader, uniformName_csm_textures + `[${csmSplit}]`), csmSplit);
-
-  csm_matricesLocs[csmSplit] = gl.getUniformLocation(mainShader, uniformName_csm_matrices + `[${csmSplit}]`)!;
 
   gl.activeTexture(gl.TEXTURE0 + csmSplit);
   gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -73,27 +71,13 @@ integers_map(4, (csmSplit) => {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_MODE, gl.COMPARE_REF_TO_TEXTURE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_FUNC, gl.LESS); // Can also be LEQUAL
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_FUNC, gl.LEQUAL); // Can also be LEQUAL
+
+  return gl.getUniformLocation(mainShader, uniformName_csm_matrices + `[${csmSplit}]`)!;
 });
-
-const csmShader = initShaderProgram(vertexShader, voidFsSource);
-const csmShader_viewMatrixLoc = gl.getUniformLocation(csmShader, uniformName_viewMatrix);
-gl.uniformMatrix4fv(gl.getUniformLocation(csmShader, uniformName_projectionMatrix), false, identity.toFloat32Array());
-
-gl.enable(gl.DEPTH_TEST); // Enable depth testing
-gl.enable(gl.CULL_FACE); // Don't render triangle backs
-
-gl.clearColor(0, 0.7, 1, 1); // Clear to black, fully opaque
-// gl.clearDepth(1); // Clear everything. Default value is 1
-// gl.cullFace(gl.BACK); // Default value is already BACK
-// gl.depthFunc(gl.LEQUAL); // Default is LESS, seems LEQUAL and LESS both are OK
 
 let gameTime = performance.now() / 1000;
 let lastGameTime = gameTime;
-
-const renderScene = () => {
-  gl.drawElements(gl.TRIANGLES, sceneTriangles.$indices.length, gl.UNSIGNED_SHORT, 0);
-};
 
 const draw = () => {
   requestAnimationFrame(draw);
@@ -104,13 +88,17 @@ const draw = () => {
 
   camera_update(gameTimeDelta);
 
-  camera_updateView();
+  camera_view
+    .setMatrixValue("none")
+    .rotateSelf(-camera_rotation.x, -camera_rotation.y, -camera_rotation.z)
+    .invertSelf()
+    .translateSelf(-camera_position.x, -camera_position.y, -camera_position.z);
 
   const lightSpaceMatrices = [
-    csm_buildMatrix(zNear, CSM_PLANE_DISTANCE0),
-    csm_buildMatrix(CSM_PLANE_DISTANCE0, CSM_PLANE_DISTANCE1),
-    csm_buildMatrix(CSM_PLANE_DISTANCE1, CSM_PLANE_DISTANCE2),
-    csm_buildMatrix(CSM_PLANE_DISTANCE2, zFar),
+    csm_buildMatrix(zNear, CSM_PLANE_DISTANCE0, 10),
+    csm_buildMatrix(CSM_PLANE_DISTANCE0, CSM_PLANE_DISTANCE1, 2),
+    csm_buildMatrix(CSM_PLANE_DISTANCE1, CSM_PLANE_DISTANCE2, 1.6),
+    csm_buildMatrix(CSM_PLANE_DISTANCE2, zFar, 1.5),
   ];
 
   // *** CASCADED SHADOWMAPS ***
@@ -122,7 +110,7 @@ const draw = () => {
     gl.bindFramebuffer(gl.FRAMEBUFFER, csm_framebuffers[csmSplit]!);
     gl.uniformMatrix4fv(csmShader_viewMatrixLoc, false, lightSpaceMatrices[csmSplit]!);
     gl.clear(gl.DEPTH_BUFFER_BIT);
-    renderScene();
+    renderMainScene();
   }
 
   // *** MAIN RENDER ***
@@ -154,7 +142,15 @@ const draw = () => {
 
   gl.uniform3f(mainShader_lightDirLoc, lightDir.x, lightDir.y, lightDir.z);
 
-  renderScene();
+  renderMainScene();
 };
+
+gl.enable(gl.DEPTH_TEST); // Enable depth testing
+gl.enable(gl.CULL_FACE); // Don't render triangle backs
+
+gl.clearColor(0, 0.7, 1, 1); // Clear to black, fully opaque
+// gl.clearDepth(1); // Clear everything. Default value is 1
+// gl.cullFace(gl.BACK); // Default value is already BACK
+// gl.depthFunc(gl.LEQUAL); // Default is LESS, seems LEQUAL and LESS both are OK
 
 requestAnimationFrame(draw);

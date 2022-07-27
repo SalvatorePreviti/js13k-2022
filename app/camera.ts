@@ -1,5 +1,15 @@
 import { angle_wrap_degrees, DEG_TO_RAD } from "./math/math";
 
+import { constDef_zNear, constDef_zFar } from "./shaders/main-fragment.frag";
+
+export const fieldOfViewDegrees = 45;
+
+export const fieldOfView = fieldOfViewDegrees * DEG_TO_RAD; // in radians
+
+export const zNear = constDef_zNear;
+
+export const zFar = constDef_zFar;
+
 export const camera_position = { x: 20, y: 12, z: 38 };
 
 export const camera_rotation = { x: 0, y: -35, z: 0 };
@@ -18,20 +28,3 @@ export const camera_firstPersonMove = (x: number, z: number) => {
   camera_position.x += x * c - z * s;
   camera_position.z += x * s + z * c;
 };
-
-export const camera_updateView = () => {
-  camera_view
-    .setMatrixValue("none")
-    .rotateSelf(-camera_rotation.x, -camera_rotation.y, -camera_rotation.z)
-    .invertSelf()
-    .translateSelf(-camera_position.x, -camera_position.y, -camera_position.z);
-
-  // camera_view
-  //   .setMatrixValue("none")
-  //   .rotateSelf(camera_rotation.x, 0, 0)
-  //   .rotateSelf(0, camera_rotation.y, 0)
-  //   // .rotateSelf(0, 0, camera_rotation.z)
-  //   .translateSelf(-camera_position.x, -camera_position.y, -camera_position.z);
-};
-
-camera_updateView();

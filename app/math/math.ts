@@ -14,11 +14,3 @@ export const angle_wrap_radians = (radians: number): number => Math.atan2(Math.s
 export const angle_wrap_degrees = (degrees: number): number => angle_wrap_radians(degrees * DEG_TO_RAD) / DEG_TO_RAD;
 
 export const integers_map = <T>(n: number, fn: (i: number) => T) => Array.from(Array(n), (_, i) => fn(i));
-
-export const integers_array = (n: number) => Array.from(Array(n), (_, i) => i);
-
-export const integers_each = (n: number, fn: (i: number) => void) => {
-  for (let i = 0; i < n; ++i) {
-    fn(i);
-  }
-};

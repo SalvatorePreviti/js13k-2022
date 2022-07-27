@@ -100,7 +100,8 @@ export function getTerserMinifyOptions(settings: TerserMinifySettings): TerserMi
       booleans: true,
 
       // Turn booleans into 0 and 1, also makes comparisons with booleans use == and != instead of === and !==
-      booleans_as_integers: true,
+      // This must be false for terser, or it breaks booleans!
+      booleans_as_integers: false,
 
       // Collapse single-use non-constant variables, side effects permitting.
       collapse_vars: true,
@@ -141,7 +142,7 @@ export function getTerserMinifyOptions(settings: TerserMinifySettings): TerserMi
 
       // hoist var declarations
       // (this is false by default because it seems to increase the size of the output in general)
-      hoist_vars: false,
+      hoist_vars: true,
 
       // optimizations for if/return and if/continue
       if_return: true,

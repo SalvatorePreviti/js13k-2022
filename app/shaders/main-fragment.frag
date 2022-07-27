@@ -2,10 +2,13 @@
 precision highp float;
 precision highp sampler2DShadow;
 
-#define CSM_TEXTURE_SIZE 2048.
-#define CSM_PLANE_DISTANCE0 25.
-#define CSM_PLANE_DISTANCE1 100.
-#define CSM_PLANE_DISTANCE2 200.
+#define CSM_TEXTURE_SIZE 4096.
+
+#define zNear 0.1
+#define CSM_PLANE_DISTANCE0 50.
+#define CSM_PLANE_DISTANCE1 250.
+#define CSM_PLANE_DISTANCE2 400.
+#define zFar 500.
 
 in highp vec4 FragPos;
 in highp vec3 Normal;
@@ -56,7 +59,8 @@ float ShadowCalculation(float shadowBias) {
       }
     }
   }
-  return shadow / 9.;
+
+  return mix((shadow / 9.), 1., sqrt(depthValue / zFar) * .9);
 }
 
 void main() {
@@ -74,9 +78,9 @@ void main() {
   vec3 specular = pow(max(dot(normal, halfwayDir), 0.0), 64.0) * lightColor;
 
   // calculate shadow
-  float shadow = ShadowCalculation(max(0.002 * (1. - dot(normal, lightDir)), 0.0005));
+  float shadow = ShadowCalculation(max(0.003 * (1. - dot(normal, lightDir)), 0.0005));
 
-  vec3 lighting = (ambient + mix(diffuse * .3, diffuse + specular, shadow)) * Color.xyz;
+  vec3 lighting = (ambient + mix(diffuse * .3, diffuse + specular, shadow)) * abs(Color.xyz);
 
   O = vec4(lighting, 1.0f);
 }

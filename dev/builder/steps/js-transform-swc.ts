@@ -206,7 +206,7 @@ export function getSwcMinifyOptions(settings: SwcTransformSettings): JsMinifyOpt
 
       // hoist var declarations
       // (this is false by default because it seems to increase the size of the output in general)
-      hoist_vars: false,
+      hoist_vars: true,
 
       // optimizations for if/return and if/continue
       if_return: true,
