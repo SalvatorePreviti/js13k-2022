@@ -1,3 +1,4 @@
+import type { Vec3In } from "../math/vectors";
 import { vec3_polygonNormal, vec3_dot, type Plane } from "../math/vectors";
 import { polygon_clone, type Polygon } from "./geometry";
 import { vertex_lerp, type Vertex } from "./vertex";
@@ -92,14 +93,15 @@ export interface CSGNode extends Plane {
 export const csg_tree_addPolygon = (
   node: CSGNode | null | undefined,
   polygon: CSGPolygon,
-  polygonPlane: Plane,
+  polygonNormal: Vec3In,
+  planeW: number,
 ): CSGNode => {
   if (!node) {
     return {
-      x: polygonPlane.x,
-      y: polygonPlane.y,
-      z: polygonPlane.z,
-      w: polygonPlane.w,
+      x: polygonNormal.x,
+      y: polygonNormal.y,
+      z: polygonNormal.z,
+      w: planeW,
       $polygons: [polygon],
       $front: null,
       $back: null,
@@ -107,10 +109,10 @@ export const csg_tree_addPolygon = (
   }
   const { $front, $back } = CSGPolygon_split(node, polygon);
   if ($front) {
-    node.$front = csg_tree_addPolygon(node.$front, $front, polygonPlane);
+    node.$front = csg_tree_addPolygon(node.$front, $front, polygonNormal, planeW);
   }
   if ($back) {
-    node.$back = csg_tree_addPolygon(node.$back, $back, polygonPlane);
+    node.$back = csg_tree_addPolygon(node.$back, $back, polygonNormal, planeW);
   }
   if (!$front && !$back) {
     // Coplanar
@@ -128,9 +130,13 @@ export const csg_tree = (n: CSGInput): CSGNode => {
     // Build a BSP tree from a list of polygons
     let root: CSGNode | undefined;
     for (const { $color, $points } of n as Polygon[]) {
-      const plane = vec3_polygonNormal($points as [Vertex, Vertex, Vertex]) as Plane;
-      plane.w = vec3_dot(plane, $points[0]!);
-      root = csg_tree_addPolygon(root, { $color, $points, $flipped: false, $parent: null }, plane);
+      const normal = vec3_polygonNormal($points as [Vertex, Vertex, Vertex]) as Plane;
+      root = csg_tree_addPolygon(
+        root,
+        { $color, $points, $flipped: false, $parent: null },
+        normal,
+        vec3_dot(normal, $points[0]!),
+      );
     }
     return root!;
   }
@@ -197,7 +203,7 @@ export const csg_tree_clipTo = (root: CSGNode | null, bsp: CSGNode): void => {
 export const csg_tree_addTree = (tree: CSGNode | null, source: CSGNode | null): void =>
   csg_tree_each(source, (sourceNode) => {
     for (const polygon of sourceNode.$polygons) {
-      csg_tree_addPolygon(tree, polygon, sourceNode);
+      csg_tree_addPolygon(tree, polygon, sourceNode, sourceNode.w);
     }
   });
 
