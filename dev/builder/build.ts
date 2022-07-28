@@ -43,9 +43,11 @@ export async function build() {
     sources.html = htmlCssJsBundle.html;
     sources.js = htmlCssJsBundle.js;
 
+    sources.js = await jsTransformSwc(sources.js, { constToLet: false });
+
     // sources.js = await jsEsbuildMinify(sources.js);
 
-    sources.js = await jsTransformSwc(sources.js, { constToLet: true });
+    sources.js = await jsUglify(sources.js, { varify: false });
 
     sources.js = await jsOptimizeTerser(sources.js, { mangle: false });
 

@@ -42,6 +42,12 @@ class Transformer extends SwcVisitor {
         };
       }
     }
+    // if (n.kind === "let") {
+    //   n = {
+    //     ...n,
+    //     kind: "var",
+    //   };
+    // }
     return super.visitVariableDeclaration(n);
   }
 }
