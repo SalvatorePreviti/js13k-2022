@@ -42,8 +42,8 @@ export const csm_buildMatrix = (nearPlane: number, farPlane: number, zmultiplier
   const lightViewTranslated = lightMatrix.translate(x / 8, y / 8, z / 8);
 
   // Compute the frustum bouding box
-  for (const v of frustumCorners) {
-    ({ x, y, z } = lightViewTranslated.transformPoint(v));
+  for (let i = 0; i < 8; ++i) {
+    ({ x, y, z } = lightViewTranslated.transformPoint(frustumCorners[i]));
     left = Math.min(left, x);
     right = Math.max(right, x);
     bottom = Math.min(bottom, y);
@@ -58,7 +58,7 @@ export const csm_buildMatrix = (nearPlane: number, farPlane: number, zmultiplier
   // Build the ortographic matrix, multiply it with the light space view matrix.
   return identity
     .scale(2 / (right - left), 2 / (top - bottom), 2 / (near - far))
-    .translateSelf((right + left) / -2, (top + bottom) / -2, (far + near) / 2)
+    .translateSelf((right + left) / -2, (top + bottom) / -2, (near + far) / 2)
     .multiplySelf(lightViewTranslated)
     .toFloat32Array();
 };

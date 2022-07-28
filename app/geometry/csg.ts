@@ -23,7 +23,7 @@ interface SplitPolygonResult {
 }
 
 const CSGPolygon_splitSpanning = (plane: Plane, polygon: CSGPolygon): SplitPolygonResult => {
-  const { $points, $color, $flipped } = polygon;
+  const { $points } = polygon;
   const fpoints: Vertex[] = [];
   const bpoints: Vertex[] = [];
   let iv: Vertex = $points[$points.length - 1]!;
@@ -49,8 +49,18 @@ const CSGPolygon_splitSpanning = (plane: Plane, polygon: CSGPolygon): SplitPolyg
     d = jd;
   }
   return {
-    $front: fpoints.length > 2 && { $color, $points: fpoints, $flipped, $parent: polygon },
-    $back: bpoints.length > 2 && { $color, $points: bpoints, $flipped, $parent: polygon },
+    $front: fpoints.length > 2 && {
+      $color: polygon.$color,
+      $points: fpoints,
+      $flipped: polygon.$flipped,
+      $parent: polygon,
+    },
+    $back: bpoints.length > 2 && {
+      $color: polygon.$color,
+      $points: bpoints,
+      $flipped: polygon.$flipped,
+      $parent: polygon,
+    },
   };
 };
 
@@ -138,39 +148,39 @@ export const csg_tree_each = (node: CSGNode | null, fn: (node: CSGNode) => void)
 /** Convert solid space to empty space and empty space to solid space. */
 export const csg_tree_flip = (root: CSGNode | null): void =>
   csg_tree_each(root, (node) => {
-    const { $front, $back } = node;
+    const back = node.$back;
+    for (const polygon of node.$polygons) {
+      polygon.$flipped = !polygon.$flipped;
+    }
     node.x *= -1;
     node.y *= -1;
     node.z *= -1;
     node.w *= -1;
-    node.$back = $front;
-    node.$front = $back;
-    for (const polygon of node.$polygons) {
-      polygon.$flipped = !polygon.$flipped;
-    }
+    node.$back = node.$front;
+    node.$front = back;
   });
 
 const csg_tree_clipPolygon = (node: CSGNode, polygon: CSGPolygon, polygonPlane: Plane, result: CSGPolygon[]): void => {
-  let { $front: f, $back: b } = CSGPolygon_split(node, polygon);
-  if (!f && !b) {
+  let { $front, $back } = CSGPolygon_split(node, polygon);
+  if (!$front && !$back) {
     // Coplanar
     if (vec3_dot(node, polygonPlane) > node.w) {
-      f = polygon;
+      $front = polygon;
     } else {
-      b = polygon;
+      $back = polygon;
     }
   }
-  if (f) {
+  if ($front) {
     // Front
     if (node.$front) {
-      csg_tree_clipPolygon(node.$front, f, polygonPlane, result);
+      csg_tree_clipPolygon(node.$front, $front, polygonPlane, result);
     } else {
-      result.push(f);
+      result.push($front);
     }
   }
-  if (b && node.$back) {
+  if ($back && node.$back) {
     // Back
-    csg_tree_clipPolygon(node.$back, b, polygonPlane, result);
+    csg_tree_clipPolygon(node.$back, $back, polygonPlane, result);
   }
 };
 
@@ -184,7 +194,7 @@ export const csg_tree_clipTo = (root: CSGNode | null, bsp: CSGNode): void => {
   });
 };
 
-export const csg_tree_addTree = (tree: CSGNode, source: CSGNode | null): void =>
+export const csg_tree_addTree = (tree: CSGNode | null, source: CSGNode | null): void =>
   csg_tree_each(source, (sourceNode) => {
     for (const polygon of sourceNode.$polygons) {
       csg_tree_addPolygon(tree, polygon, sourceNode);
@@ -254,5 +264,5 @@ export const csg_polygons = (tree: CSGNode): Polygon[] => {
     }
   });
 
-  return Array.from(allPolygons, ([polygon, flipped]) => polygon_clone(polygon, flipped));
+  return Array.from(allPolygons, (kv) => polygon_clone(kv[0], kv[1]));
 };
