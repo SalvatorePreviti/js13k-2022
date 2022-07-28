@@ -70,8 +70,8 @@ const CSGPolygon_split = (plane: Plane, polygon: CSGPolygon): SplitPolygonResult
   let f: CSGPolygon | undefined | false;
   let b: CSGPolygon | undefined | false;
   let t: number;
-  for (let i = 0; i < $points.length && (!f || !b); ++i) {
-    t = vec3_dot(plane, $points[i]!) - plane.w;
+  for (const p of $points) {
+    t = vec3_dot(plane, p) - plane.w;
     if (t < -PLANE_EPSILON) {
       b = polygon;
     } else if (t > PLANE_EPSILON) {
