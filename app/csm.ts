@@ -1,6 +1,6 @@
-import { camera_view, fieldOfView } from "./camera";
+import { mat_perspective, camera_view } from "./camera";
 import { integers_map } from "./math/math";
-import { DOMMatrix_perspective, identity } from "./math/matrix";
+import { identity } from "./math/matrix";
 
 /**
  * The main directional light rotation matrix.
@@ -21,9 +21,7 @@ export const csm_buildMatrix = (nearPlane: number, farPlane: number, zmultiplier
 
   const roundingRadius = (farPlane - nearPlane) / 2;
 
-  const projViewInverse = DOMMatrix_perspective(fieldOfView, hC.clientWidth / hC.clientHeight, nearPlane, farPlane)
-    .multiplySelf(camera_view)
-    .invertSelf();
+  const projViewInverse = new DOMMatrix(mat_perspective(nearPlane, farPlane)).multiplySelf(camera_view).invertSelf();
 
   const frustumCorners = integers_map(8, (i) => {
     const v = projViewInverse.transformPoint({

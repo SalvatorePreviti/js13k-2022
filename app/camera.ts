@@ -4,7 +4,7 @@ import { constDef_zNear, constDef_zFar } from "./shaders/main-fragment.frag";
 
 export const fieldOfViewDegrees = 45;
 
-export const fieldOfView = fieldOfViewDegrees * DEG_TO_RAD; // in radians
+export const fieldOfViewRadians = fieldOfViewDegrees * DEG_TO_RAD; // in radians
 
 export const zNear = constDef_zNear;
 
@@ -28,3 +28,24 @@ export const camera_firstPersonMove = (x: number, z: number) => {
   camera_position.x += x * c - z * s;
   camera_position.z += x * s + z * c;
 };
+
+const fieldOfViewAmount = 1 / Math.tan(fieldOfViewRadians / 2);
+
+export const mat_perspective = (near: number, far: number) => [
+  (fieldOfViewAmount * hC.clientHeight) / hC.clientWidth,
+  0,
+  0,
+  0,
+  0,
+  fieldOfViewAmount,
+  0,
+  0,
+  0,
+  0,
+  (far + near) / (near - far),
+  -1,
+  0,
+  0,
+  (2 * far * near) / (near - far),
+  0,
+];

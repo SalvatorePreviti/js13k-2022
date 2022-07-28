@@ -20,10 +20,9 @@ import voidFsSource from "./shaders/void-fragment.frag";
 import { gl, initShaderProgram } from "./gl";
 
 import { integers_map } from "./math/math";
-import { DOMMatrix_perspective } from "./math/matrix";
+import { mat_perspective, zFar, zNear, camera_position, camera_rotation, camera_view } from "./camera";
 import { camera_update } from "./camera-update";
 import { buildWorld, renderMainScene } from "./level/scene";
-import { fieldOfView, zFar, zNear, camera_position, camera_rotation, camera_view } from "./camera";
 import { csm_buildMatrix, lightMatrix } from "./csm";
 
 buildWorld();
@@ -130,11 +129,7 @@ const draw = () => {
     gl.uniformMatrix4fv(csm_matricesLocs[csmSplit]!, false, lightSpaceMatrices[csmSplit]!);
   }
 
-  gl.uniformMatrix4fv(
-    mainShader_projectionMatrixLoc,
-    false,
-    DOMMatrix_perspective(fieldOfView, hC.clientWidth / hC.clientHeight, zNear, zFar).toFloat32Array(),
-  );
+  gl.uniformMatrix4fv(mainShader_projectionMatrixLoc, false, mat_perspective(zNear, zFar));
 
   gl.uniformMatrix4fv(mainShader_viewMatrixLoc, false, camera_view.toFloat32Array());
 
