@@ -1,4 +1,6 @@
 import path from "path";
+import zlib from "zlib";
+import fs from "fs/promises";
 import {
   devLogBuilding,
   devPrintOjutputFileWritten,
@@ -6,24 +8,20 @@ import {
   FilesSizeTermBox,
   globalReport,
 } from "./lib/logging";
-import fs from "fs/promises";
 import { devLog } from "@balsamic/dev";
 import { writeFinalBundle, writeOptimizedBundle } from "./lib/write-bundle";
 import { zipBundle } from "./steps/bundle-zip";
 import { outPath_bundle, outPath_minify, outPath_rolled, outPath_zip } from "./out-paths";
 import type { WriteBundleInput } from "./lib/write-bundle";
-
 import type { ViteBundledOutput } from "./steps/build-vite";
 import { buildWithVite } from "./steps/build-vite";
 import { bundleHtml } from "./steps/bundle-html";
 import { jsOptimizeTerser } from "./steps/js-optimize-terser";
 import { cssOptimize } from "./steps/css-optimize";
-
 import { jsBeautify, jsTransformSwc } from "./steps/js-transform-swc";
 import { jsRoadroller } from "./steps/js-roadroller";
 import { htmlCssToJs } from "./steps/html-css-to-js";
 import { jsUglify } from "./steps/js-uglify";
-import zlib from "zlib";
 import { jsTdeMinify } from "./steps/js-tde-minify";
 // import { jsEsbuildMinify } from "./steps/js-esbuild";
 
@@ -47,17 +45,19 @@ export async function build() {
 
     // sources.js = await jsEsbuildMinify(sources.js);
 
-    sources.js = await jsTransformSwc(sources.js, { mangle: false, constToLet: false, repeat: 1 });
+    sources.js = await jsTransformSwc(sources.js, { constToLet: true });
 
     sources.js = await jsOptimizeTerser(sources.js, { mangle: false });
 
-    sources.js = await jsTransformSwc(sources.js, { mangle: false, constToLet: true, repeat: 1 });
+    sources.js = await jsTransformSwc(sources.js, { constToLet: true });
 
     sources.js = await jsTdeMinify(sources.js);
 
-    sources.js = await jsUglify(sources.js, { mangle: false, varify: true });
+    sources.js = await jsUglify(sources.js, { varify: true });
 
     sources.js = await jsOptimizeTerser(sources.js, { mangle: true });
+
+    sources.js = await jsTransformSwc(sources.js, { constToLet: true });
 
     sources.js = await jsOptimizeTerser(sources.js, { mangle: true });
 

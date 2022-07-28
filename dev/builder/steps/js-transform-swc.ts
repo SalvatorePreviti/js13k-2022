@@ -8,15 +8,15 @@ import { global_defs, mangleConfig } from "../lib/js-config";
 import { browserPureFunctions, jsRemoveEndingSemicolons } from "../lib/code-utils";
 
 export interface SwcTransformSettings {
-  mangle: boolean;
+  mangle?: boolean;
   constToLet: boolean;
-  repeat: number;
 }
 
 class Transformer extends SwcVisitor {
   public constructor(public settings: SwcTransformSettings) {
     super();
   }
+
   /* override visitNumericLiteral(n: NumericLiteral): NumericLiteral {
     if (!Number.isFinite(n.value)) {
       return n;
@@ -47,53 +47,48 @@ class Transformer extends SwcVisitor {
 }
 
 export async function jsBeautify(source: string) {
-  for (let i = 0; i < 2; ++i) {
-    source = (
-      await swcTransform(source, {
-        cwd: outPath_build,
-        inputSourceMap: false,
-        sourceMaps: false,
-        configFile: false,
-        filename: "index.js",
-        isModule: true,
-        minify: false,
-        swcrc: false,
-        jsc: {
-          keepClassNames: false,
-          target: "es2022",
-        },
-      })
-    ).code;
-  }
+  source = (
+    await swcTransform(source, {
+      cwd: outPath_build,
+      inputSourceMap: false,
+      sourceMaps: false,
+      configFile: false,
+      filename: "index.js",
+      isModule: true,
+      minify: false,
+      swcrc: false,
+      jsc: {
+        keepClassNames: false,
+        target: "es2022",
+      },
+    })
+  ).code;
   return source;
 }
 
 export async function jsTransformSwc(source: string, settings: SwcTransformSettings): Promise<string> {
   return devLog.timed(
     async function js_transform_swc() {
-      let result = source;
-      for (let repeat = 0; repeat <= settings.repeat; ++repeat) {
-        result =
-          (
-            await swcTransform(result, {
-              cwd: outPath_build,
-              inputSourceMap: false,
-              sourceMaps: false,
-              configFile: false,
-              filename: "index.js",
-              isModule: true,
-              minify: true,
-              swcrc: false,
-              jsc: {
-                keepClassNames: false,
-                target: "es2022",
-                minify: getSwcMinifyOptions(settings),
-              },
-              plugin: (m) => new Transformer(settings).visitProgram(m),
-            })
-          ).code || result;
-        result = jsRemoveEndingSemicolons(result);
-      }
+      let result =
+        (
+          await swcTransform(source, {
+            cwd: outPath_build,
+            inputSourceMap: false,
+            sourceMaps: false,
+            configFile: false,
+            filename: "index.js",
+            isModule: true,
+            minify: true,
+            swcrc: false,
+            jsc: {
+              keepClassNames: false,
+              target: "es2022",
+              minify: getSwcMinifyOptions(settings),
+            },
+            plugin: (m) => new Transformer(settings).visitProgram(m),
+          })
+        ).code || source;
+      result = jsRemoveEndingSemicolons(result);
       this.setSuccessText(sizeDifference(source, result));
       return result;
     },

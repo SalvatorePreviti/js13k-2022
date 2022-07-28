@@ -22,7 +22,7 @@ export async function jsUglify(input: string, settings: JsUglifySettings) {
 }
 
 export interface JsUglifySettings {
-  mangle: boolean;
+  mangle?: boolean;
   varify: boolean;
 }
 
