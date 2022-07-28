@@ -58,24 +58,9 @@ export const csm_buildMatrix = (nearPlane: number, farPlane: number, zmultiplier
   far *= far > 0 ? zmultiplier : 1 / zmultiplier;
 
   // Build the ortographic matrix, multiply it with the light space view matrix.
-  return new DOMMatrix([
-    -2 / (left - right),
-    0,
-    0,
-    0,
-    0,
-    -2 / (bottom - top),
-    0,
-    0,
-    0,
-    0,
-    2 / (near - far),
-    0,
-    (left + right) / (left - right),
-    (top + bottom) / (bottom - top),
-    (far + near) / (near - far),
-    1,
-  ])
+  return identity
+    .scale(2 / (right - left), 2 / (top - bottom), 2 / (near - far))
+    .translateSelf((right + left) / -2, (top + bottom) / -2, (far + near) / 2)
     .multiplySelf(lightViewTranslated)
     .toFloat32Array();
 };
