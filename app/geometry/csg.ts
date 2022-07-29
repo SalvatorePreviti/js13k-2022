@@ -95,7 +95,7 @@ export interface CSGNode extends Plane {
   $back: CSGNode | null;
 }
 
-export const csg_tree_addPolygon = (
+const csg_tree_addPolygon = (
   node: CSGNode | null | undefined,
   polygon: CSGPolygon,
   polygonNormal: Vec3In,
