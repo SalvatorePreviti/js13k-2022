@@ -26,33 +26,30 @@ const CSGPolygon_splitSpanning = (plane: Plane, polygon: CSGPolygon): SplitPolyg
   const { $points } = polygon;
   const fpoints: Vec3In[] = [];
   const bpoints: Vec3In[] = [];
-  let iv: Vec3In = $points[$points.length - 1]!;
-  let d: number = vec3_dot(plane, iv) - plane.w;
   let t: number;
-  let v: Vec3In;
   let jd: number;
-  let jv: Vec3In;
-  for (let i = 0; i < $points.length; ++i) {
-    jv = $points[i]!;
-    jd = vec3_dot(plane, jv) - plane.w;
-    if (d > -PLANE_EPSILON) {
+  let iv: Vec3In = $points[$points.length - 1]!;
+  let id: number = vec3_dot(plane, iv) - plane.w;
+  for (const jv of $points) {
+    if (id > -PLANE_EPSILON) {
       fpoints.push(iv);
     }
-    if (d < PLANE_EPSILON) {
+    if (id < PLANE_EPSILON) {
       bpoints.push(iv);
     }
-    if ((d < -PLANE_EPSILON && jd > PLANE_EPSILON) || (d > PLANE_EPSILON && jd < -PLANE_EPSILON)) {
-      t = -d / (plane.x * (jv.x - iv.x) + plane.y * (jv.y - iv.y) + plane.z * (jv.z - iv.z));
-      v = {
-        x: (jv.x - iv.x) * t + iv.x,
-        y: (jv.y - iv.y) * t + iv.y,
-        z: (jv.z - iv.z) * t + iv.z,
+    jd = vec3_dot(plane, jv) - plane.w;
+    if ((id < -PLANE_EPSILON && jd > PLANE_EPSILON) || (id > PLANE_EPSILON && jd < -PLANE_EPSILON)) {
+      t = id / (jd - id);
+      iv = {
+        x: iv.x + (iv.x - jv.x) * t,
+        y: iv.y + (iv.y - jv.y) * t,
+        z: iv.z + (iv.z - jv.z) * t,
       };
-      fpoints.push(v);
-      bpoints.push(v);
+      fpoints.push(iv);
+      bpoints.push(iv);
     }
     iv = jv;
-    d = jd;
+    id = jd;
   }
   return {
     $front: fpoints.length > 2 && {
@@ -71,19 +68,21 @@ const CSGPolygon_splitSpanning = (plane: Plane, polygon: CSGPolygon): SplitPolyg
 };
 
 const CSGPolygon_split = (plane: Plane, polygon: CSGPolygon): SplitPolygonResult => {
-  const { $points } = polygon;
-  let f: CSGPolygon | undefined | false;
-  let b: CSGPolygon | undefined | false;
-  let t: number;
-  for (const p of $points) {
-    t = vec3_dot(plane, p) - plane.w;
-    if (t < -PLANE_EPSILON) {
-      b = polygon;
-    } else if (t > PLANE_EPSILON) {
-      f = polygon;
+  let $front: CSGPolygon | undefined | false;
+  let $back: CSGPolygon | undefined | false;
+  let d: number;
+  for (const p of polygon.$points) {
+    d = vec3_dot(plane, p) - plane.w;
+    if (d < -PLANE_EPSILON) {
+      $back = polygon;
+    } else if (d > PLANE_EPSILON) {
+      $front = polygon;
+    }
+    if ($back && $front) {
+      return CSGPolygon_splitSpanning(plane, polygon);
     }
   }
-  return f && b ? CSGPolygon_splitSpanning(plane, polygon) : { $front: f, $back: b };
+  return { $front, $back };
 };
 
 export interface CSGNode extends Plane {
@@ -101,8 +100,19 @@ const csg_tree_addPolygon = (
   polygonNormal: Vec3In,
   planeW: number,
 ): CSGNode => {
-  if (!node) {
-    return {
+  if (node) {
+    const { $front, $back } = CSGPolygon_split(node, polygon);
+    if (!$front && !$back) {
+      node.$polygons.push(polygon); // Coplanar
+    }
+    if ($front) {
+      node.$front = csg_tree_addPolygon(node.$front, $front, polygonNormal, planeW);
+    }
+    if ($back) {
+      node.$back = csg_tree_addPolygon(node.$back, $back, polygonNormal, planeW);
+    }
+  } else {
+    node = {
       x: polygonNormal.x,
       y: polygonNormal.y,
       z: polygonNormal.z,
@@ -111,17 +121,6 @@ const csg_tree_addPolygon = (
       $front: null,
       $back: null,
     };
-  }
-  const { $front, $back } = CSGPolygon_split(node, polygon);
-  if ($front) {
-    node.$front = csg_tree_addPolygon(node.$front, $front, polygonNormal, planeW);
-  }
-  if ($back) {
-    node.$back = csg_tree_addPolygon(node.$back, $back, polygonNormal, planeW);
-  }
-  if (!$front && !$back) {
-    // Coplanar
-    node.$polygons.push(polygon);
   }
   return node;
 };
@@ -278,10 +277,7 @@ export const csg_polygons = (tree: CSGNode): Polygon[] => {
 
   for (const [p, flipped] of allPolygons) {
     const $points = p.$points.map(({ x, y, z }) => ({ x, y, z }));
-    if (flipped) {
-      $points.reverse();
-    }
-    result.push({ $color: p.$color, $points });
+    result.push({ $color: p.$color, $points: flipped ? $points.reverse() : $points });
   }
   return result;
 };
