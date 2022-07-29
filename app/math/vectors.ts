@@ -84,7 +84,7 @@ export const vec3_polygonNormal = ([{ x, y, z }, { x: bx, y: by, z: bz }, { x: c
   Vec3In,
   Vec3In,
   Vec3In,
-]) => {
+]): Vec3 => {
   // b - a
   const bax = bx - x;
   const bay = by - y;

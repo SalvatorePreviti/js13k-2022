@@ -57,10 +57,10 @@ export const buildWorld = () => {
   };
 
   const triangulateConvexPolygon = ({ $points, $color }: Polygon) => {
-    const { x: $nx, y: $ny, z: $nz } = vec3_polygonNormal($points as [Vec3In, Vec3In, Vec3In]);
-    _u[0] = $nx * 32767;
-    _u[1] = $ny * 32767;
-    _u[2] = $nz * 32767;
+    const v = vec3_polygonNormal($points as [Vec3In, Vec3In, Vec3In]);
+    _u[0] = v.x * 32767;
+    _u[1] = v.y * 32767;
+    _u[2] = v.z * 32767;
     _u[3] = $color | 0;
     for (let i = 2, a = getVertex($points[0]!), b = getVertex($points[1]!); i < $points.length; ++i) {
       triangleIndices.push(a, b, (b = getVertex($points[i]!)));
