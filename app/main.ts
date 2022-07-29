@@ -70,7 +70,7 @@ const csm_matricesLocs = integers_map(4, (csmSplit) => {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_MODE, gl.COMPARE_REF_TO_TEXTURE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_FUNC, gl.LEQUAL); // Can also be LEQUAL
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_FUNC, gl.LEQUAL); // Can be LESS or LEQUAL
 
   return gl.getUniformLocation(mainShader, uniformName_csm_matrices + `[${csmSplit}]`)!;
 });
@@ -95,9 +95,9 @@ const draw = () => {
 
   const lightSpaceMatrices = [
     csm_buildMatrix(zNear, CSM_PLANE_DISTANCE0, 10),
-    csm_buildMatrix(CSM_PLANE_DISTANCE0, CSM_PLANE_DISTANCE1, 2),
-    csm_buildMatrix(CSM_PLANE_DISTANCE1, CSM_PLANE_DISTANCE2, 1.6),
-    csm_buildMatrix(CSM_PLANE_DISTANCE2, zFar, 1.5),
+    csm_buildMatrix(CSM_PLANE_DISTANCE0, CSM_PLANE_DISTANCE1, 5),
+    csm_buildMatrix(CSM_PLANE_DISTANCE1, CSM_PLANE_DISTANCE2, 4),
+    csm_buildMatrix(CSM_PLANE_DISTANCE2, zFar, 3),
   ];
 
   // *** CASCADED SHADOWMAPS ***

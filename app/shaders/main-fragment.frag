@@ -23,7 +23,11 @@ uniform mat4 viewMatrix;
 uniform mat4[4] csm_matrices;
 uniform sampler2DShadow csm_textures[4];
 
-float ShadowCalculation(float shadowBias) {
+// Shadow bias
+// Could be computed based on normal and light, something like 0.0003 * (1. - clamp(dot(normal, lightDir), 0., 1.))
+const float shadowBias = 0.00015;
+
+float ShadowCalculation() {
   // Select the right cascade layer.
   float depthValue = abs((viewMatrix * FragPos).z);
 
@@ -78,7 +82,7 @@ void main() {
   vec3 specular = pow(max(dot(normal, halfwayDir), 0.0), 64.0) * lightColor;
 
   // calculate shadow
-  float shadow = ShadowCalculation(max(0.003 * (1. - dot(normal, lightDir)), 0.0005));
+  float shadow = ShadowCalculation();
 
   vec3 lighting = (ambient + mix(diffuse * .3, diffuse + specular, shadow)) * abs(Color.xyz);
 

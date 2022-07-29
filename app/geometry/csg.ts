@@ -1,7 +1,6 @@
 import type { Vec3In } from "../math/vectors";
 import { vec3_polygonNormal, vec3_dot, type Plane } from "../math/vectors";
-import { polygon_clone, type Polygon } from "./geometry";
-import { vertex_lerp, type Vertex } from "./vertex";
+import { type Polygon } from "./geometry";
 
 export const PLANE_EPSILON = 0.00008;
 
@@ -25,13 +24,14 @@ interface SplitPolygonResult {
 
 const CSGPolygon_splitSpanning = (plane: Plane, polygon: CSGPolygon): SplitPolygonResult => {
   const { $points } = polygon;
-  const fpoints: Vertex[] = [];
-  const bpoints: Vertex[] = [];
-  let iv: Vertex = $points[$points.length - 1]!;
+  const fpoints: Vec3In[] = [];
+  const bpoints: Vec3In[] = [];
+  let iv: Vec3In = $points[$points.length - 1]!;
   let d: number = vec3_dot(plane, iv) - plane.w;
-  let v: Vertex;
+  let t: number;
+  let v: Vec3In;
   let jd: number;
-  let jv: Vertex;
+  let jv: Vec3In;
   for (let i = 0; i < $points.length; ++i) {
     jv = $points[i]!;
     jd = vec3_dot(plane, jv) - plane.w;
@@ -42,7 +42,12 @@ const CSGPolygon_splitSpanning = (plane: Plane, polygon: CSGPolygon): SplitPolyg
       bpoints.push(iv);
     }
     if ((d < -PLANE_EPSILON && jd > PLANE_EPSILON) || (d > PLANE_EPSILON && jd < -PLANE_EPSILON)) {
-      v = vertex_lerp(iv, jv, -d / (plane.x * (jv.x - iv.x) + plane.y * (jv.y - iv.y) + plane.z * (jv.z - iv.z)));
+      t = -d / (plane.x * (jv.x - iv.x) + plane.y * (jv.y - iv.y) + plane.z * (jv.z - iv.z));
+      v = {
+        x: (jv.x - iv.x) * t + iv.x,
+        y: (jv.y - iv.y) * t + iv.y,
+        z: (jv.z - iv.z) * t + iv.z,
+      };
       fpoints.push(v);
       bpoints.push(v);
     }
@@ -130,7 +135,7 @@ export const csg_tree = (n: CSGInput): CSGNode => {
     // Build a BSP tree from a list of polygons
     let root: CSGNode | undefined;
     for (const { $color, $points } of n as Polygon[]) {
-      const normal = vec3_polygonNormal($points as [Vertex, Vertex, Vertex]) as Plane;
+      const normal = vec3_polygonNormal($points as [Vec3In, Vec3In, Vec3In]) as Plane;
       root = csg_tree_addPolygon(
         root,
         { $color, $points, $flipped: false, $parent: null },
@@ -245,6 +250,7 @@ export const csg_intersect = (a: CSGInput, b: CSGInput): CSGNode => {
 };
 
 export const csg_polygons = (tree: CSGNode): Polygon[] => {
+  const result: Polygon[] = [];
   const byParent = new Map<CSGPolygon, CSGPolygon>();
   const allPolygons = new Map<CSGPolygon, boolean>();
 
@@ -270,5 +276,12 @@ export const csg_polygons = (tree: CSGNode): Polygon[] => {
     }
   });
 
-  return Array.from(allPolygons, (kv) => polygon_clone(kv[0], kv[1]));
+  for (const [p, flipped] of allPolygons) {
+    const $points = p.$points.map(({ x, y, z }) => ({ x, y, z }));
+    if (flipped) {
+      $points.reverse();
+    }
+    result.push({ $color: p.$color, $points });
+  }
+  return result;
 };

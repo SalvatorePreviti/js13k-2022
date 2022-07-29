@@ -1,6 +1,7 @@
 import type { Polygon } from "../geometry/geometry";
-import type { Vertex } from "../geometry/vertex";
 import { gl } from "../gl";
+import type { Vec3In } from "../math/vectors";
+import { vec3_polygonNormal } from "../math/vectors";
 import { mainScene } from "./level";
 
 export type Renderer = () => void;
@@ -35,21 +36,13 @@ export const buildWorld = () => {
   const normals: number[] = [];
   const colors: number[] = [];
 
-  const _u = new Uint32Array(5);
+  const _u = new Int32Array(7);
   const _f = new Float32Array(_u.buffer);
 
-  const getVertex = ({ x, y, z, $nx, $ny, $nz }: Vertex): number => {
-    // Normalize the normal, and round it to the nearest 8 bit integer
-    const m = 32767 / Math.hypot($nx, $ny, $nz);
-
-    $nx = ($nx * m) | 0;
-    $ny = ($ny * m) | 0;
-
-    // Encode the vertex to create a key
-    _u[1] = $nx ^ ($ny << 16);
-    _f[2] = x;
-    _f[3] = y;
-    _f[4] = z;
+  const getVertex = ({ x, y, z }: Vec3In): number => {
+    _f[4] = x;
+    _f[5] = y;
+    _f[6] = z;
 
     const key = _u + "";
 
@@ -57,14 +50,18 @@ export const buildWorld = () => {
     if (index === undefined) {
       vertexMap.set(key, (index = vertexMap.size));
       positions.push(x, y, z);
-      normals.push($nx, $ny, ($nz * m) | 0);
-      colors.push(_u[0]!);
+      normals.push(_u[0]!, _u[1]!, _u[2]!);
+      colors.push(_u[3]!);
     }
     return index;
   };
 
   const triangulateConvexPolygon = ({ $points, $color }: Polygon) => {
-    _u[0] = $color;
+    const { x: $nx, y: $ny, z: $nz } = vec3_polygonNormal($points as [Vec3In, Vec3In, Vec3In]);
+    _u[0] = $nx * 32767;
+    _u[1] = $ny * 32767;
+    _u[2] = $nz * 32767;
+    _u[3] = $color | 0;
     for (let i = 2, a = getVertex($points[0]!), b = getVertex($points[1]!); i < $points.length; ++i) {
       triangleIndices.push(a, b, (b = getVertex($points[i]!)));
     }
