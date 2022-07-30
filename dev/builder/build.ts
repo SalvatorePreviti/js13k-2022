@@ -63,7 +63,7 @@ export async function build() {
 
     sources.js = await jsMinifySwc(sources.js, {});
 
-    sources.js = await jsTransformSwc(sources.js, { constToLet: true });
+    sources.js = await jsTransformSwc(sources.js, { constToLet: true, letToVar: false });
 
     sources.js = await jsOptimizeTerser(sources.js, { mangle: true, final: true });
   } finally {

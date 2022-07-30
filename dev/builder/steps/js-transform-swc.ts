@@ -1,5 +1,5 @@
 import { devLog } from "@balsamic/dev";
-import type { VariableDeclaration } from "@swc/core";
+import type { BlockStatement, VariableDeclaration } from "@swc/core";
 import { transform as swcTransform } from "@swc/core";
 import SwcVisitor from "@swc/core/Visitor";
 import { outPath_build } from "../out-paths";
@@ -9,11 +9,21 @@ import { jsRemoveEndingSemicolons } from "../lib/code-utils";
 export interface SwcTransformSettings {
   mangle?: boolean;
   constToLet: boolean;
+  letToVar: boolean;
 }
 
 class Transformer extends SwcVisitor {
+  private _block = 0;
+
   public constructor(public settings: SwcTransformSettings) {
     super();
+  }
+
+  override visitBlockStatement(block: BlockStatement): BlockStatement {
+    ++this._block;
+    const result = super.visitBlockStatement(block);
+    --this._block;
+    return result;
   }
 
   /* override visitNumericLiteral(n: NumericLiteral): NumericLiteral {
@@ -41,12 +51,12 @@ class Transformer extends SwcVisitor {
         };
       }
     }
-    // if (n.kind === "let") {
-    //   n = {
-    //     ...n,
-    //     kind: "var",
-    //   };
-    // }
+    if (this.settings.letToVar && n.kind === "let" && this._block === 0) {
+      n = {
+        ...n,
+        kind: "var",
+      };
+    }
     return super.visitVariableDeclaration(n);
   }
 }
