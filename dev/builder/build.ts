@@ -25,6 +25,7 @@ import { jsUglify } from "./steps/js-uglify";
 import { jsTdeMinify } from "./steps/js-tde-minify";
 import { jsLebab } from "./steps/js-lebab";
 import { htmlMinify } from "./steps/html-minify";
+import { jsMinifySwc } from "./steps/js-minify-swc";
 
 devLog.titlePaddingWidth = 18;
 
@@ -59,6 +60,8 @@ export async function build() {
     // Mangling and final minification
 
     sources.js = await jsOptimizeTerser(sources.js, { mangle: true, final: false });
+
+    sources.js = await jsMinifySwc(sources.js, {});
 
     sources.js = await jsTransformSwc(sources.js, { constToLet: true });
 
