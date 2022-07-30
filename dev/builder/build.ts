@@ -23,6 +23,7 @@ import { jsRoadroller } from "./steps/js-roadroller";
 import { htmlCssToJs } from "./steps/html-css-to-js";
 import { jsUglify } from "./steps/js-uglify";
 import { jsTdeMinify } from "./steps/js-tde-minify";
+import { jsLebab } from "./steps/js-lebab";
 
 devLog.titlePaddingWidth = 18;
 
@@ -52,7 +53,11 @@ export async function build() {
 
     sources.js = await jsTdeMinify(sources.js);
 
-    sources.js = await jsUglify(sources.js, { varify: true, final: true });
+    sources.js = await jsUglify(sources.js, { varify: true, final: false });
+
+    sources.js = await jsLebab(sources.js);
+
+    sources.js = await jsUglify(sources.js, { varify: false, final: true });
 
     // Mangling and final minification
 
@@ -61,6 +66,12 @@ export async function build() {
     sources.js = await jsTransformSwc(sources.js, { constToLet: true });
 
     sources.js = await jsOptimizeTerser(sources.js, { mangle: true, final: true });
+
+    // Prepend html body
+    htmlCssJsBundle.jsHtml = await jsTdeMinify(htmlCssJsBundle.jsHtml, false);
+    if (htmlCssJsBundle.jsHtml) {
+      sources.js = `${htmlCssJsBundle.jsHtml};${sources.js}`;
+    }
   } finally {
     await writeOptimizedBundle(sources);
 

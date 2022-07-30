@@ -3,7 +3,7 @@ import path from "path";
 import { jsRemoveEndingSemicolons } from "../lib/code-utils";
 import { sizeDifference } from "../lib/logging";
 
-export async function jsTdeMinify(source: string): Promise<string> {
+export async function jsTdeMinify(source: string, timed = true): Promise<string> {
   return devLog.timed(
     async function js_tde_minify() {
       const tdePath = path.dirname(require.resolve("@tdewolff/minify"));
@@ -24,6 +24,6 @@ export async function jsTdeMinify(source: string): Promise<string> {
       this.setSuccessText(sizeDifference(source, result));
       return result;
     },
-    { spinner: true },
+    { timed, spinner: true },
   );
 }

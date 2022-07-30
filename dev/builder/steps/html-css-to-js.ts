@@ -11,7 +11,7 @@ export async function htmlCssToJs(sources: ViteBundledOutput) {
       const dom = new JSDOM(stripUtf8BOM(sources.html));
 
       const scriptsTags = Array.from(dom.window.document.querySelectorAll("script"));
-      let js = [...scriptsTags.map((scriptTag) => scriptTag.textContent), sources.js].join("\n");
+      const js = [...scriptsTags.map((scriptTag) => scriptTag.textContent), sources.js].join("\n");
       scriptsTags.forEach((scriptTag) => scriptTag.remove());
 
       const styleTags = Array.from(dom.window.document.querySelectorAll("style"));
@@ -19,6 +19,8 @@ export async function htmlCssToJs(sources: ViteBundledOutput) {
       styleTags.forEach((styleTag) => styleTag.remove());
 
       domRemoveExternalCssAndScripts(dom);
+
+      let jsHtml: string = "";
 
       let bodyHtml = dom.window.document.body.innerHTML;
       bodyHtml = await htmlMinify(bodyHtml, { type: "fragment", prependUtf8BOM: false, timed: false });
@@ -29,7 +31,7 @@ export async function htmlCssToJs(sources: ViteBundledOutput) {
       }
 
       if (bodyHtml) {
-        js = `document.write(${JSON.stringify(bodyHtml)});${js}`;
+        jsHtml = `document.write(${JSON.stringify(bodyHtml)});`;
       }
 
       if (js) {
@@ -51,6 +53,7 @@ export async function htmlCssToJs(sources: ViteBundledOutput) {
       );
       return {
         html: finalHtml,
+        jsHtml,
         js,
       };
     },
