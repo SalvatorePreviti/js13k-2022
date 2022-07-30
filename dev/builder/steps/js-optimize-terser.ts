@@ -36,7 +36,6 @@ export interface TerserMinifySettings {
 export function getTerserMinifyOptions(settings: TerserMinifySettings): TerserMinifyOptions {
   const module = settings.module === undefined || !!settings.module;
   const toplevel = true;
-  const passes = 26;
   const mangle = settings.mangle;
 
   const singleLettersNameCache: Record<string, string> = {};
@@ -182,7 +181,7 @@ export function getTerserMinifyOptions(settings: TerserMinifySettings): TerserMi
 
       // The maximum number of times to run compress.
       // In some cases more than one pass leads to further compressed code.
-      passes,
+      passes: 5,
 
       // Rewrite property access using the dot notation, for example foo["bar"] → foo.bar
       properties: true,
@@ -206,10 +205,10 @@ export function getTerserMinifyOptions(settings: TerserMinifySettings): TerserMi
       // join consecutive simple statements using the comma operator. If set as positive integer
       // specifies the maximum number of consecutive comma sequences that will be generated.
       // If this option is set to true then the default sequences limit is 200
-      sequences: true,
+      sequences: 1000000,
 
       // Remove expressions which have no side effects and whose results aren't used.
-      side_effects: settings.final,
+      side_effects: true,
 
       // de-duplicate and remove unreachable switch branches
       switches: true,

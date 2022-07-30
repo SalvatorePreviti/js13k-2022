@@ -83,7 +83,7 @@ export async function jsBeautify(source: string) {
 
 export async function jsTransformSwc(source: string, settings: SwcTransformSettings): Promise<string> {
   return devLog.timed(
-    async function js_transform_swc() {
+    async function js_swc_transform() {
       let result =
         (
           await swcTransform(source, {

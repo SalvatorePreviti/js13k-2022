@@ -164,10 +164,8 @@ export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: R
       // Improve optimization on variables assigned with and used as constant values.
       reduce_vars: true,
 
-      // join consecutive simple statements using the comma operator. If set as positive integer
-      // specifies the maximum number of consecutive comma sequences that will be generated.
-      // If this option is set to true then the default sequences limit is 200
-      sequences: settings.final,
+      // join consecutive simple statements using the comma operator.
+      sequences: settings.final ? (100000 as any) : 0,
 
       // Remove expressions which have no side effects and whose results aren't used.
       side_effects: true,

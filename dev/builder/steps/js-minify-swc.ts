@@ -32,7 +32,7 @@ export async function jsBeautify(source: string) {
 
 export async function jsMinifySwc(source: string, settings: SwcMinifySettings): Promise<string> {
   return devLog.timed(
-    async function js_transform_swc() {
+    async function js_swc_minify() {
       let result =
         (
           await swcTransform(source, {
@@ -173,7 +173,7 @@ export function getSwcMinifyOptions(settings: SwcMinifySettings): JsMinifyOption
       inline: 3,
 
       // join consecutive var statements
-      join_vars: false,
+      join_vars: true,
 
       // Pass true to prevent the compressor from discarding class names.
       // Pass a regular expression to only keep class names matching that regex.
@@ -227,7 +227,7 @@ export function getSwcMinifyOptions(settings: SwcMinifySettings): JsMinifyOption
       // join consecutive simple statements using the comma operator. If set as positive integer
       // specifies the maximum number of consecutive comma sequences that will be generated.
       // If this option is set to true then the default sequences limit is 200
-      sequences: false,
+      sequences: true,
 
       // Remove expressions which have no side effects and whose results aren't used.
       side_effects: true,

@@ -57,15 +57,13 @@ export async function build() {
 
     sources.js = await jsUglify(sources.js, { varify: false, final: true });
 
-    // Mangling and final minification
-
-    sources.js = await jsOptimizeTerser(sources.js, { mangle: true, final: false });
-
-    sources.js = await jsMinifySwc(sources.js, {});
-
     sources.js = await jsTransformSwc(sources.js, { constToLet: true, letToVar: false });
 
-    sources.js = await jsOptimizeTerser(sources.js, { mangle: true, final: true });
+    // Final mangling
+
+    sources.js = await jsMinifySwc(sources.js, { mangle: true });
+
+    sources.js = await jsOptimizeTerser(sources.js, { mangle: true, final: false });
   } finally {
     await writeOptimizedBundle(sources);
 
