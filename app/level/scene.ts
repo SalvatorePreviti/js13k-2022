@@ -1,7 +1,7 @@
 import type { Polygon } from "../geometry/geometry";
 import { gl } from "../gl";
 import type { Vec3In } from "../math/vectors";
-import { vec3_polygonNormal } from "../math/vectors";
+import { plane_fromPolygon } from "../math/vectors";
 import { mainScene } from "./level";
 
 export type Renderer = () => void;
@@ -57,7 +57,7 @@ export const buildWorld = () => {
   };
 
   const triangulateConvexPolygon = ({ $points, $color }: Polygon) => {
-    const v = vec3_polygonNormal($points as [Vec3In, Vec3In, Vec3In]);
+    const v = plane_fromPolygon($points);
     _u[0] = v.x * 32767;
     _u[1] = v.y * 32767;
     _u[2] = v.z * 32767;

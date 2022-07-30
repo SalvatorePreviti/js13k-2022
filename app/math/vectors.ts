@@ -66,6 +66,8 @@ export const vec3_scale = ({ x, y, z }: Vec3In, m: number): Vec3 => ({ x: x * m,
 
 export const vec3_dot = ({ x, y, z }: Vec3In, b: Vec3In): number => x * b.x + y * b.y + z * b.z;
 
+export const vec3_plane_distance = (plane: Readonly<Plane>, v: Vec3In): number => vec3_dot(plane, v) - plane.w;
+
 export const vec3_length = ({ x, y, z }: Vec3In): number => Math.hypot(x, y, z);
 
 export const vec3_distance = (a: Vec3In, b: Vec3In): number => {
@@ -80,41 +82,49 @@ export const vec3_normalize = ({ x, y, z }: Vec3In): Vec3 => {
   return { x: x / len, y: y / len, z: z / len };
 };
 
-export const vec3_polygonNormal = ([{ x, y, z }, { x: bx, y: by, z: bz }, { x: cx, y: cy, z: cz }]: readonly [
-  Vec3In,
-  Vec3In,
-  Vec3In,
-]): Vec3 => {
-  // b - a
-  const bax = bx - x;
-  const bay = by - y;
-  const baz = bz - z;
-
-  // c - a
-  const cax = cx - x;
-  const cay = cy - y;
-  const caz = cz - z;
-
-  // Cross product
-  const nx = bay * caz - baz * cay;
-  const ny = baz * cax - bax * caz;
-  const nz = bax * cay - bay * cax;
-
-  const nlength = Math.hypot(nx, ny, nz) || 1;
-  return { x: nx / nlength, y: ny / nlength, z: nz / nlength };
+/**
+ * Computes a polygon plane using the Newell's method.
+ * We are not using plane from 3 points algorithm,
+ * because this can handle coplanar points and has precision problems.
+ */
+export const plane_fromPolygon = (polygon: readonly Vec3In[]): Plane => {
+  // Newell's method
+  let x = 0;
+  let y = 0;
+  let z = 0;
+  let b: Vec3In;
+  let a = polygon[polygon.length - 1]!;
+  for (let i = 0; i < polygon.length; ++i) {
+    b = polygon[i]!;
+    x += (a.y - b.y) * (a.z + b.z);
+    y += (a.z - b.z) * (a.x + b.x);
+    z += (a.x - b.x) * (a.y + b.y);
+    a = b;
+  }
+  const i = Math.hypot(x, y, z);
+  return { x: (x /= i), y: (y /= i), z: (z /= i), w: x * a.x + y * a.y + z * a.z };
 };
 
-// export const vec3_polygonNormal = (points: readonly Vec3In[]): Vec3 => {
-//   let nx = 0;
-//   let ny = 0;
-//   let nz = 0;
-//   for (let i = 0, len = points.length; i < len; i++) {
-//     const { x, y, z } = points[i]!;
-//     const { x: bx, y: by, z: bz } = points[(i + 1) % len]!;
-//     nx += y * bz - z * by;
-//     ny += z * bx - x * bz;
-//     nz += x * by - y * bx;
-//   }
+// export const vec3_polygonNormal = ([{ x, y, z }, { x: bx, y: by, z: bz }, { x: cx, y: cy, z: cz }]: readonly [
+//   Vec3In,
+//   Vec3In,
+//   Vec3In,
+// ]): Plane => {
+//   // b - a
+//   const bax = bx - x;
+//   const bay = by - y;
+//   const baz = bz - z;
+
+//   // c - a
+//   const cax = cx - x;
+//   const cay = cy - y;
+//   const caz = cz - z;
+
+//   // Cross product
+//   const nx = bay * caz - baz * cay;
+//   const ny = baz * cax - bax * caz;
+//   const nz = bax * cay - bay * cax;
+
 //   const nlength = Math.hypot(nx, ny, nz) || 1;
-//   return { x: nx / nlength, y: ny / nlength, z: nz / nlength };
+//   return { x: nx /= nlength, y: ny /= nlength, z: nz /= nlength, w: (nx * x + ny * y + nz * z) };
 // };

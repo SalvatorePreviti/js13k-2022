@@ -1,5 +1,5 @@
 import type { Vec3In } from "../math/vectors";
-import { vec3_polygonNormal, vec3_dot, type Plane } from "../math/vectors";
+import { plane_fromPolygon, type Plane, vec3_plane_distance } from "../math/vectors";
 import { type Polygon } from "./geometry";
 
 export const PLANE_EPSILON = 0.00008;
@@ -29,7 +29,7 @@ const CSGPolygon_splitSpanning = (plane: Plane, polygon: CSGPolygon): SplitPolyg
   let t: number;
   let jd: number;
   let iv: Vec3In = $points[$points.length - 1]!;
-  let id: number = vec3_dot(plane, iv) - plane.w;
+  let id: number = vec3_plane_distance(plane, iv);
   for (const jv of $points) {
     if (id > -PLANE_EPSILON) {
       fpoints.push(iv);
@@ -37,7 +37,7 @@ const CSGPolygon_splitSpanning = (plane: Plane, polygon: CSGPolygon): SplitPolyg
     if (id < PLANE_EPSILON) {
       bpoints.push(iv);
     }
-    jd = vec3_dot(plane, jv) - plane.w;
+    jd = vec3_plane_distance(plane, jv);
     if ((id < -PLANE_EPSILON && jd > PLANE_EPSILON) || (id > PLANE_EPSILON && jd < -PLANE_EPSILON)) {
       t = id / (jd - id);
       iv = {
@@ -72,7 +72,7 @@ const CSGPolygon_split = (plane: Plane, polygon: CSGPolygon): SplitPolygonResult
   let $back: CSGPolygon | undefined | false;
   let d: number;
   for (const point of polygon.$points) {
-    d = vec3_dot(plane, point) - plane.w;
+    d = vec3_plane_distance(plane, point);
     if (d < -PLANE_EPSILON) {
       $back = polygon;
     } else if (d > PLANE_EPSILON) {
@@ -94,29 +94,24 @@ export interface CSGNode extends Plane {
   $back: CSGNode | null;
 }
 
-const csg_tree_addPolygon = (
-  node: CSGNode | null | undefined,
-  polygon: CSGPolygon,
-  polygonNormal: Vec3In,
-  planeW: number,
-): CSGNode => {
+const csg_tree_addPolygon = (node: CSGNode | null | undefined, polygon: CSGPolygon, plane: Plane): CSGNode => {
   if (node) {
     const { $front, $back } = CSGPolygon_split(node, polygon);
     if (!$front && !$back) {
       node.$polygons.push(polygon); // Coplanar
     }
     if ($front) {
-      node.$front = csg_tree_addPolygon(node.$front, $front, polygonNormal, planeW);
+      node.$front = csg_tree_addPolygon(node.$front, $front, plane);
     }
     if ($back) {
-      node.$back = csg_tree_addPolygon(node.$back, $back, polygonNormal, planeW);
+      node.$back = csg_tree_addPolygon(node.$back, $back, plane);
     }
   } else {
     node = {
-      x: polygonNormal.x,
-      y: polygonNormal.y,
-      z: polygonNormal.z,
-      w: planeW,
+      x: plane.x,
+      y: plane.y,
+      z: plane.z,
+      w: plane.w,
       $polygons: [polygon],
       $front: null,
       $back: null,
@@ -134,13 +129,7 @@ export const csg_tree = (n: CSGInput): CSGNode => {
     // Build a BSP tree from a list of polygons
     let root: CSGNode | undefined;
     for (const { $color, $points } of n as Polygon[]) {
-      const normal = vec3_polygonNormal($points as [Vec3In, Vec3In, Vec3In]) as Plane;
-      root = csg_tree_addPolygon(
-        root,
-        { $color, $points, $flipped: false, $parent: null },
-        normal,
-        vec3_dot(normal, $points[0]!),
-      );
+      root = csg_tree_addPolygon(root, { $color, $points, $flipped: false, $parent: null }, plane_fromPolygon($points));
     }
     return root!;
   }
@@ -174,7 +163,7 @@ const csg_tree_clipPolygon = (node: CSGNode, polygon: CSGPolygon, polygonPlane: 
   let { $front, $back } = CSGPolygon_split(node, polygon);
   if (!$front && !$back) {
     // Coplanar
-    if (vec3_dot(node, polygonPlane) - node.w > 0) {
+    if (vec3_plane_distance(node, polygonPlane) > 0) {
       $front = polygon;
     } else {
       $back = polygon;
@@ -207,7 +196,7 @@ export const csg_tree_clipTo = (root: CSGNode | null, bsp: CSGNode): void => {
 export const csg_tree_addTree = (tree: CSGNode | null, source: CSGNode | null): void =>
   csg_tree_each(source, (sourceNode) => {
     for (const polygon of sourceNode.$polygons) {
-      csg_tree_addPolygon(tree, polygon, sourceNode, sourceNode.w);
+      csg_tree_addPolygon(tree, polygon, sourceNode);
     }
   });
 
