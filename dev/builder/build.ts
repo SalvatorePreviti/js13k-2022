@@ -24,6 +24,7 @@ import { htmlCssToJs } from "./steps/html-css-to-js";
 import { jsUglify } from "./steps/js-uglify";
 import { jsTdeMinify } from "./steps/js-tde-minify";
 import { jsLebab } from "./steps/js-lebab";
+import { htmlMinify } from "./steps/html-minify";
 
 devLog.titlePaddingWidth = 18;
 
@@ -35,13 +36,9 @@ export async function build() {
   const sources = await buildWithVite({ stripDevTools: !includeDevTools });
 
   try {
+    sources.html = await htmlMinify(sources.html, { prependUtf8BOM: true, type: "page" });
+
     sources.css = await cssOptimize(sources.css);
-
-    const htmlCssJsBundle = await htmlCssToJs(sources);
-
-    sources.css = "";
-    sources.html = htmlCssJsBundle.html;
-    sources.js = htmlCssJsBundle.js;
 
     // Pre minification
 
@@ -66,12 +63,6 @@ export async function build() {
     sources.js = await jsTransformSwc(sources.js, { constToLet: true });
 
     sources.js = await jsOptimizeTerser(sources.js, { mangle: true, final: true });
-
-    // Prepend html body
-    htmlCssJsBundle.jsHtml = await jsTdeMinify(htmlCssJsBundle.jsHtml, false);
-    if (htmlCssJsBundle.jsHtml) {
-      sources.js = `${htmlCssJsBundle.jsHtml};${sources.js}`;
-    }
   } finally {
     await writeOptimizedBundle(sources);
 
@@ -95,7 +86,24 @@ export async function build() {
 
   await writeFinalBundle(bundled, outPath_bundle);
 
-  const compressedBundle = { ...bundled };
+  const htmlCssJsBundle = await htmlCssToJs(sources);
+  const bundledHtmlBodyAndCss = await jsTdeMinify(htmlCssJsBundle.jsHtml, false);
+  htmlCssJsBundle.jsHtml = "";
+  if (bundledHtmlBodyAndCss) {
+    htmlCssJsBundle.js = `${bundledHtmlBodyAndCss};${htmlCssJsBundle.js}`;
+  }
+
+  const compressedBundle: WriteBundleInput = {
+    assets: bundled.assets,
+    html: (
+      await bundleHtml({
+        css: "",
+        html: htmlCssJsBundle.html,
+        js: htmlCssJsBundle.js,
+      })
+    ).html,
+  };
+
   compressedBundle.html = await jsRoadroller(bundled.html);
 
   logTableBundled(compressedBundle, "rolled");
