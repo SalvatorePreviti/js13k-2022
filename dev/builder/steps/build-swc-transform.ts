@@ -43,7 +43,7 @@ export function rollupPluginSwcTransform(): PluginOption {
         configFile: false,
         filename: id,
         isModule: true,
-        minify: true,
+        minify: false,
         swcrc: false,
         jsc: {
           keepClassNames: false,
