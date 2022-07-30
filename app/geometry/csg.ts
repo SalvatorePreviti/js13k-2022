@@ -71,8 +71,8 @@ const CSGPolygon_split = (plane: Plane, polygon: CSGPolygon): SplitPolygonResult
   let $front: CSGPolygon | undefined | false;
   let $back: CSGPolygon | undefined | false;
   let d: number;
-  for (const p of polygon.$points) {
-    d = vec3_dot(plane, p) - plane.w;
+  for (const point of polygon.$points) {
+    d = vec3_dot(plane, point) - plane.w;
     if (d < -PLANE_EPSILON) {
       $back = polygon;
     } else if (d > PLANE_EPSILON) {
@@ -174,7 +174,7 @@ const csg_tree_clipPolygon = (node: CSGNode, polygon: CSGPolygon, polygonPlane: 
   let { $front, $back } = CSGPolygon_split(node, polygon);
   if (!$front && !$back) {
     // Coplanar
-    if (vec3_dot(node, polygonPlane) > node.w) {
+    if (vec3_dot(node, polygonPlane) - node.w > 0) {
       $front = polygon;
     } else {
       $back = polygon;
@@ -276,8 +276,8 @@ export const csg_polygons = (tree: CSGNode): Polygon[] => {
   });
 
   for (const [p, flipped] of allPolygons) {
-    const $points = p.$points.map(({ x, y, z }) => ({ x, y, z }));
-    result.push({ $color: p.$color, $points: flipped ? $points.reverse() : $points });
+    const points = p.$points.map(({ x, y, z }) => ({ x, y, z }));
+    result.push({ $color: p.$color, $points: flipped ? points.reverse() : points });
   }
   return result;
 };
