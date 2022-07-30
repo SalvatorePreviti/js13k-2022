@@ -292,7 +292,7 @@ export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: R
       ascii_only: false,
 
       // whether to actually beautify the output
-      beautify: false,
+      beautify: true,
 
       // always insert braces in if, for, do, while or with statements, even if their body is a single statement.
       braces: false,
