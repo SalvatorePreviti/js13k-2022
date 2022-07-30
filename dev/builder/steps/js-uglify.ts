@@ -24,6 +24,7 @@ export async function jsUglify(input: string, settings: JsUglifySettings) {
 export interface JsUglifySettings {
   mangle?: boolean;
   varify: boolean;
+  final: boolean;
 }
 
 export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: Record<string, unknown>): UglifyOptions {
@@ -120,7 +121,7 @@ export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: R
       inline: true,
 
       // join consecutive var statements
-      join_vars: true,
+      join_vars: settings.final,
 
       // Prevents the compressor from discarding unused function arguments.
       // You need this for code which relies on Function.length
@@ -142,7 +143,7 @@ export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: R
 
       // negate "Immediately-Called Function Expressions" where the return value is discarded,
       // to avoid the parens that the code generator would insert.
-      negate_iife: true,
+      negate_iife: false,
 
       // The maximum number of times to run compress.
       // In some cases more than one pass leads to further compressed code.
@@ -166,7 +167,7 @@ export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: R
       // join consecutive simple statements using the comma operator. If set as positive integer
       // specifies the maximum number of consecutive comma sequences that will be generated.
       // If this option is set to true then the default sequences limit is 200
-      sequences: true,
+      sequences: settings.final,
 
       // Remove expressions which have no side effects and whose results aren't used.
       side_effects: true,

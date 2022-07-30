@@ -29,6 +29,7 @@ export async function jsOptimizeTerser(input: string, settings: TerserMinifySett
 
 export interface TerserMinifySettings {
   mangle: boolean;
+  final: boolean;
   module?: boolean;
 }
 
@@ -151,7 +152,7 @@ export function getTerserMinifyOptions(settings: TerserMinifySettings): TerserMi
       inline: true,
 
       // join consecutive var statements
-      join_vars: true,
+      join_vars: settings.final,
 
       // Pass true to prevent the compressor from discarding class names.
       // Pass a regular expression to only keep class names matching that regex.
@@ -177,7 +178,7 @@ export function getTerserMinifyOptions(settings: TerserMinifySettings): TerserMi
 
       // negate "Immediately-Called Function Expressions" where the return value is discarded,
       // to avoid the parens that the code generator would insert.
-      negate_iife: true,
+      negate_iife: settings.final,
 
       // The maximum number of times to run compress.
       // In some cases more than one pass leads to further compressed code.
@@ -208,7 +209,7 @@ export function getTerserMinifyOptions(settings: TerserMinifySettings): TerserMi
       sequences: true,
 
       // Remove expressions which have no side effects and whose results aren't used.
-      side_effects: true,
+      side_effects: settings.final,
 
       // de-duplicate and remove unreachable switch branches
       switches: true,

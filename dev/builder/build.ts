@@ -23,7 +23,6 @@ import { jsRoadroller } from "./steps/js-roadroller";
 import { htmlCssToJs } from "./steps/html-css-to-js";
 import { jsUglify } from "./steps/js-uglify";
 import { jsTdeMinify } from "./steps/js-tde-minify";
-// import { jsEsbuildMinify } from "./steps/js-esbuild";
 
 devLog.titlePaddingWidth = 18;
 
@@ -43,29 +42,25 @@ export async function build() {
     sources.html = htmlCssJsBundle.html;
     sources.js = htmlCssJsBundle.js;
 
-    sources.js = await jsTransformSwc(sources.js, { constToLet: false });
+    // Pre minification
 
-    // sources.js = await jsEsbuildMinify(sources.js);
+    sources.js = await jsUglify(sources.js, { varify: false, final: false });
 
-    sources.js = await jsUglify(sources.js, { varify: false });
+    sources.js = await jsOptimizeTerser(sources.js, { mangle: false, final: false });
 
-    sources.js = await jsOptimizeTerser(sources.js, { mangle: false });
-
-    sources.js = await jsTransformSwc(sources.js, { constToLet: true });
+    // Intermediate, join declarations and statements
 
     sources.js = await jsTdeMinify(sources.js);
 
-    sources.js = await jsUglify(sources.js, { varify: true });
+    sources.js = await jsUglify(sources.js, { varify: true, final: true });
 
-    sources.js = await jsOptimizeTerser(sources.js, { mangle: true });
+    // Mangling and final minification
+
+    sources.js = await jsOptimizeTerser(sources.js, { mangle: true, final: false });
 
     sources.js = await jsTransformSwc(sources.js, { constToLet: true });
 
-    sources.js = await jsOptimizeTerser(sources.js, { mangle: true });
-
-    // sources.js = await jsOptimizeTerser(sources.js, { mangle: false });
-
-    // sources.js = await jsTdeMinify(sources.js);
+    sources.js = await jsOptimizeTerser(sources.js, { mangle: true, final: true });
   } finally {
     await writeOptimizedBundle(sources);
 
