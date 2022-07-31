@@ -16,7 +16,7 @@ export const zipBundleOptions = {
   /** If you chose zopfli (you should), here you can pass some options. */
   zopfli: {
     /** Maximum amount of times to rerun forward and backward pass to optimize LZ77 compression cost. The more, the slower. */
-    numiterations: 175,
+    numiterations: 500,
 
     /** Maximum amount of blocks to split into (0 for unlimited, but this can give extreme results that hurt compression on some files). */
     blocksplittingmax: 30,
@@ -49,7 +49,7 @@ export const zipBundleOptions = {
   },
 };
 
-export function zipBundle(bundle: WriteBundleInput) {
+export function zipBundle(bundle: WriteBundleInput, title: string) {
   let html = bundle.html;
 
   // Remove tag closures
@@ -59,18 +59,18 @@ export function zipBundle(bundle: WriteBundleInput) {
     }
   }
 
-  return zipEntries([{ name: "index.html", source: html }, ...(bundle.assets || [])]);
+  return zipEntries([{ name: "index.html", source: html }], title);
 }
 
-export async function zipEntries(input: ZipFileEntry[]) {
+export async function zipEntries(input: ZipFileEntry[], title: string) {
   const entries: { name: string; data: Buffer }[] = [];
 
   let totalUnzipped = 0;
 
   const zippedBuffer = await devLog.timed(
     zipBundleOptions.implementation === "zopfli"
-      ? `zip zopfli ${zipBundleOptions.zopfli.numiterations}`
-      : `zip zlib ${zipBundleOptions.zlib.level}`,
+      ? `zopfli ${zipBundleOptions.zopfli.numiterations} ${title}`
+      : `zlib ${zipBundleOptions.zlib.level} ${title}`,
     async function compress() {
       const admZip = new ADMZip();
       for (const item of input) {

@@ -80,13 +80,39 @@ export async function build() {
 
   const bundled: WriteBundleInput = {
     html: (await bundleHtml(sources)).html,
-    assets: sources.assets,
   };
 
   logTableBundled(bundled, "bundled", true);
 
   await writeFinalBundle(bundled, outPath_bundle);
 
+  const [zippedRolledBuffer, zippedPlainBuffer] = await Promise.all([
+    zipRoadRoller(sources, bundled),
+    zipBundle(bundled, "plain"),
+  ]);
+
+  const rolledPlainZipSizeDiff = zippedRolledBuffer.length - zippedPlainBuffer.length;
+
+  if (rolledPlainZipSizeDiff > 0) {
+    devLog.logYellow(`\nRolled zip is ${rolledPlainZipSizeDiff} bytes LARGER than plain zip`);
+  } else {
+    devLog.logCyan(`\nRolled zip is ${-rolledPlainZipSizeDiff} bytes smaller than plain zip`);
+  }
+
+  const finalBuffer = rolledPlainZipSizeDiff < 0 ? zippedRolledBuffer : zippedPlainBuffer;
+
+  devLog.log();
+  await devWriteOutputFile(outPath_zip, finalBuffer, null);
+  devLog.log();
+
+  if (!FilesSizeTermBox.final(finalBuffer.length)) {
+    process.exitCode = 1;
+  }
+
+  await globalReport.append();
+}
+
+async function zipRoadRoller(sources: ViteBundledOutput, bundled: WriteBundleInput) {
   const htmlCssJsBundle = await htmlCssToJs(sources);
   const bundledHtmlBodyAndCss = await jsTdeMinify(htmlCssJsBundle.jsHtml, false);
   htmlCssJsBundle.jsHtml = "";
@@ -95,7 +121,6 @@ export async function build() {
   }
 
   const compressedBundle: WriteBundleInput = {
-    assets: bundled.assets,
     html: (
       await bundleHtml({
         css: "",
@@ -109,34 +134,17 @@ export async function build() {
 
   logTableBundled(compressedBundle, "rolled");
 
+  devLog.log();
   await writeFinalBundle(compressedBundle, outPath_rolled);
 
-  const zippedBuffer = await zipBundle(compressedBundle);
-
-  devLog.log();
-  await devWriteOutputFile(outPath_zip, zippedBuffer, null);
-  devLog.log();
-
-  if (!FilesSizeTermBox.final(zippedBuffer.length)) {
-    process.exitCode = 1;
-  }
-
-  await globalReport.append();
+  return zipBundle(compressedBundle, "rolled");
 }
 
 function logTableBundled(bundled: WriteBundleInput, name: string, showGZippedSize: boolean = false) {
   devLog.log();
-  const box = FilesSizeTermBox.new(name).sizeRow(
-    name,
-    bundled.html,
-    bundled.assets.reduce((r, a) => r + a.source.length, 0),
-  );
+  const box = FilesSizeTermBox.new(name).sizeRow(name, bundled.html);
   if (showGZippedSize) {
-    const buffer = Buffer.concat([
-      Buffer.from(bundled.html),
-      ...bundled.assets.map((asset) => Buffer.from(asset.source)),
-    ]);
-    box.sizeRow("gzipped", zlib.gzipSync(buffer, { level: 9 }));
+    box.sizeRow("gzipped", zlib.gzipSync(Buffer.from(bundled.html, "utf8"), { level: 9 }));
   }
   box.print();
   devLog.log();
@@ -148,10 +156,6 @@ function logTableOptimized(bundledSwc: ViteBundledOutput) {
     .sizeRow("js", bundledSwc.js)
     .sizeRow("html", bundledSwc.html)
     .sizeRow("css", bundledSwc.css)
-    .sizeRowOptional(
-      "assets",
-      bundledSwc.assets.reduce((r, a) => r + a.source.length, 0),
-    )
     .hr()
     .totalRow("total")
     .print().totalValue;

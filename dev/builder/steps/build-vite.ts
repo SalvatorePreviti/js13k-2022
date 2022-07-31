@@ -1,5 +1,5 @@
 import { devLog, toUTF8, utf8ByteLength } from "@balsamic/dev";
-import type { RollupOutput, OutputAsset, RollupWatcher, LoadResult } from "rollup";
+import type { RollupOutput, RollupWatcher, LoadResult } from "rollup";
 import { build as viteBuild, mergeConfig as viteMergeConfig } from "vite";
 import config from "../../config";
 import fs from "fs/promises";
@@ -16,7 +16,6 @@ export interface ViteBundledOutput {
   js: string;
   css: string;
   html: string;
-  assets: OutputAsset[];
 }
 
 export const ESBUILD_TARGETS = ["chrome99", "firefox99"];
@@ -94,12 +93,7 @@ export async function buildWithVite(options: { stripDevTools: boolean }): Promis
       await fs.rm(outPath_build, { maxRetries: 5, recursive: true, force: true });
       const result = processViteBuildOutput(await viteBuild(viteMergeConfig(config, viteConfigBuild, true)));
       this.setSuccessText(
-        coloredPrettySize(
-          utf8ByteLength(result.js) +
-            utf8ByteLength(result.css) +
-            utf8ByteLength(result.html) +
-            result.assets.reduce((p, c) => p + utf8ByteLength(c.source), 0),
-        ),
+        coloredPrettySize(utf8ByteLength(result.js) + utf8ByteLength(result.css) + utf8ByteLength(result.html)),
       );
       return result;
     },
@@ -119,8 +113,6 @@ function processViteBuildOutput(viteBuildOutput: RollupOutput | RollupOutput[] |
     throw new Error("ViteBuildOutput: expected a RollupOutput, received something else");
   }
 
-  const assets: OutputAsset[] = [];
-
   let js = "";
   let css = "";
   let html = "";
@@ -138,7 +130,7 @@ function processViteBuildOutput(viteBuildOutput: RollupOutput | RollupOutput[] |
         }
         html = toUTF8(o.source);
       } else if (o.fileName !== "esbuild") {
-        assets.push(o);
+        throw new Error(`ViteBuildOutput: unexpected asset file "${o.fileName}"`);
       }
     } else if (o.type === "chunk") {
       if (js.length > 0) {
@@ -171,5 +163,5 @@ function processViteBuildOutput(viteBuildOutput: RollupOutput | RollupOutput[] |
     html = `<!DOCTYPE html>${dom.window.document.documentElement.outerHTML || ""}`;
   }
 
-  return { html, js, css, assets };
+  return { html, js, css };
 }

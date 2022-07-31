@@ -2,6 +2,9 @@ import { integers_map } from "../math/math";
 import { identity } from "../math/matrix";
 import { type Vec3 } from "../math/vectors";
 
+export const material = (r: number, g: number, b: number, a: number = 0): number =>
+  ((a * 255) << 24) | ((b * 255) << 16) | ((g * 255) << 8) | (r * 255);
+
 export interface Polygon {
   /** Polygon material */
   $color: number;
@@ -43,8 +46,8 @@ export const polygon_regular = ($color: number, segments: number, arc = (Math.PI
     })),
   );
 
-export const polygon_quad = (material: number, y: number = 0): Polygon =>
-  polygon_fromPoints(material, [
+export const polygon_quad = (color: number, y: number = 0): Polygon =>
+  polygon_fromPoints(color, [
     { x: -1, y, z: -1 },
     { x: 1, y, z: -1 },
     { x: 1, y, z: 1 },

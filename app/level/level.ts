@@ -1,19 +1,15 @@
 import { csg_subtract, csg_union, csg_polygons } from "../geometry/csg";
-import { solid_box, solid_cylinder, solid_transform, type Polygon } from "../geometry/geometry";
+import { material, solid_box, solid_cylinder, solid_transform, type Polygon } from "../geometry/geometry";
 import { integers_map } from "../math/math";
 import { identity } from "../math/matrix";
 
-const rgb = (r: number, g: number, b: number): number => {
-  return ((Math.round(b * 255) << 16) | (Math.round(g * 255) << 8) | Math.round(r * 255)) >>> 0;
-};
-
-const materialWhite = rgb(1, 1, 1);
-const material0 = rgb(1, 0.3, 0);
-const material1 = rgb(0, 0.5, 0.7);
-const material2 = rgb(0, 0.2, 0.9);
-const material3 = rgb(0.2, 0, 0.9);
-const material4 = rgb(0.4, 0.9, 0);
-const material5 = rgb(0.4, 0, 0.9);
+const materialWhite = material(1, 1, 1);
+const material0 = material(1, 0.3, 0);
+const material1 = material(0, 0.5, 0.7);
+const material2 = material(0, 0.2, 0.9);
+const material3 = material(0.2, 0, 0.9);
+const material4 = material(0.4, 0.9, 0);
+const material5 = material(0.4, 0, 0.9);
 
 const corridor = (): Polygon[][] => {
   const p = csg_subtract(
