@@ -77,8 +77,8 @@ const CSGPolygon_splitSpanning = (plane: Plane, polygon: CSGPolygon): SplitPolyg
 };
 
 const CSGPolygon_split = (plane: Plane, polygon: CSGPolygon): SplitPolygonResult => {
-  let $front: CSGPolygon | undefined | false;
-  let $back: CSGPolygon | undefined | false;
+  let $front: CSGPolygon | undefined;
+  let $back: CSGPolygon | undefined;
   let d: number;
   for (const point of polygon.$points) {
     d = vec3_plane_distance(plane, point);
@@ -214,8 +214,6 @@ export const csg_union_op = (a: CSGInput, b: CSGInput | undefined): CSGNode => {
   return a;
 };
 
-export const csg_union = (inputs: CSGInput[]): CSGNode => inputs.reduce(csg_union_op) as CSGNode;
-
 export const csg_subtract = (a: CSGInput, b: CSGInput): CSGNode => {
   a = csg_tree(a);
   csg_tree_flip(a);
@@ -224,18 +222,7 @@ export const csg_subtract = (a: CSGInput, b: CSGInput): CSGNode => {
   return a;
 };
 
-export const csg_intersect = (a: CSGInput, b: CSGInput): CSGNode => {
-  a = csg_tree(a);
-  csg_tree_flip(a);
-  b = csg_tree(b);
-  csg_tree_clipTo(b, a);
-  csg_tree_flip(b);
-  csg_tree_clipTo(a, b);
-  csg_tree_clipTo(b, a);
-  csg_tree_addTree(a, b);
-  csg_tree_flip(a);
-  return a;
-};
+export const csg_union = (inputs: CSGInput[]): CSGNode => inputs.reduce(csg_union_op) as CSGNode;
 
 export const csg_polygons = (tree: CSGNode): Polygon[] => {
   const result: Polygon[] = [];
@@ -270,3 +257,16 @@ export const csg_polygons = (tree: CSGNode): Polygon[] => {
   }
   return result;
 };
+
+// export const csg_intersect = (a: CSGInput, b: CSGInput): CSGNode => {
+//   a = csg_tree(a);
+//   csg_tree_flip(a);
+//   b = csg_tree(b);
+//   csg_tree_clipTo(b, a);
+//   csg_tree_flip(b);
+//   csg_tree_clipTo(a, b);
+//   csg_tree_clipTo(b, a);
+//   csg_tree_addTree(a, b);
+//   csg_tree_flip(a);
+//   return a;
+// };
