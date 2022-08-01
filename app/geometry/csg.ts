@@ -23,22 +23,22 @@ interface SplitPolygonResult {
 }
 
 const CSGPolygon_splitSpanning = (plane: Plane, polygon: CSGPolygon): SplitPolygonResult => {
-  const { $points } = polygon;
+  const $points = polygon.$points;
+  let iv: Vec3In = $points.at(-1)!;
+  let id: number = vec3_plane_distance(plane, iv);
+  let jd: number;
+  let t: number;
   const fpoints: Vec3In[] = [];
   const bpoints: Vec3In[] = [];
-  let t: number;
-  let jd: number;
-  let iv: Vec3In = $points[$points.length - 1]!;
-  let id: number = vec3_plane_distance(plane, iv);
   for (const jv of $points) {
-    if (id > -PLANE_EPSILON) {
-      fpoints.push(iv);
-    }
+    jd = vec3_plane_distance(plane, jv);
     if (id < PLANE_EPSILON) {
       bpoints.push(iv);
     }
-    jd = vec3_plane_distance(plane, jv);
-    if ((id < -PLANE_EPSILON && jd > PLANE_EPSILON) || (id > PLANE_EPSILON && jd < -PLANE_EPSILON)) {
+    if (id > -PLANE_EPSILON) {
+      fpoints.push(iv);
+    }
+    if ((id > PLANE_EPSILON && jd < -PLANE_EPSILON) || (id < -PLANE_EPSILON && jd > PLANE_EPSILON)) {
       t = id / (jd - id);
       iv = {
         x: iv.x + (iv.x - jv.x) * t,
@@ -95,19 +95,8 @@ export interface CSGNode extends Plane {
 }
 
 const csg_tree_addPolygon = (node: CSGNode | null | undefined, polygon: CSGPolygon, plane: Plane): CSGNode => {
-  if (node) {
-    const { $front, $back } = CSGPolygon_split(node, polygon);
-    if (!$front && !$back) {
-      node.$polygons.push(polygon); // Coplanar
-    }
-    if ($front) {
-      node.$front = csg_tree_addPolygon(node.$front, $front, plane);
-    }
-    if ($back) {
-      node.$back = csg_tree_addPolygon(node.$back, $back, plane);
-    }
-  } else {
-    node = {
+  if (!node) {
+    return {
       x: plane.x,
       y: plane.y,
       z: plane.z,
@@ -117,23 +106,34 @@ const csg_tree_addPolygon = (node: CSGNode | null | undefined, polygon: CSGPolyg
       $back: null,
     };
   }
+  const { $front, $back } = CSGPolygon_split(node, polygon);
+  if (!$front && !$back) {
+    node.$polygons.push(polygon); // Coplanar
+  }
+  if ($front) {
+    node.$front = csg_tree_addPolygon(node.$front, $front, plane);
+  }
+  if ($back) {
+    node.$back = csg_tree_addPolygon(node.$back, $back, plane);
+  }
   return node;
 };
 
 /**
  * If the given argument is a list of polygons, a new BSP tree built from the list of polygons is returned.
  * If the given argument is already a BSP tree, return it as is.
+ * Note that array cannot be empty.
  */
 export const csg_tree = (n: CSGInput): CSGNode => {
-  if (Array.isArray(n)) {
-    // Build a BSP tree from a list of polygons
-    let root: CSGNode | undefined;
-    for (const { $color, $points } of n as Polygon[]) {
-      root = csg_tree_addPolygon(root, { $color, $points, $flipped: false, $parent: null }, plane_fromPolygon($points));
-    }
-    return root!;
+  let root: CSGNode | undefined;
+  if (!(n as Polygon[]).length) {
+    return n as CSGNode;
   }
-  return n as CSGNode;
+  // Build a BSP tree from a list of polygons
+  for (const { $color, $points } of n as Polygon[]) {
+    root = csg_tree_addPolygon(root, { $color, $points, $flipped: false, $parent: null }, plane_fromPolygon($points));
+  }
+  return root!;
 };
 
 export const csg_tree_each = (node: CSGNode | null, fn: (node: CSGNode) => void) => {
@@ -264,9 +264,9 @@ export const csg_polygons = (tree: CSGNode): Polygon[] => {
     }
   });
 
-  for (const [p, flipped] of allPolygons) {
-    const points = p.$points.map(({ x, y, z }) => ({ x, y, z }));
-    result.push({ $color: p.$color, $points: flipped ? points.reverse() : points });
+  for (let [{ $color, $points }, flipped] of allPolygons) {
+    $points = $points.map(({ x, y, z }) => ({ x, y, z }));
+    result.push({ $color, $points: flipped ? $points.reverse() : $points });
   }
   return result;
 };

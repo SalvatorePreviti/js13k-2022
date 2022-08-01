@@ -66,7 +66,7 @@ export const vec3_scale = ({ x, y, z }: Vec3In, m: number): Vec3 => ({ x: x * m,
 
 export const vec3_dot = ({ x, y, z }: Vec3In, b: Vec3In): number => x * b.x + y * b.y + z * b.z;
 
-export const vec3_plane_distance = (plane: Readonly<Plane>, v: Vec3In): number => vec3_dot(plane, v) - plane.w;
+export const vec3_plane_distance = (a: Readonly<Plane>, v: Vec3In): number => a.x * v.x + a.y * v.y + a.z * v.z - a.w;
 
 export const vec3_length = ({ x, y, z }: Vec3In): number => Math.hypot(x, y, z);
 
@@ -92,17 +92,16 @@ export const plane_fromPolygon = (polygon: readonly Vec3In[]): Plane => {
   let x = 0;
   let y = 0;
   let z = 0;
-  let b: Vec3In;
-  let a = polygon[polygon.length - 1]!;
-  for (let i = 0; i < polygon.length; ++i) {
-    b = polygon[i]!;
+  let b: Vec3In | number;
+  let a = polygon.at(-1)!;
+  for (b of polygon) {
     x += (a.y - b.y) * (a.z + b.z);
     y += (a.z - b.z) * (a.x + b.x);
     z += (a.x - b.x) * (a.y + b.y);
     a = b;
   }
-  const i = Math.hypot(x, y, z);
-  return { x: (x /= i), y: (y /= i), z: (z /= i), w: x * a.x + y * a.y + z * a.z };
+  b = Math.hypot(x, y, z);
+  return { x: (x /= b), y: (y /= b), z: (z /= b), w: x * a.x + y * a.y + z * a.z };
 };
 
 // export const vec3_polygonNormal = ([{ x, y, z }, { x: bx, y: by, z: bz }, { x: cx, y: cy, z: cz }]: readonly [

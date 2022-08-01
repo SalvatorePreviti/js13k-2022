@@ -36,38 +36,39 @@ export const buildWorld = () => {
   const normals: number[] = [];
   const colors: number[] = [];
 
-  const _u = new Int32Array(7);
-  const _f = new Float32Array(_u.buffer);
+  const _i = new Int32Array(7);
+  const _f = new Float32Array(_i.buffer);
 
   const getVertex = ({ x, y, z }: Vec3In): number => {
     _f[4] = x;
     _f[5] = y;
     _f[6] = z;
 
-    const key = _u + "";
+    const key = "" + _i;
 
     let index = vertexMap.get(key);
     if (index === undefined) {
       vertexMap.set(key, (index = vertexMap.size));
       positions.push(x, y, z);
-      normals.push(_u[0]!, _u[1]!, _u[2]!);
-      colors.push(_u[3]!);
+      normals.push(_i[0]!, _i[1]!, _i[2]!);
+      colors.push(_i[3]!);
     }
     return index;
   };
 
   const triangulateConvexPolygon = ({ $points, $color }: Polygon) => {
     const v = plane_fromPolygon($points);
-    _u[0] = v.x * 32767;
-    _u[1] = v.y * 32767;
-    _u[2] = v.z * 32767;
-    _u[3] = $color | 0;
+    _i[0] = v.x * 32767;
+    _i[1] = v.y * 32767;
+    _i[2] = v.z * 32767;
+    _i[3] = $color | 0;
     for (let i = 2, a = getVertex($points[0]!), b = getVertex($points[1]!); i < $points.length; ++i) {
       triangleIndices.push(a, b, (b = getVertex($points[i]!)));
     }
   };
 
-  const makeMesh = (_solids: Polygon[][]) => _solids.flat().forEach(triangulateConvexPolygon);
+  const makeMesh = (_solids: Polygon[] | Polygon[][] | Polygon[][][] | Polygon[][][][]) =>
+    _solids.flat(4).forEach(triangulateConvexPolygon);
 
   const scene = loadScene();
 

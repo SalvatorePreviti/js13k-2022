@@ -81,7 +81,7 @@ const weirdObject = () => {
   return result;
 };
 
-export const pavement = (): Polygon[] => {
+const pavement = (): Polygon[] => {
   return solid_transform(solid_box(materialWhite), identity.translate(0, -2).scale(1100, 0.5, 1100));
 };
 
