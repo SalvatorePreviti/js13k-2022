@@ -4,8 +4,6 @@ import { type Polygon } from "./geometry";
 
 export const PLANE_EPSILON = 0.00008;
 
-export type CSGInput = CSGNode | readonly Polygon[];
-
 export interface CSGPolygon extends Polygon {
   $flipped: boolean;
 
@@ -16,6 +14,17 @@ export interface CSGPolygon extends Polygon {
    */
   $parent: CSGPolygon | null;
 }
+
+export interface CSGNode extends Plane {
+  /** Coplanar polygons */
+  $polygons: CSGPolygon[];
+  /** Front child */
+  $front: CSGNode | null;
+  /** Back child */
+  $back: CSGNode | null;
+}
+
+export type CSGInput = CSGNode | readonly Polygon[];
 
 interface SplitPolygonResult {
   $front: CSGPolygon | undefined | false;
@@ -85,15 +94,6 @@ const CSGPolygon_split = (plane: Plane, polygon: CSGPolygon): SplitPolygonResult
   return { $front, $back };
 };
 
-export interface CSGNode extends Plane {
-  /** Coplanar polygons */
-  $polygons: CSGPolygon[];
-  /** Front child */
-  $front: CSGNode | null;
-  /** Back child */
-  $back: CSGNode | null;
-}
-
 const csg_tree_addPolygon = (node: CSGNode | null | undefined, polygon: CSGPolygon, plane: Plane): CSGNode => {
   if (!node) {
     return {
@@ -117,6 +117,30 @@ const csg_tree_addPolygon = (node: CSGNode | null | undefined, polygon: CSGPolyg
     node.$back = csg_tree_addPolygon(node.$back, $back, plane);
   }
   return node;
+};
+
+const csg_tree_clipPolygon = (node: CSGNode, polygon: CSGPolygon, polygonPlane: Plane, result: CSGPolygon[]): void => {
+  let { $front, $back } = CSGPolygon_split(node, polygon);
+  if (!$front && !$back) {
+    // Coplanar
+    if (vec3_plane_distance(node, polygonPlane) > 0) {
+      $front = polygon;
+    } else {
+      $back = polygon;
+    }
+  }
+  if ($front) {
+    // Front
+    if (node.$front) {
+      csg_tree_clipPolygon(node.$front, $front, polygonPlane, result);
+    } else {
+      result.push($front);
+    }
+  }
+  if ($back && node.$back) {
+    // Back
+    csg_tree_clipPolygon(node.$back, $back, polygonPlane, result);
+  }
 };
 
 /**
@@ -158,30 +182,6 @@ export const csg_tree_flip = (root: CSGNode | null): void =>
     node.$back = node.$front;
     node.$front = back;
   });
-
-const csg_tree_clipPolygon = (node: CSGNode, polygon: CSGPolygon, polygonPlane: Plane, result: CSGPolygon[]): void => {
-  let { $front, $back } = CSGPolygon_split(node, polygon);
-  if (!$front && !$back) {
-    // Coplanar
-    if (vec3_plane_distance(node, polygonPlane) > 0) {
-      $front = polygon;
-    } else {
-      $back = polygon;
-    }
-  }
-  if ($front) {
-    // Front
-    if (node.$front) {
-      csg_tree_clipPolygon(node.$front, $front, polygonPlane, result);
-    } else {
-      result.push($front);
-    }
-  }
-  if ($back && node.$back) {
-    // Back
-    csg_tree_clipPolygon(node.$back, $back, polygonPlane, result);
-  }
-};
 
 export const csg_tree_clipTo = (root: CSGNode | null, bsp: CSGNode): void => {
   csg_tree_each(root, (node) => {
