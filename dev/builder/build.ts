@@ -18,7 +18,7 @@ import { buildWithVite } from "./steps/build-vite";
 import { bundleHtml } from "./steps/bundle-html";
 import { jsOptimizeTerser } from "./steps/js-optimize-terser";
 import { cssOptimize } from "./steps/css-optimize";
-import { jsBeautify, jsTransformSwc } from "./steps/js-transform-swc";
+import { jsTransformSwc } from "./steps/js-transform-swc";
 import { jsRoadroller } from "./steps/js-roadroller";
 import { htmlCssToJs } from "./steps/html-css-to-js";
 import { jsUglify } from "./steps/js-uglify";
@@ -26,6 +26,7 @@ import { jsTdeMinify } from "./steps/js-tde-minify";
 import { jsLebab } from "./steps/js-lebab";
 import { htmlMinify } from "./steps/html-minify";
 import { jsMinifySwc } from "./steps/js-minify-swc";
+import { dprint } from "./steps/dprint";
 
 devLog.titlePaddingWidth = 18;
 
@@ -57,7 +58,7 @@ export async function build() {
 
     sources.js = await jsUglify(sources.js, { varify: false, final: true });
 
-    sources.js = await jsTransformSwc(sources.js, { constToLet: true, letToVar: false });
+    sources.js = await jsTransformSwc(sources.js, { constToLet: true });
 
     // Final mangling
 
@@ -68,7 +69,7 @@ export async function build() {
     await writeOptimizedBundle(sources);
 
     try {
-      await fs.writeFile(path.resolve(outPath_minify, "index-beautified.js"), await jsBeautify(sources.js));
+      await fs.writeFile(path.resolve(outPath_minify, "index-beautified.js"), await dprint(sources.js));
     } catch {}
   }
 

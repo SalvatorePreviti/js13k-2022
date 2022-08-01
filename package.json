@@ -52,6 +52,7 @@
     "cssnano": "^5.1.12",
     "cssnano-preset-advanced": "^5.3.8",
     "csso": "^5.0.4",
+    "dprint": "^0.30.3",
     "esbuild": "^0.14.51",
     "eslint": "^8.21.0",
     "eslint-plugin-chai-expect": "^3.0.0",

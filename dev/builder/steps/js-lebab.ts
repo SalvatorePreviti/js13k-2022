@@ -1,8 +1,8 @@
 const { transform } = require("lebab");
 
 import { devLog } from "@balsamic/dev";
-import { jsRemoveEndingSemicolons } from "../lib/code-utils";
 import { sizeDifference } from "../lib/logging";
+import { dprint } from "./dprint";
 import { jsTdeMinify } from "./js-tde-minify";
 
 export async function jsLebab(source: string): Promise<string> {
@@ -10,11 +10,11 @@ export async function jsLebab(source: string): Promise<string> {
     async function js_lebab() {
       const options = ["arrow", "arrow-return", "destruct-param", "no-strict", "exponent", "multi-var"];
 
-      let result = transform(source, options).code || source;
+      let result = await dprint(source);
+
+      result = transform(result, options).code || result;
 
       result = transform(result, ["let"]).code || result;
-
-      result = jsRemoveEndingSemicolons(result);
 
       result = await jsTdeMinify(result, false);
 

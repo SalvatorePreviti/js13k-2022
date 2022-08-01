@@ -6,15 +6,15 @@ import { sizeDifference } from "../lib/logging";
 import { browserPureFunctions, jsRemoveEndingSemicolons } from "../lib/code-utils";
 import { global_defs, mangleConfig } from "../lib/js-config";
 
-export async function jsUglify(input: string, settings: JsUglifySettings) {
+export async function jsUglify(source: string, settings: JsUglifySettings) {
   return devLog.timed(
     async function js_uglify() {
       const uglifyOptions = getUglifyOptions(settings);
 
-      let result = uglify(input, uglifyOptions).code || input;
+      let result = uglify(source, uglifyOptions).code || source;
       result = jsRemoveEndingSemicolons(result);
 
-      this.setSuccessText(sizeDifference(input, result));
+      this.setSuccessText(sizeDifference(source, result));
       return result;
     },
     { spinner: true },

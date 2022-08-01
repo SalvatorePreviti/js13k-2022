@@ -1,5 +1,7 @@
 import path from "path";
 
+export const outPath_temp = path.resolve("dist/.temp");
+
 export const outPath_build = path.resolve("dist/1-build");
 
 export const outPath_minify = path.resolve("dist/2-minify");

@@ -2,6 +2,7 @@ import { devLog } from "@balsamic/dev";
 import path from "path";
 import { jsRemoveEndingSemicolons } from "../lib/code-utils";
 import { sizeDifference } from "../lib/logging";
+import { dprint } from "./dprint";
 
 export async function jsTdeMinify(source: string, timed = true): Promise<string> {
   return devLog.timed(
@@ -18,7 +19,9 @@ export async function jsTdeMinify(source: string, timed = true): Promise<string>
         "js-no-nullish-operator": false,
       });
 
-      let result = tdeMinifyString("text/javascript", source) || source;
+      let result = await dprint(source);
+
+      result = tdeMinifyString("text/javascript", result) || result;
       result = jsRemoveEndingSemicolons(result);
 
       this.setSuccessText(sizeDifference(source, result));
