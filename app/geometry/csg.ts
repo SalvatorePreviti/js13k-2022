@@ -1,4 +1,4 @@
-import { vec3_dot, plane_fromPolygon, vec3_plane_distance, type Vec3In, type Plane } from "../math/vectors";
+import { plane_fromPolygon, type Vec3In, type Plane, vec3_dot } from "../math/vectors";
 import { type Polygon } from "./geometry";
 
 export const PLANE_EPSILON = 0.00008;
@@ -31,15 +31,14 @@ interface SplitPolygonResult {
 }
 
 const CSGPolygon_splitSpanning = (plane: Plane, polygon: CSGPolygon): SplitPolygonResult => {
-  const $points = polygon.$points;
-  let iv: Vec3In = $points.at(-1)!;
-  let id: number = vec3_plane_distance(plane, iv);
-  let jd: number;
-  let t: number;
   const fpoints: Vec3In[] = [];
   const bpoints: Vec3In[] = [];
+  const $points = polygon.$points;
+  let jd: number;
+  let iv: Vec3In = $points.at(-1)!;
+  let id: number = vec3_dot(plane, iv) - plane.w;
   for (const jv of $points) {
-    jd = vec3_plane_distance(plane, jv);
+    jd = vec3_dot(plane, jv) - plane.w;
     if (id < PLANE_EPSILON) {
       bpoints.push(iv);
     }
@@ -47,11 +46,11 @@ const CSGPolygon_splitSpanning = (plane: Plane, polygon: CSGPolygon): SplitPolyg
       fpoints.push(iv);
     }
     if ((id > PLANE_EPSILON && jd < -PLANE_EPSILON) || (id < -PLANE_EPSILON && jd > PLANE_EPSILON)) {
-      t = id / (jd - id);
+      id /= jd - id;
       iv = {
-        x: iv.x + (iv.x - jv.x) * t,
-        y: iv.y + (iv.y - jv.y) * t,
-        z: iv.z + (iv.z - jv.z) * t,
+        x: iv.x + (iv.x - jv.x) * id,
+        y: iv.y + (iv.y - jv.y) * id,
+        z: iv.z + (iv.z - jv.z) * id,
       };
       fpoints.push(iv);
       bpoints.push(iv);
@@ -76,11 +75,12 @@ const CSGPolygon_splitSpanning = (plane: Plane, polygon: CSGPolygon): SplitPolyg
 };
 
 const CSGPolygon_split = (plane: Plane, polygon: CSGPolygon): SplitPolygonResult => {
+  const $points = polygon.$points;
   let $front: CSGPolygon | undefined;
   let $back: CSGPolygon | undefined;
   let d: number;
-  for (const point of polygon.$points) {
-    d = vec3_plane_distance(plane, point);
+  for (let i = 0; i < $points.length; ++i) {
+    d = vec3_dot(plane, $points[i]!) - plane.w;
     if (d < -PLANE_EPSILON) {
       $back = polygon;
     } else if (d > PLANE_EPSILON) {
@@ -127,15 +127,13 @@ const csg_tree_clipPolygon = (
 ): void => {
   let { $front, $back } = CSGPolygon_split(node, polygon);
   if (!$front && !$back) {
-    // Coplanar
     if (vec3_dot(node, polygonPlane) * polygonPlaneFlipped > 0) {
-      $front = polygon;
+      $front = polygon; // Coplanar front
     } else {
-      $back = polygon;
+      $back = polygon; // Coplanar back
     }
   }
   if ($front) {
-    // Front
     if (node.$front) {
       csg_tree_clipPolygon(node.$front, $front, polygonPlane, polygonPlaneFlipped, result);
     } else {
@@ -143,8 +141,16 @@ const csg_tree_clipPolygon = (
     }
   }
   if ($back && node.$back) {
-    // Back
     csg_tree_clipPolygon(node.$back, $back, polygonPlane, polygonPlaneFlipped, result);
+  }
+};
+
+/** Loop through all nodes in a tree */
+export const csg_tree_each = (node: CSGNode | null | undefined, fn: (node: CSGNode) => void) => {
+  if (node) {
+    fn(node);
+    csg_tree_each(node.$front, fn);
+    csg_tree_each(node.$back, fn);
   }
 };
 
@@ -156,7 +162,7 @@ const csg_tree_clipPolygon = (
 export const csg_tree = (n: CSGInput): CSGNode => {
   let root: CSGNode | undefined;
   if (!(n as Polygon[]).length) {
-    return n as CSGNode;
+    return n as CSGNode; // An object? We assume is a BSP tree.
   }
   // Build a BSP tree from a list of polygons
   for (const { $color, $points } of n as Polygon[]) {
@@ -165,16 +171,13 @@ export const csg_tree = (n: CSGInput): CSGNode => {
   return root!;
 };
 
-/** Loop through all nodes in a tree */
-export const csg_tree_each = (node: CSGNode | null, fn: (node: CSGNode) => void) => {
-  if (node) {
-    fn(node);
-    csg_tree_each(node.$front, fn);
-    csg_tree_each(node.$back, fn);
-  }
-};
-
-export const csg_union_op = (a: CSGInput, b: CSGInput | undefined): CSGNode => {
+/**
+ * Union a = a U b
+ * @param a First geometry and target of the union
+ * @param b Source second geometry to add
+ * @returns
+ */
+export const csg_union_op = (a: CSGInput, b: CSGInput | null | undefined): CSGNode => {
   const polygonsToAdd: [Plane, CSGPolygon[]][] = [];
   a = csg_tree(a);
   if (b) {
@@ -198,6 +201,7 @@ export const csg_union_op = (a: CSGInput, b: CSGInput | undefined): CSGNode => {
       polygonsToAdd.push([node, clipped]);
     });
 
+    // add the polygons to a
     for (const [plane, polygons] of polygonsToAdd) {
       for (const pp of polygons) {
         csg_tree_addPolygon(a, pp, plane);
@@ -207,8 +211,13 @@ export const csg_union_op = (a: CSGInput, b: CSGInput | undefined): CSGNode => {
   return a;
 };
 
+/**
+ * Union a[0] = a[0] U a[1] U a[2] U ...
+ */
+export const csg_union = (inputs: CSGInput[]): CSGNode => inputs.reduce(csg_union_op) as CSGNode;
+
 /** Convert solid space to empty space and empty space to solid space. */
-export const csg_tree_flip = (root: CSGNode | null): void =>
+export const csg_tree_flip = (root: CSGNode | null | undefined): void =>
   csg_tree_each(root, (node) => {
     const back = node.$back;
     for (const polygon of node.$polygons) {
@@ -222,6 +231,9 @@ export const csg_tree_flip = (root: CSGNode | null): void =>
     node.$front = back;
   });
 
+/**
+ * Subtraction a = a - b
+ */
 export const csg_subtract = (a: CSGInput, b: CSGInput): CSGNode => {
   a = csg_tree(a);
   csg_tree_flip(a);
@@ -230,8 +242,10 @@ export const csg_subtract = (a: CSGInput, b: CSGInput): CSGNode => {
   return a;
 };
 
-export const csg_union = (inputs: CSGInput[]): CSGNode => inputs.reduce(csg_union_op) as CSGNode;
-
+/**
+ * Extracts all the polygons from a BSP tree.
+ * Some polygons will be merged, to reduce the number of triangles.
+ */
 export const csg_polygons = (tree: CSGNode): Polygon[] => {
   const result: Polygon[] = [];
   const byParent = new Map<CSGPolygon, CSGPolygon>();

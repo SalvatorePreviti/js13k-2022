@@ -29,13 +29,12 @@ const loadScene = () => {
 } */
 
 export const buildWorld = () => {
-  const vertexMap = new Map<string, number>();
-
   const triangleIndices: number[] = [];
   const positions: number[] = [];
   const normals: number[] = [];
   const colors: number[] = [];
 
+  const vertexMap = new Map<string, number>();
   const _i = new Int32Array(7);
   const _f = new Float32Array(_i.buffer);
 
@@ -43,9 +42,7 @@ export const buildWorld = () => {
     _f[4] = x;
     _f[5] = y;
     _f[6] = z;
-
     const key = "" + _i;
-
     let index = vertexMap.get(key);
     if (index === undefined) {
       vertexMap.set(key, (index = vertexMap.size));
@@ -80,9 +77,7 @@ export const buildWorld = () => {
 
   const _indicesxxx = triangleIndices.length;
 
-  renderMainScene = () => {
-    gl.drawElements(gl.TRIANGLES, _indicesxxx, gl.UNSIGNED_INT, 0);
-  };
+  renderMainScene = () => gl.drawElements(gl.TRIANGLES, _indicesxxx, gl.UNSIGNED_INT, 0);
 
   if (DEBUG) {
     console.timeEnd("makeMesh");
