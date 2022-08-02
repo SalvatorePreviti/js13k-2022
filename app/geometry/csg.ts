@@ -1,6 +1,4 @@
-import type { Vec3In } from "../math/vectors";
-import { vec3_dot } from "../math/vectors";
-import { plane_fromPolygon, type Plane, vec3_plane_distance } from "../math/vectors";
+import { vec3_dot, plane_fromPolygon, vec3_plane_distance, type Vec3In, type Plane } from "../math/vectors";
 import { type Polygon } from "./geometry";
 
 export const PLANE_EPSILON = 0.00008;
