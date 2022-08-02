@@ -1,4 +1,5 @@
 import type { Vec3In } from "../math/vectors";
+import { vec3_dot } from "../math/vectors";
 import { plane_fromPolygon, type Plane, vec3_plane_distance } from "../math/vectors";
 import { type Polygon } from "./geometry";
 
@@ -123,7 +124,7 @@ const csg_tree_clipPolygon = (node: CSGNode, polygon: CSGPolygon, polygonPlane: 
   let { $front, $back } = CSGPolygon_split(node, polygon);
   if (!$front && !$back) {
     // Coplanar
-    if (vec3_plane_distance(node, polygonPlane) > 0) {
+    if (vec3_dot(node, polygonPlane) > 0) {
       $front = polygon;
     } else {
       $back = polygon;
@@ -205,7 +206,7 @@ export const csg_union_op = (a: CSGInput, b: CSGInput | undefined): CSGNode => {
   if (b) {
     b = csg_tree(b);
     csg_tree_clipTo(a, b);
-    csg_tree_clipTo(b, a);
+    // csg_tree_clipTo(b, a);
     csg_tree_flip(b);
     csg_tree_clipTo(b, a);
     csg_tree_flip(b);

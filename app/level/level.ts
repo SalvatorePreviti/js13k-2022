@@ -12,7 +12,29 @@ const material4 = material(0.4, 0.9, 0);
 const material5 = material(0.4, 0, 0.9);
 
 const corridor = (): Polygon[][] => {
-  const p = csg_subtract(
+  const p = csg_union([
+    csg_union([
+      solid_transform(solid_box(material4), identity.rotate(20).scale(1.5, 6.9, 4)),
+      solid_transform(solid_box(material5), identity.rotate(20).scale(1.5, 5.9, 10)),
+    ]),
+    csg_subtract(
+      solid_transform(solid_box(material0), identity.scale(3.5, 3.5, 20)),
+      csg_union([
+        solid_transform(solid_box(material1), identity.scale(3, 3, 22)),
+        ...integers_map(6, (i) =>
+          solid_transform(
+            solid_cylinder(material1, 6),
+            identity
+              .translate(0, 0.6, i * 6 - 14)
+              .rotate(0, 0, 90)
+              .scale(2.5, 4, 1.5),
+          ),
+        ),
+      ]),
+    ),
+  ]);
+
+  /* const p = csg_subtract(
     solid_transform(solid_box(material0), identity.scale(3.5, 3.5, 20)),
     csg_union([
       solid_transform(solid_box(material1), identity.scale(3, 3, 22)),
@@ -26,7 +48,7 @@ const corridor = (): Polygon[][] => {
         ),
       ),
     ]),
-  );
+  ); */
 
   return [csg_polygons(p)];
 };
