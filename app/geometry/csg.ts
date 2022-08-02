@@ -118,11 +118,17 @@ const csg_tree_addPolygon = (node: CSGNode | null | undefined, polygon: CSGPolyg
   return node;
 };
 
-const csg_tree_clipPolygon = (node: CSGNode, polygon: CSGPolygon, polygonPlane: Plane, result: CSGPolygon[]): void => {
+const csg_tree_clipPolygon = (
+  node: CSGNode,
+  polygon: CSGPolygon,
+  polygonPlane: Plane,
+  polygonPlaneFlipped: -1 | 1,
+  result: CSGPolygon[],
+): void => {
   let { $front, $back } = CSGPolygon_split(node, polygon);
   if (!$front && !$back) {
     // Coplanar
-    if (vec3_dot(node, polygonPlane) > 0) {
+    if (vec3_dot(node, polygonPlane) * polygonPlaneFlipped > 0) {
       $front = polygon;
     } else {
       $back = polygon;
@@ -131,14 +137,14 @@ const csg_tree_clipPolygon = (node: CSGNode, polygon: CSGPolygon, polygonPlane: 
   if ($front) {
     // Front
     if (node.$front) {
-      csg_tree_clipPolygon(node.$front, $front, polygonPlane, result);
+      csg_tree_clipPolygon(node.$front, $front, polygonPlane, polygonPlaneFlipped, result);
     } else {
       result.push($front);
     }
   }
   if ($back && node.$back) {
     // Back
-    csg_tree_clipPolygon(node.$back, $back, polygonPlane, result);
+    csg_tree_clipPolygon(node.$back, $back, polygonPlane, polygonPlaneFlipped, result);
   }
 };
 
@@ -159,12 +165,46 @@ export const csg_tree = (n: CSGInput): CSGNode => {
   return root!;
 };
 
+/** Loop through all nodes in a tree */
 export const csg_tree_each = (node: CSGNode | null, fn: (node: CSGNode) => void) => {
   if (node) {
     fn(node);
     csg_tree_each(node.$front, fn);
     csg_tree_each(node.$back, fn);
   }
+};
+
+export const csg_union_op = (a: CSGInput, b: CSGInput | undefined): CSGNode => {
+  const polygonsToAdd: [Plane, CSGPolygon[]][] = [];
+  a = csg_tree(a);
+  if (b) {
+    b = csg_tree(b);
+
+    // clip to a, b
+    csg_tree_each(a, (node) => {
+      const clipped: CSGPolygon[] = [];
+      for (const polygon of node.$polygons) {
+        csg_tree_clipPolygon(b as CSGNode, polygon, node, 1, clipped);
+      }
+      node.$polygons = clipped;
+    });
+
+    // get the list of polygons to be added from b clipped to a
+    csg_tree_each(b, (node) => {
+      const clipped: CSGPolygon[] = [];
+      for (const polygon of node.$polygons) {
+        csg_tree_clipPolygon(a as CSGNode, polygon, node, -1, clipped);
+      }
+      polygonsToAdd.push([node, clipped]);
+    });
+
+    for (const [plane, polygons] of polygonsToAdd) {
+      for (const pp of polygons) {
+        csg_tree_addPolygon(a, pp, plane);
+      }
+    }
+  }
+  return a;
 };
 
 /** Convert solid space to empty space and empty space to solid space. */
@@ -181,37 +221,6 @@ export const csg_tree_flip = (root: CSGNode | null): void =>
     node.$back = node.$front;
     node.$front = back;
   });
-
-export const csg_tree_clipTo = (root: CSGNode | null, bsp: CSGNode): void => {
-  csg_tree_each(root, (node) => {
-    const clipped: CSGPolygon[] = [];
-    for (const polygon of node.$polygons) {
-      csg_tree_clipPolygon(bsp, polygon, node, clipped);
-    }
-    node.$polygons = clipped;
-  });
-};
-
-export const csg_tree_addTree = (tree: CSGNode | null, source: CSGNode | null): void =>
-  csg_tree_each(source, (sourceNode) => {
-    for (const polygon of sourceNode.$polygons) {
-      csg_tree_addPolygon(tree, polygon, sourceNode);
-    }
-  });
-
-export const csg_union_op = (a: CSGInput, b: CSGInput | undefined): CSGNode => {
-  a = csg_tree(a);
-  if (b) {
-    b = csg_tree(b);
-    csg_tree_clipTo(a, b);
-    // csg_tree_clipTo(b, a);
-    csg_tree_flip(b);
-    csg_tree_clipTo(b, a);
-    csg_tree_flip(b);
-    csg_tree_addTree(a, b);
-  }
-  return a;
-};
 
 export const csg_subtract = (a: CSGInput, b: CSGInput): CSGNode => {
   a = csg_tree(a);
@@ -252,20 +261,10 @@ export const csg_polygons = (tree: CSGNode): Polygon[] => {
 
   for (let [{ $color, $points }, flipped] of allPolygons) {
     $points = $points.map(({ x, y, z }) => ({ x, y, z }));
-    result.push({ $color, $points: flipped ? $points.reverse() : $points });
+    if (flipped) {
+      $points.reverse();
+    }
+    result.push({ $color, $points });
   }
   return result;
 };
-
-// export const csg_intersect = (a: CSGInput, b: CSGInput): CSGNode => {
-//   a = csg_tree(a);
-//   csg_tree_flip(a);
-//   b = csg_tree(b);
-//   csg_tree_clipTo(b, a);
-//   csg_tree_flip(b);
-//   csg_tree_clipTo(a, b);
-//   csg_tree_clipTo(b, a);
-//   csg_tree_addTree(a, b);
-//   csg_tree_flip(a);
-//   return a;
-// };
