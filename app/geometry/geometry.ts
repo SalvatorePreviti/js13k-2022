@@ -13,10 +13,18 @@ export interface Polygon {
   $points: Vec3[];
 }
 
+// export const polygon_transform = ({ $color, $points }: Polygon, m: DOMMatrix): Polygon => ({
+//   $color,
+//   $points: $points.map(({ x, y, z }: Vec3): Vec3 => {
+//     ({ x, y, z } = m.transformPoint({ x, y, z }));
+//     return { x, y, z };
+//   }),
+// });
+
 export const polygon_transform = ({ $color, $points }: Polygon, m: DOMMatrix): Polygon => ({
   $color,
-  $points: $points.map(({ x, y, z }: Vec3): Vec3 => {
-    ({ x, y, z } = m.transformPoint({ x, y, z }));
+  $points: $points.map((v: Vec3): Vec3 => {
+    const { x, y, z } = m.transformPoint(v);
     return { x, y, z };
   }),
 });

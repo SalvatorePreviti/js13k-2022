@@ -28,6 +28,7 @@ import { htmlMinify } from "./steps/html-minify";
 import { jsMinifySwc } from "./steps/js-minify-swc";
 import { dprint } from "./steps/dprint";
 import { jsEsbuildMinify } from "./steps/js-esbuild";
+import { jsBabel } from "./steps/babel/js-babel";
 
 devLog.titlePaddingWidth = 18;
 
@@ -49,7 +50,7 @@ export async function build() {
 
     sources.js = await jsOptimizeTerser(sources.js, { mangle: false, final: false });
 
-    // Intermediate, join declarations and statements
+    // Intermediate
 
     sources.js = await jsTdeMinify(sources.js);
 
@@ -57,7 +58,12 @@ export async function build() {
 
     sources.js = await jsTransformSwc(sources.js, { constToLet: true });
 
-    console.log(await dprint(sources.js));
+    // sources.js = await jsBabel(sources.js);
+
+    // sources.js = await jsMinifySwc(sources.js, { mangle: false });
+
+    // await fs.writeFile("dist/.temp/_.js", await dprint(sources.js));
+
     //    sources.js = await jsEsbuildMinify(sources.js);
 
     // sources.js = await jsLebab(sources.js);
