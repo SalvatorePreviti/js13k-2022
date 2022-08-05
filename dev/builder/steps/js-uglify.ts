@@ -25,6 +25,7 @@ export interface JsUglifySettings {
   mangle?: boolean;
   varify: boolean;
   final: boolean;
+  minifyComputedProperties?: boolean;
 }
 
 export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: Record<string, unknown>): UglifyOptions {
@@ -150,7 +151,7 @@ export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: R
       passes,
 
       // Rewrite property access using the dot notation, for example foo["bar"] → foo.bar
-      properties: true,
+      properties: !!settings.minifyComputedProperties,
 
       // You can pass an array of names and Terser will assume that those functions do not produce side effects. DANGER: will not check if the name is redefined in scope.
       pure_funcs: browserPureFunctions,

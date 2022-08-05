@@ -19,7 +19,18 @@ class Transformer extends SwcVisitor {
           glFunctions.has(n.property.value) &&
           /ctx|context|gl/i.test(n.object.value)
         ) {
-          return { ...n, property: { ...n.property, value: glFunctions.get(n.property.value)! } };
+          return {
+            ...n,
+            property: {
+              type: "Computed",
+              span: n.property.span,
+              expression: {
+                type: "StringLiteral",
+                span: n.property.span,
+                value: glFunctions.get(n.property.value)!,
+              },
+            },
+          };
         }
       }
     }

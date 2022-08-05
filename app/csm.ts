@@ -21,7 +21,7 @@ export const csm_buildMatrix = (nearPlane: number, farPlane: number, zmultiplier
 
   const roundingRadius = (farPlane - nearPlane) / 2;
 
-  const projViewInverse = new DOMMatrix(mat_perspective(nearPlane, farPlane)).multiplySelf(camera_view).invertSelf();
+  const projViewInverse = new DOMMatrix(mat_perspective(nearPlane, farPlane)).multiplySelf(camera_view).inverse();
 
   const frustumCorners = integers_map(8, (i) => {
     const v = projViewInverse.transformPoint({

@@ -90,7 +90,7 @@ const draw = () => {
   camera_view
     .setMatrixValue("none")
     .rotateSelf(-camera_rotation.x, -camera_rotation.y, -camera_rotation.z)
-    .invertSelf()
+    .inverse()
     .translateSelf(-camera_position.x, -camera_position.y, -camera_position.z);
 
   const lightSpaceMatrices = [

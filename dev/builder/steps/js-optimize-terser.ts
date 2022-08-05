@@ -30,6 +30,7 @@ export async function jsOptimizeTerser(input: string, settings: TerserMinifySett
 export interface TerserMinifySettings {
   mangle: boolean;
   final: boolean;
+  minifyComputedProperties?: boolean;
   module?: boolean;
 }
 
@@ -184,7 +185,7 @@ export function getTerserMinifyOptions(settings: TerserMinifySettings): TerserMi
       passes: 5,
 
       // Rewrite property access using the dot notation, for example foo["bar"] → foo.bar
-      properties: true,
+      properties: !!settings.minifyComputedProperties,
 
       // Transforms constant computed properties into regular ones:
       // {["computed"]: 1} is converted to {computed: 1}
