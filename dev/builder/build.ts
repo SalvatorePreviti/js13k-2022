@@ -27,6 +27,7 @@ import { jsLebab } from "./steps/js-lebab";
 import { htmlMinify } from "./steps/html-minify";
 import { jsMinifySwc } from "./steps/js-minify-swc";
 import { dprint } from "./steps/dprint";
+import { jsEsbuildMinify } from "./steps/js-esbuild";
 
 devLog.titlePaddingWidth = 18;
 
@@ -54,17 +55,27 @@ export async function build() {
 
     sources.js = await jsUglify(sources.js, { varify: true, final: false });
 
-    sources.js = await jsLebab(sources.js);
-
-    sources.js = await jsUglify(sources.js, { varify: false, final: true });
-
     sources.js = await jsTransformSwc(sources.js, { constToLet: true });
+
+    console.log(await dprint(sources.js));
+    //    sources.js = await jsEsbuildMinify(sources.js);
+
+    // sources.js = await jsLebab(sources.js);
+    // sources.js = await jsTransformSwc(sources.js, { constToLet: true });
+
+    // sources.js = await jsTransformSwc(sources.js, { constToLet: true });
+
+    // sources.js = await jsUglify(sources.js, { varify: true, final: true });
 
     // Final mangling
 
-    sources.js = await jsMinifySwc(sources.js, { mangle: true });
+    sources.js = await jsOptimizeTerser(sources.js, { mangle: true, final: false });
+
+    sources.js = await jsMinifySwc(sources.js, { mangle: false });
 
     sources.js = await jsOptimizeTerser(sources.js, { mangle: true, final: false });
+
+    sources.js = await jsOptimizeTerser(sources.js, { mangle: true, final: true });
   } finally {
     await writeOptimizedBundle(sources);
 

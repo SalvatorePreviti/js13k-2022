@@ -8,7 +8,7 @@ import { jsTdeMinify } from "./js-tde-minify";
 export async function jsLebab(source: string): Promise<string> {
   return devLog.timed(
     async function js_lebab() {
-      const options = ["no-strict", "exponent", "arrow", "arrow-return", "multi-var", "let"];
+      const options = ["let"];
 
       let result = await dprint(source);
 
