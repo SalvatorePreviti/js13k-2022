@@ -28,7 +28,7 @@ export async function jsOptimizeTerser(input: string, settings: TerserMinifySett
 }
 
 export interface TerserMinifySettings {
-  mangle: boolean;
+  mangle: "variables" | "all" | false;
   final: boolean;
   module?: boolean;
 }
@@ -297,21 +297,24 @@ export function getTerserMinifyOptions(settings: TerserMinifySettings): TerserMi
           reserved: [...mangleConfig.reserved],
 
           // Mangle properties - optimizes a lot but is very dangerous. Enables only with properties starting with $
-          properties: {
-            // Use true to allow the mangling of builtin DOM properties. Not recommended to override this setting.
-            builtins: false,
+          properties:
+            mangle === "all"
+              ? {
+                  // Use true to allow the mangling of builtin DOM properties. Not recommended to override this setting.
+                  builtins: false,
 
-            // Mangle names with the original name still present. Pass an empty string "" to enable, or a non-empty string to set the debug suffix.
-            debug: false,
+                  // Mangle names with the original name still present. Pass an empty string "" to enable, or a non-empty string to set the debug suffix.
+                  debug: false,
 
-            // Only mangle unquoted property names.
-            //  true: Quoted property names are automatically reserved and any unquoted property names will not be mangled.
-            //  'strict': Advanced, all unquoted property names are mangled unless explicitly reserved.
-            keep_quoted: true,
+                  // Only mangle unquoted property names.
+                  //  true: Quoted property names are automatically reserved and any unquoted property names will not be mangled.
+                  //  'strict': Advanced, all unquoted property names are mangled unless explicitly reserved.
+                  keep_quoted: true,
 
-            // Pass a RegExp literal or pattern string to only mangle property matching the regular expression.
-            regex: /^[$_]/,
-          },
+                  // Pass a RegExp literal or pattern string to only mangle property matching the regular expression.
+                  regex: /^[$_]/,
+                }
+              : false,
 
           // Pass true to mangle names declared in the top level scope.
           toplevel,

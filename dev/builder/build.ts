@@ -75,13 +75,13 @@ export async function build() {
 
     // Final mangling
 
-    sources.js = await jsOptimizeTerser(sources.js, { mangle: true, final: false });
+    sources.js = await jsOptimizeTerser(sources.js, { mangle: "all", final: false });
 
     sources.js = await jsMinifySwc(sources.js, { mangle: false });
 
-    sources.js = await jsOptimizeTerser(sources.js, { mangle: true, final: false });
+    sources.js = await jsOptimizeTerser(sources.js, { mangle: "all", final: false });
 
-    sources.js = await jsOptimizeTerser(sources.js, { mangle: true, final: true });
+    sources.js = await jsOptimizeTerser(sources.js, { mangle: "variables", final: true });
   } finally {
     await writeOptimizedBundle(sources);
 
