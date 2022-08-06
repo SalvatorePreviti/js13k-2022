@@ -17,14 +17,15 @@ class Transformer extends SwcVisitor {
   }
 
   override visitVariableDeclaration(n: VariableDeclaration): VariableDeclaration {
-    if (this.settings.constToLet) {
-      if (n.kind === "const") {
-        n = {
-          ...n,
-          kind: "let",
-        };
-      }
+    n = {
+      ...n,
+      declarations: n.declarations.filter((d) => !d.init).concat(n.declarations.filter((d) => !!d.init)),
+    };
+
+    if (this.settings.constToLet && n.kind === "const") {
+      n.kind = "let";
     }
+
     return super.visitVariableDeclaration(n);
   }
 }
@@ -41,7 +42,7 @@ export async function jsTransformSwc(source: string, settings: SwcTransformSetti
             configFile: false,
             filename: "index.js",
             isModule: true,
-            minify: true,
+            minify: false,
             swcrc: false,
             jsc: {
               keepClassNames: false,

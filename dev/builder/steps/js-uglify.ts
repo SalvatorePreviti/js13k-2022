@@ -25,6 +25,7 @@ export interface JsUglifySettings {
   mangle?: boolean;
   varify: boolean;
   final: boolean;
+  reduce_vars: boolean;
 }
 
 export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: Record<string, unknown>): UglifyOptions {
@@ -68,7 +69,7 @@ export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: R
 
       // Inline single-use functions when possible. Depends on reduce_vars being enabled.
       // Disabling this option sometimes improves performance of the output code.
-      reduce_funcs: true,
+      reduce_funcs: settings.reduce_vars,
 
       // replace arguments[index] with function parameter name whenever possible.
       arguments: true,
@@ -162,7 +163,7 @@ export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: R
       pure_getters: true,
 
       // Improve optimization on variables assigned with and used as constant values.
-      reduce_vars: true,
+      reduce_vars: settings.reduce_vars,
 
       // join consecutive simple statements using the comma operator.
       sequences: settings.final ? (100000 as any) : 0,
@@ -290,7 +291,7 @@ export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: R
       ascii_only: false,
 
       // whether to actually beautify the output
-      beautify: false,
+      beautify: !settings.final,
 
       // always insert braces in if, for, do, while or with statements, even if their body is a single statement.
       braces: false,

@@ -25,10 +25,10 @@ import { jsUglify } from "./steps/js-uglify";
 import { jsTdeMinify } from "./steps/js-tde-minify";
 import { jsLebab } from "./steps/js-lebab";
 import { htmlMinify } from "./steps/html-minify";
-import { jsMinifySwc } from "./steps/js-minify-swc";
 import { dprint } from "./steps/dprint";
 import { jsEsbuildMinify } from "./steps/js-esbuild";
 import { jsBabel } from "./steps/babel/js-babel";
+import { jsMinifySwc } from "./steps/js-minify-swc";
 
 devLog.titlePaddingWidth = 18;
 
@@ -46,42 +46,76 @@ export async function build() {
 
     // Pre minification
 
-    sources.js = await jsUglify(sources.js, { varify: false, final: false });
+    sources.js = await jsUglify(sources.js, { varify: false, final: false, reduce_vars: false });
 
     sources.js = await jsOptimizeTerser(sources.js, { mangle: false, final: false });
 
-    // Intermediate
+    // Intermediate minification
 
-    sources.js = await jsTdeMinify(sources.js);
+    sources.js = await jsUglify(sources.js, { varify: true, final: false, reduce_vars: true });
 
-    sources.js = await jsUglify(sources.js, { varify: true, final: false });
+    sources.js = await jsOptimizeTerser(sources.js, { mangle: false, final: false });
+
+    sources.js = await jsLebab(sources.js);
 
     sources.js = await jsTransformSwc(sources.js, { constToLet: true });
 
+    // Final minification
+
+    // sources.js = await jsMinifySwc(sources.js, { mangle: false, final: false });
+
+    sources.js = await jsTdeMinify(sources.js);
+
+    sources.js = await jsUglify(sources.js, { varify: false, final: true, reduce_vars: true });
+
+    // sources.js = await jsEsbuildMinify(sources.js);
+
+    sources.js = await jsOptimizeTerser(sources.js, { mangle: "variables", final: true });
+
+    sources.js = await jsOptimizeTerser(sources.js, { mangle: "all", final: true });
+
+    sources.js = await jsOptimizeTerser(sources.js, { mangle: "all", final: true });
+
+    // sources.js = await jsUglify(sources.js, { varify: false, final: true, reduce_vars: true });
+
+    // jsMinifySwc requires uligy reduce_vars
+
+    // // Intermediate
+
+    // sources.js = await jsTdeMinify(sources.js);
+
+    // // sources.js = await jsUglify(sources.js, { varify: true, final: true });
+
+    // sources.js = await jsTransformSwc(sources.js, { constToLet: true });
+
     // sources.js = await jsBabel(sources.js);
 
-    // sources.js = await jsMinifySwc(sources.js, { mangle: false });
+    // // sources.js = await jsUglify(sources.js, { varify: false, final: true });
 
-    // await fs.writeFile("dist/.temp/_.js", await dprint(sources.js));
+    // // sources.js = await jsMinifySwc(sources.js, { mangle: false });
 
-    //    sources.js = await jsEsbuildMinify(sources.js);
+    // // await fs.writeFile("dist/.temp/_.js", await dprint(sources.js));
 
-    // sources.js = await jsLebab(sources.js);
-    // sources.js = await jsTransformSwc(sources.js, { constToLet: true });
+    // // sources.js = await jsEsbuildMinify(sources.js);
 
-    // sources.js = await jsTransformSwc(sources.js, { constToLet: true });
+    // // sources.js = await jsLebab(sources.js);
+    // // sources.js = await jsTransformSwc(sources.js, { constToLet: true });
 
-    // sources.js = await jsUglify(sources.js, { varify: true, final: true });
+    // // sources.js = await jsTransformSwc(sources.js, { constToLet: true });
+
+    // // sources.js = await jsUglify(sources.js, { varify: true, final: true });
 
     // Final mangling
 
-    sources.js = await jsOptimizeTerser(sources.js, { mangle: "all", final: false });
+    // sources.js = await jsOptimizeTerser(sources.js, { mangle: "all", final: false });
 
-    sources.js = await jsMinifySwc(sources.js, { mangle: false });
+    // sources.js = await jsMinifySwc(sources.js, { mangle: false, final: false });
 
-    sources.js = await jsOptimizeTerser(sources.js, { mangle: "all", final: false });
+    // sources.js = await jsOptimizeTerser(sources.js, { mangle: "variables", final: false });
 
-    sources.js = await jsOptimizeTerser(sources.js, { mangle: "variables", final: true });
+    // sources.js = await jsOptimizeTerser(sources.js, { mangle: "variables", final: true });
+
+    // sources.js = await dprint(sources.js);
   } finally {
     await writeOptimizedBundle(sources);
 

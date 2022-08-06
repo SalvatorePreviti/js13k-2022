@@ -45,7 +45,7 @@ export async function buildWithVite(options: { stripDevTools: boolean }): Promis
           sourcemap: true,
           emptyOutDir: true,
           outDir: outPath_build,
-          minify: "esbuild",
+          minify: false,
           cssTarget: ESBUILD_TARGETS,
           cssCodeSplit: false,
           manifest: false,
@@ -78,6 +78,8 @@ export async function buildWithVite(options: { stripDevTools: boolean }): Promis
           pure: browserPureFunctions,
           define: {
             this: "window",
+            DEBUG: "false",
+            NO_DEBUG: "true",
           },
         },
 

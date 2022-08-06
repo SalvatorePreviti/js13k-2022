@@ -35,7 +35,7 @@
     "@babel/traverse": "^7.18.11",
     "@balsamic/dev": "^0.3.25",
     "@balsamic/eslint-config": "^0.2.2",
-    "@swc/core": "^1.2.223",
+    "@swc/core": "^1.2.224",
     "@tdewolff/minify": "^2.12.0",
     "@types/adm-zip": "^0.5.0",
     "@types/babel__core": "^7.1.19",
@@ -85,7 +85,7 @@
     "spglsl": "^0.2.6",
     "terser": "^5.14.2",
     "ts-node": "^10.9.1",
-    "tsconfig-paths": "^4.0.0",
+    "tsconfig-paths": "^4.1.0",
     "typescript": "^4.7.4",
     "uglify-js": "^3.16.3",
     "vite": "^3.0.4"

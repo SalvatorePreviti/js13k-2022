@@ -313,6 +313,8 @@ export function getTerserMinifyOptions(settings: TerserMinifySettings): TerserMi
 
                   // Pass a RegExp literal or pattern string to only mangle property matching the regular expression.
                   regex: /^[$_]/,
+
+                  reserved: ["_", "$"],
                 }
               : false,
 
@@ -336,7 +338,7 @@ export function getTerserMinifyOptions(settings: TerserMinifySettings): TerserMi
       ascii_only: false,
 
       // whether to actually beautify the output
-      beautify: false,
+      beautify: !settings.final,
 
       // always insert braces in if, for, do, while or with statements, even if their body is a single statement.
       braces: false,

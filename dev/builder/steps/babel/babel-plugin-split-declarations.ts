@@ -14,13 +14,13 @@ export function babelPluginSplitDeclarations(api: ConfigAPI): PluginObj {
 
   return {
     visitor: {
-      UnaryExpression(path) {
-        // Replaces `!0` to true and `!1` to false
-        const node = path.node;
-        if (node.operator === "!" && types.isNumericLiteral(node.argument)) {
-          path.replaceWith(types.booleanLiteral(!node.argument.value));
-        }
-      },
+      // UnaryExpression(path) {
+      //   // Replaces `!0` to true and `!1` to false
+      //   const node = path.node;
+      //   if (node.operator === "!" && types.isNumericLiteral(node.argument)) {
+      //     path.replaceWith(types.booleanLiteral(!node.argument.value));
+      //   }
+      // },
 
       VariableDeclaration(path) {
         const node = path.node;
@@ -32,24 +32,24 @@ export function babelPluginSplitDeclarations(api: ConfigAPI): PluginObj {
         }
       },
 
-      Loop(path) {
-        // Adds curly braces around loops.
-        const node = path.node;
-        if (!types.isBlockStatement(node.body)) {
-          node.body = types.blockStatement([node.body]);
-        }
-      },
+      // Loop(path) {
+      //   // Adds curly braces around loops.
+      //   const node = path.node;
+      //   if (!types.isBlockStatement(node.body)) {
+      //     node.body = types.blockStatement([node.body]);
+      //   }
+      // },
 
-      IfStatement(path) {
-        // Adds curly braces around if statements.
-        const node = path.node;
-        if (!types.isBlockStatement(node.consequent)) {
-          node.consequent = types.blockStatement([node.consequent]);
-        }
-        if (node.alternate && !types.isBlockStatement(node.alternate) && !types.isIfStatement(node.alternate)) {
-          node.alternate = types.blockStatement([node.alternate]);
-        }
-      },
+      // IfStatement(path) {
+      //   // Adds curly braces around if statements.
+      //   const node = path.node;
+      //   if (!types.isBlockStatement(node.consequent)) {
+      //     node.consequent = types.blockStatement([node.consequent]);
+      //   }
+      //   if (node.alternate && !types.isBlockStatement(node.alternate) && !types.isIfStatement(node.alternate)) {
+      //     node.alternate = types.blockStatement([node.alternate]);
+      //   }
+      // },
     },
   };
 }
