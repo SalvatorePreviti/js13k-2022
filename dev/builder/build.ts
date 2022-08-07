@@ -22,7 +22,6 @@ import { jsTransformSwc } from "./steps/js-transform-swc";
 import { jsRoadroller } from "./steps/js-roadroller";
 import { htmlCssToJs } from "./steps/html-css-to-js";
 import { jsUglify } from "./steps/js-uglify";
-import { jsTdeMinify } from "./steps/js-tde-minify";
 import { jsLebab } from "./steps/js-lebab";
 import { htmlMinify } from "./steps/html-minify";
 import { dprint } from "./steps/dprint";
@@ -60,14 +59,7 @@ export async function build() {
 
     sources.js = await jsTransformSwc(sources.js, { minify: true, splitVars: true, constToLet: true, floatRound: 6 });
 
-    // sources.js = await jsOptimizeTerser(sources.js, { mangle: false, final: false });
-
     // Final minification
-
-    // sources.js = await jsMinifySwc(sources.js, { mangle: false, final: false });
-
-    // const mangle = true;
-    // sources.js = await jsOptimizeTerser(sources.js, { mangle: mangle && "variables", final: true, join_vars: false });
 
     sources.js = await jsOptimizeTerser(sources.js, { mangle: "all", final: false, join_vars: false });
 
@@ -163,7 +155,7 @@ export async function build() {
 
 async function zipRoadRoller(sources: ViteBundledOutput, bundled: WriteBundleInput) {
   const htmlCssJsBundle = await htmlCssToJs(sources);
-  const bundledHtmlBodyAndCss = await jsTdeMinify(htmlCssJsBundle.jsHtml, false);
+  const bundledHtmlBodyAndCss = await jsMinifySwc(htmlCssJsBundle.jsHtml, { mangle: false, final: true });
   htmlCssJsBundle.jsHtml = "";
   if (bundledHtmlBodyAndCss) {
     htmlCssJsBundle.js = `${bundledHtmlBodyAndCss};${htmlCssJsBundle.js}`;

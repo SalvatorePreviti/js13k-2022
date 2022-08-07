@@ -31,12 +31,10 @@ export interface TerserMinifySettings {
   mangle: "variables" | "all" | false;
   final: boolean;
   join_vars: boolean;
-  module?: boolean;
 }
 
 export function getTerserMinifyOptions(settings: TerserMinifySettings): TerserMinifyOptions {
-  const module = settings.module === undefined || !!settings.module;
-  const toplevel = true;
+  const module = true;
   const mangle = settings.mangle;
 
   const singleLettersNameCache: Record<string, string> = {};
@@ -54,7 +52,7 @@ export function getTerserMinifyOptions(settings: TerserMinifySettings): TerserMi
 
     // set to true if you wish to enable top level variable and function name mangling
     // and to drop unused variables and functions.
-    toplevel,
+    toplevel: module,
 
     // Sourcemap support
     sourceMap: false,
@@ -216,7 +214,7 @@ export function getTerserMinifyOptions(settings: TerserMinifySettings): TerserMi
 
       // drop unreferenced functions ("funcs") and/or variables ("vars") in the top level scope.
       // Set to true to drop both unreferenced functions and variables)
-      toplevel,
+      toplevel: module,
 
       // prevent specific toplevel functions and variables from unused removal. Implies toplevel.
       top_retain: null,
@@ -320,7 +318,7 @@ export function getTerserMinifyOptions(settings: TerserMinifySettings): TerserMi
               : false,
 
           // Pass true to mangle names declared in the top level scope.
-          toplevel,
+          toplevel: module,
         }
       : false,
 
