@@ -53,7 +53,7 @@ export async function jsClosure(source: string): Promise<string> {
               devLog.warn(stderr);
             }
             if (stdout) {
-              console.info(stdout);
+              devLog.info(stdout);
             }
             reject(new Error(`Closure compiler failed, exitCode:${exitCode}`));
           } else {
