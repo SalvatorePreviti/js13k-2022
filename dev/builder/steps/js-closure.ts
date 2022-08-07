@@ -2,32 +2,25 @@ import { devLog } from "@balsamic/dev";
 import { sizeDifference } from "../lib/logging";
 import { compiler as ClosureCompiler } from "google-closure-compiler";
 import { mkdir, readFile, writeFile } from "fs/promises";
-import SwcVisitor from "@swc/core/Visitor";
 import path from "path";
-import { outPath_build, outPath_temp } from "../out-paths";
-import { transform as swcTransform } from "@swc/core";
-import { dprint, dprintToFile } from "./dprint";
-import { jsRemoveEndingSemicolons } from "../lib/code-utils";
-
-class Transformer extends SwcVisitor {
-  public constructor() {
-    super();
-  }
-}
+import { outPath_temp } from "../out-paths";
+import { dprintToFile } from "./dprint";
 
 export async function jsClosure(source: string): Promise<string> {
   return devLog.timed(
     async function js_closure() {
-      await mkdir(outPath_temp, { recursive: true });
       const sourceFilePath = path.resolve(outPath_temp, "closure-input.js");
       const destFilePath = path.resolve(outPath_temp, "closure-output.js");
       const externsDestFilePath = path.resolve(outPath_temp, "closure-externs.js");
 
-      let externsContent = await readFile(require.resolve("./js-closure-externs.js"), "utf8");
-      const tsGlobals = await readFile(require.resolve("../../../app/_globals.d.ts"), "utf8");
+      let [externsContent, tsGlobals] = await Promise.all([
+        readFile(require.resolve("./js-closure-externs.js"), "utf8"),
+        readFile(require.resolve("../../../app/_globals.d.ts"), "utf8"),
+        mkdir(outPath_temp, { recursive: true }),
+      ]);
       externsContent += "\n";
       for (const line of tsGlobals.split("\n")) {
-        for (const prefix of ["declare const", "declare function"]) {
+        for (const prefix of ["declare const", "declare var", "declare function"]) {
           if (line.startsWith(prefix)) {
             const name = line.slice(prefix.length).split(":")[0]!.split(";")[0]!.split("=")[0]!.trim();
             externsContent += `var ${name};\n`;
@@ -36,44 +29,7 @@ export async function jsClosure(source: string): Promise<string> {
       }
       await writeFile(externsDestFilePath, externsContent, "utf8");
 
-      let result = source;
-      // (
-      //   await swcTransform(source, {
-      //     cwd: outPath_build,
-      //     inputSourceMap: false,
-      //     sourceMaps: false,
-      //     configFile: false,
-      //     filename: "index.js",
-      //     isModule: true,
-      //     minify: true,
-      //     swcrc: false,
-      //     jsc: {
-      //       keepClassNames: false,
-      //       target: "es2022",
-      //     },
-      //     plugin: (m) => new Transformer().visitProgram(m),
-      //   })
-      // ).code || source;
-
-      await dprintToFile(result, sourceFilePath);
-
-      /* source = (
-        await swcTransform(source, {
-          cwd: outPath_closure,
-          inputSourceMap: false,
-          sourceMaps: true,
-          configFile: false,
-          filename: "index.js",
-          isModule: true,
-          minify: false,
-          swcrc: false,
-          jsc: {
-            keepClassNames: false,
-            target: "es2022",
-          },
-          plugin: (m) => new PreClosureTransformer().visitProgram(m),
-        })
-      ).code; */
+      await dprintToFile(source, sourceFilePath);
 
       const gcc = new ClosureCompiler({
         js: sourceFilePath,
@@ -84,11 +40,13 @@ export async function jsClosure(source: string): Promise<string> {
         compilation_level: "ADVANCED",
         use_types_for_optimization: true,
         assume_function_wrapper: true,
+        rename_variable_prefix: "$$$",
         externs: externsDestFilePath,
-        // property_renaming_report: path.resolve(outPath_temp, "closure-rename.txt"),
+        formatting: "PRETTY_PRINT",
+        property_renaming_report: path.resolve(outPath_temp, "closure-rename.txt"),
       });
 
-      result = await new Promise<string>((resolve, reject) => {
+      await new Promise<void>((resolve, reject) => {
         gcc.run(async (exitCode, stdout, stderr) => {
           if (exitCode) {
             if (stderr) {
@@ -99,11 +57,12 @@ export async function jsClosure(source: string): Promise<string> {
             }
             reject(new Error(`Closure compiler failed, exitCode:${exitCode}`));
           } else {
-            resolve(jsRemoveEndingSemicolons(await readFile(destFilePath, "utf-8")));
+            resolve();
           }
         });
       });
 
+      const result = await readFile(destFilePath, "utf-8");
       this.setSuccessText(sizeDifference(source, result));
       return result;
     },

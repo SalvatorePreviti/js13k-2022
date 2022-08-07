@@ -15,23 +15,23 @@ export const KEY_DEBUG_FLY_UP = 5;
 export const KEY_DEBUG_FLY_DOWN = 6;
 
 const keyMap: Partial<Record<KEY_CODE, number>> = {
-  KeyA: KEY_LEFT,
-  ArrowLeft: KEY_LEFT,
+  ["KeyA"]: KEY_LEFT,
+  ["ArrowLeft"]: KEY_LEFT,
 
-  KeyW: KEY_UP,
-  ArrowUp: KEY_UP,
+  ["KeyW"]: KEY_UP,
+  ["ArrowUp"]: KEY_UP,
 
-  KeyD: KEY_RIGHT,
-  ArrowRight: KEY_RIGHT,
+  ["KeyD"]: KEY_RIGHT,
+  ["ArrowRight"]: KEY_RIGHT,
 
-  KeyS: KEY_DOWN,
-  ArrowDown: KEY_DOWN,
+  ["KeyS"]: KEY_DOWN,
+  ["ArrowDown"]: KEY_DOWN,
 
-  ShiftLeft: KEY_RUN,
-  ShiftRight: KEY_RUN,
+  ["ShiftLeft"]: KEY_RUN,
+  ["ShiftRight"]: KEY_RUN,
 
-  KeyR: KEY_DEBUG_FLY_UP,
-  KeyF: KEY_DEBUG_FLY_DOWN,
+  ["KeyR"]: KEY_DEBUG_FLY_UP,
+  ["KeyF"]: KEY_DEBUG_FLY_DOWN,
 };
 
 export const keyboard_downKeys: (0 | 1 | undefined)[] = [];

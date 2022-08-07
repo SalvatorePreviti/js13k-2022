@@ -1,3 +1,7 @@
+DOMMatrix.prototype.invertSelf = function () {};
+
+var x, y, z, w;
+
 var location,
   history,
   locationbar,

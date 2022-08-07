@@ -16,6 +16,7 @@ export async function startServer(argv = process.argv) {
   const serverConfig: UserConfig = {
     define: {
       DEBUG: true,
+      NO_DEBUG: false,
     },
 
     esbuild: {

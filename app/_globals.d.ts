@@ -1,6 +1,7 @@
 /// <reference types="vite/client" />
 
 declare const DEBUG: boolean;
+declare const NO_DEBUG: boolean;
 
 declare module "*.frag";
 

@@ -2,7 +2,7 @@ import { minify as terserMinify } from "terser";
 import type { UnsafeAny } from "@balsamic/dev";
 import { devLog } from "@balsamic/dev";
 import { sizeDifference } from "../lib/logging";
-import { browserPureFunctions, jsRemoveEndingSemicolons } from "../lib/code-utils";
+import { browserPureFunctions } from "../lib/code-utils";
 import type {
   ECMA as ECMAVersion,
   MinifyOptions as TerserMinifyOptions,
@@ -17,8 +17,7 @@ export async function jsOptimizeTerser(input: string, settings: TerserMinifySett
     async function js_terser() {
       const terserOptions = getTerserMinifyOptions(settings);
 
-      let result = (await terserMinify(input, terserOptions)).code || input;
-      result = jsRemoveEndingSemicolons(result);
+      const result = (await terserMinify(input, terserOptions)).code || input;
 
       this.setSuccessText(sizeDifference(input, result));
       return result;
@@ -28,15 +27,15 @@ export async function jsOptimizeTerser(input: string, settings: TerserMinifySett
 }
 
 export interface TerserMinifySettings {
-  mangle: boolean;
+  mangle: "variables" | "all" | false;
   final: boolean;
-  minifyComputedProperties?: boolean;
-  module?: boolean;
+  join_vars: boolean;
+  sequences: boolean;
+  computed_props: boolean;
 }
 
 export function getTerserMinifyOptions(settings: TerserMinifySettings): TerserMinifyOptions {
-  const module = settings.module === undefined || !!settings.module;
-  const toplevel = true;
+  const module = true;
   const mangle = settings.mangle;
 
   const singleLettersNameCache: Record<string, string> = {};
@@ -54,7 +53,7 @@ export function getTerserMinifyOptions(settings: TerserMinifySettings): TerserMi
 
     // set to true if you wish to enable top level variable and function name mangling
     // and to drop unused variables and functions.
-    toplevel,
+    toplevel: module,
 
     // Sourcemap support
     sourceMap: false,
@@ -152,7 +151,7 @@ export function getTerserMinifyOptions(settings: TerserMinifySettings): TerserMi
       inline: true,
 
       // join consecutive var statements
-      join_vars: settings.final,
+      join_vars: settings.join_vars,
 
       // Pass true to prevent the compressor from discarding class names.
       // Pass a regular expression to only keep class names matching that regex.
@@ -185,7 +184,7 @@ export function getTerserMinifyOptions(settings: TerserMinifySettings): TerserMi
       passes: 5,
 
       // Rewrite property access using the dot notation, for example foo["bar"] → foo.bar
-      properties: !!settings.minifyComputedProperties,
+      properties: !!settings.computed_props,
 
       // Transforms constant computed properties into regular ones:
       // {["computed"]: 1} is converted to {computed: 1}
@@ -206,7 +205,7 @@ export function getTerserMinifyOptions(settings: TerserMinifySettings): TerserMi
       // join consecutive simple statements using the comma operator. If set as positive integer
       // specifies the maximum number of consecutive comma sequences that will be generated.
       // If this option is set to true then the default sequences limit is 200
-      sequences: 1000000,
+      sequences: settings.sequences ? 1000000 : false,
 
       // Remove expressions which have no side effects and whose results aren't used.
       side_effects: true,
@@ -216,7 +215,7 @@ export function getTerserMinifyOptions(settings: TerserMinifySettings): TerserMi
 
       // drop unreferenced functions ("funcs") and/or variables ("vars") in the top level scope.
       // Set to true to drop both unreferenced functions and variables)
-      toplevel,
+      toplevel: module,
 
       // prevent specific toplevel functions and variables from unused removal. Implies toplevel.
       top_retain: null,
@@ -298,24 +297,29 @@ export function getTerserMinifyOptions(settings: TerserMinifySettings): TerserMi
           reserved: [...mangleConfig.reserved],
 
           // Mangle properties - optimizes a lot but is very dangerous. Enables only with properties starting with $
-          properties: {
-            // Use true to allow the mangling of builtin DOM properties. Not recommended to override this setting.
-            builtins: false,
+          properties:
+            mangle === "all"
+              ? {
+                  // Use true to allow the mangling of builtin DOM properties. Not recommended to override this setting.
+                  builtins: false,
 
-            // Mangle names with the original name still present. Pass an empty string "" to enable, or a non-empty string to set the debug suffix.
-            debug: false,
+                  // Mangle names with the original name still present. Pass an empty string "" to enable, or a non-empty string to set the debug suffix.
+                  debug: false,
 
-            // Only mangle unquoted property names.
-            //  true: Quoted property names are automatically reserved and any unquoted property names will not be mangled.
-            //  'strict': Advanced, all unquoted property names are mangled unless explicitly reserved.
-            keep_quoted: true,
+                  // Only mangle unquoted property names.
+                  //  true: Quoted property names are automatically reserved and any unquoted property names will not be mangled.
+                  //  'strict': Advanced, all unquoted property names are mangled unless explicitly reserved.
+                  keep_quoted: true,
 
-            // Pass a RegExp literal or pattern string to only mangle property matching the regular expression.
-            regex: /^[$_]/,
-          },
+                  // Pass a RegExp literal or pattern string to only mangle property matching the regular expression.
+                  regex: /^[$_]/,
+
+                  reserved: ["_", "$"],
+                }
+              : false,
 
           // Pass true to mangle names declared in the top level scope.
-          toplevel,
+          toplevel: module,
         }
       : false,
 
@@ -334,7 +338,7 @@ export function getTerserMinifyOptions(settings: TerserMinifySettings): TerserMi
       ascii_only: false,
 
       // whether to actually beautify the output
-      beautify: false,
+      beautify: !settings.final,
 
       // always insert braces in if, for, do, while or with statements, even if their body is a single statement.
       braces: false,

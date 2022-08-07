@@ -4,27 +4,27 @@ import { transform as swcTransform } from "@swc/core";
 import { outPath_build } from "../out-paths";
 import { sizeDifference } from "../lib/logging";
 import { global_defs, mangleConfig } from "../lib/js-config";
-import { browserPureFunctions, jsRemoveEndingSemicolons } from "../lib/code-utils";
-import { dprint } from "./dprint";
+import { browserPureFunctions } from "../lib/code-utils";
 
 export interface SwcMinifySettings {
   mangle?: boolean;
+  final: boolean;
+  computed_props: boolean;
 }
 
 export async function jsMinifySwc(source: string, settings: SwcMinifySettings): Promise<string> {
   return devLog.timed(
     async function js_swc_minify() {
-      let result = await dprint(source);
-      result =
+      const result =
         (
-          await swcTransform(result, {
+          await swcTransform(source, {
             cwd: outPath_build,
             inputSourceMap: false,
             sourceMaps: false,
             configFile: false,
             filename: "index.js",
             isModule: true,
-            minify: true,
+            minify: settings.final,
             swcrc: false,
             jsc: {
               keepClassNames: false,
@@ -32,8 +32,7 @@ export async function jsMinifySwc(source: string, settings: SwcMinifySettings): 
               minify: getSwcMinifyOptions(settings),
             },
           })
-        ).code || result;
-      result = jsRemoveEndingSemicolons(result);
+        ).code || source;
       this.setSuccessText(sizeDifference(source, result));
       return result;
     },
@@ -146,7 +145,7 @@ export function getSwcMinifyOptions(settings: SwcMinifySettings): JsMinifyOption
 
       // hoist var declarations
       // (this is false by default because it seems to increase the size of the output in general)
-      hoist_vars: true,
+      hoist_vars: false,
 
       // optimizations for if/return and if/continue
       if_return: true,
@@ -155,7 +154,7 @@ export function getSwcMinifyOptions(settings: SwcMinifySettings): JsMinifyOption
       inline: 3,
 
       // join consecutive var statements
-      join_vars: true,
+      join_vars: settings.final,
 
       // Pass true to prevent the compressor from discarding class names.
       // Pass a regular expression to only keep class names matching that regex.
@@ -192,7 +191,7 @@ export function getSwcMinifyOptions(settings: SwcMinifySettings): JsMinifyOption
 
       // Transforms constant computed properties into regular ones:
       // {["computed"]: 1} is converted to {computed: 1}
-      computed_props: true,
+      computed_props: settings.computed_props,
 
       // You can pass an array of names and Terser will assume that those functions do not produce side effects. DANGER: will not check if the name is redefined in scope.
       pure_funcs: browserPureFunctions,
@@ -209,7 +208,7 @@ export function getSwcMinifyOptions(settings: SwcMinifySettings): JsMinifyOption
       // join consecutive simple statements using the comma operator. If set as positive integer
       // specifies the maximum number of consecutive comma sequences that will be generated.
       // If this option is set to true then the default sequences limit is 200
-      sequences: true,
+      sequences: settings.final,
 
       // Remove expressions which have no side effects and whose results aren't used.
       side_effects: true,
@@ -323,7 +322,7 @@ export function getSwcMinifyOptions(settings: SwcMinifySettings): JsMinifyOption
       ecma,
 
       // whether to actually beautify the output
-      beautify: false,
+      beautify: !settings.final,
 
       // always insert braces in if, for, do, while or with statements, even if their body is a single statement.
       braces: false,

@@ -3,7 +3,7 @@ import { minify as uglify } from "uglify-js";
 import type { UnsafeAny } from "@balsamic/dev";
 import { devLog } from "@balsamic/dev";
 import { sizeDifference } from "../lib/logging";
-import { browserPureFunctions, jsRemoveEndingSemicolons } from "../lib/code-utils";
+import { browserPureFunctions } from "../lib/code-utils";
 import { global_defs, mangleConfig } from "../lib/js-config";
 
 export async function jsUglify(source: string, settings: JsUglifySettings) {
@@ -11,8 +11,7 @@ export async function jsUglify(source: string, settings: JsUglifySettings) {
     async function js_uglify() {
       const uglifyOptions = getUglifyOptions(settings);
 
-      let result = uglify(source, uglifyOptions).code || source;
-      result = jsRemoveEndingSemicolons(result);
+      const result = uglify(source, uglifyOptions).code || source;
 
       this.setSuccessText(sizeDifference(source, result));
       return result;
@@ -24,8 +23,11 @@ export async function jsUglify(source: string, settings: JsUglifySettings) {
 export interface JsUglifySettings {
   mangle?: boolean;
   varify: boolean;
+  sequences: boolean;
   final: boolean;
-  minifyComputedProperties?: boolean;
+  reduce_vars: boolean;
+  join_vars: boolean;
+  computed_props: boolean;
 }
 
 export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: Record<string, unknown>): UglifyOptions {
@@ -69,7 +71,7 @@ export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: R
 
       // Inline single-use functions when possible. Depends on reduce_vars being enabled.
       // Disabling this option sometimes improves performance of the output code.
-      reduce_funcs: true,
+      reduce_funcs: settings.reduce_vars,
 
       // replace arguments[index] with function parameter name whenever possible.
       arguments: true,
@@ -122,7 +124,7 @@ export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: R
       inline: true,
 
       // join consecutive var statements
-      join_vars: settings.final,
+      join_vars: settings.join_vars,
 
       // Prevents the compressor from discarding unused function arguments.
       // You need this for code which relies on Function.length
@@ -151,7 +153,7 @@ export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: R
       passes,
 
       // Rewrite property access using the dot notation, for example foo["bar"] → foo.bar
-      properties: !!settings.minifyComputedProperties,
+      properties: !!settings.computed_props,
 
       // You can pass an array of names and Terser will assume that those functions do not produce side effects. DANGER: will not check if the name is redefined in scope.
       pure_funcs: browserPureFunctions,
@@ -163,10 +165,10 @@ export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: R
       pure_getters: true,
 
       // Improve optimization on variables assigned with and used as constant values.
-      reduce_vars: true,
+      reduce_vars: settings.reduce_vars,
 
       // join consecutive simple statements using the comma operator.
-      sequences: settings.final ? (100000 as any) : 0,
+      sequences: settings.sequences ? (100000 as any) : 0,
 
       // Remove expressions which have no side effects and whose results aren't used.
       side_effects: true,
@@ -291,7 +293,7 @@ export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: R
       ascii_only: false,
 
       // whether to actually beautify the output
-      beautify: false,
+      beautify: !settings.final,
 
       // always insert braces in if, for, do, while or with statements, even if their body is a single statement.
       braces: false,
