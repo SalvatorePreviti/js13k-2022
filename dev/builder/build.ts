@@ -25,10 +25,7 @@ import { jsUglify } from "./steps/js-uglify";
 import { jsLebab } from "./steps/js-lebab";
 import { htmlMinify } from "./steps/html-minify";
 import { dprint } from "./steps/dprint";
-import { jsEsbuildMinify } from "./steps/js-esbuild";
-import { jsBabel } from "./steps/babel/js-babel";
 import { jsMinifySwc } from "./steps/js-minify-swc";
-import { jsTdeMinify } from "./steps/js-tde-minify";
 import { jsRemoveEndingSemicolons } from "./lib/code-utils";
 
 devLog.titlePaddingWidth = 18;
@@ -41,7 +38,7 @@ export async function build() {
   const sources = await buildWithVite({ stripDevTools: !includeDevTools });
 
   devLog.log();
-  await devLog.timed("minify", async () => {
+  await devLog.timed(async function minify() {
     try {
       devLog.log();
 
@@ -51,7 +48,7 @@ export async function build() {
 
       // Pre minification
 
-      sources.js = await jsUglify(sources.js, { varify: false, final: false, reduce_vars: false, join_vars: false });
+      sources.js = await jsUglify(sources.js, { varify: false, final: false, reduce_vars: true, join_vars: false });
 
       sources.js = await jsOptimizeTerser(sources.js, { mangle: false, final: false, join_vars: false });
 
@@ -82,47 +79,6 @@ export async function build() {
       sources.js = await jsOptimizeTerser(sources.js, { mangle: "all", final: true, join_vars: true });
 
       sources.js = jsRemoveEndingSemicolons(sources.js);
-
-      // sources.js = await jsTdeMinify(sources.js);
-
-      // sources.js = await jsUglify(sources.js, { varify: false, final: true, reduce_vars: true });
-
-      // jsMinifySwc requires uligy reduce_vars
-
-      // // Intermediate
-
-      // // sources.js = await jsUglify(sources.js, { varify: true, final: true });
-
-      // sources.js = await jsTransformSwc(sources.js, { constToLet: true });
-
-      // sources.js = await jsBabel(sources.js);
-
-      // // sources.js = await jsUglify(sources.js, { varify: false, final: true });
-
-      // // sources.js = await jsMinifySwc(sources.js, { mangle: false });
-
-      // // await fs.writeFile("dist/.temp/_.js", await dprint(sources.js));
-
-      // // sources.js = await jsEsbuildMinify(sources.js);
-
-      // // sources.js = await jsLebab(sources.js);
-      // // sources.js = await jsTransformSwc(sources.js, { constToLet: true });
-
-      // // sources.js = await jsTransformSwc(sources.js, { constToLet: true });
-
-      // // sources.js = await jsUglify(sources.js, { varify: true, final: true });
-
-      // Final mangling
-
-      // sources.js = await jsOptimizeTerser(sources.js, { mangle: "all", final: false });
-
-      // sources.js = await jsMinifySwc(sources.js, { mangle: false, final: false });
-
-      // sources.js = await jsOptimizeTerser(sources.js, { mangle: "variables", final: false });
-
-      // sources.js = await jsOptimizeTerser(sources.js, { mangle: "variables", final: true });
-
-      // sources.js = await dprint(sources.js);
     } finally {
       await writeOptimizedBundle(sources);
 
