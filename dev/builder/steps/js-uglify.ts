@@ -3,7 +3,7 @@ import { minify as uglify } from "uglify-js";
 import type { UnsafeAny } from "@balsamic/dev";
 import { devLog } from "@balsamic/dev";
 import { sizeDifference } from "../lib/logging";
-import { browserPureFunctions, jsRemoveEndingSemicolons } from "../lib/code-utils";
+import { browserPureFunctions } from "../lib/code-utils";
 import { global_defs, mangleConfig } from "../lib/js-config";
 
 export async function jsUglify(source: string, settings: JsUglifySettings) {
@@ -11,8 +11,7 @@ export async function jsUglify(source: string, settings: JsUglifySettings) {
     async function js_uglify() {
       const uglifyOptions = getUglifyOptions(settings);
 
-      let result = uglify(source, uglifyOptions).code || source;
-      result = jsRemoveEndingSemicolons(result);
+      const result = uglify(source, uglifyOptions).code || source;
 
       this.setSuccessText(sizeDifference(source, result));
       return result;

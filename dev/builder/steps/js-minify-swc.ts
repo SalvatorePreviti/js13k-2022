@@ -4,8 +4,7 @@ import { transform as swcTransform } from "@swc/core";
 import { outPath_build } from "../out-paths";
 import { sizeDifference } from "../lib/logging";
 import { global_defs, mangleConfig } from "../lib/js-config";
-import { browserPureFunctions, jsRemoveEndingSemicolons } from "../lib/code-utils";
-import { dprint } from "./dprint";
+import { browserPureFunctions } from "../lib/code-utils";
 
 export interface SwcMinifySettings {
   mangle?: boolean;
@@ -15,10 +14,9 @@ export interface SwcMinifySettings {
 export async function jsMinifySwc(source: string, settings: SwcMinifySettings): Promise<string> {
   return devLog.timed(
     async function js_swc_minify() {
-      let result = await dprint(source);
-      result =
+      const result =
         (
-          await swcTransform(result, {
+          await swcTransform(source, {
             cwd: outPath_build,
             inputSourceMap: false,
             sourceMaps: false,
@@ -33,8 +31,7 @@ export async function jsMinifySwc(source: string, settings: SwcMinifySettings): 
               minify: getSwcMinifyOptions(settings),
             },
           })
-        ).code || result;
-      result = jsRemoveEndingSemicolons(result);
+        ).code || source;
       this.setSuccessText(sizeDifference(source, result));
       return result;
     },

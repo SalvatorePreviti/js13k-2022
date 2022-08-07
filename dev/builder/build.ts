@@ -28,6 +28,8 @@ import { dprint } from "./steps/dprint";
 import { jsEsbuildMinify } from "./steps/js-esbuild";
 import { jsBabel } from "./steps/babel/js-babel";
 import { jsMinifySwc } from "./steps/js-minify-swc";
+import { jsTdeMinify } from "./steps/js-tde-minify";
+import { jsRemoveEndingSemicolons } from "./lib/code-utils";
 
 devLog.titlePaddingWidth = 18;
 
@@ -38,80 +40,97 @@ export async function build() {
 
   const sources = await buildWithVite({ stripDevTools: !includeDevTools });
 
-  try {
-    sources.html = await htmlMinify(sources.html, { prependUtf8BOM: true, type: "page" });
-
-    sources.css = await cssOptimize(sources.css);
-
-    // Pre minification
-
-    sources.js = await jsUglify(sources.js, { varify: false, final: false, reduce_vars: false, join_vars: false });
-
-    sources.js = await jsOptimizeTerser(sources.js, { mangle: false, final: false, join_vars: false });
-
-    // Intermediate minification
-
-    sources.js = await jsTransformSwc(sources.js, { minify: false, splitVars: true, constToLet: false, floatRound: 0 });
-
-    sources.js = await jsUglify(sources.js, { varify: true, final: false, reduce_vars: true, join_vars: true });
-
-    sources.js = await jsLebab(sources.js);
-
-    sources.js = await jsTransformSwc(sources.js, { minify: true, splitVars: true, constToLet: true, floatRound: 6 });
-
-    // Final minification
-
-    sources.js = await jsOptimizeTerser(sources.js, { mangle: "all", final: false, join_vars: false });
-
-    sources.js = await jsOptimizeTerser(sources.js, { mangle: "all", final: true, join_vars: true });
-
-    // sources.js = await jsUglify(sources.js, { varify: false, final: true, reduce_vars: true });
-
-    // jsMinifySwc requires uligy reduce_vars
-
-    // // Intermediate
-
-    // sources.js = await jsTdeMinify(sources.js);
-
-    // // sources.js = await jsUglify(sources.js, { varify: true, final: true });
-
-    // sources.js = await jsTransformSwc(sources.js, { constToLet: true });
-
-    // sources.js = await jsBabel(sources.js);
-
-    // // sources.js = await jsUglify(sources.js, { varify: false, final: true });
-
-    // // sources.js = await jsMinifySwc(sources.js, { mangle: false });
-
-    // // await fs.writeFile("dist/.temp/_.js", await dprint(sources.js));
-
-    // // sources.js = await jsEsbuildMinify(sources.js);
-
-    // // sources.js = await jsLebab(sources.js);
-    // // sources.js = await jsTransformSwc(sources.js, { constToLet: true });
-
-    // // sources.js = await jsTransformSwc(sources.js, { constToLet: true });
-
-    // // sources.js = await jsUglify(sources.js, { varify: true, final: true });
-
-    // Final mangling
-
-    // sources.js = await jsOptimizeTerser(sources.js, { mangle: "all", final: false });
-
-    // sources.js = await jsMinifySwc(sources.js, { mangle: false, final: false });
-
-    // sources.js = await jsOptimizeTerser(sources.js, { mangle: "variables", final: false });
-
-    // sources.js = await jsOptimizeTerser(sources.js, { mangle: "variables", final: true });
-
-    // sources.js = await dprint(sources.js);
-  } finally {
-    await writeOptimizedBundle(sources);
-
+  devLog.log();
+  await devLog.timed("minify", async () => {
     try {
-      await fs.writeFile(path.resolve(outPath_minify, "index-beautified.js"), await dprint(sources.js));
-    } catch {}
-  }
+      devLog.log();
+
+      sources.html = await htmlMinify(sources.html, { prependUtf8BOM: true, type: "page" });
+
+      sources.css = await cssOptimize(sources.css);
+
+      // Pre minification
+
+      sources.js = await jsUglify(sources.js, { varify: false, final: false, reduce_vars: false, join_vars: false });
+
+      sources.js = await jsOptimizeTerser(sources.js, { mangle: false, final: false, join_vars: false });
+
+      // Intermediate minification
+
+      sources.js = await jsTransformSwc(sources.js, {
+        minify: false,
+        splitVars: true,
+        constToLet: false,
+        floatRound: 0,
+      });
+
+      sources.js = await jsUglify(sources.js, { varify: true, final: false, reduce_vars: true, join_vars: true });
+
+      sources.js = await jsLebab(sources.js);
+
+      sources.js = await jsTransformSwc(sources.js, {
+        minify: true,
+        splitVars: true,
+        constToLet: true,
+        floatRound: 6,
+      });
+
+      // Final minification
+
+      sources.js = await jsOptimizeTerser(sources.js, { mangle: "all", final: false, join_vars: false });
+
+      sources.js = await jsOptimizeTerser(sources.js, { mangle: "all", final: true, join_vars: true });
+
+      sources.js = jsRemoveEndingSemicolons(sources.js);
+
+      // sources.js = await jsTdeMinify(sources.js);
+
+      // sources.js = await jsUglify(sources.js, { varify: false, final: true, reduce_vars: true });
+
+      // jsMinifySwc requires uligy reduce_vars
+
+      // // Intermediate
+
+      // // sources.js = await jsUglify(sources.js, { varify: true, final: true });
+
+      // sources.js = await jsTransformSwc(sources.js, { constToLet: true });
+
+      // sources.js = await jsBabel(sources.js);
+
+      // // sources.js = await jsUglify(sources.js, { varify: false, final: true });
+
+      // // sources.js = await jsMinifySwc(sources.js, { mangle: false });
+
+      // // await fs.writeFile("dist/.temp/_.js", await dprint(sources.js));
+
+      // // sources.js = await jsEsbuildMinify(sources.js);
+
+      // // sources.js = await jsLebab(sources.js);
+      // // sources.js = await jsTransformSwc(sources.js, { constToLet: true });
+
+      // // sources.js = await jsTransformSwc(sources.js, { constToLet: true });
+
+      // // sources.js = await jsUglify(sources.js, { varify: true, final: true });
+
+      // Final mangling
+
+      // sources.js = await jsOptimizeTerser(sources.js, { mangle: "all", final: false });
+
+      // sources.js = await jsMinifySwc(sources.js, { mangle: false, final: false });
+
+      // sources.js = await jsOptimizeTerser(sources.js, { mangle: "variables", final: false });
+
+      // sources.js = await jsOptimizeTerser(sources.js, { mangle: "variables", final: true });
+
+      // sources.js = await dprint(sources.js);
+    } finally {
+      await writeOptimizedBundle(sources);
+
+      try {
+        await fs.writeFile(path.resolve(outPath_minify, "index-beautified.js"), await dprint(sources.js));
+      } catch {}
+    }
+  });
 
   const optimizedTotalSize = logTableOptimized(sources);
 

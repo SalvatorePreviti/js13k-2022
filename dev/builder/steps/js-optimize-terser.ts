@@ -2,7 +2,7 @@ import { minify as terserMinify } from "terser";
 import type { UnsafeAny } from "@balsamic/dev";
 import { devLog } from "@balsamic/dev";
 import { sizeDifference } from "../lib/logging";
-import { browserPureFunctions, jsRemoveEndingSemicolons } from "../lib/code-utils";
+import { browserPureFunctions } from "../lib/code-utils";
 import type {
   ECMA as ECMAVersion,
   MinifyOptions as TerserMinifyOptions,
@@ -17,8 +17,7 @@ export async function jsOptimizeTerser(input: string, settings: TerserMinifySett
     async function js_terser() {
       const terserOptions = getTerserMinifyOptions(settings);
 
-      let result = (await terserMinify(input, terserOptions)).code || input;
-      result = jsRemoveEndingSemicolons(result);
+      const result = (await terserMinify(input, terserOptions)).code || input;
 
       this.setSuccessText(sizeDifference(input, result));
       return result;
