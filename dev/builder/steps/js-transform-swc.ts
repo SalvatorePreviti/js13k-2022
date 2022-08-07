@@ -7,12 +7,12 @@ import { sizeDifference } from "../lib/logging";
 import { getSwcMinifyOptions } from "./js-minify-swc";
 
 export interface SwcTransformSettings {
-  minify: boolean;
-  constToLet: boolean;
-  splitVars: boolean;
+  minify?: boolean;
+  constToLet?: boolean;
+  splitVarsAndSequences: boolean;
 
   /** Number of digits to round floating point numbers. If 0, means no rounding at all. */
-  floatRound: number;
+  floatRound?: number;
 }
 
 class Transformer extends SwcVisitor {
@@ -22,7 +22,7 @@ class Transformer extends SwcVisitor {
 
   override visitNumericLiteral(n: NumericLiteral): NumericLiteral {
     const precision = this.settings.floatRound;
-    if (precision > 0) {
+    if (precision) {
       if (n.value.toString().includes(".")) {
         const v = numberFixedRound(n.value, precision);
         if (n.value !== v) {
@@ -51,20 +51,29 @@ class Transformer extends SwcVisitor {
   }
 
   private _splitVariableDeclarations(stmts: Statement[] | ModuleItem[]): any[] {
-    if (!this.settings.splitVars) {
-      return stmts;
-    }
-
     const resultStatements = [];
     for (const statement of stmts) {
-      if (statement.type === "VariableDeclaration") {
+      if (statement.type === "VariableDeclaration" && this.settings.splitVarsAndSequences) {
         // Split variable declarations
         for (const declaration of statement.declarations) {
           resultStatements.push({ ...statement, declarations: [declaration] });
         }
-      } else {
-        resultStatements.push(statement);
+        continue;
       }
+
+      if (
+        statement.type === "ExpressionStatement" &&
+        this.settings.splitVarsAndSequences &&
+        statement.expression.type === "SequenceExpression"
+      ) {
+        // Split simple sequences
+        for (const expression of statement.expression.expressions) {
+          resultStatements.push({ ...statement, expression });
+        }
+        continue;
+      }
+
+      resultStatements.push(statement);
     }
     return resultStatements;
   }

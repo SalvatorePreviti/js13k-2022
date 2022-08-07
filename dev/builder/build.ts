@@ -48,35 +48,59 @@ export async function build() {
 
       // Pre minification
 
-      sources.js = await jsUglify(sources.js, { varify: false, final: false, reduce_vars: true, join_vars: false });
-
-      sources.js = await jsOptimizeTerser(sources.js, { mangle: false, final: false, join_vars: false });
-
-      // Intermediate minification
-
-      sources.js = await jsTransformSwc(sources.js, {
-        minify: false,
-        splitVars: true,
-        constToLet: false,
-        floatRound: 0,
+      sources.js = await jsUglify(sources.js, {
+        varify: false,
+        final: false,
+        reduce_vars: true,
+        join_vars: false,
+        sequences: false,
       });
 
-      sources.js = await jsUglify(sources.js, { varify: true, final: false, reduce_vars: true, join_vars: true });
+      sources.js = await jsOptimizeTerser(sources.js, {
+        mangle: false,
+        final: false,
+        join_vars: false,
+        sequences: true,
+      });
+
+      sources.js = await jsTransformSwc(sources.js, { splitVarsAndSequences: true });
+
+      // Intermediate transformation
+
+      sources.js = await jsUglify(sources.js, {
+        varify: true,
+        final: false,
+        reduce_vars: true,
+        join_vars: true,
+        sequences: false,
+      });
+
+      sources.js = await jsTransformSwc(sources.js, { minify: false, splitVarsAndSequences: true });
 
       sources.js = await jsLebab(sources.js);
 
+      // Final minification
+
       sources.js = await jsTransformSwc(sources.js, {
         minify: true,
-        splitVars: true,
+        splitVarsAndSequences: true,
         constToLet: true,
         floatRound: 6,
       });
 
-      // Final minification
+      sources.js = await jsOptimizeTerser(sources.js, {
+        mangle: "all",
+        final: false,
+        join_vars: false,
+        sequences: false,
+      });
 
-      sources.js = await jsOptimizeTerser(sources.js, { mangle: "all", final: false, join_vars: false });
-
-      sources.js = await jsOptimizeTerser(sources.js, { mangle: "all", final: true, join_vars: true });
+      sources.js = await jsOptimizeTerser(sources.js, {
+        mangle: "all",
+        final: true,
+        join_vars: true,
+        sequences: true,
+      });
 
       sources.js = jsRemoveEndingSemicolons(sources.js);
     } finally {

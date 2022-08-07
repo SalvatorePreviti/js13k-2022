@@ -23,6 +23,7 @@ export async function jsUglify(source: string, settings: JsUglifySettings) {
 export interface JsUglifySettings {
   mangle?: boolean;
   varify: boolean;
+  sequences: boolean;
   final: boolean;
   reduce_vars: boolean;
   join_vars: boolean;
@@ -166,7 +167,7 @@ export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: R
       reduce_vars: settings.reduce_vars,
 
       // join consecutive simple statements using the comma operator.
-      sequences: settings.final ? (100000 as any) : 0,
+      sequences: settings.sequences ? (100000 as any) : 0,
 
       // Remove expressions which have no side effects and whose results aren't used.
       side_effects: true,

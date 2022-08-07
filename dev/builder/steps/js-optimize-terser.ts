@@ -30,6 +30,7 @@ export interface TerserMinifySettings {
   mangle: "variables" | "all" | false;
   final: boolean;
   join_vars: boolean;
+  sequences: boolean;
 }
 
 export function getTerserMinifyOptions(settings: TerserMinifySettings): TerserMinifyOptions {
@@ -203,7 +204,7 @@ export function getTerserMinifyOptions(settings: TerserMinifySettings): TerserMi
       // join consecutive simple statements using the comma operator. If set as positive integer
       // specifies the maximum number of consecutive comma sequences that will be generated.
       // If this option is set to true then the default sequences limit is 200
-      sequences: 1000000,
+      sequences: settings.sequences ? 1000000 : false,
 
       // Remove expressions which have no side effects and whose results aren't used.
       side_effects: true,
