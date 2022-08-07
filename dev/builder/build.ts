@@ -46,35 +46,32 @@ export async function build() {
 
     // Pre minification
 
-    sources.js = await jsUglify(sources.js, { varify: false, final: false, reduce_vars: false });
+    sources.js = await jsUglify(sources.js, { varify: false, final: false, reduce_vars: false, join_vars: false });
 
-    sources.js = await jsOptimizeTerser(sources.js, { mangle: false, final: false });
+    sources.js = await jsOptimizeTerser(sources.js, { mangle: false, final: false, join_vars: false });
 
     // Intermediate minification
 
-    sources.js = await jsUglify(sources.js, { varify: true, final: false, reduce_vars: true });
+    sources.js = await jsTransformSwc(sources.js, { minify: false, splitVars: true, constToLet: false, floatRound: 0 });
 
-    sources.js = await jsOptimizeTerser(sources.js, { mangle: false, final: false });
+    sources.js = await jsUglify(sources.js, { varify: true, final: false, reduce_vars: true, join_vars: true });
 
     sources.js = await jsLebab(sources.js);
 
-    sources.js = await jsTransformSwc(sources.js, { constToLet: true });
+    sources.js = await jsTransformSwc(sources.js, { minify: true, splitVars: true, constToLet: true, floatRound: 6 });
+
+    // sources.js = await jsOptimizeTerser(sources.js, { mangle: false, final: false });
 
     // Final minification
 
     // sources.js = await jsMinifySwc(sources.js, { mangle: false, final: false });
 
-    sources.js = await jsTdeMinify(sources.js);
+    // const mangle = true;
+    // sources.js = await jsOptimizeTerser(sources.js, { mangle: mangle && "variables", final: true, join_vars: false });
 
-    sources.js = await jsUglify(sources.js, { varify: false, final: true, reduce_vars: true });
+    sources.js = await jsOptimizeTerser(sources.js, { mangle: "all", final: false, join_vars: false });
 
-    // sources.js = await jsEsbuildMinify(sources.js);
-
-    sources.js = await jsOptimizeTerser(sources.js, { mangle: "variables", final: true });
-
-    sources.js = await jsOptimizeTerser(sources.js, { mangle: "all", final: true });
-
-    sources.js = await jsOptimizeTerser(sources.js, { mangle: "all", final: true });
+    sources.js = await jsOptimizeTerser(sources.js, { mangle: "all", final: true, join_vars: true });
 
     // sources.js = await jsUglify(sources.js, { varify: false, final: true, reduce_vars: true });
 

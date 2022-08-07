@@ -26,6 +26,7 @@ export interface JsUglifySettings {
   varify: boolean;
   final: boolean;
   reduce_vars: boolean;
+  join_vars: boolean;
 }
 
 export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: Record<string, unknown>): UglifyOptions {
@@ -122,7 +123,7 @@ export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: R
       inline: true,
 
       // join consecutive var statements
-      join_vars: settings.final,
+      join_vars: settings.join_vars,
 
       // Prevents the compressor from discarding unused function arguments.
       // You need this for code which relies on Function.length

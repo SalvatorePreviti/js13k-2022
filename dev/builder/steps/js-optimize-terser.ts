@@ -30,6 +30,7 @@ export async function jsOptimizeTerser(input: string, settings: TerserMinifySett
 export interface TerserMinifySettings {
   mangle: "variables" | "all" | false;
   final: boolean;
+  join_vars: boolean;
   module?: boolean;
 }
 
@@ -151,7 +152,7 @@ export function getTerserMinifyOptions(settings: TerserMinifySettings): TerserMi
       inline: true,
 
       // join consecutive var statements
-      join_vars: settings.final,
+      join_vars: settings.join_vars,
 
       // Pass true to prevent the compressor from discarding class names.
       // Pass a regular expression to only keep class names matching that regex.
