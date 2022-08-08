@@ -1,5 +1,7 @@
 DOMMatrix.prototype.invertSelf = function () {};
 
+DOMMatrix.prototype.setMatrixValue = function (v) {};
+
 var x, y, z, w;
 
 var location,

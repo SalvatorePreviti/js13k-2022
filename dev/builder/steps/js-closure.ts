@@ -1,74 +1,400 @@
 import { devLog } from "@balsamic/dev";
 import { sizeDifference } from "../lib/logging";
-import { compiler as ClosureCompiler } from "google-closure-compiler";
+import type { CompileOptions } from "google-closure-compiler";
+import { compiler as ClosureCompilerClass, type Compiler as ClosureCompilerBase } from "google-closure-compiler";
 import { mkdir, readFile, writeFile } from "fs/promises";
 import path from "path";
 import { outPath_temp } from "../out-paths";
-import { dprintToFile } from "./dprint";
+import { dprint } from "./dprint";
+import type { ChildProcess } from "child_process";
+import { Readable } from "stream";
 
-export async function jsClosure(source: string): Promise<string> {
-  return devLog.timed(
-    async function js_closure() {
-      const sourceFilePath = path.resolve(outPath_temp, "closure-input.js");
-      const destFilePath = path.resolve(outPath_temp, "closure-output.js");
-      const externsDestFilePath = path.resolve(outPath_temp, "closure-externs.js");
+interface ClosureCompiler extends ClosureCompilerBase {
+  commandArguments: string[];
+}
 
-      let [externsContent, tsGlobals] = await Promise.all([
-        readFile(require.resolve("./js-closure-externs.js"), "utf8"),
-        readFile(require.resolve("../../../app/_globals.d.ts"), "utf8"),
-        mkdir(outPath_temp, { recursive: true }),
-      ]);
-      externsContent += "\n";
-      for (const line of tsGlobals.split("\n")) {
-        for (const prefix of ["declare const", "declare var", "declare function"]) {
-          if (line.startsWith(prefix)) {
-            const name = line.slice(prefix.length).split(":")[0]!.split(";")[0]!.split("=")[0]!.trim();
-            externsContent += `var ${name};\n`;
-          }
+export interface StreamedClosureCompilerOptions {
+  beautify: boolean;
+  rename_variable_prefix?: string;
+}
+
+export class StreamedClosureCompiler {
+  private _compilerPromise: Promise<string | null> | null = null;
+  private _compilerProcess: ChildProcess | null = null;
+  private _closed: boolean = false;
+  private _stdin: Readable | null = null;
+
+  public externsDestFilePath = path.resolve(outPath_temp, "closure-externs.js");
+  public inputFilePath = path.resolve(outPath_temp, "closure-input.js");
+  public outputFilePath = path.resolve(outPath_temp, "closure-output.js");
+  public readonly options: StreamedClosureCompilerOptions;
+
+  public constructor(options: StreamedClosureCompilerOptions) {
+    this.options = options;
+  }
+
+  public start(): void {
+    if (!this._compilerPromise) {
+      this._compilerPromise = this._startAsync();
+      this._compilerPromise.catch(() => {});
+    }
+  }
+
+  public async compileOne(source: string): Promise<string> {
+    const compileFile = async () => {
+      if (!this._compilerPromise) {
+        this.start();
+      }
+      source = await dprint(source);
+      this._stdin!.push(JSON.stringify([{ src: source, path: this.inputFilePath }]));
+      this._stdin!.push(null);
+      const result = (await this._compilerPromise) || source;
+      await writeFile(this.inputFilePath, source, "utf8");
+      await writeFile(this.outputFilePath, result, "utf8");
+
+      return result;
+    };
+    return devLog.timed(
+      async function js_closure() {
+        const result = await compileFile();
+        this.setSuccessText(sizeDifference(source, result));
+        return result;
+      },
+      { spinner: true },
+    );
+  }
+
+  public kill(): void {
+    this._closed = true;
+    if (this._compilerProcess) {
+      this._compilerProcess.kill();
+      this._compilerProcess = null;
+    }
+  }
+
+  private async _startAsync(): Promise<string | null> {
+    let [externsContent, tsGlobals] = await Promise.all([
+      readFile(require.resolve("./js-closure-externs.js"), "utf8"),
+      readFile(require.resolve("../../../app/_globals.d.ts"), "utf8"),
+      mkdir(outPath_temp, { recursive: true }),
+    ]);
+
+    externsContent += "\n";
+    for (const line of tsGlobals.split("\n")) {
+      for (const prefix of ["declare const", "declare var", "declare function"]) {
+        if (line.startsWith(prefix)) {
+          const name = line.slice(prefix.length).split(":")[0]!.split(";")[0]!.split("=")[0]!.trim();
+          externsContent += `var ${name};\n`;
         }
       }
-      await writeFile(externsDestFilePath, externsContent, "utf8");
+    }
 
-      await dprintToFile(source, sourceFilePath);
+    await writeFile(this.externsDestFilePath, externsContent, "utf8");
 
-      const gcc = new ClosureCompiler({
-        js: sourceFilePath,
-        js_output_file: destFilePath,
-        env: "BROWSER",
-        language_in: "ECMASCRIPT_NEXT",
-        language_out: "ECMASCRIPT_NEXT",
-        compilation_level: "ADVANCED",
-        use_types_for_optimization: true,
-        assume_function_wrapper: true,
-        rename_variable_prefix: "$$$",
-        externs: externsDestFilePath,
-        formatting: "PRETTY_PRINT",
-        property_renaming_report: path.resolve(outPath_temp, "closure-rename.txt"),
-      });
+    const options: CompileOptions = {
+      env: "BROWSER",
+      language_in: "ECMASCRIPT_NEXT",
+      language_out: "ECMASCRIPT_NEXT",
+      compilation_level: "ADVANCED",
+      charset: "UTF-8",
+      use_types_for_optimization: true,
+      assume_function_wrapper: true,
+      externs: this.externsDestFilePath,
+      property_renaming_report: path.resolve(outPath_temp, "closure-rename.txt"),
+      jscomp_off: "*",
+    };
 
-      await new Promise<void>((resolve, reject) => {
-        gcc.run(async (exitCode, stdout, stderr) => {
-          if (exitCode) {
-            if (stderr) {
-              devLog.warn(stderr);
-            }
-            if (stdout) {
-              devLog.info(stdout);
-            }
-            reject(new Error(`Closure compiler failed, exitCode:${exitCode}`));
-          } else {
-            resolve();
-          }
-        });
-      });
+    if (this.options.beautify) {
+      options.formatting = "PRETTY_PRINT";
+    }
 
-      const result = await readFile(destFilePath, "utf-8");
-      this.setSuccessText(sizeDifference(source, result));
-      return result;
-    },
-    { spinner: true },
-  );
+    if (this.options.rename_variable_prefix) {
+      options.rename_variable_prefix = this.options.rename_variable_prefix;
+    }
+
+    const compiler = new ClosureCompilerClass(options) as ClosureCompiler;
+    compiler.commandArguments.push("--json_streams", "BOTH");
+
+    const compilerProcess = compiler.run();
+    compilerProcess.unref();
+    this._compilerProcess = compilerProcess;
+
+    // Error events occur when there was a problem spawning the compiler process
+    compilerProcess.on("error", (err) => {
+      devLog.error("closure:", err);
+    });
+
+    compilerProcess.stdin!.on("error", (err) => {
+      devLog.warn("closure: Error writing to stdin of the compiler", err);
+    });
+
+    let stdOutData: string = "";
+    let stdErrData: string = "";
+
+    compilerProcess.stdout!.on("data", (data) => {
+      stdOutData += data;
+    });
+
+    compilerProcess.stderr!.on("data", (data) => {
+      stdErrData += data;
+    });
+
+    const stdInStream = new Readable({ read() {} });
+    stdInStream.pipe(compilerProcess.stdin!);
+    this._stdin = stdInStream;
+
+    const [code] = await Promise.all([
+      new Promise((resolve) => compilerProcess.on("close", resolve)),
+      new Promise((resolve) => compilerProcess.stdout!.on("end", resolve)),
+      new Promise((resolve) => compilerProcess.stderr!.on("end", resolve)),
+    ]);
+
+    this._stdin = null;
+    this._compilerProcess = null;
+
+    stdOutData = stdOutData.trim();
+    stdErrData = stdErrData.trim();
+
+    if (stdErrData && !this._closed) {
+      devLog.warn("Closure compiler:\n", stdErrData);
+    }
+
+    let outputFiles = [];
+    if (stdOutData) {
+      if (code !== 0 && !this._closed) {
+        devLog.error(`Closure Compiler error.\n${stdOutData}`);
+        throw new Error("Closure Compiler error");
+      }
+
+      outputFiles = JSON.parse(stdOutData);
+    }
+
+    return (outputFiles && outputFiles[0]?.src) || null;
+  }
 }
+
+// export class SPClosureCompiler {
+//   public sourceFilePath = path.resolve(outPath_temp, "closure-input.js");
+//   public sourceFifoPath = path.resolve(outPath_temp, ".closure-output-fifo.js");
+//   public destFilePath = path.resolve(outPath_temp, "closure-output.js");
+//   public externsDestFilePath = path.resolve(outPath_temp, "closure-externs.js");
+
+//   private _prepared = false;
+//   private _runCalled = false;
+//   private _preparePromise: Promise<void> | undefined;
+//   private _closureFifoPromise: Promise<void> | undefined;
+
+//   public prepare(): void {
+//     if (!this._prepared) {
+//       this._prepared = true;
+//       this._preparePromise = this._prepare();
+//     }
+//   }
+
+//   public async run(source: string): Promise<string> {
+//     const processSource = async () => {
+//       try {
+//         if (!this._prepared) {
+//           this.prepare();
+//         }
+//         await Promise.all([this._preparePromise, dprintToFile(source, this.sourceFilePath)]);
+//         const closureInput = await readFile(this.sourceFilePath);
+
+//         if (this._closureFifoPromise) {
+//           await writeFile(this.sourceFifoPath, closureInput, { encoding: "utf8", mode: 0o644, flag: "a" });
+//           await Promise.all([this._deleteFifo(), this._closureFifoPromise]);
+//         } else {
+//           this._runCalled = true;
+//           await this._spawnClosureCompiler(this.sourceFilePath);
+//         }
+
+//         return await readFile(this.destFilePath, "utf8");
+//       } finally {
+//         await this._deleteFifo();
+//       }
+//     };
+//     return devLog.timed(
+//       "js closure",
+//       async function js_closure() {
+//         const result = await processSource();
+//         this.setSuccessText(sizeDifference(source, result));
+//         return result;
+//       },
+//       { spinner: true },
+//     );
+//   }
+
+//   public async close() {
+//     await this._preparePromise?.catch(() => {});
+//     return this._deleteFifo();
+//   }
+
+//   private async _deleteFifo() {
+//     return rm(this.sourceFifoPath).catch(() => {});
+//   }
+
+//   private async _prepare() {
+//     this._prepared = true;
+//     if (this._closureFifoPromise) {
+//       throw new Error("Closure compiler already executed, you need a new instance.");
+//     }
+//     let [externsContent, tsGlobals] = await Promise.all([
+//       readFile(require.resolve("./js-closure-externs.js"), "utf8"),
+//       readFile(require.resolve("../../../app/_globals.d.ts"), "utf8"),
+//       mkdir(outPath_temp, { recursive: true }),
+//       rm(this.sourceFilePath).catch(() => {}),
+//       rm(this.destFilePath).catch(() => {}),
+//       this._deleteFifo(),
+//     ]);
+
+//     externsContent += "\n";
+//     for (const line of tsGlobals.split("\n")) {
+//       for (const prefix of ["declare const", "declare var", "declare function"]) {
+//         if (line.startsWith(prefix)) {
+//           const name = line.slice(prefix.length).split(":")[0]!.split(";")[0]!.split("=")[0]!.trim();
+//           externsContent += `var ${name};\n`;
+//         }
+//       }
+//     }
+
+//     await Promise.all([
+//       writeFile(this.externsDestFilePath, externsContent, "utf8"),
+//       devChildTask.spawn("mkfifo", ["-m", "644", this.sourceFifoPath], { timed: false }).catch(() => {}),
+//     ]);
+
+//     let isFifo = false;
+//     try {
+//       isFifo = (await stat(this.sourceFifoPath)).isFIFO();
+//     } catch {}
+
+//     if (isFifo) {
+//       this._closureFifoPromise = this._spawnClosureCompiler(this.sourceFifoPath);
+//     } else {
+//       devLog.warn(`Could not create closure fifo file: "${this.sourceFifoPath}", running it synchronously.`);
+//     }
+//   }
+
+//   private _spawnClosureCompiler(sourceFilePath: string) {
+//     const gcc = new ClosureCompiler({
+//       js: sourceFilePath,
+//       js_output_file: this.destFilePath,
+//       env: "BROWSER",
+//       language_in: "ECMASCRIPT_NEXT",
+//       language_out: "ECMASCRIPT_NEXT",
+//       compilation_level: "ADVANCED",
+//       use_types_for_optimization: true,
+//       assume_function_wrapper: true,
+//       rename_variable_prefix: "$$$",
+//       externs: this.externsDestFilePath,
+//       formatting: "PRETTY_PRINT",
+//       property_renaming_report: path.resolve(outPath_temp, "closure-rename.txt"),
+//     });
+
+//     return new Promise<void>((resolve, reject) => {
+//       gcc.run(async (exitCode, stdout, stderr) => {
+//         if (exitCode && this._runCalled) {
+//           if (stderr) {
+//             devLog.warn(stderr);
+//           }
+//           if (stdout) {
+//             devLog.info(stdout);
+//           }
+//           reject(new Error(`Closure compiler failed, exitCode:${exitCode}`));
+//         } else {
+//           resolve();
+//         }
+//       });
+//     });
+//   }
+// }
+
+// export async function jsClosurePrepare() {}
+
+// async function _prepareClosureFiles() {
+//   const sourceFilePath = path.resolve(outPath_temp, "closure-input.js");
+//   const destFilePath = path.resolve(outPath_temp, "closure-output.js");
+//   const externsDestFilePath = path.resolve(outPath_temp, "closure-externs.js");
+
+//   let [externsContent, tsGlobals] = await Promise.all([
+//     readFile(require.resolve("./js-closure-externs.js"), "utf8"),
+//     readFile(require.resolve("../../../app/_globals.d.ts"), "utf8"),
+//     mkdir(outPath_temp, { recursive: true }),
+//   ]);
+//   externsContent += "\n";
+//   for (const line of tsGlobals.split("\n")) {
+//     for (const prefix of ["declare const", "declare var", "declare function"]) {
+//       if (line.startsWith(prefix)) {
+//         const name = line.slice(prefix.length).split(":")[0]!.split(";")[0]!.split("=")[0]!.trim();
+//         externsContent += `var ${name};\n`;
+//       }
+//     }
+//   }
+//   await writeFile(externsDestFilePath, externsContent, "utf8");
+// }
+
+// export async function jsClosure(source: string): Promise<string> {
+//   return devLog.timed(
+//     async function js_closure() {
+//       const sourceFilePath = path.resolve(outPath_temp, "closure-input.js");
+//       const destFilePath = path.resolve(outPath_temp, "closure-output.js");
+//       const externsDestFilePath = path.resolve(outPath_temp, "closure-externs.js");
+
+//       let [externsContent, tsGlobals] = await Promise.all([
+//         readFile(require.resolve("./js-closure-externs.js"), "utf8"),
+//         readFile(require.resolve("../../../app/_globals.d.ts"), "utf8"),
+//         mkdir(outPath_temp, { recursive: true }),
+//       ]);
+//       externsContent += "\n";
+//       for (const line of tsGlobals.split("\n")) {
+//         for (const prefix of ["declare const", "declare var", "declare function"]) {
+//           if (line.startsWith(prefix)) {
+//             const name = line.slice(prefix.length).split(":")[0]!.split(";")[0]!.split("=")[0]!.trim();
+//             externsContent += `var ${name};\n`;
+//           }
+//         }
+//       }
+//       await writeFile(externsDestFilePath, externsContent, "utf8");
+
+//       await dprintToFile(source, sourceFilePath);
+
+//       const gcc = new ClosureCompiler({
+//         js: sourceFilePath,
+//         js_output_file: destFilePath,
+//         env: "BROWSER",
+//         language_in: "ECMASCRIPT_NEXT",
+//         language_out: "ECMASCRIPT_NEXT",
+//         compilation_level: "ADVANCED",
+//         use_types_for_optimization: true,
+//         assume_function_wrapper: true,
+//         rename_variable_prefix: "$$$",
+//         externs: externsDestFilePath,
+//         formatting: "PRETTY_PRINT",
+//         property_renaming_report: path.resolve(outPath_temp, "closure-rename.txt"),
+//       });
+
+//       await new Promise<void>((resolve, reject) => {
+//         gcc.run(async (exitCode, stdout, stderr) => {
+//           if (exitCode) {
+//             if (stderr) {
+//               devLog.warn(stderr);
+//             }
+//             if (stdout) {
+//               devLog.info(stdout);
+//             }
+//             reject(new Error(`Closure compiler failed, exitCode:${exitCode}`));
+//           } else {
+//             resolve();
+//           }
+//         });
+//       });
+
+//       const result = await readFile(destFilePath, "utf-8");
+//       this.setSuccessText(sizeDifference(source, result));
+//       return result;
+//     },
+//     { spinner: true },
+//   );
+// }
 
 /* Available options:
 

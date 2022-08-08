@@ -1,6 +1,6 @@
 import path from "path";
 import zlib from "zlib";
-import fs from "fs/promises";
+import fs, { writeFile } from "fs/promises";
 import {
   devLogBuilding,
   devPrintOjutputFileWritten,
@@ -26,144 +26,156 @@ import { htmlMinify } from "./steps/html-minify";
 import { dprint } from "./steps/dprint";
 import { jsMinifySwc } from "./steps/js-minify-swc";
 import { jsRemoveEndingSemicolons } from "./lib/code-utils";
-import { jsClosure } from "./steps/js-closure";
+import { StreamedClosureCompiler } from "./steps/js-closure";
+import { jsLebab } from "./steps/js-lebab";
 // import { jsLebab } from "./steps/js-lebab";
 
 devLog.titlePaddingWidth = 18;
 
 export async function build() {
-  devLogBuilding("src", "dist");
-
-  const includeDevTools = process.argv.includes("--with-dev-tools");
-
-  const sources = await buildWithVite({ stripDevTools: !includeDevTools });
-
-  devLog.log();
-  await devLog.timed(async function minify() {
-    try {
-      devLog.log();
-
-      sources.html = await htmlMinify(sources.html, { prependUtf8BOM: true, type: "page" });
-
-      sources.css = await cssOptimize(sources.css);
-
-      // Pre minification
-
-      sources.js = await jsUglify(sources.js, {
-        varify: false,
-        final: false,
-        reduce_vars: true,
-        join_vars: false,
-        sequences: false,
-        computed_props: false,
-      });
-
-      sources.js = await jsOptimizeTerser(sources.js, {
-        mangle: false,
-        final: false,
-        join_vars: false,
-        sequences: true,
-        computed_props: false,
-      });
-
-      sources.js = await jsTransformSwc(sources.js, { splitVarsAndSequences: true });
-
-      // Intermediate transformation
-
-      sources.js = await jsUglify(sources.js, {
-        varify: true,
-        final: false,
-        reduce_vars: true,
-        join_vars: true,
-        sequences: false,
-        computed_props: false,
-      });
-
-      // Final minification
-
-      sources.js = await jsTransformSwc(sources.js, {
-        minify: false,
-        splitVarsAndSequences: true,
-        constToLet: true,
-        floatRound: 6,
-        wrapWithIIFE: true,
-      });
-
-      // sources.js = await jsLebab(sources.js);
-
-      sources.js = await jsClosure(sources.js);
-
-      sources.js = await jsTransformSwc(sources.js, {
-        minify: false,
-        splitVarsAndSequences: true,
-        constToLet: true,
-        floatRound: 6,
-      });
-
-      sources.js = await jsOptimizeTerser(sources.js, {
-        mangle: "all",
-        final: false,
-        join_vars: false,
-        sequences: true,
-        computed_props: true,
-      });
-
-      sources.js = await jsOptimizeTerser(sources.js, {
-        mangle: "variables",
-        final: true,
-        join_vars: true,
-        sequences: true,
-        computed_props: true,
-      });
-
-      sources.js = jsRemoveEndingSemicolons(sources.js);
-    } finally {
-      await writeOptimizedBundle(sources);
-
-      try {
-        await fs.writeFile(path.resolve(outPath_minify, "index-beautified.js"), await dprint(sources.js));
-      } catch {}
-    }
+  const streamedClosureCompiler = new StreamedClosureCompiler({
+    beautify: false,
+    rename_variable_prefix: "$$$",
   });
 
-  const optimizedTotalSize = logTableOptimized(sources);
+  try {
+    streamedClosureCompiler.start();
 
-  devLog.log();
-  devPrintOjutputFileWritten(outPath_minify, optimizedTotalSize);
-  devLog.log();
+    devLogBuilding("src", "dist");
 
-  const bundled: WriteBundleInput = {
-    html: (await bundleHtml(sources)).html,
-  };
+    const includeDevTools = process.argv.includes("--with-dev-tools");
 
-  logTableBundled(bundled, "bundled", true);
+    const sources = await buildWithVite({ stripDevTools: !includeDevTools });
 
-  await writeFinalBundle(bundled, outPath_bundle);
+    devLog.log();
+    await devLog.timed(async function minify() {
+      try {
+        devLog.log();
 
-  const [zippedRolledBuffer, zippedPlainBuffer] = await Promise.all([
-    zipRoadRoller(sources, bundled),
-    zipBundle(bundled, "plain"),
-  ]);
+        sources.html = await htmlMinify(sources.html, { prependUtf8BOM: true, type: "page" });
 
-  const rolledPlainZipSizeDiff = zippedRolledBuffer.length - zippedPlainBuffer.length;
+        sources.css = await cssOptimize(sources.css);
 
-  if (rolledPlainZipSizeDiff > 0) {
-    devLog.logYellow(`\nRolled zip is ${rolledPlainZipSizeDiff} bytes LARGER than plain zip`);
-  } else {
-    devLog.logCyan(`\nRolled zip is ${-rolledPlainZipSizeDiff} bytes smaller than plain zip`);
+        sources.js = await jsUglify(sources.js, {
+          varify: false,
+          final: false,
+          reduce_vars: true,
+          join_vars: false,
+          sequences: true,
+          computed_props: false,
+        });
+
+        sources.js = await jsOptimizeTerser(sources.js, {
+          mangle: false,
+          final: false,
+          join_vars: false,
+          sequences: true,
+          computed_props: false,
+        });
+
+        // sources.js = await jsTransformSwc(sources.js, {
+        //   splitVarsAndSequences: true,
+        // });
+
+        // sources.js = await jsUglify(sources.js, {
+        //   varify: true,
+        //   final: false,
+        //   reduce_vars: true,
+        //   join_vars: false,
+        //   sequences: true,
+        //   computed_props: false,
+        // });
+
+        sources.js = await streamedClosureCompiler.compileOne(sources.js);
+
+        sources.js = await jsTransformSwc(sources.js, {
+          splitVarsAndSequences: true,
+        });
+
+        sources.js = await jsUglify(sources.js, {
+          varify: true,
+          final: false,
+          reduce_vars: true,
+          join_vars: true,
+          sequences: true,
+          computed_props: true,
+        });
+
+        // sources.js = await jsLebab(sources.js);
+
+        sources.js = await jsTransformSwc(sources.js, {
+          minify: true,
+          constToLet: true,
+          floatRound: 6,
+        });
+
+        sources.js = await jsOptimizeTerser(sources.js, {
+          mangle: "all",
+          final: false,
+          join_vars: true,
+          sequences: true,
+          computed_props: true,
+        });
+
+        sources.js = await jsOptimizeTerser(sources.js, {
+          mangle: "variables",
+          final: true,
+          join_vars: true,
+          sequences: true,
+          computed_props: true,
+        });
+
+        sources.js = jsRemoveEndingSemicolons(sources.js);
+      } finally {
+        await writeOptimizedBundle(sources);
+
+        try {
+          await fs.writeFile(path.resolve(outPath_minify, "index-beautified.js"), await dprint(sources.js));
+        } catch {}
+      }
+    });
+
+    const optimizedTotalSize = logTableOptimized(sources);
+
+    devLog.log();
+    devPrintOjutputFileWritten(outPath_minify, optimizedTotalSize);
+    devLog.log();
+
+    const bundled: WriteBundleInput = {
+      html: (await bundleHtml(sources)).html,
+    };
+
+    logTableBundled(bundled, "bundled", true);
+
+    await writeFinalBundle(bundled, outPath_bundle);
+
+    const [zippedRolledBuffer, zippedPlainBuffer] = await Promise.all([
+      zipRoadRoller(sources, bundled),
+      zipBundle(bundled, "plain"),
+    ]);
+
+    const rolledPlainZipSizeDiff = zippedRolledBuffer.length - zippedPlainBuffer.length;
+
+    if (rolledPlainZipSizeDiff > 0) {
+      devLog.logYellow(`\nRolled zip is ${rolledPlainZipSizeDiff} bytes LARGER than plain zip`);
+    } else {
+      devLog.logCyan(`\nRolled zip is ${-rolledPlainZipSizeDiff} bytes smaller than plain zip`);
+    }
+
+    const finalBuffer = rolledPlainZipSizeDiff < 0 ? zippedRolledBuffer : zippedPlainBuffer;
+
+    devLog.log();
+    await devWriteOutputFile(outPath_zip, finalBuffer, null);
+    devLog.log();
+
+    if (!FilesSizeTermBox.final(finalBuffer.length)) {
+      process.exitCode = 1;
+    }
+
+    await globalReport.append();
+  } finally {
+    streamedClosureCompiler.kill();
   }
-
-  const finalBuffer = rolledPlainZipSizeDiff < 0 ? zippedRolledBuffer : zippedPlainBuffer;
-
-  devLog.log();
-  await devWriteOutputFile(outPath_zip, finalBuffer, null);
-  devLog.log();
-
-  if (!FilesSizeTermBox.final(finalBuffer.length)) {
-    process.exitCode = 1;
-  }
-
-  await globalReport.append();
 }
 
 async function zipRoadRoller(sources: ViteBundledOutput, bundled: WriteBundleInput) {

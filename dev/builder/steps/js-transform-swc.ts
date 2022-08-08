@@ -9,12 +9,10 @@ import { getSwcMinifyOptions } from "./js-minify-swc";
 export interface SwcTransformSettings {
   minify?: boolean;
   constToLet?: boolean;
-  splitVarsAndSequences: boolean;
+  splitVarsAndSequences?: boolean;
 
   /** Number of digits to round floating point numbers. If 0, means no rounding at all. */
   floatRound?: number;
-
-  wrapWithIIFE?: boolean;
 }
 
 class Transformer extends SwcVisitor {

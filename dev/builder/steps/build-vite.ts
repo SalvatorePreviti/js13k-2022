@@ -57,7 +57,14 @@ export async function buildWithVite(options: { stripDevTools: boolean }): Promis
           commonjsOptions: { transformMixedEsModules: true, esmExternals: true },
           rollupOptions: {
             output: {
+              generatedCode: {
+                constBindings: true,
+                objectShorthand: true,
+              },
+              preferConst: true,
+              hoistTransitiveImports: true,
               inlineDynamicImports: true,
+              minifyInternalExports: true,
               entryFileNames: `[name].js`,
               chunkFileNames: `[name].js`,
               assetFileNames: ({ name }) => (name?.endsWith(".css") ? "[name].[ext]" : `assets/[name].[ext]`),
@@ -71,9 +78,6 @@ export async function buildWithVite(options: { stripDevTools: boolean }): Promis
           target: ESBUILD_TARGETS,
           charset: "utf8",
           keepNames: false,
-          minifyIdentifiers: false,
-          minifySyntax: false,
-          minifyWhitespace: false,
           globalName: "window",
           pure: browserPureFunctions,
           define: {

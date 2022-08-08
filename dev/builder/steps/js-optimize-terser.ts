@@ -188,7 +188,7 @@ export function getTerserMinifyOptions(settings: TerserMinifySettings): TerserMi
 
       // Transforms constant computed properties into regular ones:
       // {["computed"]: 1} is converted to {computed: 1}
-      computed_props: true,
+      computed_props: settings.computed_props,
 
       // You can pass an array of names and Terser will assume that those functions do not produce side effects. DANGER: will not check if the name is redefined in scope.
       pure_funcs: browserPureFunctions,
@@ -344,13 +344,13 @@ export function getTerserMinifyOptions(settings: TerserMinifySettings): TerserMi
       braces: false,
 
       // false to omit comments in the output
-      comments: false,
+      comments: !settings.final,
 
       // escape HTML comments and the slash in occurrences of </script> in strings
       inline_script: true,
 
       // when turned on, prevents stripping quotes from property names in object literals.
-      keep_quoted_props: false,
+      keep_quoted_props: !settings.computed_props,
 
       // maximum line length (for minified code)
       max_line_len: false,

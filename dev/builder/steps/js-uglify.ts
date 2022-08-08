@@ -6,6 +6,14 @@ import { sizeDifference } from "../lib/logging";
 import { browserPureFunctions } from "../lib/code-utils";
 import { global_defs, mangleConfig } from "../lib/js-config";
 
+// fixes for incomplete types in @swc/core minify that is still experimental
+declare module "uglify-js" {
+  export interface CompressOptions {
+    annotations?: boolean;
+    computed_props?: boolean;
+  }
+}
+
 export async function jsUglify(source: string, settings: JsUglifySettings) {
   return devLog.timed(
     async function js_uglify() {
@@ -63,6 +71,11 @@ export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: R
 
     // Compress options
     compress: {
+      // (default: true) — Pass false to disable potentially dropping functions marked as "pure".
+      // A function call is marked as "pure" if a comment annotation /*@__PURE__*/ or /*#__PURE__*/
+      // immediately precedes the call. For example: /*@__PURE__*/foo();
+      annotations: true,
+
       // Global definitions for conditional compilation
       global_defs,
 
@@ -101,7 +114,7 @@ export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: R
       drop_debugger: false,
 
       // attempt to evaluate constant expressions
-      evaluate: true,
+      evaluate: settings.computed_props,
 
       // Pass true to preserve completion values from terminal statements without return, e.g. in bookmarklets.
       expression: false,
@@ -299,13 +312,13 @@ export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: R
       braces: false,
 
       // false to omit comments in the output
-      comments: false,
+      comments: !settings.final,
 
       // escape HTML comments and the slash in occurrences of </script> in strings
       inline_script: true,
 
       // when turned on, prevents stripping quotes from property names in object literals.
-      keep_quoted_props: false,
+      keep_quoted_props: !settings.computed_props,
 
       // maximum line length (for minified code)
       max_line_len: false,
