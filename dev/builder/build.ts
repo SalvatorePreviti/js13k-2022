@@ -28,7 +28,7 @@ import { jsRemoveEndingSemicolons } from "./lib/code-utils";
 import { StreamedClosureCompiler } from "./steps/js-closure";
 import { swcPluginVars } from "./steps/swc/transforms/swc-plugin-vars";
 import { jsEsbuildMinify } from "./steps/js-esbuild";
-// import { jsLebab } from "./steps/js-lebab";
+import { jsBabel } from "./steps/js-babel";
 
 devLog.titlePaddingWidth = 18;
 
@@ -143,6 +143,8 @@ export async function build() {
       computed_props: true,
     });
 
+    js = jsBabel(js);
+
     js = await jsTransformSwc(js, { final: false, computed_props: true });
 
     js = await jsTransformSwc(
@@ -156,7 +158,7 @@ export async function build() {
 
     js = await streamedClosureCompiler.compileOne(js);
 
-    // js = await jsLebab(js);
+    js = jsBabel(js);
 
     js = await jsTransformSwc(
       js,
@@ -165,14 +167,6 @@ export async function build() {
         constToLet: true,
       }),
     );
-
-    // js = await jsOptimizeTerser(js, {
-    //   mangle: "variables",
-    //   final: true,
-    //   join_vars: true,
-    //   sequences: true,
-    //   computed_props: true,
-    // });
 
     js = await jsOptimizeTerser(js, {
       mangle: "all",
