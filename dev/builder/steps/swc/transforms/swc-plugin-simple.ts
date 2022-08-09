@@ -20,7 +20,7 @@ export const DO_NOT_MANGLE_PREFIX = "@#";
 
 export interface SwcSimpleTransformSettings {
   constToLet?: boolean;
-  splitVarsAndSequences?: boolean;
+  splitVars?: boolean;
   unmangleableProperties?: "mark" | "transform" | undefined;
 
   /** Number of digits to round floating point numbers. If 0, means no rounding at all. */
@@ -171,7 +171,7 @@ class SwcSimpleTransformer extends SwcVisitor {
   private _splitVariableDeclarations(stmts: Statement[] | ModuleItem[]): any[] {
     const resultStatements = [];
     for (const statement of stmts) {
-      if (statement.type === "VariableDeclaration" && this.settings.splitVarsAndSequences) {
+      if (statement.type === "VariableDeclaration" && this.settings.splitVars) {
         // Split variable declarations
         for (const declaration of statement.declarations) {
           resultStatements.push({ ...statement, declarations: [declaration] });
@@ -179,17 +179,17 @@ class SwcSimpleTransformer extends SwcVisitor {
         continue;
       }
 
-      if (
-        statement.type === "ExpressionStatement" &&
-        this.settings.splitVarsAndSequences &&
-        statement.expression.type === "SequenceExpression"
-      ) {
-        // Split simple sequences
-        for (const expression of statement.expression.expressions) {
-          resultStatements.push({ ...statement, expression });
-        }
-        continue;
-      }
+      // if (
+      //   statement.type === "ExpressionStatement" &&
+      //   this.settings.splitVarsAndSequences &&
+      //   statement.expression.type === "SequenceExpression"
+      // ) {
+      //   // Split simple sequences
+      //   for (const expression of statement.expression.expressions) {
+      //     resultStatements.push({ ...statement, expression });
+      //   }
+      //   continue;
+      // }
 
       resultStatements.push(statement);
     }

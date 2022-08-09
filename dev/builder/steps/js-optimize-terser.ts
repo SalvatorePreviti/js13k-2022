@@ -8,6 +8,7 @@ import type {
   SourceMapOptions as TerserSourceMapOptions,
 } from "terser";
 import { browserPureFunctions, global_defs } from "../lib/js-config";
+import { jsRemoveEndingSemicolons } from "../lib/code-utils";
 
 export { TerserMinifyOptions, TerserSourceMapOptions };
 
@@ -16,7 +17,11 @@ export async function jsOptimizeTerser(input: string, settings: TerserMinifySett
     async function js_terser() {
       const terserOptions = getTerserMinifyOptions(settings);
 
-      const result = (await terserMinify(input, terserOptions)).code || input;
+      let result = (await terserMinify(input, terserOptions)).code || input;
+
+      if (settings.final) {
+        result = jsRemoveEndingSemicolons(result);
+      }
 
       this.setSuccessText(sizeDifference(input, result));
       return result;

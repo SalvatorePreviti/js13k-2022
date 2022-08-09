@@ -5,18 +5,20 @@ import type SwcVisitor from "@swc/core/Visitor";
 import { outPath_build } from "../../out-paths";
 import { sizeDifference } from "../../lib/logging";
 import { browserPureFunctions, global_defs, mangleConfig } from "../../lib/js-config";
+import { jsRemoveEndingSemicolons } from "../../lib/code-utils";
 
 export const DO_NOT_MANGLE_PREFIX = "@#";
 
 export interface SwcMinifySettings {
   mangle?: boolean;
+  minify?: boolean;
   final: boolean;
   computed_props: boolean;
 }
 
 export async function jsTransformSwc(
   source: string,
-  minify: SwcMinifySettings | null | undefined | false,
+  minify: "simple" | SwcMinifySettings | null | undefined | false,
   ...transformers: (Plugin | SwcVisitor | null | false | undefined)[]
 ): Promise<string> {
   const swcPlugins: Plugin = (m) => {
@@ -35,9 +37,12 @@ export async function jsTransformSwc(
     return m;
   };
 
+  const minifyWhitespaces = minify === "simple" || !!(minify && (minify.minify ?? minify.final));
+
   return devLog.timed(
+    minify ? "js swc minify" : "js swc transform",
     async function js_swc_transform() {
-      const result =
+      let result =
         (
           await swcTransform(source, {
             cwd: outPath_build,
@@ -46,16 +51,20 @@ export async function jsTransformSwc(
             configFile: false,
             filename: "index.js",
             isModule: true,
-            minify: !!(minify && minify.final),
+            minify: minifyWhitespaces,
             swcrc: false,
             jsc: {
               keepClassNames: false,
               target: "es2022",
-              minify: minify ? getSwcMinifyOptions(minify) : undefined,
+              minify: minify && minify !== "simple" ? getSwcMinifyOptions(minify) : undefined,
             },
             plugin: transformers && transformers.length > 0 ? swcPlugins : undefined,
           })
         ).code || source;
+
+      if (minifyWhitespaces) {
+        result = jsRemoveEndingSemicolons(result);
+      }
 
       this.setSuccessText(sizeDifference(source, result));
       return result;

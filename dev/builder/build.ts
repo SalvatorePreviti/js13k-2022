@@ -28,7 +28,7 @@ import { jsRemoveEndingSemicolons } from "./lib/code-utils";
 import { StreamedClosureCompiler } from "./steps/js-closure";
 import { swcPluginVars } from "./steps/swc/transforms/swc-plugin-vars";
 import { jsEsbuildMinify } from "./steps/js-esbuild";
-import { jsBabel } from "./steps/js-babel";
+import { jsResugar } from "./steps/js-resugar";
 
 devLog.titlePaddingWidth = 18;
 
@@ -111,19 +111,13 @@ export async function build() {
   }
 
   async function minifyJavascript(js: string): Promise<string> {
-    js = await jsTransformSwc(
-      js,
-      false,
-      swcPluginVars({
-        unmangleableProperties: "mark",
-      }),
-    );
+    js = await jsTransformSwc(js, false, swcPluginVars({ unmangleableProperties: "mark" }));
 
     js = await jsUglify(js, {
       varify: false,
       final: false,
       reduce_vars: true,
-      join_vars: true,
+      join_vars: false,
       sequences: true,
       computed_props: true,
     });
@@ -149,7 +143,9 @@ export async function build() {
       computed_props: true,
     });
 
-    js = await jsBabel(js);
+    js = await jsTransformSwc(js, false, swcPluginVars({}));
+
+    js = await jsResugar(js, { minify: false });
 
     js = await jsTransformSwc(js, { final: false, computed_props: true });
 
@@ -164,11 +160,11 @@ export async function build() {
 
     js = await streamedClosureCompiler.compileOne(js);
 
-    js = await jsBabel(js);
+    js = await jsResugar(js, { minify: true });
 
     js = await jsTransformSwc(
       js,
-      { computed_props: true, final: true },
+      { computed_props: true, final: false, minify: true },
       swcPluginVars({
         constToLet: true,
       }),
@@ -181,8 +177,6 @@ export async function build() {
       sequences: true,
       computed_props: true,
     });
-
-    js = jsRemoveEndingSemicolons(js);
 
     return js;
   }

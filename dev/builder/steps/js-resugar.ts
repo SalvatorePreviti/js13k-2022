@@ -3,10 +3,11 @@ import { devLog } from "@balsamic/dev";
 import resugarVarToLetConst from "@resugar/codemod-declarations-block-scope";
 import resugarFunctionsArrow from "@resugar/codemod-functions-arrow";
 import resugarObjectsShorthand from "@resugar/codemod-objects-shorthand";
+import { sizeDifference } from "../lib/logging";
 
-export async function jsBabel(code: string) {
+export async function jsResugar(code: string, settings: { minify: boolean }) {
   return devLog.timed(
-    function js_babel() {
+    function js_resugar() {
       const root = process.cwd();
       const transformResult = transform(code, {
         root,
@@ -15,8 +16,8 @@ export async function jsBabel(code: string) {
         babelrc: false,
         envName: "production",
         comments: true,
-        compact: false,
-        minified: false,
+        compact: !!settings.minify,
+        minified: !!settings.minify,
         parserOpts: {
           sourceType: "module",
           allowAwaitOutsideFunction: true,
@@ -27,7 +28,9 @@ export async function jsBabel(code: string) {
         },
         plugins: [resugarFunctionsArrow, resugarObjectsShorthand, resugarVarToLetConst],
       });
-      return transformResult?.code || code;
+      const result = transformResult?.code || code;
+      this.setSuccessText(sizeDifference(code, result));
+      return result;
     },
     { spinner: true },
   );

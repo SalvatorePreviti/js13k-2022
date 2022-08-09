@@ -39,7 +39,7 @@ export interface SwcPluginVarsSettings extends Exclude<SwcSimpleTransformSetting
 
 export function swcPluginVars(settings: SwcPluginVarsSettings = {}) {
   return (m: Program) => {
-    m = swcPluginSimpleTransform({ ...settings, splitVarsAndSequences: true })(m);
+    m = swcPluginSimpleTransform({ ...settings, splitVars: true })(m);
     m = new SwcVarsTransformer().visitProgram(m);
     return m;
   };
