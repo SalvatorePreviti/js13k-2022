@@ -1,6 +1,6 @@
 import path from "path";
 import zlib from "zlib";
-import fs, { writeFile } from "fs/promises";
+import fs from "fs/promises";
 import {
   devLogBuilding,
   devPrintOjutputFileWritten,
@@ -28,7 +28,6 @@ import { jsRemoveEndingSemicolons } from "./lib/code-utils";
 import { StreamedClosureCompiler } from "./steps/js-closure";
 import { swcPluginVars } from "./steps/swc/transforms/swc-plugin-vars";
 import { jsEsbuildMinify } from "./steps/js-esbuild";
-import { jsLebab } from "./steps/js-lebab";
 // import { jsLebab } from "./steps/js-lebab";
 
 devLog.titlePaddingWidth = 18;
