@@ -4,8 +4,7 @@ import { transform as swcTransform, type Plugin } from "@swc/core";
 import type SwcVisitor from "@swc/core/Visitor";
 import { outPath_build } from "../../out-paths";
 import { sizeDifference } from "../../lib/logging";
-import { global_defs, mangleConfig } from "../../lib/js-config";
-import { browserPureFunctions } from "../../lib/code-utils";
+import { browserPureFunctions, global_defs, mangleConfig } from "../../lib/js-config";
 
 export const DO_NOT_MANGLE_PREFIX = "@#";
 

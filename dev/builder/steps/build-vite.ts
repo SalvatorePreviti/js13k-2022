@@ -7,10 +7,11 @@ import { outPath_build } from "../out-paths";
 import { coloredPrettySize } from "../lib/logging";
 import type { UserConfig as ViteUserConfig, PluginOption } from "vite";
 import { rollupPluginSpglsl } from "spglsl";
-import { browserPureFunctions, domRemoveExternalCssAndScripts, stripUtf8BOM } from "../lib/code-utils";
+import { domRemoveExternalCssAndScripts, stripUtf8BOM } from "../lib/code-utils";
 import { JSDOM } from "jsdom";
 import { rollupPluginSwcTransform } from "./build-swc-transform";
 import shadersMangleGlobals from "../../../app/shaders/_mangle_globals";
+import { browserPureFunctions } from "../lib/js-config";
 
 export interface ViteBundledOutput {
   js: string;
@@ -82,6 +83,7 @@ export async function buildWithVite(options: { stripDevTools: boolean }): Promis
           pure: browserPureFunctions,
           define: {
             this: "window",
+            DEV: "false",
             DEBUG: "false",
             NO_DEBUG: "true",
           },

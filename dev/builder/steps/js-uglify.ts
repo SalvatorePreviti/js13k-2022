@@ -3,8 +3,7 @@ import { minify as uglify } from "uglify-js";
 import type { UnsafeAny } from "@balsamic/dev";
 import { devLog } from "@balsamic/dev";
 import { sizeDifference } from "../lib/logging";
-import { browserPureFunctions } from "../lib/code-utils";
-import { global_defs, mangleConfig } from "../lib/js-config";
+import { browserPureFunctions, global_defs, mangleConfig } from "../lib/js-config";
 
 // fixes for incomplete types in @swc/core minify that is still experimental
 declare module "uglify-js" {

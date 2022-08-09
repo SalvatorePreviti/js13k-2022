@@ -111,7 +111,13 @@ export async function build() {
   }
 
   async function minifyJavascript(js: string): Promise<string> {
-    js = await jsTransformSwc(js, false, swcPluginVars({ unmangleableProperties: "mark" }));
+    js = await jsTransformSwc(
+      js,
+      false,
+      swcPluginVars({
+        unmangleableProperties: "mark",
+      }),
+    );
 
     js = await jsUglify(js, {
       varify: false,
@@ -143,7 +149,7 @@ export async function build() {
       computed_props: true,
     });
 
-    js = jsBabel(js);
+    js = await jsBabel(js);
 
     js = await jsTransformSwc(js, { final: false, computed_props: true });
 
@@ -158,7 +164,7 @@ export async function build() {
 
     js = await streamedClosureCompiler.compileOne(js);
 
-    js = jsBabel(js);
+    js = await jsBabel(js);
 
     js = await jsTransformSwc(
       js,

@@ -2,13 +2,12 @@ import { minify as terserMinify } from "terser";
 import type { UnsafeAny } from "@balsamic/dev";
 import { devLog } from "@balsamic/dev";
 import { sizeDifference } from "../lib/logging";
-import { browserPureFunctions } from "../lib/code-utils";
 import type {
   ECMA as ECMAVersion,
   MinifyOptions as TerserMinifyOptions,
   SourceMapOptions as TerserSourceMapOptions,
 } from "terser";
-import { global_defs } from "../lib/js-config";
+import { browserPureFunctions, global_defs } from "../lib/js-config";
 
 export { TerserMinifyOptions, TerserSourceMapOptions };
 
