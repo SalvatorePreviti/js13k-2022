@@ -4,7 +4,10 @@ import { transform } from "esbuild";
 import { browserPureFunctions } from "../lib/code-utils";
 import { ESBUILD_TARGETS } from "./build-vite";
 
-export async function jsEsbuildMinify(source: string): Promise<string> {
+export async function jsEsbuildMinify(
+  source: string,
+  { mangle, final }: { mangle: boolean; final: boolean },
+): Promise<string> {
   return devLog.timed(
     async function js_esbuild_minify() {
       const result =
@@ -12,9 +15,10 @@ export async function jsEsbuildMinify(source: string): Promise<string> {
           await transform(source, {
             format: "esm",
             keepNames: false,
-            minifyIdentifiers: false,
+            minifyIdentifiers: !!mangle,
             minifySyntax: true,
-            minifyWhitespace: true,
+            minifyWhitespace: !!final,
+            mangleQuoted: !!final,
             treeShaking: true,
             target: ESBUILD_TARGETS,
             charset: "utf8",

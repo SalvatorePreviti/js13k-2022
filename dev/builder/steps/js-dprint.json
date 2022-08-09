@@ -1,6 +1,11 @@
 {
   "incremental": false,
-  "typescript": {},
+  "typescript": {
+    "quoteProps": "preserve",
+    "newLineKind": "lf",
+    "useBraces": "whenNotSingleLine",
+    "bracePosition": "sameLineUnlessHanging"
+  },
   "includes": [],
   "excludes": ["**/node_modules"],
   "plugins": ["https://plugins.dprint.dev/typescript-0.71.1.wasm"]

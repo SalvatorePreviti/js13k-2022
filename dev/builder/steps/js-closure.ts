@@ -116,7 +116,6 @@ export class StreamedClosureCompiler {
     compiler.commandArguments.push("--json_streams", "BOTH");
 
     const compilerProcess = compiler.run();
-    compilerProcess.unref();
     this._compilerProcess = compilerProcess;
 
     // Error events occur when there was a problem spawning the compiler process

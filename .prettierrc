@@ -9,5 +9,13 @@
   "singleQuote": false,
   "tabWidth": 2,
   "trailingComma": "all",
-  "useTabs": false
+  "useTabs": false,
+  "overrides": [
+    {
+      "files": ["app/**/*.ts", "*.js"],
+      "options": {
+        "quoteProps": "preserve"
+      }
+    }
+  ]
 }

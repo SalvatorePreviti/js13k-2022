@@ -8,7 +8,7 @@ import type {
   MinifyOptions as TerserMinifyOptions,
   SourceMapOptions as TerserSourceMapOptions,
 } from "terser";
-import { global_defs, mangleConfig } from "../lib/js-config";
+import { global_defs } from "../lib/js-config";
 
 export { TerserMinifyOptions, TerserSourceMapOptions };
 
@@ -294,7 +294,7 @@ export function getTerserMinifyOptions(settings: TerserMinifySettings): TerserMi
           module,
 
           // Pass an array of identifiers that should be excluded from mangling. Example: ["foo", "bar"].
-          reserved: [...mangleConfig.reserved],
+          // reserved: [...mangleConfig.reserved],
 
           // Mangle properties - optimizes a lot but is very dangerous. Enables only with properties starting with $
           properties:
@@ -313,8 +313,6 @@ export function getTerserMinifyOptions(settings: TerserMinifySettings): TerserMi
 
                   // Pass a RegExp literal or pattern string to only mangle property matching the regular expression.
                   regex: /^[$_]/,
-
-                  reserved: ["_", "$"],
                 }
               : false,
 

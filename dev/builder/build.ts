@@ -18,15 +18,16 @@ import { buildWithVite } from "./steps/build-vite";
 import { bundleHtml } from "./steps/bundle-html";
 import { jsOptimizeTerser } from "./steps/js-optimize-terser";
 import { cssOptimize } from "./steps/css-optimize";
-import { jsTransformSwc } from "./steps/js-transform-swc";
+import { jsTransformSwc } from "./steps/swc/js-transform-swc";
 import { jsRoadroller } from "./steps/js-roadroller";
 import { htmlCssToJs } from "./steps/html-css-to-js";
 import { jsUglify } from "./steps/js-uglify";
 import { htmlMinify } from "./steps/html-minify";
 import { dprint } from "./steps/dprint";
-import { jsMinifySwc } from "./steps/js-minify-swc";
 import { jsRemoveEndingSemicolons } from "./lib/code-utils";
 import { StreamedClosureCompiler } from "./steps/js-closure";
+import { swcPluginVars } from "./steps/swc/transforms/swc-plugin-vars";
+import { jsEsbuildMinify } from "./steps/js-esbuild";
 import { jsLebab } from "./steps/js-lebab";
 // import { jsLebab } from "./steps/js-lebab";
 
@@ -34,7 +35,7 @@ devLog.titlePaddingWidth = 18;
 
 export async function build() {
   const streamedClosureCompiler = new StreamedClosureCompiler({
-    beautify: false,
+    beautify: true,
     rename_variable_prefix: "$$$",
   });
 
@@ -51,87 +52,20 @@ export async function build() {
     await devLog.timed(async function minify() {
       try {
         devLog.log();
-
-        sources.html = await htmlMinify(sources.html, { prependUtf8BOM: true, type: "page" });
-
-        sources.css = await cssOptimize(sources.css);
-
-        sources.js = await jsUglify(sources.js, {
-          varify: false,
-          final: false,
-          reduce_vars: true,
-          join_vars: false,
-          sequences: true,
-          computed_props: false,
-        });
-
-        sources.js = await jsOptimizeTerser(sources.js, {
-          mangle: false,
-          final: false,
-          join_vars: false,
-          sequences: true,
-          computed_props: false,
-        });
-
-        // sources.js = await jsTransformSwc(sources.js, {
-        //   splitVarsAndSequences: true,
-        // });
-
-        // sources.js = await jsUglify(sources.js, {
-        //   varify: true,
-        //   final: false,
-        //   reduce_vars: true,
-        //   join_vars: false,
-        //   sequences: true,
-        //   computed_props: false,
-        // });
-
-        sources.js = await streamedClosureCompiler.compileOne(sources.js);
-
-        sources.js = await jsTransformSwc(sources.js, {
-          splitVarsAndSequences: true,
-        });
-
-        sources.js = await jsUglify(sources.js, {
-          varify: true,
-          final: false,
-          reduce_vars: true,
-          join_vars: true,
-          sequences: true,
-          computed_props: true,
-        });
-
-        // sources.js = await jsLebab(sources.js);
-
-        sources.js = await jsTransformSwc(sources.js, {
-          minify: true,
-          constToLet: true,
-          floatRound: 6,
-        });
-
-        sources.js = await jsOptimizeTerser(sources.js, {
-          mangle: "all",
-          final: false,
-          join_vars: true,
-          sequences: true,
-          computed_props: true,
-        });
-
-        sources.js = await jsOptimizeTerser(sources.js, {
-          mangle: "variables",
-          final: true,
-          join_vars: true,
-          sequences: true,
-          computed_props: true,
-        });
-
-        sources.js = jsRemoveEndingSemicolons(sources.js);
+        [sources.html, sources.css, sources.js] = await Promise.all([
+          htmlMinify(sources.html, { prependUtf8BOM: true, type: "page" }),
+          cssOptimize(sources.css),
+          minifyJavascript(sources.js),
+        ]);
       } finally {
-        await writeOptimizedBundle(sources);
-
-        try {
-          await fs.writeFile(path.resolve(outPath_minify, "index-beautified.js"), await dprint(sources.js));
-        } catch {}
+        await Promise.all([
+          writeOptimizedBundle(sources),
+          (async () => {
+            try {
+              await fs.writeFile(path.resolve(outPath_minify, "index-beautified.js"), await dprint(sources.js));
+            } catch {}
+          })(),
+        ]);
       }
     });
 
@@ -176,15 +110,88 @@ export async function build() {
   } finally {
     streamedClosureCompiler.kill();
   }
+
+  async function minifyJavascript(js: string): Promise<string> {
+    js = await jsTransformSwc(js, false, swcPluginVars({ unmangleableProperties: "mark" }));
+
+    js = await jsUglify(js, {
+      varify: false,
+      final: false,
+      reduce_vars: true,
+      join_vars: true,
+      sequences: true,
+      computed_props: true,
+    });
+
+    js = await jsEsbuildMinify(js, { final: false, mangle: false });
+
+    js = await jsTransformSwc(js, { final: false, computed_props: true }, swcPluginVars());
+
+    js = await jsOptimizeTerser(js, {
+      mangle: false,
+      final: false,
+      join_vars: false,
+      sequences: true,
+      computed_props: true,
+    });
+
+    js = await jsUglify(js, {
+      varify: true,
+      final: false,
+      reduce_vars: true,
+      join_vars: true,
+      sequences: true,
+      computed_props: true,
+    });
+
+    js = await jsTransformSwc(js, { final: false, computed_props: true });
+
+    js = await jsTransformSwc(
+      js,
+      null,
+      swcPluginVars({
+        unmangleableProperties: "transform",
+        floatRound: 6,
+      }),
+    );
+
+    js = await streamedClosureCompiler.compileOne(js);
+
+    // js = await jsLebab(js);
+
+    js = await jsTransformSwc(
+      js,
+      { computed_props: true, final: true },
+      swcPluginVars({
+        constToLet: true,
+      }),
+    );
+
+    // js = await jsOptimizeTerser(js, {
+    //   mangle: "variables",
+    //   final: true,
+    //   join_vars: true,
+    //   sequences: true,
+    //   computed_props: true,
+    // });
+
+    js = await jsOptimizeTerser(js, {
+      mangle: "all",
+      final: true,
+      join_vars: true,
+      sequences: true,
+      computed_props: true,
+    });
+
+    js = jsRemoveEndingSemicolons(js);
+
+    return js;
+  }
 }
 
 async function zipRoadRoller(sources: ViteBundledOutput, bundled: WriteBundleInput) {
   const htmlCssJsBundle = await htmlCssToJs(sources);
-  const bundledHtmlBodyAndCss = await jsMinifySwc(htmlCssJsBundle.jsHtml, {
-    mangle: false,
-    final: true,
-    computed_props: true,
-  });
+  const bundledHtmlBodyAndCss = await jsEsbuildMinify(htmlCssJsBundle.jsHtml, { mangle: true, final: true });
   htmlCssJsBundle.jsHtml = "";
   if (bundledHtmlBodyAndCss) {
     htmlCssJsBundle.js = `${bundledHtmlBodyAndCss};${htmlCssJsBundle.js}`;

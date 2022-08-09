@@ -1,10 +1,13 @@
 import { devLog } from "@balsamic/dev";
 import type { JsMinifyOptions } from "@swc/core";
-import { transform as swcTransform } from "@swc/core";
-import { outPath_build } from "../out-paths";
-import { sizeDifference } from "../lib/logging";
-import { global_defs, mangleConfig } from "../lib/js-config";
-import { browserPureFunctions } from "../lib/code-utils";
+import { transform as swcTransform, type Plugin } from "@swc/core";
+import type SwcVisitor from "@swc/core/Visitor";
+import { outPath_build } from "../../out-paths";
+import { sizeDifference } from "../../lib/logging";
+import { global_defs, mangleConfig } from "../../lib/js-config";
+import { browserPureFunctions } from "../../lib/code-utils";
+
+export const DO_NOT_MANGLE_PREFIX = "@#";
 
 export interface SwcMinifySettings {
   mangle?: boolean;
@@ -12,9 +15,29 @@ export interface SwcMinifySettings {
   computed_props: boolean;
 }
 
-export async function jsMinifySwc(source: string, settings: SwcMinifySettings): Promise<string> {
+export async function jsTransformSwc(
+  source: string,
+  minify: SwcMinifySettings | null | undefined | false,
+  ...transformers: (Plugin | SwcVisitor | null | false | undefined)[]
+): Promise<string> {
+  const swcPlugins: Plugin = (m) => {
+    for (let transformer of transformers) {
+      if (!transformer) {
+        continue;
+      }
+
+      if (typeof transformer === "object") {
+        const t = transformer;
+        transformer = (p) => t.visitProgram(p);
+      }
+
+      m = transformer(m) || m;
+    }
+    return m;
+  };
+
   return devLog.timed(
-    async function js_swc_minify() {
+    async function js_swc_transform() {
       const result =
         (
           await swcTransform(source, {
@@ -24,15 +47,17 @@ export async function jsMinifySwc(source: string, settings: SwcMinifySettings): 
             configFile: false,
             filename: "index.js",
             isModule: true,
-            minify: settings.final,
+            minify: !!(minify && minify.final),
             swcrc: false,
             jsc: {
               keepClassNames: false,
               target: "es2022",
-              minify: getSwcMinifyOptions(settings),
+              minify: minify ? getSwcMinifyOptions(minify) : undefined,
             },
+            plugin: transformers && transformers.length > 0 ? swcPlugins : undefined,
           })
         ).code || source;
+
       this.setSuccessText(sizeDifference(source, result));
       return result;
     },
