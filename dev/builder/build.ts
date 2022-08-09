@@ -24,7 +24,6 @@ import { htmlCssToJs } from "./steps/html-css-to-js";
 import { jsUglify } from "./steps/js-uglify";
 import { htmlMinify } from "./steps/html-minify";
 import { dprint } from "./steps/dprint";
-import { jsRemoveEndingSemicolons } from "./lib/code-utils";
 import { StreamedClosureCompiler } from "./steps/js-closure";
 import { swcPluginVars } from "./steps/swc/transforms/swc-plugin-vars";
 import { jsEsbuildMinify } from "./steps/js-esbuild";
