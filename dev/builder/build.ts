@@ -16,7 +16,7 @@ import type { WriteBundleInput } from "./lib/write-bundle";
 import type { ViteBundledOutput } from "./steps/build-vite";
 import { buildWithVite } from "./steps/build-vite";
 import { bundleHtml } from "./steps/bundle-html";
-import { jsOptimizeTerser } from "./steps/js-optimize-terser";
+import { jsTerser } from "./steps/js-terser";
 import { cssOptimize } from "./steps/css-optimize";
 import { jsTransformSwc } from "./steps/swc/js-transform-swc";
 import { jsRoadroller } from "./steps/js-roadroller";
@@ -126,7 +126,7 @@ export async function build() {
 
     js = await jsTransformSwc(js, { final: false, computed_props: true }, swcPluginVars());
 
-    js = await jsOptimizeTerser(js, {
+    js = await jsTerser(js, {
       mangle: false,
       final: false,
       join_vars: false,
@@ -170,7 +170,7 @@ export async function build() {
       }),
     );
 
-    js = await jsOptimizeTerser(js, {
+    js = await jsTerser(js, {
       mangle: "all",
       final: true,
       join_vars: true,

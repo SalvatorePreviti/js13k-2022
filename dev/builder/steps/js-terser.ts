@@ -12,7 +12,7 @@ import { jsRemoveEndingSemicolons } from "../lib/code-utils";
 
 export { TerserMinifyOptions, TerserSourceMapOptions };
 
-export async function jsOptimizeTerser(input: string, settings: TerserMinifySettings) {
+export async function jsTerser(input: string, settings: TerserMinifySettings) {
   return devLog.timed(
     async function js_terser() {
       const terserOptions = getTerserMinifyOptions(settings);
