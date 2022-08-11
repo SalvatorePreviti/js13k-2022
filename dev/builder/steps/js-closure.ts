@@ -49,8 +49,10 @@ export class StreamedClosureCompiler {
       this._stdin!.push(JSON.stringify([{ src: source, path: this.inputFilePath }]));
       this._stdin!.push(null);
       const result = (await this._compilerPromise) || source;
-      await writeFile(this.inputFilePath, source, "utf8");
-      await writeFile(this.outputFilePath, result, "utf8");
+      await Promise.all([
+        writeFile(this.inputFilePath, source, "utf8"),
+        writeFile(this.outputFilePath, result, "utf8"),
+      ]);
 
       return result;
     };
