@@ -111,6 +111,8 @@ export async function build() {
   }
 
   async function minifyJavascript(js: string): Promise<string> {
+    js = await dprint(js);
+
     js = await jsTransformSwc(js, false, swcPluginVars({ unmangleableProperties: "mark" }));
 
     js = await jsUglify(js, {
@@ -161,29 +163,33 @@ export async function build() {
       }),
     );
 
+    // Google closure compiler.
+
     js = await streamedClosureCompiler.compileOne(js);
 
     js = await jsBabel(js, {
-      minify: true,
+      minify: false,
       plugins: [...jsBabelResugarPlugins, babelPluginVars({ lazyVariablesOptimization: true })],
     });
 
     js = await jsTransformSwc(
       js,
-      { final: false, computed_props: true, minify: true },
+      { final: false, computed_props: true, minify: false },
       swcPluginVars({ constToLet: true }),
     );
 
+    // Mangling
+
     js = await jsTerser(js, {
       mangle: "all",
-      final: true,
+      final: false,
       join_vars: true,
       sequences: true,
       computed_props: true,
     });
 
     js = await jsBabel(js, {
-      minify: true,
+      minify: false,
       plugins: [babelPluginVars({ lazyVariablesOptimization: false }), babelPluginVars({})],
     });
 
