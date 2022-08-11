@@ -29,11 +29,13 @@ export function babelPluginVars(settings: { lazyVariablesOptimization?: boolean 
                 const valueBinding = scope.getBinding(node.value.name);
                 if (valueBinding && !renamedBindings.has(valueBinding)) {
                   const keyBinding = valueBinding.scope.getBinding(node.key.name);
-                  let canRename = true;
-                  if (keyBinding) {
+                  let canRename = false;
+                  if (keyBinding && !renamedBindings.has(valueBinding)) {
+                    canRename = true;
                     for (let p = keyBinding.scope; p; p = p.parent) {
                       if (p === valueBinding.scope) {
                         canRename = false;
+                        break;
                       }
                     }
                   }
