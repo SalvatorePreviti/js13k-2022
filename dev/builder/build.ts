@@ -186,7 +186,7 @@ export async function build() {
     // Mangling
 
     js = await jsTerser(js, {
-      mangle: "all",
+      mangle: "variables",
       final: false,
       join_vars: true,
       sequences: true,
