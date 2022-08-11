@@ -184,7 +184,7 @@ export async function build() {
 
     js = await jsBabel(js, {
       minify: true,
-      plugins: [babelPluginVars({}), babelPluginVars({})],
+      plugins: [babelPluginVars({ lazyVariablesOptimization: false }), babelPluginVars({})],
     });
 
     js = await jsTerser(js, {

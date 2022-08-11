@@ -17,7 +17,7 @@ import main_fsSource, {
 
 import voidFsSource from "./shaders/void-fragment.frag";
 
-import { gl, initShaderProgram } from "./gl";
+import { gl, initGl, initShaderProgram } from "./gl";
 
 import { integers_map } from "./math/math";
 import { mat_perspective, zFar, zNear, camera_position, camera_rotation, camera_view } from "./camera";
@@ -26,7 +26,17 @@ import { buildWorld, renderMainScene } from "./level/scene";
 import { csm_buildMatrix, lightMatrix } from "./csm";
 import { initInputHandlers } from "./input";
 
+initGl();
+
 buildWorld();
+
+gl.enable(gl.DEPTH_TEST); // Enable depth testing
+gl.enable(gl.CULL_FACE); // Don't render triangle backs
+
+gl.clearColor(0, 0.7, 1, 1); // Clear to black, fully opaque
+// gl.clearDepth(1); // Clear everything. Default value is 1
+// gl.cullFace(gl.BACK); // Default value is already BACK
+// gl.depthFunc(gl.LEQUAL); // Default is LESS, seems LEQUAL and LESS both are OK
 
 const csm_framebuffers: WebGLFramebuffer[] = [];
 
@@ -140,14 +150,6 @@ const draw = () => {
 
   renderMainScene();
 };
-
-gl.enable(gl.DEPTH_TEST); // Enable depth testing
-gl.enable(gl.CULL_FACE); // Don't render triangle backs
-
-gl.clearColor(0, 0.7, 1, 1); // Clear to black, fully opaque
-// gl.clearDepth(1); // Clear everything. Default value is 1
-// gl.cullFace(gl.BACK); // Default value is already BACK
-// gl.depthFunc(gl.LEQUAL); // Default is LESS, seems LEQUAL and LESS both are OK
 
 requestAnimationFrame(draw);
 
