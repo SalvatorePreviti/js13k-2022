@@ -117,7 +117,7 @@ export async function build() {
       varify: false,
       final: false,
       reduce_vars: true,
-      join_vars: false,
+      join_vars: true,
       sequences: true,
       computed_props: true,
     });
@@ -164,7 +164,7 @@ export async function build() {
 
     js = await jsTransformSwc(
       js,
-      { computed_props: true, final: false, minify: true },
+      { final: false, computed_props: true, minify: true },
       swcPluginVars({
         constToLet: true,
       }),
