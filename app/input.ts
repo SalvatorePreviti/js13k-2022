@@ -44,29 +44,31 @@ export const mouse_movementReset = () => (mouse_movementX = mouse_movementY = 0)
 
 let _mouseDown: boolean | 0 | undefined;
 
-if (!DEBUG) {
-  oncontextmenu = () => false;
-}
-
-onblur = () => (keyboard_downKeys.length = _mouseDown = mouse_movementX = mouse_movementY = 0);
-
-onkeydown = ({ code, target }) => {
-  if (target === document.body) {
-    keyboard_downKeys[keyMap[code as KEY_CODE]!] = 1;
+export const initInputHandlers = () => {
+  if (!DEBUG) {
+    oncontextmenu = () => false;
   }
-};
 
-onkeyup = ({ code }) => (keyboard_downKeys[keyMap[code as KEY_CODE]!] = 0);
+  onblur = () => (keyboard_downKeys.length = _mouseDown = mouse_movementX = mouse_movementY = 0);
 
-onmousedown = ({ target, buttons }: MouseEvent) => {
-  _mouseDown = (buttons === 1 && target === document.body) || target === hC;
-};
+  onkeydown = ({ code, target }) => {
+    if (target === document.body) {
+      keyboard_downKeys[keyMap[code as KEY_CODE]!] = 1;
+    }
+  };
 
-onmouseup = () => (_mouseDown = 0);
+  onkeyup = ({ code }) => (keyboard_downKeys[keyMap[code as KEY_CODE]!] = 0);
 
-onmousemove = ({ buttons, movementX, movementY }) => {
-  if (((buttons > 0 && _mouseDown) || document.pointerLockElement) && document.activeElement) {
-    mouse_movementX += movementX;
-    mouse_movementY += movementY;
-  }
+  onmousedown = ({ target, buttons }: MouseEvent) => {
+    _mouseDown = (buttons === 1 && target === document.body) || target === hC;
+  };
+
+  onmouseup = () => (_mouseDown = 0);
+
+  onmousemove = ({ buttons, movementX, movementY }) => {
+    if (((buttons > 0 && _mouseDown) || document.pointerLockElement) && document.activeElement) {
+      mouse_movementX += movementX;
+      mouse_movementY += movementY;
+    }
+  };
 };

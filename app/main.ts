@@ -24,6 +24,7 @@ import { mat_perspective, zFar, zNear, camera_position, camera_rotation, camera_
 import { camera_update } from "./camera-update";
 import { buildWorld, renderMainScene } from "./level/scene";
 import { csm_buildMatrix, lightMatrix } from "./csm";
+import { initInputHandlers } from "./input";
 
 buildWorld();
 
@@ -149,3 +150,5 @@ gl.clearColor(0, 0.7, 1, 1); // Clear to black, fully opaque
 // gl.depthFunc(gl.LEQUAL); // Default is LESS, seems LEQUAL and LESS both are OK
 
 requestAnimationFrame(draw);
+
+initInputHandlers();
