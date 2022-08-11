@@ -28,6 +28,7 @@ import { StreamedClosureCompiler } from "./steps/js-closure";
 import { swcPluginVars } from "./steps/swc/transforms/swc-plugin-vars";
 import { jsEsbuildMinify } from "./steps/js-esbuild";
 import { jsResugar } from "./steps/js-resugar";
+import { jsDestructure } from "./steps/js-destructure";
 
 devLog.titlePaddingWidth = 18;
 
@@ -171,6 +172,16 @@ export async function build() {
 
     js = await jsTerser(js, {
       mangle: "all",
+      final: true,
+      join_vars: true,
+      sequences: true,
+      computed_props: true,
+    });
+
+    js = await jsDestructure(js);
+
+    js = await jsTerser(js, {
+      mangle: false,
       final: true,
       join_vars: true,
       sequences: true,
