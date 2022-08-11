@@ -1,52 +1,17 @@
-import type { ConfigAPI, NodePath, PluginObj, types } from "@babel/core";
-import { transform } from "@babel/core";
+import type { ConfigAPI, NodePath, PluginItem, PluginObj, types } from "@babel/core";
 import type { LVal } from "@babel/types";
-import { devLog } from "@balsamic/dev";
-import { sizeDifference } from "../lib/logging";
 import type { TraverseOptions } from "@babel/traverse";
 import traverse from "@babel/traverse";
 
-export async function jsFinalVars(code: string, settings: { lazyVariablesOptimization: boolean }) {
-  return devLog.timed(
-    function js_final_vars() {
-      const jsFinalVarsPlugin = makeJsFinalVarsPlugin(settings);
-      const root = process.cwd();
-      const transformResult = transform(code, {
-        root,
-        cwd: root,
-        configFile: false,
-        babelrc: false,
-        envName: "production",
-        comments: true,
-        compact: true,
-        minified: true,
-        parserOpts: {
-          sourceType: "module",
-          allowAwaitOutsideFunction: true,
-          allowImportExportEverywhere: true,
-          allowReturnOutsideFunction: true,
-          allowSuperOutsideMethod: true,
-          allowUndeclaredExports: true,
-        },
-        plugins: [
-          "babel-plugin-transform-simplify-comparison-operators",
-          [jsFinalVarsPlugin, {}, "jsFinalVarsPlugin1"],
-          [jsFinalVarsPlugin, {}, "jsFinalVarsPlugin2"],
-        ],
-      });
-      const result = transformResult?.code || code;
-      this.setSuccessText(sizeDifference(code, result));
-      return result;
-    },
-    { spinner: true },
-  );
-}
+let _pluginCounter = 0;
 
-export function makeJsFinalVarsPlugin(settings: { lazyVariablesOptimization: boolean }) {
-  /**
-   * This magic plugin optimize destructuring by maximizing shorthand.
-   */
-  return function jsFinalVarsPlugin(api: ConfigAPI): PluginObj {
+/**
+ * This magic plugin optimize destructuring by maximizing shorthand.
+ */
+export function babelPluginVars(settings: { lazyVariablesOptimization?: boolean }): PluginItem {
+  return [jsFinalVarsPlugin, {}, `vars${++_pluginCounter}`];
+
+  function jsFinalVarsPlugin(api: ConfigAPI): PluginObj {
     api.assertVersion(7);
 
     const renamedBindings = new Set();
@@ -217,7 +182,7 @@ export function makeJsFinalVarsPlugin(settings: { lazyVariablesOptimization: boo
         }
       }
     }
-  };
+  }
 
   function isIdentifierUsed(parentPath: NodePath, name: string) {
     let referenced = false;

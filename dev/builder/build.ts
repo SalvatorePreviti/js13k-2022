@@ -27,8 +27,8 @@ import { dprint } from "./steps/dprint";
 import { StreamedClosureCompiler } from "./steps/js-closure";
 import { swcPluginVars } from "./steps/swc/transforms/swc-plugin-vars";
 import { jsEsbuildMinify } from "./steps/js-esbuild";
-import { jsResugar } from "./steps/js-resugar";
-import { jsFinalVars } from "./steps/js-final-vars";
+import { jsBabel, jsBabelResugarPlugins } from "./steps/babel/js-babel";
+import { babelPluginVars } from "./steps/babel/babel-plugin-vars";
 
 devLog.titlePaddingWidth = 18;
 
@@ -143,11 +143,14 @@ export async function build() {
       computed_props: true,
     });
 
-    js = await jsTransformSwc(js, false, swcPluginVars({}));
+    js = await jsTransformSwc(js, false, swcPluginVars());
 
-    js = await jsResugar(js, { minify: false });
+    js = await jsBabel(js, {
+      minify: false,
+      plugins: [...jsBabelResugarPlugins],
+    });
 
-    js = await jsTransformSwc(js, { final: false, computed_props: true });
+    js = await jsTransformSwc(js, { final: false, computed_props: true }, swcPluginVars());
 
     js = await jsTransformSwc(
       js,
@@ -160,14 +163,15 @@ export async function build() {
 
     js = await streamedClosureCompiler.compileOne(js);
 
-    js = await jsResugar(js, { minify: true });
+    js = await jsBabel(js, {
+      minify: true,
+      plugins: [...jsBabelResugarPlugins, babelPluginVars({ lazyVariablesOptimization: true })],
+    });
 
     js = await jsTransformSwc(
       js,
       { final: false, computed_props: true, minify: true },
-      swcPluginVars({
-        constToLet: true,
-      }),
+      swcPluginVars({ constToLet: true }),
     );
 
     js = await jsTerser(js, {
@@ -178,7 +182,10 @@ export async function build() {
       computed_props: true,
     });
 
-    js = await jsFinalVars(js, { lazyVariablesOptimization: false });
+    js = await jsBabel(js, {
+      minify: true,
+      plugins: [babelPluginVars({}), babelPluginVars({})],
+    });
 
     js = await jsTerser(js, {
       mangle: false,

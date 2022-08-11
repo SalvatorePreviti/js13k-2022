@@ -1,13 +1,21 @@
+import type { PluginItem } from "@babel/core";
 import { transform } from "@babel/core";
 import { devLog } from "@balsamic/dev";
+import { sizeDifference } from "../../lib/logging";
 import resugarVarToLetConst from "@resugar/codemod-declarations-block-scope";
 import resugarFunctionsArrow from "@resugar/codemod-functions-arrow";
 import resugarObjectsShorthand from "@resugar/codemod-objects-shorthand";
-import { sizeDifference } from "../lib/logging";
 
-export async function jsResugar(code: string, settings: { minify: boolean }) {
+export const jsBabelResugarPlugins = [resugarVarToLetConst, resugarFunctionsArrow, resugarObjectsShorthand];
+
+export interface JsBabelSettings {
+  plugins: PluginItem[];
+  minify: boolean;
+}
+
+export async function jsBabel(code: string, settings: JsBabelSettings) {
   return devLog.timed(
-    function js_resugar() {
+    function js_babel() {
       const root = process.cwd();
       const transformResult = transform(code, {
         root,
@@ -26,7 +34,7 @@ export async function jsResugar(code: string, settings: { minify: boolean }) {
           allowSuperOutsideMethod: true,
           allowUndeclaredExports: true,
         },
-        plugins: [resugarFunctionsArrow, resugarObjectsShorthand, resugarVarToLetConst],
+        plugins: settings.plugins,
       });
       const result = transformResult?.code || code;
       this.setSuccessText(sizeDifference(code, result));
