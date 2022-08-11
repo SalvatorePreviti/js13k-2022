@@ -5,10 +5,14 @@ import { jsRemoveEndingSemicolons } from "../lib/code-utils";
 import { ESBUILD_TARGETS } from "./build-vite";
 import { browserPureFunctions } from "../lib/js-config";
 
-export async function jsEsbuildMinify(
-  source: string,
-  { mangle, final }: { mangle: boolean; final: boolean },
-): Promise<string> {
+export interface EsBuildMinifySettings {
+  mangle: boolean;
+  minifySyntax: boolean;
+  minifyWhitespace: boolean;
+  computed_props?: boolean;
+}
+
+export async function jsEsbuildMinify(source: string, settings: EsBuildMinifySettings): Promise<string> {
   return devLog.timed(
     async function js_esbuild_minify() {
       let result =
@@ -16,10 +20,10 @@ export async function jsEsbuildMinify(
           await transform(source, {
             format: "esm",
             keepNames: false,
-            minifyIdentifiers: !!mangle,
-            minifySyntax: true,
-            minifyWhitespace: !!final,
-            mangleQuoted: !!final,
+            minifyIdentifiers: !!settings.mangle,
+            minifySyntax: !!settings.minifySyntax,
+            minifyWhitespace: !!settings.minifyWhitespace,
+            mangleQuoted: settings.computed_props !== undefined ? !!settings.computed_props : !!settings.minifySyntax,
             treeShaking: true,
             target: ESBUILD_TARGETS,
             charset: "utf8",

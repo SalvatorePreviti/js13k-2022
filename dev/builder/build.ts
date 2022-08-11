@@ -124,7 +124,12 @@ export async function build() {
       computed_props: true,
     });
 
-    js = await jsEsbuildMinify(js, { final: false, mangle: false });
+    js = await jsEsbuildMinify(js, {
+      mangle: false,
+      minifySyntax: true,
+      minifyWhitespace: true,
+      computed_props: true,
+    });
 
     js = await jsTransformSwc(js, { final: false, computed_props: true }, swcPluginVars());
 
@@ -207,7 +212,12 @@ export async function build() {
 
 async function zipRoadRoller(sources: ViteBundledOutput, bundled: WriteBundleInput) {
   const htmlCssJsBundle = await htmlCssToJs(sources);
-  const bundledHtmlBodyAndCss = await jsEsbuildMinify(htmlCssJsBundle.jsHtml, { mangle: true, final: true });
+  const bundledHtmlBodyAndCss = await jsEsbuildMinify(htmlCssJsBundle.jsHtml, {
+    mangle: false,
+    minifySyntax: true,
+    minifyWhitespace: true,
+    computed_props: true,
+  });
   htmlCssJsBundle.jsHtml = "";
   if (bundledHtmlBodyAndCss) {
     htmlCssJsBundle.js = `${bundledHtmlBodyAndCss};${htmlCssJsBundle.js}`;
