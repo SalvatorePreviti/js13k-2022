@@ -29,7 +29,6 @@ import { swcPluginVars } from "./steps/swc/transforms/swc-plugin-vars";
 import { jsEsbuildMinify } from "./steps/js-esbuild";
 import { jsBabel, jsBabelResugarPlugins } from "./steps/babel/js-babel";
 import { babelPluginVars } from "./steps/babel/babel-plugin-vars";
-import { jsTdeMinify } from "./steps/js-tde-minify";
 
 devLog.titlePaddingWidth = 18;
 
