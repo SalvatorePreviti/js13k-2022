@@ -9,6 +9,7 @@ import traverse from "@babel/traverse";
 export async function jsFinalVars(code: string, settings: { lazyVariablesOptimization: boolean }) {
   return devLog.timed(
     function js_final_vars() {
+      const jsFinalVarsPlugin = makeJsFinalVarsPlugin(settings);
       const root = process.cwd();
       const transformResult = transform(code, {
         root,
@@ -28,6 +29,7 @@ export async function jsFinalVars(code: string, settings: { lazyVariablesOptimiz
           allowUndeclaredExports: true,
         },
         plugins: [
+          "babel-plugin-transform-simplify-comparison-operators",
           [jsFinalVarsPlugin, {}, "jsFinalVarsPlugin1"],
           [jsFinalVarsPlugin, {}, "jsFinalVarsPlugin2"],
         ],
@@ -38,11 +40,13 @@ export async function jsFinalVars(code: string, settings: { lazyVariablesOptimiz
     },
     { spinner: true },
   );
+}
 
+export function makeJsFinalVarsPlugin(settings: { lazyVariablesOptimization: boolean }) {
   /**
    * This magic plugin optimize destructuring by maximizing shorthand.
    */
-  function jsFinalVarsPlugin(api: ConfigAPI): PluginObj {
+  return function jsFinalVarsPlugin(api: ConfigAPI): PluginObj {
     api.assertVersion(7);
 
     const renamedBindings = new Set();
@@ -213,7 +217,7 @@ export async function jsFinalVars(code: string, settings: { lazyVariablesOptimiz
         }
       }
     }
-  }
+  };
 
   function isIdentifierUsed(parentPath: NodePath, name: string) {
     let referenced = false;
