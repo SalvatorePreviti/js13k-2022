@@ -8,7 +8,7 @@ let _pluginCounter = 0;
 /**
  * This magic plugin optimize destructuring by maximizing shorthand.
  */
-export function babelPluginVars(settings: { lazyVariablesOptimization?: boolean }): PluginItem {
+export function babelPluginVars(settings: { lazyVariablesOptimization?: boolean } = {}): PluginItem {
   return [jsFinalVarsPlugin, {}, `vars${++_pluginCounter}`];
 
   function jsFinalVarsPlugin(api: ConfigAPI): PluginObj {

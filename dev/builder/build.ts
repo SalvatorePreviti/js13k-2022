@@ -29,6 +29,7 @@ import { swcPluginVars } from "./steps/swc/transforms/swc-plugin-vars";
 import { jsEsbuildMinify } from "./steps/js-esbuild";
 import { jsBabel, jsBabelResugarPlugins } from "./steps/babel/js-babel";
 import { babelPluginVars } from "./steps/babel/babel-plugin-vars";
+import { jsTdeMinify } from "./steps/js-tde-minify";
 
 devLog.titlePaddingWidth = 18;
 
@@ -174,16 +175,16 @@ export async function build() {
 
     js = await jsBabel(js, {
       minify: false,
-      plugins: [...jsBabelResugarPlugins, babelPluginVars({ lazyVariablesOptimization: true })],
+      plugins: [...jsBabelResugarPlugins, babelPluginVars()],
     });
+
+    // Mangling
 
     js = await jsTransformSwc(
       js,
       { final: false, computed_props: true, minify: false },
       swcPluginVars({ constToLet: true }),
     );
-
-    // Mangling
 
     js = await jsTerser(js, {
       mangle: "variables",
@@ -195,7 +196,7 @@ export async function build() {
 
     js = await jsBabel(js, {
       minify: false,
-      plugins: [babelPluginVars({ lazyVariablesOptimization: false }), babelPluginVars({})],
+      plugins: [babelPluginVars({})],
     });
 
     js = await jsTerser(js, {
