@@ -239,9 +239,6 @@ function variableDeclarationSortCompare(da: VariableDeclaration, db: VariableDec
       return a.init.value.localeCompare(b.init.value);
     }
     c = constExpressionOrdering(a.init) - constExpressionOrdering(b.init);
-    if (c) {
-      return c;
-    }
   } else {
     c = compareBoolean(!a.init, !b.init);
   }
