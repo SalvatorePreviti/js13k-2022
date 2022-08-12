@@ -157,8 +157,6 @@ export async function build() {
       plugins: [...jsBabelResugarPlugins],
     });
 
-    js = await jsTransformSwc(js, { final: false, computed_props: true }, swcPluginVars());
-
     js = await jsTransformSwc(
       js,
       null,
@@ -177,13 +175,13 @@ export async function build() {
       plugins: [...jsBabelResugarPlugins, babelPluginVars()],
     });
 
-    // Mangling
-
     js = await jsTransformSwc(
       js,
       { final: false, computed_props: true, minify: false },
       swcPluginVars({ constToLet: true }),
     );
+
+    // Mangling
 
     js = await jsTerser(js, {
       mangle: "variables",

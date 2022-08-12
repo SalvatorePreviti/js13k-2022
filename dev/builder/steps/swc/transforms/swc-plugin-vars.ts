@@ -243,5 +243,5 @@ function variableDeclarationSortCompare(da: VariableDeclaration, db: VariableDec
     c = compareBoolean(!a.init, !b.init);
   }
 
-  return c;
+  return c || a.span.start - b.span.start;
 }

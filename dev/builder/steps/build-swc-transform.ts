@@ -4,6 +4,7 @@ import SwcVisitor from "@swc/core/Visitor";
 import { outPath_build } from "../out-paths";
 import type { PluginOption } from "vite";
 import { glConstants, glFunctions } from "../lib/gl-context";
+import { swcPluginVars } from "./swc/transforms/swc-plugin-vars";
 
 class Transformer extends SwcVisitor {
   override visitMemberExpression(n: MemberExpression): MemberExpression {
@@ -64,7 +65,11 @@ export function rollupPluginSwcTransform(): PluginOption {
             dynamicImport: false,
           },
         },
-        plugin: (m) => new Transformer().visitProgram(m),
+        plugin: (m) => {
+          m = new Transformer().visitProgram(m);
+          m = swcPluginVars()(m);
+          return m;
+        },
       });
 
       return {
