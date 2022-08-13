@@ -2,7 +2,7 @@
 precision highp float;
 precision highp sampler2DShadow;
 
-#define CSM_TEXTURE_SIZE 4096.
+#define CSM_TEXTURE_SIZE 2048.
 
 #define zNear 0.1
 #define CSM_PLANE_DISTANCE0 50.
@@ -52,6 +52,7 @@ float ShadowCalculation() {
 
   float shadow = 0.;
 
+  float x = 0., y = 0.;
   for (float x = -1.; x <= 1.; ++x) {
     for (float y = -1.; y <= 1.; ++y) {
       vec3 c = vec3(csmCoords.xy + vec2(x, y) / CSM_TEXTURE_SIZE, csmCoords.z - shadowBias);
