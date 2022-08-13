@@ -89,10 +89,10 @@ export const solid_material = (solid: Polygon[], $color: number): Polygon[] =>
  * To remove bottom and top polygons, use solid_extrude(...).slice(2).
  * The solid will be centered at 0 vertically and its height will be 2 (from -1 to 1)
  */
-export const solid_extrude = ($color: number, bottom: Polygon): Polygon[] => {
-  const top = polygon_transform(bottom, identity.translate(0, 1));
+export const solid_extrude = ($color: number, bottom: Polygon, topSize = 1): Polygon[] => {
+  const top = polygon_transform(bottom, identity.translate(0, 1).scale3d(topSize > 0 ? topSize : 1));
   top.$points.reverse();
-  bottom = polygon_transform(bottom, identity.translate(0, -1));
+  bottom = polygon_transform(bottom, identity.translate(0, -1).scale3d(topSize < 0 ? -topSize : 1));
   const sides = polygon_sides($color, bottom, top);
   return [bottom, top, ...sides];
 };
@@ -102,8 +102,8 @@ export const solid_box = ($color: number) => solid_extrude($color, polygon_quad(
 export const solid_regular = ($color: number, sides: number) => solid_extrude($color, polygon_regular($color, sides));
 
 /** Simplest composition of polygon functions. */
-export const solid_cylinder = ($color: number, segments: number): Polygon[] =>
-  solid_extrude($color, polygon_regular($color, segments));
+export const solid_cylinder = ($color: number, segments: number, topSize = 1): Polygon[] =>
+  solid_extrude($color, polygon_regular($color, segments), topSize);
 
 export const solid_transform = (solid: Polygon[], m: DOMMatrix) =>
   solid.map((polygon) => polygon_transform(polygon, m));

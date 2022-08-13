@@ -34,6 +34,22 @@ const corridor = (): Polygon[][] => {
   //   ),
   // ]);
 
+  // const p = csg_subtract(
+  //   solid_transform(solid_cylinder(material0, 8, 1.1), identity.scale(3.5, 3.5, 20).rotate(90, 0, 20)),
+  //   csg_union([
+  //     solid_transform(solid_cylinder(material1, 8, 1.1), identity.scale(3, 3, 22).rotate(90, 0, 20)),
+  //     ...integers_map(6, (i) =>
+  //       solid_transform(
+  //         solid_cylinder(material1, 6, 0.5),
+  //         identity
+  //           .translate(0, 0, i * 6 - 14)
+  //           .rotate(0, 0, 90)
+  //           .scale(1, 4, 1),
+  //       ),
+  //     ),
+  //   ]),
+  // );
+
   const p = csg_subtract(
     solid_transform(solid_box(material0), identity.scale(3.5, 3.5, 20)),
     csg_union([
