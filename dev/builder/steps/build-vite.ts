@@ -99,7 +99,7 @@ export async function buildWithVite(options: { stripDevTools: boolean }): Promis
       };
 
       await fs.rm(outPath_build, { maxRetries: 5, recursive: true, force: true });
-      const result = processViteBuildOutput(await viteBuild(viteMergeConfig(config, viteConfigBuild, true)));
+      const result = processViteBuildOutput((await viteBuild(viteMergeConfig(config, viteConfigBuild, true))) as any);
       this.setSuccessText(
         coloredPrettySize(utf8ByteLength(result.js) + utf8ByteLength(result.css) + utf8ByteLength(result.html)),
       );
