@@ -124,6 +124,8 @@ export async function build() {
       computed_props: true,
     });
 
+    js = await jsTransformSwc(js, false, swcPluginVars());
+
     js = await jsEsbuildMinify(js, {
       mangle: false,
       minifySyntax: true,
