@@ -136,7 +136,7 @@ export async function build() {
     js = await jsEsbuildMinify(js, {
       mangle: false,
       minifySyntax: true,
-      minifyWhitespace: true,
+      minifyWhitespace: false,
       computed_props: true,
     });
 
