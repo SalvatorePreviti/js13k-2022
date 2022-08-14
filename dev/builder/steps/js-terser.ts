@@ -346,7 +346,7 @@ export function getTerserMinifyOptions(settings: TerserMinifySettings): TerserMi
       braces: false,
 
       // false to omit comments in the output
-      comments: !settings.final,
+      comments: settings.final ? false : "all",
 
       // escape HTML comments and the slash in occurrences of </script> in strings
       inline_script: true,

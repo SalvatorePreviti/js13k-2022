@@ -361,7 +361,7 @@ export function getSwcMinifyOptions(settings: SwcMinifySettings): JsMinifyOption
       braces: false,
 
       // false to omit comments in the output
-      comments: false,
+      comments: settings.final ? false : "all",
     },
   };
 }

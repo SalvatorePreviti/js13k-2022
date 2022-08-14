@@ -1,5 +1,5 @@
 import { csg_subtract, csg_union, csg_polygons } from "../geometry/csg";
-import { material, solid_box, solid_cylinder, polygons_transform, type Polygon } from "../geometry/geometry";
+import { material, GBox, solid_cylinder, polygons_transform, type Polygon } from "../geometry/geometry";
 import { integers_map } from "../math/math";
 import { identity } from "../math/matrix";
 
@@ -51,9 +51,9 @@ const corridor = (): Polygon[] => {
   // );
 
   const p = csg_subtract(
-    polygons_transform(solid_box(), identity.scale(3.5, 3.5, 20), material0),
+    polygons_transform(GBox, identity.scale(3.5, 3.5, 20), material0),
     csg_union([
-      polygons_transform(solid_box(), identity.scale(3, 3, 22), material1),
+      polygons_transform(GBox, identity.scale(3, 3, 22), material1),
       ...integers_map(6, (i) =>
         polygons_transform(
           solid_cylinder(6),
@@ -126,7 +126,7 @@ const weirdObject = () => {
 };
 
 const pavement = (): Polygon[] => {
-  return polygons_transform(solid_box(), identity.translate(0, -2).scale(1100, 0.5, 1100), materialWhite);
+  return polygons_transform(GBox, identity.translate(0, -2).scale(1100, 0.5, 1100), materialWhite);
 };
 
 export const mainScene = (): Polygon[] => {

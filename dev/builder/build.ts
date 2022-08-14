@@ -29,6 +29,8 @@ import { swcPluginVars } from "./steps/swc/transforms/swc-plugin-vars";
 import { jsEsbuildMinify } from "./steps/js-esbuild";
 import { jsBabel, jsBabelResugarPlugins } from "./steps/babel/js-babel";
 import { babelPluginVars } from "./steps/babel/babel-plugin-vars";
+import resugarFunctionsArrow from "@resugar/codemod-functions-arrow";
+import resugarObjectsShorthand from "@resugar/codemod-objects-shorthand";
 
 devLog.titlePaddingWidth = 18;
 
@@ -126,6 +128,11 @@ export async function build() {
 
     js = await jsTransformSwc(js, false, swcPluginVars());
 
+    js = await jsBabel(js, {
+      minify: false,
+      plugins: [...jsBabelResugarPlugins],
+    });
+
     js = await jsEsbuildMinify(js, {
       mangle: false,
       minifySyntax: true,
@@ -195,7 +202,13 @@ export async function build() {
 
     js = await jsBabel(js, {
       minify: false,
-      plugins: [babelPluginVars({})],
+      plugins: [
+        resugarFunctionsArrow,
+        resugarObjectsShorthand,
+        babelPluginVars({}),
+        "babel-plugin-pure-calls-annotation",
+        "babel-plugin-annotate-pure-calls",
+      ],
     });
 
     js = await jsTerser(js, {

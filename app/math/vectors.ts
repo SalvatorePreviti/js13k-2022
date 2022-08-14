@@ -9,6 +9,12 @@ export interface Vec3 extends Vec2 {
   z: number;
 }
 
+export interface Vec3Optional {
+  x?: number | undefined;
+  y?: number | undefined;
+  z?: number | undefined;
+}
+
 export interface Vec4 extends Vec3 {
   x: number;
   y: number;

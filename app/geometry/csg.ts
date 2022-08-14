@@ -32,7 +32,7 @@ interface SplitPolygonResult {
   $back: CSGPolygon | undefined | false;
 }
 
-const CSGPolygon_splitSpanning = (plane: Plane, polygon: CSGPolygon): SplitPolygonResult => {
+const CSGPolygon_splitSpanning = /* @__PURE__ */ (plane: Plane, polygon: CSGPolygon): SplitPolygonResult => {
   const fpoints: Vec3In[] = [];
   const bpoints: Vec3In[] = [];
   const points = polygon.$polygon;
@@ -74,7 +74,7 @@ const CSGPolygon_splitSpanning = (plane: Plane, polygon: CSGPolygon): SplitPolyg
   };
 };
 
-const CSGPolygon_split = (plane: Plane, polygon: CSGPolygon): SplitPolygonResult => {
+const CSGPolygon_split = /* @__PURE__ */ (plane: Plane, polygon: CSGPolygon): SplitPolygonResult => {
   const { $polygon } = polygon;
   let $front: CSGPolygon | undefined;
   let $back: CSGPolygon | undefined;
@@ -93,7 +93,11 @@ const CSGPolygon_split = (plane: Plane, polygon: CSGPolygon): SplitPolygonResult
   return { $front, $back };
 };
 
-const csg_tree_addPolygon = (node: CSGNode | null | undefined, polygon: CSGPolygon, plane: Plane): CSGNode => {
+const csg_tree_addPolygon = /* @__PURE__ */ (
+  node: CSGNode | null | undefined,
+  polygon: CSGPolygon,
+  plane: Plane,
+): CSGNode => {
   if (!node) {
     return {
       x: plane.x,
@@ -118,7 +122,7 @@ const csg_tree_addPolygon = (node: CSGNode | null | undefined, polygon: CSGPolyg
   return node;
 };
 
-const csg_tree_clipPolygon = (
+const csg_tree_clipPolygon = /* @__PURE__ */ (
   node: CSGNode,
   polygon: CSGPolygon,
   polygonPlane: Plane,
@@ -146,7 +150,7 @@ const csg_tree_clipPolygon = (
 };
 
 /** Loop through all nodes in a tree */
-export const csg_tree_each = (node: CSGNode | null | undefined, fn: (node: CSGNode) => void) => {
+export const csg_tree_each = /* @__PURE__ */ (node: CSGNode | null | undefined, fn: (node: CSGNode) => void) => {
   if (node) {
     fn(node);
     csg_tree_each(node.$front, fn);
@@ -159,7 +163,7 @@ export const csg_tree_each = (node: CSGNode | null | undefined, fn: (node: CSGNo
  * If the given argument is already a BSP tree, return it as is.
  * Note that array cannot be empty.
  */
-export const csg_tree = (n: CSGInput): CSGNode => {
+export const csg_tree = /* @__PURE__ */ (n: CSGInput): CSGNode => {
   let root: CSGNode | undefined;
   if (!(n as Polygon[]).length) {
     return n as CSGNode; // An object? We assume is a BSP tree.
@@ -177,7 +181,7 @@ export const csg_tree = (n: CSGInput): CSGNode => {
  * @param b Source second geometry to add
  * @returns
  */
-export const csg_union_op = (a: CSGInput, b: CSGInput | null | undefined): CSGNode => {
+export const csg_union_op = /* @__PURE__ */ (a: CSGInput, b: CSGInput | null | undefined): CSGNode => {
   const polygonsToAdd: [Plane, CSGPolygon[]][] = [];
   a = csg_tree(a);
   if (b) {
@@ -214,10 +218,10 @@ export const csg_union_op = (a: CSGInput, b: CSGInput | null | undefined): CSGNo
 /**
  * Union a[0] = a[0] U a[1] U a[2] U ...
  */
-export const csg_union = (inputs: CSGInput[]): CSGNode => inputs.reduce(csg_union_op) as CSGNode;
+export const csg_union = /* @__PURE__ */ (inputs: CSGInput[]): CSGNode => inputs.reduce(csg_union_op) as CSGNode;
 
 /** Convert solid space to empty space and empty space to solid space. */
-export const csg_tree_flip = (root: CSGNode | null | undefined): void =>
+export const csg_tree_flip = /* @__PURE__ */ (root: CSGNode | null | undefined): void =>
   csg_tree_each(root, (node) => {
     const back = node.$back;
     for (const polygon of node.$polygons) {
@@ -234,7 +238,7 @@ export const csg_tree_flip = (root: CSGNode | null | undefined): void =>
 /**
  * Subtraction a = a - b
  */
-export const csg_subtract = (a: CSGInput, b: CSGInput): CSGNode => {
+export const csg_subtract = /* @__PURE__ */ (a: CSGInput, b: CSGInput): CSGNode => {
   a = csg_tree(a);
   csg_tree_flip(a);
   csg_union_op(a, b);
@@ -246,7 +250,7 @@ export const csg_subtract = (a: CSGInput, b: CSGInput): CSGNode => {
  * Extracts all the polygons from a BSP tree.
  * Some polygons will be merged, to reduce the number of triangles.
  */
-export const csg_polygons = (tree: CSGNode): Polygon[] => {
+export const csg_polygons = /* @__PURE__ */ (tree: CSGNode): Polygon[] => {
   const result: Polygon[] = [];
   const byParent = new Map<CSGPolygon, CSGPolygon>();
   const allPolygons = new Map<CSGPolygon, boolean>();
