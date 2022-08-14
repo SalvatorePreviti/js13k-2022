@@ -6,9 +6,13 @@ import { identity } from "./math/matrix";
  * The main directional light rotation matrix.
  * Normalized light direction is { x: m13, y: m23, z: m33 }
  */
-export const lightMatrix = identity.rotate(292, 216);
+export const lightMatrix = /* @__PURE__ */ identity.rotate(292, 216);
 
-export const csm_buildMatrix = (nearPlane: number, farPlane: number, zmultiplier: number): Float32Array => {
+export const csm_buildMatrix = /* @__PURE__ */ (
+  nearPlane: number,
+  farPlane: number,
+  zmultiplier: number,
+): Float32Array => {
   let x = 0;
   let y = 0;
   let z = 0;

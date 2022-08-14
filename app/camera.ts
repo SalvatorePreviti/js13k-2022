@@ -31,7 +31,7 @@ export const camera_firstPersonMove = (x: number, z: number) => {
   camera_position.z += x * s + z * c;
 };
 
-export const mat_perspective = (near: number, far: number) => [
+export const mat_perspective = /* @__PURE__ */ (near: number, far: number) => [
   (fieldOfViewAmount * hC.clientHeight) / hC.clientWidth,
   0,
   0,

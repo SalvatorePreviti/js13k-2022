@@ -35,14 +35,15 @@ export type Vec3In = Readonly<Vec3>;
 
 export type Vec4In = Readonly<Vec4>;
 
-export const vec3_plane_distance = (a: Readonly<Plane>, v: Vec3In): number => a.x * v.x + a.y * v.y + a.z * v.z - a.w;
+export const vec3_plane_distance = /* @__PURE__ */ (a: Readonly<Plane>, v: Vec3In): number =>
+  a.x * v.x + a.y * v.y + a.z * v.z - a.w;
 
 /**
  * Computes a polygon plane using the Newell's method.
  * We are not using plane from 3 points algorithm,
  * because this can handle coplanar points and has precision problems.
  */
-export const plane_fromPolygon = (polygon: readonly Vec3In[]): Plane => {
+export const plane_fromPolygon = /* @__PURE__ */ (polygon: readonly Vec3In[]): Plane => {
   // Newell's method
   let x = 0;
   let y = 0;
@@ -59,39 +60,39 @@ export const plane_fromPolygon = (polygon: readonly Vec3In[]): Plane => {
   return { x: (x /= b), y: (y /= b), z: (z /= b), w: x * a.x + y * a.y + z * a.z };
 };
 
-export const vec3 = (x: number, y: number, z: number): Vec3 => ({ x, y, z });
+export const vec3 = /* @__PURE__ */ (x: number, y: number, z: number): Vec3 => ({ x, y, z });
 
-export const vec4 = (x: number, y: number, z: number, w: number): Vec4 => ({ x, y, z, w });
+export const vec4 = /* @__PURE__ */ (x: number, y: number, z: number, w: number): Vec4 => ({ x, y, z, w });
 
-export const vec3_clone = ({ x, y, z }: Vec3In) => ({ x, y, z });
+export const vec3_clone = /* @__PURE__ */ ({ x, y, z }: Vec3In) => ({ x, y, z });
 
-export const vec3_negate = ({ x, y, z }: Vec3In): Vec3 => ({ x: -x, y: -y, z: -z });
+export const vec3_negate = /* @__PURE__ */ ({ x, y, z }: Vec3In): Vec3 => ({ x: -x, y: -y, z: -z });
 
-export const vec3_add = ({ x, y, z }: Vec3In, { x: bx, y: by, z: bz }: Vec3In): Vec3 => ({
+export const vec3_add = /* @__PURE__ */ ({ x, y, z }: Vec3In, { x: bx, y: by, z: bz }: Vec3In): Vec3 => ({
   x: x + bx,
   y: y + by,
   z: z + bz,
 });
 
-export const vec3_sub = ({ x, y, z }: Vec3In, { x: bx, y: by, z: bz }: Vec3In): Vec3 => ({
+export const vec3_sub = /* @__PURE__ */ ({ x, y, z }: Vec3In, { x: bx, y: by, z: bz }: Vec3In): Vec3 => ({
   x: x - bx,
   y: y - by,
   z: z - bz,
 });
 
-export const vec4_sub = ({ x, y, z, w }: Vec4In, { x: bx, y: by, z: bz, w: bw }: Vec4In): Vec4 => ({
+export const vec4_sub = /* @__PURE__ */ ({ x, y, z, w }: Vec4In, { x: bx, y: by, z: bz, w: bw }: Vec4In): Vec4 => ({
   x: x - bx,
   y: y - by,
   z: z - bz,
   w: w - bw,
 });
 
-export const vec3_cross = ({ x, y, z }: Vec3In, { x: bx, y: by, z: bz }: Vec3In): Vec3 => ({
+export const vec3_cross = /* @__PURE__ */ ({ x, y, z }: Vec3In, { x: bx, y: by, z: bz }: Vec3In): Vec3 => ({
   x: y * bz - z * by,
   y: z * bx - x * bz,
   z: x * by - y * bx,
 });
 
-export const vec3_scale = ({ x, y, z }: Vec3In, m: number): Vec3 => ({ x: x * m, y: y * m, z: z * m });
+export const vec3_scale = /* @__PURE__ */ ({ x, y, z }: Vec3In, m: number): Vec3 => ({ x: x * m, y: y * m, z: z * m });
 
-export const vec3_dot = ({ x, y, z }: Vec3In, b: Vec3In): number => x * b.x + y * b.y + z * b.z;
+export const vec3_dot = /* @__PURE__ */ ({ x, y, z }: Vec3In, b: Vec3In): number => x * b.x + y * b.y + z * b.z;
