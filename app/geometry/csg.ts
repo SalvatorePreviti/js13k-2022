@@ -1,9 +1,11 @@
 import { plane_fromPolygon, type Vec3In, type Plane, vec3_dot } from "../math/vectors";
-import { type Polygon } from "./geometry";
+import { polygon_color, type Polygon } from "./geometry";
 
 export const PLANE_EPSILON = 0.00008;
 
-export interface CSGPolygon extends Polygon {
+export interface CSGPolygon {
+  $polygon: Polygon;
+
   $flipped: boolean;
 
   /**
@@ -33,11 +35,11 @@ interface SplitPolygonResult {
 const CSGPolygon_splitSpanning = (plane: Plane, polygon: CSGPolygon): SplitPolygonResult => {
   const fpoints: Vec3In[] = [];
   const bpoints: Vec3In[] = [];
-  const $points = polygon.$points;
+  const points = polygon.$polygon;
   let jd: number;
-  let iv: Vec3In = $points.at(-1)!;
+  let iv: Vec3In = points.at(-1)!;
   let id: number = vec3_dot(plane, iv) - plane.w;
-  for (const jv of $points) {
+  for (const jv of points) {
     jd = vec3_dot(plane, jv) - plane.w;
     if (id < PLANE_EPSILON) {
       bpoints.push(iv);
@@ -60,14 +62,12 @@ const CSGPolygon_splitSpanning = (plane: Plane, polygon: CSGPolygon): SplitPolyg
   }
   return {
     $front: fpoints.length > 2 && {
-      $color: polygon.$color,
-      $points: fpoints,
+      $polygon: polygon_color(fpoints, points.$color),
       $flipped: polygon.$flipped,
       $parent: polygon,
     },
     $back: bpoints.length > 2 && {
-      $color: polygon.$color,
-      $points: bpoints,
+      $polygon: polygon_color(bpoints, points.$color),
       $flipped: polygon.$flipped,
       $parent: polygon,
     },
@@ -75,12 +75,12 @@ const CSGPolygon_splitSpanning = (plane: Plane, polygon: CSGPolygon): SplitPolyg
 };
 
 const CSGPolygon_split = (plane: Plane, polygon: CSGPolygon): SplitPolygonResult => {
-  const $points = polygon.$points;
+  const { $polygon } = polygon;
   let $front: CSGPolygon | undefined;
   let $back: CSGPolygon | undefined;
   let d: number;
-  for (let i = 0; i < $points.length; ++i) {
-    d = vec3_dot(plane, $points[i]!) - plane.w;
+  for (let i = 0; i < $polygon.length; ++i) {
+    d = vec3_dot(plane, $polygon[i]!) - plane.w;
     if (d < -PLANE_EPSILON) {
       $back = polygon;
     } else if (d > PLANE_EPSILON) {
@@ -165,8 +165,8 @@ export const csg_tree = (n: CSGInput): CSGNode => {
     return n as CSGNode; // An object? We assume is a BSP tree.
   }
   // Build a BSP tree from a list of polygons
-  for (const { $color, $points } of n as Polygon[]) {
-    root = csg_tree_addPolygon(root, { $color, $points, $flipped: false, $parent: null }, plane_fromPolygon($points));
+  for (const $polygon of n as Polygon[]) {
+    root = csg_tree_addPolygon(root, { $polygon, $flipped: false, $parent: null }, plane_fromPolygon($polygon));
   }
   return root!;
 };
@@ -273,12 +273,18 @@ export const csg_polygons = (tree: CSGNode): Polygon[] => {
     }
   });
 
-  for (let [{ $color, $points }, flipped] of allPolygons) {
-    $points = $points.map(({ x, y, z }) => ({ x, y, z }));
+  for (let [
+    {
+      $polygon,
+      $polygon: { $color },
+    },
+    flipped,
+  ] of allPolygons) {
+    $polygon = $polygon.map(({ x, y, z }) => ({ x, y, z }));
     if (flipped) {
-      $points.reverse();
+      $polygon.reverse();
     }
-    result.push({ $color, $points });
+    result.push(polygon_color($polygon, $color));
   }
   return result;
 };

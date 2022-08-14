@@ -8,7 +8,7 @@ export type Renderer = () => void;
 
 export let renderMainScene: Renderer;
 
-const loadScene = () => {
+const loadScene = (): Polygon[] => {
   if (DEBUG) {
     console.time("scene");
   }
@@ -53,19 +53,18 @@ export const buildWorld = () => {
     return index;
   };
 
-  const triangulateConvexPolygon = ({ $points, $color }: Polygon) => {
-    const v = plane_fromPolygon($points);
-    _i[0] = v.x * 32767;
-    _i[1] = v.y * 32767;
-    _i[2] = v.z * 32767;
-    _i[3] = $color | 0;
-    for (let i = 2, a = getVertex($points[0]!), b = getVertex($points[1]!); i < $points.length; ++i) {
-      triangleIndices.push(a, b, (b = getVertex($points[i]!)));
+  const makeMesh = (polygons: Polygon[]) => {
+    for (const polygon of polygons) {
+      const v = plane_fromPolygon(polygon);
+      _i[0] = v.x * 32767;
+      _i[1] = v.y * 32767;
+      _i[2] = v.z * 32767;
+      _i[3] = polygon.$color! | 0;
+      for (let i = 2, a = getVertex(polygon[0]!), b = getVertex(polygon[1]!); i < polygon.length; ++i) {
+        triangleIndices.push(a, b, (b = getVertex(polygon[i]!)));
+      }
     }
   };
-
-  const makeMesh = (_solids: Polygon[] | Polygon[][] | Polygon[][][] | Polygon[][][][]) =>
-    _solids.flat(4).forEach(triangulateConvexPolygon);
 
   const scene = loadScene();
 
