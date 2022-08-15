@@ -120,48 +120,6 @@ export const horn = /* @__PURE__ */ (): Polygon[] => {
   ).flat();
 };
 
-/* const p = polygon_regular(15);
-  const result: Polygon[] = [];
-
-  const COUNT = 10;
-
-  const matrix = identity;
-  let prev: Polygon | undefined;
-
-  const getMatrix = (i: number) => {
-    const s = 1 - i / COUNT;
-    return identity
-      .translate(0, 2 * (i / COUNT - 1))
-      .scale(s, 1, s)
-      .rotate(i * 10);
-  };
-
-  for (let i = 0; i < COUNT; i++) {
-    // s -= 1 / COUNT;
-    const np = polygon_transform(p, getMatrix(i));
-    if (prev) {
-      result.push(...cylinder_sides(prev.slice().reverse(), np));
-    }
-    prev = np;
-  }
-  result.push(...cone_sides(prev!.slice().reverse(), vec3_transform({}, getMatrix(COUNT))));
-
-  /*  const COUNT = 5;
-  for (let i = 0; i < COUNT; ++i) {
-    const rot1 = identity; // rot.rotate(1);
-    result.push(
-      ...cylinder_sides(
-        polygon_transform(p, identity.scale(i / COUNT + 1, 1, i / COUNT + 1).translate(0, i / COUNT)),
-        polygon_transform(
-          p,
-          identity.scale((i + 1) / COUNT + 1, 1, (i + 1) / COUNT + 1).translate(0, (i + 1) / COUNT),
-        ).reverse(),
-      ),
-    );
-    // polygon_transform(p, identity.rotate()
-    rot = rot1;
-  } */
-
 export const sphere = /* @__PURE__ */ (slices: number, stacks: number = slices): Polygon[] => {
   const polygons: Polygon[] = [];
   let vertices: Polygon;
