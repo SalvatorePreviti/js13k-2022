@@ -10,8 +10,8 @@ precision highp sampler2DShadow;
 #define CSM_PLANE_DISTANCE2 400.
 #define zFar 500.
 
+in highp vec3 VNormal;
 in highp vec4 FragPos;
-in highp vec3 Normal;
 in lowp vec4 Color;
 
 out vec4 O;
@@ -25,7 +25,7 @@ uniform sampler2DShadow csm_textures[4];
 
 // Shadow bias
 // Could be computed based on normal and light, something like 0.0003 * (1. - clamp(dot(normal, lightDir), 0., 1.))
-const float shadowBias = 0.00015;
+const float shadowBias = 0.00016;
 
 float ShadowCalculation() {
   // Select the right cascade layer.
@@ -69,7 +69,7 @@ float ShadowCalculation() {
 }
 
 void main() {
-  vec3 normal = normalize(Normal.xyz);
+  vec3 normal = normalize(VNormal);
 
   vec3 lightColor = vec3(0.6);
 

@@ -6,14 +6,16 @@ layout(location = 2) in vec4 aColor;
 
 uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
+uniform mat4 worldMatrix;
 
+out highp vec3 VNormal;
 out highp vec4 FragPos;
-out highp vec3 Normal;
 out lowp vec4 Color;
 
 void main() {
-  gl_Position = projectionMatrix * viewMatrix * aPosition;
-  FragPos = aPosition;
-  Normal = aNormal;
+  vec4 position = worldMatrix * aPosition;
+  gl_Position = projectionMatrix * viewMatrix * position;
+  VNormal = (worldMatrix * vec4(aNormal, 0)).xyz;
+  FragPos = position;
   Color = aColor;
 }

@@ -159,7 +159,7 @@ export async function build() {
       computed_props: true,
     });
 
-    js = `(()=>{${js}})()`;
+    // js = `(()=>{${js}})()`;
 
     js = await jsTransformSwc(js, false, swcPluginVars());
 
@@ -195,7 +195,7 @@ export async function build() {
     // Mangling
 
     js = await jsTerser(js, {
-      mangle: "variables",
+      mangle: false,
       final: false,
       join_vars: true,
       sequences: true,
@@ -214,7 +214,7 @@ export async function build() {
     });
 
     js = await jsTerser(js, {
-      mangle: false,
+      mangle: "all",
       final: true,
       join_vars: true,
       sequences: true,

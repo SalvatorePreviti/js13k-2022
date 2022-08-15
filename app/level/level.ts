@@ -1,6 +1,5 @@
-import { csg_subtract, csg_union, csg_polygons } from "../geometry/csg";
+import { csg_subtract, csg_polygons } from "../geometry/csg";
 import { material, GBox, cylinder, polygons_transform, type Polygon, sphere, horn } from "../geometry/geometry";
-import { integers_map } from "../math/math";
 import { identity } from "../math/matrix";
 
 const pavement = (): Polygon[] => {
