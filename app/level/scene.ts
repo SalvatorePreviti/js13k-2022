@@ -7,26 +7,6 @@ export type Renderer = () => void;
 
 export let renderMainScene: Renderer;
 
-const loadScene = (): Polygon[] => {
-  if (DEBUG) {
-    console.time("scene");
-  }
-  const scene = mainScene();
-
-  if (DEBUG) {
-    console.timeEnd("scene");
-  }
-
-  return scene;
-};
-
-/* if (import.meta.hot) {
-  import.meta.hot.accept((mod) => {
-    mod!.loadScene();
-    sceneTriangles = mod!.sceneTriangles;
-  });
-} */
-
 export const buildWorld = () => {
   const triangleIndices: number[] = [];
   const positions: number[] = [];
@@ -72,7 +52,14 @@ export const buildWorld = () => {
     }
   };
 
-  const scene = loadScene();
+  if (DEBUG) {
+    console.time("scene");
+  }
+  const scene = mainScene();
+
+  if (DEBUG) {
+    console.timeEnd("scene");
+  }
 
   if (DEBUG) {
     console.time("makeMesh");

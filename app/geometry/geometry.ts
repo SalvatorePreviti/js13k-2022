@@ -49,11 +49,11 @@ export const polygons_transform = /* @__PURE__ */ (
  * Creates a regular polygon
  * The polygon will face up (normal 0, -1, 0).
  */
-export const polygon_regular = /* @__PURE__ */ (segments: number, arc = (Math.PI * 2) / segments): Polygon =>
+export const polygon_regular = /* @__PURE__ */ (segments: number): Polygon =>
   integers_map(segments, (i) => ({
-    x: Math.sin(arc * i),
+    x: Math.sin(((Math.PI * 2) / segments) * i),
     y: 0,
-    z: Math.cos(arc * i),
+    z: Math.cos(((Math.PI * 2) / segments) * i),
   }));
 
 /**
@@ -120,7 +120,8 @@ export const horn = /* @__PURE__ */ (): Polygon[] => {
   ).flat();
 };
 
-export const sphere = /* @__PURE__ */ (slices: number, stacks: number = slices): Polygon[] => {
+export const sphere = /* @__PURE__ */ (slices: number, smooth: boolean | 0 | 1 | undefined = 1): Polygon[] => {
+  const stacks = slices;
   const polygons: Polygon[] = [];
   let vertices: Polygon;
 
@@ -132,8 +133,7 @@ export const sphere = /* @__PURE__ */ (slices: number, stacks: number = slices):
 
   for (let i = 0; i < slices; i++) {
     for (let j = 0; j < stacks; j++) {
-      vertices = [];
-      vertices.$smooth = true;
+      vertices = polygon_color([], 0, smooth);
       vertex(i / slices, j / stacks);
       if (j) {
         vertex((i + 1) / slices, j / stacks);
