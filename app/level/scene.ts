@@ -1,6 +1,5 @@
 import type { Polygon } from "../geometry/geometry";
 import { gl } from "../gl";
-import type { Vec3In } from "../math/vectors";
 import { plane_fromPolygon } from "../math/vectors";
 import { mainScene } from "./level";
 
@@ -36,32 +35,39 @@ export const buildWorld = () => {
 
   const vertexMap = new Map<string, number>();
   const _i = new Int32Array(7);
+  const _iSmooth = new Int32Array(_i.buffer, 0, 4);
   const _f = new Float32Array(_i.buffer);
+  let _polygon: Polygon | undefined;
 
-  const getVertex = ({ x, y, z }: Vec3In): number => {
-    _f[4] = x;
-    _f[5] = y;
-    _f[6] = z;
-    const key = "" + _i;
+  const getVertex = (i: number): number => {
+    const { x, y, z } = _polygon![i]!;
+    _f[0] = x;
+    _f[1] = y;
+    _f[2] = z;
+    const key = "" + (_polygon!.$smooth ? _iSmooth : _i);
     let index = vertexMap.get(key);
     if (index === undefined) {
       vertexMap.set(key, (index = vertexMap.size));
       positions.push(x, y, z);
-      normals.push(_i[0]!, _i[1]!, _i[2]!);
       colors.push(_i[3]!);
+      normals.push(_i[4]!, _i[5]!, _i[6]!);
+    } else {
+      normals[index * 3] = (normals[index * 3]! + _i[4]!) / 2;
+      normals[index * 3 + 1] = (normals[index * 3 + 1]! + _i[5]!) / 2;
+      normals[index * 3 + 2] = (normals[index * 3 + 2]! + _i[6]!) / 2;
     }
     return index;
   };
 
   const makeMesh = (polygons: Polygon[]) => {
-    for (const polygon of polygons) {
-      const v = plane_fromPolygon(polygon);
-      _i[0] = v.x * 32767;
-      _i[1] = v.y * 32767;
-      _i[2] = v.z * 32767;
-      _i[3] = polygon.$color! | 0;
-      for (let i = 2, a = getVertex(polygon[0]!), b = getVertex(polygon[1]!); i < polygon.length; ++i) {
-        triangleIndices.push(a, b, (b = getVertex(polygon[i]!)));
+    for (_polygon of polygons) {
+      const v = plane_fromPolygon(_polygon);
+      _i[3] = _polygon.$color! | 0;
+      _i[4] = v.x * 32767;
+      _i[5] = v.y * 32767;
+      _i[6] = v.z * 32767;
+      for (let i = 2, a = getVertex(0), b = getVertex(1); i < _polygon.length; ++i) {
+        triangleIndices.push(a, b, (b = getVertex(i)));
       }
     }
   };

@@ -1,6 +1,6 @@
 dist
 **/dist
-js-closure-externs.js
+js-closure-globals.js
 
 # dotfiles
 

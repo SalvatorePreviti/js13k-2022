@@ -1,5 +1,5 @@
 import { csg_subtract, csg_union, csg_polygons } from "../geometry/csg";
-import { material, GBox, solid_cylinder, polygons_transform, type Polygon } from "../geometry/geometry";
+import { material, GBox, cylinder, polygons_transform, type Polygon, sphere, horn } from "../geometry/geometry";
 import { integers_map } from "../math/math";
 import { identity } from "../math/matrix";
 
@@ -56,7 +56,7 @@ const corridor = (): Polygon[] => {
       polygons_transform(GBox, identity.scale(3, 3, 22), material1),
       ...integers_map(6, (i) =>
         polygons_transform(
-          solid_cylinder(6),
+          cylinder(6),
           identity
             .translate(0, 0.6, i * 6 - 14)
             .rotate(0, 0, 90)
@@ -71,37 +71,37 @@ const corridor = (): Polygon[] => {
 };
 
 const weirdObject = () => {
-  const figure0 = polygons_transform(solid_cylinder(6), identity, material0);
+  const figure0 = polygons_transform(cylinder(6), identity, material0);
 
-  const figure01 = polygons_transform(solid_cylinder(6), identity.scale(1, 0.6, 1).translate(0, 1, 0), material5);
+  const figure01 = polygons_transform(cylinder(6), identity.scale(1, 0.6, 1).translate(0, 1, 0), material5);
   // const figure02 = solid_transform(solid_cylinder(material0, 6);
 
   const figure1 = polygons_transform(
-    solid_cylinder(118),
+    cylinder(118),
     identity.translate(-0.2).rotate(90, 10, 10).scale(0.5, 2, 0.5),
     material1,
   );
 
   const figure2 = polygons_transform(
-    solid_cylinder(118),
+    cylinder(118),
     identity.translate(-0.2).rotate(90, 10, 10).scale(0.22, 1.5, 0.22).skewY(10),
     material2,
   );
 
   const figure3 = polygons_transform(
-    solid_cylinder(18),
+    cylinder(18),
     identity.translate(-0.2).rotate(0, 10, 10).scale(0.3, 1.4, 0.3),
     material3,
   );
 
   const figure4 = polygons_transform(
-    solid_cylinder(8),
+    cylinder(8),
     identity.translate(-0.2).rotate(0, 0, 90).scale(0.15, 2, 0.15),
     material4,
   );
 
   const figure5 = polygons_transform(
-    solid_cylinder(5),
+    cylinder(5),
     identity.translate(-0.2).rotate(0, 10, 10).scale(0.15, 1.7, 0.15),
     material5,
   );
@@ -130,7 +130,78 @@ const pavement = (): Polygon[] => {
 };
 
 export const mainScene = (): Polygon[] => {
-  return [...polygons_transform(corridor(), identity.translate(0, 10, 0)), ...pavement(), ...weirdObject()];
+  const rhorn = polygons_transform(
+    horn(),
+    identity.translate(0.2, 1.32, 0).rotate(0, 0, -30).scale(0.2, 0.6, 0.2),
+    material(1, 1, 0.8),
+  );
+
+  const lhorn = polygons_transform(rhorn, identity.flipX());
+
+  const MATERIAL_DEVIL = material(1, 0.3, 0.4);
+
+  const head = polygons_transform(sphere(11), identity.translate(0, 1, 0).scale(0.5, 0.5, 0.5), MATERIAL_DEVIL);
+
+  const reye = polygons_transform(
+    csg_polygons(
+      csg_subtract(
+        polygons_transform(cylinder(15, 1), identity.rotate(90, 15, 0)),
+        polygons_transform(GBox, identity.translate(0, 1, 0).rotate(0, 0, 20).scale(2, 0.5, 2)),
+      ),
+    ),
+    identity.translate(0.2, 1.2, 0.4).scale(0.1, 0.1, 0.057),
+    material(0.3, 0.3, 0.3),
+  );
+
+  // const leye = polygons_transform(
+  //   csg_polygons(
+  //     csg_subtract(
+  //       polygons_transform(cylinder(16), identity.rotate(90, -15, 0)),
+  //       polygons_transform(GBox, identity.translate(0, 1, 0).rotate(0, 0, -20).scale(2, 0.5, 2)),
+  //     ),
+  //   ),
+  //   identity.translate(-0.2, 1.2, 0.4).scale(0.1, 0.1, 0.07),
+  //   material(0.3, 0.3, 0.3),
+  // );
+
+  const leye = polygons_transform(reye, identity.flipX());
+
+  const mouth = polygons_transform(
+    GBox,
+    identity.translate(0, 0.9, 0.45).scale(0.15, 0.02, 0.05),
+    material(0.3, 0.3, 0.3),
+  );
+
+  const body = polygons_transform(sphere(15), identity.translate(0, 0, 0).scale(0.7, 0.8, 0.5), MATERIAL_DEVIL);
+
+  const rleg = polygons_transform(
+    cylinder(10, 1),
+    identity.translate(-0.3, -1, 0).scale(0.2, 0.5, 0.2),
+    MATERIAL_DEVIL,
+  );
+  const lleg = polygons_transform(rleg, identity.flipX());
+
+  //  return [...reye];
+
+  const devilParts = [rhorn, lhorn, body, rleg, lleg, head];
+
+  // const devil = csg_polygons(csg_union(devilParts));
+
+  // rhorn, lhorn, leye,
+
+  return [
+    reye,
+    leye,
+    mouth,
+    ...devilParts,
+    // ...polygons_transform(sphere(6), identity.scale3d(20), material0),
+    // ...polygons_transform(corridor(), identity.translate(0, 10, 0)),
+    pavement(),
+
+    // ...polygons_transform(cylinder(12), identity.scale3d(20), material0),
+  ].flat(1);
+
+  //  return [...polygons_transform(corridor(), identity.translate(0, 10, 0)), ...pavement(), ...weirdObject()];
 
   // const c = corridor().map((t) => solid_transform(t, identity.translate(0, 10, 0)));
 

@@ -24,7 +24,7 @@ export class StreamedClosureCompiler {
   private _closed: boolean = false;
   private _stdin: Readable | null = null;
 
-  public externsDestFilePath = path.resolve(outPath_temp, "closure-externs.js");
+  public externsDestFilePath = path.resolve(outPath_temp, "closure-globals.js");
   public inputFilePath = path.resolve(outPath_temp, "closure-input.js");
   public outputFilePath = path.resolve(outPath_temp, "closure-output.js");
   public readonly options: StreamedClosureCompilerOptions;
@@ -77,7 +77,7 @@ export class StreamedClosureCompiler {
 
   private async _startAsync(): Promise<string | null> {
     let [externsContent, tsGlobals] = await Promise.all([
-      readFile(require.resolve("./js-closure-externs.js"), "utf8"),
+      readFile(require.resolve("./js-closure-globals.js"), "utf8"),
       readFile(require.resolve("../../../app/_globals.d.ts"), "utf8"),
       mkdir(outPath_temp, { recursive: true }),
     ]);

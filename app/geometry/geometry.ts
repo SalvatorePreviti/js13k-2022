@@ -8,12 +8,18 @@ export const material = /* @__PURE__ */ (r: number, g: number, b: number, a: num
 export interface Polygon<TVec3 = Vec3> extends Array<TVec3> {
   /** Polygon material */
   $color?: number | undefined;
+
+  /** Smooth normals? */
+  $smooth?: boolean | undefined;
 }
 
-export const polygon_color = /* @__PURE__ */ (polygon: Polygon, color: number | undefined): Polygon => {
-  if (!polygon.$color) {
-    polygon.$color = color;
-  }
+export const polygon_color = /* @__PURE__ */ (
+  polygon: Polygon,
+  color: number | undefined,
+  smooth?: boolean | 0 | 1 | undefined,
+): Polygon => {
+  polygon.$color = color;
+  polygon.$smooth = !!smooth;
   return polygon;
 };
 
@@ -30,6 +36,7 @@ export const polygon_transform = /* @__PURE__ */ (
   polygon_color(
     polygon.map((p) => vec3_transform(p, m)),
     color,
+    polygon.$smooth,
   );
 
 export const polygons_transform = /* @__PURE__ */ (
@@ -44,9 +51,9 @@ export const polygons_transform = /* @__PURE__ */ (
  */
 export const polygon_regular = /* @__PURE__ */ (segments: number, arc = (Math.PI * 2) / segments): Polygon =>
   integers_map(segments, (i) => ({
-    x: Math.cos(arc * i),
+    x: Math.sin(arc * i),
     y: 0,
-    z: Math.sin(arc * i),
+    z: Math.cos(arc * i),
   }));
 
 /**
@@ -54,34 +61,143 @@ export const polygon_regular = /* @__PURE__ */ (segments: number, arc = (Math.PI
  * Top and bottom polygons must have the same length.
  * Top polygon is supposed to be flipped.
  */
-export const cylinder_sides = /* @__PURE__ */ (btm: Polygon, top: Polygon): Polygon[] =>
-  btm.map((btmi, i, { length }) => [
-    btmi,
-    top[length - i - 1]!,
-    top[length - ((i + 1) % length) - 1]!,
-    btm[(i + 1) % length]!,
-  ]);
+export const cylinder_sides = /* @__PURE__ */ (
+  btm: Polygon,
+  top: Polygon,
+  smooth?: boolean | 0 | 1 | undefined,
+): Polygon[] =>
+  btm.map((btmi, i, { length }) =>
+    polygon_color(
+      [btmi, top[length - i - 1]!, top[length - ((i + 1) % length) - 1]!, btm[(i + 1) % length]!],
+      btm.$color,
+      smooth,
+    ),
+  );
+
+export const cone_sides = /* @__PURE__ */ (btm: Polygon, c = { x: 0, y: 0, z: 0 }): Polygon[] =>
+  btm.map((btmi, i, { length }) => [btmi, c, btm[(i + 1) % length]!]);
 
 /**
  * Extrudes a polygon into a solid.
  * To remove bottom and top polygons, use solid_extrude(...).slice(2).
  * The solid will be centered at 0 vertically and its height will be 2 (from -1 to 1)
  */
-export const polygon_extrude = /* @__PURE__ */ (bottom: Polygon<Vec3Optional>, topSize = 1): Polygon[] => {
-  const top = polygon_transform(bottom, identity.translate(0, 1).scale3d(topSize > 0 ? topSize : 1)).reverse();
-  bottom = polygon_transform(bottom, identity.translate(0, -1).scale3d(topSize < 0 ? -topSize : 1));
-  return [bottom as Polygon, top, ...cylinder_sides(bottom as Polygon, top)];
+export const polygon_extrude = /* @__PURE__ */ (
+  points: Polygon<Vec3Optional>,
+  smooth?: boolean | 0 | 1 | undefined,
+  topSize = 1,
+): Polygon[] => {
+  const bottom = polygon_transform(points, identity.translate(0, -1).scale3d(topSize < 0 ? -topSize : 1)).reverse();
+  const top = polygon_transform(points, identity.translate(0, 1).scale3d(topSize > 0 ? topSize : 1));
+  return [bottom as Polygon, top, ...cylinder_sides(bottom as Polygon, top, smooth)];
 };
 
 /** Simplest composition of polygon functions. */
-export const solid_cylinder = /* @__PURE__ */ (segments: number, topSize = 1): Polygon[] =>
-  polygon_extrude(polygon_regular(segments), topSize);
+export const cylinder = /* @__PURE__ */ (
+  segments: number,
+  smooth?: boolean | 0 | 1 | undefined,
+  topSize = 1,
+): Polygon[] => polygon_extrude(polygon_regular(segments), smooth, topSize);
+
+export const cone = /* @__PURE__ */ (segments: number): Polygon[] => {
+  const bottom = polygon_transform(polygon_regular(segments), identity.translate(0, -1));
+  return [bottom, ...cone_sides(bottom)];
+};
+
+export const horn = /* @__PURE__ */ (): Polygon[] => {
+  const p = polygon_regular(15);
+
+  const COUNT = 10;
+
+  const getMatrix = (i: number) =>
+    identity
+      .translate(Math.sin((i / COUNT) * Math.PI), i / COUNT)
+      .rotate(10 * (i / COUNT))
+      .scale(1 - i / COUNT, 0, 1 - i / COUNT);
+
+  return integers_map(COUNT, (i) =>
+    cylinder_sides(polygon_transform(p, getMatrix(i)).reverse(), polygon_transform(p, getMatrix(i + 1)), 1),
+  ).flat();
+};
+
+/* const p = polygon_regular(15);
+  const result: Polygon[] = [];
+
+  const COUNT = 10;
+
+  const matrix = identity;
+  let prev: Polygon | undefined;
+
+  const getMatrix = (i: number) => {
+    const s = 1 - i / COUNT;
+    return identity
+      .translate(0, 2 * (i / COUNT - 1))
+      .scale(s, 1, s)
+      .rotate(i * 10);
+  };
+
+  for (let i = 0; i < COUNT; i++) {
+    // s -= 1 / COUNT;
+    const np = polygon_transform(p, getMatrix(i));
+    if (prev) {
+      result.push(...cylinder_sides(prev.slice().reverse(), np));
+    }
+    prev = np;
+  }
+  result.push(...cone_sides(prev!.slice().reverse(), vec3_transform({}, getMatrix(COUNT))));
+
+  /*  const COUNT = 5;
+  for (let i = 0; i < COUNT; ++i) {
+    const rot1 = identity; // rot.rotate(1);
+    result.push(
+      ...cylinder_sides(
+        polygon_transform(p, identity.scale(i / COUNT + 1, 1, i / COUNT + 1).translate(0, i / COUNT)),
+        polygon_transform(
+          p,
+          identity.scale((i + 1) / COUNT + 1, 1, (i + 1) / COUNT + 1).translate(0, (i + 1) / COUNT),
+        ).reverse(),
+      ),
+    );
+    // polygon_transform(p, identity.rotate()
+    rot = rot1;
+  } */
+
+export const sphere = /* @__PURE__ */ (slices: number, stacks: number = slices): Polygon[] => {
+  const polygons: Polygon[] = [];
+  let vertices: Polygon;
+
+  const vertex = (theta: number, phi: number) => {
+    phi *= Math.PI;
+    theta *= Math.PI * 2;
+    const x = Math.cos(theta) * Math.sin(phi);
+    const y = Math.cos(phi);
+    const z = Math.sin(theta) * Math.sin(phi);
+    vertices.push({ x, y, z });
+  };
+
+  for (let i = 0; i < slices; i++) {
+    for (let j = 0; j < stacks; j++) {
+      vertices = [];
+      vertices.$smooth = true;
+      vertex(i / slices, j / stacks);
+      if (j) {
+        vertex((i + 1) / slices, j / stacks);
+      }
+      if (j < stacks - 1) {
+        vertex((i + 1) / slices, (j + 1) / stacks);
+      }
+      vertex(i / slices, (j + 1) / stacks);
+      polygons.push(vertices);
+    }
+  }
+  return polygons;
+};
 
 export const GBox = /* @__PURE__ */ polygon_extrude([
-  { x: -1, z: -1 },
-  { x: 1, z: -1 },
-  { x: 1, z: 1 },
   { x: -1, z: 1 },
+  { x: 1, z: 1 },
+  { x: 1, z: -1 },
+  { x: -1, z: -1 },
 ]);
 
-// export const GBox = polygons_transform(solid_cylinder(4), identity.scale(Math.SQRT2, 1, Math.SQRT2).rotate(0, -45, 0));
+// export const GBox = polygons_transform(cylinder(4), identity.scale(Math.SQRT2, 1, Math.SQRT2).rotate(0, -45, 0));

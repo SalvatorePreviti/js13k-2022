@@ -62,12 +62,12 @@ const CSGPolygon_splitSpanning = /* @__PURE__ */ (plane: Plane, polygon: CSGPoly
   }
   return {
     $front: fpoints.length > 2 && {
-      $polygon: polygon_color(fpoints, points.$color),
+      $polygon: polygon_color(fpoints, points.$color, points.$smooth),
       $flipped: polygon.$flipped,
       $parent: polygon,
     },
     $back: bpoints.length > 2 && {
-      $polygon: polygon_color(bpoints, points.$color),
+      $polygon: polygon_color(bpoints, points.$color, points.$smooth),
       $flipped: polygon.$flipped,
       $parent: polygon,
     },
@@ -280,7 +280,7 @@ export const csg_polygons = /* @__PURE__ */ (tree: CSGNode): Polygon[] => {
   for (let [
     {
       $polygon,
-      $polygon: { $color },
+      $polygon: { $color, $smooth },
     },
     flipped,
   ] of allPolygons) {
@@ -288,7 +288,7 @@ export const csg_polygons = /* @__PURE__ */ (tree: CSGNode): Polygon[] => {
     if (flipped) {
       $polygon.reverse();
     }
-    result.push(polygon_color($polygon, $color));
+    result.push(polygon_color($polygon, $color, $smooth));
   }
   return result;
 };

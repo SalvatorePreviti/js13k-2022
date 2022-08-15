@@ -31,7 +31,7 @@ initGl();
 buildWorld();
 
 gl.enable(gl.DEPTH_TEST); // Enable depth testing
-gl.enable(gl.CULL_FACE); // Don't render triangle backs
+// gl.enable(gl.CULL_FACE); // Don't render triangle backs
 
 gl.clearColor(0, 0.7, 1, 1); // Clear to black, fully opaque
 // gl.clearDepth(1); // Clear everything. Default value is 1

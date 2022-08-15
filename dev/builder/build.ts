@@ -159,6 +159,8 @@ export async function build() {
       computed_props: true,
     });
 
+    js = `(()=>{${js}})()`;
+
     js = await jsTransformSwc(js, false, swcPluginVars());
 
     js = await jsBabel(js, {
