@@ -127,10 +127,7 @@ export const sphere = /* @__PURE__ */ (slices: number, stacks: number = slices):
   const vertex = (theta: number, phi: number) => {
     phi *= Math.PI;
     theta *= Math.PI * 2;
-    const x = Math.cos(theta) * Math.sin(phi);
-    const y = Math.cos(phi);
-    const z = Math.sin(theta) * Math.sin(phi);
-    vertices.push({ x, y, z });
+    vertices.push({ x: Math.cos(theta) * Math.sin(phi), y: Math.cos(phi), z: Math.sin(theta) * Math.sin(phi) });
   };
 
   for (let i = 0; i < slices; i++) {
