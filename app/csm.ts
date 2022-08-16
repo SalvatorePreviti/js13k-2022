@@ -35,9 +35,9 @@ export const csm_buildMatrix = /* @__PURE__ */ (
       z: i & 1 ? 1 : -1,
     });
     // To reduce shimmering, we round the corners of the frustum.
-    tx -= x = ((x * roundingRadius) | 0) / (w * roundingRadius);
-    ty -= y = ((y * roundingRadius) | 0) / (w * roundingRadius);
-    tz -= z = ((z * roundingRadius) | 0) / (w * roundingRadius);
+    tx -= x = ((roundingRadius * x) | 0) / (roundingRadius * w);
+    ty -= y = ((roundingRadius * y) | 0) / (roundingRadius * w);
+    tz -= z = ((roundingRadius * z) | 0) / (roundingRadius * w);
     return { x, y, z };
   });
 
