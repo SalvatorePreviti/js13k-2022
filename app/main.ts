@@ -46,10 +46,7 @@ gl.clearColor(0, 0.7, 1, 1); // Clear to black, fully opaque
 // gl.cullFace(gl.BACK); // Default value is already BACK
 // gl.depthFunc(gl.LEQUAL); // Default is LESS, seems LEQUAL and LESS both are OK
 
-const csm_framebuffers: WebGLFramebuffer[] = [];
-
 const csmShader = initShaderProgram(csm_vsSource, voidFsSource);
-const csmShader_viewMatrixLoc = gl.getUniformLocation(csmShader, uniformName_viewMatrix)!;
 const csmShader_worldMatrixLoc = gl.getUniformLocation(csmShader, uniformName_worldMatrix)!;
 
 const mainShader = initShaderProgram(main_vsSource, main_fsSource);
@@ -59,10 +56,14 @@ const mainShader_viewPosLoc = gl.getUniformLocation(mainShader, uniformName_view
 const mainShader_lightDirLoc = gl.getUniformLocation(mainShader, uniformName_lightDir)!;
 const mainShader_worldMatrixLoc = gl.getUniformLocation(mainShader, uniformName_worldMatrix)!;
 
-const csm_matricesLocs = integers_map(3, (csmSplit) => {
+const csm_buildMagic = (csmSplit: number) => {
+  const csmShader_viewMatrixLoc = gl.getUniformLocation(csmShader, uniformName_viewMatrix)!;
+  const lightSpaceMatrixLoc = gl.getUniformLocation(mainShader, uniformName_csm_matrices + `[${csmSplit}]`)!;
   const texture = gl.createTexture()!;
+  const frameBuffer = gl.createFramebuffer();
+  let lightSpaceMatrix: Float32Array;
 
-  gl.bindFramebuffer(gl.FRAMEBUFFER, (csm_framebuffers[csmSplit] = gl.createFramebuffer()!));
+  gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
 
   // Disable rendering to the color buffer, we just need the depth buffer
   gl.drawBuffers([gl.NONE]);
@@ -93,8 +94,20 @@ const csm_matricesLocs = integers_map(3, (csmSplit) => {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_MODE, gl.COMPARE_REF_TO_TEXTURE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_FUNC, gl.LEQUAL); // Can be LESS or LEQUAL
 
-  return gl.getUniformLocation(mainShader, uniformName_csm_matrices + `[${csmSplit}]`)!;
-});
+  const setup = (matrix: Float32Array) => {
+    gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
+    gl.uniformMatrix4fv(csmShader_viewMatrixLoc, false, matrix);
+    gl.clear(gl.DEPTH_BUFFER_BIT);
+    lightSpaceMatrix = matrix;
+    return renderWorld(csmShader_worldMatrixLoc);
+  };
+
+  setup._main = () => gl.uniformMatrix4fv(lightSpaceMatrixLoc, false, lightSpaceMatrix);
+
+  return setup;
+};
+
+const csm_matricesLocs = integers_map(3, csm_buildMagic);
 
 let gameTime = performance.now() / 1000;
 let lastGameTime = gameTime;
@@ -118,19 +131,9 @@ const draw = () => {
 
   gl.useProgram(csmShader);
   gl.viewport(0, 0, CSM_TEXTURE_SIZE, CSM_TEXTURE_SIZE);
-
-  const lightSpaceMatrices = [
-    csm_buildMatrix(zNear, CSM_PLANE_DISTANCE0, 10),
-    csm_buildMatrix(CSM_PLANE_DISTANCE0, CSM_PLANE_DISTANCE1, 20),
-    csm_buildMatrix(CSM_PLANE_DISTANCE1, zFar, 9),
-  ];
-
-  for (let i = 0; i < 3; ++i) {
-    gl.bindFramebuffer(gl.FRAMEBUFFER, csm_framebuffers[i]!);
-    gl.uniformMatrix4fv(csmShader_viewMatrixLoc, false, lightSpaceMatrices[i]!);
-    gl.clear(gl.DEPTH_BUFFER_BIT);
-    renderWorld(csmShader_worldMatrixLoc);
-  }
+  csm_matricesLocs[0]!(csm_buildMatrix(zNear, CSM_PLANE_DISTANCE0, 10));
+  csm_matricesLocs[1]!(csm_buildMatrix(CSM_PLANE_DISTANCE0, CSM_PLANE_DISTANCE1, 20));
+  csm_matricesLocs[2]!(csm_buildMatrix(CSM_PLANE_DISTANCE1, zFar, 9));
 
   // *** MAIN RENDER ***
 
@@ -145,18 +148,18 @@ const draw = () => {
 
   gl.useProgram(mainShader);
 
-  for (let i = 0; i < 3; ++i) {
-    gl.uniformMatrix4fv(csm_matricesLocs[i]!, false, lightSpaceMatrices[i]!);
-  }
-
   gl.uniformMatrix4fv(mainShader_projectionMatrixLoc, false, mat_perspective(zNear, zFar));
   gl.uniformMatrix4fv(mainShader_viewMatrixLoc, false, camera_view.toFloat32Array());
   gl.uniform3f(mainShader_viewPosLoc, camera_position.x, camera_position.y, camera_position.z);
   gl.uniform3f(mainShader_lightDirLoc, lightMatrix.m13, lightMatrix.m23, lightMatrix.m33);
 
+  csm_matricesLocs[0]!._main();
+  csm_matricesLocs[1]!._main();
+  csm_matricesLocs[2]!._main();
+
   renderWorld(mainShader_worldMatrixLoc);
 };
 
-requestAnimationFrame(draw);
+draw();
 
 initInputHandlers();
