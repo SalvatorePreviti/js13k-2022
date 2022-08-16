@@ -7,6 +7,7 @@ import {
   devWriteOutputFile,
   FilesSizeTermBox,
   globalReport,
+  JS13K_SIZE_IN_BYTES,
 } from "./lib/logging";
 import { devLog } from "@balsamic/dev";
 import { writeFinalBundle, writeOptimizedBundle } from "./lib/write-bundle";
@@ -98,7 +99,13 @@ export async function build() {
       devLog.logCyan(`\nRolled zip is ${-rolledPlainZipSizeDiff} bytes smaller than plain zip`);
     }
 
-    const finalBuffer = rolledPlainZipSizeDiff < 0 ? zippedRolledBuffer : zippedPlainBuffer;
+    let finalBuffer: Buffer;
+    if (rolledPlainZipSizeDiff < 100 && zippedPlainBuffer.length < JS13K_SIZE_IN_BYTES) {
+      finalBuffer = zippedPlainBuffer;
+      devLog.logRedBright("Choosing ZIP over ROLLED");
+    } else {
+      finalBuffer = zippedRolledBuffer;
+    }
 
     devLog.log();
     await devWriteOutputFile(outPath_zip, finalBuffer, null);
@@ -207,15 +214,13 @@ export async function build() {
 
     js = await streamedClosureCompiler.compileOne(js);
 
-    js = await jsTransformSwc(js, false, swcPluginVars({ constToLet: true }));
-
     js = await jsBabel(js, {
       minify: false,
       plugins: [
         resugarBlockScope,
         resugarObjectsShorthand,
         resugarFunctionsArrow,
-        babelPluginVars({ constToLet: true, splitVars: true }),
+        babelPluginVars({}),
         "babel-plugin-pure-calls-annotation",
         // "babel-plugin-annotate-pure-calls",
       ],
@@ -238,7 +243,7 @@ export async function build() {
       plugins: [
         resugarFunctionsArrow,
         resugarObjectsShorthand,
-        babelPluginVars(),
+        babelPluginVars({ splitVars: true }),
         "babel-plugin-pure-calls-annotation",
         // "babel-plugin-annotate-pure-calls",
       ],

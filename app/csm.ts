@@ -13,9 +13,10 @@ export const csm_buildMatrix = /* @__PURE__ */ (
   farPlane: number,
   zmultiplier: number,
 ): Float32Array => {
-  let x = 0;
-  let y = 0;
-  let z = 0;
+  let tx = 0;
+  let ty = 0;
+  let tz = 0;
+
   let left = Infinity;
   let right = -Infinity;
   let bottom = Infinity;
@@ -23,31 +24,28 @@ export const csm_buildMatrix = /* @__PURE__ */ (
   let near = Infinity;
   let far = -Infinity;
 
-  const roundingRadius = (farPlane - nearPlane) / 2;
-
   const projViewInverse = new DOMMatrix(mat_perspective(nearPlane, farPlane)).multiplySelf(camera_view).invertSelf();
 
+  const roundingRadius = (farPlane - nearPlane) / 2;
+
   const frustumCorners = integers_map(8, (i) => {
-    const v = projViewInverse.transformPoint({
+    let { x, y, z, w } = projViewInverse.transformPoint({
       x: i & 4 ? 1 : -1,
       y: i & 2 ? 1 : -1,
       z: i & 1 ? 1 : -1,
     });
-
     // To reduce shimmering, we round the corners of the frustum.
-    const r = v.w * roundingRadius;
-    x -= v.x = ((v.x * roundingRadius) | 0) / r;
-    y -= v.y = ((v.y * roundingRadius) | 0) / r;
-    z -= v.z = ((v.z * roundingRadius) | 0) / r;
-    v.w = 1;
-    return v;
+    tx -= x = ((x * roundingRadius) | 0) / (w * roundingRadius);
+    ty -= y = ((y * roundingRadius) | 0) / (w * roundingRadius);
+    tz -= z = ((z * roundingRadius) | 0) / (w * roundingRadius);
+    return { x, y, z };
   });
 
-  const lightViewTranslated = lightMatrix.translate(x / 8, y / 8, z / 8);
+  const lightViewTranslated = lightMatrix.translate(tx / 8, ty / 8, tz / 8);
 
   // Compute the frustum bouding box
   for (let i = 0; i < 8; ++i) {
-    ({ x, y, z } = lightViewTranslated.transformPoint(frustumCorners[i]));
+    const { x, y, z } = lightViewTranslated.transformPoint(frustumCorners[i]);
     left = Math.min(left, x);
     right = Math.max(right, x);
     bottom = Math.min(bottom, y);

@@ -16,7 +16,6 @@ import main_fsSource, {
   constDef_CSM_TEXTURE_SIZE as CSM_TEXTURE_SIZE,
   constDef_CSM_PLANE_DISTANCE0 as CSM_PLANE_DISTANCE0,
   constDef_CSM_PLANE_DISTANCE1 as CSM_PLANE_DISTANCE1,
-  constDef_CSM_PLANE_DISTANCE2 as CSM_PLANE_DISTANCE2,
 } from "./shaders/main-fragment.frag";
 
 import voidFsSource from "./shaders/void-fragment.frag";
@@ -60,7 +59,7 @@ const mainShader_viewPosLoc = gl.getUniformLocation(mainShader, uniformName_view
 const mainShader_lightDirLoc = gl.getUniformLocation(mainShader, uniformName_lightDir)!;
 const mainShader_worldMatrixLoc = gl.getUniformLocation(mainShader, uniformName_worldMatrix)!;
 
-const csm_matricesLocs = integers_map(4, (csmSplit) => {
+const csm_matricesLocs = integers_map(3, (csmSplit) => {
   const texture = gl.createTexture()!;
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, (csm_framebuffers[csmSplit] = gl.createFramebuffer()!));
@@ -115,21 +114,20 @@ const draw = () => {
     .invertSelf()
     .translateSelf(-camera_position.x, -camera_position.y, -camera_position.z);
 
-  const lightSpaceMatrices = [
-    csm_buildMatrix(zNear, CSM_PLANE_DISTANCE0, 10),
-    csm_buildMatrix(CSM_PLANE_DISTANCE0, CSM_PLANE_DISTANCE1, 5),
-    csm_buildMatrix(CSM_PLANE_DISTANCE1, CSM_PLANE_DISTANCE2, 4),
-    csm_buildMatrix(CSM_PLANE_DISTANCE2, zFar, 3),
-  ];
-
   // *** CASCADED SHADOWMAPS ***
 
   gl.useProgram(csmShader);
-
   gl.viewport(0, 0, CSM_TEXTURE_SIZE, CSM_TEXTURE_SIZE);
-  for (let csmSplit = 0; csmSplit < 4; ++csmSplit) {
-    gl.bindFramebuffer(gl.FRAMEBUFFER, csm_framebuffers[csmSplit]!);
-    gl.uniformMatrix4fv(csmShader_viewMatrixLoc, false, lightSpaceMatrices[csmSplit]!);
+
+  const lightSpaceMatrices = [
+    csm_buildMatrix(zNear, CSM_PLANE_DISTANCE0, 10),
+    csm_buildMatrix(CSM_PLANE_DISTANCE0, CSM_PLANE_DISTANCE1, 20),
+    csm_buildMatrix(CSM_PLANE_DISTANCE1, zFar, 9),
+  ];
+
+  for (let i = 0; i < 3; ++i) {
+    gl.bindFramebuffer(gl.FRAMEBUFFER, csm_framebuffers[i]!);
+    gl.uniformMatrix4fv(csmShader_viewMatrixLoc, false, lightSpaceMatrices[i]!);
     gl.clear(gl.DEPTH_BUFFER_BIT);
     renderWorld(csmShader_worldMatrixLoc);
   }
@@ -147,16 +145,13 @@ const draw = () => {
 
   gl.useProgram(mainShader);
 
-  for (let csmSplit = 0; csmSplit < 4; ++csmSplit) {
-    gl.uniformMatrix4fv(csm_matricesLocs[csmSplit]!, false, lightSpaceMatrices[csmSplit]!);
+  for (let i = 0; i < 3; ++i) {
+    gl.uniformMatrix4fv(csm_matricesLocs[i]!, false, lightSpaceMatrices[i]!);
   }
 
   gl.uniformMatrix4fv(mainShader_projectionMatrixLoc, false, mat_perspective(zNear, zFar));
-
   gl.uniformMatrix4fv(mainShader_viewMatrixLoc, false, camera_view.toFloat32Array());
-
   gl.uniform3f(mainShader_viewPosLoc, camera_position.x, camera_position.y, camera_position.z);
-
   gl.uniform3f(mainShader_lightDirLoc, lightMatrix.m13, lightMatrix.m23, lightMatrix.m33);
 
   renderWorld(mainShader_worldMatrixLoc);

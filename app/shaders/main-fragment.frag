@@ -4,40 +4,33 @@ precision highp sampler2DShadow;
 
 #define CSM_TEXTURE_SIZE 2048.
 
-#define zNear 0.1
+#define zNear 0.3
 #define CSM_PLANE_DISTANCE0 50.
-#define CSM_PLANE_DISTANCE1 250.
-#define CSM_PLANE_DISTANCE2 400.
-#define zFar 500.
+#define CSM_PLANE_DISTANCE1 110.
+#define zFar 150.
 
 in highp vec3 VNormal;
 in highp vec4 FragPos;
 in lowp vec4 Color;
 
-out vec4 O;
-
 uniform vec3 viewPos;
 uniform vec3 lightDir;
 uniform mat4 viewMatrix;
 
-uniform mat4[4] csm_matrices;
-uniform sampler2DShadow csm_textures[4];
+uniform mat4[3] csm_matrices;
+uniform sampler2DShadow csm_textures[3];
+
+out vec4 O;
 
 // Shadow bias
 // Could be computed based on normal and light, something like 0.0003 * (1. - clamp(dot(normal, lightDir), 0., 1.))
-const float shadowBias = 0.00016;
+const float shadowBias = 0.000175;
 
 float ShadowCalculation() {
-  // Select the right cascade layer.
   float depthValue = abs((viewMatrix * FragPos).z);
 
-  int cascadeLayer = depthValue < CSM_PLANE_DISTANCE0 ? 0
-    : depthValue < CSM_PLANE_DISTANCE1                ? 1
-    : depthValue < CSM_PLANE_DISTANCE2                ? 2
-                                                      : 3;
-
   // Gets the fragment position in light space
-  vec4 csmCoords = csm_matrices[cascadeLayer] * FragPos;
+  vec4 csmCoords = csm_matrices[depthValue < CSM_PLANE_DISTANCE0 ? 0 : depthValue < CSM_PLANE_DISTANCE1 ? 1 : 2] * FragPos;
 
   // perform perspective divide and transform to [0,1] range
   csmCoords = (csmCoords / csmCoords.w) * .5 + .5;
@@ -52,16 +45,12 @@ float ShadowCalculation() {
 
   float shadow = 0.;
 
-  float x = 0., y = 0.;
   for (float x = -1.; x <= 1.; ++x) {
     for (float y = -1.; y <= 1.; ++y) {
       vec3 c = vec3(csmCoords.xy + vec2(x, y) / CSM_TEXTURE_SIZE, csmCoords.z - shadowBias);
-      switch (cascadeLayer) {
-        case 0: shadow += texture(csm_textures[0], c); break;
-        case 1: shadow += texture(csm_textures[1], c); break;
-        case 2: shadow += texture(csm_textures[2], c); break;
-        default: shadow += texture(csm_textures[3], c); break;
-      }
+      shadow += depthValue < CSM_PLANE_DISTANCE0 ? texture(csm_textures[0], c)
+        : depthValue < CSM_PLANE_DISTANCE1       ? texture(csm_textures[1], c)
+                                                 : texture(csm_textures[2], c);
     }
   }
 

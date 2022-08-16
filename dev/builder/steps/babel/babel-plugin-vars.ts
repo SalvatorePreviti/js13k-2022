@@ -225,6 +225,9 @@ export function babelPluginVars(
 
   function isIdentifierUsed(parentPath: NodePath, name: string) {
     let referenced = false;
+    if (parentPath.scope.bindings[name]) {
+      return true;
+    }
     traverse<{}>(
       parentPath.node,
       {
@@ -244,6 +247,11 @@ export function babelPluginVars(
 
   function isIdentifiersUsed(parentPath: NodePath, names: Set<string>) {
     let referenced = false;
+    for (const name of names) {
+      if (parentPath.scope.bindings[name]) {
+        return true;
+      }
+    }
     traverse<{}>(
       parentPath.node,
       {

@@ -11,6 +11,7 @@ import {
   mouse_movementX,
   mouse_movementY,
 } from "./input";
+
 import { camera_firstPersonMove, camera_firstPersonRotate, camera_position } from "./camera";
 
 export const PLAYER_SPEED_WALKING = 2.1;
