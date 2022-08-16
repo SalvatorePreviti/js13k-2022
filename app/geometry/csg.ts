@@ -13,16 +13,16 @@ export interface CSGPolygon {
    * This is then used by csg_polygons to merge back splitted polygons if they are both present,
    * to reduce the number of vertices and triangles.
    */
-  $parent: CSGPolygon | null;
+  $parent: CSGPolygon | 0;
 }
 
 export interface CSGNode extends Plane {
   /** Coplanar polygons */
   $polygons: CSGPolygon[];
   /** Front child */
-  $front: CSGNode | null;
+  $front: CSGNode | 0;
   /** Back child */
-  $back: CSGNode | null;
+  $back: CSGNode | 0;
 }
 
 export type CSGInput = CSGNode | readonly Polygon[];
@@ -94,7 +94,7 @@ const CSGPolygon_split = /* @__PURE__ */ (plane: Plane, polygon: CSGPolygon): Sp
 };
 
 const csg_tree_addPolygon = /* @__PURE__ */ (
-  node: CSGNode | null | undefined,
+  node: CSGNode | 0 | undefined,
   polygon: CSGPolygon,
   plane: Plane,
 ): CSGNode => {
@@ -105,8 +105,8 @@ const csg_tree_addPolygon = /* @__PURE__ */ (
       z: plane.z,
       w: plane.w,
       $polygons: [polygon],
-      $front: null,
-      $back: null,
+      $front: 0,
+      $back: 0,
     };
   }
   const { $front, $back } = CSGPolygon_split(node, polygon);
@@ -150,28 +150,24 @@ const csg_tree_clipPolygon = /* @__PURE__ */ (
 };
 
 /** Loop through all nodes in a tree */
-export const csg_tree_each = /* @__PURE__ */ (node: CSGNode | null | undefined, fn: (node: CSGNode) => void) => {
-  if (node) {
-    fn(node);
-    csg_tree_each(node.$front, fn);
-    csg_tree_each(node.$back, fn);
-  }
-};
+const csg_tree_each = /* @__PURE__ */ (node: CSGNode | 0 | undefined, fn: (node: CSGNode) => void): unknown =>
+  node && (fn(node), csg_tree_each(node.$front, fn), csg_tree_each(node.$back, fn));
 
 /**
  * If the given argument is a list of polygons, a new BSP tree built from the list of polygons is returned.
  * If the given argument is already a BSP tree, return it as is.
  * Note that array cannot be empty.
  */
-export const csg_tree = /* @__PURE__ */ (n: CSGInput): CSGNode => {
-  if ((n as Polygon[]).length) {
-    // Build a BSP tree from a list of polygons
-    return (n as Polygon[]).reduce<CSGNode | null>((prev, $polygon) =>
-       csg_tree_addPolygon(prev, { $polygon, $flipped: false, $parent: null }, plane_fromPolygon($polygon));
-    , null)!;
-  }
-  return n as CSGNode; // An object? We assume is a BSP tree.
-};
+export const csg_tree = /* @__PURE__ */ (n: CSGInput): CSGNode =>
+  (n as Polygon[]).length
+    ? // Build a BSP tree from a list of polygons
+      ((n as Polygon[]).reduce<CSGNode | 0>(
+        (prev, $polygon) =>
+          csg_tree_addPolygon(prev, { $polygon, $flipped: false, $parent: 0 }, plane_fromPolygon($polygon)),
+        0,
+      ) as CSGNode)
+    : // An object? We assume is a BSP tree.
+      (n as CSGNode);
 
 /**
  * Union a = a U b
@@ -179,7 +175,7 @@ export const csg_tree = /* @__PURE__ */ (n: CSGInput): CSGNode => {
  * @param b Source second geometry to add
  * @returns
  */
-export const csg_union_op = /* @__PURE__ */ (a: CSGInput, b: CSGInput | null | undefined): CSGNode => {
+export const csg_union_op = /* @__PURE__ */ (a: CSGInput, b: CSGInput | undefined): CSGNode => {
   const polygonsToAdd: [Plane, CSGPolygon[]][] = [];
   a = csg_tree(a);
   if (b) {
@@ -219,7 +215,7 @@ export const csg_union_op = /* @__PURE__ */ (a: CSGInput, b: CSGInput | null | u
 export const csg_union = /* @__PURE__ */ (inputs: CSGInput[]): CSGNode => inputs.reduce(csg_union_op) as CSGNode;
 
 /** Convert solid space to empty space and empty space to solid space. */
-export const csg_tree_flip = /* @__PURE__ */ (root: CSGNode | null | undefined): void =>
+export const csg_tree_flip = /* @__PURE__ */ (root: CSGNode | 0 | undefined): unknown =>
   csg_tree_each(root, (node) => {
     const back = node.$back;
     for (const polygon of node.$polygons) {

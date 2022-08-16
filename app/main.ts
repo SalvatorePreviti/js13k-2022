@@ -99,7 +99,7 @@ const csm_buildMagic = (csmSplit: number) => {
     gl.uniformMatrix4fv(csmShader_viewMatrixLoc, false, matrix);
     gl.clear(gl.DEPTH_BUFFER_BIT);
     lightSpaceMatrix = matrix;
-    return renderWorld(csmShader_worldMatrixLoc);
+    renderWorld(csmShader_worldMatrixLoc);
   };
 
   setup._main = () => gl.uniformMatrix4fv(lightSpaceMatrixLoc, false, lightSpaceMatrix);

@@ -89,7 +89,9 @@ export const polygon_extrude = /* @__PURE__ */ (
 ): Polygon[] => {
   const bottom = polygon_transform(points, identity.translate(0, -1).scale3d(topSize < 0 ? -topSize : 1)).reverse();
   const top = polygon_transform(points, identity.translate(0, 1).scale3d(topSize > 0 ? topSize : 1));
-  return [bottom as Polygon, top, ...cylinder_sides(bottom as Polygon, top, smooth)];
+  const sides = cylinder_sides(bottom as Polygon, top, smooth);
+  sides.push(bottom, top);
+  return sides;
 };
 
 /** Simplest composition of polygon functions. */
@@ -101,7 +103,9 @@ export const cylinder = /* @__PURE__ */ (
 
 export const cone = /* @__PURE__ */ (segments: number): Polygon[] => {
   const bottom = polygon_transform(polygon_regular(segments), identity.translate(0, -1));
-  return [bottom, ...cone_sides(bottom)];
+  const sides = cone_sides(bottom);
+  sides.push(bottom);
+  return sides;
 };
 
 export const horn = /* @__PURE__ */ (): Polygon[] => {
