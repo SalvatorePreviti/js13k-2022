@@ -1,4 +1,5 @@
 import { mat_perspective, camera_view } from "./camera";
+import { polygon_transform } from "./geometry/geometry";
 import { integers_map } from "./math/math";
 import { identity } from "./math/matrix";
 
@@ -13,21 +14,13 @@ export const csm_buildMatrix = /* @__PURE__ */ (
   farPlane: number,
   zmultiplier: number,
 ): Float32Array => {
-  let tx = 0;
-  let ty = 0;
-  let tz = 0;
-
-  let left = Infinity;
-  let right = -Infinity;
-  let bottom = Infinity;
-  let top = -Infinity;
-  let near = Infinity;
-  let far = -Infinity;
-
   const projViewInverse = new DOMMatrix(mat_perspective(nearPlane, farPlane)).multiplySelf(camera_view).invertSelf();
 
   const roundingRadius = (farPlane - nearPlane) / 2;
 
+  let tx = 0;
+  let ty = 0;
+  let tz = 0;
   const frustumCorners = integers_map(8, (i) => {
     let { x, y, z, w } = projViewInverse.transformPoint({
       x: i & 4 ? 1 : -1,
@@ -43,16 +36,22 @@ export const csm_buildMatrix = /* @__PURE__ */ (
 
   const lightViewTranslated = lightMatrix.translate(tx / 8, ty / 8, tz / 8);
 
+  let left = Infinity;
+  let right = -Infinity;
+  let bottom = Infinity;
+  let top = -Infinity;
+  let near = Infinity;
+  let far = -Infinity;
+
   // Compute the frustum bouding box
-  for (let i = 0; i < 8; ++i) {
-    const { x, y, z } = lightViewTranslated.transformPoint(frustumCorners[i]);
+  polygon_transform(frustumCorners, lightViewTranslated).map(({ x, y, z }) => {
     left = Math.min(left, x);
     right = Math.max(right, x);
     bottom = Math.min(bottom, y);
     top = Math.max(top, y);
     near = Math.min(near, z);
     far = Math.max(far, z);
-  }
+  });
 
   near *= near < 0 ? zmultiplier : 1 / zmultiplier;
   far *= far > 0 ? zmultiplier : 1 / zmultiplier;
