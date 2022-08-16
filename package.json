@@ -30,6 +30,7 @@
   ],
   "devDependencies": {
     "@babel/core": "^7.18.10",
+    "@babel/helper-annotate-as-pure": "^7.18.6",
     "@balsamic/dev": "^0.3.25",
     "@balsamic/eslint-config": "^0.2.2",
     "@resugar/codemod-declarations-block-scope": "^1.0.3",

@@ -6,7 +6,7 @@ const pavement = (): Polygon[] => {
   return polygons_transform(GBox, identity.translate(0, -2).scale(1100, 0.5, 1100), material(1, 1, 1));
 };
 
-export const mainScene = (): Polygon[] => {
+export const demon = () => {
   const rhorn = polygons_transform(
     horn(),
     identity.translate(0.2, 1.32, 0).rotate(0, 0, -30).scale(0.2, 0.6, 0.2),
@@ -17,7 +17,7 @@ export const mainScene = (): Polygon[] => {
 
   const MATERIAL_DEVIL = material(1, 0.3, 0.4);
 
-  const head = polygons_transform(sphere(11), identity.translate(0, 1, 0).scale(0.5, 0.5, 0.5), MATERIAL_DEVIL);
+  const head = polygons_transform(sphere(30), identity.translate(0, 1, 0).scale(0.5, 0.5, 0.5), MATERIAL_DEVIL);
 
   const reye = polygons_transform(
     csg_polygons(
@@ -30,22 +30,11 @@ export const mainScene = (): Polygon[] => {
     material(0.3, 0.3, 0.3),
   );
 
-  // const leye = polygons_transform(
-  //   csg_polygons(
-  //     csg_subtract(
-  //       polygons_transform(cylinder(16), identity.rotate(90, -15, 0)),
-  //       polygons_transform(GBox, identity.translate(0, 1, 0).rotate(0, 0, -20).scale(2, 0.5, 2)),
-  //     ),
-  //   ),
-  //   identity.translate(-0.2, 1.2, 0.4).scale(0.1, 0.1, 0.07),
-  //   material(0.3, 0.3, 0.3),
-  // );
-
   const leye = polygons_transform(reye, identity.flipX());
 
   const mouth = polygons_transform(
-    GBox,
-    identity.translate(0, 0.9, 0.45).scale(0.15, 0.02, 0.05),
+    cylinder(6, 1),
+    identity.translate(0, 0.9, 0.45).scale(0.15, 0.02, 0.08),
     material(0.3, 0.3, 0.3),
   );
 
@@ -58,34 +47,29 @@ export const mainScene = (): Polygon[] => {
   );
   const lleg = polygons_transform(rleg, identity.flipX());
 
-  const devilParts = [head, body, reye, leye, mouth, rhorn, lhorn, rleg, lleg];
-
-  return [
-    ...devilParts,
-    // ...polygons_transform(sphere(6), identity.scale3d(20), material0),
-    // ...polygons_transform(corridor(), identity.translate(0, 10, 0)),
-    pavement(),
-
-    // ...polygons_transform(cylinder(12), identity.scale3d(20), material0),
-  ].flat(1);
-
-  //  return [...polygons_transform(corridor(), identity.translate(0, 10, 0)), ...pavement(), ...weirdObject()];
-
-  // const c = corridor().map((t) => solid_transform(t, identity.translate(0, 10, 0)));
-
-  // const merged: Polygon[][] = [];
-  // for (let z = -8; z < 8; ++z) {
-  //   for (let x = -8; x < 8; ++x) {
-  //     for (let y = -2; y < 2; ++y) {
-  //       for (const solid of c) {
-  //         merged.push(solid_transform(solid, identity.translate(x * 20, y * 20, z * 20).scale(1, 1, 0.3)));
-  //       }
-  //     }
-  //   }
-  // }
-
-  // return [...merged, pavement(), weirdObject()];
+  return [head, body, reye, leye, mouth, rhorn, lhorn, rleg, lleg].flat();
 };
+
+export const mainScene = (): Polygon[] => {
+  return [pavement()].flat();
+};
+
+//  return [...polygons_transform(corridor(), identity.translate(0, 10, 0)), ...pavement(), ...weirdObject()];
+
+// const c = corridor().map((t) => solid_transform(t, identity.translate(0, 10, 0)));
+
+// const merged: Polygon[][] = [];
+// for (let z = -8; z < 8; ++z) {
+//   for (let x = -8; x < 8; ++x) {
+//     for (let y = -2; y < 2; ++y) {
+//       for (const solid of c) {
+//         merged.push(solid_transform(solid, identity.translate(x * 20, y * 20, z * 20).scale(1, 1, 0.3)));
+//       }
+//     }
+//   }
+// }
+
+// return [...merged, pavement(), weirdObject()];
 
 // const materialWhite = material(1, 1, 1);
 // const material0 = material(1, 0.3, 0);

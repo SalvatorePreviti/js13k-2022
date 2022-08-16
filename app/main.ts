@@ -26,10 +26,14 @@ import { gl, initGl, initShaderProgram } from "./gl";
 import { integers_map } from "./math/math";
 import { mat_perspective, zFar, zNear, camera_position, camera_rotation, camera_view } from "./camera";
 import { camera_update } from "./camera-update";
-import { buildWorld, renderMainScene } from "./level/scene";
+import { buildWorld, meshDemon, meshWorld } from "./level/scene";
 import { csm_buildMatrix, lightMatrix } from "./csm";
 import { initInputHandlers } from "./input";
-import { identity } from "./math/matrix";
+
+const renderWorld = (worldMatrixLoc: WebGLUniformLocation) => {
+  meshDemon(worldMatrixLoc);
+  meshWorld(worldMatrixLoc);
+};
 
 initGl();
 
@@ -46,13 +50,13 @@ gl.clearColor(0, 0.7, 1, 1); // Clear to black, fully opaque
 const csm_framebuffers: WebGLFramebuffer[] = [];
 
 const csmShader = initShaderProgram(csm_vsSource, voidFsSource);
-const csmShader_viewMatrixLoc = gl.getUniformLocation(csmShader, uniformName_viewMatrix);
-const csmShader_worldMatrixLoc = gl.getUniformLocation(csmShader, uniformName_worldMatrix);
+const csmShader_viewMatrixLoc = gl.getUniformLocation(csmShader, uniformName_viewMatrix)!;
+const csmShader_worldMatrixLoc = gl.getUniformLocation(csmShader, uniformName_worldMatrix)!;
 
 const mainShader = initShaderProgram(main_vsSource, main_fsSource);
-const mainShader_projectionMatrixLoc = gl.getUniformLocation(mainShader, uniformName_projectionMatrix);
-const mainShader_viewMatrixLoc = gl.getUniformLocation(mainShader, uniformName_viewMatrix);
-const mainShader_viewPosLoc = gl.getUniformLocation(mainShader, uniformName_viewPos);
+const mainShader_projectionMatrixLoc = gl.getUniformLocation(mainShader, uniformName_projectionMatrix)!;
+const mainShader_viewMatrixLoc = gl.getUniformLocation(mainShader, uniformName_viewMatrix)!;
+const mainShader_viewPosLoc = gl.getUniformLocation(mainShader, uniformName_viewPos)!;
 const mainShader_lightDirLoc = gl.getUniformLocation(mainShader, uniformName_lightDir)!;
 const mainShader_worldMatrixLoc = gl.getUniformLocation(mainShader, uniformName_worldMatrix)!;
 
@@ -122,15 +126,12 @@ const draw = () => {
 
   gl.useProgram(csmShader);
 
-  const xxxmatrix = identity.translate(Math.cos(gameTime)).rotate(0, gameTime * 40);
-
   gl.viewport(0, 0, CSM_TEXTURE_SIZE, CSM_TEXTURE_SIZE);
   for (let csmSplit = 0; csmSplit < 4; ++csmSplit) {
     gl.bindFramebuffer(gl.FRAMEBUFFER, csm_framebuffers[csmSplit]!);
     gl.uniformMatrix4fv(csmShader_viewMatrixLoc, false, lightSpaceMatrices[csmSplit]!);
-    gl.uniformMatrix4fv(csmShader_worldMatrixLoc, false, xxxmatrix.toFloat32Array());
     gl.clear(gl.DEPTH_BUFFER_BIT);
-    renderMainScene();
+    renderWorld(csmShader_worldMatrixLoc);
   }
 
   // *** MAIN RENDER ***
@@ -154,13 +155,11 @@ const draw = () => {
 
   gl.uniformMatrix4fv(mainShader_viewMatrixLoc, false, camera_view.toFloat32Array());
 
-  gl.uniformMatrix4fv(mainShader_worldMatrixLoc, false, xxxmatrix.toFloat32Array());
-
   gl.uniform3f(mainShader_viewPosLoc, camera_position.x, camera_position.y, camera_position.z);
 
   gl.uniform3f(mainShader_lightDirLoc, lightMatrix.m13, lightMatrix.m23, lightMatrix.m33);
 
-  renderMainScene();
+  renderWorld(mainShader_worldMatrixLoc);
 };
 
 requestAnimationFrame(draw);

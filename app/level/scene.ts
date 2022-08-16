@@ -1,13 +1,25 @@
 import type { Polygon } from "../geometry/geometry";
 import { gl } from "../gl";
+import { identity } from "../math/matrix";
 import { plane_fromPolygon } from "../math/vectors";
-import { mainScene } from "./level";
+import { demon, mainScene } from "./level";
 
 export type Renderer = () => void;
 
-export let renderMainScene: Renderer;
+export interface Mesh {
+  (worldMatrixLoc: WebGLUniformLocation): void;
+  $matrix: DOMMatrix;
+}
+
+export let meshDemon: Mesh;
+
+export let meshWorld: Mesh;
 
 export const buildWorld = () => {
+  if (DEBUG) {
+    console.time("buildWorld");
+  }
+
   const triangleIndices: number[] = [];
   const positions: number[] = [];
   const normals: number[] = [];
@@ -18,6 +30,7 @@ export const buildWorld = () => {
   const _iSmooth = new Int32Array(_i.buffer, 0, 4);
   const _f = new Float32Array(_i.buffer);
   let _polygon: Polygon | undefined;
+  let _meshFirstIndex: number = 0;
 
   const getVertex = (i: number): number => {
     const { x, y, z } = _polygon![i]!;
@@ -52,28 +65,22 @@ export const buildWorld = () => {
     }
   };
 
-  if (DEBUG) {
-    console.time("scene");
-  }
-  const scene = mainScene();
+  const endMesh = () => {
+    const first = _meshFirstIndex;
+    const last = triangleIndices.length;
+    const mesh = ((worldMatrixLoc: WebGLUniformLocation) => {
+      gl.uniformMatrix4fv(worldMatrixLoc, false, mesh.$matrix.toFloat32Array());
+      gl.drawElements(gl.TRIANGLES, (_meshFirstIndex = last) - first, gl.UNSIGNED_INT, first);
+    }) as Mesh;
+    mesh.$matrix = DOMMatrix.fromMatrix(identity);
+    return mesh;
+  };
 
-  if (DEBUG) {
-    console.timeEnd("scene");
-  }
+  makeMesh(demon());
+  meshDemon = endMesh();
 
-  if (DEBUG) {
-    console.time("makeMesh");
-  }
-
-  makeMesh(scene);
-
-  const _indicesxxx = triangleIndices.length;
-
-  renderMainScene = () => gl.drawElements(gl.TRIANGLES, _indicesxxx, gl.UNSIGNED_INT, 0);
-
-  if (DEBUG) {
-    console.timeEnd("makeMesh");
-  }
+  makeMesh(mainScene());
+  meshWorld = endMesh();
 
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.createBuffer());
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(triangleIndices), gl.STATIC_DRAW);
@@ -95,6 +102,7 @@ export const buildWorld = () => {
   gl.enableVertexAttribArray(2);
 
   if (DEBUG) {
+    console.timeEnd("buildWorld");
     console.log(
       "vertices: " + vertexMap.size + " indices:" + triangleIndices.length + " triangles:" + triangleIndices.length / 3,
     );

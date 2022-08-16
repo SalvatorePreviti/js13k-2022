@@ -27,8 +27,9 @@ import { dprint } from "./steps/dprint";
 import { StreamedClosureCompiler } from "./steps/js-closure";
 import { swcPluginVars } from "./steps/swc/transforms/swc-plugin-vars";
 import { jsEsbuildMinify } from "./steps/js-esbuild";
-import { jsBabel, jsBabelResugarPlugins } from "./steps/babel/js-babel";
+import { jsBabel } from "./steps/babel/js-babel";
 import { babelPluginVars } from "./steps/babel/babel-plugin-vars";
+import resugarBlockScope from "@resugar/codemod-declarations-block-scope";
 import resugarFunctionsArrow from "@resugar/codemod-functions-arrow";
 import resugarObjectsShorthand from "@resugar/codemod-objects-shorthand";
 
@@ -130,14 +131,21 @@ export async function build() {
 
     js = await jsBabel(js, {
       minify: false,
-      plugins: [...jsBabelResugarPlugins],
+      plugins: [
+        resugarBlockScope,
+        resugarFunctionsArrow,
+        resugarObjectsShorthand,
+        babelPluginVars(),
+        "babel-plugin-pure-calls-annotation",
+        // "babel-plugin-annotate-pure-calls",
+      ],
     });
 
     js = await jsEsbuildMinify(js, {
       mangle: false,
       minifySyntax: true,
       minifyWhitespace: false,
-      computed_props: true,
+      computed_props: false,
     });
 
     js = await jsTransformSwc(js, { final: false, computed_props: true }, swcPluginVars());
@@ -148,6 +156,18 @@ export async function build() {
       join_vars: false,
       sequences: true,
       computed_props: true,
+    });
+
+    js = await jsBabel(js, {
+      minify: false,
+      plugins: [
+        resugarBlockScope,
+        resugarFunctionsArrow,
+        resugarObjectsShorthand,
+        babelPluginVars(),
+        "babel-plugin-pure-calls-annotation",
+        // "babel-plugin-annotate-pure-calls",
+      ],
     });
 
     js = await jsUglify(js, {
@@ -165,7 +185,13 @@ export async function build() {
 
     js = await jsBabel(js, {
       minify: false,
-      plugins: [...jsBabelResugarPlugins],
+      plugins: [
+        resugarBlockScope,
+        resugarFunctionsArrow,
+        resugarObjectsShorthand,
+        "babel-plugin-pure-calls-annotation",
+        // "babel-plugin-annotate-pure-calls",
+      ],
     });
 
     js = await jsTransformSwc(
@@ -181,21 +207,26 @@ export async function build() {
 
     js = await streamedClosureCompiler.compileOne(js);
 
+    js = await jsTransformSwc(js, false, swcPluginVars({ constToLet: true }));
+
     js = await jsBabel(js, {
       minify: false,
-      plugins: [...jsBabelResugarPlugins, babelPluginVars()],
+      plugins: [
+        resugarBlockScope,
+        resugarObjectsShorthand,
+        resugarFunctionsArrow,
+        babelPluginVars({ constToLet: true, splitVars: true }),
+        "babel-plugin-pure-calls-annotation",
+        // "babel-plugin-annotate-pure-calls",
+      ],
     });
 
-    js = await jsTransformSwc(
-      js,
-      { final: false, computed_props: true, minify: false },
-      swcPluginVars({ constToLet: true }),
-    );
+    js = await jsTransformSwc(js, false, swcPluginVars({ constToLet: true }));
 
     // Mangling
 
     js = await jsTerser(js, {
-      mangle: false,
+      mangle: "variables",
       final: false,
       join_vars: true,
       sequences: true,
@@ -207,14 +238,14 @@ export async function build() {
       plugins: [
         resugarFunctionsArrow,
         resugarObjectsShorthand,
-        babelPluginVars({}),
+        babelPluginVars(),
         "babel-plugin-pure-calls-annotation",
-        "babel-plugin-annotate-pure-calls",
+        // "babel-plugin-annotate-pure-calls",
       ],
     });
 
     js = await jsTerser(js, {
-      mangle: "all",
+      mangle: false,
       final: true,
       join_vars: true,
       sequences: true,

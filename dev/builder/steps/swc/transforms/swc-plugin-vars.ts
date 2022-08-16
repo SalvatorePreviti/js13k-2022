@@ -1,4 +1,5 @@
 import type { BlockStatement, Expression, ModuleItem, Program, Statement, VariableDeclaration } from "@swc/core";
+import type { types as babelTypes } from "@babel/core";
 import SwcVisitor from "@swc/core/Visitor";
 import type { SwcSimpleTransformSettings } from "./swc-plugin-simple";
 import { swcPluginSimpleTransform } from "./swc-plugin-simple";
@@ -184,42 +185,51 @@ function varKindOrdering(varKind: "var" | "let" | "const") {
   return varKind === "var" ? 0 : varKind === "let" ? 1 : 2;
 }
 
-function constExpressionOrdering(expression: Expression): number {
+function constExpressionOrdering(expression: Expression | babelTypes.Expression | babelTypes.PrivateName): number {
   switch (expression.type) {
-    case "NumericLiteral":
-      return 1;
-    case "StringLiteral":
-      return 2;
-    case "BooleanLiteral":
-      return 3;
+    case "ArrayExpression":
+      return 0;
     case "NullLiteral":
-      return 4;
-    case "RegExpLiteral":
-      return 5;
+      return 1;
+    case "BooleanLiteral":
+      return 2;
+    case "NumericLiteral":
+      return 3;
     case "BigIntLiteral":
+      return 4;
+    case "StringLiteral":
+      return 5;
+    case "ObjectExpression":
+      return 6;
+    case "RegExpLiteral":
+      return 7;
+    case "MemberExpression":
       return 8;
+    case "CallExpression":
+      return 9;
+    case "Identifier":
+      return 10;
+    case "ClassExpression":
+      return 11;
+    case "FunctionExpression":
+      return 12;
+    case "NewExpression":
+      return 13;
+    case "ArrowFunctionExpression":
+      return 14;
     case "UnaryExpression":
       return constExpressionOrdering(expression.argument);
     case "BinaryExpression":
       return Math.max(constExpressionOrdering(expression.left), constExpressionOrdering(expression.right));
-    case "ObjectExpression":
-      return 9;
-    case "ArrayExpression":
-      return 10;
-    case "MemberExpression":
-      return 11;
-    case "NewExpression":
-      return 12;
-    case "CallExpression":
-      return 13;
-    case "Identifier":
-      return 14;
     default:
       return 100;
   }
 }
 
-function variableDeclarationSortCompare(da: VariableDeclaration, db: VariableDeclaration) {
+function variableDeclarationSortCompare(
+  da: VariableDeclaration | babelTypes.VariableDeclaration,
+  db: VariableDeclaration | babelTypes.VariableDeclaration,
+) {
   const a = da.declarations[0]!;
   const b = db.declarations[0]!;
 
@@ -243,5 +253,11 @@ function variableDeclarationSortCompare(da: VariableDeclaration, db: VariableDec
     c = compareBoolean(!a.init, !b.init);
   }
 
-  return c || a.span.start - b.span.start;
+  if ("span" in a && "span" in b) {
+    return c || a.span.start - b.span.start;
+  }
+  if ("range" in a && "range" in b && a.range && b.range) {
+    return a.range[0] - b.range[0];
+  }
+  return 0;
 }
