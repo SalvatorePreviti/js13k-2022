@@ -132,9 +132,17 @@ const draw = () => {
   gl.useProgram(csmShader);
 
   gl.viewport(0, 0, CSM_TEXTURE_SIZE, CSM_TEXTURE_SIZE);
-  csm_matricesLocs[0]!(csm_buildMatrix(zNear, CSM_PLANE_DISTANCE0, 10));
-  csm_matricesLocs[1]!(csm_buildMatrix(CSM_PLANE_DISTANCE0, CSM_PLANE_DISTANCE1, 20));
-  csm_matricesLocs[2]!(csm_buildMatrix(CSM_PLANE_DISTANCE1, zFar, 9));
+
+  csm_matricesLocs[0]!(csm_buildMatrix(zNear, CSM_PLANE_DISTANCE0, 10, ((CSM_PLANE_DISTANCE0 - zNear) / 2) | 0));
+  csm_matricesLocs[1]!(
+    csm_buildMatrix(
+      CSM_PLANE_DISTANCE0,
+      CSM_PLANE_DISTANCE1,
+      20,
+      ((CSM_PLANE_DISTANCE1 - CSM_PLANE_DISTANCE0) / 2) | 0,
+    ),
+  );
+  csm_matricesLocs[2]!(csm_buildMatrix(CSM_PLANE_DISTANCE1, zFar, 9, ((zFar - CSM_PLANE_DISTANCE1) / 2) | 0));
 
   // *** MAIN RENDER ***
 

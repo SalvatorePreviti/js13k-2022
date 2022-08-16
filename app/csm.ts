@@ -2,6 +2,7 @@ import { mat_perspective, camera_view } from "./camera";
 import { polygon_transform } from "./geometry/geometry";
 import { integers_map } from "./math/math";
 import { identity } from "./math/matrix";
+import type { Vec4 } from "./math/vectors";
 
 /**
  * The main directional light rotation matrix.
@@ -12,26 +13,26 @@ export const lightMatrix = /* @__PURE__ */ identity.rotate(292 - 50, 216);
 export const csm_buildMatrix = /* @__PURE__ */ (
   nearPlane: number,
   farPlane: number,
-  zmultiplier: number,
+  zMultiplier: number,
+  roundingRadius: number,
 ): Float32Array => {
   const projViewInverse = new DOMMatrix(mat_perspective(nearPlane, farPlane)).multiplySelf(camera_view).invertSelf();
-
-  const roundingRadius = (farPlane - nearPlane) / 2;
 
   let tx = 0;
   let ty = 0;
   let tz = 0;
+
   const frustumCorners = integers_map(8, (i) => {
-    let { x, y, z, w } = projViewInverse.transformPoint({
-      x: i & 4 ? 1 : -1,
-      y: i & 2 ? 1 : -1,
-      z: i & 1 ? 1 : -1,
+    const v = projViewInverse.transformPoint({
+      x: 4 & i ? 1 : -1,
+      y: 2 & i ? 1 : -1,
+      z: 1 & i ? 1 : -1,
     });
-    // To reduce shimmering, we round the corners of the frustum.
-    tx -= x = ((roundingRadius * x) | 0) / (roundingRadius * w);
-    ty -= y = ((roundingRadius * y) | 0) / (roundingRadius * w);
-    tz -= z = ((roundingRadius * z) | 0) / (roundingRadius * w);
-    return { x, y, z };
+    // Round to reduce shimmering
+    tx -= v.x = ((roundingRadius * v.x) | 0) / (roundingRadius * v.w);
+    ty -= v.y = ((roundingRadius * v.y) | 0) / (roundingRadius * v.w);
+    tz -= v.z = ((roundingRadius * v.z) | 0) / (roundingRadius * v.w);
+    return v;
   });
 
   const lightViewTranslated = lightMatrix.translate(tx / 8, ty / 8, tz / 8);
@@ -53,8 +54,8 @@ export const csm_buildMatrix = /* @__PURE__ */ (
     far = Math.max(far, z);
   });
 
-  near *= near < 0 ? zmultiplier : 1 / zmultiplier;
-  far *= far > 0 ? zmultiplier : 1 / zmultiplier;
+  near *= near < 0 ? zMultiplier : 1 / zMultiplier;
+  far *= far > 0 ? zMultiplier : 1 / zMultiplier;
 
   // Build the ortographic matrix, multiply it with the light space view matrix.
   return identity
