@@ -2,7 +2,6 @@ import { mat_perspective, camera_view } from "./camera";
 import { polygon_transform } from "./geometry/geometry";
 import { integers_map } from "./math/math";
 import { identity } from "./math/matrix";
-import type { Vec4 } from "./math/vectors";
 
 /**
  * The main directional light rotation matrix.
