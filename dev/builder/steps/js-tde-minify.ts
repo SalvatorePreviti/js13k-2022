@@ -14,7 +14,7 @@ export async function jsTdeMinify(source: string, timed = true): Promise<string>
       ));
 
       tdeMinifyConfig({
-        // "js-precision": 8,
+        // "js-precision": floatRoundAmount + 1,
         "js-keep-var-names": true,
         "js-no-nullish-operator": false,
       });

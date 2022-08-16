@@ -39,7 +39,7 @@ initGl();
 buildWorld();
 
 gl.enable(gl.DEPTH_TEST); // Enable depth testing
-// gl.enable(gl.CULL_FACE); // Don't render triangle backs
+gl.enable(gl.CULL_FACE); // Don't render triangle backs
 
 gl.clearColor(0, 0.7, 1, 1); // Clear to black, fully opaque
 // gl.clearDepth(1); // Clear everything. Default value is 1
@@ -133,16 +133,9 @@ const draw = () => {
 
   gl.viewport(0, 0, CSM_TEXTURE_SIZE, CSM_TEXTURE_SIZE);
 
-  csm_matricesLocs[0]!(csm_buildMatrix(zNear, CSM_PLANE_DISTANCE0, 10, ((CSM_PLANE_DISTANCE0 - zNear) / 2) | 0));
-  csm_matricesLocs[1]!(
-    csm_buildMatrix(
-      CSM_PLANE_DISTANCE0,
-      CSM_PLANE_DISTANCE1,
-      20,
-      ((CSM_PLANE_DISTANCE1 - CSM_PLANE_DISTANCE0) / 2) | 0,
-    ),
-  );
-  csm_matricesLocs[2]!(csm_buildMatrix(CSM_PLANE_DISTANCE1, zFar, 9, ((zFar - CSM_PLANE_DISTANCE1) / 2) | 0));
+  csm_matricesLocs[0]!(csm_buildMatrix(zNear, CSM_PLANE_DISTANCE0, 10));
+  csm_matricesLocs[1]!(csm_buildMatrix(CSM_PLANE_DISTANCE0, CSM_PLANE_DISTANCE1, 11));
+  csm_matricesLocs[2]!(csm_buildMatrix(CSM_PLANE_DISTANCE1, zFar, 15));
 
   // *** MAIN RENDER ***
 

@@ -15,6 +15,8 @@ export let meshDemon: Mesh;
 
 export let meshWorld: Mesh;
 
+export let meshAdd: (polygons: Polygon[]) => Polygon[];
+
 export const buildWorld = () => {
   if (DEBUG) {
     console.time("buildWorld");
@@ -52,7 +54,7 @@ export const buildWorld = () => {
     return index;
   };
 
-  const makeMesh = (polygons: Polygon[]) => {
+  meshAdd = (polygons: Polygon[]) => {
     for (_polygon of polygons) {
       const v = plane_fromPolygon(_polygon);
       _i[3] = _polygon.$color! | 0;
@@ -63,9 +65,11 @@ export const buildWorld = () => {
         triangleIndices.push(a, b, (b = getVertex(i)));
       }
     }
+    return polygons;
   };
 
-  const endMesh = () => {
+  const endMesh = (fn: () => void) => {
+    fn();
     const first = _meshFirstIndex;
     const last = triangleIndices.length;
     const mesh = ((worldMatrixLoc: WebGLUniformLocation) => {
@@ -76,11 +80,8 @@ export const buildWorld = () => {
     return mesh;
   };
 
-  makeMesh(demon());
-  meshDemon = endMesh();
-
-  makeMesh(mainScene());
-  meshWorld = endMesh();
+  meshDemon = endMesh(demon);
+  meshWorld = endMesh(mainScene);
 
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.createBuffer());
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(triangleIndices), gl.STATIC_DRAW);

@@ -33,6 +33,8 @@ import { babelPluginVars } from "./steps/babel/babel-plugin-vars";
 import resugarBlockScope from "@resugar/codemod-declarations-block-scope";
 import resugarFunctionsArrow from "@resugar/codemod-functions-arrow";
 import resugarObjectsShorthand from "@resugar/codemod-objects-shorthand";
+import { jsTdeMinify } from "./steps/js-tde-minify";
+import { floatRoundAmount } from "./lib/js-config";
 
 devLog.titlePaddingWidth = 18;
 
@@ -144,7 +146,6 @@ export async function build() {
         resugarObjectsShorthand,
         babelPluginVars(),
         "babel-plugin-pure-calls-annotation",
-        // "babel-plugin-annotate-pure-calls",
       ],
     });
 
@@ -165,6 +166,8 @@ export async function build() {
       computed_props: true,
     });
 
+    js = await jsTdeMinify(js);
+
     js = await jsBabel(js, {
       minify: false,
       plugins: [
@@ -173,7 +176,6 @@ export async function build() {
         resugarObjectsShorthand,
         babelPluginVars(),
         "babel-plugin-pure-calls-annotation",
-        // "babel-plugin-annotate-pure-calls",
       ],
     });
 
@@ -197,7 +199,6 @@ export async function build() {
         resugarFunctionsArrow,
         resugarObjectsShorthand,
         "babel-plugin-pure-calls-annotation",
-        // "babel-plugin-annotate-pure-calls",
       ],
     });
 
@@ -206,7 +207,7 @@ export async function build() {
       null,
       swcPluginVars({
         unmangleableProperties: "transform",
-        floatRound: 6,
+        floatRound: floatRoundAmount,
       }),
     );
 
@@ -222,7 +223,6 @@ export async function build() {
         resugarFunctionsArrow,
         babelPluginVars({}),
         "babel-plugin-pure-calls-annotation",
-        // "babel-plugin-annotate-pure-calls",
       ],
     });
 
@@ -245,9 +245,10 @@ export async function build() {
         resugarObjectsShorthand,
         babelPluginVars({ splitVars: true }),
         "babel-plugin-pure-calls-annotation",
-        // "babel-plugin-annotate-pure-calls",
       ],
     });
+
+    js = await jsTdeMinify(js);
 
     js = await jsTerser(js, {
       mangle: false,
@@ -256,6 +257,8 @@ export async function build() {
       sequences: true,
       computed_props: true,
     });
+
+    js = await jsTdeMinify(js);
 
     return js;
   }

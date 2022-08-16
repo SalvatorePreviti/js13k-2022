@@ -166,9 +166,9 @@ export const csg_tree_each = /* @__PURE__ */ (node: CSGNode | null | undefined, 
 export const csg_tree = /* @__PURE__ */ (n: CSGInput): CSGNode => {
   if ((n as Polygon[]).length) {
     // Build a BSP tree from a list of polygons
-    return (n as Polygon[]).reduce<CSGNode | null>((prev, $polygon) => {
-      return csg_tree_addPolygon(prev, { $polygon, $flipped: false, $parent: null }, plane_fromPolygon($polygon));
-    }, null)!;
+    return (n as Polygon[]).reduce<CSGNode | null>((prev, $polygon) =>
+       csg_tree_addPolygon(prev, { $polygon, $flipped: false, $parent: null }, plane_fromPolygon($polygon));
+    , null)!;
   }
   return n as CSGNode; // An object? We assume is a BSP tree.
 };

@@ -1,57 +1,58 @@
 import { csg_subtract, csg_polygons } from "../geometry/csg";
 import { material, GBox, cylinder, polygons_transform, type Polygon, sphere, horn } from "../geometry/geometry";
 import { identity } from "../math/matrix";
+import { meshAdd } from "./scene";
 
 const pavement = (): Polygon[] => {
   return polygons_transform(GBox, identity.translate(0, -2).scale(1100, 0.5, 1100), material(1, 1, 1));
 };
 
+const MATERIAL_DEVIL = material(1, 0.3, 0.4);
+
 export const demon = () => {
-  const rhorn = polygons_transform(
-    horn(),
-    identity.translate(0.2, 1.32, 0).rotate(0, 0, -30).scale(0.2, 0.6, 0.2),
-    material(1, 1, 0.8),
-  );
-
-  const lhorn = polygons_transform(rhorn, identity.flipX());
-
-  const MATERIAL_DEVIL = material(1, 0.3, 0.4);
-
-  const head = polygons_transform(sphere(30), identity.translate(0, 1, 0).scale(0.5, 0.5, 0.5), MATERIAL_DEVIL);
-
-  const reye = polygons_transform(
-    csg_polygons(
-      csg_subtract(
-        polygons_transform(cylinder(15, 1), identity.rotate(90, 15, 0)),
-        polygons_transform(GBox, identity.translate(0, 1, 0).rotate(0, 0, 20).scale(2, 0.5, 2)),
-      ),
+  const rhorn = meshAdd(
+    polygons_transform(
+      horn(),
+      identity.translate(0.2, 1.32, 0).rotate(0, 0, -30).scale(0.2, 0.6, 0.2),
+      material(1, 1, 0.8),
     ),
-    identity.translate(0.2, 1.2, 0.4).scale(0.1, 0.1, 0.057),
+  );
+
+  // left horn
+  meshAdd(polygons_transform(rhorn, identity.rotate(0, 180, 0)));
+
+  // head
+  meshAdd(polygons_transform(sphere(30), identity.translate(0, 1, 0).scale(0.5, 0.5, 0.5), MATERIAL_DEVIL));
+
+  const eye = polygons_transform(
+    csg_polygons(csg_subtract(cylinder(15, 1), polygons_transform(GBox, identity.translate(0, 0, 1).scale(2, 2, 0.5)))),
+    identity.rotate(-90, 0, 0).scale(0.1, 0.05, 0.1),
     material(0.3, 0.3, 0.3),
   );
 
-  const leye = polygons_transform(reye, identity.flipX());
+  // right eye
+  meshAdd(polygons_transform(eye, identity.translate(0.2, 1.2, 0.4).rotate(0, 20, 20)));
 
-  const mouth = polygons_transform(
-    cylinder(6, 1),
-    identity.translate(0, 0.9, 0.45).scale(0.15, 0.02, 0.08),
-    material(0.3, 0.3, 0.3),
+  // left eye
+  meshAdd(polygons_transform(eye, identity.translate(-0.2, 1.2, 0.4).rotate(0, -20, -20)));
+
+  // mouth
+  meshAdd(polygons_transform(GBox, identity.translate(0, 0.9, 0.45).scale(0.15, 0.02, 0.06), material(0.3, 0.3, 0.3)));
+
+  // body
+  meshAdd(polygons_transform(sphere(15), identity.translate(0, 0, 0).scale(0.7, 0.8, 0.5), MATERIAL_DEVIL));
+
+  // Right leg
+  const rleg = meshAdd(
+    polygons_transform(cylinder(10, 1), identity.translate(-0.3, -1, 0).scale(0.2, 0.5, 0.2), MATERIAL_DEVIL),
   );
 
-  const body = polygons_transform(sphere(15), identity.translate(0, 0, 0).scale(0.7, 0.8, 0.5), MATERIAL_DEVIL);
-
-  const rleg = polygons_transform(
-    cylinder(10, 1),
-    identity.translate(-0.3, -1, 0).scale(0.2, 0.5, 0.2),
-    MATERIAL_DEVIL,
-  );
-  const lleg = polygons_transform(rleg, identity.flipX());
-
-  return [head, body, reye, leye, mouth, rhorn, lhorn, rleg, lleg].flat();
+  // Left leg
+  meshAdd(polygons_transform(rleg, identity.rotate(0, 180)));
 };
 
-export const mainScene = (): Polygon[] => {
-  return [pavement()].flat();
+export const mainScene = () => {
+  meshAdd(pavement());
 };
 
 //  return [...polygons_transform(corridor(), identity.translate(0, 10, 0)), ...pavement(), ...weirdObject()];

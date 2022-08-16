@@ -74,8 +74,8 @@ export const cylinder_sides = /* @__PURE__ */ (
     ),
   );
 
-export const cone_sides = /* @__PURE__ */ (btm: Polygon, c = { x: 0, y: 0, z: 0 }): Polygon[] =>
-  btm.map((btmi, i, { length }) => [btmi, c, btm[(i + 1) % length]!]);
+export const cone_sides = /* @__PURE__ */ (btm: Polygon): Polygon[] =>
+  btm.map((btmi, i, { length }) => [btmi, { x: 0, y: 0, z: 0 }, btm[(i + 1) % length]!]);
 
 /**
  * Extrudes a polygon into a solid.

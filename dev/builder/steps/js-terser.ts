@@ -373,7 +373,7 @@ export function getTerserMinifyOptions(settings: TerserMinifySettings): TerserMi
       quote_style: 0,
 
       // Preserve Terser annotations in the output.
-      preserve_annotations: false,
+      preserve_annotations: !settings.final,
 
       // set this option to true to work around the Safari 10/11 await bug.
       safari10: false,
