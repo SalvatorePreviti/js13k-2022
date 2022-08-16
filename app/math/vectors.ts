@@ -35,8 +35,10 @@ export type Vec3In = Readonly<Vec3>;
 
 export type Vec4In = Readonly<Vec4>;
 
-export const vec3_plane_distance = /* @__PURE__ */ (a: Readonly<Plane>, v: Vec3In): number =>
-  a.x * v.x + a.y * v.y + a.z * v.z - a.w;
+export const vec3_dot = /* @__PURE__ */ ({ x, y, z }: Vec3In, v: Vec3In): number => x * v.x + y * v.y + z * v.z;
+
+export const vec3_plane_distance = /* @__PURE__ */ ({ x, y, z, w }: Readonly<Plane>, v: Vec3In): number =>
+  x * v.x + y * v.y + z * v.z - w;
 
 /**
  * Computes a polygon plane using the Newell's method.
@@ -48,8 +50,8 @@ export const plane_fromPolygon = /* @__PURE__ */ (polygon: readonly Vec3In[]): P
   let x = 0;
   let y = 0;
   let z = 0;
-  let b: Vec3In | number;
   let a = polygon.at(-1)!;
+  let b: Vec3In | number;
   for (b of polygon) {
     x += (a.y - b.y) * (a.z + b.z);
     y += (a.z - b.z) * (a.x + b.x);
@@ -57,7 +59,10 @@ export const plane_fromPolygon = /* @__PURE__ */ (polygon: readonly Vec3In[]): P
     a = b;
   }
   b = Math.hypot(x, y, z);
-  return { x: (x /= b), y: (y /= b), z: (z /= b), w: x * a.x + y * a.y + z * a.z };
+  x /= b;
+  y /= b;
+  z /= b;
+  return { x, y, z, w: x * a.x + y * a.y + z * a.z };
 };
 
 export const vec3 = /* @__PURE__ */ (x: number, y: number, z: number): Vec3 => ({ x, y, z });
@@ -94,5 +99,3 @@ export const vec3_cross = /* @__PURE__ */ ({ x, y, z }: Vec3In, { x: bx, y: by, 
 });
 
 export const vec3_scale = /* @__PURE__ */ ({ x, y, z }: Vec3In, m: number): Vec3 => ({ x: x * m, y: y * m, z: z * m });
-
-export const vec3_dot = /* @__PURE__ */ ({ x, y, z }: Vec3In, b: Vec3In): number => x * b.x + y * b.y + z * b.z;

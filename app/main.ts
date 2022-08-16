@@ -47,7 +47,6 @@ gl.clearColor(0, 0.7, 1, 1); // Clear to black, fully opaque
 // gl.depthFunc(gl.LEQUAL); // Default is LESS, seems LEQUAL and LESS both are OK
 
 const csmShader = initShaderProgram(csm_vsSource, voidFsSource);
-const csmShader_worldMatrixLoc = gl.getUniformLocation(csmShader, uniformName_worldMatrix)!;
 
 const mainShader = initShaderProgram(main_vsSource, main_fsSource);
 const mainShader_projectionMatrixLoc = gl.getUniformLocation(mainShader, uniformName_projectionMatrix)!;
@@ -57,6 +56,7 @@ const mainShader_lightDirLoc = gl.getUniformLocation(mainShader, uniformName_lig
 const mainShader_worldMatrixLoc = gl.getUniformLocation(mainShader, uniformName_worldMatrix)!;
 
 const csm_buildMagic = (csmSplit: number) => {
+  const csmShader_worldMatrixLoc = gl.getUniformLocation(csmShader, uniformName_worldMatrix)!;
   const csmShader_viewMatrixLoc = gl.getUniformLocation(csmShader, uniformName_viewMatrix)!;
   const lightSpaceMatrixLoc = gl.getUniformLocation(mainShader, uniformName_csm_matrices + `[${csmSplit}]`)!;
   const texture = gl.createTexture()!;
@@ -130,6 +130,7 @@ const draw = () => {
   // *** CASCADED SHADOWMAPS ***
 
   gl.useProgram(csmShader);
+
   gl.viewport(0, 0, CSM_TEXTURE_SIZE, CSM_TEXTURE_SIZE);
   csm_matricesLocs[0]!(csm_buildMatrix(zNear, CSM_PLANE_DISTANCE0, 10));
   csm_matricesLocs[1]!(csm_buildMatrix(CSM_PLANE_DISTANCE0, CSM_PLANE_DISTANCE1, 20));
@@ -138,9 +139,6 @@ const draw = () => {
   // *** MAIN RENDER ***
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
-  // Clear the canvas before we start drawing on it.
-
   gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight); // Make the canvas cover the screen
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 

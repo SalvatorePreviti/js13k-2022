@@ -19,7 +19,7 @@ export async function jsRoadroller(html: string): Promise<string> {
       const dom = new JSDOM(stripUtf8BOM(html));
 
       const scriptsTags = Array.from(dom.window.document.querySelectorAll("script"));
-      const js = scriptsTags.map((scriptTag) => scriptTag.textContent).join("\n");
+      const js = scriptsTags.map((scriptTag) => `(()=>{${scriptTag.textContent}})()`).join("\n");
       scriptsTags.forEach((scriptTag) => scriptTag.remove());
 
       const packer = new Packer(
