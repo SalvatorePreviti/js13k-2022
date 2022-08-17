@@ -176,8 +176,6 @@ export async function build() {
       computed_props: true,
     });
 
-    js = await jsTdeMinify(js);
-
     js = await jsBabel(js, {
       minify: false,
       plugins: [
@@ -196,7 +194,7 @@ export async function build() {
     js = await streamedClosureCompiler.compileOne(js);
 
     js = await jsBabel(js, {
-      minify: false,
+      minify: true,
       plugins: [
         resugarConcise,
         resugarObjectsShorthand,
