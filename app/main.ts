@@ -109,17 +109,13 @@ const csm_buildMagic = (csmSplit: number) => {
 
 const csm_matricesLocs = integers_map(3, csm_buildMagic);
 
-let gameTime = performance.now() / 1000;
-let lastGameTime = gameTime;
+// let gameTime = 0;
 
-const draw = () => {
+const draw = (deltaTimeMilliseconds: number) => {
+  // gameTime += deltaTime;
   requestAnimationFrame(draw);
 
-  const gameTimeDelta = gameTime - lastGameTime;
-  lastGameTime = gameTime;
-  gameTime = performance.now() / 1000;
-
-  camera_update(gameTimeDelta);
+  camera_update(deltaTimeMilliseconds / 1000);
 
   camera_view
     .setMatrixValue("none")
@@ -159,6 +155,6 @@ const draw = () => {
   renderWorld(mainShader_worldMatrixLoc);
 };
 
-draw();
+draw(0);
 
 initInputHandlers();
