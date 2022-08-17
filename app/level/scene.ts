@@ -28,39 +28,40 @@ export const buildWorld = () => {
   const colors: number[] = [];
 
   const vertexMap = new Map<string, number>();
-  const _i = new Int32Array(7);
-  const _iSmooth = new Int32Array(_i.buffer, 0, 4);
-  const _f = new Float32Array(_i.buffer);
+  const vertexInts = new Int32Array(7);
+  const vertexIntsSmooth = new Int32Array(vertexInts.buffer, 0, 4);
+  const vertexFloats = new Float32Array(vertexInts.buffer);
+
   let _polygon: Polygon | undefined;
   let _meshFirstIndex: number = 0;
 
   const getVertex = (i: number): number => {
     const { x, y, z } = _polygon![i]!;
-    _f[0] = x;
-    _f[1] = y;
-    _f[2] = z;
-    const key = "" + (_polygon!.$smooth ? _iSmooth : _i);
+    vertexFloats[0] = x;
+    vertexFloats[1] = y;
+    vertexFloats[2] = z;
+    const key = "" + (_polygon!.$smooth ? vertexIntsSmooth : vertexInts);
     let index = vertexMap.get(key);
     if (index === undefined) {
       vertexMap.set(key, (index = vertexMap.size));
       positions.push(x, y, z);
-      colors.push(_i[3]!);
-      normals.push(_i[4]!, _i[5]!, _i[6]!);
+      colors.push(vertexInts[3]!);
+      normals.push(vertexInts[4]!, vertexInts[5]!, vertexInts[6]!);
     } else {
-      normals[index * 3] = (normals[index * 3]! + _i[4]!) / 2;
-      normals[index * 3 + 1] = (normals[index * 3 + 1]! + _i[5]!) / 2;
-      normals[index * 3 + 2] = (normals[index * 3 + 2]! + _i[6]!) / 2;
+      normals[index * 3] = (normals[index * 3]! + vertexInts[4]!) / 2;
+      normals[index * 3 + 1] = (normals[index * 3 + 1]! + vertexInts[5]!) / 2;
+      normals[index * 3 + 2] = (normals[index * 3 + 2]! + vertexInts[6]!) / 2;
     }
     return index;
   };
 
   meshAdd = (polygons: Polygon[]) => {
     for (_polygon of polygons) {
-      const v = plane_fromPolygon(_polygon);
-      _i[3] = _polygon.$color! | 0;
-      _i[4] = v.x * 32767;
-      _i[5] = v.y * 32767;
-      _i[6] = v.z * 32767;
+      const { x, y, z } = plane_fromPolygon(_polygon);
+      vertexInts[3] = _polygon.$color! | 0;
+      vertexInts[4] = x * 32767;
+      vertexInts[5] = y * 32767;
+      vertexInts[6] = z * 32767;
       for (let i = 2, a = getVertex(0), b = getVertex(1); i < _polygon.length; ++i) {
         triangleIndices.push(a, b, (b = getVertex(i)));
       }
