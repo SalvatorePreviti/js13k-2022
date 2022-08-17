@@ -162,6 +162,7 @@ export function rollupPluginSwcTransform(): PluginOption {
             resugarFunctionsArrow,
             resugarBlockScopePlugin,
             babelPluginVars(),
+            "babel-plugin-minify-dead-code-elimination",
             "babel-plugin-pure-calls-annotation",
           ],
         }) || output1;

@@ -37,8 +37,7 @@ export type Vec4In = Readonly<Vec4>;
 
 export const vec3_dot = /* @__PURE__ */ ({ x, y, z }: Vec3In, v: Vec3In): number => x * v.x + y * v.y + z * v.z;
 
-export const vec3_plane_distance = /* @__PURE__ */ ({ x, y, z, w }: Readonly<Plane>, v: Vec3In): number =>
-  x * v.x + y * v.y + z * v.z - w;
+export const vec3_plane_distance = /* @__PURE__ */ (p: Readonly<Plane>, v: Vec3In): number => vec3_dot(p, v) - p.w;
 
 /**
  * Computes a polygon plane using the Newell's method.

@@ -132,6 +132,7 @@ export async function build() {
       minify: false,
       plugins: [
         babelPluginSimple({ unmangleableProperties: "mark" }),
+        "babel-plugin-minify-dead-code-elimination",
         resugarFunctionsArrow,
         resugarBlockScope,
         babelPluginVars({ constToLet: true }),
@@ -221,14 +222,7 @@ export async function build() {
 
     js = await jsBabel(js, {
       minify: true,
-      plugins: [
-        resugarConcise,
-        resugarFunctionsArrow,
-        resugarObjectsShorthand,
-        resugarBlockScope,
-        babelPluginVars({ constToLet: true }),
-        "babel-plugin-pure-calls-annotation",
-      ],
+      plugins: [babelPluginVars({ constToLet: true }), "babel-plugin-pure-calls-annotation"],
     });
 
     js = await jsTerser(js, {

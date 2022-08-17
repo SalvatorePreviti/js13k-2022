@@ -6,7 +6,7 @@ export const PLANE_EPSILON = 0.00008;
 export interface CSGPolygon {
   $polygon: Polygon;
 
-  $flipped: boolean;
+  $flipped: 0 | boolean;
 
   /**
    * When a polygon is splitted, this will contain the polygon from which this polygon was splitted.
@@ -96,18 +96,11 @@ const CSGPolygon_split = /* @__PURE__ */ (plane: Plane, polygon: CSGPolygon): Sp
 const csg_tree_addPolygon = /* @__PURE__ */ (
   node: CSGNode | 0 | undefined,
   polygon: CSGPolygon,
-  plane: Plane,
+  plane?: Plane,
 ): CSGNode => {
   if (!node) {
-    return {
-      x: plane.x,
-      y: plane.y,
-      z: plane.z,
-      w: plane.w,
-      $polygons: [polygon],
-      $front: 0,
-      $back: 0,
-    };
+    const { x, y, z, w } = plane || plane_fromPolygon(polygon.$polygon);
+    return { x, y, z, w, $polygons: [polygon], $front: 0, $back: 0 };
   }
   const { $front, $back } = CSGPolygon_split(node, polygon);
   if (!$front && !$back) {
@@ -162,8 +155,7 @@ export const csg_tree = /* @__PURE__ */ (n: CSGInput): CSGNode =>
   (n as Polygon[]).length
     ? // Build a BSP tree from a list of polygons
       ((n as Polygon[]).reduce<CSGNode | 0>(
-        (prev, $polygon) =>
-          csg_tree_addPolygon(prev, { $polygon, $flipped: false, $parent: 0 }, plane_fromPolygon($polygon)),
+        (prev, $polygon) => csg_tree_addPolygon(prev, { $polygon, $flipped: 0, $parent: 0 }),
         0,
       ) as CSGNode)
     : // An object? We assume is a BSP tree.
@@ -245,21 +237,18 @@ export const csg_subtract = /* @__PURE__ */ (a: CSGInput, b: CSGInput): CSGNode 
  * Some polygons will be merged, to reduce the number of triangles.
  */
 export const csg_polygons = /* @__PURE__ */ (tree: CSGNode): Polygon[] => {
-  const result: Polygon[] = [];
   const byParent = new Map<CSGPolygon, CSGPolygon>();
-  const allPolygons = new Map<CSGPolygon, boolean>();
+  const allPolygons = new Map<CSGPolygon, 0 | boolean>();
 
   /** Adds a polygon, and replaces two splitted polygons that have the same parent with the parent */
   const add = (polygon: CSGPolygon): CSGPolygon => {
-    const parent = polygon.$parent;
-    let found: CSGPolygon | undefined;
-    if (parent) {
-      found = byParent.get(parent);
+    if (polygon.$parent) {
+      const found = byParent.get(polygon.$parent);
       if (found) {
         allPolygons.delete(found);
-        polygon = add(parent);
+        polygon = add(polygon.$parent);
       } else {
-        byParent.set(parent, polygon);
+        byParent.set(polygon.$parent, polygon);
       }
     }
     return polygon;
@@ -271,18 +260,8 @@ export const csg_polygons = /* @__PURE__ */ (tree: CSGNode): Polygon[] => {
     }
   });
 
-  for (let [
-    {
-      $polygon,
-      $polygon: { $color, $smooth },
-    },
-    flipped,
-  ] of allPolygons) {
-    $polygon = $polygon.map(({ x, y, z }) => ({ x, y, z }));
-    if (flipped) {
-      $polygon.reverse();
-    }
-    result.push(polygon_color($polygon, $color, $smooth));
-  }
-  return result;
+  return Array.from(allPolygons, ([{ $polygon }, flipped]) => {
+    const polygon = $polygon.map(({ x, y, z }) => ({ x, y, z }));
+    return polygon_color(flipped ? polygon.reverse() : polygon, $polygon.$color, $polygon.$smooth);
+  });
 };

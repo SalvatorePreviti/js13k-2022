@@ -32,6 +32,7 @@ export async function jsTerser(input: string, settings: TerserMinifySettings) {
 
 export interface TerserMinifySettings {
   mangle: "variables" | "all" | false;
+  longMangleNames?: boolean;
   final: boolean;
   join_vars: boolean;
   sequences: boolean;
@@ -397,6 +398,21 @@ export function getTerserMinifyOptions(settings: TerserMinifySettings): TerserMi
       wrap_func_args: false,
     },
   };
+
+  if (settings.longMangleNames && typeof options.mangle === "object") {
+    options.mangle.nth_identifier = {
+      get(index) {
+        return `$$$$${index}`;
+      },
+      reset() {},
+      consider() {
+        return 1;
+      },
+      sort() {
+        return true;
+      },
+    };
+  }
 
   return options;
 }
