@@ -162,7 +162,6 @@ export function rollupPluginSwcTransform(): PluginOption {
             "babel-plugin-minify-constant-folding",
             "babel-plugin-minify-dead-code-elimination",
             "babel-plugin-pure-calls-annotation",
-            // "babel-plugin-annotate-pure-calls",
           ],
         }) || output1;
 
