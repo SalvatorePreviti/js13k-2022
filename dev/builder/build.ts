@@ -226,7 +226,13 @@ export async function build() {
 
     js = await jsBabel(js, {
       minify: true,
-      plugins: [resugarConcise, resugarFunctionsArrow, resugarObjectsShorthand, resugarBlockScope, babelPluginVars()],
+      plugins: [
+        resugarConcise,
+        resugarFunctionsArrow,
+        resugarObjectsShorthand,
+        resugarBlockScope,
+        babelPluginVars({ constToLet: true }),
+      ],
     });
 
     js = await jsTdeMinify(js);
