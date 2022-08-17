@@ -9,7 +9,7 @@ import type { UserConfig as ViteUserConfig, PluginOption } from "vite";
 import { rollupPluginSpglsl } from "spglsl";
 import { domRemoveExternalCssAndScripts, stripUtf8BOM } from "../lib/code-utils";
 import { JSDOM } from "jsdom";
-import { rollupPluginSwcTransform } from "./build-swc-transform";
+import { rollupPluginSwcTransform } from "./build-transform";
 import shadersMangleGlobals from "../../../app/shaders/_mangle_globals";
 import { browserPureFunctions, global_defs } from "../lib/js-config";
 import type { MinifyOptions } from "terser";

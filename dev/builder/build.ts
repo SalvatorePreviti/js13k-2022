@@ -132,6 +132,7 @@ export async function build() {
       minify: false,
       plugins: [
         babelPluginSimple({ unmangleableProperties: "mark" }),
+        "babel-plugin-minify-constant-folding",
         "babel-plugin-minify-dead-code-elimination",
         resugarFunctionsArrow,
         resugarBlockScope,
