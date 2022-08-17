@@ -1,3 +1,4 @@
+import type { Vec3 } from "../math/vectors";
 import { plane_fromPolygon, type Vec3In, type Plane, vec3_dot } from "../math/vectors";
 import { polygon_color, type Polygon } from "./geometry";
 
@@ -33,13 +34,13 @@ interface SplitPolygonResult {
 }
 
 const CSGPolygon_splitSpanning = /* @__PURE__ */ (plane: Plane, polygon: CSGPolygon): SplitPolygonResult => {
-  const fpoints: Vec3In[] = [];
-  const bpoints: Vec3In[] = [];
-  const points = polygon.$polygon;
+  const fpoints: Vec3[] = [];
+  const bpoints: Vec3[] = [];
+  const { $polygon, $flipped } = polygon;
   let jd: number;
-  let iv: Vec3In = points.at(-1)!;
+  let iv: Vec3In = $polygon.at(-1)!;
   let id: number = vec3_dot(plane, iv) - plane.w;
-  for (const jv of points) {
+  for (const jv of $polygon) {
     jd = vec3_dot(plane, jv) - plane.w;
     if (id < PLANE_EPSILON) {
       bpoints.push(iv);
@@ -62,13 +63,13 @@ const CSGPolygon_splitSpanning = /* @__PURE__ */ (plane: Plane, polygon: CSGPoly
   }
   return {
     $front: fpoints.length > 2 && {
-      $polygon: polygon_color(fpoints, points.$color, points.$smooth),
-      $flipped: polygon.$flipped,
+      $polygon: polygon_color(fpoints, $polygon.$color, $polygon.$smooth),
+      $flipped,
       $parent: polygon,
     },
     $back: bpoints.length > 2 && {
-      $polygon: polygon_color(bpoints, points.$color, points.$smooth),
-      $flipped: polygon.$flipped,
+      $polygon: polygon_color(bpoints, $polygon.$color, $polygon.$smooth),
+      $flipped,
       $parent: polygon,
     },
   };
@@ -96,21 +97,22 @@ const CSGPolygon_split = /* @__PURE__ */ (plane: Plane, polygon: CSGPolygon): Sp
 const csg_tree_addPolygon = /* @__PURE__ */ (
   node: CSGNode | 0 | undefined,
   polygon: CSGPolygon,
-  plane?: Plane,
+  plane: Plane = plane_fromPolygon(polygon.$polygon),
 ): CSGNode => {
-  if (!node) {
-    const { x, y, z, w } = plane || plane_fromPolygon(polygon.$polygon);
-    return { x, y, z, w, $polygons: [polygon], $front: 0, $back: 0 };
-  }
-  const { $front, $back } = CSGPolygon_split(node, polygon);
-  if (!$front && !$back) {
-    node.$polygons.push(polygon); // Coplanar
-  }
-  if ($front) {
-    node.$front = csg_tree_addPolygon(node.$front, $front, plane);
-  }
-  if ($back) {
-    node.$back = csg_tree_addPolygon(node.$back, $back, plane);
+  if (node) {
+    const { $front, $back } = CSGPolygon_split(node, polygon);
+    if (!$front && !$back) {
+      node.$polygons.push(polygon); // Coplanar
+    }
+    if ($front) {
+      node.$front = csg_tree_addPolygon(node.$front, $front, plane);
+    }
+    if ($back) {
+      node.$back = csg_tree_addPolygon(node.$back, $back, plane);
+    }
+  } else {
+    const { x, y, z, w } = plane;
+    node = { x, y, z, w, $polygons: [polygon], $front: 0, $back: 0 };
   }
   return node;
 };
@@ -203,16 +205,16 @@ export const csg_union = /* @__PURE__ */ (inputs: CSGInput[]): CSGNode => inputs
 /** Convert solid space to empty space and empty space to solid space. */
 export const csg_tree_flip = /* @__PURE__ */ (root: CSGNode | 0 | undefined): unknown =>
   csg_tree_each(root, (node) => {
-    const back = node.$back;
-    for (const polygon of node.$polygons) {
-      polygon.$flipped = !polygon.$flipped;
-    }
+    const { $front, $back } = node;
+    node.$back = $front;
+    node.$front = $back;
     node.x *= -1;
     node.y *= -1;
     node.z *= -1;
     node.w *= -1;
-    node.$back = node.$front;
-    node.$front = back;
+    for (const polygon of node.$polygons) {
+      polygon.$flipped = !polygon.$flipped;
+    }
   });
 
 /**
