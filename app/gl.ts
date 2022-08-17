@@ -24,6 +24,7 @@ export interface WebglProgramAbstraction {
 }
 
 export const initShaderProgram = (svsSource: string, sfsSource: string): WebglProgramAbstraction => {
+  const uniforms: Record<string, WebGLUniformLocation> = {};
   const program = gl.createProgram()!;
   gl.attachShader(program, loadShader(gl.VERTEX_SHADER, svsSource));
   gl.attachShader(program, loadShader(gl.FRAGMENT_SHADER, sfsSource));
@@ -33,10 +34,8 @@ export const initShaderProgram = (svsSource: string, sfsSource: string): WebglPr
     throw new Error("Unable to initialize the shader program: " + gl.getProgramInfoLog(program));
   }
 
-  const cache: Record<string, WebGLUniformLocation> = {};
+  gl.useProgram(program);
 
-  const result = (name?: string): any =>
-    name ? cache[name] || (cache[name] = gl.getUniformLocation(program, name)!) : gl.useProgram(program);
-  result();
-  return result;
+  return (name?: string): any =>
+    name ? uniforms[name] || (uniforms[name] = gl.getUniformLocation(program, name)!) : gl.useProgram(program);
 };

@@ -50,7 +50,7 @@
     "@types/node": "^18.7.6",
     "@types/react": "^18.0.17",
     "@types/react-dom": "^18.0.6",
-    "@types/uglify-js": "^3.16.0",
+    "@types/uglify-js": "^3.17.0",
     "@typescript-eslint/eslint-plugin": "^5.33.1",
     "@typescript-eslint/parser": "^5.33.1",
     "@vitejs/plugin-react": "^2.0.1",

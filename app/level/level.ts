@@ -82,7 +82,7 @@ export const mainScene = () => {
     meshAdd(polygons_transform(cylinder(8), identity.translate(x, 3, z).scale(0.3, 3, 0.3), material(0.8, 0, 0.8)));
   });
 
-  meshAdd(weirdObject());
+  // meshAdd(weirdObject());
   // meshAdd(pavement());
 };
 

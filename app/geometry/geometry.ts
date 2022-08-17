@@ -10,16 +10,16 @@ export interface Polygon<TVec3 = Vec3> extends Array<TVec3> {
   $color?: number | undefined;
 
   /** Smooth normals? */
-  $smooth?: boolean | undefined;
+  $smooth?: 0 | 1 | undefined;
 }
 
 export const polygon_color = /* @__PURE__ */ (
   polygon: Polygon,
   color: number | undefined,
-  smooth?: boolean | 0 | 1 | undefined,
+  smooth?: 0 | 1 | undefined,
 ): Polygon => {
+  polygon.$smooth = smooth;
   polygon.$color = color;
-  polygon.$smooth = !!smooth;
   return polygon;
 };
 
@@ -61,11 +61,7 @@ export const polygon_regular = /* @__PURE__ */ (segments: number): Polygon =>
  * Top and bottom polygons must have the same length.
  * Top polygon is supposed to be flipped.
  */
-export const cylinder_sides = /* @__PURE__ */ (
-  btm: Polygon,
-  top: Polygon,
-  smooth?: boolean | 0 | 1 | undefined,
-): Polygon[] =>
+export const cylinder_sides = /* @__PURE__ */ (btm: Polygon, top: Polygon, smooth?: 0 | 1 | undefined): Polygon[] =>
   btm.map((btmi, i, { length }) =>
     polygon_color(
       [btmi, top[length - i - 1]!, top[length - ((i + 1) % length) - 1]!, btm[(i + 1) % length]!],
@@ -84,7 +80,7 @@ export const cone_sides = /* @__PURE__ */ (btm: Polygon): Polygon[] =>
  */
 export const polygon_extrude = /* @__PURE__ */ (
   points: Polygon<Vec3Optional>,
-  smooth?: boolean | 0 | 1 | undefined,
+  smooth?: 0 | 1 | undefined,
   topSize = 1,
 ): Polygon[] => {
   const bottom = polygon_transform(points, identity.translate(0, -1).scale3d(topSize < 0 ? -topSize : 1)).reverse();
@@ -95,11 +91,8 @@ export const polygon_extrude = /* @__PURE__ */ (
 };
 
 /** Simplest composition of polygon functions. */
-export const cylinder = /* @__PURE__ */ (
-  segments: number,
-  smooth?: boolean | 0 | 1 | undefined,
-  topSize = 1,
-): Polygon[] => polygon_extrude(polygon_regular(segments), smooth, topSize);
+export const cylinder = /* @__PURE__ */ (segments: number, smooth?: 0 | 1 | undefined, topSize = 1): Polygon[] =>
+  polygon_extrude(polygon_regular(segments), smooth, topSize);
 
 export const cone = /* @__PURE__ */ (segments: number): Polygon[] => {
   const bottom = polygon_transform(polygon_regular(segments), identity.translate(0, -1));
@@ -124,7 +117,7 @@ export const horn = /* @__PURE__ */ (): Polygon[] => {
   ).flat();
 };
 
-export const sphere = /* @__PURE__ */ (slices: number, smooth: boolean | 0 | 1 | undefined = 1): Polygon[] => {
+export const sphere = /* @__PURE__ */ (slices: number, smooth: 0 | 1 | undefined = 1): Polygon[] => {
   const stacks = slices;
   const polygons: Polygon[] = [];
   for (let i = 0; i < slices; i++) {
@@ -148,14 +141,6 @@ export const sphere = /* @__PURE__ */ (slices: number, smooth: boolean | 0 | 1 |
   }
   return polygons;
 };
-
-export const GCylinder5 = /* @__PURE__ */ cylinder(5);
-
-export const GCylinder6 = /* @__PURE__ */ cylinder(6);
-
-export const GCylinder7 = /* @__PURE__ */ cylinder(7);
-
-export const GCylinder8 = /* @__PURE__ */ cylinder(8);
 
 export const GBox = /* @__PURE__ */ polygon_extrude([
   { x: -1, z: 1 },

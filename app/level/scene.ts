@@ -55,15 +55,16 @@ export const buildWorld = () => {
     vertexFloats[2] = z;
     const key = "" + (_polygon!.$smooth ? vertexIntsSmooth : vertexInts);
     let index = vertexMap.get(key);
-    if (index === undefined) {
+    if (index !== undefined) {
+      x = index * 3;
+      normals[x] = (normals[x++]! + vertexInts[4]!) / 2;
+      normals[x] = (normals[x++]! + vertexInts[5]!) / 2;
+      normals[x] = (normals[x]! + vertexInts[6]!) / 2;
+    } else {
       vertexMap.set(key, (index = vertexMap.size));
       positions.push(x, y, z);
-      colors.push(vertexInts[3]!);
       normals.push(vertexInts[4]!, vertexInts[5]!, vertexInts[6]!);
-    } else {
-      normals[index * 3] = (normals[index * 3]! + vertexInts[4]!) / 2;
-      normals[index * 3 + 1] = (normals[index * 3 + 1]! + vertexInts[5]!) / 2;
-      normals[index * 3 + 2] = (normals[index * 3 + 2]! + vertexInts[6]!) / 2;
+      colors.push(vertexInts[3]!);
     }
     return index;
   };
@@ -84,9 +85,6 @@ export const buildWorld = () => {
 
   const endMesh = (fn: () => void) => {
     fn();
-    _meshTranslationX = 0;
-    _meshTranslationY = 0;
-    _meshTranslationZ = 0;
     const first = _meshFirstIndex;
     const last = triangleIndices.length;
     const mesh = ((worldMatrixLoc: WebGLUniformLocation) => {
@@ -94,6 +92,9 @@ export const buildWorld = () => {
       gl.drawElements(gl.TRIANGLES, (_meshFirstIndex = last) - first, gl.UNSIGNED_INT, first);
     }) as Mesh;
     mesh.$matrix = DOMMatrix.fromMatrix(identity);
+    _meshTranslationX = 0;
+    _meshTranslationY = 0;
+    _meshTranslationZ = 0;
     return mesh;
   };
 
