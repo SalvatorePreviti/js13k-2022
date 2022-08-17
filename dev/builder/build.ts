@@ -137,7 +137,6 @@ export async function build() {
         resugarFunctionsArrow,
         resugarBlockScope,
         babelPluginVars({ constToLet: true }),
-        "babel-plugin-pure-calls-annotation",
       ],
     });
 
@@ -182,7 +181,7 @@ export async function build() {
         resugarObjectsShorthand,
         resugarBlockScope,
         babelPluginVars({ constToLet: true }),
-        babelPluginSimple({ unmangleableProperties: "transform", constToLet: true, floatRound: floatRoundAmount }),
+        babelPluginSimple({ unmangleableProperties: "transform", floatRound: floatRoundAmount }),
       ],
     });
 
@@ -199,7 +198,7 @@ export async function build() {
         resugarObjectsShorthand,
         resugarFunctionsArrow,
         resugarBlockScope,
-        babelPluginVars({ constToLet: true }),
+        babelPluginVars(),
         "babel-plugin-pure-calls-annotation",
       ],
     });
@@ -213,7 +212,7 @@ export async function build() {
       computed_props: true,
     });
 
-    js = await jsTransformSwc(js, false, swcPluginVars({ constToLet: true, floatRound: 6 }));
+    js = await jsTransformSwc(js, "simple", swcPluginVars({ constToLet: true, floatRound: 6 }));
 
     // Mangling
 
