@@ -6,7 +6,7 @@ export const initGl = () => {
   }
 };
 
-export const loadShader = (type: number, source: string): WebGLShader => {
+const loadShader = (type: number, source: string): WebGLShader => {
   const shader = gl.createShader(type)!;
   gl.shaderSource(shader, source);
   gl.compileShader(shader);

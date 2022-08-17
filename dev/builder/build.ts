@@ -141,6 +141,8 @@ export async function build() {
       ],
     });
 
+    js = await jsTransformSwc(js, false, swcPluginVars());
+
     js = await jsUglify(js, {
       varify: false,
       final: false,
@@ -188,6 +190,8 @@ export async function build() {
 
     js = await streamedClosureCompiler.compileOne(js);
 
+    js = await jsTransformSwc(js, { final: false, computed_props: true }, swcPluginVars());
+
     js = await jsBabel(js, {
       minify: true,
       plugins: [
@@ -209,7 +213,7 @@ export async function build() {
       computed_props: true,
     });
 
-    js = await jsTransformSwc(js, false, swcPluginVars());
+    js = await jsTransformSwc(js, false, swcPluginVars({ constToLet: true, floatRound: 6 }));
 
     // Mangling
 
