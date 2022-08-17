@@ -146,7 +146,7 @@ export function getTerserMinifyOptions(settings: TerserMinifySettings): TerserMi
 
       // hoist var declarations
       // (this is false by default because it seems to increase the size of the output in general)
-      hoist_vars: true,
+      hoist_vars: false,
 
       // optimizations for if/return and if/continue
       if_return: true,

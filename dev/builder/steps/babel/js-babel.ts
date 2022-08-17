@@ -21,6 +21,7 @@ export async function jsBabel(code: string, settings: JsBabelSettings) {
         comments: true,
         compact: !!settings.minify,
         minified: !!settings.minify,
+        sourceType: "module",
         parserOpts: {
           sourceType: "module",
           allowAwaitOutsideFunction: true,
