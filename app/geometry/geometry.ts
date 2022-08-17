@@ -109,17 +109,17 @@ export const cone = /* @__PURE__ */ (segments: number): Polygon[] => {
 };
 
 export const horn = /* @__PURE__ */ (): Polygon[] => {
-  const p = polygon_regular(15);
+  const stacks = 10;
 
-  const COUNT = 10;
+  const p = polygon_regular(15);
 
   const getMatrix = (i: number) =>
     identity
-      .translate(Math.sin((i / COUNT) * Math.PI), i / COUNT)
-      .rotate(10 * (i / COUNT))
-      .scale(1 - i / COUNT, 0, 1 - i / COUNT);
+      .translate(Math.sin((i / stacks) * Math.PI), i / stacks)
+      .rotate(10 * (i / stacks))
+      .scale(1 - i / stacks, 0, 1 - i / stacks);
 
-  return integers_map(COUNT, (i) =>
+  return integers_map(stacks, (i) =>
     cylinder_sides(polygon_transform(p, getMatrix(i)).reverse(), polygon_transform(p, getMatrix(i + 1)), 1),
   ).flat();
 };
@@ -127,17 +127,14 @@ export const horn = /* @__PURE__ */ (): Polygon[] => {
 export const sphere = /* @__PURE__ */ (slices: number, smooth: boolean | 0 | 1 | undefined = 1): Polygon[] => {
   const stacks = slices;
   const polygons: Polygon[] = [];
-  let vertices: Polygon;
-
-  const vertex = (theta: number, phi: number) => {
-    phi *= Math.PI;
-    theta *= Math.PI * 2;
-    vertices.push({ x: Math.cos(theta) * Math.sin(phi), y: Math.cos(phi), z: Math.sin(theta) * Math.sin(phi) });
-  };
-
   for (let i = 0; i < slices; i++) {
     for (let j = 0; j < stacks; j++) {
-      vertices = polygon_color([], 0, smooth);
+      const vertices = polygon_color([], 0, smooth);
+      const vertex = (theta: number, phi: number) => {
+        phi *= Math.PI;
+        theta *= Math.PI * 2;
+        vertices.push({ x: Math.cos(theta) * Math.sin(phi), y: Math.cos(phi), z: Math.sin(theta) * Math.sin(phi) });
+      };
       vertex(i / slices, j / stacks);
       if (j) {
         vertex((i + 1) / slices, j / stacks);
