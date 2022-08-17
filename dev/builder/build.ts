@@ -12,7 +12,7 @@ import {
 import { devLog } from "@balsamic/dev";
 import { writeFinalBundle, writeOptimizedBundle } from "./lib/write-bundle";
 import { zipBundle } from "./steps/bundle-zip";
-import { outPath_bundle, outPath_minify, outPath_rolled, outPath_zip } from "./out-paths";
+import { outPath_build, outPath_bundle, outPath_minify, outPath_rolled, outPath_zip } from "./out-paths";
 import type { WriteBundleInput } from "./lib/write-bundle";
 import type { ViteBundledOutput } from "./steps/build-vite";
 import { buildWithVite } from "./steps/build-vite";
@@ -54,9 +54,10 @@ export async function build() {
 
     const includeDevTools = process.argv.includes("--with-dev-tools");
 
-    const sources = await buildWithVite({ stripDevTools: !includeDevTools });
+    const sources = await buildWithVite({ stripDevTools: !includeDevTools, minifier: false });
 
-    devLog.log();
+    devLog.logGreenBright(`\n📈 Stats: ${devLog.colors.whiteBright(path.join(outPath_build, "stats.html"))}\n`);
+
     await devLog.timed(async function minify() {
       try {
         devLog.log();
@@ -87,9 +88,13 @@ export async function build() {
       html: (await bundleHtml(sources)).html,
     };
 
-    logTableBundled(bundled, "bundled", true);
+    const gzippedHtml = zlib.gzipSync(Buffer.from(bundled.html, "utf8"), { level: 9 });
+
+    logTableBundled(bundled, "bundled", gzippedHtml.length);
 
     await writeFinalBundle(bundled, outPath_bundle);
+
+    await fs.writeFile(path.resolve(outPath_bundle, "index.gz"), gzippedHtml);
 
     const [zippedRolledBuffer, zippedPlainBuffer] = await Promise.all([
       zipRoadRoller(sources, bundled),
@@ -182,6 +187,7 @@ export async function build() {
         resugarBlockScope,
         babelPluginVars({ constToLet: true }),
         babelPluginSimple({ unmangleableProperties: "transform", floatRound: floatRoundAmount }),
+        "babel-plugin-pure-calls-annotation",
       ],
     });
 
@@ -189,10 +195,10 @@ export async function build() {
 
     js = await streamedClosureCompiler.compileOne(js);
 
-    js = await jsTransformSwc(js, { final: false, computed_props: true }, swcPluginVars());
+    js = await jsTransformSwc(js, { final: false, computed_props: true, minify: false }, swcPluginVars());
 
     js = await jsBabel(js, {
-      minify: true,
+      minify: false,
       plugins: [
         resugarConcise,
         resugarObjectsShorthand,
@@ -205,33 +211,33 @@ export async function build() {
 
     js = await jsUglify(js, {
       varify: false,
-      final: true,
+      final: false,
       reduce_vars: true,
       join_vars: true,
       sequences: true,
       computed_props: true,
     });
 
-    js = await jsTransformSwc(js, "simple", swcPluginVars({ constToLet: true, floatRound: 6 }));
+    js = await jsTransformSwc(js, false, swcPluginVars({ constToLet: true, floatRound: 6 }));
 
     // Mangling
 
     js = await jsTerser(js, {
       mangle: "variables",
-      final: true,
+      final: false,
       join_vars: true,
       sequences: true,
       computed_props: true,
     });
 
     js = await jsBabel(js, {
-      minify: true,
+      minify: false,
       plugins: [babelPluginVars({ constToLet: true }), "babel-plugin-pure-calls-annotation"],
     });
 
     js = await jsTerser(js, {
       mangle: false,
-      final: true,
+      final: false,
       join_vars: true,
       sequences: true,
       computed_props: true,
@@ -271,11 +277,11 @@ async function zipRoadRoller(sources: ViteBundledOutput, bundled: WriteBundleInp
   return zipBundle(compressedBundle, "rolled");
 }
 
-function logTableBundled(bundled: WriteBundleInput, name: string, showGZippedSize: boolean = false) {
+function logTableBundled(bundled: WriteBundleInput, name: string, gzippedSize: number = 0) {
   devLog.log();
   const box = FilesSizeTermBox.new(name).sizeRow(name, bundled.html);
-  if (showGZippedSize) {
-    box.sizeRow("gzipped", zlib.gzipSync(Buffer.from(bundled.html, "utf8"), { level: 9 }));
+  if (gzippedSize) {
+    box.sizeRow("gzipped", gzippedSize);
   }
   box.print();
   devLog.log();

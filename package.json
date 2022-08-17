@@ -85,6 +85,7 @@
     "react-draggable": "^4.4.5",
     "roadroller": "^2.1.0",
     "rollup": "^2.78.0",
+    "rollup-plugin-visualizer": "^5.7.1",
     "spglsl": "^0.2.6",
     "terser": "^5.14.2",
     "ts-node": "^10.9.1",

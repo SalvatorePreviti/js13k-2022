@@ -47,21 +47,14 @@ gl.clearColor(0, 0.7, 1, 1); // Clear to black, fully opaque
 // gl.depthFunc(gl.LEQUAL); // Default is LESS, seems LEQUAL and LESS both are OK
 
 const csmShader = initShaderProgram(csm_vsSource, voidFsSource);
-
 const mainShader = initShaderProgram(main_vsSource, main_fsSource);
-const mainShader_projectionMatrixLoc = gl.getUniformLocation(mainShader, uniformName_projectionMatrix)!;
-const mainShader_viewMatrixLoc = gl.getUniformLocation(mainShader, uniformName_viewMatrix)!;
-const mainShader_viewPosLoc = gl.getUniformLocation(mainShader, uniformName_viewPos)!;
-const mainShader_lightDirLoc = gl.getUniformLocation(mainShader, uniformName_lightDir)!;
-const mainShader_worldMatrixLoc = gl.getUniformLocation(mainShader, uniformName_worldMatrix)!;
 
 const csm_buildMagic = (csmSplit: number) => {
-  const csmShader_worldMatrixLoc = gl.getUniformLocation(csmShader, uniformName_worldMatrix)!;
-  const csmShader_viewMatrixLoc = gl.getUniformLocation(csmShader, uniformName_viewMatrix)!;
-  const lightSpaceMatrixLoc = gl.getUniformLocation(mainShader, uniformName_csm_matrices + `[${csmSplit}]`)!;
+  let lightSpaceMatrix: Float32Array;
   const texture = gl.createTexture()!;
   const frameBuffer = gl.createFramebuffer();
-  let lightSpaceMatrix: Float32Array;
+  const lightSpaceMatrixLoc = mainShader(uniformName_csm_matrices + `[${csmSplit}]`);
+  gl.uniform1i(mainShader(uniformName_csm_textures + `[${csmSplit}]`), csmSplit);
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
 
@@ -69,11 +62,16 @@ const csm_buildMagic = (csmSplit: number) => {
   gl.drawBuffers([gl.NONE]);
   gl.readBuffer(gl.NONE);
 
-  gl.uniform1i(gl.getUniformLocation(mainShader, uniformName_csm_textures + `[${csmSplit}]`), csmSplit);
-
   gl.activeTexture(gl.TEXTURE0 + csmSplit);
   gl.bindTexture(gl.TEXTURE_2D, texture);
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, texture, 0);
+
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_MODE, gl.COMPARE_REF_TO_TEXTURE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_FUNC, gl.LEQUAL); // Can be LESS or LEQUAL
 
   gl.texImage2D(
     gl.TEXTURE_2D,
@@ -87,27 +85,19 @@ const csm_buildMagic = (csmSplit: number) => {
     null,
   );
 
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_MODE, gl.COMPARE_REF_TO_TEXTURE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_FUNC, gl.LEQUAL); // Can be LESS or LEQUAL
-
-  const setup = (matrix: Float32Array) => {
-    gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
-    gl.uniformMatrix4fv(csmShader_viewMatrixLoc, false, matrix);
-    gl.clear(gl.DEPTH_BUFFER_BIT);
-    lightSpaceMatrix = matrix;
-    renderWorld(csmShader_worldMatrixLoc);
+  return (matrix?: Float32Array) => {
+    if (matrix) {
+      gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
+      gl.clear(gl.DEPTH_BUFFER_BIT);
+      gl.uniformMatrix4fv(csmShader(uniformName_viewMatrix), false, (lightSpaceMatrix = matrix));
+      renderWorld(csmShader(uniformName_worldMatrix));
+    } else {
+      gl.uniformMatrix4fv(lightSpaceMatrixLoc, false, lightSpaceMatrix);
+    }
   };
-
-  setup._main = () => gl.uniformMatrix4fv(lightSpaceMatrixLoc, false, lightSpaceMatrix);
-
-  return setup;
 };
 
-const csm_matricesLocs = integers_map(3, csm_buildMagic);
+const csm_render = integers_map(3, csm_buildMagic);
 
 // let gameTime = 0;
 
@@ -125,13 +115,13 @@ const draw = (deltaTimeMilliseconds: number) => {
 
   // *** CASCADED SHADOWMAPS ***
 
-  gl.useProgram(csmShader);
+  csmShader();
 
   gl.viewport(0, 0, CSM_TEXTURE_SIZE, CSM_TEXTURE_SIZE);
 
-  csm_matricesLocs[0]!(csm_buildMatrix(zNear, CSM_PLANE_DISTANCE0, 10));
-  csm_matricesLocs[1]!(csm_buildMatrix(CSM_PLANE_DISTANCE0, CSM_PLANE_DISTANCE1, 11));
-  csm_matricesLocs[2]!(csm_buildMatrix(CSM_PLANE_DISTANCE1, zFar, 15));
+  csm_render[0]!(csm_buildMatrix(zNear, CSM_PLANE_DISTANCE0, 10));
+  csm_render[1]!(csm_buildMatrix(CSM_PLANE_DISTANCE0, CSM_PLANE_DISTANCE1, 11));
+  csm_render[2]!(csm_buildMatrix(CSM_PLANE_DISTANCE1, zFar, 15));
 
   // *** MAIN RENDER ***
 
@@ -141,18 +131,18 @@ const draw = (deltaTimeMilliseconds: number) => {
 
   // *** MAIN RENDERER ***
 
-  gl.useProgram(mainShader);
+  mainShader();
 
-  gl.uniformMatrix4fv(mainShader_projectionMatrixLoc, false, mat_perspective(zNear, zFar));
-  gl.uniformMatrix4fv(mainShader_viewMatrixLoc, false, camera_view.toFloat32Array());
-  gl.uniform3f(mainShader_viewPosLoc, camera_position.x, camera_position.y, camera_position.z);
-  gl.uniform3f(mainShader_lightDirLoc, lightMatrix.m13, lightMatrix.m23, lightMatrix.m33);
+  gl.uniformMatrix4fv(mainShader(uniformName_projectionMatrix), false, mat_perspective(zNear, zFar));
+  gl.uniformMatrix4fv(mainShader(uniformName_viewMatrix), false, camera_view.toFloat32Array());
+  gl.uniform3f(mainShader(uniformName_viewPos), camera_position.x, camera_position.y, camera_position.z);
+  gl.uniform3f(mainShader(uniformName_lightDir), lightMatrix.m13, lightMatrix.m23, lightMatrix.m33);
 
-  csm_matricesLocs[0]!._main();
-  csm_matricesLocs[1]!._main();
-  csm_matricesLocs[2]!._main();
+  csm_render[0]!();
+  csm_render[1]!();
+  csm_render[2]!();
 
-  renderWorld(mainShader_worldMatrixLoc);
+  renderWorld(mainShader(uniformName_worldMatrix));
 };
 
 draw(0);

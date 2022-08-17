@@ -13,6 +13,7 @@ import { rollupPluginSwcTransform } from "./build-transform";
 import shadersMangleGlobals from "../../../app/shaders/_mangle_globals";
 import { browserPureFunctions, global_defs } from "../lib/js-config";
 import type { MinifyOptions } from "terser";
+import rollupPluginVisualizer from "rollup-plugin-visualizer";
 
 export interface ViteBundledOutput {
   js: string;
@@ -76,7 +77,15 @@ export const buildWithViteTerserOptions: MinifyOptions = {
     properties: false,
     unsafe_math: true,
     unsafe_undefined: true,
-    hoist_vars: true,
+    hoist_vars: false,
+    arguments: true,
+    directives: true,
+    unsafe_comps: true,
+    unsafe_Function: true,
+    unsafe_methods: true,
+    unsafe_proto: true,
+    unsafe_regexp: true,
+    unsafe_symbols: true,
   },
   mangle: false,
   format: {
@@ -90,7 +99,10 @@ export const buildWithViteTerserOptions: MinifyOptions = {
   },
 };
 
-export async function buildWithVite(options: { stripDevTools: boolean }): Promise<ViteBundledOutput> {
+export async function buildWithVite(options: {
+  stripDevTools: boolean;
+  minifier: "esbuild" | "terser" | false;
+}): Promise<ViteBundledOutput> {
   return devLog.timed(
     async function vite_build() {
       const viteConfigBuild: ViteUserConfig = {
@@ -103,7 +115,7 @@ export async function buildWithVite(options: { stripDevTools: boolean }): Promis
           sourcemap: true,
           emptyOutDir: true,
           outDir: outPath_build,
-          minify: "terser",
+          minify: options.minifier,
           cssTarget: ESBUILD_TARGETS,
           cssCodeSplit: false,
           manifest: false,
@@ -116,13 +128,14 @@ export async function buildWithVite(options: { stripDevTools: boolean }): Promis
             transformMixedEsModules: true,
             esmExternals: true,
           },
-          terserOptions: buildWithViteTerserOptions,
+          terserOptions: options.minifier === "terser" ? buildWithViteTerserOptions : undefined,
           rollupOptions: {
             treeshake: {
               annotations: true,
               propertyReadSideEffects: false,
               unknownGlobalSideEffects: false,
             },
+            plugins: [rollupPluginVisualizer({ emitFile: true, gzipSize: true }) as any],
             output: {
               generatedCode: {
                 constBindings: true,
@@ -213,7 +226,7 @@ function processViteBuildOutput(viteBuildOutput: RollupOutput | RollupOutput[] |
           throw new Error("ViteBuildOutput: multiple index.html found");
         }
         html = toUTF8(o.source);
-      } else if (o.fileName !== "esbuild") {
+      } else if (o.fileName !== "esbuild" && o.fileName !== "stats.html") {
         throw new Error(`ViteBuildOutput: unexpected asset file "${o.fileName}"`);
       }
     } else if (o.type === "chunk") {
