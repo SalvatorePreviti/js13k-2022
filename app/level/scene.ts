@@ -17,6 +17,16 @@ export let meshWorld: Mesh;
 
 export let meshAdd: (polygons: Polygon[]) => Polygon[];
 
+let _meshTranslationX = 0;
+let _meshTranslationY = 0;
+let _meshTranslationZ = 0;
+
+export const meshTranslation = (x: number, y: number, z: number) => {
+  _meshTranslationX = x;
+  _meshTranslationY = y;
+  _meshTranslationZ = z;
+};
+
 export const buildWorld = () => {
   if (DEBUG) {
     console.time("buildWorld");
@@ -36,7 +46,10 @@ export const buildWorld = () => {
   let _meshFirstIndex: number = 0;
 
   const getVertex = (i: number): number => {
-    const { x, y, z } = _polygon![i]!;
+    let { x, y, z } = _polygon![i]!;
+    x += _meshTranslationX;
+    y += _meshTranslationY;
+    z += _meshTranslationZ;
     vertexFloats[0] = x;
     vertexFloats[1] = y;
     vertexFloats[2] = z;
@@ -71,6 +84,9 @@ export const buildWorld = () => {
 
   const endMesh = (fn: () => void) => {
     fn();
+    _meshTranslationX = 0;
+    _meshTranslationY = 0;
+    _meshTranslationZ = 0;
     const first = _meshFirstIndex;
     const last = triangleIndices.length;
     const mesh = ((worldMatrixLoc: WebGLUniformLocation) => {

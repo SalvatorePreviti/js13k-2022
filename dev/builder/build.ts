@@ -131,10 +131,11 @@ export async function build() {
     js = await jsBabel(js, {
       minify: false,
       plugins: [
-        resugarConcise,
+        babelPluginSimple({ unmangleableProperties: "mark" }),
         resugarFunctionsArrow,
         resugarBlockScope,
-        babelPluginSimple({ unmangleableProperties: "mark", constToLet: true }),
+        babelPluginVars({ constToLet: true }),
+        "babel-plugin-pure-calls-annotation",
       ],
     });
 
@@ -147,6 +148,8 @@ export async function build() {
       computed_props: true,
     });
 
+    js = await jsTransformSwc(js, { final: false, computed_props: true }, swcPluginVars());
+
     js = await jsBabel(js, {
       minify: false,
       plugins: [
@@ -154,19 +157,10 @@ export async function build() {
         resugarFunctionsArrow,
         resugarObjectsShorthand,
         resugarBlockScope,
-        babelPluginVars(),
+        babelPluginVars({ constToLet: true }),
         "babel-plugin-pure-calls-annotation",
       ],
     });
-
-    // js = await jsEsbuildMinify(js, {
-    //   mangle: false,
-    //   minifySyntax: true,
-    //   minifyWhitespace: false,
-    //   computed_props: false,
-    // });
-
-    js = await jsTransformSwc(js, { final: false, computed_props: true }, swcPluginVars());
 
     js = await jsTerser(js, {
       mangle: false,
@@ -183,9 +177,8 @@ export async function build() {
         resugarFunctionsArrow,
         resugarObjectsShorthand,
         resugarBlockScope,
-        babelPluginVars(),
+        babelPluginVars({ constToLet: true }),
         babelPluginSimple({ unmangleableProperties: "transform", constToLet: true, floatRound: floatRoundAmount }),
-        "babel-plugin-pure-calls-annotation",
       ],
     });
 
@@ -214,6 +207,8 @@ export async function build() {
       computed_props: true,
     });
 
+    js = await jsTransformSwc(js, false, swcPluginVars());
+
     // Mangling
 
     js = await jsTerser(js, {
@@ -232,7 +227,16 @@ export async function build() {
         resugarObjectsShorthand,
         resugarBlockScope,
         babelPluginVars({ constToLet: true }),
+        "babel-plugin-pure-calls-annotation",
       ],
+    });
+
+    js = await jsTerser(js, {
+      mangle: false,
+      final: true,
+      join_vars: true,
+      sequences: true,
+      computed_props: true,
     });
 
     js = await jsTdeMinify(js);

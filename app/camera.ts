@@ -15,16 +15,16 @@ const fieldOfViewAmount = 1 / Math.tan(fieldOfViewRadians / 2);
 // export const camera_position = { x: 20, y: 12, z: 38 };
 
 export const camera_position = {
-  x: -0.24059962942537236,
-  y: 1.6759999942779489,
-  z: 3.4583939149150837,
+  x: 1.5077253084347302,
+  y: 27.460934914277953,
+  z: -26.50281161557649,
 };
 
 // export const camera_rotation = { x: 0, y: -35, z: 0 };
 
 export const camera_rotation = {
-  x: 24.0999999999999,
-  y: 5.300000000000059,
+  x: 42,
+  y: -177,
   z: 0,
 };
 

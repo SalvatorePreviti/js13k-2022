@@ -11,7 +11,8 @@ import { domRemoveExternalCssAndScripts, stripUtf8BOM } from "../lib/code-utils"
 import { JSDOM } from "jsdom";
 import { rollupPluginSwcTransform } from "./build-swc-transform";
 import shadersMangleGlobals from "../../../app/shaders/_mangle_globals";
-import { browserPureFunctions } from "../lib/js-config";
+import { browserPureFunctions, global_defs } from "../lib/js-config";
+import type { MinifyOptions } from "terser";
 
 export interface ViteBundledOutput {
   js: string;
@@ -33,6 +34,62 @@ function rollupPluginStripDevTools(): PluginOption {
   };
 }
 
+export const buildWithViteTerserOptions: MinifyOptions = {
+  module: true,
+  toplevel: true,
+  compress: {
+    defaults: false,
+    unused: true,
+    arrows: true,
+    booleans: true,
+    comparisons: true,
+    collapse_vars: false,
+    conditionals: true,
+    dead_code: true,
+    evaluate: true,
+    global_defs,
+    hoist_funs: true,
+    hoist_props: true,
+    if_return: true,
+    inline: true,
+    loops: true,
+    keep_infinity: true,
+    keep_fargs: false,
+    keep_classnames: true,
+    keep_fnames: true,
+    module: true,
+    toplevel: true,
+    negate_iife: false,
+    typeofs: true,
+    computed_props: false,
+    booleans_as_integers: false,
+    join_vars: false,
+    pure_getters: true,
+    pure_funcs: browserPureFunctions,
+    reduce_funcs: true,
+    reduce_vars: true,
+    sequences: false,
+    switches: true,
+    side_effects: true,
+    unsafe: true,
+    unsafe_arrows: true,
+    properties: false,
+    unsafe_math: true,
+    unsafe_undefined: true,
+    hoist_vars: true,
+  },
+  mangle: false,
+  format: {
+    ascii_only: false,
+    beautify: true,
+    comments: "all",
+    keep_quoted_props: true,
+    preserve_annotations: true,
+    shorthand: true,
+    wrap_iife: false,
+  },
+};
+
 export async function buildWithVite(options: { stripDevTools: boolean }): Promise<ViteBundledOutput> {
   return devLog.timed(
     async function vite_build() {
@@ -46,7 +103,7 @@ export async function buildWithVite(options: { stripDevTools: boolean }): Promis
           sourcemap: true,
           emptyOutDir: true,
           outDir: outPath_build,
-          minify: false,
+          minify: "terser",
           cssTarget: ESBUILD_TARGETS,
           cssCodeSplit: false,
           manifest: false,
@@ -55,17 +112,29 @@ export async function buildWithVite(options: { stripDevTools: boolean }): Promis
           polyfillModulePreload: false,
           reportCompressedSize: false,
           target: ESBUILD_TARGETS,
-          commonjsOptions: { transformMixedEsModules: true, esmExternals: true },
+          commonjsOptions: {
+            transformMixedEsModules: true,
+            esmExternals: true,
+          },
+          terserOptions: buildWithViteTerserOptions,
           rollupOptions: {
+            treeshake: {
+              annotations: true,
+              propertyReadSideEffects: false,
+              unknownGlobalSideEffects: false,
+            },
             output: {
               generatedCode: {
                 constBindings: true,
                 objectShorthand: true,
+                arrowFunctions: true,
               },
+              format: "esm",
               preferConst: true,
               hoistTransitiveImports: true,
               inlineDynamicImports: true,
               minifyInternalExports: true,
+              compact: false,
               entryFileNames: `[name].js`,
               chunkFileNames: `[name].js`,
               assetFileNames: ({ name }) => (name?.endsWith(".css") ? "[name].[ext]" : `assets/[name].[ext]`),
@@ -80,6 +149,13 @@ export async function buildWithVite(options: { stripDevTools: boolean }): Promis
           charset: "utf8",
           keepNames: false,
           globalName: "window",
+          legalComments: "inline",
+          minifyWhitespace: false,
+          minifyIdentifiers: false,
+          ignoreAnnotations: false,
+          minifySyntax: false,
+          format: "esm",
+          mangleQuoted: false,
           pure: browserPureFunctions,
           define: {
             this: "window",

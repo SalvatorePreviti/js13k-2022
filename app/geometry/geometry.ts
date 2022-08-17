@@ -149,6 +149,14 @@ export const sphere = /* @__PURE__ */ (slices: number, smooth: boolean | 0 | 1 |
   return polygons;
 };
 
+export const GCylinder5 = /* @__PURE__ */ cylinder(5);
+
+export const GCylinder6 = /* @__PURE__ */ cylinder(6);
+
+export const GCylinder7 = /* @__PURE__ */ cylinder(7);
+
+export const GCylinder8 = /* @__PURE__ */ cylinder(8);
+
 export const GBox = /* @__PURE__ */ polygon_extrude([
   { x: -1, z: 1 },
   { x: 1, z: 1 },

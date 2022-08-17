@@ -1,7 +1,17 @@
-import { csg_subtract, csg_polygons } from "../geometry/csg";
-import { material, GBox, cylinder, polygons_transform, type Polygon, sphere, horn } from "../geometry/geometry";
+import { csg_subtract, csg_polygons, csg_union, csg_union_op } from "../geometry/csg";
+import {
+  material,
+  GBox,
+  cylinder,
+  polygons_transform,
+  type Polygon,
+  sphere,
+  horn,
+  polygon_regular,
+  polygon_transform,
+} from "../geometry/geometry";
 import { identity } from "../math/matrix";
-import { meshAdd } from "./scene";
+import { meshAdd, meshTranslation } from "./scene";
 
 const pavement = (): Polygon[] => {
   return polygons_transform(GBox, identity.translate(0, -2).scale(1100, 0.5, 1100), material(1, 1, 1));
@@ -10,6 +20,8 @@ const pavement = (): Polygon[] => {
 const MATERIAL_DEVIL = material(1, 0.3, 0.4);
 
 export const demon = () => {
+  meshTranslation(0, 1.3, -15);
+
   const rhorn = meshAdd(
     polygons_transform(
       horn(),
@@ -52,7 +64,24 @@ export const demon = () => {
 };
 
 export const mainScene = () => {
-  meshAdd(pavement());
+  const base = polygons_transform(cylinder(6), identity.scale(10, 1, 24), material(1, 1, 1));
+
+  meshAdd(
+    csg_polygons(
+      csg_subtract(
+        base,
+        csg_union([
+          polygons_transform(base, identity.translate(0, 0.5).scale(0.9, 0.5, 0.9), material(0.8, 0.8, 0.8)),
+          polygons_transform(base, identity.scale(0.2, 3, 0.2), material(1, 1, 1)),
+        ]),
+      ),
+    ),
+  );
+
+  polygon_transform(polygon_regular(6), identity.scale(20 * 0.2, 1, 44 * 0.2)).map(({ x, z }) => {
+    meshAdd(polygons_transform(cylinder(8), identity.translate(x, 3, z).scale(0.3, 3, 0.3), material(0.8, 0, 0.8)));
+  });
+  // meshAdd(pavement());
 };
 
 //  return [...polygons_transform(corridor(), identity.translate(0, 10, 0)), ...pavement(), ...weirdObject()];

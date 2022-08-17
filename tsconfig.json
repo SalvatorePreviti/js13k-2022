@@ -3,7 +3,8 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "ES2022",
-    "strictPropertyInitialization": false
+    "strictPropertyInitialization": false,
+    "removeComments": false
     //    "exactOptionalPropertyTypes": false
   },
   "ts-node": {
