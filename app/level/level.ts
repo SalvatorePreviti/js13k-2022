@@ -81,6 +81,8 @@ export const mainScene = () => {
   polygon_transform(polygon_regular(6), identity.scale(20 * 0.2, 1, 44 * 0.2)).map(({ x, z }) => {
     meshAdd(polygons_transform(cylinder(8), identity.translate(x, 3, z).scale(0.3, 3, 0.3), material(0.8, 0, 0.8)));
   });
+
+  meshAdd(weirdObject());
   // meshAdd(pavement());
 };
 
@@ -168,57 +170,64 @@ export const mainScene = () => {
 //   return csg_polygons(p);
 // };
 
-// const weirdObject = () => {
-//   const figure0 = polygons_transform(cylinder(6), identity, material0);
+const weirdObject = () => {
+  const material0 = material(1, 0.3, 0);
+  const material1 = material(0, 0.5, 0.7);
+  const material2 = material(0, 0.2, 0.9);
+  const material3 = material(0.2, 0, 0.9);
+  const material4 = material(0.4, 0.9, 0);
+  const material5 = material(0.4, 0, 0.9);
 
-//   const figure01 = polygons_transform(cylinder(6), identity.scale(1, 0.6, 1).translate(0, 1, 0), material5);
-//   // const figure02 = solid_transform(solid_cylinder(material0, 6);
+  const figure0 = polygons_transform(cylinder(6), identity, material0);
 
-//   const figure1 = polygons_transform(
-//     cylinder(118),
-//     identity.translate(-0.2).rotate(90, 10, 10).scale(0.5, 2, 0.5),
-//     material1,
-//   );
+  const figure01 = polygons_transform(cylinder(6), identity.scale(1, 0.6, 1).translate(0, 1, 0), material5);
+  // const figure02 = solid_transform(solid_cylinder(material0, 6);
 
-//   const figure2 = polygons_transform(
-//     cylinder(118),
-//     identity.translate(-0.2).rotate(90, 10, 10).scale(0.22, 1.5, 0.22).skewY(10),
-//     material2,
-//   );
+  const figure1 = polygons_transform(
+    cylinder(118),
+    identity.translate(-0.2).rotate(90, 10, 10).scale(0.5, 2, 0.5),
+    material1,
+  );
 
-//   const figure3 = polygons_transform(
-//     cylinder(18),
-//     identity.translate(-0.2).rotate(0, 10, 10).scale(0.3, 1.4, 0.3),
-//     material3,
-//   );
+  const figure2 = polygons_transform(
+    cylinder(118),
+    identity.translate(-0.2).rotate(90, 10, 10).scale(0.22, 1.5, 0.22).skewY(10),
+    material2,
+  );
 
-//   const figure4 = polygons_transform(
-//     cylinder(8),
-//     identity.translate(-0.2).rotate(0, 0, 90).scale(0.15, 2, 0.15),
-//     material4,
-//   );
+  const figure3 = polygons_transform(
+    cylinder(18),
+    identity.translate(-0.2).rotate(0, 10, 10).scale(0.3, 1.4, 0.3),
+    material3,
+  );
 
-//   const figure5 = polygons_transform(
-//     cylinder(5),
-//     identity.translate(-0.2).rotate(0, 10, 10).scale(0.15, 1.7, 0.15),
-//     material5,
-//   );
+  const figure4 = polygons_transform(
+    cylinder(8),
+    identity.translate(-0.2).rotate(0, 0, 90).scale(0.15, 2, 0.15),
+    material4,
+  );
 
-//   if (DEBUG) {
-//     console.time("weird");
-//   }
+  const figure5 = polygons_transform(
+    cylinder(5),
+    identity.translate(-0.2).rotate(0, 10, 10).scale(0.15, 1.7, 0.15),
+    material5,
+  );
 
-//   const csg0 = csg_subtract(csg_union([figure01, figure0]), figure1);
-//   const csg1 = csg_union([csg0, figure2]);
-//   const csg2 = csg_union([csg1, figure3]);
-//   const csg3 = csg_subtract(csg2, figure4);
-//   const csg4 = csg_subtract(csg3, figure5);
+  if (DEBUG) {
+    console.time("weird");
+  }
 
-//   const result = csg_polygons(csg4);
+  const csg0 = csg_subtract(csg_union([figure01, figure0]), figure1);
+  const csg1 = csg_union([csg0, figure2]);
+  const csg2 = csg_union([csg1, figure3]);
+  const csg3 = csg_subtract(csg2, figure4);
+  const csg4 = csg_subtract(csg3, figure5);
 
-//   if (DEBUG) {
-//     console.timeEnd("weird");
-//   }
+  const result = csg_polygons(csg4);
 
-//   return result;
-// };
+  if (DEBUG) {
+    console.timeEnd("weird");
+  }
+
+  return result;
+};

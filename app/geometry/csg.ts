@@ -115,31 +115,37 @@ const csg_tree_addPolygon = /* @__PURE__ */ (
   return node;
 };
 
-const csg_tree_clipPolygon = /* @__PURE__ */ (
-  node: CSGNode,
-  polygon: CSGPolygon,
-  polygonPlane: Plane,
+const csg_tree_clipNode = /* @__PURE__ */ (
+  anode: CSGNode,
+  bnode: CSGNode,
   polygonPlaneFlipped: -1 | 1,
-  result: CSGPolygon[],
-): void => {
-  let { $front, $back } = CSGPolygon_split(node, polygon);
-  if (!$front && !$back) {
-    if (vec3_dot(node, polygonPlane) * polygonPlaneFlipped > 0) {
-      $front = polygon; // Coplanar front
-    } else {
-      $back = polygon; // Coplanar back
+): CSGPolygon[] => {
+  const result: CSGPolygon[] = [];
+  const recursion = (node: CSGNode, polygon: CSGPolygon) => {
+    let { $front, $back } = CSGPolygon_split(node, polygon);
+    if (!$front && !$back) {
+      if (polygonPlaneFlipped * vec3_dot(node, bnode) > 0) {
+        $front = polygon; // Coplanar front
+      } else {
+        $back = polygon; // Coplanar back
+      }
     }
-  }
-  if ($front) {
-    if (node.$front) {
-      csg_tree_clipPolygon(node.$front, $front, polygonPlane, polygonPlaneFlipped, result);
-    } else {
-      result.push($front);
+    if ($front) {
+      if (node.$front) {
+        recursion(node.$front, $front);
+      } else {
+        result.push($front);
+      }
     }
+    if ($back && node.$back) {
+      recursion(node.$back, $back);
+    }
+  };
+
+  for (const polygon of bnode.$polygons) {
+    recursion(anode, polygon);
   }
-  if ($back && node.$back) {
-    csg_tree_clipPolygon(node.$back, $back, polygonPlane, polygonPlaneFlipped, result);
-  }
+  return result;
 };
 
 /** Loop through all nodes in a tree */
@@ -174,22 +180,10 @@ export const csg_union_op = /* @__PURE__ */ (a: CSGInput, b: CSGInput | undefine
     b = csg_tree(b);
 
     // clip to a, b
-    csg_tree_each(a, (node) => {
-      const clipped: CSGPolygon[] = [];
-      for (const polygon of node.$polygons) {
-        csg_tree_clipPolygon(b as CSGNode, polygon, node, 1, clipped);
-      }
-      node.$polygons = clipped;
-    });
+    csg_tree_each(a, (node) => (node.$polygons = csg_tree_clipNode(b as CSGNode, node, 1)));
 
     // get the list of polygons to be added from b clipped to a
-    csg_tree_each(b, (node) => {
-      const clipped: CSGPolygon[] = [];
-      for (const polygon of node.$polygons) {
-        csg_tree_clipPolygon(a as CSGNode, polygon, node, -1, clipped);
-      }
-      polygonsToAdd.push([node, clipped]);
-    });
+    csg_tree_each(b, (node) => polygonsToAdd.push([node, csg_tree_clipNode(a as CSGNode, node, -1)]));
 
     // add the polygons to a
     for (const [plane, polygons] of polygonsToAdd) {
@@ -265,3 +259,30 @@ export const csg_polygons = /* @__PURE__ */ (tree: CSGNode): Polygon[] => {
     return polygon_color(flipped ? polygon.reverse() : polygon, $polygon.$color, $polygon.$smooth);
   });
 };
+
+// const csg_tree_clipPolygon = /* @__PURE__ */ (
+//   node: CSGNode,
+//   polygon: CSGPolygon,
+//   polygonPlane: Plane,
+//   polygonPlaneFlipped: -1 | 1,
+//   result: CSGPolygon[],
+// ): void => {
+//   let { $front, $back } = CSGPolygon_split(node, polygon);
+//   if (!$front && !$back) {
+//     if (vec3_dot(node, polygonPlane) * polygonPlaneFlipped > 0) {
+//       $front = polygon; // Coplanar front
+//     } else {
+//       $back = polygon; // Coplanar back
+//     }
+//   }
+//   if ($front) {
+//     if (node.$front) {
+//       csg_tree_clipPolygon(node.$front, $front, polygonPlane, polygonPlaneFlipped, result);
+//     } else {
+//       result.push($front);
+//     }
+//   }
+//   if ($back && node.$back) {
+//     csg_tree_clipPolygon(node.$back, $back, polygonPlane, polygonPlaneFlipped, result);
+//   }
+// };
