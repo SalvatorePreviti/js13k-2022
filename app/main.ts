@@ -28,6 +28,7 @@ import { camera_update } from "./camera-update";
 import { buildWorld, meshDemon, meshWorld } from "./level/scene";
 import { csm_buildMatrix, lightMatrix } from "./csm";
 import { initInputHandlers } from "./input";
+import { gameTimeDelta, gameTimeUpdate } from "./game-time";
 
 const renderWorld = (worldMatrixLoc: WebGLUniformLocation) => {
   meshDemon(worldMatrixLoc);
@@ -99,15 +100,12 @@ const csm_buildMagic = (csmSplit: number) => {
 
 const csm_render = integers_map(3, csm_buildMagic);
 
-let gameTime = 0;
+const draw = (globalTime: number) => {
+  gameTimeUpdate(globalTime);
 
-const draw = (time: number) => {
-  const deltaTime = time - gameTime;
-  gameTime = time;
-  // gameTime += deltaTime;
   requestAnimationFrame(draw);
 
-  camera_update(deltaTime / 1000);
+  camera_update(gameTimeDelta);
 
   camera_view
     .setMatrixValue("none")

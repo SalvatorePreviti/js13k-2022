@@ -11,6 +11,14 @@ export interface Mesh {
   $matrix: DOMMatrix;
 }
 
+export type ModelUpdateCallback = (model: Model) => void;
+
+export interface Model {
+  $mesh: Mesh;
+  $matrix: DOMMatrix;
+  _update?: ModelUpdateCallback | undefined;
+}
+
 export let meshDemon: Mesh;
 
 export let meshWorld: Mesh;
