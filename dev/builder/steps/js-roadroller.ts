@@ -44,6 +44,7 @@ export async function jsRoadroller(html: string): Promise<string> {
 
       if (compressedJs) {
         const script = dom.window.document.createElement("script");
+        script.type = "module";
         // script.type = "module";
         script.textContent = compressedJs;
         dom.window.document.body.appendChild(script);

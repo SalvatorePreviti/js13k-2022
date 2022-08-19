@@ -31,7 +31,7 @@ export async function bundleHtml(input: BundleHtmlInput): Promise<BundleHtmlOutp
 
       if (input.js) {
         const scriptTag = dom.window.document.createElement("script");
-        // scriptTag.type = "module";
+        scriptTag.type = "module";
         scriptTag.textContent = input.js;
         dom.window.document.body.appendChild(scriptTag);
       }
