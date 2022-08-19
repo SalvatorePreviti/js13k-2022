@@ -1,0 +1,15 @@
+  const pentacleTriangles = polygons_transform(
+    csg_polygons(
+      csg_union(
+        polygon_transform(polygon_regular(5), identity.rotate(0, 180)).map(({ x, z }, i) => {
+          const m = identity.translate(x * 1.8, 0, z * 1.8).rotate(0, 180 + (i / 5) * 360);
+          return csg_subtract(
+            polygons_transform(cylinder(3), m.scale(0.8, 0.8, 1.4)),
+            polygons_transform(cylinder(3), m.scale(0.5, 2, 1)),
+          );
+        }),
+      ),
+    ),
+    identity.translate(0, 0.5).scale(4.5, 1, 4.5),
+    material(0.5, 0.3, 0.4),
+  );

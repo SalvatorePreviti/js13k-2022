@@ -3,12 +3,31 @@ import { useState, useEffect } from "react";
 import { camera_position, camera_rotation } from "../../camera";
 
 let updateCounter = 1;
+let oldValue: string = "";
+
+setTimeout(() => {
+  oldValue = localStorage.getItem("DEV_CAMERA") || "";
+  if (oldValue) {
+    const { pos, rot } = JSON.parse(oldValue);
+    camera_position.x = pos.x;
+    camera_position.y = pos.y;
+    camera_position.z = pos.z;
+    camera_rotation.x = rot.x;
+    camera_rotation.y = rot.y;
+    camera_rotation.z = rot.z;
+  }
+});
 
 export const GameCameraComponent: FC = () => {
   const [, setUpdateCounter] = useState(0);
 
   const update = () => {
     setUpdateCounter(++updateCounter);
+    const s = JSON.stringify({ pos: camera_position, rot: camera_rotation });
+    if (oldValue !== s) {
+      localStorage.setItem("DEV_CAMERA", s);
+      oldValue = s;
+    }
   };
 
   useEffect(() => {

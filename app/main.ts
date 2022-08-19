@@ -41,7 +41,7 @@ buildWorld();
 gl.enable(gl.DEPTH_TEST); // Enable depth testing
 gl.enable(gl.CULL_FACE); // Don't render triangle backs
 
-gl.clearColor(0, 0.7, 1, 1); // Clear to black, fully opaque
+gl.clearColor(0.2, 0.2, 0.2, 1); // Clear to black, fully opaque
 // gl.clearDepth(1); // Clear everything. Default value is 1
 // gl.cullFace(gl.BACK); // Default value is already BACK
 // gl.depthFunc(gl.LEQUAL); // Default is LESS, seems LEQUAL and LESS both are OK
@@ -99,13 +99,15 @@ const csm_buildMagic = (csmSplit: number) => {
 
 const csm_render = integers_map(3, csm_buildMagic);
 
-// let gameTime = 0;
+let gameTime = 0;
 
-const draw = (deltaTimeMilliseconds: number) => {
+const draw = (time: number) => {
+  const deltaTime = time - gameTime;
+  gameTime = time;
   // gameTime += deltaTime;
   requestAnimationFrame(draw);
 
-  camera_update(deltaTimeMilliseconds / 1000);
+  camera_update(deltaTime / 1000);
 
   camera_view
     .setMatrixValue("none")

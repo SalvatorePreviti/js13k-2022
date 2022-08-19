@@ -60,7 +60,7 @@ float ShadowCalculation() {
 void main() {
   vec3 normal = normalize(VNormal);
 
-  vec3 lightColor = vec3(0.6);
+  vec3 lightColor = vec3(0.9, 0.9, 0.9);
 
   vec3 ambient = 0.3 * Color.xyz;
 

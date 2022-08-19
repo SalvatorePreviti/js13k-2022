@@ -14,9 +14,9 @@ import {
 
 import { camera_firstPersonMove, camera_firstPersonRotate, camera_position } from "./camera";
 
-export const PLAYER_SPEED_WALKING = 2.1 / 1000;
+export const PLAYER_SPEED_WALKING = 2.1;
 
-export const PLAYER_SPEED_RUNNING = (DEBUG ? 20 : 5.5) / 1000;
+export const PLAYER_SPEED_RUNNING = DEBUG ? 20 : 5.5;
 
 export const camera_update = (deltaTime: number) => {
   const movStrafe = (keyboard_downKeys[KEY_LEFT] ? -1 : 0) + (keyboard_downKeys[KEY_RIGHT] ? 1 : 0);

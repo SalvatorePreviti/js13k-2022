@@ -51,9 +51,9 @@ export const polygons_transform = /* @__PURE__ */ (
  */
 export const polygon_regular = /* @__PURE__ */ (segments: number): Polygon =>
   integers_map(segments, (i) => ({
-    x: Math.sin(((Math.PI * 2) / segments) * i),
+    x: Math.sin(Math.PI * 2 * (i / segments)),
     y: 0,
-    z: Math.cos(((Math.PI * 2) / segments) * i),
+    z: Math.cos(Math.PI * 2 * (i / segments)),
   }));
 
 /**
@@ -70,8 +70,8 @@ export const cylinder_sides = /* @__PURE__ */ (btm: Polygon, top: Polygon, smoot
     ),
   );
 
-export const cone_sides = /* @__PURE__ */ (btm: Polygon): Polygon[] =>
-  btm.map((btmi, i, { length }) => [btmi, { x: 0, y: 0, z: 0 }, btm[(i + 1) % length]!]);
+export const cone_sides = /* @__PURE__ */ (btm: Polygon, smooth?: 0 | 1 | undefined): Polygon[] =>
+  btm.map((btmi, i, { length }) => polygon_color([btm[(i + 1) % length]!, { x: 0, y: 1, z: 0 }, btmi], 0, smooth));
 
 /**
  * Extrudes a polygon into a solid.
@@ -94,21 +94,21 @@ export const polygon_extrude = /* @__PURE__ */ (
 export const cylinder = /* @__PURE__ */ (segments: number, smooth?: 0 | 1 | undefined, topSize = 1): Polygon[] =>
   polygon_extrude(polygon_regular(segments), smooth, topSize);
 
-export const cone = /* @__PURE__ */ (segments: number): Polygon[] => {
+export const cone = /* @__PURE__ */ (segments: number, smooth?: 0 | 1 | undefined): Polygon[] => {
   const bottom = polygon_transform(polygon_regular(segments), identity.translate(0, -1));
   const sides = cone_sides(bottom);
   sides.push(bottom);
   return sides;
 };
 
-export const horn = /* @__PURE__ */ (): Polygon[] => {
+export const horn = /* @__PURE__ */ (curvature: number = 0): Polygon[] => {
   const stacks = 10;
 
   const p = polygon_regular(15);
 
   const getMatrix = (i: number) =>
     identity
-      .translate(Math.sin((i / stacks) * Math.PI), i / stacks)
+      .translate(Math.sin((i / stacks) * Math.PI) + curvature * i, i / stacks)
       .rotate(10 * (i / stacks))
       .scale(1 - i / stacks, 0, 1 - i / stacks);
 
@@ -142,11 +142,13 @@ export const sphere = /* @__PURE__ */ (slices: number, smooth: 0 | 1 | undefined
   return polygons;
 };
 
-export const GBox = /* @__PURE__ */ polygon_extrude([
+export const GQuad = /* @__PURE__ */ [
   { x: -1, z: 1 },
   { x: 1, z: 1 },
   { x: 1, z: -1 },
   { x: -1, z: -1 },
-]);
+];
+
+export const GBox = /* @__PURE__ */ polygon_extrude(GQuad);
 
 // export const GBox = polygons_transform(cylinder(4), identity.scale(Math.SQRT2, 1, Math.SQRT2).rotate(0, -45, 0));

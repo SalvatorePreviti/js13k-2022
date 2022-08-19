@@ -1,6 +1,7 @@
-import { csg_subtract, csg_polygons, csg_union, csg_union_op } from "../geometry/csg";
+import { csg_subtract, csg_polygons, csg_union, csg_union_op, csg_tree } from "../geometry/csg";
 import {
   material,
+  GQuad,
   GBox,
   cylinder,
   polygons_transform,
@@ -9,7 +10,9 @@ import {
   horn,
   polygon_regular,
   polygon_transform,
+  cone,
 } from "../geometry/geometry";
+import { integers_map } from "../math/math";
 import { identity } from "../math/matrix";
 import { meshAdd, meshTranslation } from "./scene";
 
@@ -20,7 +23,7 @@ const pavement = (): Polygon[] => {
 const MATERIAL_DEVIL = material(1, 0.3, 0.4);
 
 export const demon = () => {
-  meshTranslation(0, 1.3, -15);
+  meshTranslation(0, 2.3, -18);
 
   const rhorn = meshAdd(
     polygons_transform(
@@ -63,7 +66,164 @@ export const demon = () => {
   meshAdd(polygons_transform(rleg, identity.rotate(0, 180)));
 };
 
+// export const arc = (transform: DOMMatrixReadOnly, color?: number) => {
+//   return csg_subtract(
+//     polygons_transform(GBox, transform.scale(2, 2, 0.5), color),
+//     csg_union([
+//       polygons_transform(cylinder(10), transform.translate(1.4, 1.3, 0).scale(0.3, 0.3, 1).rotate(90, 0, 0), color),
+//       polygons_transform(cylinder(10), transform.translate(-1.4, 1.3, 0).scale(0.3, 0.3, 1).rotate(90, 0, 0), color),
+//       polygons_transform(cylinder(20), transform.scale(1, 1, 1).rotate(90, 0, 0), color),
+//       polygons_transform(GBox, transform.translate(0, -1.1).scale(1, 1.1, 1).rotate(90, 0, 0), color),
+//     ]),
+//   );
+// };
+
+const arcInner = (transform: DOMMatrixReadOnly, color?: number) => {
+  return csg_union_op(
+    polygons_transform(cylinder(22, 1), transform.scale(2.01, 2, 2).rotate(90, 0, 0), color),
+    polygons_transform(GBox, transform.translate(0, -2.14).scale(2, 2, 2).rotate(90, 0, 0), color),
+  );
+};
+
+export const arc = (transform: DOMMatrixReadOnly, color?: number) => {
+  return csg_subtract(
+    csg_union_op(
+      polygons_transform(cylinder(30, 1), transform.scale(3.010936, 3, 0.3).rotate(90, 0, 0), color),
+      polygons_transform(GBox, transform.translate(0, -1.81).scale(3, 2, 0.3).rotate(90, 0, 0), color),
+    ),
+    arcInner(transform, color),
+  );
+};
+
 export const mainScene = () => {
+  // meshAdd(csg_polygons(arc(identity.scale(1, 1, 1), material(1, 1, 1))));
+
+  // meshAdd(polygons_transform(cylinder(5), identity.rotate(0, 0)));
+
+  const base = csg_polygons(
+    csg_subtract(
+      csg_union([
+        polygons_transform(cylinder(6), identity.translate(0, 0, -5).scale(12, 1, 13), material(0.8, 0.8, 0.8)),
+        polygons_transform(cylinder(6), identity.translate(0, 0, 5).scale(12, 1, 13), material(0.8, 0.8, 0.8)),
+        polygons_transform(GBox, identity.translate(0, 0, -24).scale(3, 1, 10), material(0.9, 0.9, 0.9)),
+        polygons_transform(GBox, identity.translate(0, 0, 26).scale(3, 1, 10), material(0.9, 0.9, 0.9)),
+      ]),
+      csg_union_op(
+        polygons_transform(cylinder(5), identity.translate(0, 2, 0).scale(5, 4, 5), material(0.8, 0.6, 0.8)),
+        polygons_transform(cylinder(5, 0, 1.5), identity.translate(0, 1, 0).scale(5, 0.3, 5), material(0.8, 0.8, 0.8)),
+      ),
+    ),
+  );
+
+  // column doors
+
+  polygon_transform(GQuad, identity.scale(3, 0, 16)).map(({ x, z }) => {
+    meshAdd(polygons_transform(cylinder(6), identity.translate(x, 3, z).scale(0.7, 4, 0.7), material(0.5, 0.2, 0.2)));
+  });
+
+  //  doors top
+
+  meshAdd(polygons_transform(GBox, identity.translate(0, 6.3, -16).scale(4, 0.3, 1), material(0.3, 0.3, 0.3)));
+  meshAdd(polygons_transform(GBox, identity.translate(0, 6.3, 16).scale(4, 0.3, 1), material(0.3, 0.3, 0.3)));
+
+  //  doors bottom
+
+  meshAdd(polygons_transform(GBox, identity.translate(0, 1, -16).scale(3, 0.3, 0.35), material(0.5, 0.5, 0.5)));
+  meshAdd(polygons_transform(GBox, identity.translate(0, 1, 16).scale(3, 0.3, 0.35), material(0.5, 0.5, 0.5)));
+
+  // doors bars
+
+  for (let i = 0; i < 7; ++i) {
+    meshAdd(
+      polygons_transform(
+        cylinder(6, 1),
+        identity.translate(4 * (i / 6 - 0.5), 3, 16).scale(0.2, 3, 0.2),
+        material(0.3, 0.3, 0.3),
+      ),
+    );
+  }
+
+  // Lever
+
+  meshAdd(polygons_transform(cylinder(6, 1), identity.translate(0, 3, 0).scale(0.2, 3, 0.2), material(0.3, 0.3, 0.3)));
+
+  // meshAdd(csg_polygons(arc(identity.translate(0, 4, 24).scale(1, 1, 15), material(50 / 255, 111 / 255, 126 / 255))));
+
+  integers_map(
+    5,
+    (i) =>
+      integers_map(2, (j) => {
+        meshAdd(
+          polygons_transform(
+            horn(),
+            identity
+              .translate((j - 0.5) * 18.4, 0, i * 5 - 10)
+              .rotate(0, 180 - j * 180, 0)
+              .scale(1.2, 10, 1),
+            material(1, 1, 0.8),
+          ),
+        );
+      }),
+    // meshAdd(polygons_transform(cylinder(5), identity.scale(1, 1, 10)));
+  );
+
+  // meshAdd(
+  //   csg_polygons(
+  //     csg_subtract(
+  //       polygons_transform(
+  //         cylinder(5),
+  //         identity.translate(0, 4.6, 16).scale(5, 5, 0.5).rotate(90, 0, 180),
+  //         material(1, 0.5, 0.7),
+  //       ),
+  //       arcInner(identity.translate(0, 4.6, 16).scale(1, 1, 10)),
+  //     ),
+  //   ),
+  // );
+
+  // meshAdd(csg_polygons(arc(identity.translate(0, 4.6, 16).scale(1, 1, 2), material(0.1, 0.85, 1))));
+  // meshAdd(csg_polygons(arc(identity.translate(0, 4.6, -16).scale(1, 1, 2), material(0.1, 0.85, 1))));
+
+  meshAdd(base);
+
+  // polygon_transform(polygon_regular(5), identity.scale(20 * 0.2, 1, 44 * 0.2)).map(({ x, z }) => {
+  //   meshAdd(polygons_transform(cylinder(5), identity.translate(x, 3, z).scale(0.3, 3, 0.3), material(0.8, 0, 0.8)));
+  // });
+  // meshAdd(weirdObject());
+  // meshAdd(pavement());
+};
+
+/*
+
+  const base1 = polygons_transform(cylinder(6), identity.scale(10, 1, 24).rotate(0, 45, 0), material(1, 1, 1));
+  const base2 = polygons_transform(
+    cylinder(5),
+    identity.translate(18, -4, 0).rotate(0, 20, 0).scale(18, 1, 14),
+    material(1, 0, 1),
+  );
+
+  meshAdd(base1);
+  meshAdd(base2);
+
+const base = polygons_transform(cylinder(5), identity.scale(15, 2, 15), material(1, 1, 1));
+
+  meshAdd(
+    csg_polygons(
+      csg_subtract(
+        csg_union([
+          base,
+          polygons_transform(
+            GBox,
+            identity.translate(-20, -1, -5).rotate(0, -18, 0).scale(10, 1, 10),
+            material(0, 1, 0),
+          ),
+        ]),
+        csg_union([
+          polygons_transform(base, identity.translate(0, 1).scale(0.9, 1, 0.9), material(0.8, 0.8, 0.8)),
+          polygons_transform(cylinder(5), identity.scale(3, 3, 3), material(1, 1, 1)),
+        ]),
+      ),
+    ),
+  );
   const base = polygons_transform(cylinder(6), identity.scale(10, 1, 24), material(1, 1, 1));
 
   meshAdd(
@@ -80,11 +240,24 @@ export const mainScene = () => {
 
   polygon_transform(polygon_regular(6), identity.scale(20 * 0.2, 1, 44 * 0.2)).map(({ x, z }) => {
     meshAdd(polygons_transform(cylinder(8), identity.translate(x, 3, z).scale(0.3, 3, 0.3), material(0.8, 0, 0.8)));
-  });
+  }); */
 
-  // meshAdd(weirdObject());
-  // meshAdd(pavement());
-};
+// const arcHole = (transform: DOMMatrixReadOnly, color: number) =>
+// csg_union_op(
+//   polygons_transform(cylinder(12), transform.scale(3, 3, 20).rotate(90, 0, 0), color),
+//   polygons_transform(GBox, transform.translate(0, -3).scale(3, 3, 20).rotate(90, 0, 0), color),
+// );
+
+// const huge = csg_polygons(
+//   csg_subtract(
+//     polygons_transform(cylinder(8), identity.translate(0, 10).scale(15, 15, 15), material(0.8, 0.2, 1)),
+//     csg_union([
+//       arcHole(identity.translate(0, 2, 0).rotate(0, 20, 0), material(1, 1, 1)),
+//       arcHole(identity.translate(0, 2 + 10, 0).rotate(0, 45 + 20, 0), material(1, 1, 1)),
+//     ]),
+//   ),
+// );
+// meshAdd(huge);
 
 //  return [...polygons_transform(corridor(), identity.translate(0, 10, 0)), ...pavement(), ...weirdObject()];
 
