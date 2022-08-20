@@ -18,6 +18,7 @@ export interface Model {
   $children: Model[];
   $matrix: DOMMatrix;
   $mesh?: Mesh;
+  $collisionDisabled?: 0 | 1 | undefined;
   _update?: ModelUpdateCallback | undefined;
 }
 
@@ -46,16 +47,6 @@ export const modelEnd = ($mesh?: Mesh | undefined) => {
 export const modelFinalMatrix = ({ $matrix, $parent }: Model): DOMMatrix =>
   ($parent?.$matrix || identity).multiply($matrix);
 
-let _meshTranslationX = 0;
-let _meshTranslationY = 0;
-let _meshTranslationZ = 0;
-
-export const meshTranslation = (x: number, y: number, z: number) => {
-  _meshTranslationX = x;
-  _meshTranslationY = y;
-  _meshTranslationZ = z;
-};
-
 if (DEBUG) {
   console.time("buildWorld");
 }
@@ -75,9 +66,6 @@ let _meshFirstIndex: number = 0;
 
 const getVertex = (i: number): number => {
   let { x, y, z } = _polygon![i]!;
-  x += _meshTranslationX;
-  y += _meshTranslationY;
-  z += _meshTranslationZ;
   vertexFloats[0] = x;
   vertexFloats[1] = y;
   vertexFloats[2] = z;
@@ -112,16 +100,11 @@ export const meshAdd = (polygons: Polygon[]) => {
 };
 
 export const meshEnd = () => {
-  const first = _meshFirstIndex;
-  _meshFirstIndex = triangleIndices.length;
-  const mesh = {
-    $vertexOffset: first,
-    $vertexCount: _meshFirstIndex - first,
+  const $vertexOffset = _meshFirstIndex;
+  return {
+    $vertexOffset,
+    $vertexCount: (_meshFirstIndex = triangleIndices.length) - $vertexOffset,
   };
-  _meshTranslationX = 0;
-  _meshTranslationY = 0;
-  _meshTranslationZ = 0;
-  return mesh;
 };
 
 export const initTriangleBuffers = () => {
@@ -149,5 +132,25 @@ export const initTriangleBuffers = () => {
     console.log(
       "vertices: " + vertexMap.size + " indices:" + triangleIndices.length + " triangles:" + triangleIndices.length / 3,
     );
+  }
+};
+
+export const renderModels = (worldMatrixLoc: WebGLUniformLocation, isCollision?: 0 | 1, model = rootModel) => {
+  if (!isCollision || !model.$collisionDisabled) {
+    const { $mesh } = model;
+    if ($mesh) {
+      gl.uniformMatrix4fv(worldMatrixLoc, false, modelFinalMatrix(model).toFloat32Array());
+      gl.drawElements(gl.TRIANGLES, $mesh.$vertexCount, gl.UNSIGNED_INT, $mesh.$vertexOffset * 4);
+    }
+    for (const child of model.$children) {
+      renderModels(worldMatrixLoc, isCollision, child);
+    }
+  }
+};
+
+export const updateModels = (model: Model) => {
+  model._update?.(model);
+  for (const child of model.$children) {
+    updateModels(child);
   }
 };

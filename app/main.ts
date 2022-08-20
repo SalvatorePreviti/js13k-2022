@@ -18,15 +18,12 @@ import main_fsSource, {
   constDef_CSM_PLANE_DISTANCE1 as CSM_PLANE_DISTANCE1,
 } from "./shaders/main-fragment.frag";
 import collider_fsSource from "./shaders/collider-fragment.frag";
-
 import voidFsSource from "./shaders/void-fragment.frag";
-
-import { gl, initGl, initShaderProgram } from "./gl";
 
 import { integers_map } from "./math/math";
 import { mat_perspective, zFar, zNear, camera_position, camera_rotation, camera_view } from "./camera";
 import { camera_update } from "./camera-update";
-import type { Model } from "./level/scene";
+import { Model, renderModels, updateModels } from "./level/scene";
 import { rootModel, initTriangleBuffers, modelFinalMatrix } from "./level/scene";
 import { csm_buildMatrix, lightMatrix } from "./csm";
 import { initInputHandlers } from "./input";
@@ -34,27 +31,7 @@ import { gameTimeDelta, gameTimeUpdate } from "./game-time";
 import { buildWorld } from "./level/level";
 import { identity } from "./math/matrix";
 
-const updateModels = (model: Model | undefined) => {
-  if (model) {
-    model._update?.(model);
-    for (const child of model.$children) {
-      updateModels(child);
-    }
-  }
-};
-
-const renderModels = (model: Model | undefined, worldMatrixLoc: WebGLUniformLocation) => {
-  if (model) {
-    const { $mesh } = model;
-    if ($mesh) {
-      gl.uniformMatrix4fv(worldMatrixLoc, false, modelFinalMatrix(model).toFloat32Array());
-      gl.drawElements(gl.TRIANGLES, $mesh.$vertexCount, gl.UNSIGNED_INT, $mesh.$vertexOffset * 4);
-    }
-    for (const child of model.$children) {
-      renderModels(child, worldMatrixLoc);
-    }
-  }
-};
+import { gl, initGl, initShaderProgram } from "./gl";
 
 initGl();
 
@@ -169,7 +146,7 @@ const csm_renderer = (csmSplit: number) => {
       gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
       gl.clear(gl.DEPTH_BUFFER_BIT);
       gl.uniformMatrix4fv(csmShader(uniformName_viewMatrix), false, (lightSpaceMatrix = matrix));
-      renderModels(rootModel, csmShader(uniformName_worldMatrix));
+      renderModels(csmShader(uniformName_worldMatrix));
     } else {
       gl.uniformMatrix4fv(lightSpaceMatrixLoc, false, lightSpaceMatrix);
     }
@@ -259,7 +236,7 @@ const draw = (globalTime: number) => {
 
   gl.viewport(COLLISION_TEXTURE_SIZE / 2, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
 
-  renderModels(rootModel, collisionShader(uniformName_worldMatrix));
+  renderModels(collisionShader(uniformName_worldMatrix), 1);
 
   gl.uniformMatrix4fv(
     collisionShader(uniformName_viewMatrix),
@@ -269,7 +246,7 @@ const draw = (globalTime: number) => {
 
   gl.viewport(0, 0, COLLISION_TEXTURE_SIZE / 2, COLLISION_TEXTURE_SIZE);
 
-  renderModels(rootModel, collisionShader(uniformName_worldMatrix));
+  renderModels(collisionShader(uniformName_worldMatrix), 1);
 
   // *** MAIN RENDER ***
 
@@ -290,7 +267,7 @@ const draw = (globalTime: number) => {
   csm_render[1]!();
   csm_render[2]!();
 
-  renderModels(rootModel, mainShader(uniformName_worldMatrix));
+  renderModels(mainShader(uniformName_worldMatrix));
 };
 
 draw(0);

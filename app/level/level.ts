@@ -119,6 +119,9 @@ const rleg = meshAdd(
 meshAdd(polygons_transform(rleg, identity.rotate(0, 180)));
 
 const playerModel = modelBegin();
+
+playerModel.$collisionDisabled = 1;
+
 playerModel._update = () => {
   if (DEBUG) {
     if (keyboard_downKeys[KEY_PLAYER_UP]) {
