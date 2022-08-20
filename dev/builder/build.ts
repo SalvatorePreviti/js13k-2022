@@ -110,7 +110,7 @@ export async function build() {
     }
 
     let finalBuffer: Buffer;
-    if (rolledPlainZipSizeDiff < 100 && zippedPlainBuffer.length < JS13K_SIZE_IN_BYTES) {
+    if (-rolledPlainZipSizeDiff < 500 && zippedPlainBuffer.length <= JS13K_SIZE_IN_BYTES) {
       finalBuffer = zippedPlainBuffer;
       devLog.logRedBright("Choosing ZIP over ROLLED");
     } else {

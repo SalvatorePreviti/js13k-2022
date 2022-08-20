@@ -73,7 +73,7 @@ const csmShader = initShaderProgram(csm_vsSource, voidFsSource);
 
 const collisionShader = initShaderProgram(main_vsSource, collider_fsSource);
 
-const COLLISION_TEXTURE_SIZE = 256;
+const COLLISION_TEXTURE_SIZE = 128;
 
 const collision_mx = 1;
 const collision_my = 1 / 2.5;
@@ -130,7 +130,7 @@ const collision_init = () => {
 
 collision_init();
 
-const csm_buildMagic = (csmSplit: number) => {
+const csm_renderer = (csmSplit: number) => {
   let lightSpaceMatrix: Float32Array;
   const texture = gl.createTexture()!;
   const frameBuffer = gl.createFramebuffer();
@@ -176,12 +176,9 @@ const csm_buildMagic = (csmSplit: number) => {
   };
 };
 
-const csm_render = integers_map(3, csm_buildMagic);
+const csm_render = integers_map(3, csm_renderer);
 
 let debug2dctx: CanvasRenderingContext2D | null = null;
-
-const buf = new Uint8ClampedArray(256 * 256 * 4);
-const imgdata = new ImageData(buf, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
 
 const draw = (globalTime: number) => {
   gameTimeUpdate(globalTime);
@@ -193,27 +190,41 @@ const draw = (globalTime: number) => {
   gl.bindFramebuffer(gl.FRAMEBUFFER, collision_frameBuffer);
   gl.readPixels(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE, gl.RGB, gl.UNSIGNED_BYTE, colliderBuffer);
 
-  for (let y = 0; y < COLLISION_TEXTURE_SIZE; ++y) {
-    for (let x = 0; x < COLLISION_TEXTURE_SIZE; ++x) {
-      const i = ((COLLISION_TEXTURE_SIZE - y) * COLLISION_TEXTURE_SIZE + x) * 3;
-      const r = colliderBuffer[i]!;
-      const g = colliderBuffer[i + 1]!;
-      const b = colliderBuffer[i + 2]!;
+  if (DEBUG) {
+    const debugCanvas = document.getElementById("debug-canvas") as HTMLCanvasElement;
 
-      buf[(y * COLLISION_TEXTURE_SIZE + x) * 4] = r > 128 ? 255 : 0;
-      buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 1] = r / 2;
-      buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 2] = r / 2;
-      buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 3] = 255;
+    const buf = new Uint8ClampedArray(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
+
+    if (debugCanvas) {
+      for (let y = 0; y < COLLISION_TEXTURE_SIZE; ++y) {
+        for (let x = 0; x < COLLISION_TEXTURE_SIZE; ++x) {
+          const i = ((COLLISION_TEXTURE_SIZE - y) * COLLISION_TEXTURE_SIZE + x) * 3;
+          const r = colliderBuffer[i]!;
+          const g = colliderBuffer[i + 1]!;
+          const b = colliderBuffer[i + 2]!;
+
+          buf[(y * COLLISION_TEXTURE_SIZE + x) * 4] = r > 128 ? 255 : 0;
+          buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 1] = r / 2;
+          buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 2] = r / 2;
+          buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 3] = 255;
+        }
+      }
+
+      const imgdata = new ImageData(buf, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
+
+      if (!debug2dctx) {
+        debug2dctx = debugCanvas.getContext("2d")!;
+      }
+      debug2dctx.putImageData(
+        imgdata,
+        COLLISION_TEXTURE_SIZE / 2,
+        0,
+        0,
+        0,
+        COLLISION_TEXTURE_SIZE,
+        COLLISION_TEXTURE_SIZE,
+      );
     }
-  }
-
-  const debugCanvas = document.getElementById("debug-canvas") as HTMLCanvasElement;
-
-  if (debugCanvas) {
-    if (!debug2dctx) {
-      debug2dctx = debugCanvas.getContext("2d")!;
-    }
-    debug2dctx.putImageData(imgdata, 0, 0, 0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
   }
 
   camera_update(gameTimeDelta);
@@ -246,7 +257,7 @@ const draw = (globalTime: number) => {
   gl.clearColor(0, 0, 0, 1); // Clear to black, fully opaque
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-  gl.viewport(128, 0, 256, 256);
+  gl.viewport(COLLISION_TEXTURE_SIZE / 2, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
 
   renderModels(rootModel, collisionShader(uniformName_worldMatrix));
 
@@ -256,7 +267,7 @@ const draw = (globalTime: number) => {
     identity.rotate(0, -180, 0).multiply(camera_view).toFloat32Array(),
   );
 
-  gl.viewport(0, 0, 128, 256);
+  gl.viewport(0, 0, COLLISION_TEXTURE_SIZE / 2, COLLISION_TEXTURE_SIZE);
 
   renderModels(rootModel, collisionShader(uniformName_worldMatrix));
 
