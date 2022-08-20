@@ -25,19 +25,40 @@ import { gl, initGl, initShaderProgram } from "./gl";
 import { integers_map } from "./math/math";
 import { mat_perspective, zFar, zNear, camera_position, camera_rotation, camera_view } from "./camera";
 import { camera_update } from "./camera-update";
-import { buildWorld, meshDemon, meshWorld } from "./level/scene";
+import type { Model } from "./level/scene";
+import { rootModel, initTriangleBuffers, modelFinalMatrix } from "./level/scene";
 import { csm_buildMatrix, lightMatrix } from "./csm";
 import { initInputHandlers } from "./input";
 import { gameTimeDelta, gameTimeUpdate } from "./game-time";
+import { buildWorld } from "./level/level";
 
-const renderWorld = (worldMatrixLoc: WebGLUniformLocation) => {
-  meshDemon(worldMatrixLoc);
-  meshWorld(worldMatrixLoc);
+const updateModels = (model: Model | undefined) => {
+  if (model) {
+    model._update?.(model);
+    for (const child of model.$children) {
+      updateModels(child);
+    }
+  }
+};
+
+const renderModels = (model: Model | undefined, worldMatrixLoc: WebGLUniformLocation) => {
+  if (model) {
+    const { $mesh } = model;
+    if ($mesh) {
+      gl.uniformMatrix4fv(worldMatrixLoc, false, modelFinalMatrix(model).toFloat32Array());
+      gl.drawElements(gl.TRIANGLES, $mesh.$vertexCount, gl.UNSIGNED_INT, $mesh.$vertexOffset * 4);
+    }
+    for (const child of model.$children) {
+      renderModels(child, worldMatrixLoc);
+    }
+  }
 };
 
 initGl();
 
 buildWorld();
+
+initTriangleBuffers();
 
 gl.enable(gl.DEPTH_TEST); // Enable depth testing
 gl.enable(gl.CULL_FACE); // Don't render triangle backs
@@ -91,7 +112,7 @@ const csm_buildMagic = (csmSplit: number) => {
       gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
       gl.clear(gl.DEPTH_BUFFER_BIT);
       gl.uniformMatrix4fv(csmShader(uniformName_viewMatrix), false, (lightSpaceMatrix = matrix));
-      renderWorld(csmShader(uniformName_worldMatrix));
+      renderModels(rootModel, csmShader(uniformName_worldMatrix));
     } else {
       gl.uniformMatrix4fv(lightSpaceMatrixLoc, false, lightSpaceMatrix);
     }
@@ -112,6 +133,8 @@ const draw = (globalTime: number) => {
     .rotateSelf(-camera_rotation.x, -camera_rotation.y, -camera_rotation.z)
     .invertSelf()
     .translateSelf(-camera_position.x, -camera_position.y, -camera_position.z);
+
+  updateModels(rootModel);
 
   // *** CASCADED SHADOWMAPS ***
 
@@ -142,7 +165,7 @@ const draw = (globalTime: number) => {
   csm_render[1]!();
   csm_render[2]!();
 
-  renderWorld(mainShader(uniformName_worldMatrix));
+  renderModels(rootModel, mainShader(uniformName_worldMatrix));
 };
 
 draw(0);

@@ -54,6 +54,12 @@ export async function jsTransformSwc(
             minify: minifyWhitespaces,
             swcrc: false,
             jsc: {
+              transform: {
+                optimizer: {
+                  simplify: true,
+                },
+                useDefineForClassFields: false,
+              },
               keepClassNames: false,
               target: "es2022",
               minify: minify && minify !== "simple" ? getSwcMinifyOptions(minify) : undefined,

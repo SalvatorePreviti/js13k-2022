@@ -1,3 +1,4 @@
+import { gameTime, gameTimeDelta } from "../game-time";
 import { csg_subtract, csg_polygons, csg_union, csg_union_op, csg_tree } from "../geometry/csg";
 import {
   material,
@@ -8,62 +9,154 @@ import {
   type Polygon,
   sphere,
   horn,
-  polygon_regular,
   polygon_transform,
-  cone,
 } from "../geometry/geometry";
+import { keyboard_downKeys, KEY_PLAYER_DOWN, KEY_PLAYER_LEFT, KEY_PLAYER_RIGHT, KEY_PLAYER_UP } from "../input";
 import { integers_map } from "../math/math";
 import { identity } from "../math/matrix";
-import { meshAdd, meshTranslation } from "./scene";
+import type { Vec3 } from "../math/vectors";
+import { modelBegin, modelEnd } from "./scene";
+import { meshAdd, meshEnd } from "./scene";
 
-const pavement = (): Polygon[] => {
-  return polygons_transform(GBox, identity.translate(0, -2).scale(1100, 0.5, 1100), material(1, 1, 1));
-};
+// ========= Lever mesh ========= //
 
-const MATERIAL_DEVIL = material(1, 0.3, 0.4);
+meshAdd(polygons_transform(cylinder(6, 1), identity.scale(0.12, 1.4, 0.12), material(0.3, 0.3, 0.3)));
+meshAdd(polygons_transform(cylinder(6), identity.translate(0, 1, 0).scale(0.18, 0.25, 0.18), material(1, 0.5, 0.2)));
+// meshAdd(
+//   polygons_transform(
+//     cylinder(6, 1),
+//     identity.translate(0, -1).rotate(90, 90, 0).scale(0.3, 0.09, 0.3),
+//     material(0.2, 0.2, 0.2),
+//   ),
+// );
+meshAdd(
+  polygons_transform(
+    cylinder(3),
+    identity.translate(0, -1).rotate(90, 90, 0).scale(0.3, 0.4, 0.3),
+    material(0.2, 0.2, 0.2),
+  ),
+);
 
-export const demon = () => {
-  meshTranslation(0, 2.3, -18);
+const leverMesh = meshEnd();
 
-  const rhorn = meshAdd(
+const addLever = (transform: DOMMatrixReadOnly) => {
+  const lever = {
+    value: 0,
+  };
+
+  const stickModel = modelBegin();
+
+  stickModel._update = () => {
+    stickModel.$matrix = transform.rotate(Math.sin(gameTime * 2) * 30, 0).translate(0, 1, 0);
+  };
+
+  modelEnd(leverMesh);
+
+  meshAdd(
     polygons_transform(
-      horn(),
-      identity.translate(0.2, 1.32, 0).rotate(0, 0, -30).scale(0.2, 0.6, 0.2),
-      material(1, 1, 0.8),
+      cylinder(5),
+      transform.translate(-0.2).rotate(90, 90, 0).scale(0.4, 0.1, 0.5),
+      material(0.4, 0.5, 0.5),
+    ),
+  );
+  meshAdd(
+    polygons_transform(
+      cylinder(5),
+      transform.translate(0.2).rotate(90, 90, 0).scale(0.4, 0.1, 0.5),
+      material(0.4, 0.5, 0.5),
     ),
   );
 
-  // left horn
-  meshAdd(polygons_transform(rhorn, identity.rotate(0, 180, 0)));
+  meshAdd(polygons_transform(GBox, transform.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4)));
 
-  // head
-  meshAdd(polygons_transform(sphere(30), identity.translate(0, 1, 0).scale(0.5, 0.5, 0.5), MATERIAL_DEVIL));
+  return lever;
+};
 
-  const eye = polygons_transform(
-    csg_polygons(csg_subtract(cylinder(15, 1), polygons_transform(GBox, identity.translate(0, 0, 1).scale(2, 2, 0.5)))),
-    identity.rotate(-90, 0, 0).scale(0.1, 0.05, 0.1),
-    material(0.3, 0.3, 0.3),
-  );
+// ========= Player mesh ========= //
 
-  // right eye
-  meshAdd(polygons_transform(eye, identity.translate(0.2, 1.2, 0.4).rotate(0, 20, 20)));
+const playerPos: Vec3 = { x: 0, y: 0, z: 0 };
 
-  // left eye
-  meshAdd(polygons_transform(eye, identity.translate(-0.2, 1.2, 0.4).rotate(0, -20, -20)));
+const MATERIAL_DEVIL = material(1, 0.3, 0.4);
 
-  // mouth
-  meshAdd(polygons_transform(GBox, identity.translate(0, 0.9, 0.45).scale(0.15, 0.02, 0.06), material(0.3, 0.3, 0.3)));
+const rhorn = meshAdd(
+  polygons_transform(
+    horn(),
+    identity.translate(0.2, 1.32, 0).rotate(0, 0, -30).scale(0.2, 0.6, 0.2),
+    material(1, 1, 0.8),
+  ),
+);
 
-  // body
-  meshAdd(polygons_transform(sphere(15), identity.translate(0, 0, 0).scale(0.7, 0.8, 0.5), MATERIAL_DEVIL));
+// left horn
+meshAdd(polygons_transform(rhorn, identity.rotate(0, 180, 0)));
 
-  // Right leg
-  const rleg = meshAdd(
-    polygons_transform(cylinder(10, 1), identity.translate(-0.3, -1, 0).scale(0.2, 0.5, 0.2), MATERIAL_DEVIL),
-  );
+// head
+meshAdd(polygons_transform(sphere(30), identity.translate(0, 1, 0).scale(0.5, 0.5, 0.5), MATERIAL_DEVIL));
 
-  // Left leg
-  meshAdd(polygons_transform(rleg, identity.rotate(0, 180)));
+const eye = polygons_transform(
+  csg_polygons(csg_subtract(cylinder(15, 1), polygons_transform(GBox, identity.translate(0, 0, 1).scale(2, 2, 0.5)))),
+  identity.rotate(-90, 0, 0).scale(0.1, 0.05, 0.1),
+  material(0.3, 0.3, 0.3),
+);
+
+// right eye
+meshAdd(polygons_transform(eye, identity.translate(0.2, 1.2, 0.4).rotate(0, 20, 20)));
+
+// left eye
+meshAdd(polygons_transform(eye, identity.translate(-0.2, 1.2, 0.4).rotate(0, -20, -20)));
+
+// mouth
+meshAdd(polygons_transform(GBox, identity.translate(0, 0.9, 0.45).scale(0.15, 0.02, 0.06), material(0.3, 0.3, 0.3)));
+
+// body
+meshAdd(polygons_transform(sphere(15), identity.translate(0, 0, 0).scale(0.7, 0.8, 0.5), MATERIAL_DEVIL));
+
+// Right leg
+const rleg = meshAdd(
+  polygons_transform(cylinder(10, 1), identity.translate(-0.3, -1, 0).scale(0.2, 0.5, 0.2), MATERIAL_DEVIL),
+);
+
+// Left leg
+meshAdd(polygons_transform(rleg, identity.rotate(0, 180)));
+
+const playerModel = modelBegin();
+playerModel._update = () => {
+  if (DEBUG) {
+    if (keyboard_downKeys[KEY_PLAYER_UP]) {
+      playerPos.z += gameTimeDelta * 4;
+    }
+    if (keyboard_downKeys[KEY_PLAYER_DOWN]) {
+      playerPos.z -= gameTimeDelta * 4;
+    }
+    if (keyboard_downKeys[KEY_PLAYER_LEFT]) {
+      playerPos.x += gameTimeDelta * 4;
+    }
+    if (keyboard_downKeys[KEY_PLAYER_RIGHT]) {
+      playerPos.x -= gameTimeDelta * 4;
+    }
+  }
+
+  playerModel.$matrix = identity.translate(playerPos.x, playerPos.y, playerPos.z);
+};
+modelEnd(meshEnd());
+
+//////////
+
+const testLeverlModel = modelBegin();
+
+addLever(identity.translate(1.6));
+
+testLeverlModel._update = () => {
+  testLeverlModel.$matrix = identity.translate(0, Math.cos(gameTime * 2) * 4, 0);
+};
+
+meshAdd(polygons_transform(cylinder(5), identity.translate(0, -1.4).scale(5, 1, 5), material(1, 1, 1)));
+
+modelEnd(meshEnd());
+
+/// // Player model
+
+const pavement = (): Polygon[] => {
+  return polygons_transform(GBox, identity.translate(0, -2).scale(1100, 0.5, 1100), material(1, 1, 1));
 };
 
 // export const arc = (transform: DOMMatrixReadOnly, color?: number) => {
@@ -143,10 +236,6 @@ export const mainScene = () => {
     );
   }
 
-  // Lever
-
-  meshAdd(polygons_transform(cylinder(6, 1), identity.translate(0, 3, 0).scale(0.2, 3, 0.2), material(0.3, 0.3, 0.3)));
-
   // meshAdd(csg_polygons(arc(identity.translate(0, 4, 24).scale(1, 1, 15), material(50 / 255, 111 / 255, 126 / 255))));
 
   integers_map(
@@ -192,6 +281,11 @@ export const mainScene = () => {
   // meshAdd(pavement());
 };
 
+export const buildWorld = () => {
+  modelBegin();
+  mainScene();
+  modelEnd(meshEnd());
+};
 /*
 
   const base1 = polygons_transform(cylinder(6), identity.scale(10, 1, 24).rotate(0, 45, 0), material(1, 1, 1));

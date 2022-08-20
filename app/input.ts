@@ -14,6 +14,14 @@ export const KEY_DEBUG_FLY_UP = 5;
 
 export const KEY_DEBUG_FLY_DOWN = 6;
 
+export const KEY_PLAYER_UP = 10;
+
+export const KEY_PLAYER_DOWN = 11;
+
+export const KEY_PLAYER_LEFT = 12;
+
+export const KEY_PLAYER_RIGHT = 13;
+
 export const keyboard_downKeys: (boolean | 0 | undefined)[] = [];
 
 export let mouse_movementX = 0;
@@ -43,6 +51,18 @@ const keyMap: Partial<Record<KEY_CODE, number>> = /* @__PURE__ */ {
   ["KeyR"]: KEY_DEBUG_FLY_UP,
   ["KeyF"]: KEY_DEBUG_FLY_DOWN,
 };
+
+if (DEBUG) {
+  Object.assign(keyMap, {
+    ["KeyH"]: KEY_PLAYER_LEFT,
+
+    ["KeyU"]: KEY_PLAYER_UP,
+
+    ["KeyK"]: KEY_PLAYER_RIGHT,
+
+    ["KeyJ"]: KEY_PLAYER_DOWN,
+  });
+}
 
 export const initInputHandlers = () => {
   if (!DEBUG) {

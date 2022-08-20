@@ -1,29 +1,50 @@
 import type { Polygon } from "../geometry/geometry";
 import { gl } from "../gl";
 import { identity } from "../math/matrix";
+import type { Vec3 } from "../math/vectors";
 import { plane_fromPolygon } from "../math/vectors";
-import { demon, mainScene } from "./level";
 
 export type Renderer = () => void;
 
 export interface Mesh {
-  (worldMatrixLoc: WebGLUniformLocation): void;
-  $matrix: DOMMatrix;
+  $vertexOffset: number;
+  $vertexCount: number;
 }
 
 export type ModelUpdateCallback = (model: Model) => void;
 
 export interface Model {
-  $mesh: Mesh;
+  $parent?: Model | undefined;
+  $children: Model[];
   $matrix: DOMMatrix;
+  $mesh?: Mesh;
   _update?: ModelUpdateCallback | undefined;
 }
 
-export let meshDemon: Mesh;
+export const rootModel: Model = {
+  $children: [],
+  $matrix: new DOMMatrix(),
+};
 
-export let meshWorld: Mesh;
+export let currentModel = rootModel;
 
-export let meshAdd: (polygons: Polygon[]) => Polygon[];
+export const modelBegin = () => {
+  const newModel: Model = {
+    $parent: currentModel,
+    $children: [],
+    $matrix: new DOMMatrix(),
+  };
+  currentModel.$children.push(newModel);
+  return (currentModel = newModel);
+};
+
+export const modelEnd = ($mesh?: Mesh | undefined) => {
+  currentModel.$mesh = $mesh;
+  currentModel = currentModel.$parent!;
+};
+
+export const modelFinalMatrix = ({ $matrix, $parent }: Model): DOMMatrix =>
+  ($parent?.$matrix || identity).multiply($matrix);
 
 let _meshTranslationX = 0;
 let _meshTranslationY = 0;
@@ -35,80 +56,75 @@ export const meshTranslation = (x: number, y: number, z: number) => {
   _meshTranslationZ = z;
 };
 
-export const buildWorld = () => {
-  if (DEBUG) {
-    console.time("buildWorld");
+if (DEBUG) {
+  console.time("buildWorld");
+}
+
+const triangleIndices: number[] = [];
+const positions: number[] = [];
+const normals: number[] = [];
+const colors: number[] = [];
+
+const vertexMap = new Map<string, number>();
+const vertexInts = new Int32Array(7);
+const vertexIntsSmooth = new Int32Array(vertexInts.buffer, 0, 4);
+const vertexFloats = new Float32Array(vertexInts.buffer);
+
+let _polygon: Polygon | undefined;
+let _meshFirstIndex: number = 0;
+
+const getVertex = (i: number): number => {
+  let { x, y, z } = _polygon![i]!;
+  x += _meshTranslationX;
+  y += _meshTranslationY;
+  z += _meshTranslationZ;
+  vertexFloats[0] = x;
+  vertexFloats[1] = y;
+  vertexFloats[2] = z;
+  const key = "" + (_polygon!.$smooth ? vertexIntsSmooth : vertexInts);
+  let index = vertexMap.get(key);
+  if (index !== undefined) {
+    x = index * 3;
+    normals[x] = (normals[x++]! + vertexInts[4]!) / 2;
+    normals[x] = (normals[x++]! + vertexInts[5]!) / 2;
+    normals[x] = (normals[x]! + vertexInts[6]!) / 2;
+  } else {
+    vertexMap.set(key, (index = vertexMap.size));
+    positions.push(x, y, z);
+    normals.push(vertexInts[4]!, vertexInts[5]!, vertexInts[6]!);
+    colors.push(vertexInts[3]!);
   }
+  return index;
+};
 
-  const triangleIndices: number[] = [];
-  const positions: number[] = [];
-  const normals: number[] = [];
-  const colors: number[] = [];
-
-  const vertexMap = new Map<string, number>();
-  const vertexInts = new Int32Array(7);
-  const vertexIntsSmooth = new Int32Array(vertexInts.buffer, 0, 4);
-  const vertexFloats = new Float32Array(vertexInts.buffer);
-
-  let _polygon: Polygon | undefined;
-  let _meshFirstIndex: number = 0;
-
-  const getVertex = (i: number): number => {
-    let { x, y, z } = _polygon![i]!;
-    x += _meshTranslationX;
-    y += _meshTranslationY;
-    z += _meshTranslationZ;
-    vertexFloats[0] = x;
-    vertexFloats[1] = y;
-    vertexFloats[2] = z;
-    const key = "" + (_polygon!.$smooth ? vertexIntsSmooth : vertexInts);
-    let index = vertexMap.get(key);
-    if (index !== undefined) {
-      x = index * 3;
-      normals[x] = (normals[x++]! + vertexInts[4]!) / 2;
-      normals[x] = (normals[x++]! + vertexInts[5]!) / 2;
-      normals[x] = (normals[x]! + vertexInts[6]!) / 2;
-    } else {
-      vertexMap.set(key, (index = vertexMap.size));
-      positions.push(x, y, z);
-      normals.push(vertexInts[4]!, vertexInts[5]!, vertexInts[6]!);
-      colors.push(vertexInts[3]!);
+export const meshAdd = (polygons: Polygon[]) => {
+  for (_polygon of polygons) {
+    const { x, y, z } = plane_fromPolygon(_polygon);
+    vertexInts[3] = _polygon.$color! | 0;
+    vertexInts[4] = x * 32767;
+    vertexInts[5] = y * 32767;
+    vertexInts[6] = z * 32767;
+    for (let i = 2, a = getVertex(0), b = getVertex(1); i < _polygon.length; ++i) {
+      triangleIndices.push(a, b, (b = getVertex(i)));
     }
-    return index;
+  }
+  return polygons;
+};
+
+export const meshEnd = () => {
+  const first = _meshFirstIndex;
+  _meshFirstIndex = triangleIndices.length;
+  const mesh = {
+    $vertexOffset: first,
+    $vertexCount: _meshFirstIndex - first,
   };
+  _meshTranslationX = 0;
+  _meshTranslationY = 0;
+  _meshTranslationZ = 0;
+  return mesh;
+};
 
-  meshAdd = (polygons: Polygon[]) => {
-    for (_polygon of polygons) {
-      const { x, y, z } = plane_fromPolygon(_polygon);
-      vertexInts[3] = _polygon.$color! | 0;
-      vertexInts[4] = x * 32767;
-      vertexInts[5] = y * 32767;
-      vertexInts[6] = z * 32767;
-      for (let i = 2, a = getVertex(0), b = getVertex(1); i < _polygon.length; ++i) {
-        triangleIndices.push(a, b, (b = getVertex(i)));
-      }
-    }
-    return polygons;
-  };
-
-  const endMesh = (fn: () => void) => {
-    fn();
-    const first = _meshFirstIndex;
-    const last = triangleIndices.length;
-    const mesh = ((worldMatrixLoc: WebGLUniformLocation) => {
-      gl.uniformMatrix4fv(worldMatrixLoc, false, mesh.$matrix.toFloat32Array());
-      gl.drawElements(gl.TRIANGLES, (_meshFirstIndex = last) - first, gl.UNSIGNED_INT, first);
-    }) as Mesh;
-    mesh.$matrix = DOMMatrix.fromMatrix(identity);
-    _meshTranslationX = 0;
-    _meshTranslationY = 0;
-    _meshTranslationZ = 0;
-    return mesh;
-  };
-
-  meshDemon = endMesh(demon);
-  meshWorld = endMesh(mainScene);
-
+export const initTriangleBuffers = () => {
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.createBuffer());
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(triangleIndices), gl.STATIC_DRAW);
 

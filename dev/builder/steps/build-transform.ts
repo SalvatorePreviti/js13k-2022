@@ -46,7 +46,7 @@ class Transformer extends SwcVisitor {
 
 export function rollupPluginSwcTransform(): PluginOption {
   return {
-    name: "swc-transform",
+    name: "build-transform",
     async transform(src, id) {
       if (!id.endsWith(".js") && !id.endsWith(".ts") && !id.endsWith(".tsx")) {
         return undefined;
@@ -62,9 +62,18 @@ export function rollupPluginSwcTransform(): PluginOption {
         minify: false,
         swcrc: false,
         jsc: {
+          transform: {
+            optimizer: {
+              simplify: true,
+            },
+            useDefineForClassFields: false,
+            treatConstEnumAsEnum: true,
+            decoratorMetadata: false,
+          },
           keepClassNames: false,
           preserveAllComments: true,
           target: "es2022",
+          parser: { syntax: "ecmascript" },
           // minify: {
           //   module: true,
           //   toplevel: true,
@@ -123,10 +132,6 @@ export function rollupPluginSwcTransform(): PluginOption {
           //     preserve_annotations: true,
           //   },
           // },
-          parser: {
-            syntax: "ecmascript",
-            dynamicImport: true,
-          },
         },
         plugin: (m) => {
           m = new Transformer().visitProgram(m);

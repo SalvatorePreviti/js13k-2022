@@ -6,7 +6,7 @@ export const zNear = constDef_zNear;
 
 export const zFar = constDef_zFar;
 
-export const fieldOfViewDegrees = 45;
+export const fieldOfViewDegrees = 60;
 
 export const fieldOfViewRadians = fieldOfViewDegrees * DEG_TO_RAD; // in radians
 
