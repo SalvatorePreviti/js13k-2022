@@ -11,12 +11,20 @@ import {
   horn,
   polygon_transform,
 } from "../geometry/geometry";
-import { keyboard_downKeys, KEY_PLAYER_DOWN, KEY_PLAYER_LEFT, KEY_PLAYER_RIGHT, KEY_PLAYER_UP } from "../input";
+import {
+  keyboard_downKeys,
+  KEY_PLAYER_BACK,
+  KEY_PLAYER_LEFT,
+  KEY_PLAYER_RIGHT,
+  KEY_PLAYER_FRONT,
+  KEY_PLAYER_FLY_UP,
+  KEY_PLAYER_FLY_DOWN,
+} from "../input";
 import { integers_map } from "../math/math";
 import { identity } from "../math/matrix";
 import type { Vec3 } from "../math/vectors";
-import { modelBegin, modelEnd } from "./scene";
-import { meshAdd, meshEnd } from "./scene";
+import { player_position } from "../player";
+import { modelBegin, modelEnd, meshAdd, meshEnd } from "./scene";
 
 // ========= Lever mesh ========= //
 
@@ -74,8 +82,6 @@ const addLever = (transform: DOMMatrixReadOnly) => {
 
 // ========= Player mesh ========= //
 
-const playerPos: Vec3 = { x: 0, y: 0, z: 0 };
-
 const MATERIAL_DEVIL = material(1, 0.3, 0.4);
 
 const rhorn = meshAdd(
@@ -124,21 +130,27 @@ playerModel.$collisionDisabled = 1;
 
 playerModel._update = () => {
   if (DEBUG) {
-    if (keyboard_downKeys[KEY_PLAYER_UP]) {
-      playerPos.z += gameTimeDelta * 4;
+    if (keyboard_downKeys[KEY_PLAYER_FRONT]) {
+      player_position.z += gameTimeDelta * 4;
     }
-    if (keyboard_downKeys[KEY_PLAYER_DOWN]) {
-      playerPos.z -= gameTimeDelta * 4;
+    if (keyboard_downKeys[KEY_PLAYER_BACK]) {
+      player_position.z -= gameTimeDelta * 4;
     }
     if (keyboard_downKeys[KEY_PLAYER_LEFT]) {
-      playerPos.x += gameTimeDelta * 4;
+      player_position.x += gameTimeDelta * 4;
     }
     if (keyboard_downKeys[KEY_PLAYER_RIGHT]) {
-      playerPos.x -= gameTimeDelta * 4;
+      player_position.x -= gameTimeDelta * 4;
+    }
+    if (keyboard_downKeys[KEY_PLAYER_FLY_UP]) {
+      player_position.y += gameTimeDelta * 4;
+    }
+    if (keyboard_downKeys[KEY_PLAYER_FLY_DOWN]) {
+      player_position.y -= gameTimeDelta * 4;
     }
   }
 
-  playerModel.$matrix = identity.translate(playerPos.x, playerPos.y, playerPos.z);
+  playerModel.$matrix = identity.translate(player_position.x, player_position.y, player_position.z);
 };
 modelEnd(meshEnd());
 

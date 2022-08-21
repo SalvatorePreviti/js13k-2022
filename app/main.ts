@@ -230,7 +230,7 @@ const draw = (globalTime: number) => {
 
   mainShader();
 
-  gl.clearColor(0.2, 0.2, 0.2, 1); // Clear to black, fully opaque
+  gl.clearColor(0.2, 0.2, 0.2, 1);
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
