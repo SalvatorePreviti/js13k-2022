@@ -1,4 +1,5 @@
 import { angle_wrap_degrees, DEG_TO_RAD } from "./math/math";
+import { mat_perspectiveXY } from "./math/matrix";
 
 import { constDef_zNear, constDef_zFar } from "./shaders/main-fragment.frag";
 
@@ -49,21 +50,5 @@ export const camera_firstPersonMove = (x: number, z: number) => {
   camera_position.z += x * s + z * c;
 };
 
-export const mat_perspective = /* @__PURE__ */ (near: number, far: number) => [
-  (hC.clientHeight / hC.clientWidth) * fieldOfViewAmount,
-  0,
-  0,
-  0,
-  0,
-  fieldOfViewAmount,
-  0,
-  0,
-  0,
-  0,
-  (far + near) / (near - far),
-  -1,
-  0,
-  0,
-  (2 * far * near) / (near - far),
-  0,
-];
+export const mat_perspective = (near: number, far: number) =>
+  mat_perspectiveXY((hC.clientHeight / hC.clientWidth) * fieldOfViewAmount, fieldOfViewAmount, near, far);

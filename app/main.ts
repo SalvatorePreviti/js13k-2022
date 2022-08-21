@@ -28,7 +28,7 @@ import { csm_buildMatrix, lightMatrix } from "./csm";
 import { initInputHandlers } from "./input";
 import { gameTimeDelta, gameTimeUpdate } from "./game-time";
 import { buildWorld } from "./level/level";
-import { identity } from "./math/matrix";
+import { identity, mat_perspectiveXY } from "./math/matrix";
 
 import { gl, initGl, initShaderProgram } from "./gl";
 
@@ -49,30 +49,9 @@ const csmShader = initShaderProgram(csm_vsSource, voidFsSource);
 
 const collisionShader = initShaderProgram(main_vsSource, collider_fsSource);
 
-const COLLISION_TEXTURE_SIZE = 128;
+const COLLISION_TEXTURE_SIZE = 64;
 
-const collision_mx = 1;
-const collision_my = 1 / 2.5;
-const collision_far = 2;
-const collision_near = 0.0001;
-gl.uniformMatrix4fv(collisionShader(uniformName_projectionMatrix), false, [
-  collision_mx,
-  0,
-  0,
-  0,
-  0,
-  collision_my,
-  0,
-  0,
-  0,
-  0,
-  (collision_far + collision_near) / (collision_near - collision_far),
-  -1,
-  0,
-  0,
-  (2 * collision_far * collision_near) / (collision_near - collision_far),
-  0,
-]);
+gl.uniformMatrix4fv(collisionShader(uniformName_projectionMatrix), false, mat_perspectiveXY(1, 1 / 2.5, 0.0001, 2));
 
 const mainShader = initShaderProgram(main_vsSource, main_fsSource);
 
@@ -176,8 +155,8 @@ const draw = (globalTime: number) => {
         for (let x = 0; x < COLLISION_TEXTURE_SIZE; ++x) {
           const i = ((COLLISION_TEXTURE_SIZE - y) * COLLISION_TEXTURE_SIZE + x) * 3;
           const r = colliderBuffer[i]!;
-          const g = colliderBuffer[i + 1]!;
-          const b = colliderBuffer[i + 2]!;
+          // const g = colliderBuffer[i + 1]!;
+          // const b = colliderBuffer[i + 2]!;
 
           buf[(y * COLLISION_TEXTURE_SIZE + x) * 4] = r > 128 ? 255 : 0;
           buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 1] = r / 2;

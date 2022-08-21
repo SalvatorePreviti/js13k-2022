@@ -1,10 +1,27 @@
 import type { Polygon } from "../geometry/geometry";
 import { gl } from "../gl";
 import { identity } from "../math/matrix";
-import type { Vec3 } from "../math/vectors";
 import { plane_fromPolygon } from "../math/vectors";
 
-export type Renderer = () => void;
+export const rootModel: Model = {
+  $children: [],
+  $matrix: new DOMMatrix(),
+};
+
+export let currentModel = rootModel;
+
+const _triangleIndices: number[] = [];
+const _positions: number[] = [];
+const _normals: number[] = [];
+const _colors: number[] = [];
+
+const _vertexMap = new Map<string, number>();
+const _vertexInts = new Int32Array(7);
+const _vertexIntsSmooth = new Int32Array(_vertexInts.buffer, 0, 4);
+const _vertexFloats = new Float32Array(_vertexInts.buffer);
+
+let _polygon: Polygon | undefined;
+let _meshFirstIndex: number = 0;
 
 export interface Mesh {
   $vertexOffset: number;
@@ -21,13 +38,6 @@ export interface Model {
   $collisionDisabled?: 0 | 1 | undefined;
   _update?: ModelUpdateCallback | undefined;
 }
-
-export const rootModel: Model = {
-  $children: [],
-  $matrix: new DOMMatrix(),
-};
-
-export let currentModel = rootModel;
 
 export const modelBegin = () => {
   const newModel: Model = {
@@ -51,36 +61,23 @@ if (DEBUG) {
   console.time("buildWorld");
 }
 
-const triangleIndices: number[] = [];
-const positions: number[] = [];
-const normals: number[] = [];
-const colors: number[] = [];
-
-const vertexMap = new Map<string, number>();
-const vertexInts = new Int32Array(7);
-const vertexIntsSmooth = new Int32Array(vertexInts.buffer, 0, 4);
-const vertexFloats = new Float32Array(vertexInts.buffer);
-
-let _polygon: Polygon | undefined;
-let _meshFirstIndex: number = 0;
-
 const getVertex = (i: number): number => {
   let { x, y, z } = _polygon![i]!;
-  vertexFloats[0] = x;
-  vertexFloats[1] = y;
-  vertexFloats[2] = z;
-  const key = "" + (_polygon!.$smooth ? vertexIntsSmooth : vertexInts);
-  let index = vertexMap.get(key);
+  _vertexFloats[0] = x;
+  _vertexFloats[1] = y;
+  _vertexFloats[2] = z;
+  const key = "" + (_polygon!.$smooth ? _vertexIntsSmooth : _vertexInts);
+  let index = _vertexMap.get(key);
   if (index !== undefined) {
     x = index * 3;
-    normals[x] = (normals[x++]! + vertexInts[4]!) / 2;
-    normals[x] = (normals[x++]! + vertexInts[5]!) / 2;
-    normals[x] = (normals[x]! + vertexInts[6]!) / 2;
+    _normals[x] = (_normals[x++]! + _vertexInts[4]!) / 2;
+    _normals[x] = (_normals[x++]! + _vertexInts[5]!) / 2;
+    _normals[x] = (_normals[x]! + _vertexInts[6]!) / 2;
   } else {
-    vertexMap.set(key, (index = vertexMap.size));
-    positions.push(x, y, z);
-    normals.push(vertexInts[4]!, vertexInts[5]!, vertexInts[6]!);
-    colors.push(vertexInts[3]!);
+    _vertexMap.set(key, (index = _vertexMap.size));
+    _positions.push(x, y, z);
+    _normals.push(_vertexInts[4]!, _vertexInts[5]!, _vertexInts[6]!);
+    _colors.push(_vertexInts[3]!);
   }
   return index;
 };
@@ -88,12 +85,12 @@ const getVertex = (i: number): number => {
 export const meshAdd = (polygons: Polygon[]) => {
   for (_polygon of polygons) {
     const { x, y, z } = plane_fromPolygon(_polygon);
-    vertexInts[3] = _polygon.$color! | 0;
-    vertexInts[4] = x * 32767;
-    vertexInts[5] = y * 32767;
-    vertexInts[6] = z * 32767;
+    _vertexInts[3] = _polygon.$color! | 0;
+    _vertexInts[4] = x * 32767;
+    _vertexInts[5] = y * 32767;
+    _vertexInts[6] = z * 32767;
     for (let i = 2, a = getVertex(0), b = getVertex(1); i < _polygon.length; ++i) {
-      triangleIndices.push(a, b, (b = getVertex(i)));
+      _triangleIndices.push(a, b, (b = getVertex(i)));
     }
   }
   return polygons;
@@ -103,24 +100,24 @@ export const meshEnd = () => {
   const $vertexOffset = _meshFirstIndex;
   return {
     $vertexOffset,
-    $vertexCount: (_meshFirstIndex = triangleIndices.length) - $vertexOffset,
+    $vertexCount: (_meshFirstIndex = _triangleIndices.length) - $vertexOffset,
   };
 };
 
 export const initTriangleBuffers = () => {
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.createBuffer());
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(triangleIndices), gl.STATIC_DRAW);
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(_triangleIndices), gl.STATIC_DRAW);
 
   gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(_positions), gl.STATIC_DRAW);
   gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
 
   gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
-  gl.bufferData(gl.ARRAY_BUFFER, new Int16Array(normals), gl.STATIC_DRAW);
+  gl.bufferData(gl.ARRAY_BUFFER, new Int16Array(_normals), gl.STATIC_DRAW);
   gl.vertexAttribPointer(1, 3, gl.SHORT, true, 0, 0);
 
   gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
-  gl.bufferData(gl.ARRAY_BUFFER, new Uint32Array(colors), gl.STATIC_DRAW);
+  gl.bufferData(gl.ARRAY_BUFFER, new Uint32Array(_colors), gl.STATIC_DRAW);
   gl.vertexAttribPointer(2, 4, gl.UNSIGNED_BYTE, true, 0, 0);
 
   gl.enableVertexAttribArray(0);
@@ -130,7 +127,12 @@ export const initTriangleBuffers = () => {
   if (DEBUG) {
     console.timeEnd("buildWorld");
     console.log(
-      "vertices: " + vertexMap.size + " indices:" + triangleIndices.length + " triangles:" + triangleIndices.length / 3,
+      "vertices: " +
+        _vertexMap.size +
+        " indices:" +
+        _triangleIndices.length +
+        " triangles:" +
+        _triangleIndices.length / 3,
     );
   }
 };
