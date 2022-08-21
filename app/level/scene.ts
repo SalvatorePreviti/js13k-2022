@@ -135,17 +135,20 @@ export const initTriangleBuffers = () => {
   }
 };
 
-export const renderModels = (worldMatrixLoc: WebGLUniformLocation, isCollision?: 0 | 1, model = rootModel) => {
-  if (!isCollision || !model.$collisionDisabled) {
-    const { $mesh } = model;
-    if ($mesh) {
-      gl.uniformMatrix4fv(worldMatrixLoc, false, modelFinalMatrix(model).toFloat32Array());
-      gl.drawElements(gl.TRIANGLES, $mesh.$vertexCount, gl.UNSIGNED_INT, $mesh.$vertexOffset * 4);
+export const renderModels = (worldMatrixLoc: WebGLUniformLocation, isCollision?: 0 | 1) => {
+  const recursion = (model = rootModel) => {
+    if (!isCollision || !model.$collisionDisabled) {
+      const { $mesh, $children } = model;
+      for (const child of $children) {
+        recursion(child);
+      }
+      if ($mesh) {
+        gl.uniformMatrix4fv(worldMatrixLoc, false, modelFinalMatrix(model).toFloat32Array());
+        gl.drawElements(gl.TRIANGLES, $mesh.$vertexCount, gl.UNSIGNED_INT, $mesh.$vertexOffset * 4);
+      }
     }
-    for (const child of model.$children) {
-      renderModels(worldMatrixLoc, isCollision, child);
-    }
-  }
+  };
+  recursion();
 };
 
 export const updateModels = (model: Model) => {
