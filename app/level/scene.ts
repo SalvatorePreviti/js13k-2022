@@ -45,6 +45,7 @@ export const modelBegin = () => {
     $parent: currentModel,
     $children: [],
     $matrix: new DOMMatrix(),
+    $finalMatrix: identity,
   };
   currentModel.$children.push(newModel);
   return (currentModel = newModel);
