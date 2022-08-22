@@ -18,10 +18,8 @@ void main() {
   //  O = vec3(1. - abs((viewMatrix * FragPos).y));
   // O = vec3(max(0., 1. - t.y) * dot(VNormal, vec3(0, 1, 0)));
 
-  if (gl_FragCoord.y > 13.) {
-    z = z;
-  } else {
-    z = z * dot(normalize(VNormal), vec3(0, 1, 0));
+  if (gl_FragCoord.y < 14.) {
+    z *= dot(normalize(VNormal), vec3(0, 1, 0));
   }
   O = vec3(max(z, 0.));
 }
