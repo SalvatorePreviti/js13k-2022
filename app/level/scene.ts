@@ -34,6 +34,7 @@ export interface Model {
   $parent?: Model | undefined;
   $children: Model[];
   $matrix: DOMMatrix;
+  $finalMatrix?: DOMMatrixReadOnly;
   $mesh?: Mesh;
   $collisionDisabled?: 0 | 1 | undefined;
   _update?: ModelUpdateCallback | undefined;
@@ -53,9 +54,6 @@ export const modelEnd = ($mesh?: Mesh | undefined) => {
   currentModel.$mesh = $mesh;
   currentModel = currentModel.$parent!;
 };
-
-export const modelFinalMatrix = ({ $matrix, $parent }: Model): DOMMatrix =>
-  ($parent?.$matrix || identity).multiply($matrix);
 
 if (DEBUG) {
   console.time("buildWorld");
@@ -145,7 +143,7 @@ export const renderModels = (worldMatrixLoc: WebGLUniformLocation, isCollision?:
         recursion(child);
       }
       if ($mesh) {
-        gl.uniformMatrix4fv(worldMatrixLoc, false, modelFinalMatrix(model).toFloat32Array());
+        gl.uniformMatrix4fv(worldMatrixLoc, false, model.$finalMatrix!.toFloat32Array());
         gl.drawElements(gl.TRIANGLES, $mesh.$vertexCount, gl.UNSIGNED_INT, $mesh.$vertexOffset * 4);
       }
     }
@@ -153,9 +151,10 @@ export const renderModels = (worldMatrixLoc: WebGLUniformLocation, isCollision?:
   recursion();
 };
 
-export const updateModels = (model: Model) => {
+export const updateModels = (model: Model, parentMatrix = identity) => {
   model._update?.(model);
+  const m = (model.$finalMatrix = parentMatrix.multiply(model.$matrix));
   for (const child of model.$children) {
-    updateModels(child);
+    updateModels(child, m);
   }
 };
