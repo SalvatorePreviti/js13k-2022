@@ -114,7 +114,7 @@ meshAdd(polygons_transform(eye, identity.translate(-0.2, 1.2, 0.4).rotate(0, -20
 meshAdd(polygons_transform(GBox, identity.translate(0, 0.9, 0.45).scale(0.15, 0.02, 0.06), material(0.3, 0.3, 0.3)));
 
 // body
-meshAdd(polygons_transform(sphere(15), identity.translate(0, 0, 0).scale(0.7, 0.8, 0.5), MATERIAL_DEVIL));
+meshAdd(polygons_transform(sphere(15), identity.translate(0, 0, 0).scale(0.7, 0.8, 0.55), MATERIAL_DEVIL));
 
 // Right leg
 const rleg = meshAdd(
@@ -156,17 +156,17 @@ modelEnd(meshEnd());
 
 //////////
 
-const testLeverlModel = modelBegin();
+// const testLeverlModel = modelBegin();
 
-addLever(identity.translate(1.6));
+// addLever(identity.translate(1.6));
 
-testLeverlModel._update = () => {
-  testLeverlModel.$matrix = identity.translate(0, Math.cos(gameTime * 2) * 4, 0);
-};
+// testLeverlModel._update = () => {
+//   testLeverlModel.$matrix = identity.translate(0, Math.cos(gameTime * 2) * 4, 0);
+// };
 
-meshAdd(polygons_transform(cylinder(5), identity.translate(0, -1.4).scale(5, 1, 5), material(1, 1, 1)));
+// meshAdd(polygons_transform(cylinder(5), identity.translate(0, -1.4).scale(5, 1, 5), material(1, 1, 1)));
 
-modelEnd(meshEnd());
+// modelEnd(meshEnd());
 
 /// // Player model
 
@@ -217,11 +217,21 @@ export const mainScene = () => {
         polygons_transform(GBox, identity.translate(0, 0, 26).scale(3, 1, 10), material(0.9, 0.9, 0.9)),
       ]),
       csg_union_op(
-        polygons_transform(cylinder(5), identity.translate(0, 2, 0).scale(5, 4, 5), material(0.8, 0.6, 0.8)),
-        polygons_transform(cylinder(5, 0, 1.5), identity.translate(0, 1, 0).scale(5, 0.3, 5), material(0.8, 0.8, 0.8)),
+        polygons_transform(
+          polygons_transform(cylinder(4), identity.rotate(0, 45)),
+          identity.translate(0, 2, 0).scale(5, 4, 5),
+          material(0.8, 0.6, 0.8),
+        ),
+        polygons_transform(
+          polygons_transform(cylinder(4, 0, 1.5), identity.rotate(0, 45)),
+          identity.translate(0, 1, 0).scale(5, 0.3, 5),
+          material(0.8, 0.8, 0.8),
+        ),
       ),
     ),
   );
+
+  meshAdd(polygons_transform(base, identity.translate(7, -2)));
 
   // column doors
 

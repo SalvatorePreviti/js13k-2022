@@ -28,7 +28,12 @@ export const DevToolBar: FC = () => {
             <GameCameraComponent />
           </div>
         )}
-        <canvas id="debug-canvas" width={256} height={256}></canvas>
+        <canvas
+          id="debug-canvas"
+          width={64}
+          height={64}
+          style={{ display: "block", marginLeft: 10, width: 128, height: 128 }}
+        ></canvas>
       </div>
     </Draggable>
   );

@@ -2,13 +2,26 @@
 precision highp float;
 
 in highp vec4 FragPos;
+in highp vec3 VNormal;
 
 uniform mat4 viewMatrix;
 
-out vec4 O;
+out vec3 O;
 
 void main() {
-  float z = (viewMatrix * FragPos).z;
-  float v = 1. - abs(z);
-  O = vec4(v, v, v, 1.);
+  // if (gl_FragCoord.y < 12.) {
+  //   O = vec3(1);
+  // }
+
+  float z = 1. - min(abs((viewMatrix * FragPos).z), 1.);
+
+  //  O = vec3(1. - abs((viewMatrix * FragPos).y));
+  // O = vec3(max(0., 1. - t.y) * dot(VNormal, vec3(0, 1, 0)));
+
+  if (gl_FragCoord.y > 13.) {
+    z = z;
+  } else {
+    z = z * dot(normalize(VNormal), vec3(0, 1, 0));
+  }
+  O = vec3(max(z, 0.));
 }
