@@ -13,4 +13,5 @@ export default {
   Color: "K",
   FragPos: "L",
   VNormal: "M",
+  modelId: "I",
 };

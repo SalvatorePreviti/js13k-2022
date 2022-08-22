@@ -6,9 +6,12 @@ import { plane_fromPolygon } from "../math/vectors";
 export const rootModel: Model = {
   $children: [],
   $matrix: new DOMMatrix(),
+  $modelId: 1,
 };
 
 export let currentModel = rootModel;
+
+export const modelsByModelId: Model[] = [];
 
 const _triangleIndices: number[] = [];
 const _positions: number[] = [];
@@ -37,6 +40,7 @@ export interface Model {
   $finalMatrix?: DOMMatrixReadOnly;
   $mesh?: Mesh;
   $collisionDisabled?: 0 | 1 | undefined;
+  $modelId: number;
   _update?: ModelUpdateCallback | undefined;
 }
 
@@ -46,12 +50,14 @@ export const modelBegin = () => {
     $children: [],
     $matrix: new DOMMatrix(),
     $finalMatrix: identity,
+    $modelId: currentModel.$modelId,
   };
   currentModel.$children.push(newModel);
   return (currentModel = newModel);
 };
 
 export const modelEnd = ($mesh?: Mesh | undefined) => {
+  modelsByModelId[currentModel.$modelId] = currentModel;
   currentModel.$mesh = $mesh;
   currentModel = currentModel.$parent!;
 };
@@ -136,14 +142,20 @@ export const initTriangleBuffers = () => {
   }
 };
 
-export const renderModels = (worldMatrixLoc: WebGLUniformLocation, isCollision?: 0 | 1) => {
+export const renderModels = (
+  worldMatrixLoc: WebGLUniformLocation,
+  collisionModelIdUniformLocation?: WebGLUniformLocation,
+) => {
   const recursion = (model = rootModel) => {
-    if (!isCollision || !model.$collisionDisabled) {
+    if (!collisionModelIdUniformLocation || !model.$collisionDisabled) {
       const { $mesh, $children } = model;
       for (const child of $children) {
         recursion(child);
       }
       if ($mesh) {
+        if (collisionModelIdUniformLocation) {
+          gl.uniform1f(collisionModelIdUniformLocation, model.$modelId / 255);
+        }
         gl.uniformMatrix4fv(worldMatrixLoc, false, model.$finalMatrix!.toFloat32Array());
         gl.drawElements(gl.TRIANGLES, $mesh.$vertexCount, gl.UNSIGNED_INT, $mesh.$vertexOffset * 4);
       }

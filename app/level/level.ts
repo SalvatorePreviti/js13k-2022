@@ -23,8 +23,8 @@ import {
 import { integers_map } from "../math/math";
 import { identity } from "../math/matrix";
 import type { Vec3 } from "../math/vectors";
-import { player_position } from "../player";
-import { modelBegin, modelEnd, meshAdd, meshEnd } from "./scene";
+import { player_position_final, player_position_global } from "../player";
+import { modelBegin, modelEnd, meshAdd, meshEnd, Model } from "./scene";
 
 // ========= Lever mesh ========= //
 
@@ -124,34 +124,10 @@ const rleg = meshAdd(
 // Left leg
 meshAdd(polygons_transform(rleg, identity.rotate(0, 180)));
 
-const playerModel = modelBegin();
+export const playerModel = modelBegin();
 
 playerModel.$collisionDisabled = 1;
 
-playerModel._update = () => {
-  if (DEBUG) {
-    if (keyboard_downKeys[KEY_PLAYER_FRONT]) {
-      player_position.z += gameTimeDelta * 4;
-    }
-    if (keyboard_downKeys[KEY_PLAYER_BACK]) {
-      player_position.z -= gameTimeDelta * 4;
-    }
-    if (keyboard_downKeys[KEY_PLAYER_LEFT]) {
-      player_position.x += gameTimeDelta * 4;
-    }
-    if (keyboard_downKeys[KEY_PLAYER_RIGHT]) {
-      player_position.x -= gameTimeDelta * 4;
-    }
-    if (keyboard_downKeys[KEY_PLAYER_FLY_UP]) {
-      player_position.y += gameTimeDelta * 4;
-    }
-    if (keyboard_downKeys[KEY_PLAYER_FLY_DOWN]) {
-      player_position.y -= gameTimeDelta * 4;
-    }
-  }
-
-  playerModel.$matrix = identity.translate(player_position.x, player_position.y, player_position.z);
-};
 modelEnd(meshEnd());
 
 //////////
@@ -296,9 +272,35 @@ export const mainScene = () => {
   // meshAdd(pavement());
 };
 
+const modelIdCounter = 9;
+
 export const buildWorld = () => {
   modelBegin();
   mainScene();
+  modelEnd(meshEnd());
+
+  let p = modelBegin();
+  p.$modelId = 6;
+  p._update = (model) => {
+    model.$matrix = identity.translate(Math.sin(gameTime / 1.5) * 12, 0);
+  };
+  meshAdd(polygons_transform(GBox, identity.translate(0, 0, 43).scale(5, 1, 7), material(0.5, 1, 1)));
+  modelEnd(meshEnd());
+
+  p = modelBegin();
+  p.$modelId = 7;
+  p._update = (model) => {
+    model.$matrix = identity.translate(Math.sin(gameTime + 2) * 12, 0);
+  };
+  meshAdd(polygons_transform(GBox, identity.translate(0, 0, 57).scale(5, 1, 7), material(1, 1, 0.5)));
+  modelEnd(meshEnd());
+
+  p = modelBegin();
+  p.$modelId = 8;
+  p._update = (model) => {
+    model.$matrix = identity.rotate(0, Math.sin(gameTime + 2) * 29, 0);
+  };
+  meshAdd(polygons_transform(GBox, identity.translate(0, 0, 71).scale(5, 1, 7), material(1, 0.5, 1)));
   modelEnd(meshEnd());
 };
 /*
@@ -315,7 +317,7 @@ export const buildWorld = () => {
 
 const base = polygons_transform(cylinder(5), identity.scale(15, 2, 15), material(1, 1, 1));
 
-  meshAdd(
+  meshAdd(dw
     csg_polygons(
       csg_subtract(
         csg_union([
