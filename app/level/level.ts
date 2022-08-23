@@ -1,5 +1,5 @@
-import { gameTime, gameTimeDelta } from "../game-time";
-import { csg_subtract, csg_polygons, csg_union, csg_union_op, csg_tree } from "../geometry/csg";
+import { gameTime } from "../game-time";
+import { csg_subtract, csg_polygons, csg_union, csg_union_op } from "../geometry/csg";
 import {
   material,
   GQuad,
@@ -11,32 +11,16 @@ import {
   horn,
   polygon_transform,
 } from "../geometry/geometry";
-import {
-  keyboard_downKeys,
-  KEY_PLAYER_BACK,
-  KEY_PLAYER_LEFT,
-  KEY_PLAYER_RIGHT,
-  KEY_PLAYER_FRONT,
-  KEY_PLAYER_FLY_UP,
-  KEY_PLAYER_FLY_DOWN,
-} from "../input";
 import { integers_map } from "../math/math";
 import { identity } from "../math/matrix";
-import type { Vec3 } from "../math/vectors";
-import { player_position_final, player_position_global } from "../player";
-import { modelBegin, modelEnd, meshAdd, meshEnd, Model } from "./scene";
+import { meshAdd, meshEnd, editMatrixStack, withEditMatrix, newModel } from "./scene";
+
+let _modelIdCounter = 1;
 
 // ========= Lever mesh ========= //
 
 meshAdd(polygons_transform(cylinder(6, 1), identity.scale(0.12, 1.4, 0.12), material(0.3, 0.3, 0.3)));
 meshAdd(polygons_transform(cylinder(6), identity.translate(0, 1, 0).scale(0.18, 0.25, 0.18), material(1, 0.5, 0.2)));
-// meshAdd(
-//   polygons_transform(
-//     cylinder(6, 1),
-//     identity.translate(0, -1).rotate(90, 90, 0).scale(0.3, 0.09, 0.3),
-//     material(0.2, 0.2, 0.2),
-//   ),
-// );
 meshAdd(
   polygons_transform(
     cylinder(3),
@@ -47,102 +31,93 @@ meshAdd(
 
 const leverMesh = meshEnd();
 
-const addLever = (transform: DOMMatrixReadOnly) => {
+const addLever = () => {
   const lever = {
     value: 0,
   };
 
-  const stickModel = modelBegin();
-
-  stickModel._update = () => {
-    stickModel.$matrix = transform.rotate(Math.sin(gameTime * 2) * 30, 0).translate(0, 1, 0);
-  };
-
-  modelEnd(leverMesh);
+  newModel((model) => {
+    model._update = () => identity.rotate(Math.sin(gameTime * 2) * 30, 0).translate(0, 1, 0);
+    return leverMesh;
+  });
 
   meshAdd(
     polygons_transform(
       cylinder(5),
-      transform.translate(-0.2).rotate(90, 90, 0).scale(0.4, 0.1, 0.5),
+      identity.translate(-0.2).rotate(90, 90, 0).scale(0.4, 0.1, 0.5),
       material(0.4, 0.5, 0.5),
     ),
   );
   meshAdd(
     polygons_transform(
       cylinder(5),
-      transform.translate(0.2).rotate(90, 90, 0).scale(0.4, 0.1, 0.5),
+      identity.translate(0.2).rotate(90, 90, 0).scale(0.4, 0.1, 0.5),
       material(0.4, 0.5, 0.5),
     ),
   );
 
-  meshAdd(polygons_transform(GBox, transform.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4)));
+  meshAdd(polygons_transform(GBox, identity.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4)));
 
   return lever;
 };
 
 // ========= Player mesh ========= //
 
-const MATERIAL_DEVIL = material(1, 0.3, 0.4);
+export const playerModel = newModel((model) => {
+  model.$collisionDisabled = 1;
 
-const rhorn = meshAdd(
-  polygons_transform(
-    horn(),
-    identity.translate(0.2, 1.32, 0).rotate(0, 0, -30).scale(0.2, 0.6, 0.2),
-    material(1, 1, 0.8),
-  ),
-);
+  const MATERIAL_DEVIL = material(1, 0.3, 0.4);
 
-// left horn
-meshAdd(polygons_transform(rhorn, identity.rotate(0, 180, 0)));
+  const rhorn = meshAdd(
+    polygons_transform(
+      horn(),
+      identity.translate(0.2, 1.32, 0).rotate(0, 0, -30).scale(0.2, 0.6, 0.2),
+      material(1, 1, 0.8),
+    ),
+  );
 
-// head
-meshAdd(polygons_transform(sphere(30), identity.translate(0, 1, 0).scale(0.5, 0.5, 0.5), MATERIAL_DEVIL));
+  // left horn
+  meshAdd(polygons_transform(rhorn, identity.rotate(0, 180, 0)));
 
-const eye = polygons_transform(
-  csg_polygons(csg_subtract(cylinder(15, 1), polygons_transform(GBox, identity.translate(0, 0, 1).scale(2, 2, 0.5)))),
-  identity.rotate(-90, 0, 0).scale(0.1, 0.05, 0.1),
-  material(0.3, 0.3, 0.3),
-);
+  // head
+  meshAdd(polygons_transform(sphere(30), identity.translate(0, 1, 0).scale(0.5, 0.5, 0.5), MATERIAL_DEVIL));
 
-// right eye
-meshAdd(polygons_transform(eye, identity.translate(0.2, 1.2, 0.4).rotate(0, 20, 20)));
+  const eye = polygons_transform(
+    csg_polygons(csg_subtract(cylinder(15, 1), polygons_transform(GBox, identity.translate(0, 0, 1).scale(2, 2, 0.5)))),
+    identity.rotate(-90, 0, 0).scale(0.1, 0.05, 0.1),
+    material(0.3, 0.3, 0.3),
+  );
 
-// left eye
-meshAdd(polygons_transform(eye, identity.translate(-0.2, 1.2, 0.4).rotate(0, -20, -20)));
+  // right eye
+  meshAdd(polygons_transform(eye, identity.translate(0.2, 1.2, 0.4).rotate(0, 20, 20)));
 
-// mouth
-meshAdd(polygons_transform(GBox, identity.translate(0, 0.9, 0.45).scale(0.15, 0.02, 0.06), material(0.3, 0.3, 0.3)));
+  // left eye
+  meshAdd(polygons_transform(eye, identity.translate(-0.2, 1.2, 0.4).rotate(0, -20, -20)));
 
-// body
-meshAdd(polygons_transform(sphere(15), identity.translate(0, 0, 0).scale(0.7, 0.8, 0.55), MATERIAL_DEVIL));
+  // mouth
+  meshAdd(polygons_transform(GBox, identity.translate(0, 0.9, 0.45).scale(0.15, 0.02, 0.06), material(0.3, 0.3, 0.3)));
 
-// Right leg
-const rleg = meshAdd(
-  polygons_transform(cylinder(10, 1), identity.translate(-0.3, -1, 0).scale(0.2, 0.5, 0.2), MATERIAL_DEVIL),
-);
+  // body
+  meshAdd(polygons_transform(sphere(15), identity.translate(0, 0, 0).scale(0.7, 0.8, 0.55), MATERIAL_DEVIL));
 
-// Left leg
-meshAdd(polygons_transform(rleg, identity.rotate(0, 180)));
+  // Right leg
+  const rleg = meshAdd(
+    polygons_transform(cylinder(10, 1), identity.translate(-0.3, -1, 0).scale(0.2, 0.5, 0.2), MATERIAL_DEVIL),
+  );
 
-export const playerModel = modelBegin();
+  // Left leg
+  meshAdd(polygons_transform(rleg, identity.rotate(0, 180)));
 
-playerModel.$collisionDisabled = 1;
-
-modelEnd(meshEnd());
+  return meshEnd();
+});
 
 //////////
 
-const testLeverlModel = modelBegin();
-
-addLever(identity.translate(1.6));
-
-testLeverlModel._update = () => {
-  testLeverlModel.$matrix = identity.translate(0, Math.cos(gameTime * 2) * 4, 0);
-};
-
-meshAdd(polygons_transform(cylinder(5), identity.translate(0, -1.4).scale(5, 1, 5), material(1, 1, 1)));
-
-modelEnd(meshEnd());
+newModel((model) => {
+  addLever();
+  model._update = () => identity.translate(0, Math.cos(gameTime * 2) * 4, 0);
+  meshAdd(polygons_transform(cylinder(5), identity.translate(0, -1.4).scale(5, 1, 5), material(1, 1, 1)));
+});
 
 // ***** Player model *****
 
@@ -272,37 +247,27 @@ export const mainScene = () => {
   // meshAdd(pavement());
 };
 
-const modelIdCounter = 9;
-
 export const buildWorld = () => {
-  modelBegin();
-  mainScene();
-  modelEnd(meshEnd());
+  newModel(() => {
+    mainScene();
 
-  let p = modelBegin();
-  p.$modelId = 6;
-  p._update = (model) => {
-    model.$matrix = identity.translate(Math.sin(gameTime / 1.5) * 12, 0);
-  };
-  meshAdd(polygons_transform(GBox, identity.translate(0, 0, 43).scale(5, 1, 7), material(0.5, 1, 1)));
-  modelEnd(meshEnd());
+    newModel((model) => {
+      model._update = () => identity.translate(Math.sin(gameTime / 1.5) * 12, 0);
+      meshAdd(polygons_transform(GBox, identity.translate(0, 0, 43).scale(5, 1, 7), material(0.5, 1, 1)));
+    }, ++_modelIdCounter);
 
-  p = modelBegin();
-  p.$modelId = 7;
-  p._update = (model) => {
-    model.$matrix = identity.translate(Math.sin(gameTime + 2) * 12, 0);
-  };
-  meshAdd(polygons_transform(GBox, identity.translate(0, 0, 57).scale(5, 1, 7), material(1, 1, 0.5)));
-  modelEnd(meshEnd());
+    newModel((model) => {
+      model._update = () => identity.translate(Math.sin(gameTime + 2) * 12, 0);
+      meshAdd(polygons_transform(GBox, identity.translate(0, 0, 57).scale(5, 1, 7), material(1, 1, 0.5)));
+    }, ++_modelIdCounter);
 
-  p = modelBegin();
-  p.$modelId = 8;
-  p._update = (model) => {
-    model.$matrix = identity.rotate(0, Math.sin(gameTime + 2) * 29, 0);
-  };
-  meshAdd(polygons_transform(GBox, identity.translate(0, 0, 71).scale(5, 1, 7), material(1, 0.5, 1)));
-  modelEnd(meshEnd());
+    newModel((model) => {
+      model._update = () => identity.rotate(0, Math.sin(gameTime + 2) * 29, 0);
+      meshAdd(polygons_transform(GBox, identity.translate(0, 0, 71).scale(5, 1, 7), material(1, 0.5, 1)));
+    }, ++_modelIdCounter);
+  });
 };
+
 /*
 
   const base1 = polygons_transform(cylinder(6), identity.scale(10, 1, 24).rotate(0, 45, 0), material(1, 1, 1));
