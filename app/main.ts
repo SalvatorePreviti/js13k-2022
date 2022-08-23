@@ -254,7 +254,6 @@ const draw = (globalTime: number) => {
     player_collisions();
 
     const oldx = player_position_final.x;
-    const oldy = player_position_final.y;
     const oldz = player_position_final.z;
 
     if (!currentModelId) {
