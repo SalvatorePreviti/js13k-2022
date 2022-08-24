@@ -49,12 +49,18 @@ export const polygons_transform = /* @__PURE__ */ (
  * Creates a regular polygon
  * The polygon will face up (normal 0, -1, 0).
  */
-export const polygon_regular = /* @__PURE__ */ (segments: number): Polygon =>
-  integers_map(segments, (i) => ({
-    x: Math.sin(Math.PI * 2 * (i / segments)),
-    y: 0,
-    z: Math.cos(Math.PI * 2 * (i / segments)),
-  }));
+export const polygon_regular = /* @__PURE__ */ (segments: number, elongate: number = 0): Polygon =>
+  integers_map(segments, (i) => {
+    const z = Math.cos(Math.PI * 2 * (i / segments));
+    return {
+      x: Math.sin(Math.PI * 2 * (i / segments)),
+      y: 0,
+      z: Math.abs(z) < 0.01 ? z : z < 0 ? z - elongate : z + elongate,
+    };
+  });
+
+export const polygon_elongate = /* @__PURE__ */ (polygon: Polygon, amount: number) =>
+  polygon.map(({ x, y, z }) => ({ x, y, z: z < 0 ? z - amount : z + amount }));
 
 /**
  * Connects a top and a bottom polygon with side polygons.
@@ -80,8 +86,8 @@ export const cone_sides = /* @__PURE__ */ (btm: Polygon, smooth?: 0 | 1 | undefi
  */
 export const polygon_extrude = /* @__PURE__ */ (
   points: Polygon<Vec3Optional>,
-  smooth?: 0 | 1 | undefined,
-  topSize = 1,
+  smooth?: 0 | 1,
+  topSize = 0,
 ): Polygon[] => {
   const bottom = polygon_transform(points, identity.translate(0, -1).scale3d(topSize < 0 ? -topSize : 1)).reverse();
   const top = polygon_transform(points, identity.translate(0, 1).scale3d(topSize > 0 ? topSize : 1));
@@ -91,12 +97,16 @@ export const polygon_extrude = /* @__PURE__ */ (
 };
 
 /** Simplest composition of polygon functions. */
-export const cylinder = /* @__PURE__ */ (segments: number, smooth?: 0 | 1 | undefined, topSize = 1): Polygon[] =>
-  polygon_extrude(polygon_regular(segments), smooth, topSize);
+export const cylinder = /* @__PURE__ */ (
+  segments: number,
+  smooth?: 0 | 1,
+  topSize?: number,
+  elongate?: number,
+): Polygon[] => polygon_extrude(polygon_regular(segments, elongate), smooth, topSize);
 
 export const cone = /* @__PURE__ */ (segments: number, smooth?: 0 | 1 | undefined): Polygon[] => {
   const bottom = polygon_transform(polygon_regular(segments), identity.translate(0, -1));
-  const sides = cone_sides(bottom);
+  const sides = cone_sides(bottom, smooth);
   sides.push(bottom);
   return sides;
 };

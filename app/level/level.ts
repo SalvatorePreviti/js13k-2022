@@ -11,15 +11,19 @@ import {
   horn,
   polygon_transform,
 } from "../geometry/geometry";
-import { integers_map } from "../math/math";
+import { integers_map, minus1plus1_map } from "../math/math";
 import { identity } from "../math/matrix";
 import { meshAdd, meshEnd, editMatrixStack, withEditMatrix, newModel } from "./scene";
 
 let _modelIdCounter = 1;
 
+const MATERIAL_MAROON = material(0.5, 0.2, 0.2);
+const MATERIAL_DARK_GRAY = material(0.3, 0.3, 0.3);
+const MATERIAL_PURPLE_DARK = material(0.3, 0.1, 0.4);
+
 // ========= Lever mesh ========= //
 
-meshAdd(polygons_transform(cylinder(6, 1), identity.scale(0.12, 1.4, 0.12), material(0.3, 0.3, 0.3)));
+meshAdd(polygons_transform(cylinder(6, 1), identity.scale(0.12, 1.4, 0.12), MATERIAL_DARK_GRAY));
 meshAdd(polygons_transform(cylinder(6), identity.translate(0, 1, 0).scale(0.18, 0.25, 0.18), material(1, 0.5, 0.2)));
 meshAdd(
   polygons_transform(
@@ -68,16 +72,16 @@ export const playerModel = newModel((model) => {
 
   const MATERIAL_DEVIL = material(1, 0.3, 0.4);
 
-  const rhorn = meshAdd(
-    polygons_transform(
-      horn(),
-      identity.translate(0.2, 1.32, 0).rotate(0, 0, -30).scale(0.2, 0.6, 0.2),
-      material(1, 1, 0.8),
-    ),
+  const rhorn = polygons_transform(
+    horn(),
+    identity.translate(0.2, 1.32, 0).rotate(0, 0, -30).scale(0.2, 0.6, 0.2),
+    material(1, 1, 0.8),
   );
 
+  meshAdd(rhorn);
+
   // left horn
-  meshAdd(polygons_transform(rhorn, identity.rotate(0, 180, 0)));
+  meshAdd(polygons_transform(rhorn, identity.rotate(0, 180)));
 
   // head
   meshAdd(polygons_transform(sphere(30), identity.translate(0, 1, 0).scale(0.5, 0.5, 0.5), MATERIAL_DEVIL));
@@ -85,38 +89,38 @@ export const playerModel = newModel((model) => {
   const eye = polygons_transform(
     csg_polygons(csg_subtract(cylinder(15, 1), polygons_transform(GBox, identity.translate(0, 0, 1).scale(2, 2, 0.5)))),
     identity.rotate(-90, 0, 0).scale(0.1, 0.05, 0.1),
-    material(0.3, 0.3, 0.3),
+    MATERIAL_DARK_GRAY,
   );
 
-  // right eye
-  meshAdd(polygons_transform(eye, identity.translate(0.2, 1.2, 0.4).rotate(0, 20, 20)));
+  minus1plus1_map((i) =>
+    meshAdd(polygons_transform(eye, identity.translate(i * 0.2, 1.2, 0.4).rotate(0, i * 20, i * 20))),
+  );
 
-  // left eye
-  meshAdd(polygons_transform(eye, identity.translate(-0.2, 1.2, 0.4).rotate(0, -20, -20)));
+  // // right eye
+  // meshAdd(polygons_transform(eye, identity.translate(0.2, 1.2, 0.4).rotate(0, 20, 20)));
+
+  // // left eye
+  // meshAdd(polygons_transform(eye, identity.translate(-0.2, 1.2, 0.4).rotate(0, -20, -20)));
 
   // mouth
-  meshAdd(polygons_transform(GBox, identity.translate(0, 0.9, 0.45).scale(0.15, 0.02, 0.06), material(0.3, 0.3, 0.3)));
+  meshAdd(polygons_transform(GBox, identity.translate(0, 0.9, 0.45).scale(0.15, 0.02, 0.06), MATERIAL_DARK_GRAY));
 
   // body
   meshAdd(polygons_transform(sphere(15), identity.translate(0, 0, 0).scale(0.7, 0.8, 0.55), MATERIAL_DEVIL));
 
   // Right leg
-  const rleg = meshAdd(
-    polygons_transform(cylinder(10, 1), identity.translate(-0.3, -1, 0).scale(0.2, 0.5, 0.2), MATERIAL_DEVIL),
+  const rleg = polygons_transform(
+    cylinder(10, 1),
+    identity.translate(-0.3, -1, 0).scale(0.2, 0.5, 0.2),
+    MATERIAL_DEVIL,
   );
+
+  meshAdd(rleg);
 
   // Left leg
   meshAdd(polygons_transform(rleg, identity.rotate(0, 180)));
 
   return meshEnd();
-});
-
-//////////
-
-newModel((model) => {
-  addLever();
-  model._update = () => identity.translate(0, Math.cos(gameTime * 2) * 4, 0);
-  meshAdd(polygons_transform(cylinder(5), identity.translate(0, -1.4).scale(5, 1, 5), material(1, 1, 1)));
 });
 
 // ***** Player model *****
@@ -155,90 +159,159 @@ export const arc = (transform: DOMMatrixReadOnly, color?: number) => {
 };
 
 export const mainScene = () => {
-  // meshAdd(csg_polygons(arc(identity.scale(1, 1, 1), material(1, 1, 1))));
-
-  // meshAdd(polygons_transform(cylinder(5), identity.rotate(0, 0)));
-
-  const base = csg_polygons(
-    csg_subtract(
-      csg_union([
-        polygons_transform(cylinder(6), identity.translate(0, 0, -5).scale(12, 1, 13), material(0.8, 0.8, 0.8)),
-        polygons_transform(cylinder(6), identity.translate(0, 0, 5).scale(12, 1, 13), material(0.8, 0.8, 0.8)),
-        polygons_transform(GBox, identity.translate(0, 0, -24).scale(3, 1, 10), material(0.9, 0.9, 0.9)),
-        polygons_transform(GBox, identity.translate(0, 0, 26).scale(3, 1, 10), material(0.9, 0.9, 0.9)),
-      ]),
-      csg_union_op(
-        polygons_transform(cylinder(5), identity.translate(0, 2, 0).scale(5, 4, 5), material(0.8, 0.6, 0.8)),
-        polygons_transform(cylinder(5, 0, 1.5), identity.translate(0, 1, 0).scale(5, 0.3, 5), material(0.8, 0.8, 0.8)),
-      ),
-    ),
-  );
+  // ******** LEVEL 1 ********
 
   // column doors
 
-  polygon_transform(GQuad, identity.scale(3, 0, 16)).map(({ x, z }) => {
-    meshAdd(polygons_transform(cylinder(6), identity.translate(x, 3, z).scale(0.7, 4, 0.7), material(0.5, 0.2, 0.2)));
+  polygon_transform(GQuad, identity.scale(3, 0, 15)).map(({ x, z }) => {
+    meshAdd(polygons_transform(cylinder(6), identity.translate(x, 3, z).scale(0.7, 4, 0.7), MATERIAL_MAROON));
   });
 
   //  doors top
 
-  meshAdd(polygons_transform(GBox, identity.translate(0, 6.3, -16).scale(4, 0.3, 1), material(0.3, 0.3, 0.3)));
-  meshAdd(polygons_transform(GBox, identity.translate(0, 6.3, 16).scale(4, 0.3, 1), material(0.3, 0.3, 0.3)));
+  meshAdd(polygons_transform(GBox, identity.translate(0, 6.3, -15).scale(4, 0.3, 1), MATERIAL_DARK_GRAY));
+  meshAdd(polygons_transform(GBox, identity.translate(0, 6.3, 15).scale(4, 0.3, 1), MATERIAL_DARK_GRAY));
 
   //  doors bottom
 
-  meshAdd(polygons_transform(GBox, identity.translate(0, 1, -16).scale(3, 0.3, 0.35), material(0.5, 0.5, 0.5)));
-  meshAdd(polygons_transform(GBox, identity.translate(0, 1, 16).scale(3, 0.3, 0.35), material(0.5, 0.5, 0.5)));
+  meshAdd(polygons_transform(GBox, identity.translate(0, 1, -15).scale(3, 0.3, 0.35), material(0.5, 0.5, 0.5)));
+  meshAdd(polygons_transform(GBox, identity.translate(0, 1, 15).scale(3, 0.3, 0.35), material(0.5, 0.5, 0.5)));
 
   // doors bars
 
-  for (let i = 0; i < 7; ++i) {
+  integers_map(7, (i) =>
     meshAdd(
       polygons_transform(
         cylinder(6, 1),
-        identity.translate(4 * (i / 6 - 0.5), 3, 16).scale(0.2, 3, 0.2),
-        material(0.3, 0.3, 0.3),
+        identity.translate(4 * (i / 6 - 0.5), 3, 15).scale(0.2, 3, 0.2),
+        MATERIAL_DARK_GRAY,
       ),
-    );
-  }
-
-  // meshAdd(csg_polygons(arc(identity.translate(0, 4, 24).scale(1, 1, 15), material(50 / 255, 111 / 255, 126 / 255))));
-
-  integers_map(
-    5,
-    (i) =>
-      integers_map(2, (j) => {
-        meshAdd(
-          polygons_transform(
-            horn(),
-            identity
-              .translate((j - 0.5) * 18.4, 0, i * 5 - 10)
-              .rotate(0, 180 - j * 180, 0)
-              .scale(1.2, 10, 1),
-            material(1, 1, 0.8),
-          ),
-        );
-      }),
-    // meshAdd(polygons_transform(cylinder(5), identity.scale(1, 1, 10)));
+    ),
   );
+
+  // horns
+
+  integers_map(5, (i) =>
+    integers_map(2, (j) => {
+      meshAdd(
+        polygons_transform(
+          horn(),
+          identity
+            .translate((j - 0.5) * 18.5, 0, i * 4.8 - 9.5)
+            .rotate(0, 180 - j * 180, 0)
+            .scale(1.2, 10, 1),
+          material(1, 1, 0.8),
+        ),
+      );
+    }),
+  );
+
+  // in and out
+  meshAdd(polygons_transform(GBox, identity.translate(0, 0, -23).scale(3, 1, 8), material(0.9, 0.9, 0.9)));
+
+  meshAdd(polygons_transform(GBox, identity.translate(0, 0, 20).scale(3, 1, 5), material(0.9, 0.9, 0.9)));
+
+  // descent
+
+  meshAdd(
+    polygons_transform(
+      GBox,
+      identity.translate(7, -3.3, -13).rotate(0, 60, 0).rotate(0, 0, -45).scale(3, 3, 3),
+      material(0.5, 0.1, 0),
+    ),
+  );
+
+  // base
+
+  meshAdd(
+    csg_polygons(
+      csg_subtract(
+        csg_union([
+          // lower base
+          polygons_transform(
+            cylinder(6, 0, 0, 0.3),
+            identity.translate(8, -3, -4).scale(13, 1, 13),
+            material(0.7, 0.7, 0.7),
+          ),
+
+          // hole extension
+          polygons_transform(cylinder(4), identity.translate(0, -10).scale(9, 9, 9)),
+
+          // middle base
+          polygons_transform(
+            cylinder(6, 0, 0, 0.3),
+            identity.translate(0, -0.92).scale(13, 2, 13),
+            material(0.8, 0.8, 0.8),
+          ),
+        ]),
+        csg_union([
+          // hole
+          polygons_transform(cylinder(5), identity.scale(5, 30, 5), material(0.4, 0.2, 0.5)),
+
+          // smooth hole
+          polygons_transform(
+            cylinder(5, 0, 1.5),
+            identity.translate(0, 1, 0).scale(4.5, 0.3, 4.5),
+            material(0.7, 0.5, 0.9),
+          ),
+
+          // lower lever pad
+          polygons_transform(cylinder(6), identity.translate(15, -1.5, 4).scale(3.5, 1, 3.5), material(0.5, 0.5, 0.5)),
+        ]),
+      ),
+    ),
+  );
+
+  // bottom lever
+
+  withEditMatrix(identity.translate(15, -2, 4), addLever);
+
+  // moving central platform
+
+  newModel((model) => {
+    addLever();
+    model._update = () => identity.translate(0, Math.cos(gameTime * 2) * 5 - 4, 0);
+    meshAdd(polygons_transform(cylinder(5), identity.translate(0, -1.4).scale(5, 1, 5), material(1, 1, 1)));
+  });
+
+  // meshAdd(polygons_transform(cylinder(6, 0, 0, 0.3), identity.translate(15, -2, -5).scale(10, 1, 15)));
 
   // meshAdd(
   //   csg_polygons(
   //     csg_subtract(
-  //       polygons_transform(
-  //         cylinder(5),
-  //         identity.translate(0, 4.6, 16).scale(5, 5, 0.5).rotate(90, 0, 180),
-  //         material(1, 0.5, 0.7),
-  //       ),
-  //       arcInner(identity.translate(0, 4.6, 16).scale(1, 1, 10)),
+  //       polygons_transform(GBox, identity.translate(12, -2, -5).scale(7, 1, 15), material(1, 1, 1)),
+  //       polygons_transform(GBox, identity.translate(15, -2, -21).rotate(0, 60).scale(5, 8, 8), material(1, 1, 1)),
   //     ),
   //   ),
   // );
 
-  // meshAdd(csg_polygons(arc(identity.translate(0, 4.6, 16).scale(1, 1, 2), material(0.1, 0.85, 1))));
-  // meshAdd(csg_polygons(arc(identity.translate(0, 4.6, -16).scale(1, 1, 2), material(0.1, 0.85, 1))));
+  // meshAdd(
+  //   polygons_transform(GBox, identity.translate(12, -2, -5).scale(7, 1, 12).rotate(0, 71.6), material(0.94, 0.4, 0.4)),
+  // );
 
-  meshAdd(base);
+  // meshAdd(
+  //   polygons_transform(cylinder(6, 0, 0, 0.4), identity.translate(20, -5, 0).scale(8, 1, 10), material(0.5, 0.5, 0.5)),
+  // );
+
+  // meshAdd(polygons_transform(GBox, identity.translate(3, -0, -21).rotate(0, 60).scale(3, 1, 3), material(1, 0, 0)));
+  // meshAdd(
+  //   polygons_transform(
+  //     GBox,
+  //     identity.translate(16, -3, -13).rotate(0, 60).rotate(15, 0).scale(3, 1, 13),
+  //     material(1, 1, 1),
+  //   ),
+  // );
+
+  // meshAdd(polygons_transform(cylinder(6, 0, 0, 0.3), identity.scale(20, 10, 20), material(1, 1, 1)));
+
+  /* meshAdd(
+    csg_polygons(
+      csg_subtract(
+        polygons_transform(cylinder(6), identity.translate(0, -5, 0).scale(23, 1, 23), material(0.6, 0.1, 0.1)),
+        baseHole,
+      ),
+    ),
+  ); */
 
   // polygon_transform(polygon_regular(5), identity.scale(20 * 0.2, 1, 44 * 0.2)).map(({ x, z }) => {
   //   meshAdd(polygons_transform(cylinder(5), identity.translate(x, 3, z).scale(0.3, 3, 0.3), material(0.8, 0, 0.8)));

@@ -1,4 +1,5 @@
 import type { Polygon } from "../geometry/geometry";
+import { polygons_transform } from "../geometry/geometry";
 import { gl } from "../gl";
 import { identity } from "../math/matrix";
 import { plane_fromPolygon } from "../math/vectors";
@@ -16,10 +17,11 @@ export const modelsByModelId: Model[] = [];
 
 export const editMatrixStack: DOMMatrixReadOnly[] = [identity];
 
-export const withEditMatrix = (matrix: DOMMatrixReadOnly, fn: () => void) => {
-  editMatrixStack.push(matrix);
-  fn();
+export const withEditMatrix = <T>(matrix: DOMMatrixReadOnly, fn: () => T) => {
+  editMatrixStack.push(editMatrixStack.at(-1)!.multiply(matrix));
+  const result = fn();
   editMatrixStack.pop();
+  return result;
 };
 
 const _pendingPolygonsStack: Polygon[][] = [[]];
@@ -56,17 +58,12 @@ export interface Model {
   _update?: ModelUpdateCallback | undefined;
 }
 
-export const meshAdd = (polygons: Polygon[]) => {
-  _pendingPolygonsStack.at(-1)!.push(...polygons);
-  return polygons;
+export const meshAdd = (polygons: Polygon[]): void => {
+  _pendingPolygonsStack.at(-1)!.push(...polygons_transform(polygons, editMatrixStack.at(-1)!));
 };
 
 const getVertex = (i: number): number => {
   let { x, y, z } = _polygon![i]!;
-  const m = editMatrixStack.at(-1)!;
-  if (m !== identity) {
-    ({ x, y, z } = m.transformPoint(_polygon![i]));
-  }
   _vertexFloats[0] = x;
   _vertexFloats[1] = y;
   _vertexFloats[2] = z;

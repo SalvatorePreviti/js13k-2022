@@ -1,9 +1,9 @@
 import type { Vec3 } from "./math/vectors";
 
 export const player_position_global: Vec3 = {
-  x: -0.13400509931389146,
+  x: 0,
   y: 3,
-  z: 35.994527819258884,
+  z: -19,
 };
 
 export const player_position_final: Vec3 = {

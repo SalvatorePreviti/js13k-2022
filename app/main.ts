@@ -2,10 +2,6 @@ if (DEBUG) {
   console.time("boot");
 }
 
-import "./dev-tools/dev-main";
-
-import "./index.css";
-
 import csm_vsSource from "./shaders/csm-vertex.vert";
 import main_vsSource, {
   uniformName_projectionMatrix,
@@ -63,7 +59,7 @@ const csmShader = initShaderProgram(csm_vsSource, voidFsSource);
 
 const collisionShader = initShaderProgram(main_vsSource, collider_fsSource);
 
-gl.uniformMatrix4fv(collisionShader(uniformName_projectionMatrix), false, mat_perspectiveXY(1, 0.5, 0.0001, 1.5));
+gl.uniformMatrix4fv(collisionShader(uniformName_projectionMatrix), false, mat_perspectiveXY(1.2, 0.5, 0.0001, 1));
 
 const mainShader = initShaderProgram(main_vsSource, main_fsSource);
 
@@ -142,7 +138,7 @@ const csm_renderer = (csmSplit: number) => {
 
 const csm_render = integers_map(3, csm_renderer);
 
-// let debug2dctx: CanvasRenderingContext2D | null = null;
+let debug2dctx: CanvasRenderingContext2D | null = null;
 
 const readDist1 = (x: number, y: number): number => {
   const bufIdx = (y * COLLISION_TEXTURE_SIZE + x) * 3;
@@ -157,7 +153,8 @@ const readDist2 = (x: number, y: number): number => {
 const player_collision_modelIdCounter = new Int32Array(256);
 
 let oldModelId = 0;
-let currentModelId = 0;
+
+export let currentModelId = 0;
 
 const player_collisions = () => {
   let front = 0;
@@ -173,22 +170,25 @@ const player_collisions = () => {
   let maxModelIdCount = 0;
   currentModelId = 0;
   player_collision_modelIdCounter.fill(0);
+
   for (let x = 0; x < COLLISION_TEXTURE_SIZE; x++) {
-    let maxY = 0;
-    for (let y = 0; y < 14; y++) {
+    for (let y = 0; y < 18; y++) {
       const bufIdx = (y * COLLISION_TEXTURE_SIZE + x) * 3;
       const b = collision_buffer[bufIdx + 2]!;
       const count = player_collision_modelIdCounter[b]! + 1;
-      maxY = Math.max(maxY, collision_buffer[bufIdx]! / 255, collision_buffer[bufIdx + 1]! / 255);
-      player_collision_modelIdCounter[b] = count;
-      if (count >= maxModelIdCount / 10) {
-        maxModelIdCount = count;
-        currentModelId = b;
+      if (y > 1 && y < 17) {
+        bottom = Math.max(bottom, collision_buffer[bufIdx]! / 255, collision_buffer[bufIdx + 1]! / 255);
+      }
+      if (b) {
+        player_collision_modelIdCounter[b] = count;
+        if (count >= maxModelIdCount) {
+          maxModelIdCount = count;
+          currentModelId = b;
+        }
       }
     }
-    bottom += maxY;
   }
-  bottom /= COLLISION_TEXTURE_SIZE * 2;
+  bottom /= 2;
 
   if (!DEBUG || (!keyboard_downKeys[KEY_PLAYER_FLY_DOWN] && !keyboard_downKeys[KEY_PLAYER_FLY_UP])) {
     bottom -= 0.11;
@@ -196,7 +196,7 @@ const player_collisions = () => {
 
   // Sides collision:
 
-  for (let y = 16; y < COLLISION_TEXTURE_SIZE; ++y) {
+  for (let y = 18; y < COLLISION_TEXTURE_SIZE; ++y) {
     for (let x = 0; x < COLLISION_TEXTURE_SIZE; ++x) {
       const t = 1 - Math.abs(2 * (x / (COLLISION_TEXTURE_SIZE - 1)) - 1);
       const dist1 = readDist1(x, y);
@@ -253,9 +253,6 @@ const draw = (globalTime: number) => {
 
     player_collisions();
 
-    const oldx = player_position_final.x;
-    const oldz = player_position_final.z;
-
     if (!currentModelId) {
       player_position_global.x += player_collision_velocity_x * gameTimeDelta;
       player_position_global.z += player_collision_velocity_z * gameTimeDelta;
@@ -282,9 +279,16 @@ const draw = (globalTime: number) => {
       player_position_global.y -= gameTimeDelta * 4;
     }
 
+    const oldx = player_position_final.x;
+    const oldz = player_position_final.z;
+
     const referenceMatrix = modelsByModelId[currentModelId]?.$finalMatrix || identity;
 
     if (currentModelId !== oldModelId) {
+      if (DEBUG) {
+        console.log("modelId: " + oldModelId + " -> " + currentModelId);
+      }
+
       oldModelId = currentModelId;
       ({
         x: player_position_global.x,
@@ -310,34 +314,34 @@ const draw = (globalTime: number) => {
       player_position_final.z,
     );
 
-    //   if (DEBUG) {
-    //     const debugCanvas = document.getElementById("debug-canvas") as HTMLCanvasElement;
+    if (DEBUG) {
+      const debugCanvas = document.getElementById("debug-canvas") as HTMLCanvasElement;
 
-    //     const buf = new Uint8ClampedArray(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
+      const buf = new Uint8ClampedArray(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
 
-    //     if (debugCanvas) {
-    //       for (let y = 0; y < COLLISION_TEXTURE_SIZE; ++y) {
-    //         for (let x = 0; x < COLLISION_TEXTURE_SIZE; ++x) {
-    //           const i = ((COLLISION_TEXTURE_SIZE - y) * COLLISION_TEXTURE_SIZE + x) * 3;
-    //           const r = colliderBuffer[i]!;
-    //           const g = colliderBuffer[i + 1]!;
-    //           const b = colliderBuffer[i + 2]!;
+      if (debugCanvas) {
+        for (let y = 0; y < COLLISION_TEXTURE_SIZE; ++y) {
+          for (let x = 0; x < COLLISION_TEXTURE_SIZE; ++x) {
+            const i = ((COLLISION_TEXTURE_SIZE - y) * COLLISION_TEXTURE_SIZE + x) * 3;
+            const r = collision_buffer[i]!;
+            const g = collision_buffer[i + 1]!;
+            const b = collision_buffer[i + 2]!;
 
-    //           // buf[(y * COLLISION_TEXTURE_SIZE + x) * 4] = r * 10;
-    //           // buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 1] = g * 10;
-    //           buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 2] = b;
-    //           buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 3] = 255;
-    //         }
-    //       }
+            buf[(y * COLLISION_TEXTURE_SIZE + x) * 4] = r * 10;
+            buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 1] = g * 10;
+            buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 2] = b ? 200 : 0;
+            buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 3] = 255;
+          }
+        }
 
-    //       const imgdata = new ImageData(buf, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
+        const imgdata = new ImageData(buf, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
 
-    //       if (!debug2dctx) {
-    //         debug2dctx = debugCanvas.getContext("2d")!;
-    //       }
-    //       debug2dctx.putImageData(imgdata, 0, 0, 0, 0, 1128, 1128);
-    //     }
-    //   }
+        if (!debug2dctx) {
+          debug2dctx = debugCanvas.getContext("2d")!;
+        }
+        debug2dctx.putImageData(imgdata, 0, 0, 0, 0, 1128, 1128);
+      }
+    }
   }
 
   // *** CASCADED SHADOWMAPS ***
@@ -354,37 +358,30 @@ const draw = (globalTime: number) => {
 
   collisionShader();
 
-  // .rotate(0, 180, 0)
-
   const playerPosMatrix1 = identity
     .rotate(0, 180)
     .inverse()
-    .translate(-player_position_final.x, -player_position_final.y - 0.05, 0.45 - player_position_final.z);
+    .translate(-player_position_final.x, -player_position_final.y, 0.44 - player_position_final.z);
+
+  gl.bindFramebuffer(gl.FRAMEBUFFER, collision_frameBuffer);
+  gl.viewport(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
+  gl.colorMask(true, false, true, false);
+  gl.clearColor(0, 0, 0, 1);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  gl.uniformMatrix4fv(collisionShader(uniformName_viewMatrix), false, playerPosMatrix1.toFloat32Array());
+  renderModels(collisionShader(uniformName_worldMatrix), collisionShader(uniformName_modelId));
 
   const playerPosMatrix2 = identity.translate(
     -player_position_final.x,
-    -player_position_final.y - 0.05,
+    -player_position_final.y,
     -player_position_final.z - 0.45,
   );
 
-  gl.uniformMatrix4fv(collisionShader(uniformName_viewMatrix), false, playerPosMatrix1.toFloat32Array());
-
-  gl.bindFramebuffer(gl.FRAMEBUFFER, collision_frameBuffer);
-  gl.colorMask(true, false, true, false);
-  gl.clearColor(0, 0, 0, 1); // Clear to black, fully opaque
+  gl.colorMask(false, true, false, false);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-  gl.viewport(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
-
-  renderModels(collisionShader(uniformName_worldMatrix), collisionShader(uniformName_modelId));
-
-  gl.uniformMatrix4fv(collisionShader(uniformName_viewMatrix), false, playerPosMatrix2.toFloat32Array());
-
   gl.colorMask(false, true, true, false);
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
+  gl.uniformMatrix4fv(collisionShader(uniformName_viewMatrix), false, playerPosMatrix2.toFloat32Array());
   renderModels(collisionShader(uniformName_worldMatrix), collisionShader(uniformName_modelId));
-
   gl.colorMask(true, true, true, true);
 
   // *** MAIN RENDER ***

@@ -17,3 +17,5 @@ export const angle_wrap_degrees = /* @__PURE__ */ (degrees: number): number =>
 
 export const integers_map = /* @__PURE__ */ <T>(n: number, fn: (i: number) => T) =>
   Array.from(Array(n), (_, i) => fn(i));
+
+export const minus1plus1_map = <T>(fn: (i: number) => T) => [fn(-1), fn(1)];

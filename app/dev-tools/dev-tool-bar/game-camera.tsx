@@ -1,6 +1,7 @@
 import type { FC } from "react";
 import { useState, useEffect } from "react";
 import { camera_position, camera_rotation } from "../../camera";
+import { currentModelId } from "../../main";
 
 let updateCounter = 1;
 let oldValue: string = "";
@@ -51,6 +52,9 @@ export const GameCameraComponent: FC = () => {
           <div>{formatNumber(camera_rotation.z, 2)}</div>
         </div>
       </div>
+      <hr />
+      <div>modelId: {currentModelId}</div>
+      <br />
       <div>
         <button
           onClick={() => {
