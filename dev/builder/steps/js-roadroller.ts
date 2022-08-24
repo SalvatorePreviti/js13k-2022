@@ -50,7 +50,7 @@ export async function jsRoadroller(html: string): Promise<string> {
         dom.window.document.body.appendChild(script);
       }
 
-      let bundled = `<!DOCTYPE html>${dom.window.document.documentElement.outerHTML || ""}`;
+      let bundled = dom.serialize();
 
       bundled = await htmlMinify(bundled, { type: "page", prependUtf8BOM: true, timed: false });
 

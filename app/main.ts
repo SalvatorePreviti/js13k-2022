@@ -2,6 +2,9 @@ if (DEBUG) {
   console.time("boot");
 }
 
+// image.src = URL.createObjectURL(new Blob([hV.outerHTML], { type: "image/svg+xml;charset=utf-8" }));
+// console.log(URL.createObjectURL(new Blob([hV.outerHTML], { type: "image/svg+xml;charset=utf-8" })));
+
 import csm_vsSource from "./shaders/csm-vertex.vert";
 import main_vsSource, {
   uniformName_projectionMatrix,
@@ -13,6 +16,7 @@ import main_fsSource, {
   uniformName_lightDir,
   uniformName_csm_matrices,
   uniformName_csm_textures,
+  uniformName_groundTexture,
   constDef_CSM_TEXTURE_SIZE as CSM_TEXTURE_SIZE,
   constDef_CSM_PLANE_DISTANCE0 as CSM_PLANE_DISTANCE0,
   constDef_CSM_PLANE_DISTANCE1 as CSM_PLANE_DISTANCE1,
@@ -42,7 +46,21 @@ import { identity, mat_perspectiveXY } from "./math/matrix";
 import { gl, initGl, initShaderProgram } from "./gl";
 import { player_position_global, player_position_final } from "./player";
 
+import textureSvg from "./texture.svg";
+
 initGl();
+
+const xtexture = gl.createTexture();
+const image = new Image();
+image.onload = () => {
+  gl.activeTexture(gl.TEXTURE4);
+  gl.bindTexture(gl.TEXTURE_2D, xtexture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, 1024, 1024, 0, gl.RGB, gl.UNSIGNED_BYTE, image);
+  gl.generateMipmap(gl.TEXTURE_2D);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+};
+image.src = `data:image/svg+xml;base64,${btoa(textureSvg)}`;
 
 buildWorld();
 
@@ -62,6 +80,8 @@ const collisionShader = initShaderProgram(main_vsSource, collider_fsSource);
 gl.uniformMatrix4fv(collisionShader(uniformName_projectionMatrix), false, mat_perspectiveXY(1.2, 0.5, 0.0001, 1));
 
 const mainShader = initShaderProgram(main_vsSource, main_fsSource);
+
+gl.uniform1i(mainShader(uniformName_groundTexture), 4);
 
 const COLLISION_TEXTURE_SIZE = 64;
 

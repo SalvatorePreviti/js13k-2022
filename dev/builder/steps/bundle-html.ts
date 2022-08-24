@@ -36,7 +36,7 @@ export async function bundleHtml(input: BundleHtmlInput): Promise<BundleHtmlOutp
         dom.window.document.body.appendChild(scriptTag);
       }
 
-      let bundled = `<!DOCTYPE html>${dom.window.document.documentElement.outerHTML || ""}`;
+      let bundled = dom.serialize();
 
       bundled = await htmlMinify(bundled, { type: "page", prependUtf8BOM: true, timed: false });
 

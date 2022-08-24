@@ -2,7 +2,7 @@ import { devLog, toUTF8, utf8ByteLength } from "@balsamic/dev";
 import type { RollupOutput, RollupWatcher, LoadResult } from "rollup";
 import { build as viteBuild, mergeConfig as viteMergeConfig } from "vite";
 import config from "../../config";
-import fs from "fs/promises";
+import fs, { readFile } from "fs/promises";
 import { outPath_build } from "../out-paths";
 import { coloredPrettySize } from "../lib/logging";
 import type { UserConfig as ViteUserConfig, PluginOption } from "vite";
@@ -14,6 +14,9 @@ import shadersMangleGlobals from "../../../app/shaders/_mangle_globals";
 import { browserPureFunctions, global_defs } from "../lib/js-config";
 import type { MinifyOptions } from "terser";
 import rollupPluginVisualizer from "rollup-plugin-visualizer";
+import { optimize as svgoOptimize, type OptimizedSvg } from "svgo";
+import htmlminifier from "html-minifier-terser";
+import { getHtmlMinifierOptions } from "./html-minify";
 
 export interface ViteBundledOutput {
   js: string;
@@ -116,6 +119,7 @@ export async function buildWithVite(options: {
           emptyOutDir: true,
           outDir: outPath_build,
           minify: options.minifier,
+          assetsInlineLimit: 100000,
           cssTarget: ESBUILD_TARGETS,
           cssCodeSplit: false,
           manifest: false,
@@ -179,6 +183,7 @@ export async function buildWithVite(options: {
         },
 
         plugins: [
+          rollupPluginSvg(),
           options.stripDevTools ? rollupPluginStripDevTools() : undefined,
           rollupPluginSpglsl({
             mangle_global_map: shadersMangleGlobals,
@@ -197,6 +202,74 @@ export async function buildWithVite(options: {
     { printStarted: false },
   );
 }
+
+function rollupPluginSvg(): PluginOption {
+  return {
+    name: "svg",
+    async transform(src, id) {
+      if (!id.endsWith(".svg")) {
+        return undefined;
+      }
+      const extractedSvg = await readFile(id, "utf8");
+
+      const output = svgoOptimize(extractedSvg, {
+        floatPrecision: 5,
+        full: true,
+        multipass: true,
+        js2svg: { indent: 0, pretty: false },
+        plugins: ["preset-default"],
+      });
+      if (output.error) {
+        throw output.modernError;
+      }
+      const optimized = (output as OptimizedSvg).data;
+      let svg = await htmlminifier.minify(optimized, {
+        ...getHtmlMinifierOptions(),
+        removeAttributeQuotes: false,
+      });
+      if (svg.length > optimized.length) {
+        console.log("NOPE");
+        svg = optimized;
+      }
+      console.log(svg);
+      return `export default ${JSON.stringify(svg)}`;
+    },
+  };
+}
+
+// var path = require('path');
+// var rollupPluginutils = require('rollup-pluginutils');
+
+// function toDataUrl (code) {
+//   var mime = 'image/svg+xml'
+//   var buffer = Buffer.from(code, 'utf-8')
+//   var encoded = buffer.toString('base64')
+//   return ("'data:" + mime + ";base64," + encoded + "'")
+// }
+
+// function svg (options) {
+//   if ( options === void 0 ) options = {};
+
+//   var filter = rollupPluginutils.createFilter(options.include, options.exclude)
+
+//   return {
+//     name: 'svg',
+
+//     transform: function transform (code, id) {
+//       if (!filter(id) || path.extname(id) !== '.svg') {
+//         return null
+//       }
+
+//       var content = code.trim()
+//       var encoded = options.base64 ? toDataUrl(content) : JSON.stringify(content)
+
+//       return { code: ("export default " + encoded), map: { mappings: '' } }
+//     }
+//   }
+// }
+
+// module.exports = svg;
+// }
 
 function processViteBuildOutput(viteBuildOutput: RollupOutput | RollupOutput[] | RollupWatcher): ViteBundledOutput {
   if (Array.isArray(viteBuildOutput)) {
@@ -226,9 +299,9 @@ function processViteBuildOutput(viteBuildOutput: RollupOutput | RollupOutput[] |
           throw new Error("ViteBuildOutput: multiple index.html found");
         }
         html = toUTF8(o.source);
-      } else if (o.fileName !== "esbuild" && o.fileName !== "stats.html") {
-        throw new Error(`ViteBuildOutput: unexpected asset file "${o.fileName}"`);
-      }
+      } //  else if (o.fileName !== "esbuild" && o.fileName !== "stats.html") {
+      //   throw new Error(`ViteBuildOutput: unexpected asset file "${o.fileName}"`);
+      // }
     } else if (o.type === "chunk") {
       if (js.length > 0) {
         js += "\n";
@@ -257,7 +330,7 @@ function processViteBuildOutput(viteBuildOutput: RollupOutput | RollupOutput[] |
       dom.window.document.body.appendChild(script);
     }
 
-    html = `<!DOCTYPE html>${dom.window.document.documentElement.outerHTML || ""}`;
+    html = dom.serialize();
   }
 
   return { html, js, css };

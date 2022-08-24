@@ -19,6 +19,7 @@ uniform mat4 viewMatrix;
 
 uniform mat4[3] csm_matrices;
 uniform sampler2DShadow csm_textures[3];
+uniform highp sampler2D groundTexture;
 
 out vec4 O;
 
@@ -74,7 +75,15 @@ void main() {
   // calculate shadow
   float shadow = ShadowCalculation();
 
+  vec4 concrete =
+    (texture(groundTexture, FragPos.xy * .035) * normal.z + texture(groundTexture, FragPos.yz * .035) * normal.x +
+     texture(groundTexture, FragPos.xz * .035) * normal.y - 0.5);
+
+  diffuse.xyz *= mix(concrete.xyz, vec3(1.), 0.7);
+
   vec3 lighting = (ambient + mix(diffuse * .3, diffuse + specular, shadow)) * abs(Color.xyz);
 
   O = vec4(lighting, 1.0f);
+
+  // color += 0.125 * (concrete.x - concrete.y + concrete.z - concrete.w);
 }

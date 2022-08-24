@@ -16,7 +16,7 @@ export async function htmlMinify(
       const dom = new JSDOM(
         options.type === "page"
           ? stripUtf8BOM(input)
-          : `<!DOCTYPE html>\n<html><head></head><body>${stripUtf8BOM(input)}</body></html>`,
+          : `<!doctype html>\n<html><head></head><body>${stripUtf8BOM(input)}</body></html>`,
       );
 
       // Remove <meta charset="utf8" />, we are going to prepend UTF8 BOM in any case.
@@ -27,12 +27,13 @@ export async function htmlMinify(
 
       let html: string;
       if (options.type === "page") {
-        html = `<!DOCTYPE html>${dom.window.document.documentElement.outerHTML || ""}`;
+        html = dom.serialize();
       } else {
         html = dom.window.document.body.innerHTML;
       }
 
       let result = (await htmlMinifier(html, getHtmlMinifierOptions())) || html;
+
       if (options.type === "page") {
         result = htmlFinalise(result);
       }

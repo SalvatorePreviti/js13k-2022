@@ -42,7 +42,7 @@ export async function htmlCssToJs(sources: ViteBundledOutput) {
         dom.window.document.body.appendChild(script);
       }
 
-      const finalHtml = await htmlMinify(`<!DOCTYPE html>${dom.window.document.documentElement.outerHTML || ""}`, {
+      const finalHtml = await htmlMinify(dom.serialize(), {
         type: "page",
         prependUtf8BOM: true,
         timed: false,
