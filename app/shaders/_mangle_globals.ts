@@ -16,4 +16,5 @@ export default {
   VNormal: "N",
   modelId: "I",
   groundTexture: "D",
+  iResolution: "C",
 };

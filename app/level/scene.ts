@@ -1,4 +1,6 @@
 import type { Polygon } from "../geometry/geometry";
+import { GQuad } from "../geometry/geometry";
+import { polygon_transform } from "../geometry/geometry";
 import { polygons_transform } from "../geometry/geometry";
 import { gl } from "../gl";
 import { identity } from "../math/matrix";
@@ -202,3 +204,6 @@ export const updateModels = (model: Model, parentMatrix = identity) => {
     updateModels(child, finalMatrix);
   }
 };
+
+meshAdd([polygon_transform(GQuad.slice(1), identity.translate(-2).scale3d(3).rotate(90, 0))]);
+meshEnd();

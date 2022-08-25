@@ -13,6 +13,8 @@ export const fieldOfViewRadians = fieldOfViewDegrees * DEG_TO_RAD; // in radians
 
 const fieldOfViewAmount = 1 / Math.tan(fieldOfViewRadians / 2);
 
+console.log(fieldOfViewAmount);
+
 // export const camera_position = { x: 20, y: 12, z: 38 };
 
 export const camera_position = {

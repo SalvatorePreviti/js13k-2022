@@ -19,7 +19,9 @@ import main_fsSource, {
   constDef_CSM_PLANE_DISTANCE1 as CSM_PLANE_DISTANCE1,
 } from "./shaders/main-fragment.frag";
 import collider_fsSource, { uniformName_modelId } from "./shaders/collider-fragment.frag";
-import voidFsSource from "./shaders/void-fragment.frag";
+import void_fsSource from "./shaders/void-fragment.frag";
+import sky_vsSource from "./shaders/sky-vertex.vert";
+import sky_fsSource, { uniformName_iResolution } from "./shaders/sky-fragment.frag";
 
 import { integers_map, lerp } from "./math/math";
 import { mat_perspective, zFar, zNear, camera_position, camera_rotation, camera_view } from "./camera";
@@ -36,7 +38,7 @@ import {
   KEY_PLAYER_LEFT,
   KEY_PLAYER_RIGHT,
 } from "./input";
-import { gameTimeDelta, gameTimeUpdate } from "./game-time";
+import { gameTime, gameTimeDelta, gameTimeUpdate } from "./game-time";
 import { buildWorld, playerModel } from "./level/level";
 import { identity, mat_perspectiveXY } from "./math/matrix";
 
@@ -56,9 +58,12 @@ gl.enable(gl.CULL_FACE); // Don't render triangle backs
 
 gl.clearDepth(1); // Clear everything. Default value is 1
 gl.cullFace(gl.BACK); // Default value is already BACK
-gl.depthFunc(gl.LEQUAL); // Default is LESS, seems LEQUAL and LESS both are OK
+gl.depthFunc(gl.LEQUAL); // LEQUAL is required for sky
 
-const csmShader = initShaderProgram(loadShader(csm_vsSource), voidFsSource);
+const skyShader = initShaderProgram(loadShader(sky_vsSource), sky_fsSource);
+gl.uniform1i(skyShader(uniformName_groundTexture), 3); // TEXTURE3
+
+const csmShader = initShaderProgram(loadShader(csm_vsSource), void_fsSource);
 
 const main_vertexShader = loadShader(main_vsSource);
 const collisionShader = initShaderProgram(main_vertexShader, collider_fsSource);
@@ -407,6 +412,16 @@ const draw = (globalTime: number) => {
   csm_render[2]!();
 
   renderModels(mainShader(uniformName_worldMatrix));
+
+  // *** SKY RENDER ***
+
+  skyShader();
+
+  gl.uniform3f(skyShader(uniformName_iResolution), gl.drawingBufferWidth, gl.drawingBufferHeight, gameTime);
+  gl.uniform3f(skyShader(uniformName_viewPos), camera_position.x, camera_position.y, camera_position.z);
+  gl.uniformMatrix4fv(skyShader(uniformName_viewMatrix), false, camera_view.inverse().toFloat32Array());
+
+  gl.drawElements(gl.TRIANGLES, 3, gl.UNSIGNED_INT, 0);
 };
 
 const image = new Image();
