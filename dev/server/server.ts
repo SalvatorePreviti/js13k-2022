@@ -1,10 +1,11 @@
-import type { UserConfig } from "vite";
+import type { PluginOption, UserConfig } from "vite";
 import { createServer, mergeConfig } from "vite";
 import { devLog } from "@balsamic/dev";
 import vitePluginReact from "@vitejs/plugin-react";
 import { rollupPluginSpglsl, SpglslCompileMode } from "spglsl";
 
 import config from "../config";
+import { readFile } from "fs/promises";
 
 export async function startServer(argv = process.argv) {
   const parsedCmd = parseCommandLine(argv);
@@ -29,6 +30,7 @@ export async function startServer(argv = process.argv) {
 
     plugins: [
       ...(config.plugins || []),
+      rollupPluginSvgDev(),
       rollupPluginSpglsl({ compileMode: SpglslCompileMode.Validate, throwOnError: true }),
       vitePluginReact(),
     ],
@@ -42,6 +44,23 @@ export async function startServer(argv = process.argv) {
   server.printUrls();
   devLog.hr("blueBright");
   devLog.log();
+}
+
+function rollupPluginSvgDev(): PluginOption {
+  return {
+    name: "svg-dev",
+    async transform(src, id) {
+      if (!id.endsWith(".svg")) {
+        return undefined;
+      }
+      const extractedSvg = await readFile(id, "utf8");
+
+      return {
+        code: `export default \`data:image/svg+xml;base64,\${btoa(${JSON.stringify(extractedSvg)})}\``,
+        map: null,
+      };
+    },
+  };
 }
 
 function parseCommandLine(argv: string[]) {

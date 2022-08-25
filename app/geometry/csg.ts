@@ -151,7 +151,7 @@ const csg_tree_clipNode = /* @__PURE__ */ (
 };
 
 /** Loop through all nodes in a tree */
-const csg_tree_each = /* @__PURE__ */ (node: CSGNode | 0 | undefined, fn: (node: CSGNode) => void): unknown =>
+const csg_tree_each = (node: CSGNode | 0 | undefined, fn: (node: CSGNode) => void): unknown =>
   node && (fn(node), csg_tree_each(node.$front, fn), csg_tree_each(node.$back, fn));
 
 /**
@@ -203,7 +203,7 @@ export const csg_union_op = /* @__PURE__ */ (a: CSGInput, b: CSGInput | undefine
 export const csg_union = /* @__PURE__ */ (inputs: CSGInput[]): CSGNode => inputs.reduce(csg_union_op) as CSGNode;
 
 /** Convert solid space to empty space and empty space to solid space. */
-export const csg_tree_flip = /* @__PURE__ */ (root: CSGNode | 0 | undefined): unknown =>
+export const csg_tree_flip = (root: CSGNode | 0 | undefined): unknown =>
   csg_tree_each(root, (node) => {
     const { $front, $back } = node;
     node.$back = $front;

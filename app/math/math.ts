@@ -15,7 +15,9 @@ export const angle_wrap_radians = /* @__PURE__ */ (radians: number): number =>
 export const angle_wrap_degrees = /* @__PURE__ */ (degrees: number): number =>
   angle_wrap_radians(degrees * DEG_TO_RAD) / DEG_TO_RAD;
 
-export const integers_map = /* @__PURE__ */ <T>(n: number, fn: (i: number) => T) =>
-  Array.from(Array(n), (_, i) => fn(i));
+export const integers_map = <T>(n: number, fn: (i: number) => T) => Array.from(Array(n), (_, i) => fn(i));
 
-export const minus1plus1_map = <T>(fn: (i: number) => T) => [fn(-1), fn(1)];
+export const minus1plus1_each = <T>(fn: (i: number) => T) => {
+  fn(-1);
+  fn(1);
+};

@@ -23,7 +23,7 @@ export async function jsUglify(source: string, settings: JsUglifySettings) {
       this.setSuccessText(sizeDifference(source, result));
       return result;
     },
-    { spinner: true },
+    { spinner: true, timed: settings.timed === undefined || !settings.timed },
   );
 }
 
@@ -35,6 +35,7 @@ export interface JsUglifySettings {
   reduce_vars: boolean;
   join_vars: boolean;
   computed_props: boolean;
+  timed?: boolean;
 }
 
 export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: Record<string, unknown>): UglifyOptions {

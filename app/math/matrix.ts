@@ -1,7 +1,7 @@
 /** The identity matrix */
 export const identity: DOMMatrixReadOnly = /* @__PURE__ */ new DOMMatrix();
 
-export const mat_perspectiveXY = (mx: number, my: number, near: number, far: number) => [
+export const mat_perspectiveXY = /* @__PURE__ */ (mx: number, my: number, near: number, far: number) => [
   mx,
   0,
   0,

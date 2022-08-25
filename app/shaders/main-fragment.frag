@@ -1,6 +1,5 @@
 #version 300 es
 precision highp float;
-precision highp sampler2DShadow;
 
 #define CSM_TEXTURE_SIZE 2048.
 
@@ -9,8 +8,9 @@ precision highp sampler2DShadow;
 #define CSM_PLANE_DISTANCE1 110.
 #define zFar 150.
 
-in highp vec3 VNormal;
+in highp vec4 VNormal;
 in highp vec4 FragPos;
+in highp vec4 UntransformedFragPos;
 in lowp vec4 Color;
 
 uniform vec3 viewPos;
@@ -18,7 +18,7 @@ uniform vec3 lightDir;
 uniform mat4 viewMatrix;
 
 uniform mat4[3] csm_matrices;
-uniform sampler2DShadow csm_textures[3];
+uniform highp sampler2DShadow csm_textures[3];
 uniform highp sampler2D groundTexture;
 
 out vec4 O;
@@ -59,7 +59,7 @@ float ShadowCalculation() {
 }
 
 void main() {
-  vec3 normal = normalize(VNormal);
+  vec3 normal = normalize(VNormal.xyz);
 
   vec3 lightColor = vec3(0.9, 0.9, 0.9);
 
@@ -76,8 +76,9 @@ void main() {
   float shadow = ShadowCalculation();
 
   vec4 concrete =
-    (texture(groundTexture, FragPos.xy * .035) * normal.z + texture(groundTexture, FragPos.yz * .035) * normal.x +
-     texture(groundTexture, FragPos.xz * .035) * normal.y - 0.5);
+    (texture(groundTexture, UntransformedFragPos.xy * .035) * normal.z +
+     texture(groundTexture, UntransformedFragPos.yz * .035) * normal.x +
+     texture(groundTexture, UntransformedFragPos.xz * .035) * normal.y);
 
   diffuse.xyz *= mix(concrete.xyz, vec3(1.), 0.7);
 

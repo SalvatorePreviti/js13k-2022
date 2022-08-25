@@ -59,6 +59,8 @@ export async function jsTransformSwc(
                   simplify: true,
                 },
                 useDefineForClassFields: false,
+                treatConstEnumAsEnum: true,
+                decoratorMetadata: false,
               },
               keepClassNames: false,
               target: "es2022",

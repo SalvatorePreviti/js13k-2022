@@ -36,7 +36,7 @@ export const mouse_movementReset = () => (mouse_movementX = mouse_movementY = 0)
 
 let _mouseDown: boolean | 0 | undefined;
 
-const keyMap: Partial<Record<KEY_CODE, number>> = /* @__PURE__ */ {
+const keyMap: Partial<Record<KEY_CODE, number>> = {
   ["KeyA"]: KEY_LEFT,
   ["ArrowLeft"]: KEY_LEFT,
 

@@ -11,7 +11,7 @@ import {
   horn,
   polygon_transform,
 } from "../geometry/geometry";
-import { integers_map, minus1plus1_map } from "../math/math";
+import { integers_map, minus1plus1_each } from "../math/math";
 import { identity } from "../math/matrix";
 import { meshAdd, meshEnd, editMatrixStack, withEditMatrix, newModel } from "./scene";
 
@@ -92,7 +92,7 @@ export const playerModel = newModel((model) => {
     MATERIAL_DARK_GRAY,
   );
 
-  minus1plus1_map((i) =>
+  minus1plus1_each((i) =>
     meshAdd(polygons_transform(eye, identity.translate(i * 0.2, 1.2, 0.4).rotate(0, i * 20, i * 20))),
   );
 

@@ -12,6 +12,8 @@ export default {
   viewPos: "J",
   Color: "K",
   FragPos: "L",
-  VNormal: "M",
+  UntransformedFragPos: "M",
+  VNormal: "N",
   modelId: "I",
+  groundTexture: "D",
 };

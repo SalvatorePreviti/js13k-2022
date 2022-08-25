@@ -9,6 +9,9 @@ import { transform } from "@babel/core";
 import path from "path";
 import resugarBlockScopePlugin from "@resugar/codemod-declarations-block-scope";
 import resugarFunctionsArrow from "@resugar/codemod-functions-arrow";
+import { babelPluginSimple } from "./babel/babel-plugin-simple";
+import { jsUglify } from "./js-uglify";
+import { browserPureFunctions, global_defs } from "../lib/js-config";
 
 class Transformer extends SwcVisitor {
   override visitMemberExpression(n: MemberExpression): MemberExpression {
@@ -52,98 +55,99 @@ export function rollupPluginSwcTransform(): PluginOption {
         return undefined;
       }
 
-      const output1 = await swcTransform(src, {
-        cwd: outPath_build,
-        inputSourceMap: false,
-        sourceMaps: true,
-        configFile: false,
-        filename: id,
-        isModule: true,
-        minify: false,
-        swcrc: false,
-        jsc: {
-          transform: {
-            optimizer: {
-              simplify: true,
-            },
-            useDefineForClassFields: false,
-            treatConstEnumAsEnum: true,
-            decoratorMetadata: false,
-          },
-          keepClassNames: false,
-          preserveAllComments: true,
-          target: "es2022",
-          parser: { syntax: "ecmascript" },
-          // minify: {
-          //   module: true,
-          //   toplevel: true,
-          //   compress: {
-          //     arrows: true,
-          //     defaults: false,
-          //     booleans: false,
-          //     booleans_as_integers: false,
-          //     collapse_vars: false,
-          //     comparisons: true,
-          //     computed_props: false,
-          //     conditionals: true,
-          //     const_to_let: false,
-          //     dead_code: true,
-          //     evaluate: false,
-          //     global_defs,
-          //     hoist_funs: true,
-          //     hoist_props: true,
-          //     hoist_vars: false,
-          //     inline: 3,
-          //     keep_fargs: false,
-          //     keep_infinity: true,
-          //     keep_fnames: true,
-          //     if_return: true,
-          //     loops: true,
-          //     sequences: false,
-          //     join_vars: false,
-          //     module: true,
-          //     toplevel: true,
-          //     typeofs: true,
-          //     unsafe_comps: true,
-          //     negate_iife: false,
-          //     passes: 10,
-          //     unused: true,
-          //     unsafe: true,
-          //     unsafe_undefined: true,
-          //     unsafe_proto: true,
-          //     unsafe_regexp: true,
-          //     unsafe_methods: true,
-          //     unsafe_math: true,
-          //     unsafe_arrows: true,
-          //     pure_funcs: browserPureFunctions,
-          //     pure_getters: true,
-          //     reduce_funcs: true,
-          //     reduce_vars: true,
-          //     switches: true,
-          //     pristine_globals: true,
-          //     arguments: false,
-          //     side_effects: true,
-          //   },
-          //   format: {
-          //     ascii_only: false,
-          //     beautify: true,
-          //     comments: "all",
-          //     keep_quoted_props: true,
-          //     preserve_annotations: true,
-          //   },
-          // },
-        },
-        plugin: (m) => {
-          m = new Transformer().visitProgram(m);
-          m = swcPluginVars()(m);
-          return m;
-        },
-      });
+      let js = src;
 
-      const output2 =
-        transform(output1.code, {
-          sourceMaps: true,
-          inputSourceMap: output1.map ? JSON.parse(output1.map) : null,
+      js =
+        (
+          await swcTransform(js, {
+            cwd: outPath_build,
+            configFile: false,
+            filename: id,
+            isModule: true,
+            minify: false,
+            swcrc: false,
+            jsc: {
+              transform: {
+                optimizer: {
+                  simplify: true,
+                },
+                useDefineForClassFields: false,
+                treatConstEnumAsEnum: true,
+                decoratorMetadata: false,
+              },
+              keepClassNames: false,
+              preserveAllComments: true,
+              target: "es2022",
+              parser: { syntax: "ecmascript" },
+              minify: {
+                module: true,
+                toplevel: true,
+                compress: {
+                  arrows: true,
+                  defaults: false,
+                  booleans: false,
+                  booleans_as_integers: false,
+                  collapse_vars: false,
+                  comparisons: true,
+                  computed_props: false,
+                  conditionals: true,
+                  const_to_let: false,
+                  dead_code: true,
+                  evaluate: false,
+                  global_defs,
+                  hoist_funs: true,
+                  hoist_props: true,
+                  hoist_vars: false,
+                  inline: 3,
+                  keep_fargs: false,
+                  keep_infinity: true,
+                  keep_fnames: true,
+                  if_return: true,
+                  loops: true,
+                  sequences: false,
+                  join_vars: false,
+                  module: true,
+                  toplevel: true,
+                  typeofs: true,
+                  unsafe_comps: true,
+                  negate_iife: false,
+                  passes: 10,
+                  unused: true,
+                  unsafe: true,
+                  unsafe_undefined: true,
+                  unsafe_proto: true,
+                  unsafe_regexp: true,
+                  unsafe_methods: true,
+                  unsafe_math: true,
+                  unsafe_arrows: true,
+                  pure_funcs: browserPureFunctions,
+                  pure_getters: true,
+                  reduce_funcs: true,
+                  reduce_vars: true,
+                  switches: true,
+                  pristine_globals: true,
+                  arguments: false,
+                  side_effects: true,
+                },
+                format: {
+                  ascii_only: false,
+                  beautify: true,
+                  comments: "all",
+                  keep_quoted_props: true,
+                  preserve_annotations: true,
+                },
+              },
+            },
+            plugin: (m) => {
+              m = new Transformer().visitProgram(m);
+              m = swcPluginVars()(m);
+              return m;
+            },
+          })
+        ).code || js;
+
+      js =
+        transform(js, {
           root: path.dirname(id),
           cwd: path.dirname(id),
           configFile: false,
@@ -166,18 +170,50 @@ export function rollupPluginSwcTransform(): PluginOption {
             resugarBlockScopePlugin,
             "babel-plugin-minify-constant-folding",
             "babel-plugin-minify-dead-code-elimination",
-            "babel-plugin-pure-calls-annotation",
+            babelPluginSimple({ unmangleableProperties: "mark" }),
           ],
-        }) || output1;
+        })?.code || js;
 
-      if (!output2.code) {
-        output2.code = output1.code;
-      }
+      js = await jsUglify(js, {
+        varify: false,
+        final: false,
+        reduce_vars: true,
+        join_vars: true,
+        sequences: true,
+        computed_props: true,
+        timed: false,
+      });
 
-      return {
-        code: output2.code,
-        map: output2.map,
-      };
+      js =
+        transform(js, {
+          root: path.dirname(id),
+          cwd: path.dirname(id),
+          configFile: false,
+          babelrc: false,
+          envName: "production",
+          comments: true,
+          compact: false,
+          minified: false,
+          sourceType: "module",
+          parserOpts: {
+            sourceType: "module",
+            allowAwaitOutsideFunction: true,
+            allowImportExportEverywhere: true,
+            allowReturnOutsideFunction: true,
+            allowSuperOutsideMethod: true,
+            allowUndeclaredExports: true,
+          },
+          plugins: [
+            resugarFunctionsArrow,
+            resugarBlockScopePlugin,
+            "babel-plugin-minify-constant-folding",
+            "babel-plugin-minify-dead-code-elimination",
+            babelPluginSimple({ unmangleableProperties: "transform" }),
+            // "babel-plugin-pure-calls-annotation",
+          ],
+        })?.code || js;
+
+      return { code: js, map: null };
     },
   };
 }

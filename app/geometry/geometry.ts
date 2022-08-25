@@ -23,13 +23,13 @@ export const polygon_color = /* @__PURE__ */ (
   return polygon;
 };
 
-export const vec3_transform = /* @__PURE__ */ ({ x, y, z }: Vec3Optional, m: DOMMatrixReadOnly): Vec3 => {
+export const vec3_transform = /* @__PURE__ */ ({ x, y, z }: Readonly<Vec3Optional>, m: DOMMatrixReadOnly): Vec3 => {
   ({ x, y, z } = m.transformPoint({ x, y, z }));
   return { x, y, z };
 };
 
 export const polygon_transform = /* @__PURE__ */ (
-  polygon: Polygon<Vec3Optional>,
+  polygon: Polygon<Readonly<Vec3Optional>>,
   m: DOMMatrixReadOnly,
   color: number | undefined = polygon.$color,
 ): Polygon =>
@@ -40,7 +40,7 @@ export const polygon_transform = /* @__PURE__ */ (
   );
 
 export const polygons_transform = /* @__PURE__ */ (
-  polygons: Polygon<Vec3Optional>[],
+  polygons: Polygon<Readonly<Vec3Optional>>[],
   m: DOMMatrixReadOnly,
   color?: number | undefined,
 ) => polygons.map((polygon) => polygon_transform(polygon, m, color));
@@ -85,7 +85,7 @@ export const cone_sides = /* @__PURE__ */ (btm: Polygon, smooth?: 0 | 1 | undefi
  * The solid will be centered at 0 vertically and its height will be 2 (from -1 to 1)
  */
 export const polygon_extrude = /* @__PURE__ */ (
-  points: Polygon<Vec3Optional>,
+  points: Polygon<Readonly<Vec3Optional>>,
   smooth?: 0 | 1,
   topSize = 0,
 ): Polygon[] => {
@@ -152,7 +152,7 @@ export const sphere = /* @__PURE__ */ (slices: number, smooth: 0 | 1 | undefined
   return polygons;
 };
 
-export const GQuad = /* @__PURE__ */ [
+export const GQuad = [
   { x: -1, z: 1 },
   { x: 1, z: 1 },
   { x: 1, z: -1 },

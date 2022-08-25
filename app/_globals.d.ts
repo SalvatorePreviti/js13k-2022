@@ -10,6 +10,7 @@ declare module "*.vert";
 /** HTMLCanvas element declared in the page */
 
 declare const hC: HTMLCanvasElement;
+declare const hV: HTMLElement;
 
 interface Array<T> {
   reduce<U = T>(

@@ -6,7 +6,7 @@ export const initGl = () => {
   }
 };
 
-const loadShader = (type: number, source: string): WebGLShader => {
+export const loadShader = (source: string, type: number = gl.VERTEX_SHADER): WebGLShader => {
   const shader = gl.createShader(type)!;
   gl.shaderSource(shader, source);
   gl.compileShader(shader);
@@ -23,11 +23,11 @@ export interface WebglProgramAbstraction {
   (): void;
 }
 
-export const initShaderProgram = (svsSource: string, sfsSource: string): WebglProgramAbstraction => {
+export const initShaderProgram = (vertexShader: WebGLShader, sfsSource: string): WebglProgramAbstraction => {
   const uniforms: Record<string, WebGLUniformLocation> = {};
   const program = gl.createProgram()!;
-  gl.attachShader(program, loadShader(gl.VERTEX_SHADER, svsSource));
-  gl.attachShader(program, loadShader(gl.FRAGMENT_SHADER, sfsSource));
+  gl.attachShader(program, vertexShader);
+  gl.attachShader(program, loadShader(sfsSource, gl.FRAGMENT_SHADER));
   gl.linkProgram(program);
 
   if (DEBUG && !gl.getProgramParameter(program, gl.LINK_STATUS)) {

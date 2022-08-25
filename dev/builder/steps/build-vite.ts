@@ -205,7 +205,7 @@ export async function buildWithVite(options: {
 
 function rollupPluginSvg(): PluginOption {
   return {
-    name: "svg",
+    name: "svg-optimized",
     async transform(src, id) {
       if (!id.endsWith(".svg")) {
         return undefined;
@@ -227,49 +227,11 @@ function rollupPluginSvg(): PluginOption {
         ...getHtmlMinifierOptions(),
         removeAttributeQuotes: false,
       });
-      if (svg.length > optimized.length) {
-        console.log("NOPE");
-        svg = optimized;
-      }
-      console.log(svg);
-      return `export default ${JSON.stringify(svg)}`;
+      svg = svg.length <= optimized.length ? svg : optimized;
+      return { code: `export default \`data:image/svg+xml;base64,\${btoa(${JSON.stringify(svg)})}\``, map: null };
     },
   };
 }
-
-// var path = require('path');
-// var rollupPluginutils = require('rollup-pluginutils');
-
-// function toDataUrl (code) {
-//   var mime = 'image/svg+xml'
-//   var buffer = Buffer.from(code, 'utf-8')
-//   var encoded = buffer.toString('base64')
-//   return ("'data:" + mime + ";base64," + encoded + "'")
-// }
-
-// function svg (options) {
-//   if ( options === void 0 ) options = {};
-
-//   var filter = rollupPluginutils.createFilter(options.include, options.exclude)
-
-//   return {
-//     name: 'svg',
-
-//     transform: function transform (code, id) {
-//       if (!filter(id) || path.extname(id) !== '.svg') {
-//         return null
-//       }
-
-//       var content = code.trim()
-//       var encoded = options.base64 ? toDataUrl(content) : JSON.stringify(content)
-
-//       return { code: ("export default " + encoded), map: { mappings: '' } }
-//     }
-//   }
-// }
-
-// module.exports = svg;
-// }
 
 function processViteBuildOutput(viteBuildOutput: RollupOutput | RollupOutput[] | RollupWatcher): ViteBundledOutput {
   if (Array.isArray(viteBuildOutput)) {
