@@ -1,10 +1,8 @@
 import type { Polygon } from "../geometry/geometry";
-import { GQuad } from "../geometry/geometry";
-import { polygon_transform } from "../geometry/geometry";
-import { polygons_transform } from "../geometry/geometry";
-import { gl } from "../gl";
+import { GQuad, polygon_transform, polygons_transform } from "../geometry/geometry";
 import { identity } from "../math/matrix";
 import { plane_fromPolygon } from "../math/vectors";
+import { gl } from "../gl";
 
 export const rootModel: Model = {
   $children: [],

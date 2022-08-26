@@ -1,5 +1,6 @@
 if (DEBUG) {
   console.time("boot");
+  console.time("LOADED");
 }
 
 import csm_vsSource from "./shaders/csm-vertex.vert";
@@ -47,6 +48,8 @@ import { player_position_global, player_position_final } from "./player";
 
 import groundTextureSvg from "./groundTexture.svg";
 
+let texturesLoaded = false;
+
 initGl();
 
 buildWorld();
@@ -74,7 +77,7 @@ gl.uniform1i(mainShader(uniformName_groundTexture), 3); // TEXTURE3
 
 const COLLISION_TEXTURE_SIZE = 64;
 
-const collision_buffer = new Uint8Array(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 3);
+const collision_buffer = new Uint8Array(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
 const collision_texture = gl.createTexture()!;
 const collision_frameBuffer = gl.createFramebuffer()!;
 const collision_renderBuffer = gl.createRenderbuffer();
@@ -148,12 +151,12 @@ const csm_render = integers_map(3, (csmSplit: number) => {
 let debug2dctx: CanvasRenderingContext2D | null = null;
 
 const readDist1 = (x: number, y: number): number => {
-  const bufIdx = (y * COLLISION_TEXTURE_SIZE + x) * 3;
+  const bufIdx = (y * COLLISION_TEXTURE_SIZE + x) * 4;
   return collision_buffer[bufIdx]! / 255;
 };
 
 const readDist2 = (x: number, y: number): number => {
-  const bufIdx = (y * COLLISION_TEXTURE_SIZE + x) * 3;
+  const bufIdx = (y * COLLISION_TEXTURE_SIZE + x) * 4;
   return collision_buffer[bufIdx + 1]! / 255;
 };
 
@@ -170,8 +173,6 @@ const player_collisions = () => {
   let right = 0;
   let bottom = 0;
 
-  const timeMultiplier = gameTimeDelta / 0.008;
-
   // Ground Collision:
 
   let maxModelIdCount = 0;
@@ -180,7 +181,7 @@ const player_collisions = () => {
 
   for (let x = 0; x < COLLISION_TEXTURE_SIZE; x++) {
     for (let y = 0; y < 18; y++) {
-      const bufIdx = (y * COLLISION_TEXTURE_SIZE + x) * 3;
+      const bufIdx = (y * COLLISION_TEXTURE_SIZE + x) * 4;
       const b = collision_buffer[bufIdx + 2]!;
       const count = player_collision_modelIdCounter[b]! + 1;
       if (y > 1 && y < 17) {
@@ -229,6 +230,8 @@ const player_collisions = () => {
     }
   }
 
+  const timeMultiplier = gameTimeDelta / 0.008;
+
   player_position_global.x += (timeMultiplier * (right - left)) / 2;
   player_position_global.y += timeMultiplier * bottom;
   player_position_global.z += (timeMultiplier * (back - front)) / 2;
@@ -239,6 +242,10 @@ let player_collision_velocity_z = 0;
 
 const draw = (globalTime: number) => {
   requestAnimationFrame(draw);
+
+  if (!texturesLoaded) {
+    return;
+  }
 
   gameTimeUpdate(globalTime);
 
@@ -256,7 +263,7 @@ const draw = (globalTime: number) => {
     // *** COLLISION ***
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, collision_frameBuffer);
-    gl.readPixels(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE, gl.RGB, gl.UNSIGNED_BYTE, collision_buffer);
+    gl.readPixels(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE, gl.RGBA, gl.UNSIGNED_BYTE, collision_buffer);
 
     player_collisions();
 
@@ -329,7 +336,7 @@ const draw = (globalTime: number) => {
       if (debugCanvas) {
         for (let y = 0; y < COLLISION_TEXTURE_SIZE; ++y) {
           for (let x = 0; x < COLLISION_TEXTURE_SIZE; ++x) {
-            const i = ((COLLISION_TEXTURE_SIZE - y) * COLLISION_TEXTURE_SIZE + x) * 3;
+            const i = ((COLLISION_TEXTURE_SIZE - y) * COLLISION_TEXTURE_SIZE + x) * 4;
             const r = collision_buffer[i]!;
             const g = collision_buffer[i + 1]!;
             const b = collision_buffer[i + 2]!;
@@ -426,15 +433,20 @@ const draw = (globalTime: number) => {
 
 const image = new Image();
 image.onload = () => {
-  console.log("LOADED");
   const texture = gl.createTexture();
   gl.activeTexture(gl.TEXTURE3);
   gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, image.width, image.height, 0, gl.RGB, gl.UNSIGNED_BYTE, image);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, image.width, image.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, image);
   gl.generateMipmap(gl.TEXTURE_2D);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  texturesLoaded = true;
+
+  if (DEBUG) {
+    console.timeEnd("LOADED");
+  }
 };
+image.onerror = () => (texturesLoaded = true);
 image.src = groundTextureSvg;
 
 if (DEBUG) {
