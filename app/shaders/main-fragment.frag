@@ -24,7 +24,8 @@ uniform highp sampler2D groundTexture;
 out vec4 O;
 
 // Shadow bias
-// Could be computed based on normal and light, something like 0.0003 * (1. - clamp(dot(normal, lightDir), 0., 1.))
+// Could be computed based on normal and light, something like 0.0003 * (1. -
+// clamp(dot(normal, lightDir), 0., 1.))
 const float shadowBias = 0.000175;
 
 float ShadowCalculation() {
@@ -37,21 +38,22 @@ float ShadowCalculation() {
   csmCoords = (csmCoords / csmCoords.w) * .5 + .5;
 
   if (csmCoords.z > 1.) {
-    return 1.;  // Outside of far plane, skip.
+    return 1.; // Outside of far plane, skip.
   }
 
   // TODO: once we have real dimensions and cascades size,
   // we can try to adjust the shadow interpolation to avoid artifacts.
-  // The idea is to adjust the blur size depending on the distance and/or cascade index.
+  // The idea is to adjust the blur size depending on the distance and/or
+  // cascade index.
 
   float shadow = 0.;
 
   for (float x = -1.; x <= 1.; ++x) {
     for (float y = -1.; y <= 1.; ++y) {
       vec3 c = vec3(csmCoords.xy + vec2(x, y) / CSM_TEXTURE_SIZE, csmCoords.z - shadowBias);
-      shadow += depthValue < CSM_PLANE_DISTANCE0 ? texture(csm_textures[0], c)
-        : depthValue < CSM_PLANE_DISTANCE1       ? texture(csm_textures[1], c)
-                                                 : texture(csm_textures[2], c);
+      shadow += depthValue < CSM_PLANE_DISTANCE0 ? texture(csm_textures[0], c) :
+        depthValue < CSM_PLANE_DISTANCE1         ? texture(csm_textures[1], c) :
+                                                   texture(csm_textures[2], c);
     }
   }
 
@@ -61,9 +63,23 @@ float ShadowCalculation() {
 void main() {
   vec3 normal = normalize(VNormal.xyz);
 
+  vec3 rgbColor = Color.xyz;
+
+  rgbColor *= Color.w > 0. ? 1.
+      - Color.w
+        * dot(
+          abs(normal),
+          vec3(
+            texture(groundTexture, UntransformedFragPos.yz * .035).x,
+            texture(groundTexture, UntransformedFragPos.xz * .035).x,
+            texture(groundTexture, UntransformedFragPos.xy * .035).x
+          )
+        ) :
+                             1.;
+
   vec3 lightColor = vec3(0.9, 0.9, 0.9);
 
-  vec3 ambient = 0.3 * Color.xyz;
+  vec3 ambient = 0.3 * rgbColor;
 
   float diff = max(dot(lightDir, normal), 0.0);
   vec3 diffuse = diff * lightColor;
@@ -75,14 +91,7 @@ void main() {
   // calculate shadow
   float shadow = ShadowCalculation();
 
-  vec4 concrete =
-    (texture(groundTexture, UntransformedFragPos.xy * .035) * normal.z +
-     texture(groundTexture, UntransformedFragPos.yz * .035) * normal.x +
-     texture(groundTexture, UntransformedFragPos.xz * .035) * normal.y);
-
-  diffuse.xyz *= vec3(mix(concrete.x, 1., 0.65));
-
-  vec3 lighting = (ambient + mix(diffuse * .3, diffuse + specular, shadow)) * abs(Color.xyz);
+  vec3 lighting = (ambient + mix(diffuse * .3, diffuse + specular, shadow)) * (rgbColor);
 
   O = vec4(lighting, 1.0f);
 

@@ -17,13 +17,13 @@ import { meshAdd, meshEnd, editMatrixStack, withEditMatrix, newModel } from "./s
 
 let _modelIdCounter = 1;
 
-const MATERIAL_MAROON = material(0.5, 0.2, 0.2);
-const MATERIAL_DARK_GRAY = material(0.3, 0.3, 0.3);
+const MATERIAL_MAROON = material(0.6, 0.3, 0.3, 0.4);
+const MATERIAL_DARK_GRAY = material(0.3, 0.3, 0.3, 0.1);
 const MATERIAL_PURPLE_DARK = material(0.3, 0.1, 0.4);
 
 // ========= Lever mesh ========= //
 
-meshAdd(polygons_transform(cylinder(6, 1), identity.scale(0.12, 1.4, 0.12), MATERIAL_DARK_GRAY));
+meshAdd(polygons_transform(cylinder(6, 1), identity.scale(0.12, 1.4, 0.12), material(0.3, 0.3, 0.5)));
 meshAdd(polygons_transform(cylinder(6), identity.translate(0, 1, 0).scale(0.18, 0.25, 0.18), material(1, 0.5, 0.2)));
 meshAdd(
   polygons_transform(
@@ -89,7 +89,7 @@ export const playerModel = newModel((model) => {
   const eye = polygons_transform(
     csg_polygons(csg_subtract(cylinder(15, 1), polygons_transform(GBox, identity.translate(0, 0, 1).scale(2, 2, 0.5)))),
     identity.rotate(-90, 0, 0).scale(0.1, 0.05, 0.1),
-    MATERIAL_DARK_GRAY,
+    material(0.3, 0.3, 0.3),
   );
 
   minus1plus1_each((i) =>
@@ -103,7 +103,7 @@ export const playerModel = newModel((model) => {
   // meshAdd(polygons_transform(eye, identity.translate(-0.2, 1.2, 0.4).rotate(0, -20, -20)));
 
   // mouth
-  meshAdd(polygons_transform(GBox, identity.translate(0, 0.9, 0.45).scale(0.15, 0.02, 0.06), MATERIAL_DARK_GRAY));
+  meshAdd(polygons_transform(GBox, identity.translate(0, 0.9, 0.45).scale(0.15, 0.02, 0.06), material(0.3, 0.3, 0.3)));
 
   // body
   meshAdd(polygons_transform(sphere(15), identity.translate(0, 0, 0).scale(0.7, 0.8, 0.55), MATERIAL_DEVIL));
@@ -169,8 +169,8 @@ export const mainScene = () => {
 
   //  doors top
 
-  meshAdd(polygons_transform(GBox, identity.translate(0, 6.3, -15).scale(4, 0.3, 1), MATERIAL_DARK_GRAY));
-  meshAdd(polygons_transform(GBox, identity.translate(0, 6.3, 15).scale(4, 0.3, 1), MATERIAL_DARK_GRAY));
+  meshAdd(polygons_transform(GBox, identity.translate(0, 6.3, -15).scale(4, 0.3, 1), material(0.3, 0.3, 0.3, 0.1)));
+  meshAdd(polygons_transform(GBox, identity.translate(0, 6.3, 15).scale(4, 0.3, 1), material(0.3, 0.3, 0.3, 0.1)));
 
   //  doors bottom
 
@@ -184,7 +184,7 @@ export const mainScene = () => {
       polygons_transform(
         cylinder(6, 1),
         identity.translate(4 * (i / 6 - 0.5), 3, 15).scale(0.2, 3, 0.2),
-        MATERIAL_DARK_GRAY,
+        material(0.3, 0.3, 0.38),
       ),
     ),
   );

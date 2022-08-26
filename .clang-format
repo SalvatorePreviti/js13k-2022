@@ -1,10 +1,11 @@
 DisableFormat: false
-BasedOnStyle: Chromium
+BasedOnStyle: Webkit
 IndentWidth: 2
+TabWidth: 2
 UseTab: Never
 ColumnLimit: 125
 NamespaceIndentation: All
-AlignAfterOpenBracket: AlwaysBreak
+AlignAfterOpenBracket: BlockIndent
 AlignConsecutiveAssignments: false
 AlignConsecutiveBitFields: false
 AlignConsecutiveDeclarations: false
@@ -26,9 +27,10 @@ AllowAllArgumentsOnNextLine: true
 AllowAllConstructorInitializersOnNextLine: true
 AllowAllParametersOfDeclarationOnNextLine: true
 AlwaysBreakTemplateDeclarations: true
-BreakBeforeTernaryOperators: true
+BreakBeforeTernaryOperators: false
 ConstructorInitializerAllOnOneLineOrOnePerLine: true
 ConstructorInitializerIndentWidth: 2
+AlignEscapedNewlinesLeft: Left
 ContinuationIndentWidth: 2
 LambdaBodyIndentation: Signature
 PointerAlignment: Middle
