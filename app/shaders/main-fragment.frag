@@ -6,7 +6,7 @@ precision highp float;
 #define zNear 0.3
 #define CSM_PLANE_DISTANCE0 50.
 #define CSM_PLANE_DISTANCE1 110.
-#define zFar 150.
+#define zFar 180.
 
 in highp vec4 VNormal;
 in highp vec4 FragPos;
@@ -80,7 +80,7 @@ void main() {
      texture(groundTexture, UntransformedFragPos.yz * .035) * normal.x +
      texture(groundTexture, UntransformedFragPos.xz * .035) * normal.y);
 
-  diffuse.xyz *= mix(concrete.xyz, vec3(1.), 0.7);
+  diffuse.xyz *= vec3(mix(concrete.x, 1., 0.65));
 
   vec3 lighting = (ambient + mix(diffuse * .3, diffuse + specular, shadow)) * abs(Color.xyz);
 

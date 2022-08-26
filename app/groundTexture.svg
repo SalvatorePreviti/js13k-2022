@@ -1,9 +1,48 @@
-<svg width="1024" height="1024" xmlns="http://www.w3.org/2000/svg">
+<!-- <svg viewbox="0 0 1024 1024" width="1024" height="1024" xmlns="http://www.w3.org/2000/svg">
   <filter id="t" x="0" y="0" width="100%" height="100%">
     <feTurbulence type="fractalNoise" baseFrequency=".007" numOctaves="8" stitchTiles="stitch" />
-    <feDiffuseLighting diffuseConstant="4" surfaceScale="4">
-      <feDistantLight elevation="4" azimuth="270" />
+    <feDiffuseLighting result="A" diffuseConstant="4" surfaceScale="5" lighting-color="#f00" color-interpolation-filters="sRGB">
+      <feDistantLight elevation="5" />
     </feDiffuseLighting>
+
+    <feTurbulence type="fractalNoise" baseFrequency=".01" numOctaves="1" stitchTiles="stitch" />
+    <feDiffuseLighting result="B" diffuseConstant="4" surfaceScale="8" lighting-color="#0f0" color-interpolation-filters="sRGB">
+      <feDistantLight elevation="5" />
+    </feDiffuseLighting>
+
+      <feTurbulence type="fractalNoise" baseFrequency=".015" numOctaves="4" stitchTiles="stitch"/>
+
+    <feBlend in="A" in2="B" result="C" mode="screen" />
   </filter>
-  <rect filter="url(#t)" width="1024" height="1024" />
+  <rect filter="url(#t)" x="0%" y="0%" width="100%" height="100%" />
+</svg> -->
+
+
+<svg width="1024" height="1024" xmlns="http://www.w3.org/2000/svg" color-interpolation-filters="sRGB">
+  <filter id="filter" filterUnits="userSpaceOnUse" x="0" y="0" width="1026" height="1026">
+
+    <feTurbulence x="1" y="1" width="1025" height="1025" type="fractalNoise" baseFrequency=".007" numOctaves="8"
+      stitchTiles="stitch" result="z" />
+    <feTile x="-1" y="-1" width="1024" height="1024" />
+    <feTile />
+    <feDiffuseLighting diffuseConstant="4" surfaceScale="5" lighting-color="#f00">
+      <feDistantLight elevation="5" azimuth="270" />
+    </feDiffuseLighting>
+    <feTile x="1" y="1" width="1024" height="1024" />
+    <feTile result="x" />
+
+    <feColorMatrix in="z" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 1" />
+    <feTile x="1" y="1" width="1024" height="1024" />
+    <feTile result="z" />
+
+    <feTurbulence x="0" y="0" width="1024" height="1024" baseFrequency=".01" numOctaves="5" stitchTiles="stitch" />
+    <feColorMatrix type="matrix" values="0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1" />
+
+    <feBlend in2="x" mode="screen" />
+    <feBlend in2="z" mode="screen" />
+  </filter>
+  <!-- filter="url(#filter)" -->
+  <rect width="100%" height="100%" filter="url(#filter)" />
 </svg>
+
+<!-- filterUnits="userSpaceOnUse"  -->

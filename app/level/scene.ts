@@ -205,5 +205,7 @@ export const updateModels = (model: Model, parentMatrix = identity) => {
   }
 };
 
+// Initialize the full screen triangle for the sky
+
 meshAdd([polygon_transform(GQuad.slice(1), identity.translate(-2).scale3d(3).rotate(90, 0))]);
 meshEnd();

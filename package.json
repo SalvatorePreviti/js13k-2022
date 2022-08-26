@@ -72,7 +72,7 @@
     "eslint-plugin-mocha": "^10.1.0",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prefer-arrow": "^1.2.3",
-    "eslint-plugin-react": "^7.30.1",
+    "eslint-plugin-react": "^7.31.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "google-closure-compiler": "^20220803.0.0",
     "html-minifier-terser": "7.0.0",
@@ -92,7 +92,7 @@
     "terser": "^5.15.0",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.1.0",
-    "typescript": "^4.7.4",
+    "typescript": "^4.8.2",
     "uglify-js": "^3.17.0",
     "vite": "^3.0.9"
   }

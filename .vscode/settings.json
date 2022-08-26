@@ -77,5 +77,8 @@
     "editor.defaultFormatter": "xaver.clang-format"
   },
   "glsllint.supportedLangsWithStringLiterals": [],
-  "typescript.tsserver.experimental.enableProjectDiagnostics": true
+  "typescript.tsserver.experimental.enableProjectDiagnostics": true,
+  "[svg]": {
+    "editor.defaultFormatter": "jock.svg"
+  }
 }

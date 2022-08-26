@@ -426,6 +426,7 @@ const draw = (globalTime: number) => {
 
 const image = new Image();
 image.onload = () => {
+  console.log("LOADED");
   const texture = gl.createTexture();
   gl.activeTexture(gl.TEXTURE3);
   gl.bindTexture(gl.TEXTURE_2D, texture);

@@ -11,36 +11,36 @@ out vec4 O;
 
 #define gameTime iResolution.z
 
+/* 1 / Math.tan(fieldOfViewRadians / 2) */
+const float fieldOfViewAmount = 1.7320508075688774;
+
 void main() {
   vec2 fragCoord = (gl_FragCoord.xy / iResolution.xy) * 2. - 1.;
-
-  vec3 ray = normalize(
-    mat3(viewMatrix) *
-    vec3(
-      fragCoord.x * -(iResolution.x / iResolution.y),
-      -fragCoord.y,
-      /* 1 / Math.tan(fieldOfViewRadians / 2) */
-      1.7320508075688774));
-
+  vec3 ray =
+    normalize(viewMatrix * vec4(fragCoord.x * -(iResolution.x / iResolution.y), -fragCoord.y, fieldOfViewAmount, 0.)).xyz;
   float rayTracedLavalDistance = (-100. - viewPos.y) / ray.y;
+  float multiplier = (1. - clamp(abs(rayTracedLavalDistance / 10000.), 0., 1.));
 
-  vec4 pp = texture(groundTexture, ((gameTime / 20. + ray.z) * 0.5 - ray.xy) / 20.);
+  O = vec4(0, 0, 0, 1);
 
-  if (rayTracedLavalDistance > 0.) {
-    O = vec4(pp.y / 4., pp.y / 122., 0., 1);
-  } else {
-    vec3 rayTracedLava = viewPos + ray * rayTracedLavalDistance;
+  if (multiplier > 0.01) {
+    if (rayTracedLavalDistance > 0.) {
+      // Render sky
+      float c = cos(gameTime / 30.), s = sin(gameTime / 30.);
+      ray.xz *= mat2(c, s, -s, c);
+      vec3 absRay = abs(ray);
+      O.xyz = vec3(dot(vec2(texture(groundTexture, ray.xy).z, texture(groundTexture, ray.yz * 2.).z), absRay.zx) * absRay.y);
 
-    vec4 tt = texture(
-      groundTexture,
-      rayTracedLava.xz / 300. + vec2(sin(rayTracedLava.z / 30. + gameTime), cos(rayTracedLava.x / 20. + gameTime)) / 80.);
+    } else {
+      // Render lava
+      vec3 rayTracedLava = viewPos + ray * rayTracedLavalDistance;
+      vec4 tt = texture(
+        groundTexture,
+        rayTracedLava.xz / 300. + vec2(sin(rayTracedLava.z / 35. + gameTime), cos(rayTracedLava.x / 25. + gameTime)) / 80.);
 
-    float h = tt.x * 0.9;
-
-    // h = (sin(h + gameTime * 3.) * 1.) / 2.;
-
-    O = mix(O, vec4(h, h * h * h, 0., 1), 1. - clamp(-rayTracedLavalDistance / 10000., 0., 1.));
+      float h = (0.9 - tt.y) * multiplier;
+      O.x = h;
+      O.y = h * h * h;
+    }
   }
 }
-
-// cos(rayTracedLava.x / 23. + gameTime * 1.8)

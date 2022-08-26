@@ -11,7 +11,6 @@ import resugarBlockScopePlugin from "@resugar/codemod-declarations-block-scope";
 import resugarFunctionsArrow from "@resugar/codemod-functions-arrow";
 import { babelPluginSimple } from "./babel/babel-plugin-simple";
 import { jsUglify } from "./js-uglify";
-import { browserPureFunctions, global_defs } from "../lib/js-config";
 
 class Transformer extends SwcVisitor {
   override visitMemberExpression(n: MemberExpression): MemberExpression {
@@ -79,64 +78,6 @@ export function rollupPluginSwcTransform(): PluginOption {
               preserveAllComments: true,
               target: "es2022",
               parser: { syntax: "ecmascript" },
-              minify: {
-                module: true,
-                toplevel: true,
-                compress: {
-                  arrows: true,
-                  defaults: false,
-                  booleans: false,
-                  booleans_as_integers: false,
-                  collapse_vars: false,
-                  comparisons: true,
-                  computed_props: false,
-                  conditionals: true,
-                  const_to_let: false,
-                  dead_code: true,
-                  evaluate: false,
-                  global_defs,
-                  hoist_funs: true,
-                  hoist_props: true,
-                  hoist_vars: false,
-                  inline: 3,
-                  keep_fargs: false,
-                  keep_infinity: true,
-                  keep_fnames: true,
-                  if_return: true,
-                  loops: true,
-                  sequences: false,
-                  join_vars: false,
-                  module: true,
-                  toplevel: true,
-                  typeofs: true,
-                  unsafe_comps: true,
-                  negate_iife: false,
-                  passes: 10,
-                  unused: true,
-                  unsafe: true,
-                  unsafe_undefined: true,
-                  unsafe_proto: true,
-                  unsafe_regexp: true,
-                  unsafe_methods: true,
-                  unsafe_math: true,
-                  unsafe_arrows: true,
-                  pure_funcs: browserPureFunctions,
-                  pure_getters: true,
-                  reduce_funcs: true,
-                  reduce_vars: true,
-                  switches: true,
-                  pristine_globals: true,
-                  arguments: false,
-                  side_effects: true,
-                },
-                format: {
-                  ascii_only: false,
-                  beautify: true,
-                  comments: "all",
-                  keep_quoted_props: true,
-                  preserve_annotations: true,
-                },
-              },
             },
             plugin: (m) => {
               m = new Transformer().visitProgram(m);
