@@ -51,9 +51,9 @@ float ShadowCalculation() {
   for (float x = -1.; x <= 1.; ++x) {
     for (float y = -1.; y <= 1.; ++y) {
       vec3 c = vec3(csmCoords.xy + vec2(x, y) / CSM_TEXTURE_SIZE, csmCoords.z - shadowBias);
-      shadow += depthValue < CSM_PLANE_DISTANCE0 ? texture(csm_textures[0], c) :
-        depthValue < CSM_PLANE_DISTANCE1         ? texture(csm_textures[1], c) :
-                                                   texture(csm_textures[2], c);
+      shadow += depthValue < CSM_PLANE_DISTANCE0 ? texture(csm_textures[0], c)
+        : depthValue < CSM_PLANE_DISTANCE1       ? texture(csm_textures[1], c)
+                                                 : texture(csm_textures[2], c);
     }
   }
 
@@ -74,8 +74,8 @@ void main() {
             texture(groundTexture, UntransformedFragPos.xz * .035).x,
             texture(groundTexture, UntransformedFragPos.xy * .035).x
           )
-        ) :
-                             1.;
+        )
+                           : 1.;
 
   vec3 lightColor = vec3(0.9, 0.9, 0.9);
 

@@ -27,7 +27,7 @@ AllowAllArgumentsOnNextLine: true
 AllowAllConstructorInitializersOnNextLine: true
 AllowAllParametersOfDeclarationOnNextLine: true
 AlwaysBreakTemplateDeclarations: true
-BreakBeforeTernaryOperators: false
+BreakBeforeTernaryOperators: true
 ConstructorInitializerAllOnOneLineOrOnePerLine: true
 ConstructorInitializerIndentWidth: 2
 AlignEscapedNewlinesLeft: Left
