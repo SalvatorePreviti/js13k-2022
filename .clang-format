@@ -1,5 +1,5 @@
 DisableFormat: false
-BasedOnStyle: Webkit
+BasedOnStyle: LLVM
 IndentWidth: 2
 TabWidth: 2
 UseTab: Never
@@ -36,6 +36,7 @@ LambdaBodyIndentation: Signature
 PointerAlignment: Middle
 BinPackParameters: false
 BinPackArguments: false
+IndentCaseLabels: true
 MaxEmptyLinesToKeep: 1
 BreakBeforeBraces: Attach
 BreakBeforeConceptDeclarations: true

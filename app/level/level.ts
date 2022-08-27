@@ -164,13 +164,15 @@ export const mainScene = () => {
   // column doors
 
   polygon_transform(GQuad, identity.scale(3, 0, 15)).map(({ x, z }) => {
-    meshAdd(polygons_transform(cylinder(6), identity.translate(x, 3, z).scale(0.7, 4, 0.7), MATERIAL_MAROON));
+    meshAdd(
+      polygons_transform(cylinder(6), identity.translate(x, 3, z).scale(0.7, 4, 0.7), material(0.6, 0.3, 0.3, 0.4)),
+    );
   });
 
   //  doors top
 
-  meshAdd(polygons_transform(GBox, identity.translate(0, 6.3, -15).scale(4, 0.3, 1), material(0.3, 0.3, 0.3, 0.1)));
-  meshAdd(polygons_transform(GBox, identity.translate(0, 6.3, 15).scale(4, 0.3, 1), material(0.3, 0.3, 0.3, 0.1)));
+  meshAdd(polygons_transform(GBox, identity.translate(0, 6.3, -15).scale(4, 0.3, 1), material(0.3, 0.3, 0.3, 0.4)));
+  meshAdd(polygons_transform(GBox, identity.translate(0, 6.3, 15).scale(4, 0.3, 1), material(0.3, 0.3, 0.3, 0.4)));
 
   //  doors bottom
 
@@ -200,16 +202,16 @@ export const mainScene = () => {
             .translate((j - 0.5) * 18.5, 0, i * 4.8 - 9.5)
             .rotate(0, 180 - j * 180, 0)
             .scale(1.2, 10, 1),
-          material(1, 1, 0.8),
+          material(1, 1, 0.8, 0.1),
         ),
       );
     }),
   );
 
   // in and out
-  meshAdd(polygons_transform(GBox, identity.translate(0, 0, -23).scale(3, 1, 8), material(0.9, 0.9, 0.9)));
+  meshAdd(polygons_transform(GBox, identity.translate(0, 0, -23).scale(3, 1, 8), material(0.9, 0.9, 0.9, 0.2)));
 
-  meshAdd(polygons_transform(GBox, identity.translate(0, 0, 20).scale(3, 1, 5), material(0.9, 0.9, 0.9)));
+  meshAdd(polygons_transform(GBox, identity.translate(0, 0, 20).scale(3, 1, 5), material(0.9, 0.9, 0.9, 0.2)));
 
   // descent
 
@@ -217,7 +219,7 @@ export const mainScene = () => {
     polygons_transform(
       GBox,
       identity.translate(7, -3.3, -13).rotate(0, 60, 0).rotate(0, 0, -45).scale(3, 3, 3),
-      material(0.5, 0.1, 0),
+      material(0.5, 0.1, 0, 0.5),
     ),
   );
 
@@ -231,32 +233,36 @@ export const mainScene = () => {
           polygons_transform(
             cylinder(6, 0, 0, 0.3),
             identity.translate(8, -3, -4).scale(13, 1, 13),
-            material(0.7, 0.7, 0.7),
+            material(0.7, 0.7, 0.7, 0.2),
           ),
 
           // hole extension
-          polygons_transform(cylinder(4), identity.translate(0, -10).scale(9, 9, 9)),
+          polygons_transform(cylinder(4), identity.translate(0, -10).scale(9, 9, 9), material(0.4, 0.2, 0.5, 0.5)),
 
           // middle base
           polygons_transform(
             cylinder(6, 0, 0, 0.3),
             identity.translate(0, -0.92).scale(13, 2, 13),
-            material(0.8, 0.8, 0.8),
+            material(0.8, 0.8, 0.8, 0.2),
           ),
         ]),
         csg_union([
           // hole
-          polygons_transform(cylinder(5), identity.scale(5, 30, 5), material(0.4, 0.2, 0.5)),
+          polygons_transform(cylinder(5), identity.scale(5, 30, 5), material(0.4, 0.2, 0.6, 0.5)),
 
           // smooth hole
           polygons_transform(
             cylinder(5, 0, 1.5),
             identity.translate(0, 1, 0).scale(4.5, 0.3, 4.5),
-            material(0.7, 0.5, 0.9),
+            material(0.7, 0.5, 0.9, 0.2),
           ),
 
           // lower lever pad
-          polygons_transform(cylinder(6), identity.translate(15, -1.5, 4).scale(3.5, 1, 3.5), material(0.5, 0.5, 0.5)),
+          polygons_transform(
+            cylinder(6),
+            identity.translate(15, -1.5, 4).scale(3.5, 1, 3.5),
+            material(0.5, 0.5, 0.5, 0.5),
+          ),
         ]),
       ),
     ),
@@ -271,7 +277,7 @@ export const mainScene = () => {
   newModel((model) => {
     addLever();
     model._update = () => identity.translate(0, Math.cos(gameTime * 2) * 5 - 4, 0);
-    meshAdd(polygons_transform(cylinder(5), identity.translate(0, -1.4).scale(5, 1, 5), material(1, 1, 1)));
+    meshAdd(polygons_transform(cylinder(5), identity.translate(0, -1.4).scale(5, 1, 5), material(0.6, 0.65, 0.7, 0.3)));
   });
 
   // meshAdd(polygons_transform(cylinder(6, 0, 0, 0.3), identity.translate(15, -2, -5).scale(10, 1, 15)));

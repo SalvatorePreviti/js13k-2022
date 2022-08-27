@@ -1,11 +1,19 @@
 import type { FC } from "react";
+import { useEffect } from "react";
 import { useState } from "react";
 import Draggable from "react-draggable";
 import { GameCameraComponent } from "./game-camera";
 import { FpsGraph } from "./fps-graph";
+import { setLightRot } from "../../csm";
 
 export const DevToolBar: FC = () => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [rotX, setRotX] = useState(240);
+  const [rotY, setRotY] = useState(152);
+
+  useEffect(() => {
+    setLightRot(rotX, rotY);
+  });
 
   const [hidden, setHidden] = useState(false);
   return (
@@ -28,6 +36,35 @@ export const DevToolBar: FC = () => {
             <GameCameraComponent />
           </div>
         )}
+        <div>
+          <div>
+            <input
+              type="range"
+              min="0"
+              max="360"
+              value={rotX}
+              onChange={(event) => {
+                setRotX(Number.parseFloat(event.target.value));
+                setLightRot(rotX, rotY);
+              }}
+            />
+          </div>
+          <div>
+            <input
+              type="range"
+              min="0"
+              max="360"
+              value={rotY}
+              onChange={(event) => {
+                setRotY(Number.parseFloat(event.target.value));
+                setLightRot(rotX, rotY);
+              }}
+            />
+          </div>
+          <div>
+            {rotX.toFixed(2)} {rotY.toFixed(2)}
+          </div>
+        </div>
         <canvas
           id="debug-canvas"
           width={64}
