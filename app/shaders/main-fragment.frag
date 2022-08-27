@@ -31,15 +31,16 @@ const float shadowBias = 0.00018;
 void main() {
   vec3 normal = normalize(VNormal.xyz);
 
-  vec3 tex = Color.w *
+  vec3 tex = .5 * Color.w *
     (texture(groundTexture, UntransformedFragPos.yz * .035) * normal.x +
      texture(groundTexture, UntransformedFragPos.xz * .035) * normal.y +
      texture(groundTexture, UntransformedFragPos.xy * .035) * normal.z)
       .xyz;
 
-  vec3 rgbColor = max(Color.xyz - tex.x, 0.);
+  // Displacement map
   normal = normalize(normal.xyz + tex);
 
+  float shadow = 1.;
   float depthValue = abs((viewMatrix * FragPos).z);
 
   // Gets the fragment position in light space
@@ -48,7 +49,6 @@ void main() {
   // perform perspective divide and transform to [0,1] range
   csmCoords = (csmCoords / csmCoords.w) * .5 + .5;
 
-  float shadow = 1.;
   if (csmCoords.z < 1.) { // Only if inside far plane
     shadow = 0.;
     for (float x = -1.; x <= 1.; ++x) {
@@ -59,52 +59,20 @@ void main() {
                                                    : texture(csm_textures[2], c);
       }
     }
-    shadow = mix((shadow / 9.), 1., sqrt(depthValue / zFar) * .9);
+    shadow /= 9.;
   }
 
-  float kkkk = dot(normal, lightDir);
-  float lambertian = max(kkkk, 0.);
+  vec3 rgbColor = Color.xyz - tex.x;
+  vec3 diffuse = rgbColor * max(0., dot(normal, lightDir));
 
-  float specular = pow(max(dot(reflect(lightDir, normal), normalize(FragPos.xyz - viewPos)), 0.), 4.) * .4;
-
-  float Ka = 0.23;
-  float Ks = 1.;
-
-  vec3 lighting = (rgbColor + vec3(.1, 0, .1)) * .1 + (lambertian * rgbColor + Ks * specular) * shadow * .9;
-
-  // float d = max(dot(normal, lightDir), 0.0);
-  // vec3 viewDir = normalize(FragPos.xyz - viewPos);
-
-  // vec3 lighting =
-  //   // ambient
-  //   rgbColor * 0.1 +
-  //   (
-  //     // directional light
-  //     rgbColor * d +
-  //     // specular
-  //     pow(max(dot(reflect(lightDir, normal), viewDir), 0.0), 15.) * .4
-  //   ) *
-  //     0.9
-  //     // shadows
-  //     * shadow;
-
-  // vec3 lightColor = vec3(0.9, 0.9, 0.9);
-
-  // vec3 ambient = 0.3 * rgbColor;
-
-  // float diff = max(dot(lightDir, normal), 0.0);
-  // vec3 diffuse = diff * lightColor;
-  // // specular
-  // vec3 viewDir = normalize(viewPos - FragPos.xyz);
-  // vec3 halfwayDir = normalize(lightDir + viewDir);
-  // vec3 specular = pow(max(dot(normal, halfwayDir), 0.0), 64.0) * lightColor;
-
-  // // calculate shadow
-  // float shadow = ShadowCalculation();
-
-  // vec3 lighting = (ambient + mix(diffuse * .3, diffuse + specular, shadow)) * (rgbColor);
-
-  O = vec4(lighting, 1.0f);
+  O = vec4( // ambient
+    .1 * rgbColor +
+      // diffuse
+      .5 * diffuse * (1. + diffuse) * (shadow * .75 + .25) +
+      // specular
+      .6 * pow(max(0., dot(normalize(FragPos.xyz - viewPos), reflect(lightDir, normal))), 55.) * shadow,
+    1.0f
+  );
 
   // color += 0.125 * (concrete.x - concrete.y + concrete.z - concrete.w);
 }
