@@ -1,22 +1,21 @@
 import { mat_perspective, camera_view } from "./camera";
-import { gameTime } from "./game-time";
 import { polygon_transform } from "./geometry/geometry";
 import { integers_map } from "./math/math";
 import { identity } from "./math/matrix";
+
+export const lightRotX = 298;
+
+export const lightRotY = 139;
 
 /**
  * The main directional light rotation matrix.
  * Normalized light direction is { x: m13, y: m23, z: m33 }
  */
-export const lightMatrix = /* @__PURE__ */ identity.rotate(300, 140);
+export let lightMatrix = /* @__PURE__ */ identity.rotate(lightRotX, lightRotY);
 
-export function setLightRot(x: number, y: number, z: number) {
-  // lightMatrix = identity.rotate(lightRotX, lightRotY, lightRotZ);
+export function setLightRot(x: number, y: number) {
+  lightMatrix = identity.rotate(x, y);
 }
-
-export const updateLightRot = () => {
-  // lightMatrix = identity.rotate(240 + Math.sin(gameTime / 4) * 10, 152 + Math.sin(gameTime / 10) * 10, gameTime * 1100);
-};
 
 export const csm_buildMatrix = /* @__PURE__ */ (
   nearPlane: number,

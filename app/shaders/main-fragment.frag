@@ -31,15 +31,16 @@ const float shadowBias = 0.00018;
 void main() {
   vec3 normal = normalize(VNormal.xyz);
 
-  vec3 tex = .5 * Color.w *
+  vec3 tex = Color.w *
     (texture(groundTexture, UntransformedFragPos.yz * .035) * normal.x +
      texture(groundTexture, UntransformedFragPos.xz * .035) * normal.y +
      texture(groundTexture, UntransformedFragPos.xy * .035) * normal.z)
       .xyz;
 
   // Displacement map
-  normal = normalize(normal.xyz + tex);
+  normal = normalize(normal.xyz + tex * .5);
 
+  float lambert = dot(normal, lightDir);
   float shadow = 1.;
   float depthValue = abs((viewMatrix * FragPos).z);
 
@@ -62,17 +63,18 @@ void main() {
     shadow /= 9.;
   }
 
-  vec3 rgbColor = Color.xyz - tex.x;
-  vec3 diffuse = rgbColor * max(0., dot(normal, lightDir));
+  vec3 rgbColor = Color.xyz * (1. - tex.x);
 
-  O = vec4( // ambient
+  O = vec4(
+    // ambient
     .1 * rgbColor +
       // diffuse
-      .5 * diffuse * (1. + diffuse) * (shadow * .75 + .25) +
+      rgbColor * (max(0., lambert) * .3 + (rgbColor * lambert * lambert * .6)) * (shadow * .7 + .3) +
       // specular
-      .6 * pow(max(0., dot(normalize(FragPos.xyz - viewPos), reflect(lightDir, normal))), 55.) * shadow,
-    1.0f
+      .6 * pow(max(0., dot(normalize(FragPos.xyz - viewPos), reflect(lightDir, normal))), 35.) * shadow,
+    1
   );
 
+  // .5 * diffuse * (diffuse + 1.1)
   // color += 0.125 * (concrete.x - concrete.y + concrete.z - concrete.w);
 }

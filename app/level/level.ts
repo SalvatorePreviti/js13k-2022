@@ -202,7 +202,7 @@ export const mainScene = () => {
             .translate((j - 0.5) * 18.5, 0, i * 4.8 - 9.5)
             .rotate(0, 180 - j * 180, 0)
             .scale(1.2, 10, 1),
-          material(1, 1, 0.8, 0.1),
+          material(1, 1, 0.8, 0.2),
         ),
       );
     }),

@@ -28,7 +28,7 @@ import { integers_map, lerp } from "./math/math";
 import { mat_perspective, zFar, zNear, camera_position, camera_rotation, camera_view } from "./camera";
 import { camera_update } from "./camera-update";
 import { renderModels, updateModels, rootModel, initTriangleBuffers, modelsByModelId } from "./level/scene";
-import { csm_buildMatrix, lightMatrix, updateLightRot } from "./csm";
+import { csm_buildMatrix, lightMatrix } from "./csm";
 import {
   initInputHandlers,
   keyboard_downKeys,
@@ -258,8 +258,6 @@ const draw = (globalTime: number) => {
     .translateSelf(-camera_position.x, -camera_position.y, -camera_position.z);
 
   if (gameTimeDelta > 0) {
-    updateLightRot();
-
     updateModels(rootModel);
 
     // *** COLLISION ***
