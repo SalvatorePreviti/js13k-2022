@@ -8,16 +8,10 @@ import { identity } from "./math/matrix";
  * The main directional light rotation matrix.
  * Normalized light direction is { x: m13, y: m23, z: m33 }
  */
-export let lightMatrix = /* @__PURE__ */ identity.rotate(292, -216);
+export const lightMatrix = /* @__PURE__ */ identity.rotate(300, 140);
 
-export let lightRotX = 0;
-
-export let lightRotY = 0;
-
-export function setLightRot(x: number, y: number) {
-  lightRotX = x;
-  lightRotY = y;
-  lightMatrix = identity.rotate(lightRotX, lightRotY);
+export function setLightRot(x: number, y: number, z: number) {
+  // lightMatrix = identity.rotate(lightRotX, lightRotY, lightRotZ);
 }
 
 export const updateLightRot = () => {

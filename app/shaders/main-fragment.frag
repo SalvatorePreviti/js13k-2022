@@ -26,20 +26,19 @@ out vec4 O;
 // Shadow bias
 // Could be computed based on normal and light, something like 0.0003 * (1. -
 // clamp(dot(normal, lightDir), 0., 1.))
-const float shadowBias = 0.000175;
+const float shadowBias = 0.00018;
 
 void main() {
   vec3 normal = normalize(VNormal.xyz);
-  vec3 absNormal = abs(normal);
 
-  vec3 rgbColor = Color.xyz;
+  vec3 tex = Color.w *
+    (texture(groundTexture, UntransformedFragPos.yz * .035) * normal.x +
+     texture(groundTexture, UntransformedFragPos.xz * .035) * normal.y +
+     texture(groundTexture, UntransformedFragPos.xy * .035) * normal.z)
+      .xyz;
 
-  vec4 tex = texture(groundTexture, UntransformedFragPos.yz * .035) * absNormal.x +
-    texture(groundTexture, UntransformedFragPos.xz * .035) * absNormal.y +
-    texture(groundTexture, UntransformedFragPos.xy * .035) * absNormal.z;
-
-  rgbColor *= 1. - tex.x * Color.w;
-  normal = normalize(normal.xyz + ((normalize(tex.xyz))) * Color.w / 3.);
+  vec3 rgbColor = max(Color.xyz - tex.x, 0.);
+  normal = normalize(normal.xyz + tex);
 
   float depthValue = abs((viewMatrix * FragPos).z);
 
@@ -63,14 +62,31 @@ void main() {
     shadow = mix((shadow / 9.), 1., sqrt(depthValue / zFar) * .9);
   }
 
-  float specular = 0.0;
-  float d = max(dot(normal, lightDir), 0.0);
-  if (d > 0.0) {
-    vec3 viewVec = normalize(FragPos.xyz - viewPos);
-    specular = pow(max(dot(reflect(lightDir, normal), viewVec), 0.0), 90.);
-  }
+  float kkkk = dot(normal, lightDir);
+  float lambertian = max(kkkk, 0.);
 
-  vec3 lighting = rgbColor * 0.3 + (rgbColor * 0.7 * d + specular * 0.5) * shadow;
+  float specular = pow(max(dot(reflect(lightDir, normal), normalize(FragPos.xyz - viewPos)), 0.), 4.) * .4;
+
+  float Ka = 0.23;
+  float Ks = 1.;
+
+  vec3 lighting = (rgbColor + vec3(.1, 0, .1)) * .1 + (lambertian * rgbColor + Ks * specular) * shadow * .9;
+
+  // float d = max(dot(normal, lightDir), 0.0);
+  // vec3 viewDir = normalize(FragPos.xyz - viewPos);
+
+  // vec3 lighting =
+  //   // ambient
+  //   rgbColor * 0.1 +
+  //   (
+  //     // directional light
+  //     rgbColor * d +
+  //     // specular
+  //     pow(max(dot(reflect(lightDir, normal), viewDir), 0.0), 15.) * .4
+  //   ) *
+  //     0.9
+  //     // shadows
+  //     * shadow;
 
   // vec3 lightColor = vec3(0.9, 0.9, 0.9);
 
