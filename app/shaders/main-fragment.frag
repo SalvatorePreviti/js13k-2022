@@ -69,9 +69,9 @@ void main() {
     // ambient
     .1 * rgbColor +
       // diffuse
-      rgbColor * (max(0., lambert) * .3 + (rgbColor * lambert * lambert * .6)) * (shadow * .7 + .3) +
+      rgbColor * (max(0., lambert) * .5 + (rgbColor * lambert * lambert * .4)) * (shadow * .7 + .3) +
       // specular
-      .6 * pow(max(0., dot(normalize(FragPos.xyz - viewPos), reflect(lightDir, normal))), 35.) * shadow,
+      .7 * pow(max(0., dot(normalize(FragPos.xyz - viewPos), reflect(lightDir, normal))), 35.) * shadow,
     1
   );
 

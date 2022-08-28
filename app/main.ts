@@ -53,6 +53,24 @@ let texturesLoaded = false;
 
 initGl();
 
+const image = new Image();
+image.onload = () => {
+  const texture = gl.createTexture();
+  gl.activeTexture(gl.TEXTURE3);
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, image.width, image.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, image);
+  gl.generateMipmap(gl.TEXTURE_2D);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  texturesLoaded = true;
+
+  if (DEBUG) {
+    console.timeEnd("LOADED");
+  }
+};
+image.onerror = () => (texturesLoaded = true);
+image.src = groundTextureSvg;
+
 buildWorld();
 
 initTriangleBuffers();
@@ -336,11 +354,11 @@ const draw = (globalTime: number) => {
     player_legs_speed = lerp(player_legs_speed, movStrafe || movForward ? 1 : 0, gameTimeDelta * 10);
 
     playerRightLegModel.$animationMatrix = identity.rotate(
-      player_legs_speed * Math.sin(gameTime * movSelectedVelocity * 1.5) * 15,
+      player_legs_speed * Math.sin(gameTime * movSelectedVelocity * 1.7) * 15,
       0,
     );
     playerLeftLegModel.$animationMatrix = identity.rotate(
-      player_legs_speed * Math.sin(gameTime * movSelectedVelocity * 1.5 + Math.PI) * 15,
+      player_legs_speed * Math.sin(gameTime * movSelectedVelocity * 1.7 + Math.PI) * 15,
       0,
     );
 
@@ -447,27 +465,9 @@ const draw = (globalTime: number) => {
   gl.drawElements(gl.TRIANGLES, 3, gl.UNSIGNED_INT, 0);
 };
 
-const image = new Image();
-image.onload = () => {
-  const texture = gl.createTexture();
-  gl.activeTexture(gl.TEXTURE3);
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, image.width, image.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, image);
-  gl.generateMipmap(gl.TEXTURE_2D);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  texturesLoaded = true;
-
-  if (DEBUG) {
-    console.timeEnd("LOADED");
-  }
-};
-image.onerror = () => (texturesLoaded = true);
-image.src = groundTextureSvg;
-
 if (DEBUG) {
   console.timeEnd("boot");
 }
-draw(0);
+requestAnimationFrame(draw);
 
 initInputHandlers();
