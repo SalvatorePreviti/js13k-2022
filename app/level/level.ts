@@ -13,6 +13,7 @@ import {
 } from "../geometry/geometry";
 import { integers_map, minus1plus1_each } from "../math/math";
 import { identity } from "../math/matrix";
+import type { Model } from "./scene";
 import { meshAdd, meshEnd, editMatrixStack, withEditMatrix, newModel } from "./scene";
 
 let _modelIdCounter = 1;
@@ -65,12 +66,16 @@ const addLever = () => {
   return lever;
 };
 
+const MATERIAL_DEVIL = material(1, 0.3, 0.4);
+
 // ========= Player mesh ========= //
+
+export let playerRightLegModel: Model;
+
+export let playerLeftLegModel: Model;
 
 export const playerModel = newModel((model) => {
   model.$collisionDisabled = 1;
-
-  const MATERIAL_DEVIL = material(1, 0.3, 0.4);
 
   const rhorn = polygons_transform(
     horn(),
@@ -96,29 +101,19 @@ export const playerModel = newModel((model) => {
     meshAdd(polygons_transform(eye, identity.translate(i * 0.2, 1.2, 0.4).rotate(0, i * 20, i * 20))),
   );
 
-  // // right eye
-  // meshAdd(polygons_transform(eye, identity.translate(0.2, 1.2, 0.4).rotate(0, 20, 20)));
-
-  // // left eye
-  // meshAdd(polygons_transform(eye, identity.translate(-0.2, 1.2, 0.4).rotate(0, -20, -20)));
-
   // mouth
   meshAdd(polygons_transform(GBox, identity.translate(0, 0.9, 0.45).scale(0.15, 0.02, 0.06), material(0.3, 0.3, 0.3)));
 
   // body
   meshAdd(polygons_transform(sphere(15), identity.translate(0, 0, 0).scale(0.7, 0.8, 0.55), MATERIAL_DEVIL));
 
-  // Right leg
-  const rleg = polygons_transform(
-    cylinder(10, 1),
-    identity.translate(-0.3, -1, 0).scale(0.2, 0.5, 0.2),
-    MATERIAL_DEVIL,
-  );
+  // Player legs
 
-  meshAdd(rleg);
+  playerRightLegModel = newModel(() => {
+    meshAdd(polygons_transform(cylinder(10, 1), identity.translate(-0.3, -1, 0).scale(0.2, 0.5, 0.2), MATERIAL_DEVIL));
+  });
 
-  // Left leg
-  meshAdd(polygons_transform(rleg, identity.rotate(0, 180)));
+  playerLeftLegModel = withEditMatrix(identity.translate(0.6), () => newModel(() => playerRightLegModel.$mesh));
 
   return meshEnd();
 });
@@ -218,8 +213,8 @@ export const level1 = () => {
   meshAdd(
     polygons_transform(
       GBox,
-      identity.translate(7, -3.3, -13).rotate(0, 60, 0).rotate(0, 0, -45).scale(3, 3, 3),
-      material(0.5, 0.1, 0, 0.5),
+      identity.rotate(0, 60, 0).translate(14.3, -2.65, -1).rotate(0, 0, -30).scale(4, 2, 4.5),
+      material(0.8, 0.2, 0.2, 0.5),
     ),
   );
 
@@ -255,6 +250,13 @@ export const level1 = () => {
             cylinder(5, 0, 1.5),
             identity.translate(0, 1, 0).scale(4.5, 0.3, 4.5),
             material(0.7, 0.5, 0.9, 0.2),
+          ),
+
+          // descent cut
+          polygons_transform(
+            GBox,
+            identity.rotate(0, 60, 0).translate(14, 0.7, -1).rotate(0, 0, -35).scale(2, 2, 2),
+            material(0.5, 0.5, 0.5, 0.5),
           ),
 
           // lower lever pad

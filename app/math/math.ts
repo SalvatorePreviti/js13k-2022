@@ -1,8 +1,12 @@
 /** Amount to be multiplied to an angle in degrees to obtain an angle in radians, approximately 0.017453292519943295 */
 export const DEG_TO_RAD = Math.PI / 180;
 
+export const TWO_PI = Math.PI * 2;
+
 /** Linear interpolation */
 export const lerp = /* @__PURE__ */ (from: number, to: number, t: number) => t * (to - from) + from;
+
+export const clamp01 = (t: number) => (t < 0 ? 0 : t > 1 ? 1 : t);
 
 /**
  * Trigonometry - Wrap an angle so it is always between -PI and PI
@@ -20,4 +24,9 @@ export const integers_map = <T>(n: number, fn: (i: number) => T) => Array.from(A
 export const minus1plus1_each = <T>(fn: (i: number) => T) => {
   fn(-1);
   fn(1);
+};
+
+export const angle_lerp = (a0: number, a1: number, t: number) => {
+  const da = (a1 - a0) % (Math.PI * 2);
+  return a0 + (((2 * da) % (Math.PI * 2)) - da) * clamp01(t);
 };

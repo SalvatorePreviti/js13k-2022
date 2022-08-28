@@ -24,7 +24,7 @@ import void_fsSource from "./shaders/void-fragment.frag";
 import sky_vsSource from "./shaders/sky-vertex.vert";
 import sky_fsSource, { uniformName_iResolution } from "./shaders/sky-fragment.frag";
 
-import { integers_map, lerp } from "./math/math";
+import { angle_lerp, DEG_TO_RAD, integers_map, lerp } from "./math/math";
 import { mat_perspective, zFar, zNear, camera_position, camera_rotation, camera_view } from "./camera";
 import { camera_update } from "./camera-update";
 import { renderModels, updateModels, rootModel, initTriangleBuffers, modelsByModelId } from "./level/scene";
@@ -38,9 +38,10 @@ import {
   KEY_PLAYER_FRONT,
   KEY_PLAYER_LEFT,
   KEY_PLAYER_RIGHT,
+  KEY_RUN,
 } from "./input";
 import { gameTime, gameTimeDelta, gameTimeUpdate } from "./game-time";
-import { buildWorld, playerModel } from "./level/level";
+import { buildWorld, playerLeftLegModel, playerModel, playerRightLegModel } from "./level/level";
 import { identity, mat_perspectiveXY } from "./math/matrix";
 
 import { gl, initGl, initShaderProgram, loadShader } from "./gl";
@@ -240,6 +241,10 @@ const player_collisions = () => {
 let player_collision_velocity_x = 0;
 let player_collision_velocity_z = 0;
 
+let player_look_angle_target = 0;
+let player_look_angle = 0;
+let player_legs_speed = 0;
+
 const draw = (globalTime: number) => {
   requestAnimationFrame(draw);
 
@@ -274,24 +279,26 @@ const draw = (globalTime: number) => {
       player_collision_velocity_z = lerp(player_collision_velocity_z, 0, gameTimeDelta * 1.3);
     }
 
-    if (keyboard_downKeys[KEY_PLAYER_FRONT]) {
-      player_position_global.z += gameTimeDelta * 4;
+    const movStrafe = (keyboard_downKeys[KEY_PLAYER_LEFT] ? 1 : 0) + (keyboard_downKeys[KEY_PLAYER_RIGHT] ? -1 : 0);
+    const movForward = (keyboard_downKeys[KEY_PLAYER_FRONT] ? 1 : 0) + (keyboard_downKeys[KEY_PLAYER_BACK] ? -1 : 0);
+    const movSelectedVelocity = keyboard_downKeys[KEY_RUN] ? 8 : 4;
+    const playerSpeed = (movStrafe && movForward ? Math.SQRT1_2 : 1) * movSelectedVelocity * gameTimeDelta;
+
+    if (movStrafe || movForward) {
+      player_look_angle_target = Math.atan2(movStrafe, movForward);
     }
-    if (keyboard_downKeys[KEY_PLAYER_BACK]) {
-      player_position_global.z -= gameTimeDelta * 4;
-    }
-    if (keyboard_downKeys[KEY_PLAYER_LEFT]) {
-      player_position_global.x += gameTimeDelta * 4;
-    }
-    if (keyboard_downKeys[KEY_PLAYER_RIGHT]) {
-      player_position_global.x -= gameTimeDelta * 4;
-    }
+
+    player_look_angle = angle_lerp(player_look_angle, player_look_angle_target, gameTimeDelta * 8);
+
     if (keyboard_downKeys[KEY_PLAYER_FLY_UP]) {
-      player_position_global.y += gameTimeDelta * 4;
+      player_position_global.y += 2 * gameTimeDelta;
     }
     if (keyboard_downKeys[KEY_PLAYER_FLY_DOWN]) {
-      player_position_global.y -= gameTimeDelta * 4;
+      player_position_global.y -= 2 * gameTimeDelta;
     }
+
+    player_position_global.z += movForward * playerSpeed;
+    player_position_global.x += movStrafe * playerSpeed;
 
     const oldx = player_position_final.x;
     const oldz = player_position_final.z;
@@ -322,10 +329,19 @@ const draw = (globalTime: number) => {
       player_collision_velocity_z = (player_position_final.z - oldz) / gameTimeDelta;
     }
 
-    playerModel.$animationMatrix = identity.translate(
-      player_position_final.x,
-      player_position_final.y,
-      player_position_final.z,
+    playerModel.$animationMatrix = identity
+      .translate(player_position_final.x, player_position_final.y, player_position_final.z)
+      .rotate(0, player_look_angle / DEG_TO_RAD);
+
+    player_legs_speed = lerp(player_legs_speed, movStrafe || movForward ? 1 : 0, gameTimeDelta * 10);
+
+    playerRightLegModel.$animationMatrix = identity.rotate(
+      player_legs_speed * Math.sin(gameTime * movSelectedVelocity * 1.5) * 15,
+      0,
+    );
+    playerLeftLegModel.$animationMatrix = identity.rotate(
+      player_legs_speed * Math.sin(gameTime * movSelectedVelocity * 1.5 + Math.PI) * 15,
+      0,
     );
 
     if (DEBUG) {
