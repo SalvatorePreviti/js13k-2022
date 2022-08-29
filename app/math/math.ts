@@ -27,3 +27,9 @@ export const angle_lerp = (a0: number, a1: number, t: number) => {
   const da = (a1 - a0) % (Math.PI * 2);
   return a0 + (((2 * da) % (Math.PI * 2)) - da) * clamp01(t);
 };
+
+export const angle_lerp_degrees = (a0: number, a1: number, t: number) =>
+  angle_lerp(a0 * DEG_TO_RAD, a1 * DEG_TO_RAD, t) / DEG_TO_RAD;
+
+export const interpolate_with_hysteresis = (previous: number, desired: number, hysteresis: number, t: number) =>
+  previous + Math.sign(desired - previous) * Math.max(0, Math.abs(desired - previous) - hysteresis) * t * 2;

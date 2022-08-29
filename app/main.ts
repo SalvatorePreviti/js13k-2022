@@ -24,7 +24,15 @@ import void_fsSource from "./shaders/void-fragment.frag";
 import sky_vsSource from "./shaders/sky-vertex.vert";
 import sky_fsSource, { uniformName_iResolution } from "./shaders/sky-fragment.frag";
 
-import { angle_lerp, DEG_TO_RAD, integers_map, lerp } from "./math/math";
+import {
+  angle_lerp,
+  angle_lerp_degrees,
+  clamp01,
+  DEG_TO_RAD,
+  integers_map,
+  interpolate_with_hysteresis,
+  lerp,
+} from "./math/math";
 import { mat_perspective, zFar, zNear, camera_position, camera_rotation, camera_view } from "./camera";
 import { renderModels, updateModels, rootModel, initTriangleBuffers, modelsByModelId } from "./level/scene";
 import { csm_buildMatrix, lightMatrix } from "./csm";
@@ -248,7 +256,7 @@ const player_collisions = () => {
     }
   }
 
-  const timeMultiplier = gameTimeDelta / 0.008;
+  const timeMultiplier = gameTimeDelta / 0.006;
 
   player_position_global.x += (timeMultiplier * (right - left)) / 2;
   player_position_global.y += timeMultiplier * bottom;
@@ -262,6 +270,10 @@ let player_look_angle_target = 0;
 let player_look_angle = 0;
 let player_legs_speed = 0;
 
+let camera_player_dir_x = 0;
+let camera_player_dir_y = 0;
+let camera_player_dir_z = 0;
+
 const draw = (globalTime: number) => {
   requestAnimationFrame(draw);
 
@@ -270,6 +282,60 @@ const draw = (globalTime: number) => {
   }
 
   gameTimeUpdate(globalTime);
+
+  if (!DEBUG_CAMERA) {
+    camera_player_dir_x = interpolate_with_hysteresis(camera_player_dir_x, player_position_final.x, 0.5, gameTimeDelta);
+    camera_player_dir_y = interpolate_with_hysteresis(camera_player_dir_y, player_position_final.y, 2, gameTimeDelta);
+    camera_player_dir_z = interpolate_with_hysteresis(camera_player_dir_z, player_position_final.z, 0.5, gameTimeDelta);
+
+    camera_position.x = interpolate_with_hysteresis(camera_position.x, camera_player_dir_x, 1, gameTimeDelta * 2);
+    camera_position.y = interpolate_with_hysteresis(
+      camera_position.y,
+      camera_player_dir_y + 13,
+      // Math.max(10, camera_player_dir_y + 13),
+      4,
+      gameTimeDelta * 2,
+    );
+
+    camera_position.z = interpolate_with_hysteresis(camera_position.z, camera_player_dir_z - 18, 1, gameTimeDelta * 2);
+
+    const viewDirDiffx = camera_position.x - camera_player_dir_x;
+    const viewDirDiffy = camera_position.y - camera_player_dir_y;
+    const viewDirDiffz = camera_position.z - camera_player_dir_z;
+
+    camera_rotation.y = 270 + Math.atan2(viewDirDiffz, viewDirDiffx) / DEG_TO_RAD;
+
+    camera_rotation.x =
+      90 -
+      Math.atan2(Math.sqrt(viewDirDiffz * viewDirDiffz + viewDirDiffx * viewDirDiffx) || 0, viewDirDiffy) / DEG_TO_RAD;
+  }
+
+  // camera_rotation.y = angle_lerp_degrees(
+  //   camera_rotation.y,
+  //   270 + Math.atan2(viewDirDiffz, viewDirDiffx) / DEG_TO_RAD,
+  //   gameTimeDelta * 5,
+  // );
+
+  // camera_rotation.x = angle_lerp_degrees(
+  //   camera_rotation.x,
+  //   90 -
+  //     Math.atan2(Math.sqrt(viewDirDiffz * viewDirDiffz + viewDirDiffx * viewDirDiffx) || 0, viewDirDiffy) / DEG_TO_RAD,
+  //   gameTimeDelta * 5,
+  // );
+
+  // console.log(viewDirx, viewDiry);
+  // camera_rotation.x = Math.acos(viewDirx) / DEG_TO_RAD;
+  // }
+
+  // acos(dot(normalize(lightVector),normalize(normalVector)))
+
+  // const x_angle = Math.atan(camera_position.y * player_position_final.y + camera_position.z * player_position_final.z);
+
+  // camera_rotation.x = x_angle * 360;
+
+  // camera_rotation.x = acos(camera_position.x, player_position_final.x) / DEG_TO_RAD;
+  // console.log(camera_rotation.x);
+  // camera_rotation.y = camera_position.z - camera_desired_positionz;
 
   camera_view
     .setMatrixValue("none")

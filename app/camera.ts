@@ -19,8 +19,8 @@ if (DEBUG) {
 
 export const camera_position = {
   x: 0,
-  y: 0,
-  z: 0,
+  y: 20,
+  z: -40,
 };
 
 export const camera_rotation = {

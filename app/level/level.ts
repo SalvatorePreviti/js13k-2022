@@ -147,7 +147,7 @@ export const arc = (transform: DOMMatrixReadOnly, color?: number) => {
 export const level1 = () => {
   // ******** LEVEL 1 ********
 
-  // column doors
+  // gate columns
 
   polygon_transform(GQuad, identity.scale(3, 0, 15)).map(({ x, z }) => {
     meshAdd(
@@ -155,27 +155,27 @@ export const level1 = () => {
     );
   });
 
-  //  doors top
+  //  gate top
 
   meshAdd(polygons_transform(GBox, identity.translate(0, 6.3, -15).scale(4, 0.3, 1), material(0.3, 0.3, 0.3, 0.4)));
   meshAdd(polygons_transform(GBox, identity.translate(0, 6.3, 15).scale(4, 0.3, 1), material(0.3, 0.3, 0.3, 0.4)));
 
-  //  doors bottom
+  //  gate bottom
 
   meshAdd(polygons_transform(GBox, identity.translate(0, 1, -15).scale(3, 0.3, 0.35), material(0.5, 0.5, 0.5)));
   meshAdd(polygons_transform(GBox, identity.translate(0, 1, 15).scale(3, 0.3, 0.35), material(0.5, 0.5, 0.5)));
 
-  // doors bars
+  // gate bars
 
-  integers_map(7, (i) =>
-    meshAdd(
-      polygons_transform(
-        cylinder(6, 1),
-        identity.translate(4 * (i / 6 - 0.5), 3, 15).scale(0.2, 3, 0.2),
-        material(0.3, 0.3, 0.38),
-      ),
-    ),
-  );
+  // integers_map(7, (i) =>
+  //   meshAdd(
+  //     polygons_transform(
+  //       cylinder(6, 1),
+  //       identity.translate(4 * (i / 6 - 0.5), 3, 15).scale(0.2, 3, 0.2),
+  //       material(0.3, 0.3, 0.38),
+  //     ),
+  //   ),
+  // );
 
   // horns
 
