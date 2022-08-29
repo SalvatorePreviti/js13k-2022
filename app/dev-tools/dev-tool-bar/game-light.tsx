@@ -36,7 +36,7 @@ export const GameLightComponent: FC = () => {
         />
       </div>
       <div>
-        rotX:{rotX.toFixed(1)} rotY:{rotY.toFixed(1)}
+        rx:{rotX.toFixed(1)} ry:{rotY.toFixed(1)}
       </div>
       <div>
         x:{lightMatrix.m13.toFixed(2)} y:{lightMatrix.m23.toFixed(2)} z:{lightMatrix.m33.toFixed(2)}

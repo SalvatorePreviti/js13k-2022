@@ -11,7 +11,7 @@ import {
   horn,
   polygon_transform,
 } from "../geometry/geometry";
-import { integers_map, minus1plus1_each } from "../math/math";
+import { integers_map, minus1plus1_map } from "../math/math";
 import { identity } from "../math/matrix";
 import type { Model } from "./scene";
 import { meshAdd, meshEnd, editMatrixStack, withEditMatrix, newModel } from "./scene";
@@ -97,7 +97,7 @@ export const playerModel = newModel((model) => {
     material(0.3, 0.3, 0.3),
   );
 
-  minus1plus1_each((i) =>
+  minus1plus1_map((i) =>
     meshAdd(polygons_transform(eye, identity.translate(i * 0.2, 1.2, 0.4).rotate(0, i * 20, i * 20))),
   );
 
@@ -206,7 +206,7 @@ export const level1 = () => {
   // in and out
   meshAdd(polygons_transform(GBox, identity.translate(0, 0, -23).scale(3, 1, 8), material(0.9, 0.9, 0.9, 0.2)));
 
-  meshAdd(polygons_transform(GBox, identity.translate(0, 0, 20).scale(3, 1, 5), material(0.9, 0.9, 0.9, 0.2)));
+  meshAdd(polygons_transform(GBox, identity.translate(0, 0, 22).scale(3, 1, 8), material(0.9, 0.9, 0.9, 0.2)));
 
   // descent
 
@@ -277,29 +277,89 @@ export const level1 = () => {
   // moving central platform
 
   newModel((model) => {
-    addLever();
     model._update = () => identity.translate(0, Math.cos(gameTime * 2) * 5 - 4, 0);
     meshAdd(polygons_transform(cylinder(5), identity.translate(0, -1.4).scale(5, 1, 5), material(0.6, 0.65, 0.7, 0.3)));
+    addLever();
   });
-};
 
-export const buildWorld = () => {
-  newModel(() => {
-    level1();
+  // ******** LEVEL 2 ********
+
+  withEditMatrix(identity.translate(0, 0, 75), () => {
+    const blackPlatform = (oscillation: number) =>
+      // columns
+      newModel((model) => {
+        model._update = () => identity.translate(Math.sin(oscillation + gameTime / 1.5) * 12);
+        GQuad.map(({ x, z }) => {
+          // column body
+          meshAdd(
+            polygons_transform(
+              cylinder(11, 1),
+              identity.translate(x * 4, 4, z * 4 - 40).scale(0.8, 3, 0.8),
+              material(0.5, 0.3, 0.7, 0.6),
+            ),
+          );
+          // column top
+          meshAdd(
+            polygons_transform(
+              GBox,
+              identity.translate(x * 4, 7, z * 4 - 40).scale(1, 0.3, 1),
+              material(0.5, 0.5, 0.5, 0.3),
+            ),
+          );
+        });
+
+        meshAdd(
+          csg_polygons(
+            csg_subtract(
+              polygons_transform(GBox, identity.translate(0, 0, -40).scale(5, 1, 5), material(0.8, 0.8, 0.8, 0.3)),
+              csg_union(
+                minus1plus1_map((i) =>
+                  polygons_transform(
+                    GBox,
+                    identity
+                      .translate(5 * i, 0.2, -40)
+                      .rotate(0, 0, i * -30)
+                      .scale(4, 1, 2),
+                    material(0.8, 0.8, 0.8, 0.3),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        // bottom
+        meshAdd(polygons_transform(GBox, identity.translate(0, -3, -40).scale(8, 2, 8), material(0.4, 0.4, 0.4, 0.3)));
+      }, ++_modelIdCounter);
+
+    blackPlatform(0);
+    withEditMatrix(identity.translate(0, 0, 20), () => blackPlatform(5));
 
     newModel((model) => {
-      model._update = () => identity.translate(Math.sin(gameTime / 1.5) * 12, 0);
-      meshAdd(polygons_transform(GBox, identity.translate(0, 0, 43).scale(5, 1, 7), material(0.5, 1, 1)));
-    }, ++_modelIdCounter);
-
-    newModel((model) => {
-      model._update = () => identity.translate(Math.sin(gameTime + 2) * 12, 0);
-      meshAdd(polygons_transform(GBox, identity.translate(0, 0, 57).scale(5, 1, 7), material(1, 1, 0.5)));
+      model._update = () => identity.translate(Math.sin(gameTime / 1.5 + 2) * 12, 0);
+      meshAdd(
+        csg_polygons(
+          csg_subtract(
+            csg_union_op(
+              polygons_transform(GBox, identity.translate(0, 0, -30).scale(5, 1, 5), material(0.9, 0.9, 0.9, 0.2)),
+              polygons_transform(GBox, identity.translate(0, -2, -30).scale(2, 3.2, 2), material(0.3, 0.8, 0.5, 0.5)),
+            ),
+            polygons_transform(GBox, identity.translate(0, 0, -30).scale(1.5, 4, 1.5), material(0.2, 0.7, 0.4, 0.6)),
+          ),
+        ),
+      );
+      // pillar
+      // meshAdd(polygons_transform(GBox, identity.translate(0, 0, -30).scale(5, 1, 5), material(0.9, 0.9, 0.9, 0.2)));
     }, ++_modelIdCounter);
 
     newModel((model) => {
       model._update = () => identity.rotate(0, Math.sin(gameTime + 2) * 29, 0);
       meshAdd(polygons_transform(GBox, identity.translate(0, 0, 71).scale(5, 1, 7), material(1, 0.5, 1)));
     }, ++_modelIdCounter);
+  });
+};
+
+export const buildWorld = () => {
+  newModel(() => {
+    level1();
   });
 };

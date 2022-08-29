@@ -21,10 +21,7 @@ export const angle_wrap_degrees = /* @__PURE__ */ (degrees: number): number =>
 
 export const integers_map = <T>(n: number, fn: (i: number) => T) => Array.from(Array(n), (_, i) => fn(i));
 
-export const minus1plus1_each = <T>(fn: (i: number) => T) => {
-  fn(-1);
-  fn(1);
-};
+export const minus1plus1_map = <T>(fn: (i: number) => T) => [fn(-1), fn(1)];
 
 export const angle_lerp = (a0: number, a1: number, t: number) => {
   const da = (a1 - a0) % (Math.PI * 2);
