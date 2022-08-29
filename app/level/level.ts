@@ -204,7 +204,7 @@ export const level1 = () => {
   meshAdd(
     polygons_transform(
       GBox,
-      identity.rotate(0, 60, 0).translate(14.3, -2.65, -1).rotate(0, 0, -30).scale(4, 2, 4.5),
+      identity.rotate(0, 60, 0).translate(14.8, -1.46, -1).rotate(0, 0, -30).scale(4, 0.6, 4.5),
       material(0.8, 0.2, 0.2, 0.5),
     ),
   );
