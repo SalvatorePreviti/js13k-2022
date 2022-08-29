@@ -2,29 +2,17 @@ import type { KEY_CODE } from "./utils/keycodes";
 
 export const KEY_LEFT = 0;
 
-export const KEY_UP = 1;
+export const KEY_FRONT = 1;
 
 export const KEY_RIGHT = 2;
 
-export const KEY_DOWN = 3;
+export const KEY_BACK = 3;
 
 export const KEY_RUN = 4;
 
 export const KEY_DEBUG_FLY_UP = 5;
 
 export const KEY_DEBUG_FLY_DOWN = 6;
-
-export const KEY_PLAYER_FRONT = 10;
-
-export const KEY_PLAYER_BACK = 11;
-
-export const KEY_PLAYER_LEFT = 12;
-
-export const KEY_PLAYER_RIGHT = 13;
-
-export const KEY_PLAYER_FLY_UP = 14;
-
-export const KEY_PLAYER_FLY_DOWN = 15;
 
 export const keyboard_downKeys: (boolean | 0 | undefined)[] = [];
 
@@ -40,14 +28,14 @@ const keyMap: Partial<Record<KEY_CODE, number>> = {
   ["KeyA"]: KEY_LEFT,
   ["ArrowLeft"]: KEY_LEFT,
 
-  ["KeyW"]: KEY_UP,
-  ["ArrowUp"]: KEY_UP,
+  ["KeyW"]: KEY_FRONT,
+  ["ArrowUp"]: KEY_FRONT,
 
   ["KeyD"]: KEY_RIGHT,
   ["ArrowRight"]: KEY_RIGHT,
 
-  ["KeyS"]: KEY_DOWN,
-  ["ArrowDown"]: KEY_DOWN,
+  ["KeyS"]: KEY_BACK,
+  ["ArrowDown"]: KEY_BACK,
 
   ["ShiftLeft"]: KEY_RUN,
   ["ShiftRight"]: KEY_RUN,
@@ -55,17 +43,6 @@ const keyMap: Partial<Record<KEY_CODE, number>> = {
   ["KeyR"]: KEY_DEBUG_FLY_UP,
   ["KeyF"]: KEY_DEBUG_FLY_DOWN,
 };
-
-if (DEBUG) {
-  Object.assign(keyMap, {
-    ["KeyH"]: KEY_PLAYER_LEFT,
-    ["KeyU"]: KEY_PLAYER_FRONT,
-    ["KeyK"]: KEY_PLAYER_RIGHT,
-    ["KeyJ"]: KEY_PLAYER_BACK,
-    ["KeyO"]: KEY_PLAYER_FLY_UP,
-    ["KeyL"]: KEY_PLAYER_FLY_DOWN,
-  });
-}
 
 export const initInputHandlers = () => {
   if (!DEBUG) {

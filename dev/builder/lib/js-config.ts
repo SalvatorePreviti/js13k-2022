@@ -8,6 +8,7 @@ export const global_defs = {
   DEV: false,
   DEBUG: false,
   NO_DEBUG: true,
+  DEBUG_CAMERA: false,
   __REACT_DEVTOOLS_GLOBAL_HOOK__: undefined,
   "import.meta.hot": false,
   "import.meta.url": "index.js",

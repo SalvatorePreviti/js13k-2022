@@ -26,18 +26,17 @@ import sky_fsSource, { uniformName_iResolution } from "./shaders/sky-fragment.fr
 
 import { angle_lerp, DEG_TO_RAD, integers_map, lerp } from "./math/math";
 import { mat_perspective, zFar, zNear, camera_position, camera_rotation, camera_view } from "./camera";
-import { camera_update } from "./camera-update";
 import { renderModels, updateModels, rootModel, initTriangleBuffers, modelsByModelId } from "./level/scene";
 import { csm_buildMatrix, lightMatrix } from "./csm";
 import {
   initInputHandlers,
   keyboard_downKeys,
-  KEY_PLAYER_BACK,
-  KEY_PLAYER_FLY_DOWN,
-  KEY_PLAYER_FLY_UP,
-  KEY_PLAYER_FRONT,
-  KEY_PLAYER_LEFT,
-  KEY_PLAYER_RIGHT,
+  KEY_BACK,
+  KEY_DEBUG_FLY_DOWN,
+  KEY_DEBUG_FLY_UP,
+  KEY_FRONT,
+  KEY_LEFT,
+  KEY_RIGHT,
   KEY_RUN,
 } from "./input";
 import { gameTime, gameTimeDelta, gameTimeUpdate } from "./game-time";
@@ -217,7 +216,7 @@ const player_collisions = () => {
   }
   bottom /= 2;
 
-  if (!DEBUG || (!keyboard_downKeys[KEY_PLAYER_FLY_DOWN] && !keyboard_downKeys[KEY_PLAYER_FLY_UP])) {
+  if (!DEBUG || (!keyboard_downKeys[KEY_DEBUG_FLY_DOWN] && !keyboard_downKeys[KEY_DEBUG_FLY_UP])) {
     bottom -= 0.11;
   }
 
@@ -272,8 +271,6 @@ const draw = (globalTime: number) => {
 
   gameTimeUpdate(globalTime);
 
-  camera_update(gameTimeDelta);
-
   camera_view
     .setMatrixValue("none")
     .rotateSelf(-camera_rotation.x, -camera_rotation.y, -camera_rotation.z)
@@ -297,8 +294,8 @@ const draw = (globalTime: number) => {
       player_collision_velocity_z = lerp(player_collision_velocity_z, 0, gameTimeDelta * 1.3);
     }
 
-    const movStrafe = (keyboard_downKeys[KEY_PLAYER_LEFT] ? 1 : 0) + (keyboard_downKeys[KEY_PLAYER_RIGHT] ? -1 : 0);
-    const movForward = (keyboard_downKeys[KEY_PLAYER_FRONT] ? 1 : 0) + (keyboard_downKeys[KEY_PLAYER_BACK] ? -1 : 0);
+    const movStrafe = (keyboard_downKeys[KEY_LEFT] ? 1 : 0) + (keyboard_downKeys[KEY_RIGHT] ? -1 : 0);
+    const movForward = (keyboard_downKeys[KEY_FRONT] ? 1 : 0) + (keyboard_downKeys[KEY_BACK] ? -1 : 0);
     const movSelectedVelocity = keyboard_downKeys[KEY_RUN] ? 8 : 4;
     const playerSpeed = (movStrafe && movForward ? Math.SQRT1_2 : 1) * movSelectedVelocity * gameTimeDelta;
 
@@ -308,11 +305,13 @@ const draw = (globalTime: number) => {
 
     player_look_angle = angle_lerp(player_look_angle, player_look_angle_target, gameTimeDelta * 8);
 
-    if (keyboard_downKeys[KEY_PLAYER_FLY_UP]) {
-      player_position_global.y += 2 * gameTimeDelta;
-    }
-    if (keyboard_downKeys[KEY_PLAYER_FLY_DOWN]) {
-      player_position_global.y -= 2 * gameTimeDelta;
+    if (DEBUG) {
+      if (keyboard_downKeys[KEY_DEBUG_FLY_UP]) {
+        player_position_global.y += 2 * gameTimeDelta;
+      }
+      if (keyboard_downKeys[KEY_DEBUG_FLY_DOWN]) {
+        player_position_global.y -= 2 * gameTimeDelta;
+      }
     }
 
     player_position_global.z += movForward * playerSpeed;

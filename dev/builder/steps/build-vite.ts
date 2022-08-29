@@ -111,6 +111,7 @@ export async function buildWithVite(options: {
       const viteConfigBuild: ViteUserConfig = {
         define: {
           DEBUG: false,
+          DEBUG_CAMERA: false,
         },
 
         build: {
@@ -175,9 +176,11 @@ export async function buildWithVite(options: {
           mangleQuoted: false,
           pure: browserPureFunctions,
           define: {
+            globalThis: "window",
             this: "window",
             DEV: "false",
             DEBUG: "false",
+            DEBUG_CAMERA: "false",
             NO_DEBUG: "true",
           },
         },

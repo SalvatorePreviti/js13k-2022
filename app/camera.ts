@@ -1,4 +1,4 @@
-import { angle_wrap_degrees, DEG_TO_RAD } from "./math/math";
+import { DEG_TO_RAD } from "./math/math";
 import { mat_perspectiveXY } from "./math/matrix";
 
 import { constDef_zNear, constDef_zFar } from "./shaders/main-fragment.frag";
@@ -13,44 +13,23 @@ export const fieldOfViewRadians = fieldOfViewDegrees * DEG_TO_RAD; // in radians
 
 const fieldOfViewAmount = 1 / Math.tan(fieldOfViewRadians / 2);
 
-console.log(fieldOfViewAmount);
-
-// export const camera_position = { x: 20, y: 12, z: 38 };
+if (DEBUG) {
+  console.log("fieldOfViewAmount:", fieldOfViewAmount);
+}
 
 export const camera_position = {
-  x: -3.088800075819814,
-  y: 2.469434614278021,
-  z: -7.205803775041257,
-  // x: 1.5077253084347302,
-  // y: 27.460934914277953,
-  // z: -26.50281161557649,
+  x: 0,
+  y: 0,
+  z: 0,
 };
 
-// export const camera_rotation = { x: 0, y: -35, z: 0 };
-
 export const camera_rotation = {
-  x: 23.1,
-  y: 160.20000000000007,
+  x: 0,
+  y: 0,
   z: 0,
-  // x: 42,
-  // y: -177,
-  // z: 0,
 };
 
 export const camera_view = new DOMMatrix();
-
-export const camera_firstPersonRotate = (x: number, y: number) => {
-  camera_rotation.y = angle_wrap_degrees(camera_rotation.y + x);
-  camera_rotation.x = Math.max(Math.min(camera_rotation.x + y, 87), -87);
-};
-
-export const camera_firstPersonMove = (x: number, z: number) => {
-  const yradians = camera_rotation.y * DEG_TO_RAD;
-  const c = Math.cos(yradians);
-  const s = Math.sin(yradians);
-  camera_position.x += x * c - z * s;
-  camera_position.z += x * s + z * c;
-};
 
 export const mat_perspective = (near: number, far: number) =>
   mat_perspectiveXY((hC.clientHeight / hC.clientWidth) * fieldOfViewAmount, fieldOfViewAmount, near, far);

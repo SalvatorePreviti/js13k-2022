@@ -1,73 +1,71 @@
 import type { FC } from "react";
 import { useState, useEffect } from "react";
 import { camera_position, camera_rotation } from "../../camera";
+import { debug_camera_position, debug_camera_rotation, debug_camera_zero } from "../dev";
 
-let updateCounter = 1;
-let oldValue: string = "";
-
-oldValue = localStorage.getItem("DEV_CAMERA") || "";
-if (oldValue) {
-  const { pos, rot } = JSON.parse(oldValue);
-  camera_position.x = pos.x;
-  camera_position.y = pos.y;
-  camera_position.z = pos.z;
-  camera_rotation.x = rot.x;
-  camera_rotation.y = rot.y;
-  camera_rotation.z = rot.z;
-}
+let updateCounter = 0;
 
 export const GameCameraComponent: FC = () => {
+  const [debugCameraEnabled, setDebugCameraEnabled] = useState(!!window.DEBUG_CAMERA);
   const [, setUpdateCounter] = useState(0);
 
   const update = () => {
     setUpdateCounter(++updateCounter);
-    const s = JSON.stringify({ pos: camera_position, rot: camera_rotation });
-    if (oldValue !== s) {
-      localStorage.setItem("DEV_CAMERA", s);
-      oldValue = s;
+    if (debugCameraEnabled !== !!window.DEBUG_CAMERA) {
+      setDebugCameraEnabled(!!window.DEBUG_CAMERA);
     }
   };
 
   useEffect(() => {
-    const updateInterval = setInterval(update, 300);
+    const updateInterval = setInterval(update, 50);
     return () => clearInterval(updateInterval);
   }, []);
+
+  const p = window.DEBUG_CAMERA ? debug_camera_position : camera_position;
+  const r = window.DEBUG_CAMERA ? debug_camera_rotation : camera_rotation;
 
   return (
     <div className="dev-tool-bar-camera">
       <div className="dev-tool-bar-camera-values">
         <div>
           <div className="dev-tool-bar-camera-values-title">pos</div>
-          <div>{formatNumber(camera_position.x, 4)}</div>
-          <div>{formatNumber(camera_position.y, 4)}</div>
-          <div>{formatNumber(camera_position.z, 4)}</div>
+          <div>{formatNumber(p.x, 4)}</div>
+          <div>{formatNumber(p.y, 4)}</div>
+          <div>{formatNumber(p.z, 4)}</div>
         </div>
         <div>
           <div className="dev-tool-bar-camera-values-title">rot</div>
-          <div>{formatNumber(camera_rotation.x, 2)}</div>
-          <div>{formatNumber(camera_rotation.y, 2)}</div>
-          <div>{formatNumber(camera_rotation.z, 2)}</div>
+          <div>{formatNumber(r.x, 2)}</div>
+          <div>{formatNumber(r.y, 2)}</div>
+          <div>{formatNumber(r.z, 2)}</div>
         </div>
       </div>
       <br />
       <div>
+        <label>
+          debug cam
+          <input
+            type="checkbox"
+            checked={window.DEBUG_CAMERA}
+            onChange={(e) => {
+              const value = !!e.target.checked;
+              window.DEBUG_CAMERA = value;
+              update();
+            }}
+          />
+        </label>
+      </div>
+      <div>
         <button
           onClick={() => {
-            camera_position.x = 0;
-            camera_position.y = 0;
-            camera_position.z = 10;
-
-            camera_rotation.x = 0;
-            camera_rotation.y = 0;
-            camera_rotation.z = 0;
-
+            debug_camera_zero();
             update();
           }}
           title="clear"
         >
           ❌
         </button>
-        <button onClick={() => console.log({ camera_position, camera_rotation })} title="log">
+        <button onClick={() => console.log({ p, r })} title="log">
           📜
         </button>
       </div>

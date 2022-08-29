@@ -2,6 +2,11 @@
 
 declare const DEBUG: boolean;
 declare const NO_DEBUG: boolean;
+declare let DEBUG_CAMERA: boolean;
+
+interface Window {
+  DEBUG_CAMERA: boolean;
+}
 
 declare module "*.frag";
 

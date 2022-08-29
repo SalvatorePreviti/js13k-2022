@@ -6,7 +6,6 @@ import {
   GBox,
   cylinder,
   polygons_transform,
-  type Polygon,
   sphere,
   horn,
   polygon_transform,
@@ -14,13 +13,9 @@ import {
 import { integers_map, minus1plus1_map } from "../math/math";
 import { identity } from "../math/matrix";
 import type { Model } from "./scene";
-import { meshAdd, meshEnd, editMatrixStack, withEditMatrix, newModel } from "./scene";
+import { meshAdd, meshEnd, withEditMatrix, newModel } from "./scene";
 
 let _modelIdCounter = 1;
-
-const MATERIAL_MAROON = material(0.6, 0.3, 0.3, 0.4);
-const MATERIAL_DARK_GRAY = material(0.3, 0.3, 0.3, 0.1);
-const MATERIAL_PURPLE_DARK = material(0.3, 0.1, 0.4);
 
 // ========= Lever mesh ========= //
 
@@ -119,10 +114,6 @@ export const playerModel = newModel((model) => {
 });
 
 // ***** Player model *****
-
-const pavement = (): Polygon[] => {
-  return polygons_transform(GBox, identity.translate(0, -2).scale(1100, 0.5, 1100), material(1, 1, 1));
-};
 
 // export const arc = (transform: DOMMatrixReadOnly, color?: number) => {
 //   return csg_subtract(
