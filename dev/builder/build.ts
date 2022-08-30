@@ -137,11 +137,12 @@ export async function build() {
       minify: false,
       plugins: [
         babelPluginSimple({ unmangleableProperties: "mark" }),
+        resugarConcise,
+        resugarFunctionsArrow,
         "babel-plugin-minify-constant-folding",
         "babel-plugin-minify-dead-code-elimination",
-        resugarFunctionsArrow,
-        resugarBlockScope,
-        babelPluginVars({ constToLet: true }),
+        // resugarBlockScope,
+        babelPluginVars({ constToLet: false }),
       ],
     });
 
@@ -164,9 +165,9 @@ export async function build() {
         resugarConcise,
         resugarFunctionsArrow,
         resugarObjectsShorthand,
-        resugarBlockScope,
+        // resugarBlockScope,
         babelPluginVars({ constToLet: true }),
-        "babel-plugin-pure-calls-annotation",
+        // "babel-plugin-pure-calls-annotation",
       ],
     });
 
@@ -184,10 +185,10 @@ export async function build() {
         resugarConcise,
         resugarFunctionsArrow,
         resugarObjectsShorthand,
-        resugarBlockScope,
+        // resugarBlockScope,
         babelPluginVars({ constToLet: true }),
         babelPluginSimple({ unmangleableProperties: "transform", floatRound: floatRoundAmount }),
-        "babel-plugin-pure-calls-annotation",
+        // "babel-plugin-pure-calls-annotation",
       ],
     });
 
@@ -204,7 +205,7 @@ export async function build() {
         resugarObjectsShorthand,
         resugarFunctionsArrow,
         resugarBlockScope,
-        babelPluginVars(),
+        babelPluginVars({ constToLet: true }),
         "babel-plugin-pure-calls-annotation",
       ],
     });

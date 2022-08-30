@@ -334,12 +334,10 @@ export const level1 = () => {
               polygons_transform(GBox, identity.translate(0, 0, -30).scale(5, 1, 5), material(0.9, 0.9, 0.9, 0.2)),
               polygons_transform(GBox, identity.translate(0, -2, -30).scale(2, 3.2, 2), material(0.3, 0.8, 0.5, 0.5)),
             ),
-            polygons_transform(GBox, identity.translate(0, 0, -30).scale(1.5, 4, 1.5), material(0.2, 0.7, 0.4, 0.6)),
+            polygons_transform(GBox, identity.translate(0, 0, -30).scale(1.5, 10, 1.5), material(0.2, 0.7, 0.4, 0.6)),
           ),
         ),
       );
-      // pillar
-      // meshAdd(polygons_transform(GBox, identity.translate(0, 0, -30).scale(5, 1, 5), material(0.9, 0.9, 0.9, 0.2)));
     }, ++_modelIdCounter);
 
     newModel((model) => {

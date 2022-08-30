@@ -8,6 +8,7 @@ import { swcPluginVars } from "./swc/transforms/swc-plugin-vars";
 import { transform } from "@babel/core";
 import path from "path";
 import resugarBlockScopePlugin from "@resugar/codemod-declarations-block-scope";
+import resugarConcise from "@resugar/codemod-objects-concise";
 import resugarFunctionsArrow from "@resugar/codemod-functions-arrow";
 import { babelPluginSimple } from "./babel/babel-plugin-simple";
 import { jsUglify } from "./js-uglify";
@@ -108,7 +109,7 @@ export function rollupPluginSwcTransform(): PluginOption {
           },
           plugins: [
             resugarFunctionsArrow,
-            resugarBlockScopePlugin,
+            // resugarBlockScopePlugin,
             "babel-plugin-minify-constant-folding",
             "babel-plugin-minify-dead-code-elimination",
             babelPluginSimple({ unmangleableProperties: "mark" }),
@@ -145,6 +146,7 @@ export function rollupPluginSwcTransform(): PluginOption {
             allowUndeclaredExports: true,
           },
           plugins: [
+            resugarConcise,
             resugarFunctionsArrow,
             resugarBlockScopePlugin,
             "babel-plugin-minify-constant-folding",

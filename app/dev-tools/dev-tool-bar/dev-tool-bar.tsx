@@ -32,8 +32,8 @@ export const DevToolBar: FC = () => {
         <GameLightComponent />
         <canvas
           id="debug-canvas"
-          width={64}
-          height={64}
+          width={128}
+          height={128}
           style={{ display: "block", marginLeft: 10, width: 128, height: 128 }}
         ></canvas>
       </div>

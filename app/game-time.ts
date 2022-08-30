@@ -6,7 +6,7 @@ let _globalTime: number | undefined;
 
 export const gameTimeUpdate = (time: number) => {
   // if (!document.hidden) {
-  gameTimeDelta = Math.min(0.05, (time - (_globalTime || time)) / 1000);
+  gameTimeDelta = Math.min(0.06, (time - (_globalTime || time)) / 1000);
   gameTime += gameTimeDelta;
   // }
   _globalTime = time;

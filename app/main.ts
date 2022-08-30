@@ -24,15 +24,7 @@ import void_fsSource from "./shaders/void-fragment.frag";
 import sky_vsSource from "./shaders/sky-vertex.vert";
 import sky_fsSource, { uniformName_iResolution } from "./shaders/sky-fragment.frag";
 
-import {
-  angle_lerp,
-  angle_lerp_degrees,
-  clamp01,
-  DEG_TO_RAD,
-  integers_map,
-  interpolate_with_hysteresis,
-  lerp,
-} from "./math/math";
+import { angle_lerp, clamp01, DEG_TO_RAD, integers_map, interpolate_with_hysteresis, lerp } from "./math/math";
 import { mat_perspective, zFar, zNear, camera_position, camera_rotation, camera_view } from "./camera";
 import { renderModels, updateModels, rootModel, initTriangleBuffers, modelsByModelId } from "./level/scene";
 import { csm_buildMatrix, lightMatrix } from "./csm";
@@ -57,6 +49,8 @@ import { player_position_global, player_position_final } from "./player";
 import groundTextureSvg from "./groundTexture.svg";
 
 let texturesLoaded = false;
+
+const _frameBuffersInvalidations = [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT];
 
 initGl();
 
@@ -96,12 +90,12 @@ const csmShader = initShaderProgram(loadShader(csm_vsSource), void_fsSource);
 
 const main_vertexShader = loadShader(main_vsSource);
 const collisionShader = initShaderProgram(main_vertexShader, collider_fsSource);
-gl.uniformMatrix4fv(collisionShader(uniformName_projectionMatrix), false, mat_perspectiveXY(1.2, 0.5, 0.0001, 1));
+gl.uniformMatrix4fv(collisionShader(uniformName_projectionMatrix), false, mat_perspectiveXY(1.9, 0.54, 0.001, 1));
 
 const mainShader = initShaderProgram(main_vertexShader, main_fsSource);
 gl.uniform1i(mainShader(uniformName_groundTexture), 3); // TEXTURE3
 
-const COLLISION_TEXTURE_SIZE = 64;
+const COLLISION_TEXTURE_SIZE = 128;
 
 const collision_buffer = new Uint8Array(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
 const collision_texture = gl.createTexture()!;
@@ -162,12 +156,16 @@ const csm_render = integers_map(3, (csmSplit: number) => {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_FUNC, gl.LEQUAL); // Can be LESS or LEQUAL
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_MODE, gl.COMPARE_REF_TO_TEXTURE);
 
-  return (matrix?: Float32Array) => {
+  return (matrix?: Float32Array | 1) => {
     if (matrix) {
       gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
-      gl.clear(gl.DEPTH_BUFFER_BIT);
-      gl.uniformMatrix4fv(csmShader(uniformName_viewMatrix), false, (lightSpaceMatrix = matrix));
-      renderModels(csmShader(uniformName_worldMatrix));
+      if (matrix === 1) {
+        gl.invalidateFramebuffer(gl.FRAMEBUFFER, _frameBuffersInvalidations);
+      } else {
+        gl.clear(gl.DEPTH_BUFFER_BIT);
+        gl.uniformMatrix4fv(csmShader(uniformName_viewMatrix), false, (lightSpaceMatrix = matrix));
+        renderModels(csmShader(uniformName_worldMatrix));
+      }
     } else {
       gl.uniformMatrix4fv(lightSpaceMatrixLoc, false, lightSpaceMatrix);
     }
@@ -178,12 +176,12 @@ let debug2dctx: CanvasRenderingContext2D | null = null;
 
 const readDist1 = (x: number, y: number): number => {
   const bufIdx = (y * COLLISION_TEXTURE_SIZE + x) * 4;
-  return collision_buffer[bufIdx]! / 255;
+  return collision_buffer[bufIdx]!;
 };
 
 const readDist2 = (x: number, y: number): number => {
   const bufIdx = (y * COLLISION_TEXTURE_SIZE + x) * 4;
-  return collision_buffer[bufIdx + 1]! / 255;
+  return collision_buffer[bufIdx + 1]!;
 };
 
 const player_collision_modelIdCounter = new Int32Array(256);
@@ -192,79 +190,8 @@ let oldModelId = 0;
 
 export let currentModelId = 0;
 
-const player_collisions = () => {
-  let front = 0;
-  let back = 0;
-  let left = 0;
-  let right = 0;
-  let bottom = 0;
-
-  // Ground Collision:
-
-  let maxModelIdCount = 0;
-  currentModelId = 0;
-  player_collision_modelIdCounter.fill(0);
-
-  for (let x = 0; x < COLLISION_TEXTURE_SIZE; x++) {
-    for (let y = 0; y < 18; y++) {
-      const bufIdx = (y * COLLISION_TEXTURE_SIZE + x) * 4;
-      const b = collision_buffer[bufIdx + 2]!;
-      const count = player_collision_modelIdCounter[b]! + 1;
-      if (y > 1 && y < 17) {
-        bottom = Math.max(bottom, collision_buffer[bufIdx]! / 255, collision_buffer[bufIdx + 1]! / 255);
-      }
-      if (b) {
-        player_collision_modelIdCounter[b] = count;
-        if (count >= maxModelIdCount) {
-          maxModelIdCount = count;
-          currentModelId = b;
-        }
-      }
-    }
-  }
-  bottom /= 2;
-
-  if (!DEBUG || (!keyboard_downKeys[KEY_DEBUG_FLY_DOWN] && !keyboard_downKeys[KEY_DEBUG_FLY_UP])) {
-    bottom -= 0.11;
-  }
-
-  // Sides collision:
-
-  for (let y = 18; y < COLLISION_TEXTURE_SIZE; ++y) {
-    for (let x = 0; x < COLLISION_TEXTURE_SIZE; ++x) {
-      const t = 1 - Math.abs(2 * (x / (COLLISION_TEXTURE_SIZE - 1)) - 1);
-      const dist1 = readDist1(x, y);
-      const dist2 = readDist2(COLLISION_TEXTURE_SIZE - 1 - x, y);
-
-      const zdist1 = dist1 * t;
-      const zdist2 = dist2 * t;
-      if (zdist1 > front) {
-        front = zdist1;
-      }
-      if (zdist2 > back) {
-        back = zdist2;
-      }
-
-      const xdist = (1 - t) * (dist1 > dist2 ? dist1 : dist2);
-      if (x < COLLISION_TEXTURE_SIZE / 2) {
-        if (xdist > left) {
-          left = xdist;
-        }
-      } else if (xdist > right) {
-        right = xdist;
-      }
-    }
-  }
-
-  const timeMultiplier = gameTimeDelta / 0.006;
-
-  player_position_global.x += (timeMultiplier * (right - left)) / 2;
-  player_position_global.y += timeMultiplier * bottom;
-  player_position_global.z += (timeMultiplier * (back - front)) / 2;
-};
-
-let player_collision_velocity_x = 0;
-let player_collision_velocity_z = 0;
+// let player_collision_velocity_x = 0;
+// let player_collision_velocity_z = 0;
 
 let player_look_angle_target = 0;
 let player_look_angle = 0;
@@ -291,8 +218,7 @@ const draw = (globalTime: number) => {
     camera_position.x = interpolate_with_hysteresis(camera_position.x, camera_player_dir_x, 1, gameTimeDelta * 2);
     camera_position.y = interpolate_with_hysteresis(
       camera_position.y,
-      camera_player_dir_y + 13,
-      // Math.max(10, camera_player_dir_y + 13),
+      Math.max(10, camera_player_dir_y + 13),
       4,
       gameTimeDelta * 2,
     );
@@ -310,152 +236,38 @@ const draw = (globalTime: number) => {
       Math.atan2(Math.sqrt(viewDirDiffz * viewDirDiffz + viewDirDiffx * viewDirDiffx) || 0, viewDirDiffy) / DEG_TO_RAD;
   }
 
-  // camera_rotation.y = angle_lerp_degrees(
-  //   camera_rotation.y,
-  //   270 + Math.atan2(viewDirDiffz, viewDirDiffx) / DEG_TO_RAD,
-  //   gameTimeDelta * 5,
-  // );
-
-  // camera_rotation.x = angle_lerp_degrees(
-  //   camera_rotation.x,
-  //   90 -
-  //     Math.atan2(Math.sqrt(viewDirDiffz * viewDirDiffz + viewDirDiffx * viewDirDiffx) || 0, viewDirDiffy) / DEG_TO_RAD,
-  //   gameTimeDelta * 5,
-  // );
-
-  // console.log(viewDirx, viewDiry);
-  // camera_rotation.x = Math.acos(viewDirx) / DEG_TO_RAD;
-  // }
-
-  // acos(dot(normalize(lightVector),normalize(normalVector)))
-
-  // const x_angle = Math.atan(camera_position.y * player_position_final.y + camera_position.z * player_position_final.z);
-
-  // camera_rotation.x = x_angle * 360;
-
-  // camera_rotation.x = acos(camera_position.x, player_position_final.x) / DEG_TO_RAD;
-  // console.log(camera_rotation.x);
-  // camera_rotation.y = camera_position.z - camera_desired_positionz;
-
   camera_view
     .setMatrixValue("none")
     .rotateSelf(-camera_rotation.x, -camera_rotation.y, -camera_rotation.z)
     .invertSelf()
     .translateSelf(-camera_position.x, -camera_position.y, -camera_position.z);
 
-  if (gameTimeDelta > 0) {
-    updateModels(rootModel);
+  const movStrafe = (keyboard_downKeys[KEY_LEFT] ? 1 : 0) + (keyboard_downKeys[KEY_RIGHT] ? -1 : 0);
+  const movForward = (keyboard_downKeys[KEY_FRONT] ? 1 : 0) + (keyboard_downKeys[KEY_BACK] ? -1 : 0);
+  const movSelectedVelocity = keyboard_downKeys[KEY_RUN] ? 8 : 4;
+  const playerSpeed = (movStrafe && movForward ? Math.SQRT1_2 : 1) * movSelectedVelocity * gameTimeDelta;
 
-    // *** COLLISION ***
-
-    gl.bindFramebuffer(gl.FRAMEBUFFER, collision_frameBuffer);
-    gl.readPixels(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE, gl.RGBA, gl.UNSIGNED_BYTE, collision_buffer);
-
-    player_collisions();
-
-    if (!currentModelId) {
-      player_position_global.x += player_collision_velocity_x * gameTimeDelta;
-      player_position_global.z += player_collision_velocity_z * gameTimeDelta;
-      player_collision_velocity_x = lerp(player_collision_velocity_x, 0, gameTimeDelta * 1.3);
-      player_collision_velocity_z = lerp(player_collision_velocity_z, 0, gameTimeDelta * 1.3);
-    }
-
-    const movStrafe = (keyboard_downKeys[KEY_LEFT] ? 1 : 0) + (keyboard_downKeys[KEY_RIGHT] ? -1 : 0);
-    const movForward = (keyboard_downKeys[KEY_FRONT] ? 1 : 0) + (keyboard_downKeys[KEY_BACK] ? -1 : 0);
-    const movSelectedVelocity = keyboard_downKeys[KEY_RUN] ? 8 : 4;
-    const playerSpeed = (movStrafe && movForward ? Math.SQRT1_2 : 1) * movSelectedVelocity * gameTimeDelta;
-
-    if (movStrafe || movForward) {
-      player_look_angle_target = Math.atan2(movStrafe, movForward);
-    }
-
-    player_look_angle = angle_lerp(player_look_angle, player_look_angle_target, gameTimeDelta * 8);
-
-    if (DEBUG) {
-      if (keyboard_downKeys[KEY_DEBUG_FLY_UP]) {
-        player_position_global.y += 2 * gameTimeDelta;
-      }
-      if (keyboard_downKeys[KEY_DEBUG_FLY_DOWN]) {
-        player_position_global.y -= 2 * gameTimeDelta;
-      }
-    }
-
-    player_position_global.z += movForward * playerSpeed;
-    player_position_global.x += movStrafe * playerSpeed;
-
-    const oldx = player_position_final.x;
-    const oldz = player_position_final.z;
-
-    const referenceMatrix = modelsByModelId[currentModelId]?.$finalMatrix || identity;
-
-    if (currentModelId !== oldModelId) {
-      if (DEBUG) {
-        console.log("modelId: " + oldModelId + " -> " + currentModelId);
-      }
-
-      oldModelId = currentModelId;
-      ({
-        x: player_position_global.x,
-        y: player_position_global.y,
-        z: player_position_global.z,
-      } = referenceMatrix.inverse().transformPoint(player_position_final));
-    }
-
-    ({
-      x: player_position_final.x,
-      y: player_position_final.y,
-      z: player_position_final.z,
-    } = referenceMatrix.transformPoint(player_position_global));
-
-    if (currentModelId) {
-      player_collision_velocity_x = (player_position_final.x - oldx) / gameTimeDelta;
-      player_collision_velocity_z = (player_position_final.z - oldz) / gameTimeDelta;
-    }
-
-    playerModel.$animationMatrix = identity
-      .translate(player_position_final.x, player_position_final.y, player_position_final.z)
-      .rotate(0, player_look_angle / DEG_TO_RAD);
-
-    player_legs_speed = lerp(player_legs_speed, movStrafe || movForward ? 1 : 0, gameTimeDelta * 10);
-
-    playerRightLegModel.$animationMatrix = identity.rotate(
-      player_legs_speed * Math.sin(gameTime * movSelectedVelocity * 1.7) * 15,
-      0,
-    );
-    playerLeftLegModel.$animationMatrix = identity.rotate(
-      player_legs_speed * Math.sin(gameTime * movSelectedVelocity * 1.7 + Math.PI) * 15,
-      0,
-    );
-
-    if (DEBUG) {
-      const debugCanvas = document.getElementById("debug-canvas") as HTMLCanvasElement;
-
-      const buf = new Uint8ClampedArray(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
-
-      if (debugCanvas) {
-        for (let y = 0; y < COLLISION_TEXTURE_SIZE; ++y) {
-          for (let x = 0; x < COLLISION_TEXTURE_SIZE; ++x) {
-            const i = ((COLLISION_TEXTURE_SIZE - y) * COLLISION_TEXTURE_SIZE + x) * 4;
-            const r = collision_buffer[i]!;
-            const g = collision_buffer[i + 1]!;
-            const b = collision_buffer[i + 2]!;
-
-            buf[(y * COLLISION_TEXTURE_SIZE + x) * 4] = r * 10;
-            buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 1] = g * 10;
-            buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 2] = b ? 200 : 0;
-            buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 3] = 255;
-          }
-        }
-
-        const imgdata = new ImageData(buf, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
-
-        if (!debug2dctx) {
-          debug2dctx = debugCanvas.getContext("2d")!;
-        }
-        debug2dctx.putImageData(imgdata, 0, 0, 0, 0, 1128, 1128);
-      }
-    }
+  if (movStrafe || movForward) {
+    player_look_angle_target = Math.atan2(movStrafe, movForward);
   }
+  player_look_angle = angle_lerp(player_look_angle, player_look_angle_target, gameTimeDelta * 8);
+
+  playerModel.$animationMatrix = identity
+    .translate(player_position_final.x, player_position_final.y, player_position_final.z)
+    .rotate(0, player_look_angle / DEG_TO_RAD);
+
+  player_legs_speed = lerp(player_legs_speed, movStrafe || movForward ? 1 : 0, gameTimeDelta * 10);
+
+  playerRightLegModel.$animationMatrix = identity.rotate(
+    player_legs_speed * Math.sin(gameTime * movSelectedVelocity * 1.7) * 15,
+    0,
+  );
+  playerLeftLegModel.$animationMatrix = identity.rotate(
+    player_legs_speed * Math.sin(gameTime * movSelectedVelocity * 1.7 + Math.PI) * 15,
+    0,
+  );
+
+  updateModels(rootModel);
 
   // *** CASCADED SHADOWMAPS ***
 
@@ -467,43 +279,13 @@ const draw = (globalTime: number) => {
   csm_render[1]!(csm_buildMatrix(CSM_PLANE_DISTANCE0, CSM_PLANE_DISTANCE1, 11));
   csm_render[2]!(csm_buildMatrix(CSM_PLANE_DISTANCE1, zFar, 15));
 
-  // *** COLLISION ***
-
-  collisionShader();
-
-  const playerPosMatrix1 = identity
-    .rotate(0, 180)
-    .inverse()
-    .translate(-player_position_final.x, -player_position_final.y, 0.44 - player_position_final.z);
-
-  gl.bindFramebuffer(gl.FRAMEBUFFER, collision_frameBuffer);
-  gl.viewport(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
-  gl.colorMask(true, false, true, false);
-  gl.clearColor(0, 0, 0, 1);
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-  gl.uniformMatrix4fv(collisionShader(uniformName_viewMatrix), false, playerPosMatrix1.toFloat32Array());
-  renderModels(collisionShader(uniformName_worldMatrix), collisionShader(uniformName_modelId));
-
-  const playerPosMatrix2 = identity.translate(
-    -player_position_final.x,
-    -player_position_final.y,
-    -player_position_final.z - 0.45,
-  );
-
-  gl.colorMask(false, true, false, false);
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-  gl.colorMask(false, true, true, false);
-  gl.uniformMatrix4fv(collisionShader(uniformName_viewMatrix), false, playerPosMatrix2.toFloat32Array());
-  renderModels(collisionShader(uniformName_worldMatrix), collisionShader(uniformName_modelId));
-  gl.colorMask(true, true, true, true);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
   // *** MAIN RENDER ***
 
   mainShader();
 
-  gl.clearColor(0.2, 0.2, 0.2, 1);
-
-  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.clearColor(0, 0, 0, 1);
 
   gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -519,6 +301,13 @@ const draw = (globalTime: number) => {
 
   renderModels(mainShader(uniformName_worldMatrix));
 
+  // invalidate csm framebuffers
+
+  csm_render[0]!(1);
+  csm_render[1]!(1);
+  csm_render[2]!(1);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
   // *** SKY RENDER ***
 
   skyShader();
@@ -528,6 +317,203 @@ const draw = (globalTime: number) => {
   gl.uniformMatrix4fv(skyShader(uniformName_viewMatrix), false, camera_view.inverse().toFloat32Array());
 
   gl.drawElements(gl.TRIANGLES, 3, gl.UNSIGNED_INT, 0);
+
+  // *** RENDER COLLISIONS ***
+
+  player_position_global.z += movForward * playerSpeed;
+  player_position_global.x += movStrafe * playerSpeed;
+
+  // if (!currentModelId) {
+  // player_position_global.x += player_collision_velocity_x * gameTimeDelta;
+  // player_position_global.z += player_collision_velocity_z * gameTimeDelta;
+  // player_collision_velocity_x /= 1.1;
+  // player_collision_velocity_z /= 1.1;
+  // }
+
+  if (DEBUG) {
+    if (keyboard_downKeys[KEY_DEBUG_FLY_UP]) {
+      player_position_global.y += 2 * gameTimeDelta;
+    }
+    if (keyboard_downKeys[KEY_DEBUG_FLY_DOWN]) {
+      player_position_global.y -= 2 * gameTimeDelta;
+    }
+  }
+
+  collisionShader();
+
+  const playerPosMatrix1 = identity
+    .rotate(0, 180)
+    .inverse()
+    .translate(-player_position_final.x, -player_position_final.y, 0.4 - player_position_final.z);
+
+  gl.bindFramebuffer(gl.FRAMEBUFFER, collision_frameBuffer);
+  gl.viewport(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
+  gl.colorMask(true, false, true, false);
+  gl.clearColor(0, 0, 0, 1);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  gl.uniformMatrix4fv(collisionShader(uniformName_viewMatrix), false, playerPosMatrix1.toFloat32Array());
+  renderModels(collisionShader(uniformName_worldMatrix), collisionShader(uniformName_modelId));
+
+  const playerPosMatrix2 = identity.translate(
+    -player_position_final.x,
+    -player_position_final.y,
+    -player_position_final.z - 0.6,
+  );
+
+  gl.colorMask(false, true, false, false);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  gl.colorMask(false, true, true, false);
+  gl.uniformMatrix4fv(collisionShader(uniformName_viewMatrix), false, playerPosMatrix2.toFloat32Array());
+  renderModels(collisionShader(uniformName_worldMatrix), collisionShader(uniformName_modelId));
+  gl.colorMask(true, true, true, true);
+
+  // *** COLLISION ***
+
+  gl.bindFramebuffer(gl.FRAMEBUFFER, collision_frameBuffer);
+  gl.readPixels(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE, gl.RGBA, gl.UNSIGNED_BYTE, collision_buffer);
+  gl.invalidateFramebuffer(gl.FRAMEBUFFER, _frameBuffersInvalidations);
+
+  let front = 0;
+  let back = 0;
+  let left = 0;
+  let right = 0;
+  let bottom = 0;
+
+  // Ground Collision:
+
+  let maxModelIdCount = 0;
+  currentModelId = 0;
+  player_collision_modelIdCounter.fill(0);
+
+  let lines = 0;
+  for (let y = 4; y < 32; ++y) {
+    let up = 0;
+    for (let x = 0; x < COLLISION_TEXTURE_SIZE; x++) {
+      const idx = (y * COLLISION_TEXTURE_SIZE + x) * 4;
+      if (y < 30) {
+        const a = collision_buffer[idx]! / 255;
+        const b = collision_buffer[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 1]! / 255;
+        up += a + b;
+      }
+      const b = collision_buffer[idx + 2]!;
+      const count = player_collision_modelIdCounter[b]! + 1;
+
+      if (b) {
+        player_collision_modelIdCounter[b] = count;
+        if (count >= maxModelIdCount) {
+          maxModelIdCount = count;
+          currentModelId = b;
+        }
+      }
+    }
+    if (up > 20) {
+      // lines = y / 2;
+      lines++;
+    }
+  }
+
+  bottom += lines / 80 - 10 * gameTimeDelta;
+
+  // Sides collision:
+
+  for (let y = 30; y < COLLISION_TEXTURE_SIZE; ++y) {
+    for (let x = 0; x < COLLISION_TEXTURE_SIZE; ++x) {
+      const t = 1.05 - Math.abs(2 * (x / (COLLISION_TEXTURE_SIZE - 1)) - 1);
+      const dist1 = readDist1(x, y);
+      const dist2 = readDist2(COLLISION_TEXTURE_SIZE - 1 - x, y);
+
+      const zdist1 = dist1 * t;
+      const zdist2 = dist2 * t;
+
+      if (zdist1 > front) {
+        front = zdist1;
+      }
+      if (zdist2 > back) {
+        back = zdist2;
+      }
+
+      const xdist = (1 - t) * (dist1 > dist2 ? dist1 : dist2);
+      if (x < COLLISION_TEXTURE_SIZE / 2) {
+        if (xdist > left) {
+          left = xdist;
+        }
+      } else if (xdist > right) {
+        right = xdist;
+      }
+    }
+  }
+
+  // console.log(smallPush / (10 * COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE));
+
+  left = Math.min(0.3, left / 255);
+  right = Math.min(0.3, right / 255);
+  back = Math.min(0.3, back / 255);
+  front = Math.min(0.3, front / 255);
+
+  const collisionx = right - left;
+  const collisionz = back - front;
+
+  player_position_global.x += collisionx / 2;
+  player_position_global.y += bottom;
+  player_position_global.z += collisionz / 2;
+
+  const referenceMatrix = modelsByModelId[currentModelId]?.$finalMatrix || identity;
+
+  if (currentModelId !== oldModelId) {
+    if (DEBUG) {
+      console.log("modelId: " + oldModelId + " -> " + currentModelId);
+    }
+
+    oldModelId = currentModelId;
+    ({
+      x: player_position_global.x,
+      y: player_position_global.y,
+      z: player_position_global.z,
+    } = referenceMatrix.inverse().transformPoint(player_position_final));
+  }
+
+  // const oldx = player_position_final.x;
+  // const oldz = player_position_final.z;
+
+  ({
+    x: player_position_final.x,
+    y: player_position_final.y,
+    z: player_position_final.z,
+  } = referenceMatrix.transformPoint(player_position_global));
+
+  // if (currentModelId) {
+  //   player_collision_velocity_x = (player_position_final.x - oldx) / gameTimeDelta;
+  //   player_collision_velocity_z = (player_position_final.z - oldz) / gameTimeDelta;
+  // }
+
+  if (DEBUG) {
+    const debugCanvas = document.getElementById("debug-canvas") as HTMLCanvasElement;
+
+    const buf = new Uint8ClampedArray(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
+
+    if (debugCanvas) {
+      for (let y = 0; y < COLLISION_TEXTURE_SIZE; ++y) {
+        for (let x = 0; x < COLLISION_TEXTURE_SIZE; ++x) {
+          const i = ((COLLISION_TEXTURE_SIZE - y) * COLLISION_TEXTURE_SIZE + x) * 4;
+          const r = collision_buffer[i]!;
+          const g = collision_buffer[i + 1]!;
+          const b = collision_buffer[i + 2]!;
+
+          buf[(y * COLLISION_TEXTURE_SIZE + x) * 4] = r * 10;
+          buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 1] = g * 10;
+          buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 2] = b ? 200 : 0;
+          buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 3] = 255;
+        }
+      }
+
+      const imgdata = new ImageData(buf, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
+
+      if (!debug2dctx) {
+        debug2dctx = debugCanvas.getContext("2d")!;
+      }
+      debug2dctx.putImageData(imgdata, 0, 0, 0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
+    }
+  }
 };
 
 if (DEBUG) {
