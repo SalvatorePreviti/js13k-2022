@@ -90,7 +90,7 @@ const csmShader = initShaderProgram(loadShader(csm_vsSource), void_fsSource);
 
 const main_vertexShader = loadShader(main_vsSource);
 const collisionShader = initShaderProgram(main_vertexShader, collider_fsSource);
-gl.uniformMatrix4fv(collisionShader(uniformName_projectionMatrix), false, mat_perspectiveXY(1.9, 0.54, 0.001, 1));
+gl.uniformMatrix4fv(collisionShader(uniformName_projectionMatrix), false, mat_perspectiveXY(1.9, 0.59, 0.001, 1.1));
 
 const mainShader = initShaderProgram(main_vertexShader, main_fsSource);
 gl.uniform1i(mainShader(uniformName_groundTexture), 3); // TEXTURE3
@@ -176,12 +176,12 @@ let debug2dctx: CanvasRenderingContext2D | null = null;
 
 const readDist1 = (x: number, y: number): number => {
   const bufIdx = (y * COLLISION_TEXTURE_SIZE + x) * 4;
-  return collision_buffer[bufIdx]!;
+  return collision_buffer[bufIdx]! / 255;
 };
 
 const readDist2 = (x: number, y: number): number => {
   const bufIdx = (y * COLLISION_TEXTURE_SIZE + x) * 4;
-  return collision_buffer[bufIdx + 1]!;
+  return collision_buffer[bufIdx + 1]! / 255;
 };
 
 const player_collision_modelIdCounter = new Int32Array(256);
@@ -196,6 +196,8 @@ export let currentModelId = 0;
 let player_look_angle_target = 0;
 let player_look_angle = 0;
 let player_legs_speed = 0;
+let player_gravity = 1;
+let player_speed = 0;
 
 let camera_player_dir_x = 0;
 let camera_player_dir_y = 0;
@@ -245,7 +247,6 @@ const draw = (globalTime: number) => {
   const movStrafe = (keyboard_downKeys[KEY_LEFT] ? 1 : 0) + (keyboard_downKeys[KEY_RIGHT] ? -1 : 0);
   const movForward = (keyboard_downKeys[KEY_FRONT] ? 1 : 0) + (keyboard_downKeys[KEY_BACK] ? -1 : 0);
   const movSelectedVelocity = keyboard_downKeys[KEY_RUN] ? 8 : 4;
-  const playerSpeed = (movStrafe && movForward ? Math.SQRT1_2 : 1) * movSelectedVelocity * gameTimeDelta;
 
   if (movStrafe || movForward) {
     player_look_angle_target = Math.atan2(movStrafe, movForward);
@@ -267,7 +268,9 @@ const draw = (globalTime: number) => {
     0,
   );
 
-  updateModels(rootModel);
+  if (gameTimeDelta > 0) {
+    updateModels(rootModel);
+  }
 
   // *** CASCADED SHADOWMAPS ***
 
@@ -320,9 +323,6 @@ const draw = (globalTime: number) => {
 
   // *** RENDER COLLISIONS ***
 
-  player_position_global.z += movForward * playerSpeed;
-  player_position_global.x += movStrafe * playerSpeed;
-
   // if (!currentModelId) {
   // player_position_global.x += player_collision_velocity_x * gameTimeDelta;
   // player_position_global.z += player_collision_velocity_z * gameTimeDelta;
@@ -339,12 +339,16 @@ const draw = (globalTime: number) => {
     }
   }
 
+  if (gameTimeDelta <= 0) {
+    return;
+  }
+
   collisionShader();
 
   const playerPosMatrix1 = identity
     .rotate(0, 180)
     .inverse()
-    .translate(-player_position_final.x, -player_position_final.y, 0.4 - player_position_final.z);
+    .translate(-player_position_final.x, -player_position_final.y, 0.3 - player_position_final.z);
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, collision_frameBuffer);
   gl.viewport(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
@@ -377,7 +381,6 @@ const draw = (globalTime: number) => {
   let back = 0;
   let left = 0;
   let right = 0;
-  let bottom = 0;
 
   // Ground Collision:
 
@@ -386,37 +389,47 @@ const draw = (globalTime: number) => {
   player_collision_modelIdCounter.fill(0);
 
   let lines = 0;
-  for (let y = 4; y < 32; ++y) {
+  let grav = 0;
+  let hasGround = false;
+  for (let y = 0; y < 32; ++y) {
     let up = 0;
     for (let x = 0; x < COLLISION_TEXTURE_SIZE; x++) {
-      const idx = (y * COLLISION_TEXTURE_SIZE + x) * 4;
-      if (y < 30) {
-        const a = collision_buffer[idx]! / 255;
-        const b = collision_buffer[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 1]! / 255;
-        up += a + b;
-      }
-      const b = collision_buffer[idx + 2]!;
-      const count = player_collision_modelIdCounter[b]! + 1;
-
-      if (b) {
-        player_collision_modelIdCounter[b] = count;
+      let i = (y * COLLISION_TEXTURE_SIZE + x) * 4;
+      const a = (collision_buffer[i]! + collision_buffer[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 1]!) / 255;
+      i = collision_buffer[i + 2]!;
+      up += a;
+      if (i && a) {
+        const count = player_collision_modelIdCounter[i]! + 1;
+        player_collision_modelIdCounter[i] = count;
         if (count >= maxModelIdCount) {
           maxModelIdCount = count;
-          currentModelId = b;
+          currentModelId = i;
         }
       }
     }
-    if (up > 20) {
-      // lines = y / 2;
-      lines++;
+    if (up < 3 && y > 5) {
+      grav += y / 32;
+    }
+    if (up > 3) {
+      if (y > 5) {
+        lines += y / 15;
+      }
+      hasGround = true;
     }
   }
 
-  bottom += lines / 80 - 10 * gameTimeDelta;
+  player_gravity = lerp(player_gravity, hasGround ? 3 : 9, gameTimeDelta * 3);
 
-  // Sides collision:
+  // push up and gravity
 
-  for (let y = 30; y < COLLISION_TEXTURE_SIZE; ++y) {
+  // console.log(lines, grav);
+
+  // player_position_global.y += lines / 44 - (hasGround ? 1 : player_gravity) * gameTimeDelta;
+
+  player_position_global.y +=
+    lines / 41 - (hasGround ? 1 : player_gravity) * (grav / 41) * player_gravity * gameTimeDelta;
+
+  for (let y = 32; y < COLLISION_TEXTURE_SIZE; ++y) {
     for (let x = 0; x < COLLISION_TEXTURE_SIZE; ++x) {
       const t = 1.05 - Math.abs(2 * (x / (COLLISION_TEXTURE_SIZE - 1)) - 1);
       const dist1 = readDist1(x, y);
@@ -445,17 +458,21 @@ const draw = (globalTime: number) => {
 
   // console.log(smallPush / (10 * COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE));
 
-  left = Math.min(0.3, left / 255);
-  right = Math.min(0.3, right / 255);
-  back = Math.min(0.3, back / 255);
-  front = Math.min(0.3, front / 255);
+  player_position_global.x += right - left;
+  player_position_global.z += back - front;
 
-  const collisionx = right - left;
-  const collisionz = back - front;
+  const playerDesiredSpeed =
+    movStrafe || movForward ? (movStrafe && movForward ? Math.SQRT1_2 : 1) * movSelectedVelocity * gameTimeDelta : 0;
 
-  player_position_global.x += collisionx / 2;
-  player_position_global.y += bottom;
-  player_position_global.z += collisionz / 2;
+  const playerSpeedCollision = 1 - Math.max(left, right, back, front);
+
+  player_speed =
+    lerp(player_speed, playerDesiredSpeed * playerSpeedCollision, gameTimeDelta * 5) * playerSpeedCollision;
+
+  // console.log(playerDesiredSpeed, player_speed);
+
+  player_position_global.z += movForward * player_speed;
+  player_position_global.x += movStrafe * player_speed;
 
   const referenceMatrix = modelsByModelId[currentModelId]?.$finalMatrix || identity;
 
