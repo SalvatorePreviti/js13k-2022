@@ -271,7 +271,7 @@ export const level1 = () => {
     model._update = () => identity.translate(0, Math.cos(gameTime * 2) * 5 - 4, 0);
     meshAdd(polygons_transform(cylinder(5), identity.translate(0, -1.4).scale(5, 1, 5), material(0.6, 0.65, 0.7, 0.3)));
     addLever();
-  });
+  }, ++_modelIdCounter);
 
   // ******** LEVEL 2 ********
 
