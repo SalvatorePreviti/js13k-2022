@@ -1,3 +1,5 @@
+import { gameTimeDelta } from "../game-time";
+
 /** Amount to be multiplied to an angle in degrees to obtain an angle in radians, approximately 0.017453292519943295 */
 export const DEG_TO_RAD = Math.PI / 180;
 
@@ -7,6 +9,9 @@ export const clamp01 = (t: number) => (t < 0 ? 0 : t > 1 ? 1 : t);
 
 /** Linear interpolation */
 export const lerp = /* @__PURE__ */ (from: number, to: number, t: number) => clamp01(t) * (to - from) + from;
+
+export const lerpDamp = /* @__PURE__ */ (from: number, to: number, speed: number) =>
+  lerp(from, to, 1 - Math.exp(-speed * gameTimeDelta));
 
 /**
  * Trigonometry - Wrap an angle so it is always between -PI and PI

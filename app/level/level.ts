@@ -160,8 +160,8 @@ export const level1 = () => {
 
   //  gate bottom
 
-  meshAdd(polygons_transform(GBox, identity.translate(0, 1, -15).scale(3, 0.3, 0.35), material(0.5, 0.5, 0.5)));
-  meshAdd(polygons_transform(GBox, identity.translate(0, 1, 15).scale(3, 0.3, 0.35), material(0.5, 0.5, 0.5)));
+  meshAdd(polygons_transform(GBox, identity.translate(0, 1, -15).scale(3, 0.2, 0.35), material(0.5, 0.5, 0.5, 0.3)));
+  meshAdd(polygons_transform(GBox, identity.translate(0, 1, 15).scale(3, 0.2, 0.35), material(0.5, 0.5, 0.5, 0.3)));
 
   // gate bars
 

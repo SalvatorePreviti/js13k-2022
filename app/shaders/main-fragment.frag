@@ -1,7 +1,7 @@
 #version 300 es
 precision highp float;
 
-#define CSM_TEXTURE_SIZE 2048.
+#define CSM_TEXTURE_SIZE 1024.
 
 #define zNear 0.3
 #define CSM_PLANE_DISTANCE0 50.
