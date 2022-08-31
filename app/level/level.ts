@@ -12,10 +12,11 @@ import {
 } from "../geometry/geometry";
 import { integers_map, minus1plus1_map } from "../math/math";
 import { identity } from "../math/matrix";
+import { PLAYER_MODEL_ID } from "../player";
 import type { Model } from "./scene";
 import { meshAdd, meshEnd, withEditMatrix, newModel } from "./scene";
 
-let _modelIdCounter = 1;
+let _modelIdCounter = PLAYER_MODEL_ID + 1;
 
 // ========= Lever mesh ========= //
 
@@ -69,9 +70,7 @@ export let playerRightLegModel: Model;
 
 export let playerLeftLegModel: Model;
 
-export const playerModel = newModel((model) => {
-  model.$collisionDisabled = 1;
-
+export const playerModel = newModel(() => {
   const rhorn = polygons_transform(
     horn(),
     identity.translate(0.2, 1.32, 0).rotate(0, 0, -30).scale(0.2, 0.6, 0.2),
@@ -111,7 +110,7 @@ export const playerModel = newModel((model) => {
   playerLeftLegModel = withEditMatrix(identity.translate(0.6), () => newModel(() => playerRightLegModel.$mesh));
 
   return meshEnd();
-});
+}, PLAYER_MODEL_ID);
 
 // export const arc = (transform: DOMMatrixReadOnly, color?: number) => {
 //   return csg_subtract(
@@ -368,37 +367,7 @@ export const level1 = () => {
       withEditMatrix(identity.translate(-28, -0.5, -14), addLever);
     }, ++_modelIdCounter);
 
-    // continuation
-    // meshAdd(polygons_transform(GBox, identity.translate(-48, -3, -20).scale(24, 1.4, 3), material(0.9, 0.9, 0.9, 0.2)));
-
-    const hexCorridorPolygons = [
-      ...polygons_transform(
-        csg_polygons(
-          csg_subtract(
-            polygons_transform(cylinder(6), identity.rotate(0, 0, 90).scale(6, 8, 6)),
-            csg_union([
-              polygons_transform(cylinder(6), identity.rotate(0, 0, 90).scale(5, 12, 5)),
-              ...[5, 0, -5].map((x) =>
-                polygons_transform(cylinder(5), identity.translate(x, 3).rotate(90, 0, 36).scale(1.7, 10, 1.7)),
-              ),
-            ]),
-          ),
-        ),
-        identity,
-        material(0.3, 0.6, 0.6, 0.3),
-      ),
-      ...polygons_transform(GBox, identity.translate(0, -3, 0).scale(11, 1.4, 3), material(0.9, 0.9, 0.9, 0.2)),
-    ];
-
-    meshAdd(polygons_transform(hexCorridorPolygons, identity.translate(-53, 0, -20)));
-
-    withEditMatrix(identity.translate(-75, 0, -20), () =>
-      newModel((model) => {
-        model._update = () => identity.rotate(gameTime * 100, 0);
-        meshAdd(hexCorridorPolygons);
-        meshAdd(polygons_transform(GBox, identity.translate(0, -3, 0).scale(11, 1.4, 3), material(0.9, 0.9, 0.9, 0.2)));
-      }),
-    );
+    // mini platform with hole
 
     meshAdd(
       polygons_transform(
@@ -426,7 +395,49 @@ export const level1 = () => {
       );
     }, ++_modelIdCounter);
 
-    // meshAdd(polygons_transform(GBox, identity.translate(-66, -3, -20).scale(24, 1.4, 3), material(0.9, 0.9, 0.9, 0.2)));
+    // hex corridor
+
+    const hexCorridorPolygons = [
+      ...polygons_transform(
+        csg_polygons(
+          csg_subtract(
+            polygons_transform(cylinder(6), identity.rotate(0, 0, 90).scale(6, 8, 6)),
+            csg_union([
+              polygons_transform(cylinder(6), identity.rotate(0, 0, 90).scale(5, 12, 5)),
+              ...[5, 0, -5].map((x) =>
+                polygons_transform(cylinder(5), identity.translate(x, 2.5).rotate(90, 0, 36).scale(1.7, 10, 1.7)),
+              ),
+            ]),
+          ),
+        ),
+        identity,
+        material(0.3, 0.6, 0.6, 0.3),
+      ),
+      ...polygons_transform(GBox, identity.translate(0, -3, 0).scale(11, 1.4, 3), material(0.9, 0.9, 0.9, 0.2)),
+    ];
+
+    meshAdd(polygons_transform(hexCorridorPolygons, identity.translate(-53, 0, -20)));
+
+    // rotating hex corridor
+
+    withEditMatrix(identity.translate(-75, 0, -20), () =>
+      newModel((model) => {
+        model._update = () => identity.rotate(gameTime * 60, 0);
+        meshAdd(hexCorridorPolygons);
+      }),
+    );
+
+    meshAdd(polygons_transform(GBox, identity.translate(-89, -3, -20).scale(3, 1.4, 2), material(0.9, 0.9, 0.9, 0.2)));
+    meshAdd(
+      polygons_transform(GBox, identity.translate(-98, -2.9, -20).scale(6, 1.4, 10), material(0.7, 0.7, 0.7, 0.2)),
+    );
+    meshAdd(
+      polygons_transform(
+        GBox,
+        identity.translate(-88.3, -5.1, -20).rotate(0, 0, -30).scale(5, 1.25, 4.7),
+        material(0.7, 0.7, 0.7, 0.2),
+      ),
+    );
   });
 };
 

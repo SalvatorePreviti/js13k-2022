@@ -26,6 +26,7 @@ import sky_fsSource, { uniformName_iResolution } from "./shaders/sky-fragment.fr
 
 import {
   angle_lerp,
+  angle_wrap_degrees,
   clamp01,
   DEG_TO_RAD,
   integers_map,
@@ -46,6 +47,9 @@ import {
   KEY_LEFT,
   KEY_RIGHT,
   KEY_RUN,
+  mouse_movementReset,
+  mouse_movementX,
+  mouse_movementY,
 } from "./input";
 import { gameTime, gameTimeDelta, gameTimeUpdate, GAME_TIME_MAX_DELTA_TIME } from "./game-time";
 import { buildWorld, playerLeftLegModel, playerModel, playerRightLegModel } from "./level/level";
@@ -61,6 +65,8 @@ let texturesLoaded = false;
 const _frameBuffersInvalidations = [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT];
 
 initGl();
+
+const isFirstPerson = () => DEBUG_FLAG3;
 
 const image = new Image();
 image.onload = () => {
@@ -172,7 +178,7 @@ const csm_render = integers_map(3, (csmSplit: number) => {
       } else {
         gl.clear(gl.DEPTH_BUFFER_BIT);
         gl.uniformMatrix4fv(csmShader(uniformName_viewMatrix), false, (lightSpaceMatrix = matrix));
-        renderModels(csmShader(uniformName_worldMatrix));
+        renderModels(csmShader(uniformName_worldMatrix), !isFirstPerson());
       }
     } else {
       gl.uniformMatrix4fv(lightSpaceMatrixLoc, false, lightSpaceMatrix);
@@ -222,26 +228,41 @@ const draw = (globalTime: number) => {
     camera_player_dir_y = interpolate_with_hysteresis(camera_player_dir_y, player_position_final.y, 2, gameTimeDelta);
     camera_player_dir_z = interpolate_with_hysteresis(camera_player_dir_z, player_position_final.z, 0.5, gameTimeDelta);
 
-    camera_position.x = interpolate_with_hysteresis(camera_position.x, camera_player_dir_x, 1, gameTimeDelta * 2);
-    camera_position.y = interpolate_with_hysteresis(
-      camera_position.y,
-      Math.max(10, camera_player_dir_y + 13),
-      4,
-      gameTimeDelta * 2,
-    );
+    if (isFirstPerson()) {
+      camera_position.x = lerpDamp(camera_position.x, player_position_final.x, 18);
+      camera_position.y = lerpDamp(camera_position.y, player_position_final.y + 1, 15);
+      camera_position.z = lerpDamp(camera_position.z, player_position_final.z, 18);
+      camera_rotation.y = angle_wrap_degrees(camera_rotation.y + mouse_movementX * 0.1);
+      camera_rotation.x = Math.max(Math.min(camera_rotation.x + mouse_movementY * 0.1, 87), -87);
+    } else {
+      camera_position.x = interpolate_with_hysteresis(camera_position.x, camera_player_dir_x, 1, gameTimeDelta * 2);
+      camera_position.y = interpolate_with_hysteresis(
+        camera_position.y,
+        Math.max(10, camera_player_dir_y + 13),
+        4,
+        gameTimeDelta * 2,
+      );
+      camera_position.z = interpolate_with_hysteresis(
+        camera_position.z,
+        camera_player_dir_z - 18,
+        1,
+        gameTimeDelta * 2,
+      );
 
-    camera_position.z = interpolate_with_hysteresis(camera_position.z, camera_player_dir_z - 18, 1, gameTimeDelta * 2);
+      const viewDirDiffx = camera_position.x - camera_player_dir_x;
+      const viewDirDiffy = camera_position.y - camera_player_dir_y;
+      const viewDirDiffz = camera_position.z - camera_player_dir_z;
 
-    const viewDirDiffx = camera_position.x - camera_player_dir_x;
-    const viewDirDiffy = camera_position.y - camera_player_dir_y;
-    const viewDirDiffz = camera_position.z - camera_player_dir_z;
+      camera_rotation.y = 270 + Math.atan2(viewDirDiffz, viewDirDiffx) / DEG_TO_RAD;
 
-    camera_rotation.y = 270 + Math.atan2(viewDirDiffz, viewDirDiffx) / DEG_TO_RAD;
-
-    camera_rotation.x =
-      90 -
-      Math.atan2(Math.sqrt(viewDirDiffz * viewDirDiffz + viewDirDiffx * viewDirDiffx) || 0, viewDirDiffy) / DEG_TO_RAD;
+      camera_rotation.x =
+        90 -
+        Math.atan2(Math.sqrt(viewDirDiffz * viewDirDiffz + viewDirDiffx * viewDirDiffx) || 0, viewDirDiffy) /
+          DEG_TO_RAD;
+    }
   }
+
+  mouse_movementReset();
 
   camera_view
     .setMatrixValue("none")
@@ -291,7 +312,7 @@ const draw = (globalTime: number) => {
     gl.clearColor(0, 0, 0, 1);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.uniformMatrix4fv(collisionShader(uniformName_viewMatrix), false, playerPosMatrix1.toFloat32Array());
-    renderModels(collisionShader(uniformName_worldMatrix), collisionShader(uniformName_modelId));
+    renderModels(collisionShader(uniformName_worldMatrix), 0, collisionShader(uniformName_modelId));
 
     const playerPosMatrix2 = identity.translate(
       -player_position_final.x,
@@ -303,7 +324,7 @@ const draw = (globalTime: number) => {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.colorMask(false, true, true, false);
     gl.uniformMatrix4fv(collisionShader(uniformName_viewMatrix), false, playerPosMatrix2.toFloat32Array());
-    renderModels(collisionShader(uniformName_worldMatrix), collisionShader(uniformName_modelId));
+    renderModels(collisionShader(uniformName_worldMatrix), 0, collisionShader(uniformName_modelId));
     gl.colorMask(true, true, true, true);
   }
 
@@ -337,7 +358,7 @@ const draw = (globalTime: number) => {
   csm_render[1]!();
   csm_render[2]!();
 
-  renderModels(mainShader(uniformName_worldMatrix));
+  renderModels(mainShader(uniformName_worldMatrix), !isFirstPerson());
 
   // invalidate csm framebuffers
 
@@ -487,8 +508,18 @@ const draw = (globalTime: number) => {
 
     const effectivePlayerSpeed = (movStrafe && movForward ? Math.SQRT1_2 : 1) * player_speed * gameTimeDelta;
 
-    player_position_global.z += movForward * effectivePlayerSpeed;
-    player_position_global.x += movStrafe * effectivePlayerSpeed;
+    const pmovez = movForward * effectivePlayerSpeed;
+    const pmovex = movStrafe * effectivePlayerSpeed;
+    if (isFirstPerson()) {
+      const yradians = camera_rotation.y * DEG_TO_RAD;
+      const s = Math.sin(yradians);
+      const c = Math.cos(yradians);
+      player_position_global.x -= pmovex * c - pmovez * s;
+      player_position_global.z -= pmovex * s + pmovez * c;
+    } else {
+      player_position_global.z += pmovez;
+      player_position_global.x += pmovex;
+    }
 
     const referenceMatrix = modelsByModelId[currentModelId]?.$finalMatrix || identity;
 

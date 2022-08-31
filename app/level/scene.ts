@@ -3,6 +3,7 @@ import { GQuad, polygon_transform, polygons_transform } from "../geometry/geomet
 import { identity } from "../math/matrix";
 import { plane_fromPolygon } from "../math/vectors";
 import { gl } from "../gl";
+import { PLAYER_MODEL_ID } from "../player";
 
 export const rootModel: Model = {
   $children: [],
@@ -53,7 +54,6 @@ export interface Model {
   $animationMatrix: DOMMatrixReadOnly;
   $finalMatrix?: DOMMatrixReadOnly;
   $mesh?: Mesh;
-  $collisionDisabled?: 0 | 1 | undefined;
   $modelId: number;
   _update?: ModelUpdateCallback | undefined;
 }
@@ -168,10 +168,11 @@ export const initTriangleBuffers = () => {
 
 export const renderModels = (
   worldMatrixLoc: WebGLUniformLocation,
+  renderPlayer: 0 | 1 | boolean,
   collisionModelIdUniformLocation?: WebGLUniformLocation,
 ) => {
   const recursion = (model = rootModel) => {
-    if (!collisionModelIdUniformLocation || !model.$collisionDisabled) {
+    if (renderPlayer || model.$modelId !== PLAYER_MODEL_ID) {
       const { $mesh, $children } = model;
       for (const child of $children) {
         recursion(child);
