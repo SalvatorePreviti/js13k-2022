@@ -17,6 +17,6 @@ void main() {
   Color = aColor;
   UntransformedFragPos = aPosition;
   FragPos = worldMatrix * aPosition;
-  gl_Position = projectionMatrix * viewMatrix * FragPos;
+  gl_Position = projectionMatrix * (viewMatrix * FragPos);
   VNormal = (worldMatrix * vec4(aNormal, 0));
 }
