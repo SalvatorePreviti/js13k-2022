@@ -63,7 +63,7 @@ const addLever = () => {
 
 const MATERIAL_DEVIL = material(1, 0.3, 0.4);
 
-// ========= Player mesh ========= //
+// ========= Player ========= //
 
 export let playerRightLegModel: Model;
 
@@ -105,15 +105,13 @@ export const playerModel = newModel((model) => {
   // Player legs
 
   playerRightLegModel = newModel(() => {
-    meshAdd(polygons_transform(cylinder(10, 1), identity.translate(-0.3, -1, 0).scale(0.2, 0.5, 0.2), MATERIAL_DEVIL));
+    meshAdd(polygons_transform(cylinder(10, 1), identity.translate(-0.3, -1, 0).scale(0.2, 0.5, 0.24), MATERIAL_DEVIL));
   });
 
   playerLeftLegModel = withEditMatrix(identity.translate(0.6), () => newModel(() => playerRightLegModel.$mesh));
 
   return meshEnd();
 });
-
-// ***** Player model *****
 
 // export const arc = (transform: DOMMatrixReadOnly, color?: number) => {
 //   return csg_subtract(
@@ -127,22 +125,22 @@ export const playerModel = newModel((model) => {
 //   );
 // };
 
-const arcInner = (transform: DOMMatrixReadOnly, color?: number) => {
-  return csg_union_op(
-    polygons_transform(cylinder(22, 1), transform.scale(2.01, 2, 2).rotate(90, 0, 0), color),
-    polygons_transform(GBox, transform.translate(0, -2.14).scale(2, 2, 2).rotate(90, 0, 0), color),
-  );
-};
+// const arcInner = (transform: DOMMatrixReadOnly, color?: number) => {
+//   return csg_union_op(
+//     polygons_transform(cylinder(22, 1), transform.scale(2.01, 2, 2).rotate(90, 0, 0), color),
+//     polygons_transform(GBox, transform.translate(0, -2.14).scale(2, 2, 2).rotate(90, 0, 0), color),
+//   );
+// };
 
-export const arc = (transform: DOMMatrixReadOnly, color?: number) => {
-  return csg_subtract(
-    csg_union_op(
-      polygons_transform(cylinder(30, 1), transform.scale(3.010936, 3, 0.3).rotate(90, 0, 0), color),
-      polygons_transform(GBox, transform.translate(0, -1.81).scale(3, 2, 0.3).rotate(90, 0, 0), color),
-    ),
-    arcInner(transform, color),
-  );
-};
+// export const arc = (transform: DOMMatrixReadOnly, color?: number) => {
+//   return csg_subtract(
+//     csg_union_op(
+//       polygons_transform(cylinder(30, 1), transform.scale(3.010936, 3, 0.3).rotate(90, 0, 0), color),
+//       polygons_transform(GBox, transform.translate(0, -1.81).scale(3, 2, 0.3).rotate(90, 0, 0), color),
+//     ),
+//     arcInner(transform, color),
+//   );
+// };
 
 export const level1 = () => {
   // ******** LEVEL 1 ********
@@ -167,15 +165,15 @@ export const level1 = () => {
 
   // gate bars
 
-  // integers_map(7, (i) =>
-  //   meshAdd(
-  //     polygons_transform(
-  //       cylinder(6, 1),
-  //       identity.translate(4 * (i / 6 - 0.5), 3, 15).scale(0.2, 3, 0.2),
-  //       material(0.3, 0.3, 0.38),
-  //     ),
-  //   ),
-  // );
+  integers_map(7, (i) =>
+    meshAdd(
+      polygons_transform(
+        cylinder(6, 1),
+        identity.translate(4 * (i / 6 - 0.5), 3, 15).scale(0.2, 3, 0.2),
+        material(0.3, 0.3, 0.38),
+      ),
+    ),
+  );
 
   // horns
 

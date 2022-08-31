@@ -172,17 +172,7 @@ const csm_render = integers_map(3, (csmSplit: number) => {
   };
 });
 
-let debug2dctx: CanvasRenderingContext2D | null = null;
-
-const readDist1 = (x: number, y: number): number => {
-  const bufIdx = (y * COLLISION_TEXTURE_SIZE + x) * 4;
-  return collision_buffer[bufIdx]! / 255;
-};
-
-const readDist2 = (x: number, y: number): number => {
-  const bufIdx = (y * COLLISION_TEXTURE_SIZE + x) * 4;
-  return collision_buffer[bufIdx + 1]! / 255;
-};
+let debug2dctx: CanvasRenderingContext2D | null | undefined;
 
 const player_collision_modelIdCounter = new Int32Array(256);
 
@@ -422,20 +412,17 @@ const draw = (globalTime: number) => {
     for (let y = 32; y < COLLISION_TEXTURE_SIZE; ++y) {
       for (let x = 0; x < COLLISION_TEXTURE_SIZE; ++x) {
         const t = 1.05 - Math.abs(2 * (x / (COLLISION_TEXTURE_SIZE - 1)) - 1);
-        const dist1 = readDist1(x, y);
-        const dist2 = readDist2(COLLISION_TEXTURE_SIZE - 1 - x, y);
-
+        const dist1 = collision_buffer[(y * COLLISION_TEXTURE_SIZE + x) * 4]! / 255;
+        const dist2 = collision_buffer[((y + 1) * COLLISION_TEXTURE_SIZE - x + 1) * 4 + 1]! / 255;
         const zdist1 = dist1 * t;
         const zdist2 = dist2 * t;
-
+        const xdist = (1 - t) * (dist1 > dist2 ? dist1 : dist2);
         if (zdist1 > front) {
           front = zdist1;
         }
         if (zdist2 > back) {
           back = zdist2;
         }
-
-        const xdist = (1 - t) * (dist1 > dist2 ? dist1 : dist2);
         if (x < COLLISION_TEXTURE_SIZE / 2) {
           if (xdist > left) {
             left = xdist;
@@ -449,10 +436,16 @@ const draw = (globalTime: number) => {
     player_position_global.x += right - left;
     player_position_global.z += back - front;
 
-    const playerDesiredSpeed =
-      movStrafe || movForward ? (movStrafe && movForward ? Math.SQRT1_2 : 1) * movSelectedVelocity * gameTimeDelta : 0;
-
     const playerSpeedCollision = 1 - Math.max(left, right, back, front);
+
+    player_speed =
+      lerp(
+        player_speed,
+        (movStrafe || movForward
+          ? (movStrafe && movForward ? Math.SQRT1_2 : 1) * movSelectedVelocity * gameTimeDelta
+          : 0) * playerSpeedCollision,
+        gameTimeDelta * 5,
+      ) * playerSpeedCollision;
 
     if (!currentModelId) {
       player_position_global.x += player_collision_velocity_x * playerSpeedCollision * gameTimeDelta;
@@ -460,11 +453,6 @@ const draw = (globalTime: number) => {
       player_collision_velocity_x = lerp(player_collision_velocity_x, 0, gameTimeDelta * 6);
       player_collision_velocity_z = lerp(player_collision_velocity_z, 0, gameTimeDelta * 6);
     }
-
-    player_speed =
-      lerp(player_speed, playerDesiredSpeed * playerSpeedCollision, gameTimeDelta * 5) * playerSpeedCollision;
-
-    // console.log(playerDesiredSpeed, player_speed);
 
     player_position_global.z += movForward * player_speed;
     player_position_global.x += movStrafe * player_speed;

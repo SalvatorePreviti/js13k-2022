@@ -206,7 +206,7 @@ export async function build() {
         resugarFunctionsArrow,
         resugarBlockScope,
         babelPluginVars({ constToLet: true }),
-        "babel-plugin-pure-calls-annotation",
+        // "babel-plugin-pure-calls-annotation",
       ],
     });
 
@@ -219,7 +219,11 @@ export async function build() {
       computed_props: true,
     });
 
-    js = await jsTransformSwc(js, false, swcPluginVars({ constToLet: true, floatRound: 6 }));
+    js = await jsTransformSwc(
+      js,
+      { final: false, computed_props: true, minify: false },
+      swcPluginVars({ constToLet: true, floatRound: 6 }),
+    );
 
     // Mangling
 
@@ -233,7 +237,14 @@ export async function build() {
 
     js = await jsBabel(js, {
       minify: false,
-      plugins: [babelPluginVars({ constToLet: true }), "babel-plugin-pure-calls-annotation"],
+      plugins: [
+        resugarConcise,
+        resugarObjectsShorthand,
+        resugarFunctionsArrow,
+        resugarBlockScope,
+        babelPluginVars({ constToLet: true }),
+        // "babel-plugin-pure-calls-annotation",
+      ],
     });
 
     js = await jsTerser(js, {
