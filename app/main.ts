@@ -362,9 +362,9 @@ const draw = (globalTime: number) => {
     if (keyboard_downKeys[KEY_DEBUG_FLY_UP]) {
       player_position_global.y += 4 * gameTimeDelta;
     }
-    if (keyboard_downKeys[KEY_DEBUG_FLY_DOWN]) {
-      player_position_global.y -= 4 * gameTimeDelta;
-    }
+    // if (keyboard_downKeys[KEY_DEBUG_FLY_DOWN]) {
+    //   player_position_global.y -= 4 * gameTimeDelta;
+    // }
   }
 
   if (gameTimeDelta > 0) {
@@ -382,7 +382,7 @@ const draw = (globalTime: number) => {
 
     let lines = 0;
     let grav = 0;
-    let hasGround = false;
+    let hasGround: 0 | 1 = 0;
     for (let y = 0; y < 31; ++y) {
       let up = 0;
       for (let x = 0; x < COLLISION_TEXTURE_SIZE; x++) {
@@ -406,11 +406,15 @@ const draw = (globalTime: number) => {
         if (y > 7) {
           lines += y / 15;
         }
-        hasGround = true;
+        hasGround = 1;
       }
     }
 
-    player_gravity = lerpDamp(player_gravity, hasGround ? 3 : 8, 4);
+    if (currentModelId) {
+      hasGround = 1;
+    }
+
+    player_gravity = lerpDamp(player_gravity, hasGround ? 6.5 : 8, 4);
 
     // push up and gravity
 
@@ -475,7 +479,9 @@ const draw = (globalTime: number) => {
 
     player_speed = lerpDamp(
       player_speed,
-      hasGround ? (movStrafe || movForward ? movSelectedVelocity : 0) * playerSpeedCollision : 0,
+      hasGround || (DEBUG && keyboard_downKeys[KEY_DEBUG_FLY_UP]) || keyboard_downKeys[KEY_DEBUG_FLY_DOWN]
+        ? (movStrafe || movForward ? movSelectedVelocity : 0) * playerSpeedCollision
+        : 0,
       hasGround ? (playerSpeedCollision ? 10 : movStrafe || movForward ? 5 : 7) : 1,
     );
 

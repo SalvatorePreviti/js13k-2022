@@ -3,6 +3,11 @@ precision highp float;
 
 #define CSM_TEXTURE_SIZE 1024.
 
+// Shadow bias
+// Could be computed based on normal and light, something like 0.0003 * (1. -
+// clamp(dot(normal, lightDir), 0., 1.))
+const float shadowBias = 1. / CSM_TEXTURE_SIZE / 2.5; // 0.00018;
+
 #define zNear 0.3
 #define CSM_PLANE_DISTANCE0 50.
 #define CSM_PLANE_DISTANCE1 110.
@@ -22,11 +27,6 @@ uniform highp sampler2DShadow csm_textures[3];
 uniform sampler2D groundTexture;
 
 out vec4 O;
-
-// Shadow bias
-// Could be computed based on normal and light, something like 0.0003 * (1. -
-// clamp(dot(normal, lightDir), 0., 1.))
-const float shadowBias = 0.00018;
 
 void main() {
   vec3 normal = normalize(VNormal.xyz);

@@ -11,7 +11,11 @@ const debug_camera_old_position: Vec3 = { ...debug_camera_position };
 
 const debug_camera_old_rotation: Vec3 = { ...debug_camera_rotation };
 
-const debug_camera_old_enabled = !!window.DEBUG_CAMERA;
+let debug_camera_old_enabled = !!window.DEBUG_CAMERA;
+let debug_old_flag0 = !!window.DEBUG_FLAG0;
+let debug_old_flag1 = !!window.DEBUG_FLAG1;
+let debug_old_flag2 = !!window.DEBUG_FLAG2;
+let debug_old_flag3 = !!window.DEBUG_FLAG3;
 
 export let debug_camera_version = 0;
 
@@ -32,16 +36,30 @@ export function debug_camera_zero() {
 }
 
 export function debug_camera_save() {
+  debug_camera_old_enabled = !!window.DEBUG_CAMERA;
+  debug_old_flag0 = !!window.DEBUG_FLAG0;
+  debug_old_flag1 = !!window.DEBUG_FLAG1;
+  debug_old_flag2 = !!window.DEBUG_FLAG2;
+  debug_old_flag3 = !!window.DEBUG_FLAG3;
+
   localStorage.setItem(
     "DEV_CAMERA",
-    JSON.stringify({ pos: debug_camera_position, rot: debug_camera_rotation, debugCamera: window.DEBUG_CAMERA }),
+    JSON.stringify({
+      pos: debug_camera_position,
+      rot: debug_camera_rotation,
+      debugCamera: debug_camera_old_enabled,
+      DEBUG_FLAG0: debug_old_flag0,
+      DEBUG_FLAG1: debug_old_flag1,
+      DEBUG_FLAG2: debug_old_flag2,
+      DEBUG_FLAG3: debug_old_flag3,
+    }),
   );
 }
 
 export function debug_camera_load() {
   const debugCameraSaved = localStorage.getItem("DEV_CAMERA") || "";
   if (debugCameraSaved) {
-    const { pos, rot, debugCamera } = JSON.parse(debugCameraSaved);
+    const { pos, rot, debugCamera, DEBUG_FLAG0, DEBUG_FLAG1, DEBUG_FLAG2, DEBUG_FLAG3 } = JSON.parse(debugCameraSaved);
     debug_camera_position.x = pos.x;
     debug_camera_position.y = pos.y;
     debug_camera_position.z = pos.z;
@@ -49,6 +67,10 @@ export function debug_camera_load() {
     debug_camera_rotation.y = rot.y;
     debug_camera_rotation.z = rot.z;
     window.DEBUG_CAMERA = !!debugCamera;
+    window.DEBUG_FLAG0 = !!DEBUG_FLAG0;
+    window.DEBUG_FLAG1 = !!DEBUG_FLAG1;
+    window.DEBUG_FLAG2 = !!DEBUG_FLAG2;
+    window.DEBUG_FLAG3 = !!DEBUG_FLAG3;
   }
 }
 
@@ -134,9 +156,11 @@ export function devInit() {
 
     const mx = mouse_movementX * 0.1;
     const my = mouse_movementY * 0.1;
-    if ((mx || my) && window.DEBUG_CAMERA) {
-      debug_camera_rotation.y = angle_wrap_degrees(debug_camera_rotation.y + mx);
-      debug_camera_rotation.x = Math.max(Math.min(debug_camera_rotation.x + my, 87), -87);
+    if (mx || my) {
+      if (window.DEBUG_CAMERA) {
+        debug_camera_rotation.y = angle_wrap_degrees(debug_camera_rotation.y + mx);
+        debug_camera_rotation.x = Math.max(Math.min(debug_camera_rotation.x + my, 87), -87);
+      }
       mouse_movementX = 0;
       mouse_movementY = 0;
     }

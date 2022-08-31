@@ -112,6 +112,10 @@ export async function buildWithVite(options: {
         define: {
           DEBUG: false,
           DEBUG_CAMERA: false,
+          DEBUG_FLAG0: false,
+          DEBUG_FLAG1: false,
+          DEBUG_FLAG2: false,
+          DEBUG_FLAG3: false,
         },
 
         build: {
@@ -181,6 +185,10 @@ export async function buildWithVite(options: {
             DEV: "false",
             DEBUG: "false",
             DEBUG_CAMERA: "false",
+            DEBUG_FLAG0: "false",
+            DEBUG_FLAG1: "false",
+            DEBUG_FLAG2: "false",
+            DEBUG_FLAG3: "false",
             NO_DEBUG: "true",
           },
         },

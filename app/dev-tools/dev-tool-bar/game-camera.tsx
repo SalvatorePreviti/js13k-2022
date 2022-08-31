@@ -1,6 +1,7 @@
 import type { FC } from "react";
 import { useState, useEffect } from "react";
 import { camera_position, camera_rotation } from "../../camera";
+import { player_position_final } from "../../player";
 import { debug_camera_position, debug_camera_rotation, debug_camera_zero } from "../dev";
 
 let updateCounter = 0;
@@ -40,6 +41,15 @@ export const GameCameraComponent: FC = () => {
           <div>{formatNumber(r.z, 2)}</div>
         </div>
       </div>
+
+      <div style={{ paddingLeft: 10, color: "#aaf" }}>
+        <div>player</div>
+        <div>
+          {formatNumber(player_position_final.x, 2)} {formatNumber(player_position_final.y, 2)}{" "}
+          {formatNumber(player_position_final.z, 2)}
+        </div>
+      </div>
+
       <br />
       <div>
         <label>

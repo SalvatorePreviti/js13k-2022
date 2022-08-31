@@ -142,6 +142,8 @@ export const playerModel = newModel((model) => {
 //   );
 // };
 
+const level2_movements = () => (DEBUG_FLAG0 ? 1 : 0);
+
 export const level1 = () => {
   // ******** LEVEL 1 ********
 
@@ -277,7 +279,7 @@ export const level1 = () => {
     const blackPlatform = (oscillation: number) =>
       // columns
       newModel((model) => {
-        model._update = () => identity.translate(Math.sin(oscillation + gameTime / 1.5) * 12);
+        model._update = () => identity.translate(level2_movements() * Math.sin(oscillation + gameTime / 1.5) * 12);
         GQuad.map(({ x, z }) => {
           // column body
           meshAdd(
@@ -324,7 +326,7 @@ export const level1 = () => {
     withEditMatrix(identity.translate(0, 0, 20), () => blackPlatform(5));
 
     newModel((model) => {
-      model._update = () => identity.translate(Math.sin(gameTime / 1.5 + 2) * 12, 0);
+      model._update = () => identity.translate(level2_movements() * Math.sin(gameTime / 1.5 + 2) * 12, 0);
       meshAdd(
         csg_polygons(
           csg_subtract(
@@ -339,9 +341,92 @@ export const level1 = () => {
     }, ++_modelIdCounter);
 
     newModel((model) => {
-      model._update = () => identity.rotate(0, Math.sin(gameTime + 2) * 29, 0);
+      model._update = () => identity.rotate(0, level2_movements() * Math.sin(gameTime + 2) * 29, 0);
       meshAdd(polygons_transform(GBox, identity.translate(0, 0, 71).scale(5, 1, 7), material(1, 0.5, 1)));
     }, ++_modelIdCounter);
+
+    // fixed platform
+
+    newModel((model) => {
+      model._update = () => identity.translate(level2_movements() ? 0 : 12);
+      meshAdd(
+        polygons_transform(
+          cylinder(3),
+          identity.translate(-28, -1.5, -20).scale(7, 0.6, 11),
+          material(0.3, 0.6, 0.6, 0.3),
+        ),
+      );
+
+      meshAdd(
+        polygons_transform(GBox, identity.translate(-28, -3, -20).scale(8, 1.7, 5), material(0.5, 0.5, 0.5, 0.3)),
+      );
+
+      meshAdd(
+        polygons_transform(GBox, identity.translate(-28, -3, -20).scale(8, 1.7, 5), material(0.5, 0.5, 0.5, 0.3)),
+      );
+
+      withEditMatrix(identity.translate(-28, -0.5, -14), addLever);
+    }, ++_modelIdCounter);
+
+    // continuation
+    // meshAdd(polygons_transform(GBox, identity.translate(-48, -3, -20).scale(24, 1.4, 3), material(0.9, 0.9, 0.9, 0.2)));
+
+    const hexCorridorPolygons = [
+      ...polygons_transform(
+        csg_polygons(
+          csg_subtract(
+            polygons_transform(cylinder(6), identity.rotate(0, 0, 90).scale(6, 8, 6)),
+            csg_union([
+              polygons_transform(cylinder(6), identity.rotate(0, 0, 90).scale(5, 12, 5)),
+              ...[5, 0, -5].map((x) =>
+                polygons_transform(cylinder(5), identity.translate(x, 3).rotate(90, 0, 36).scale(1.7, 10, 1.7)),
+              ),
+            ]),
+          ),
+        ),
+        identity,
+        material(0.3, 0.6, 0.6, 0.3),
+      ),
+      ...polygons_transform(GBox, identity.translate(0, -3, 0).scale(11, 1.4, 3), material(0.9, 0.9, 0.9, 0.2)),
+    ];
+
+    meshAdd(polygons_transform(hexCorridorPolygons, identity.translate(-53, 0, -20)));
+
+    withEditMatrix(identity.translate(-75, 0, -20), () =>
+      newModel((model) => {
+        model._update = () => identity.rotate(gameTime * 100, 0);
+        meshAdd(hexCorridorPolygons);
+        meshAdd(polygons_transform(GBox, identity.translate(0, -3, 0).scale(11, 1.4, 3), material(0.9, 0.9, 0.9, 0.2)));
+      }),
+    );
+
+    meshAdd(
+      polygons_transform(
+        csg_polygons(
+          csg_subtract(
+            polygons_transform(GBox, identity.scale(3, 1.4, 3)),
+            polygons_transform(GBox, identity.scale(1.2, 8, 1.2)),
+          ),
+        ),
+        identity.translate(-33, -3, -20),
+        material(0.9, 0.9, 0.9, 0.2),
+      ),
+    );
+
+    // oscillating mini platforms
+
+    newModel((model) => {
+      model._update = () => identity.translate(0, 0, Math.sin(gameTime) * 11);
+      meshAdd(
+        polygons_transform(GBox, identity.translate(-27, -3, -20).scale(3, 1.4, 3), material(0.9, 0.9, 0.9, 0.2)),
+      );
+
+      meshAdd(
+        polygons_transform(GBox, identity.translate(-39, -3, -20).scale(3, 1.4, 3), material(0.9, 0.9, 0.9, 0.2)),
+      );
+    }, ++_modelIdCounter);
+
+    // meshAdd(polygons_transform(GBox, identity.translate(-66, -3, -20).scale(24, 1.4, 3), material(0.9, 0.9, 0.9, 0.2)));
   });
 };
 
