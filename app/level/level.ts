@@ -338,10 +338,7 @@ export const level1 = () => {
       );
     }, ++_modelIdCounter);
 
-    newModel((model) => {
-      model._update = () => identity.rotate(0, lever3() * Math.sin(gameTime + 2) * 29, 0);
-      meshAdd(polygons_transform(GBox, identity.translate(0, 0, 71).scale(5, 1, 7), material(1, 0.5, 1)));
-    }, ++_modelIdCounter);
+    // ******** LEVEL 3 ********
 
     // triangle platform
 
@@ -450,21 +447,85 @@ export const level1 = () => {
 
     meshAdd(
       polygons_transform(
+        csg_polygons(
+          csg_subtract(
+            csg_union([
+              // base
+              polygons_transform(
+                GBox,
+                identity.translate(-100, -2.5, -20).scale(8, 1, 8),
+                material(0.8, 0.8, 0.8, 0.2),
+              ),
+              // straiht line
+              polygons_transform(
+                GBox,
+                identity.translate(-100, -2.6, -5).scale(3, 1.1, 7),
+                material(0.8, 0.8, 0.8, 0.2),
+              ),
+              // straight ascension
+              polygons_transform(
+                GBox,
+                identity.translate(-100, -1.1, 7.39).rotate(-15, 0).scale(3, 1.1, 6),
+                material(0.8, 0.8, 0.8, 0.2),
+              ),
+              // ascension continuation
+              polygons_transform(
+                GBox,
+                identity.translate(-100, 0.42, 17).scale(3, 1.1, 4.1),
+                material(0.8, 0.8, 0.8, 0.2),
+              ),
+              // 45 degrees detour
+              polygons_transform(
+                GBox,
+                identity.translate(-115, -2.6, 7).rotate(0, -45).scale(3, 1.1, 20),
+                material(0.8, 0.8, 0.8, 0.2),
+              ),
+            ]),
+
+            csg_union([
+              // decorative octagon
+              polygons_transform(
+                cylinder(8),
+                identity.translate(-100, -1, -20).scale(7, 0.9, 7),
+                material(0.3, 0.3, 0.3, 0.4),
+              ),
+              polygons_transform(
+                cylinder(8),
+                identity.translate(-100, -2, -20).scale(4, 0.3, 4),
+                material(0.4, 0.4, 0.4, 0.5),
+              ),
+              polygons_transform(
+                cylinder(8),
+                identity.translate(-100, -3, -20).scale(0.6, 1, 0.6),
+                material(0.4, 0.4, 0.4, 0.5),
+              ),
+            ]),
+          ),
+        ),
+        identity,
+      ),
+    );
+
+    meshAdd(
+      polygons_transform(
         cylinder(3, 0, -0.5),
         identity.translate(-88.4, -3.9, -20).rotate(0, -90, 17).scale(3, 1.45, 5.9),
         material(0.8, 0.8, 0.8, 0.2),
       ),
     );
-    meshAdd(
-      polygons_transform(GBox, identity.translate(-100, -2.9, -20).scale(8, 1.4, 8), material(0.7, 0.7, 0.7, 0.2)),
-    );
-    meshAdd(
-      polygons_transform(
-        cylinder(8),
-        identity.translate(-100, -2.5, -20).scale(7, 1.4, 7),
-        material(0.5, 0.5, 0.7, 0.2),
+
+    // coloured columns
+
+    GQuad.map(({ x, z }) =>
+      meshAdd(
+        polygons_transform(
+          cylinder(6),
+          identity.translate(-100 + x * 7, -3, z * 7 - 20).scale(1, 7, 1),
+          material(0.6, 0.4, 0.3, 0.8),
+        ),
       ),
     );
+
     meshAdd(
       polygons_transform(
         GBox,
@@ -495,6 +556,35 @@ export const level1 = () => {
 
     meshAdd(polygons_transform(GBox, identity.translate(-90, -9.5, -46).scale(4, 1, 2), material(0.4, 0.4, 0.4, 0.4)));
     withEditMatrix(identity.translate(-88, -8, -46), addLever);
+
+    // // straight continuation
+    // meshAdd(
+    //   polygons_transform(
+    //     GBox,
+    //     identity.translate(-100, -2.1, -4.8).scale(3, 1, 8).rotate(0, 90).skewX(-11.7).rotate(0, 90),
+    //     material(0.8, 0.8, 0.8, 0.2),
+    //   ),
+    // );
+    // meshAdd(
+    //   polygons_transform(
+    //     GBox,
+    //     identity.translate(-100, 0, 8.8).rotate(-30, 0).scale(3, 1, 6).rotate(0, 90).skewX(15).rotate(0, 90),
+    //     material(1, 1, 1),
+    //   ),
+    // );
+  });
+
+  // ******** LEVEL 4 ********
+
+  withEditMatrix(identity.translate(-100, 3, 103), () => {
+    // meshAdd(polygons_transform(GBox, identity.translate(0, 0, -20).scale(3, 10, 1), material(1, 1, 0)));
+    // meshAdd(
+    //   polygons_transform(
+    //     cylinder(6, 0, 0, 0.3),
+    //     identity.translate(0, 0, 0).scale(13, 1, 13),
+    //     material(0.7, 0.7, 0.7, 0.2),
+    //   ),
+    // );
   });
 };
 
