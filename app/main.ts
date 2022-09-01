@@ -230,7 +230,7 @@ const draw = (globalTime: number) => {
 
     if (isFirstPerson()) {
       camera_position.x = lerpDamp(camera_position.x, player_position_final.x, 18);
-      camera_position.y = lerpDamp(camera_position.y, player_position_final.y + 1, 15);
+      camera_position.y = lerpDamp(camera_position.y, player_position_final.y + 1.5, 15);
       camera_position.z = lerpDamp(camera_position.z, player_position_final.z, 18);
       camera_rotation.y = angle_wrap_degrees(camera_rotation.y + mouse_movementX * 0.1);
       camera_rotation.x = Math.max(Math.min(camera_rotation.x + mouse_movementY * 0.1, 87), -87);

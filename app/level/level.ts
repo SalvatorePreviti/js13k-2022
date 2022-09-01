@@ -185,7 +185,7 @@ export const level1 = () => {
           identity
             .translate((j - 0.5) * 18.5, 0, i * 4.8 - 9.5)
             .rotate(0, 180 - j * 180, 0)
-            .scale(1.2, 10, 1),
+            .scale(1.2, 10, 1.2),
           material(1, 1, 0.8, 0.2),
         ),
       );
@@ -556,35 +556,33 @@ export const level1 = () => {
 
     meshAdd(polygons_transform(GBox, identity.translate(-90, -9.5, -46).scale(4, 1, 2), material(0.4, 0.4, 0.4, 0.4)));
     withEditMatrix(identity.translate(-88, -8, -46), addLever);
-
-    // // straight continuation
-    // meshAdd(
-    //   polygons_transform(
-    //     GBox,
-    //     identity.translate(-100, -2.1, -4.8).scale(3, 1, 8).rotate(0, 90).skewX(-11.7).rotate(0, 90),
-    //     material(0.8, 0.8, 0.8, 0.2),
-    //   ),
-    // );
-    // meshAdd(
-    //   polygons_transform(
-    //     GBox,
-    //     identity.translate(-100, 0, 8.8).rotate(-30, 0).scale(3, 1, 6).rotate(0, 90).skewX(15).rotate(0, 90),
-    //     material(1, 1, 1),
-    //   ),
-    // );
   });
 
   // ******** LEVEL 4 ********
 
-  withEditMatrix(identity.translate(-100, 3, 103), () => {
-    // meshAdd(polygons_transform(GBox, identity.translate(0, 0, -20).scale(3, 10, 1), material(1, 1, 0)));
-    // meshAdd(
-    //   polygons_transform(
-    //     cylinder(6, 0, 0, 0.3),
-    //     identity.translate(0, 0, 0).scale(13, 1, 13),
-    //     material(0.7, 0.7, 0.7, 0.2),
-    //   ),
-    // );
+  withEditMatrix(identity.translate(-100, 0.7, 118), () => {
+    // base
+    meshAdd(
+      polygons_transform(
+        cylinder(6, 0, 0, 0.6),
+        identity.translate(0, 0, 0).scale(18, 1, 18),
+        material(0.7, 0.7, 0.7, 0.2),
+      ),
+    );
+
+    // entrance horns
+    [-1, 1].map((i) =>
+      meshAdd(
+        polygons_transform(
+          horn(),
+          identity
+            .translate(i * 4, 0.5, -24.8)
+            .rotate(0, i * 90 - 90, i * 23)
+            .scale(1.3, 9, 1.3),
+          material(1, 1, 0.8, 0.2),
+        ),
+      ),
+    );
   });
 };
 
