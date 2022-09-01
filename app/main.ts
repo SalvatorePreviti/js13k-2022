@@ -281,18 +281,17 @@ const draw = (globalTime: number) => {
 
   playerModel.$animationMatrix = identity
     .translate(player_position_final.x, player_position_final.y, player_position_final.z)
-    .rotate(0, player_look_angle / DEG_TO_RAD);
+    .rotateSelf(0, player_look_angle / DEG_TO_RAD);
 
   player_legs_speed = lerp(player_legs_speed, movStrafe || movForward ? 1 : 0, gameTimeDelta * 10);
 
-  playerRightLegModel.$animationMatrix = identity.rotate(
-    player_legs_speed * Math.sin(gameTime * movSelectedVelocity * 1.7) * 15,
-    0,
-  );
-  playerLeftLegModel.$animationMatrix = identity.rotate(
-    player_legs_speed * Math.sin(gameTime * movSelectedVelocity * 1.7 + Math.PI) * 15,
-    0,
-  );
+  playerRightLegModel.$animationMatrix = identity
+    .translate(0, player_legs_speed * clamp01(Math.sin(gameTime * movSelectedVelocity * 1.7 - Math.PI / 2) * 0.45))
+    .rotateSelf(player_legs_speed * Math.sin(gameTime * movSelectedVelocity * 1.7) * (0.25 / DEG_TO_RAD), 0);
+
+  playerLeftLegModel.$animationMatrix = identity
+    .translate(0, player_legs_speed * clamp01(Math.sin(gameTime * movSelectedVelocity * 1.7 + Math.PI / 2) * 0.45))
+    .rotateSelf(player_legs_speed * Math.sin(gameTime * movSelectedVelocity * 1.7 + Math.PI) * (0.25 / DEG_TO_RAD), 0);
 
   if (gameTimeDelta > 0) {
     updateModels(rootModel);

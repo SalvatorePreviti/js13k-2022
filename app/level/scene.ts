@@ -103,8 +103,8 @@ export const meshEnd = () => {
   };
 };
 
-export const modelBegin = ($modelId: number = currentModel.$modelId) => {
-  const newModel: Model = {
+export const newModel = (fn: (model: Model) => void | Mesh | undefined, $modelId = 1) => {
+  const model: Model = {
     $parent: currentModel,
     $children: [],
     $initialMatrix: editMatrixStack.at(-1)!,
@@ -114,23 +114,17 @@ export const modelBegin = ($modelId: number = currentModel.$modelId) => {
   };
   _pendingPolygonsStack.push([]);
   editMatrixStack.push(identity);
-  currentModel.$children.push(newModel);
-  return (currentModel = newModel);
-};
+  currentModel.$children.push(model);
+  currentModel = model;
 
-export const modelEnd = ($mesh?: Mesh | undefined) => {
-  modelsByModelId[currentModel.$modelId] = currentModel;
-  if ($mesh && $mesh.$vertexCount) {
-    currentModel.$mesh = $mesh;
+  const modelMesh = fn(model) || meshEnd();
+  modelsByModelId[model.$modelId] = model;
+  if (modelMesh && modelMesh.$vertexCount) {
+    model.$mesh = modelMesh;
   }
-  currentModel = currentModel.$parent!;
+  currentModel = model.$parent!;
   editMatrixStack.pop();
   _pendingPolygonsStack.pop();
-};
-
-export const newModel = (fn: (model: Model) => void | Mesh | undefined, modelId?: number) => {
-  const model = modelBegin(modelId);
-  modelEnd(fn(model) || meshEnd());
   return model;
 };
 
