@@ -6,7 +6,7 @@ precision highp float;
 // Shadow bias
 // Could be computed based on normal and light, something like 0.0003 * (1. -
 // clamp(dot(normal, lightDir), 0., 1.))
-const float shadowBias = 1. / CSM_TEXTURE_SIZE / 2.5; // 0.00018;
+const float shadowBias = 1. / CSM_TEXTURE_SIZE / 2.8; // / 2.5  --- // 0.00018;
 
 #define zNear 0.3
 #define CSM_PLANE_DISTANCE0 50.

@@ -6,7 +6,8 @@ export const player_position_global: Vec3 = {
   x: -100,
   // x: -35,
   y: 3,
-  z: 93,
+  z: 56,
+  // z: 93,
 };
 
 // export const player_position_global: Vec3 = {

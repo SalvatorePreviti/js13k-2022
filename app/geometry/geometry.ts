@@ -114,7 +114,7 @@ export const cone = /* @__PURE__ */ (segments: number, smooth?: 0 | 1 | undefine
 export const horn = /* @__PURE__ */ (curvature: number = 0): Polygon[] => {
   const stacks = 10;
 
-  const p = polygon_regular(15);
+  const p = polygon_regular(20);
 
   const getMatrix = (i: number) =>
     identity

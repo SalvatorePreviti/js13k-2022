@@ -202,9 +202,9 @@ let player_speed = 0;
 let player_collision_velocity_x = 0;
 let player_collision_velocity_z = 0;
 
-let camera_player_dir_x = 0;
-let camera_player_dir_y = 0;
-let camera_player_dir_z = 0;
+let camera_player_dir_x = player_position_global.x;
+let camera_player_dir_y = player_position_global.y + 13;
+let camera_player_dir_z = player_position_global.z - 18;
 
 const readDist1 = (x: number, y: number): number => {
   return collision_buffer[(y * COLLISION_TEXTURE_SIZE + x) * 4]! / 255;
@@ -255,10 +255,11 @@ const draw = (globalTime: number) => {
 
       camera_rotation.y = 270 + Math.atan2(viewDirDiffz, viewDirDiffx) / DEG_TO_RAD;
 
-      camera_rotation.x =
+      camera_rotation.x = Math.max(
         90 -
-        Math.atan2(Math.sqrt(viewDirDiffz * viewDirDiffz + viewDirDiffx * viewDirDiffx) || 0, viewDirDiffy) /
-          DEG_TO_RAD;
+          Math.atan2(Math.sqrt(viewDirDiffz * viewDirDiffz + viewDirDiffx * viewDirDiffx) || 0, viewDirDiffy) /
+            DEG_TO_RAD,
+      );
     }
   }
 
