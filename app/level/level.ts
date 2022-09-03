@@ -809,16 +809,34 @@ export const level1 = () => {
       polygons_transform(GBox, identity.translate(46, -17, -38.5).scale(2.2, 15, 0.5), material(0.6, 0.6, 0.6, 0.3)),
     );
 
-    // internal pad
+    // pushing rods
 
-    // newModel((model) => {
-    //   model._update = () =>
-    //     identity
-    //       .translate(44, -4.1, -24)
-    //       .rotate(0, 0, Math.abs(Math.sin(gameTime * 3)) * 90)
-    //       .translate(-1, 5);
-    //   meshAdd(polygons_transform(GBox, identity.scale(1, 5, 3), material(0.8, 0.8, 0.8, 0.1)));
-    // });
+    const pushingRod = csg_polygons(
+      csg_subtract(
+        polygons_transform(GBox, identity.scale(1.5, 1.5, 5.5), material(0.3, 0.3, 0.4, 0.3)),
+        polygons_transform(cylinder(3), identity.translate(0, 0, -5.5).scale(3, 2, 1), material(0.6, 0.3, 0.4, 0.3)),
+      ),
+    );
+
+    newModel((model) => {
+      model._update = () => identity.translate(0, -2, -Math.abs(Math.sin(gameTime * 1.3)) * 9 + 10);
+      integers_map(4, (x) => {
+        withEditMatrix(identity.translate(15 + x * 9, 1.7), () => {
+          meshAdd(pushingRod);
+        });
+      });
+    });
+
+    newModel((model) => {
+      model._update = () => identity.translate(0, -2, -Math.abs(Math.sin(gameTime * 1.1 + 1)) * 9 + 10);
+      integers_map(3, (x) => {
+        withEditMatrix(identity.translate(19 + x * 9, 1.7), () => {
+          meshAdd(pushingRod);
+        });
+      });
+    });
+
+    // internal pad
 
     meshAdd(
       polygons_transform(
