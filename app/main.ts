@@ -238,7 +238,7 @@ const draw = (globalTime: number) => {
       camera_position.x = interpolate_with_hysteresis(camera_position.x, camera_player_dir_x, 1, gameTimeDelta * 2);
       camera_position.y = interpolate_with_hysteresis(
         camera_position.y,
-        Math.max(10, camera_player_dir_y + 13),
+        camera_player_dir_y + 13, // Math.max(10, camera_player_dir_y + 13),
         4,
         gameTimeDelta * 2,
       );

@@ -110,37 +110,18 @@ export const playerModel = newModel(() => {
   return meshEnd();
 }, PLAYER_MODEL_ID);
 
-// export const arc = (transform: DOMMatrixReadOnly, color?: number) => {
-//   return csg_subtract(
-//     polygons_transform(GBox, transform.scale(2, 2, 0.5), color),
-//     csg_union([
-//       polygons_transform(cylinder(10), transform.translate(1.4, 1.3, 0).scale(0.3, 0.3, 1).rotate(90, 0, 0), color),
-//       polygons_transform(cylinder(10), transform.translate(-1.4, 1.3, 0).scale(0.3, 0.3, 1).rotate(90, 0, 0), color),
-//       polygons_transform(cylinder(20), transform.scale(1, 1, 1).rotate(90, 0, 0), color),
-//       polygons_transform(GBox, transform.translate(0, -1.1).scale(1, 1.1, 1).rotate(90, 0, 0), color),
-//     ]),
-//   );
-// };
-
-// const arcInner = (transform: DOMMatrixReadOnly, color?: number) => {
-//   return csg_union_op(
-//     polygons_transform(cylinder(22, 1), transform.scale(2.01, 2, 2).rotate(90, 0, 0), color),
-//     polygons_transform(GBox, transform.translate(0, -2.14).scale(2, 2, 2).rotate(90, 0, 0), color),
-//   );
-// };
-
-// export const arc = (transform: DOMMatrixReadOnly, color?: number) => {
-//   return csg_subtract(
-//     csg_union_op(
-//       polygons_transform(cylinder(30, 1), transform.scale(3.010936, 3, 0.3).rotate(90, 0, 0), color),
-//       polygons_transform(GBox, transform.translate(0, -1.81).scale(3, 2, 0.3).rotate(90, 0, 0), color),
-//     ),
-//     arcInner(transform, color),
-//   );
-// };
-
 const lever3 = () => (DEBUG_FLAG0 ? 1 : 0);
 const lever5 = () => (DEBUG_FLAG1 ? 1 : 0);
+
+const bigArc = csg_polygons(
+  csg_subtract(
+    polygons_transform(GBox, identity.translate(0, -4).scale(6, 11, 2.2)),
+    csg_union_op(
+      polygons_transform(GBox, identity.translate(0, -8, 0).scale(4, 8, 4)),
+      polygons_transform(cylinder(25, 1), identity.rotate(90, 0, 90).scale3d(4)),
+    ),
+  ),
+);
 
 export const level1 = () => {
   // ******** LEVEL 1 ********
@@ -474,10 +455,10 @@ export const level1 = () => {
                 identity.translate(-100, -2.5, -20).scale(8, 1, 8),
                 material(0.8, 0.8, 0.8, 0.2),
               ),
-              // right path
+              // right path to the boat
               polygons_transform(
                 GBox,
-                identity.translate(-111, -2.6, -20).scale(4.2, 1.1, 3).skewX(3),
+                identity.translate(-113, -2.6, -20).scale(6.2, 1.1, 3).skewX(3),
                 material(0.8, 0.8, 0.8, 0.2),
               ),
               // straiht line
@@ -596,24 +577,178 @@ export const level1 = () => {
         polygons_transform(
           cylinder(((i * 23 + 1) % 5) + 5, 0, 0.6),
           identity
-            .translate(-101 + Math.sin(i) * 5 + i, -2.3 - i, -30.1 - i * 2.5)
+            .translate(-101 + Math.sin(i) * 5 + i, -2.3 - i, -30.1 - i * 2.8)
             .scaleSelf(5 + i / 2, 1 + i / 6, 5 + i / 3),
           m,
         ),
       );
     });
 
-    meshAdd(polygons_transform(GBox, identity.translate(-90, -9.5, -46).scale(5, 1, 2), material(0.4, 0.4, 0.4, 0.4)));
-    withEditMatrix(identity.translate(-87, -8, -46), addLever);
+    // crystals continuation pad
+
+    meshAdd(polygons_transform(GBox, identity.translate(-87, -9.5, -51).scale(7, 1, 3), material(0.4, 0.5, 0.6, 0.4)));
+
+    // lever pad
+
+    meshAdd(
+      polygons_transform(cylinder(4), identity.translate(-86, -9.2, -48).scale(5, 1, 5), material(0.5, 0.6, 0.7, 0.3)),
+    );
+
+    meshAdd(
+      polygons_transform(
+        cylinder(25, 1),
+        identity.translate(-86, -9, -44).scale(1.5, 1, 1.5),
+        material(0.3, 0.3, 0.4, 0.1),
+      ),
+    );
+
+    withEditMatrix(identity.translate(-86, -7.5, -44), addLever);
+
+    // elevators
+
+    withEditMatrix(identity.translate(-76.9, -10, -51), () => {
+      newModel((model) => {
+        model._update = () => identity.translate(0, lever3() * Math.sin(gameTime) * 7);
+        [0, 12].map((x) =>
+          meshAdd(
+            polygons_transform(GBox, identity.translate(x, x / -13).scale(2.8, 1.5, 3), material(0.2, 0.5, 0.6, 0.2)),
+          ),
+        );
+      }, ++_modelIdCounter);
+      newModel((model) => {
+        model._update = () => identity.translate(0, lever3() * Math.sin(gameTime + 3) * 6);
+        [6, 18].map((x) =>
+          meshAdd(
+            polygons_transform(GBox, identity.translate(x, x / -13).scale(2.8, 1.5, 3), material(0.1, 0.4, 0.5, 0.2)),
+          ),
+        );
+      }, ++_modelIdCounter);
+    });
+
+    // pad after elevators
+
+    withEditMatrix(identity.translate(-44.9, -11.3, -51), () => {
+      meshAdd(polygons_transform(GBox, identity.scale(11, 1, 8), material(0.3, 0.4, 0.6, 0.3)));
+
+      meshAdd(polygons_transform(cylinder(5), identity.scale(7, 1.2, 7), material(0, 0.2, 0.3, 0.5)));
+
+      // central sculpture
+
+      newModel((model) => {
+        model._update = () => identity.translate(0, lever3() * -5.9);
+
+        meshAdd(
+          csg_polygons(
+            csg_subtract(
+              csg_union([
+                polygons_transform(
+                  cylinder(5),
+                  identity.translate(0, 2).scale(4, 6, 4).skewY(8),
+                  material(0.2, 0.4, 0.5, 0.5),
+                ),
+                polygons_transform(
+                  cylinder(5),
+                  identity.translate(0, 5).scale(2, 6, 2).skewY(-8),
+                  material(0.25, 0.35, 0.5, 0.5),
+                ),
+                polygons_transform(
+                  cylinder(5),
+                  identity.translate(0, 9).scale(1.2, 5, 1.2).skewY(8),
+                  material(0.35, 0.3, 0.5, 0.5),
+                ),
+              ]),
+              polygons_transform(
+                cylinder(5),
+                identity.translate(0, 5).scale(1.5, 1.5, 8).rotate(90, 0, 35),
+                material(0.2, 0.4, 0.5, 0.5),
+              ),
+            ),
+          ),
+        );
+      });
+
+      // columns
+
+      GQuad.map(({ x, z }) => {
+        meshAdd(
+          polygons_transform(
+            cylinder(20, 1),
+            identity.translate(x * 9, 4, z * 6).scale(1, 4, 1),
+            material(0.25, 0.25, 0.25, 1),
+          ),
+        );
+        [1.5, 8].map((y) =>
+          meshAdd(
+            polygons_transform(
+              cylinder(20, 1),
+              identity.translate(x * 9, y, z * 6).scale(1.5, 0.5, 1.5),
+              material(0.6, 0.6, 0.6, 0.3),
+            ),
+          ),
+        );
+      });
+
+      // lever pad
+
+      meshAdd(polygons_transform(GBox, identity.translate(0, 0, -9).scale(3, 1.2, 3), material(0.35, 0.3, 0.5, 0.5)));
+
+      withEditMatrix(identity.translate(0, 1.7, -11), addLever);
+    });
+
+    // integers_map(4, (i) => {
+    //   withEditMatrix(identity.translate(-79 + i * 7, -3, -43), () => {
+    //     newModel((model) => {
+    //       model._update = () =>
+    //         identity.translate(2, lever3() * ((0.5 + 0.5 * Math.sin((gameTime + i) * 1.1)) * 14 + (4 - i)));
+
+    //       withEditMatrix(identity.translate(0, i * -2 - 6), () =>
+    //         meshAdd(
+    //           polygons_transform(
+    //             GBox,
+    //             identity
+    //               .translate(0, i * 2 - 12.5)
+    //               .scale(2.8, 1.5, 3 + (i > 2 ? 2 : 0) + i / 6)
+    //               .translate(0, 0, -1),
+    //             material(0.2, 0.5, 0.6, 0.2),
+    //           ),
+    //         ),
+    //       );
+    //     }, ++_modelIdCounter);
+    //   });
+    // });
   });
 
-  // ******** boat ********
+  // ******** BOAT ********
 
-  withEditMatrix(identity.translate(-119, 1.4, 55), () => {
+  withEditMatrix(identity.translate(-123, 1.4, 55), () => {
+    // meshAdd(polygons_transform(GBox, identity.translate(0, -4, 0).scale(1, 1, 100), material(0.5, 0.4, 0.3)));
+
+    // integers_map(8, (i) =>
+    //   meshAdd(
+    //     polygons_transform(arc, identity.rotate(0, 90).translate(i * 12 + 10, 4, -12), material(0.6, 0.6, 0.6, 0.3)),
+    //   ),
+    // );
+
+    // integers_map(4, (i) =>
+    //   meshAdd(
+    //     polygons_transform(
+    //       arc,
+    //       identity
+    //         .rotate(0, 90)
+    //         .translate(i * 12 + 14, 2)
+    //         .rotate(0, 90)
+    //         .scale(1.5, 1, 0.5),
+    //       material(0.6, 0.6, 0.6, 0.3),
+    //     ),
+    //   ),
+    // );
+
+    // integers_map(4, (i) => polygons_transform(arc, identity.translate(i * 12 + 14, 5), material(0.6, 0.6, 0.6, 0.3)));
+
     newModel((model) => {
       model._update = () =>
         identity
-          .translate(Math.sin(gameTime + 2) / 5, Math.sin(gameTime * 0.8) / 3, lever3() ? -70 : +0)
+          .translate(Math.sin(gameTime + 2) / 5, Math.sin(gameTime * 0.8) / 3, lever3() ? -60 : +0)
           .rotate(Math.sin(gameTime) * 2, Math.sin(gameTime * 0.7), Math.sin(gameTime * 0.9));
       meshAdd(
         csg_polygons(
@@ -641,7 +776,9 @@ export const level1 = () => {
 
   // ******** LEVEL AFTER BOAT ********
 
-  withEditMatrix(identity.translate(-119, 0, -15), () => {
+  withEditMatrix(identity.translate(-123, 0, -5), () => {
+    // boat attachment
+
     meshAdd(
       polygons_transform(
         GBox,
@@ -649,6 +786,53 @@ export const level1 = () => {
         material(0.8, 0.8, 0.8, 0.2),
       ),
     );
+
+    // arcs
+
+    integers_map(4, (i) =>
+      meshAdd(polygons_transform(bigArc, identity.translate(i * 12 + 14, -9), material(0.6, 0.6, 0.6, 0.3))),
+    );
+
+    [7.5, 56.5].map((x) =>
+      meshAdd(polygons_transform(GBox, identity.translate(x, -13).scale(0.5, 11, 2.2), material(0.6, 0.6, 0.6, 0.3))),
+    );
+
+    // // elevators
+
+    // integers_map(4, (i) => {
+    //   withEditMatrix(identity.translate(58.1 + i * 7, -2), () => {
+    //     newModel((model) => {
+    //       model._update = () =>
+    //         identity.translate(2, lever3() * ((0.5 + 0.5 * Math.sin((gameTime + i) * 1.1)) * 14 + (4 - i)));
+
+    //       withEditMatrix(identity.translate(0, i * -2 - 6, 3), () =>
+    //         meshAdd(
+    //           polygons_transform(
+    //             GBox,
+    //             identity
+    //               .translate(0, i * 2 - 12.5)
+    //               .scale(2.8, 1.5, 3 + (i > 2 ? 2 : 0) + i / 6)
+    //               .translate(0, 0, -1),
+    //             material(0.2, 0.5, 0.6, 0.2),
+    //           ),
+    //         ),
+    //       );
+    //     }, ++_modelIdCounter);
+    //   });
+    // });
+
+    // // bottom
+
+    // meshAdd(polygons_transform(GBox, identity.translate(77, -19, -13).scale(10.5, 1, 5), material(0.8, 0.8, 0.8, 0.3)));
+
+    // newModel((model) => {
+    //   model._update = () =>
+    //     identity
+    //       .translate(30 + 36, -17, -13)
+    //       .rotate(0, 0, lever5() * -16)
+    //       .translate(-30, -2);
+    //   meshAdd(polygons_transform(GBox, identity.scale(30, 1, 5), material(0.5, 0.8, 0.8, 0.3)));
+    // }, ++_modelIdCounter);
   });
 
   // ******** LEVEL AFTER CENTRAL GATE ********
