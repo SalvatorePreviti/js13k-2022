@@ -767,18 +767,6 @@ export const level1 = () => {
   // ******** LEVEL AFTER BOAT ********
 
   withEditMatrix(identity.translate(-123, 0, -5), () => {
-    // boat attachment
-
-    meshAdd(
-      polygons_transform(
-        GBox,
-        identity.translate(8, -2.6, -0).scale(4.2, 1.1, 3).skewX(3),
-        material(0.8, 0.8, 0.8, 0.2),
-      ),
-    );
-
-    // arcs
-
     const bigArc = csg_polygons(
       csg_subtract(
         polygons_transform(GBox, identity.translate(0, -8).scale(6, 15, 2.2)),
@@ -788,6 +776,30 @@ export const level1 = () => {
         ),
       ),
     );
+
+    const pushingRod = csg_polygons(
+      csg_subtract(
+        polygons_transform(GBox, identity.translate(0, -0.5, 1).scale(1.15, 1.2, 6.5), material(0.25, 0.25, 0.35, 0.3)),
+        csg_union([
+          polygons_transform(cylinder(3), identity.translate(0, 0, -5.5).scale(3, 2, 1), material(0.6, 0.3, 0.4, 0.3)),
+          ...[-1.2, 1.2].map((i) =>
+            polygons_transform(GBox, identity.translate(i, -0.5, 1).scale(0.14, 0.3, 6.5), material(0.7, 0.2, 0, 0.3)),
+          ),
+        ]),
+      ),
+    );
+
+    // boat attachment
+
+    meshAdd(
+      polygons_transform(
+        GBox,
+        identity.translate(7, -2.6, -0).scale(3.2, 1.1, 3).skewX(3),
+        material(0.8, 0.8, 0.8, 0.2),
+      ),
+    );
+
+    // arcs
 
     integers_map(3, (i) =>
       meshAdd(polygons_transform(bigArc, identity.translate(i * 12 + 14, -9), material(0.6, 0.6, 0.6, 0.3))),
@@ -809,31 +821,49 @@ export const level1 = () => {
       polygons_transform(GBox, identity.translate(46, -17, -38.5).scale(2.2, 15, 0.5), material(0.6, 0.6, 0.6, 0.3)),
     );
 
-    // pushing rods
+    // pushing rods container
 
-    const pushingRod = csg_polygons(
-      csg_subtract(
-        polygons_transform(GBox, identity.scale(1.5, 1.5, 5.5), material(0.3, 0.3, 0.4, 0.3)),
-        polygons_transform(cylinder(3), identity.translate(0, 0, -5.5).scale(3, 2, 1), material(0.6, 0.3, 0.4, 0.3)),
+    meshAdd(
+      polygons_transform(
+        csg_polygons(
+          csg_subtract(
+            csg_union_op(
+              polygons_transform(GBox, identity.translate(26.5, -1.6, 10).scale(17, 2.08, 3)),
+              polygons_transform(GBox, identity.translate(26.5, -0.6, 10).scale(17, 2, 0.5)),
+            ),
+            csg_union([
+              ...integers_map(4, (x) =>
+                polygons_transform(GBox, identity.translate(13 + x * 9, -0.8, 9).scale(1.35, 1.35, 9)),
+              ),
+              ...integers_map(3, (x) =>
+                polygons_transform(GBox, identity.translate(17 + x * 9, -0.8, 9).scale(1.35, 1.35, 9)),
+              ),
+            ]),
+          ),
+        ),
+        identity,
+        material(0.5, 0.5, 0.6, 0.2),
       ),
     );
 
+    meshAdd(
+      polygons_transform(
+        cylinder(5),
+        identity.translate(9.4, -1.6, 10).rotate(0, 90, 90).scale(1.5, 0.2, 1.5),
+        material(0.25, 0.25, 0.35, 1),
+      ),
+    );
+
+    // pushing rods
+
     newModel((model) => {
-      model._update = () => identity.translate(0, -2, -Math.abs(Math.sin(gameTime * 1.3)) * 9 + 10);
-      integers_map(4, (x) => {
-        withEditMatrix(identity.translate(15 + x * 9, 1.7), () => {
-          meshAdd(pushingRod);
-        });
-      });
+      model._update = () => identity.translate(0, -2, lever3() * -Math.abs(Math.sin(gameTime * 1.2)) * 8.5 + 10);
+      integers_map(4, (x) => meshAdd(polygons_transform(pushingRod, identity.translate(13 + x * 9, 1.7))));
     });
 
     newModel((model) => {
-      model._update = () => identity.translate(0, -2, -Math.abs(Math.sin(gameTime * 1.1 + 1)) * 9 + 10);
-      integers_map(3, (x) => {
-        withEditMatrix(identity.translate(19 + x * 9, 1.7), () => {
-          meshAdd(pushingRod);
-        });
-      });
+      model._update = () => identity.translate(0, -2, lever3() * -Math.abs(Math.sin(gameTime + 1)) * 8.5 + 10);
+      integers_map(3, (x) => meshAdd(polygons_transform(pushingRod, identity.translate(17 + x * 9, 1.7))));
     });
 
     // internal pad
