@@ -375,7 +375,7 @@ const draw = (globalTime: number) => {
   gl.uniform3f(skyShader(uniformName_viewPos), camera_position.x, camera_position.y, camera_position.z);
   gl.uniformMatrix4fv(skyShader(uniformName_viewMatrix), false, camera_view.inverse().toFloat32Array());
 
-  gl.drawElements(gl.TRIANGLES, 3, gl.UNSIGNED_INT, 0);
+  gl.drawElements(gl.TRIANGLES, 3, gl.UNSIGNED_SHORT, 0);
 
   // *** RENDER COLLISIONS ***
 

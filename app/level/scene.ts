@@ -130,7 +130,7 @@ export const newModel = (fn: (model: Model) => void | Mesh | undefined, $modelId
 
 export const initTriangleBuffers = () => {
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.createBuffer());
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(_triangleIndices), gl.STATIC_DRAW);
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(_triangleIndices), gl.STATIC_DRAW);
 
   gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(_vertexPositions), gl.STATIC_DRAW);
@@ -151,7 +151,7 @@ export const initTriangleBuffers = () => {
   if (DEBUG) {
     console.log(
       "vertices: " +
-        _vertexMap.size +
+        _vertexPositions.length / 3 +
         " indices:" +
         _triangleIndices.length +
         " triangles:" +
@@ -176,7 +176,7 @@ export const renderModels = (
           gl.uniform1f(collisionModelIdUniformLocation, model.$modelId / 255);
         }
         gl.uniformMatrix4fv(worldMatrixLoc, false, model.$finalMatrix!.toFloat32Array());
-        gl.drawElements(gl.TRIANGLES, $mesh.$vertexCount, gl.UNSIGNED_INT, $mesh.$vertexOffset * 4);
+        gl.drawElements(gl.TRIANGLES, $mesh.$vertexCount, gl.UNSIGNED_SHORT, $mesh.$vertexOffset * 2);
       }
     }
   };
