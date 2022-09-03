@@ -3,10 +3,10 @@ import type { Vec3 } from "./math/vectors";
 export const PLAYER_MODEL_ID = 2;
 
 export const player_position_global: Vec3 = {
-  x: -94,
+  x: -77,
   // x: -35,
   y: 3,
-  z: 29,
+  z: -29,
   // z: 93,
 };
 
