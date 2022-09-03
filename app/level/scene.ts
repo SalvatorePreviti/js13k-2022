@@ -149,7 +149,20 @@ export const initTriangleBuffers = () => {
   gl.enableVertexAttribArray(2);
 
   if (DEBUG) {
+    let modelsCount = 0;
+    const recursion = (model = rootModel) => {
+      const { $mesh, $children } = model;
+      for (const child of $children) {
+        recursion(child);
+      }
+      if ($mesh) {
+        ++modelsCount;
+      }
+    };
+    recursion();
+
     console.log(
+      "models: " + modelsCount,
       "vertices: " +
         _vertexPositions.length / 3 +
         " indices:" +
