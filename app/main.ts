@@ -325,7 +325,6 @@ const draw = (globalTime: number) => {
     return;
   }
 
-  mouse_movementReset();
   const movStrafe = (keyboard_downKeys[KEY_LEFT] ? 1 : 0) + (keyboard_downKeys[KEY_RIGHT] ? -1 : 0);
   const movForward = (keyboard_downKeys[KEY_FRONT] ? 1 : 0) + (keyboard_downKeys[KEY_BACK] ? -1 : 0);
   const movSelectedVelocity = keyboard_downKeys[KEY_RUN] ? 7 : 4;
@@ -506,6 +505,8 @@ const draw = (globalTime: number) => {
           DEG_TO_RAD;
     }
   }
+
+  mouse_movementReset();
 
   camera_view
     .setMatrixValue("none")
