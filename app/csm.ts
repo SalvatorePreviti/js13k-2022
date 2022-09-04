@@ -1,6 +1,6 @@
 import { mat_perspective, camera_view } from "./camera";
 import { polygon_transform } from "./geometry/geometry";
-import { integers_map } from "./math/math";
+import { integers_map, max, min } from "./math/math";
 import { identity } from "./math/matrix";
 
 export const lightRotX = 298;
@@ -54,12 +54,12 @@ export const csm_buildMatrix = /* @__PURE__ */ (
 
   // Compute the frustum bouding box
   polygon_transform(frustumCorners, lightViewTranslated).map(({ x, y, z }) => {
-    left = Math.min(left, x);
-    right = Math.max(right, x);
-    bottom = Math.min(bottom, y);
-    top = Math.max(top, y);
-    near = Math.min(near, z);
-    far = Math.max(far, z);
+    left = min(left, x);
+    right = max(right, x);
+    bottom = min(bottom, y);
+    top = max(top, y);
+    near = min(near, z);
+    far = max(far, z);
   });
 
   near *= near < 0 ? zMultiplier : 1 / zMultiplier;

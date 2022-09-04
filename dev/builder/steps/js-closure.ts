@@ -86,7 +86,7 @@ export class StreamedClosureCompiler {
     for (const line of tsGlobals.split("\n")) {
       for (const prefix of ["declare const", "declare var", "declare function"]) {
         if (line.startsWith(prefix)) {
-          const name = line.slice(prefix.length).split(":")[0]!.split(";")[0]!.split("=")[0]!.trim();
+          const name = line.slice(prefix.length).split(":")[0]!.split(";")[0]!.split("(")[0]!.split("=")[0]!.trim();
           externsContent += `var ${name};\n`;
         }
       }

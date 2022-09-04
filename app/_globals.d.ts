@@ -25,6 +25,8 @@ declare module "*.vert";
 declare const hC: HTMLCanvasElement;
 declare const hV: HTMLElement;
 
+declare function NO_INLINE(fn: Function);
+
 interface Array<T> {
   reduce<U = T>(
     callbackfn: (previousValue: U | undefined, currentValue: T, currentIndex: number, array: T[]) => U | undefined,

@@ -242,6 +242,7 @@ export async function build() {
         resugarObjectsShorthand,
         resugarFunctionsArrow,
         resugarBlockScope,
+        babelPluginSimple({ removeNoInlineCall: true }),
         babelPluginVars({ constToLet: true }),
         // "babel-plugin-pure-calls-annotation",
       ],

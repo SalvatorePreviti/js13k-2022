@@ -1060,21 +1060,31 @@ export const level1 = () => {
 
     // the left bridge after the far arc gate
     meshAdd(polygons_transform(GBox, identity.translate(19, 0, -9).scale(12.08, 1, 3.5), material(0.7, 0.7, 0.7, 0.2)));
+    meshAdd(polygons_transform(GBox, identity.translate(43, 0, -9).scale(12.08, 1, 3.5), material(0.7, 0.7, 0.7, 0.2)));
 
     withEditMatrix(identity.translate(20, 0.3, -9), () => {
       newModel((model) => {
         // gameTime *
-        // model._update = () => identity.rotate(0, 40);
+        model._update = () => identity.rotate(0, gameTime * 40);
         meshAdd(polygons_transform(cylinder(20, 1), identity.scale(8, 1, 8), material(0.4, 0.4, 0.4, 0.2)));
         meshAdd(polygons_transform(cylinder(8), identity.translate(0, 2).scale(3, 2, 3), material(0.7, 0.7, 0.7, 0.1)));
-        // meshAdd(
-        //   csg_polygons(
-        //     csg_subtract(
-        //       polygons_transform(cylinder(25, 1), identity.translate(0, 2).scale(8, 1, 8), material(0.3, 0, 0, 0.3)),
-        //       polygons_transform(GBox, identity.scale(9, 5, 2), material(0.3, 0, 0, 0.3)),
-        //     ),
-        //   ),
-        // );
+      }, ++_modelIdCounter);
+    });
+
+    withEditMatrix(identity.translate(40, 0.3, -9), () => {
+      newModel((model) => {
+        // gameTime *
+        model._update = () => identity.rotate(0, gameTime * 40);
+        meshAdd(polygons_transform(cylinder(20, 1), identity.scale(8, 1, 8), material(0.4, 0.4, 0.4, 0.2)));
+        meshAdd(polygons_transform(cylinder(8), identity.translate(0, 2).scale(3, 2, 3), material(0.7, 0.7, 0.7, 0.1)));
+        meshAdd(
+          csg_polygons(
+            csg_subtract(
+              polygons_transform(cylinder(25, 1), identity.translate(0, 2).scale(8, 1, 8), material(0.3, 0, 0, 0.3)),
+              polygons_transform(GBox, identity.scale(9, 5, 2), material(0.3, 0, 0, 0.3)),
+            ),
+          ),
+        );
       }, ++_modelIdCounter);
     });
   });
@@ -1095,3 +1105,5 @@ export const level1 = () => {
 export const buildWorld = () => {
   newModel(level1);
 };
+
+NO_INLINE(buildWorld);

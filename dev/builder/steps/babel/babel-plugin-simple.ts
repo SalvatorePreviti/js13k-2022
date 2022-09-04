@@ -9,6 +9,7 @@ let _pluginCounter = 0;
 export interface BabelPluginSimpleSettings {
   constToLet?: boolean;
   unmangleableProperties?: "mark" | "transform" | undefined;
+  removeNoInlineCall?: boolean | undefined;
 
   /** Number of digits to round floating point numbers. If 0, means no rounding at all. */
   floatRound?: number;
@@ -42,8 +43,16 @@ export function babelPluginSimple(settings: BabelPluginSimpleSettings): PluginIt
       }
     }
 
-    return {
+    const pluginItem: PluginObj = {
       visitor: {
+        CallExpression(path: NodePath<types.CallExpression>): void {
+          if (settings.removeNoInlineCall) {
+            if (path.node.callee.type === "Identifier" && path.node.callee.name === "NO_INLINE") {
+              path.remove();
+            }
+          }
+        },
+
         NumericLiteral(path: NodePath<types.NumericLiteral>): void {
           const n = path.node;
           const precision = settings.floatRound;
@@ -89,5 +98,7 @@ export function babelPluginSimple(settings: BabelPluginSimpleSettings): PluginIt
         },
       },
     };
+
+    return pluginItem;
   }
 }
