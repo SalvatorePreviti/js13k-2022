@@ -9,9 +9,9 @@ export const PLAYER_MODEL_ID = 2;
 // };
 
 export const player_position_global: Vec3 = {
-  x: -90,
-  y: 15,
-  z: 105,
+  x: 7,
+  y: 10,
+  z: 99,
 };
 
 export const player_position_final: Vec3 = { ...player_position_global };

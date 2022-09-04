@@ -266,7 +266,6 @@ const doVerticalCollisions = (_collision_buffer: Uint8Array) => {
 NO_INLINE(doVerticalCollisions);
 
 const doHorizontalCollisions = (_collision_buffer: Uint8Array) => {
-  console.log(doHorizontalCollisions);
   let ddx = 0;
   let ddz = 0;
   for (let y = 32; y < COLLISION_TEXTURE_SIZE; y += 2) {
@@ -354,14 +353,7 @@ const draw = (globalTime: number) => {
 
     // sides collision
 
-    // ddx = 0;
-    // ddz = 0;
-
     const playerSpeedCollision = clamp01(1 - max(abs(player_collision_x), abs(player_collision_z)) * 5);
-
-    // console.log(playerSpeedCollision.toFixed(3), (movStrafe * ddx + movForward * ddz).toFixed(3));
-
-    // ddx = Math.sign(ddx) * abs(ddx) * abs(ddx);
 
     // // adjust collision push back based on the duration of the frame, to address slower machines with lower FPS
     // const collisionPushBackReduction = lerp(3.65, 1.1, max(0.008, gameTimeDelta) / GAME_TIME_MAX_DELTA_TIME);
