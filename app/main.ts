@@ -25,6 +25,7 @@ import sky_vsSource from "./shaders/sky-vertex.vert";
 import sky_fsSource, { uniformName_iResolution } from "./shaders/sky-fragment.frag";
 
 import {
+  abs,
   angle_lerp,
   angle_wrap_degrees,
   clamp01,
@@ -456,7 +457,9 @@ const draw = (globalTime: number) => {
       for (let x = 0; x < COLLISION_TEXTURE_SIZE; ++x) {
         const dist1 = readDist1(x, y);
         const dist2 = readDist2(COLLISION_TEXTURE_SIZE - 1 - x, y);
-        const t = 1 - Math.abs(2 * (x / (COLLISION_TEXTURE_SIZE - 1)) - 1);
+        // const t = 1 - abs(2 * (x / (COLLISION_TEXTURE_SIZE - 1)) - 1);
+        const t = Math.sin((x / (COLLISION_TEXTURE_SIZE - 1)) * Math.PI);
+
         const zdist1 = dist1 * t;
         const zdist2 = dist2 * t;
         const xdist = (1 - t) * (dist1 > dist2 ? dist1 : dist2);
@@ -476,24 +479,24 @@ const draw = (globalTime: number) => {
       const dx = right - left;
       const dz = back - front;
 
-      if (Math.abs(dx) > Math.abs(ddx)) {
+      if (abs(dx) > abs(ddx)) {
         ddx = dx;
       }
-      if (Math.abs(dz) > Math.abs(ddz)) {
+      if (abs(dz) > abs(ddz)) {
         ddz = dz;
       }
     }
 
+    // adjust collision push back based on the duration of the frame, to address slower machines with lower FPS
     const collisionPushBackReduction = lerp(3.65, 1.1, Math.max(0.008, gameTimeDelta) / GAME_TIME_MAX_DELTA_TIME);
+    ddx /= collisionPushBackReduction;
+    ddz /= collisionPushBackReduction;
 
-    player_position_global.x += ddx / collisionPushBackReduction;
-    player_position_global.z += ddz / collisionPushBackReduction;
-
-    const playerSpeedCollision = clamp01(1 - Math.max(Math.abs(ddx), Math.abs(ddz)));
+    const playerSpeedCollision = clamp01(1 - Math.max(abs(ddx), abs(ddz)));
 
     if (!currentModelId) {
-      player_position_global.x += player_collision_velocity_x * playerSpeedCollision * gameTimeDelta;
-      player_position_global.z += player_collision_velocity_z * playerSpeedCollision * gameTimeDelta;
+      ddx += player_collision_velocity_x * playerSpeedCollision * gameTimeDelta;
+      ddz += player_collision_velocity_z * playerSpeedCollision * gameTimeDelta;
     }
     player_collision_velocity_x = lerpDamp(player_collision_velocity_x, 0, hasGround ? 8 : 4);
     player_collision_velocity_z = lerpDamp(player_collision_velocity_z, 0, hasGround ? 8 : 4);
@@ -508,20 +511,24 @@ const draw = (globalTime: number) => {
 
     const effectivePlayerSpeed = (movStrafe && movForward ? Math.SQRT1_2 : 1) * player_speed * gameTimeDelta;
 
-    const pmovez = movForward * effectivePlayerSpeed;
-    const pmovex = movStrafe * effectivePlayerSpeed;
     if (isFirstPerson()) {
       const yradians = camera_rotation.y * DEG_TO_RAD;
-      const s = Math.sin(yradians);
-      const c = Math.cos(yradians);
-      player_position_global.x -= pmovex * c - pmovez * s;
-      player_position_global.z -= pmovex * s + pmovez * c;
+      const s = Math.sin(yradians) * effectivePlayerSpeed;
+      const c = Math.cos(yradians) * effectivePlayerSpeed;
+      ddx -= movStrafe * c - movForward * s;
+      ddz -= movStrafe * s + movForward * c;
     } else {
-      player_position_global.z += pmovez;
-      player_position_global.x += pmovex;
+      ddx += movStrafe * effectivePlayerSpeed;
+      ddz += movForward * effectivePlayerSpeed;
     }
 
     const referenceMatrix = modelsByModelId[currentModelId]?.$finalMatrix || identity;
+    const referenceMatrixInverse = referenceMatrix.inverse();
+
+    ({ x: ddx, z: ddz } = referenceMatrixInverse.transformPoint({ x: ddx, y: 0, z: ddz, w: 0 }));
+
+    player_position_global.z += ddz;
+    player_position_global.x += ddx;
 
     if (currentModelId !== oldModelId) {
       if (DEBUG) {
@@ -533,7 +540,7 @@ const draw = (globalTime: number) => {
         x: player_position_global.x,
         y: player_position_global.y,
         z: player_position_global.z,
-      } = referenceMatrix.inverse().transformPoint(player_position_final));
+      } = referenceMatrixInverse.transformPoint(player_position_final));
     }
 
     const oldx = player_position_final.x;

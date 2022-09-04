@@ -1,5 +1,5 @@
 import { gameTime } from "../game-time";
-import { csg_subtract, csg_polygons, csg_union, csg_union_op } from "../geometry/csg";
+import { csg_subtract, csg_polygons, csg_union, csg_union_op, csg_tree, csg_tree_flip } from "../geometry/csg";
 import {
   material,
   GQuad,
@@ -10,7 +10,7 @@ import {
   horn,
   polygon_transform,
 } from "../geometry/geometry";
-import { integers_map } from "../math/math";
+import { abs, integers_map } from "../math/math";
 import { identity } from "../math/matrix";
 import { PLAYER_MODEL_ID } from "../player";
 import type { Model } from "./scene";
@@ -463,6 +463,13 @@ export const level1 = () => {
                 identity.translate(-96, -2.6, -2).rotate(0, 45).scale(3, 1.1, 5),
                 material(0.8, 0.8, 0.8, 0.2),
               ),
+              // 45 degrees detour hexagon
+              polygons_transform(
+                cylinder(6),
+                identity.translate(-88.79, -2.6, 5.21).scale(6, 1.1, 6).rotate(0, 15),
+                material(0.6, 0.6, 0.6, 0.3),
+              ),
+
               // ascension
               polygons_transform(
                 GBox,
@@ -857,12 +864,12 @@ export const level1 = () => {
     // pushing rods
 
     newModel((model) => {
-      model._update = () => identity.translate(0, -2, lever3() * -Math.abs(Math.sin(gameTime * 1.2)) * 8.5 + 10);
+      model._update = () => identity.translate(0, -2, lever3() * -abs(Math.sin(gameTime * 1.2)) * 8.5 + 10);
       integers_map(4, (x) => meshAdd(polygons_transform(pushingRod, identity.translate(13 + x * 9, 1.7))));
     });
 
     newModel((model) => {
-      model._update = () => identity.translate(0, -2, lever3() * -Math.abs(Math.sin(gameTime + 1)) * 8.5 + 10);
+      model._update = () => identity.translate(0, -2, lever3() * -abs(Math.sin(gameTime + 1)) * 8.5 + 10);
       integers_map(3, (x) => meshAdd(polygons_transform(pushingRod, identity.translate(17 + x * 9, 1.7))));
     });
 
@@ -914,7 +921,11 @@ export const level1 = () => {
               identity.translate(0, 0, -9.5).scale(8, 1, 11),
               material(0.7, 0.7, 0.7, 0.2),
             ),
-            polygons_transform(GBox, identity.translate(-8, 0, -21.5).scale(4, 1, 2), material(0.7, 0.7, 0.7, 0.2)),
+            polygons_transform(
+              GBox,
+              identity.translate(-1.5, 0, -21.5).scale(10.5, 1, 2),
+              material(0.7, 0.7, 0.7, 0.2),
+            ),
           ),
           polygons_transform(cylinder(5), identity.translate(0, 0, -2).scale(4, 3, 4), material(0.7, 0.7, 0.7, 0.2)),
         ),
@@ -966,8 +977,8 @@ export const level1 = () => {
           withEditMatrix(identity.translate(0, 3.4), addLever);
         });
 
-        // horns
-        [-1, 1].map((i) => {
+        // lateral horns
+        [-1, 1].map((i) =>
           meshAdd(
             polygons_transform(
               horn(),
@@ -979,13 +990,42 @@ export const level1 = () => {
                 .scale(1.3, 10, 1.3), //
               material(1, 1, 0.8, 0.2),
             ),
-          );
-        });
+          ),
+        );
       }, ++_modelIdCounter);
     });
 
-    // "church" door
+    // far arc gate
     [-1, 1].map((x) => {
+      meshAdd(
+        polygons_transform(
+          cylinder(15, 1),
+          identity.translate(-7.5 * x, 3, -19).scale(0.8, 4, 0.8),
+          material(0.6, 0.24, 0.2, 0.5),
+        ),
+      );
+
+      [7.2, 1.5].map((y) =>
+        meshAdd(
+          polygons_transform(
+            cylinder(15, 1),
+            identity.translate(-7.5 * x, y, -19).scale(1.1, 0.5, 1.1),
+            material(0.5, 0.24, 0.2, 0.4),
+          ),
+        ),
+      );
+
+      meshAdd(
+        polygons_transform(
+          horn(),
+          identity
+            .translate(x * -5, 1, -0.5)
+            .scale(1.2, 10, 1.2)
+            .rotate(0, 90 * x - 90),
+          material(1, 1, 0.8),
+        ),
+      );
+
       meshAdd(
         polygons_transform(
           csg_polygons(
@@ -996,19 +1036,19 @@ export const level1 = () => {
                 material(0.5, 0.5, 0.5, 0.4),
               ),
               csg_union([
-                polygons_transform(GBox, identity.translate(0, 0).scale(3, 3, 10), material(0.5, 0.5, 0.5, 0.4)),
+                polygons_transform(GBox, identity.scale(3, 3, 10), material(0.6, 0.24, 0.2, 0.5)),
                 polygons_transform(
                   cylinder(25, 1),
                   identity.translate(0, 3, -5).scale(3, 4, 10).rotate(90, 0, 0),
-                  material(0.5, 0.5, 0.5, 0.4),
+                  material(0.6, 0.24, 0.2, 0.5),
                 ),
                 polygons_transform(
-                  cylinder(5, 1),
+                  cylinder(5),
                   identity
-                    .translate(x * -5.5, 5, 0)
+                    .translate(x * -5.3, 7, 0)
                     .rotate(90, 0)
-                    .scale(1, 10, 1),
-                  material(0.5, 0.5, 0.5, 0.4),
+                    .scale(1.7, 5, 1.7),
+                  material(0.6, 0.24, 0.2, 0.5),
                 ),
               ]),
             ),
@@ -1017,7 +1057,39 @@ export const level1 = () => {
         ),
       );
     });
+
+    // the left bridge after the far arc gate
+    meshAdd(polygons_transform(GBox, identity.translate(19, 0, -9).scale(12.08, 1, 3.5), material(0.7, 0.7, 0.7, 0.2)));
+
+    withEditMatrix(identity.translate(20, 0.3, -9), () => {
+      newModel((model) => {
+        // gameTime *
+        // model._update = () => identity.rotate(0, 40);
+        meshAdd(polygons_transform(cylinder(20, 1), identity.scale(8, 1, 8), material(0.4, 0.4, 0.4, 0.2)));
+        meshAdd(polygons_transform(cylinder(8), identity.translate(0, 2).scale(3, 2, 3), material(0.7, 0.7, 0.7, 0.1)));
+        // meshAdd(
+        //   csg_polygons(
+        //     csg_subtract(
+        //       polygons_transform(cylinder(25, 1), identity.translate(0, 2).scale(8, 1, 8), material(0.3, 0, 0, 0.3)),
+        //       polygons_transform(GBox, identity.scale(9, 5, 2), material(0.3, 0, 0, 0.3)),
+        //     ),
+        //   ),
+        // );
+      }, ++_modelIdCounter);
+    });
   });
+
+  // ******** LEVEL TO THE LEFT AFTER CENTRAL GATE ********
+
+  // withEditMatrix(identity, () => {
+  //   meshAdd(
+  //     polygons_transform(
+  //       cylinder(6),
+  //       identity.translate(-88.79, -2.5, 80.21).scale(6, 1, 6).rotate(0, 15),
+  //       material(0.5, 0.5, 0.5, 0.2),
+  //     ),
+  //   );
+  // });
 };
 
 export const buildWorld = () => {

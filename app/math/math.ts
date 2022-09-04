@@ -5,6 +5,8 @@ export const DEG_TO_RAD = Math.PI / 180;
 
 export const TWO_PI = Math.PI * 2;
 
+export const abs = (n: number) => (n < 0 ? -n : n);
+
 export const clamp01 = (t: number) => (t < 0 ? 0 : t > 1 ? 1 : t);
 
 /** Linear interpolation */
@@ -36,7 +38,7 @@ export const angle_lerp_degrees = (a0: number, a1: number, t: number) =>
 
 export const interpolate_with_hysteresis = (previous: number, desired: number, hysteresis: number, t: number) =>
   lerp(
-    previous + Math.sign(desired - previous) * Math.max(0, Math.abs(desired - previous) ** 0.9 - hysteresis) * t * 2,
+    previous + Math.sign(desired - previous) * Math.max(0, abs(desired - previous) ** 0.9 - hysteresis) * t * 2,
     desired,
     t / 7,
   );

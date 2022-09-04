@@ -1,4 +1,29 @@
-    // entrance horns
+  meshAdd(
+      csg_polygons(
+        csg_subtract(
+          polygons_transform(cylinder(8), identity.translate(0, -2, 0).scale(5, 7, 5), material(0.3, 0.3, 0.3, 0.3)),
+          csg_union([
+            polygons_transform(
+              cylinder(6),
+              identity
+                .translate(0, 1.1, 0)
+                .rotate(180 - 45, 0, 90)
+                .scale(3, 17, 3),
+              material(0.5, 0.5, 0.5, 0.2),
+            ),
+            polygons_transform(
+              cylinder(6),
+              identity.translate(0, 1.1, 0).rotate(45, 0, 90).scale(3, 17, 3),
+              material(0.5, 0.5, 0.5, 0.2),
+            ),
+            polygons_transform(cylinder(6), identity.translate(0, 5).scale(3, 5, 3), material(0.3, 0.3, 0.3, 0.3)),
+          ]),
+        ),
+      ),
+    );
+    
+    
+        // entrance horns
     [-1, 1].map((i) =>
       meshAdd(
         polygons_transform(
@@ -57,7 +82,7 @@
     //     polygons_transform(
     //       cylinder(((i * 23) % 5) + 5, 0, 0.6),
     //       identity
-    //         .translate(-102 + Math.abs(Math.sin(i)) * 5 + i, -2.3 - i, -30 - i * 2.5)
+    //         .translate(-102 + abs(Math.sin(i)) * 5 + i, -2.3 - i, -30 - i * 2.5)
     //         .scaleSelf(5 + i / 2, 1, 5 + i / 3),
     //       material(1, 1, 1, 0.4),
     //     ),

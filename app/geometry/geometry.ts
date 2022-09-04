@@ -1,4 +1,4 @@
-import { integers_map } from "../math/math";
+import { abs, integers_map } from "../math/math";
 import { identity } from "../math/matrix";
 import { type Vec3, type Vec3Optional } from "../math/vectors";
 
@@ -55,7 +55,7 @@ export const polygon_regular = /* @__PURE__ */ (segments: number, elongate: numb
     return {
       x: Math.sin(Math.PI * 2 * (i / segments)),
       y: 0,
-      z: Math.abs(z) < 0.01 ? z : z < 0 ? z - elongate : z + elongate,
+      z: abs(z) < 0.01 ? z : z < 0 ? z - elongate : z + elongate,
     };
   });
 
