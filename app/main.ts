@@ -49,9 +49,10 @@ import {
   KEY_LEFT,
   KEY_RIGHT,
   KEY_RUN,
-  mouse_movementReset,
+  input_frameReset,
   mouse_movementX,
   mouse_movementY,
+  KEY_INTERACT,
 } from "./input";
 import { gameTime, gameTimeDelta, gameTimeUpdate, lerpDamp } from "./game-time";
 import { buildWorld, playerLeftLegModel, playerModel, playerRightLegModel } from "./level/level";
@@ -61,6 +62,8 @@ import { gl, initGl, initShaderProgram, loadShader } from "./gl";
 import { player_position_global, player_position_final } from "./player";
 
 import groundTextureSvg from "./groundTexture.svg";
+import { levers, switchLevers } from "./level/levers";
+import { Console } from "console";
 
 let texturesLoaded = false;
 
@@ -91,6 +94,10 @@ image.src = groundTextureSvg;
 buildWorld();
 
 initTriangleBuffers();
+
+if (DEBUG) {
+  console.log(levers.length + " levers");
+}
 
 gl.enable(gl.DEPTH_TEST); // Enable depth testing
 gl.enable(gl.CULL_FACE); // Don't render triangle backs
@@ -498,8 +505,6 @@ const draw = (globalTime: number) => {
     }
   }
 
-  mouse_movementReset();
-
   camera_view
     .setMatrixValue("none")
     .rotateSelf(-camera_rotation.x, -camera_rotation.y, -camera_rotation.z)
@@ -527,6 +532,10 @@ const draw = (globalTime: number) => {
 
   if (gameTimeDelta > 0) {
     updateModels(rootModel);
+    if (keyboard_downKeys[KEY_INTERACT]) {
+      console.log("interact");
+      switchLevers();
+    }
 
     // *** CASCADED SHADOWMAPS ***
 
@@ -607,6 +616,8 @@ const draw = (globalTime: number) => {
     renderModels(collisionShader(uniformName_worldMatrix), 0, collisionShader(uniformName_modelId));
     gl.colorMask(true, true, true, true);
   }
+
+  input_frameReset();
 };
 
 if (DEBUG) {

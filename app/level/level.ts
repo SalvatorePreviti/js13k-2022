@@ -13,54 +13,11 @@ import {
 import { abs, integers_map } from "../math/math";
 import { identity } from "../math/matrix";
 import { PLAYER_MODEL_ID } from "../player";
+import { newLever } from "./levers";
 import type { Model } from "./scene";
 import { meshAdd, meshEnd, withEditMatrix, newModel } from "./scene";
 
 let _modelIdCounter = PLAYER_MODEL_ID + 1;
-
-// ========= Lever mesh ========= //
-
-meshAdd(polygons_transform(cylinder(6, 1), identity.scale(0.12, 1.4, 0.12), material(0.3, 0.3, 0.5)));
-meshAdd(polygons_transform(cylinder(6), identity.translate(0, 1, 0).scale(0.18, 0.25, 0.18), material(1, 0.5, 0.2)));
-meshAdd(
-  polygons_transform(
-    cylinder(3),
-    identity.translate(0, -1).rotate(90, 90, 0).scale(0.3, 0.4, 0.3),
-    material(0.2, 0.2, 0.2),
-  ),
-);
-
-const leverMesh = meshEnd();
-
-const addLever = () => {
-  const lever = {
-    value: 0,
-  };
-
-  newModel((model) => {
-    model._update = () => identity.rotate(Math.sin(gameTime * 2) * 30, 0).translate(0, 1, 0);
-    return leverMesh;
-  });
-
-  meshAdd(
-    polygons_transform(
-      cylinder(5),
-      identity.translate(-0.2).rotate(90, 90, 0).scale(0.4, 0.1, 0.5),
-      material(0.4, 0.5, 0.5),
-    ),
-  );
-  meshAdd(
-    polygons_transform(
-      cylinder(5),
-      identity.translate(0.2).rotate(90, 90, 0).scale(0.4, 0.1, 0.5),
-      material(0.4, 0.5, 0.5),
-    ),
-  );
-
-  meshAdd(polygons_transform(GBox, identity.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4)));
-
-  return lever;
-};
 
 const MATERIAL_DEVIL = material(1, 0.3, 0.4);
 
@@ -232,14 +189,14 @@ export const level1 = () => {
 
   // bottom lever
 
-  withEditMatrix(identity.translate(15, -2, 4), addLever);
+  withEditMatrix(identity.translate(15, -2, 4), newLever);
 
   // moving central platform
 
   newModel((model) => {
     model._update = () => identity.translate(0, Math.cos(gameTime * 2) * 5 - 4, 0);
     meshAdd(polygons_transform(cylinder(5), identity.translate(0, -1.4).scale(5, 1, 5), material(0.6, 0.65, 0.7, 0.3)));
-    addLever();
+    newLever();
   }, ++_modelIdCounter);
 
   // ******** LEVEL 2 ********
@@ -331,7 +288,7 @@ export const level1 = () => {
         polygons_transform(GBox, identity.translate(-28, -3, -20).scale(8, 1.7, 5), material(0.5, 0.5, 0.5, 0.3)),
       );
 
-      withEditMatrix(identity.translate(-28, -0.5, -14), addLever);
+      withEditMatrix(identity.translate(-28, -0.5, -14), newLever);
     }, ++_modelIdCounter);
 
     // fixed mini platform with hole
@@ -599,7 +556,7 @@ export const level1 = () => {
       ),
     );
 
-    withEditMatrix(identity.translate(-86, -7.5, -44), addLever);
+    withEditMatrix(identity.translate(-86, -7.5, -44), newLever);
 
     // elevators
 
@@ -689,7 +646,7 @@ export const level1 = () => {
 
       meshAdd(polygons_transform(GBox, identity.translate(0, 0, -9).scale(3, 1.2, 3), material(0.35, 0.3, 0.5, 0.5)));
 
-      withEditMatrix(identity.translate(0, 1.7, -11), addLever);
+      withEditMatrix(identity.translate(0, 1.7, -11), newLever);
     });
   });
 
@@ -721,7 +678,7 @@ export const level1 = () => {
         ),
       );
 
-      withEditMatrix(identity.translate(0, -3.6, -4), addLever);
+      withEditMatrix(identity.translate(0, -3.6, -4), newLever);
     }, ++_modelIdCounter);
   });
 
@@ -858,7 +815,7 @@ export const level1 = () => {
       ),
     );
 
-    withEditMatrix(identity.translate(25, -4.4, -28).rotate(0, 90), addLever);
+    withEditMatrix(identity.translate(25, -4.4, -28).rotate(0, 90), newLever);
   });
 
   // ******** LEVEL AFTER CENTRAL GATE ********
@@ -928,7 +885,7 @@ export const level1 = () => {
           meshAdd(polygons_transform(cylinder(10), identity.scale(2, 2.5, 2), material(0.3, 0.8, 0.7, 0.3)));
           meshAdd(polygons_transform(cylinder(5), identity.scale(1, 3, 1), material(0.5, 0.5, 0.5, 0.5)));
 
-          withEditMatrix(identity.translate(0, 3.4), addLever);
+          withEditMatrix(identity.translate(0, 3.4), newLever);
         });
 
         // lateral horns
@@ -1123,7 +1080,7 @@ export const level1 = () => {
     meshAdd(polygons_transform(GBox, identity.translate(68, -0.3, -25).scale(5, 1, 3), material(0.7, 0.7, 0.7, 0.3)));
 
     withEditMatrix(identity.translate(68, 1.8, -20).rotate(-12, 0), () => {
-      addLever();
+      newLever();
     });
 
     meshAdd(
@@ -1207,7 +1164,7 @@ export const level1 = () => {
         ),
       );
 
-      withEditMatrix(identity.translate(0, 1.7, -13), addLever);
+      withEditMatrix(identity.translate(0, 1.7, -13), newLever);
     });
   });
 };

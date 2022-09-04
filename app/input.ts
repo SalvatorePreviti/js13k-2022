@@ -10,9 +10,11 @@ export const KEY_BACK = 3;
 
 export const KEY_RUN = 4;
 
-export const KEY_DEBUG_FLY_UP = 5;
+export const KEY_INTERACT = 5;
 
-export const KEY_DEBUG_FLY_DOWN = 6;
+export const KEY_DEBUG_FLY_UP = 6;
+
+export const KEY_DEBUG_FLY_DOWN = 7;
 
 export const keyboard_downKeys: (boolean | 0 | undefined)[] = [];
 
@@ -20,7 +22,8 @@ export let mouse_movementX = 0;
 
 export let mouse_movementY = 0;
 
-export const mouse_movementReset = () => (mouse_movementX = mouse_movementY = 0);
+/** Resets the input status after a frame */
+export const input_frameReset = () => (keyboard_downKeys[KEY_INTERACT] = mouse_movementX = mouse_movementY = 0);
 
 let _mouseDown: boolean | 0 | undefined;
 
@@ -40,6 +43,10 @@ const keyMap: Partial<Record<KEY_CODE, number>> = {
   ["ShiftLeft"]: KEY_RUN,
   ["ShiftRight"]: KEY_RUN,
 
+  ["KeyE"]: KEY_INTERACT,
+  ["Space"]: KEY_INTERACT,
+  ["Enter"]: KEY_INTERACT,
+
   ["KeyR"]: KEY_DEBUG_FLY_UP,
   ["KeyF"]: KEY_DEBUG_FLY_DOWN,
 };
@@ -51,8 +58,10 @@ export const initInputHandlers = () => {
 
   onblur = () => (keyboard_downKeys.length = _mouseDown = mouse_movementX = mouse_movementY = 0);
 
-  onkeydown = onkeyup = ({ code, target, type }) => {
-    keyboard_downKeys[keyMap[code as KEY_CODE]!] = type[5] ? target === document.body : 0;
+  onkeydown = onkeyup = ({ code, target, type, repeat }) => {
+    if (!repeat) {
+      keyboard_downKeys[keyMap[code as KEY_CODE]!] = type[5] ? target === document.body : 0;
+    }
   };
 
   onmousedown = onmouseup = ({ target, buttons, type }: MouseEvent) => {

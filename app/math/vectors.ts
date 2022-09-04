@@ -39,6 +39,13 @@ export const vec3_dot = /* @__PURE__ */ ({ x, y, z }: Vec3In, v: Vec3In): number
 
 export const vec3_plane_distance = /* @__PURE__ */ (p: Readonly<Plane>, v: Vec3In): number => vec3_dot(p, v) - p.w;
 
+export const vec3_distance = /* @__PURE__ */ ({ x, y, z }: Vec3In, b: Vec3In): number => {
+  x -= b.x;
+  y -= b.y;
+  z -= b.z;
+  return Math.sqrt(x * x + y + y + z * z);
+};
+
 /**
  * Computes a polygon plane using the Newell's method.
  * We are not using plane from 3 points algorithm,
