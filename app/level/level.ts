@@ -555,19 +555,6 @@ export const level1 = () => {
       });
     });
 
-    // newModel((model)=>{
-    //   model._update = ()=>
-    //   integers_map(6, (i) =>
-    //   meshAdd(
-    //     polygons_transform(
-    //       cylinder(6, 1),
-    //       identity.translate(-99.7 + 4 * (i / 6 - 0.5), 1, -11.5).scale(0.2, 3, 0.2),
-    //       material(0.3, 0.3, 0.38),
-    //     ),
-    //   ),
-    // );
-    // })
-
     // hex columns
 
     GQuad.map(({ x, z }) => {
@@ -748,10 +735,11 @@ export const level1 = () => {
 
   withEditMatrix(identity.translate(-123, 1.4, 55), () => {
     newModel((model) => {
-      model._update = () =>
-        identity
+      model._update = () => {
+        return identity
           .translate(Math.sin(gameTime + 2) / 5, Math.sin(gameTime * 0.8) / 3, getBoatStatus() * -60)
           .rotate(Math.sin(gameTime) * 2, Math.sin(gameTime * 0.7), Math.sin(gameTime * 0.9));
+      };
       meshAdd(
         csg_polygons(
           csg_subtract(

@@ -531,6 +531,11 @@ const draw = (globalTime: number) => {
   if (gameTimeDelta > 0) {
     updateModels(rootModel);
 
+    // Special handling for the boat (lever 8) - the boat must be on the side of the map the player is
+    if (currentModelId === 1) {
+      levers[8]!.$value = player_position_final.x < -15 && player_position_final.z < 0 ? 1 : 0;
+    }
+
     // *** CASCADED SHADOWMAPS ***
 
     csmShader();
