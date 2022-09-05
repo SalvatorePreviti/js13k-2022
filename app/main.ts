@@ -37,7 +37,7 @@ import {
   min,
 } from "./math/math";
 import { mat_perspective, zFar, zNear, camera_position, camera_rotation, camera_view } from "./camera";
-import { renderModels, updateModels, rootModel, initTriangleBuffers, modelsByModelId } from "./level/scene";
+import { renderModels, updateModels, rootModel, initTriangleBuffers, modelsByModelId } from "./game/scene";
 import { csm_buildMatrix, lightMatrix } from "./csm";
 import {
   initInputHandlers,
@@ -54,15 +54,13 @@ import {
   mouse_movementY,
 } from "./input";
 import { gameTime, gameTimeDelta, gameTimeUpdate, lerpDamp } from "./game-time";
-import { buildWorld, playerLeftLegModel, playerModel, playerRightLegModel } from "./level/level";
 import { identity, mat_perspectiveXY } from "./math/matrix";
 
 import { gl, initGl, initShaderProgram, loadShader } from "./gl";
-import { player_position_global, player_position_final } from "./player";
 
 import groundTextureSvg from "./groundTexture.svg";
-import { levers } from "./level/levers";
-import { worldStateUpdate } from "./level/world-state";
+import { levers, player_position_final, player_position_global, worldStateUpdate } from "./game/world-state";
+import { buildWorld, playerLeftLegModel, playerModel, playerRightLegModel } from "./game/build-world";
 
 let texturesLoaded = false;
 
@@ -93,10 +91,6 @@ image.src = groundTextureSvg;
 buildWorld();
 
 initTriangleBuffers();
-
-if (DEBUG) {
-  console.log(levers.length + " levers");
-}
 
 gl.enable(gl.DEPTH_TEST); // Enable depth testing
 gl.enable(gl.CULL_FACE); // Don't render triangle backs
@@ -464,7 +458,7 @@ const draw = (globalTime: number) => {
             const i = ((COLLISION_TEXTURE_SIZE - y) * COLLISION_TEXTURE_SIZE + x) * 4;
             const r = collision_buffer[i]!;
             const g = collision_buffer[i + 1]!;
-            const b = collision_buffer[i + 2]!;
+            // const b = collision_buffer[i + 2]!;
 
             buf[(y * COLLISION_TEXTURE_SIZE + x) * 4] = r;
             buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 1] = g;

@@ -1,22 +1,10 @@
 import { lerpDamp } from "../game-time";
-import { polygons_transform, cylinder, material, GBox } from "../geometry/geometry";
-import { keyboard_downKeys, KEY_INTERACT } from "../input";
-import { identity } from "../math/matrix";
 import { vec3_distance } from "../math/vectors";
-import { player_position_final } from "../player";
-import type { Model } from "./scene";
+import { identity } from "../math/matrix";
+import { levers, player_position_final, type Lever } from "./world-state";
+import { polygons_transform, cylinder, material, GBox } from "../geometry/geometry";
 import { meshAdd, meshEnd, newModel } from "./scene";
-
-export interface Lever {
-  $value: 0 | 1;
-  $lerpValue: number;
-  $lerpValue2: number;
-  $lerpValue3: number;
-  $model: Model;
-  $visible: boolean | 0 | 1;
-}
-
-export const levers: Lever[] = [];
+import { keyboard_downKeys, KEY_INTERACT } from "../input";
 
 // ========= Lever mesh ========= //
 
@@ -39,14 +27,28 @@ const leverOnMesh = makeLeverMesh(material(0.7, 1, 0.2));
 
 const _lever_interact_center = { x: 0, y: 0, z: 0 };
 
-export const newLever = (): Lever => {
-  const lever = {
-    $value: 0,
-    $lerpValue: 0,
-    $lerpValue2: 0,
-  } as Lever;
+export const newLever = (): void => {
+  const lever: Lever = { $value: 0, $lerpValue: 0, $lerpValue2: 0 };
+  levers.push(lever);
 
-  lever.$model = newModel((model) => {
+  meshAdd(
+    polygons_transform(
+      cylinder(5),
+      identity.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5),
+      material(0.4, 0.5, 0.5),
+    ),
+  );
+  meshAdd(
+    polygons_transform(
+      cylinder(5),
+      identity.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5),
+      material(0.4, 0.5, 0.5),
+    ),
+  );
+
+  meshAdd(polygons_transform(GBox, identity.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4)));
+
+  newModel((model) => {
     model._update = () => {
       if (
         keyboard_downKeys[KEY_INTERACT] &&
@@ -69,24 +71,4 @@ export const newLever = (): Lever => {
     };
     return leverOffMesh;
   });
-
-  meshAdd(
-    polygons_transform(
-      cylinder(5),
-      identity.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5),
-      material(0.4, 0.5, 0.5),
-    ),
-  );
-  meshAdd(
-    polygons_transform(
-      cylinder(5),
-      identity.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5),
-      material(0.4, 0.5, 0.5),
-    ),
-  );
-
-  meshAdd(polygons_transform(GBox, identity.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4)));
-
-  levers.push(lever);
-  return lever;
 };

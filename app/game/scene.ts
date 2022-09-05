@@ -3,7 +3,7 @@ import { GQuad, polygon_transform, polygons_transform } from "../geometry/geomet
 import { identity } from "../math/matrix";
 import { plane_fromPolygon } from "../math/vectors";
 import { gl } from "../gl";
-import { PLAYER_MODEL_ID } from "../player";
+import { PLAYER_MODEL_ID } from "./world-state";
 
 export const rootModel: Model = {
   $children: [],
@@ -61,10 +61,6 @@ export interface Model {
   _update?: ModelUpdateCallback | undefined;
 }
 
-export const meshAdd = (polygons: Polygon[]): void => {
-  _pendingPolygonsStack.at(-1)!.push(...polygons_transform(polygons, editMatrixStack.at(-1)!));
-};
-
 const getVertex = (i: number): number => {
   let { x, y, z } = _polygon![i]!;
   _vertexFloats[0] = x;
@@ -86,7 +82,10 @@ const getVertex = (i: number): number => {
   return index;
 };
 
-export const meshEnd = () => {
+export const meshAdd = (polygons: Polygon[]) =>
+  _pendingPolygonsStack.at(-1)!.push(...polygons_transform(polygons, editMatrixStack.at(-1)!));
+
+export const meshEnd = (): Mesh => {
   const pendingPolygons = _pendingPolygonsStack.at(-1)!;
   for (_polygon of pendingPolygons) {
     const { x, y, z } = plane_fromPolygon(_polygon);
@@ -209,8 +208,7 @@ export const renderModels = (
 };
 
 export const updateModels = (model: Model, parentMatrix = identity) => {
-  const finalMatrix = parentMatrix.multiply(model.$initialMatrix);
-  model.$finalMatrix = finalMatrix;
+  const finalMatrix = (model.$finalMatrix = parentMatrix.multiply(model.$initialMatrix));
 
   const updateResult = model._update?.(model);
 

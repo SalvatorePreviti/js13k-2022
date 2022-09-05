@@ -1,6 +1,24 @@
 import { lerpDamp, gameTimeDelta } from "../game-time";
 import { lerp, angle_wrap_degrees, lerpneg, abs } from "../math/math";
-import { levers } from "./levers";
+import type { Vec3 } from "../math/vectors";
+
+export interface Lever {
+  $value: 0 | 1;
+  $lerpValue: number;
+  $lerpValue2: number;
+}
+
+export const levers: Lever[] = [];
+
+export const PLAYER_MODEL_ID = 2;
+
+export const player_position_global: Vec3 = {
+  x: 0,
+  y: 10,
+  z: -27,
+};
+
+export const player_position_final: Vec3 = { ...player_position_global };
 
 export let rotatingPlatform1Rotation = 0;
 
