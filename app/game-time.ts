@@ -9,14 +9,14 @@ export const GAME_TIME_MAX_DELTA_TIME = 0.07;
 
 let _globalTime: number | undefined;
 
+export const lerpDamp = /* @__PURE__ */ (from: number, to: number, speed: number) =>
+  lerp(from, to, 1 - Math.exp(-speed * gameTimeDelta));
+
 export const gameTimeUpdate = (time: number) => {
   gameTimeDelta = min(GAME_TIME_MAX_DELTA_TIME, (time - (_globalTime || time)) / 1000);
   gameTime += gameTimeDelta;
   _globalTime = time;
 };
-
-export const lerpDamp = /* @__PURE__ */ (from: number, to: number, speed: number) =>
-  lerp(from, to, 1 - Math.exp(-speed * gameTimeDelta));
 
 // export const gameTimeUpdate = (time: number) => {
 //   const delta = (time - (_globalTime || time)) / 1000;

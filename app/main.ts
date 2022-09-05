@@ -62,6 +62,7 @@ import { player_position_global, player_position_final } from "./player";
 
 import groundTextureSvg from "./groundTexture.svg";
 import { levers } from "./level/levers";
+import { worldStateUpdate } from "./level/world-state";
 
 let texturesLoaded = false;
 
@@ -207,6 +208,7 @@ let player_gravity = 1;
 let player_speed = 0;
 let player_collision_velocity_x = 0;
 let player_collision_velocity_z = 0;
+let player_selected_velocity = 0;
 let player_has_ground: 0 | 1 = 0;
 let player_collision_x = 0;
 let player_collision_z = 0;
@@ -215,6 +217,24 @@ const player_collision_modelIdCounter = new Int32Array(256);
 let camera_player_dir_x = player_position_global.x;
 let camera_player_dir_y = player_position_global.y + 13;
 let camera_player_dir_z = player_position_global.z - 18;
+
+playerModel._update = () =>
+  identity
+    .translate(player_position_final.x, player_position_final.y, player_position_final.z)
+    .rotateSelf(0, player_look_angle / DEG_TO_RAD);
+
+playerRightLegModel._update = () =>
+  identity
+    .translate(0, player_legs_speed * clamp01(Math.sin(gameTime * player_selected_velocity * 1.7 - Math.PI / 2) * 0.45))
+    .rotateSelf(player_legs_speed * Math.sin(gameTime * player_selected_velocity * 1.7) * (0.25 / DEG_TO_RAD), 0);
+
+playerLeftLegModel._update = () =>
+  identity
+    .translate(0, player_legs_speed * clamp01(Math.sin(gameTime * player_selected_velocity * 1.7 + Math.PI / 2) * 0.45))
+    .rotateSelf(
+      player_legs_speed * Math.sin(gameTime * player_selected_velocity * 1.7 + Math.PI) * (0.25 / DEG_TO_RAD),
+      0,
+    );
 
 const doVerticalCollisions = (_collision_buffer: Uint8Array) => {
   let maxModelIdCount = 0;
@@ -331,7 +351,7 @@ const draw = (globalTime: number) => {
 
   const movStrafe = (keyboard_downKeys[KEY_LEFT] ? 1 : 0) + (keyboard_downKeys[KEY_RIGHT] ? -1 : 0);
   const movForward = (keyboard_downKeys[KEY_FRONT] ? 1 : 0) + (keyboard_downKeys[KEY_BACK] ? -1 : 0);
-  const movSelectedVelocity = keyboard_downKeys[KEY_RUN] ? 7 : 4;
+  player_selected_velocity = keyboard_downKeys[KEY_RUN] ? 7 : 4;
 
   // *** COLLISIONS ***
 
@@ -375,7 +395,7 @@ const draw = (globalTime: number) => {
     player_speed = lerpDamp(
       player_speed,
       player_has_ground || (DEBUG && keyboard_downKeys[KEY_DEBUG_FLY_UP]) || keyboard_downKeys[KEY_DEBUG_FLY_DOWN]
-        ? (movStrafe || movForward ? movSelectedVelocity : 0) * playerSpeedCollision
+        ? (movStrafe || movForward ? player_selected_velocity : 0) * playerSpeedCollision
         : 0,
       player_has_ground ? (playerSpeedCollision > 0.1 ? 10 : movStrafe || movForward ? 5 : 7) : 1,
     );
@@ -514,27 +534,17 @@ const draw = (globalTime: number) => {
   }
   player_look_angle = angle_lerp(player_look_angle, player_look_angle_target, gameTimeDelta * 8);
 
-  playerModel.$animationMatrix = identity
-    .translate(player_position_final.x, player_position_final.y, player_position_final.z)
-    .rotateSelf(0, player_look_angle / DEG_TO_RAD);
-
   player_legs_speed = lerp(player_legs_speed, movStrafe || movForward ? 1 : 0, gameTimeDelta * 10);
 
-  playerRightLegModel.$animationMatrix = identity
-    .translate(0, player_legs_speed * clamp01(Math.sin(gameTime * movSelectedVelocity * 1.7 - Math.PI / 2) * 0.45))
-    .rotateSelf(player_legs_speed * Math.sin(gameTime * movSelectedVelocity * 1.7) * (0.25 / DEG_TO_RAD), 0);
-
-  playerLeftLegModel.$animationMatrix = identity
-    .translate(0, player_legs_speed * clamp01(Math.sin(gameTime * movSelectedVelocity * 1.7 + Math.PI / 2) * 0.45))
-    .rotateSelf(player_legs_speed * Math.sin(gameTime * movSelectedVelocity * 1.7 + Math.PI) * (0.25 / DEG_TO_RAD), 0);
-
   if (gameTimeDelta > 0) {
-    updateModels(rootModel);
+    worldStateUpdate();
 
     // Special handling for the boat (lever 8) - the boat must be on the side of the map the player is
     if (currentModelId === 1) {
       levers[8]!.$value = player_position_final.x < -15 && player_position_final.z < 0 ? 1 : 0;
     }
+
+    updateModels(rootModel);
 
     // *** CASCADED SHADOWMAPS ***
 

@@ -10,6 +10,8 @@ import { meshAdd, meshEnd, newModel } from "./scene";
 export interface Lever {
   $value: 0 | 1;
   $lerpValue: number;
+  $lerpValue2: number;
+  $lerpValue3: number;
   $model: Model;
   $visible: boolean | 0 | 1;
 }
@@ -41,6 +43,7 @@ export const newLever = (): Lever => {
   const lever = {
     $value: 0,
     $lerpValue: 0,
+    $lerpValue2: 0,
   } as Lever;
 
   lever.$model = newModel((model) => {
@@ -58,9 +61,10 @@ export const newLever = (): Lever => {
         }
       }
 
-      const { $value: value, $lerpValue: lerpValue } = lever;
-      lever.$lerpValue = lerpDamp(lerpValue, value, 5);
-      model.$mesh = lerpValue > 0.5 ? leverOnMesh : leverOffMesh;
+      const { $value: value, $lerpValue, $lerpValue2 } = lever;
+      lever.$lerpValue = lerpDamp($lerpValue, value, 4);
+      lever.$lerpValue2 = lerpDamp($lerpValue2, value, 1);
+      model.$mesh = $lerpValue > 0.5 ? leverOnMesh : leverOffMesh;
       return identity.rotate(lever.$lerpValue * 60 - 30, 0).translateSelf(0, 1, 0);
     };
     return leverOffMesh;

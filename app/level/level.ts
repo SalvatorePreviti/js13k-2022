@@ -10,12 +10,18 @@ import {
   horn,
   polygon_transform,
 } from "../geometry/geometry";
-import { abs, angle_lerp_degrees, integers_map, lerp, max, min } from "../math/math";
+import { abs, clamp01, integers_map, lerpneg, max, min } from "../math/math";
 import { identity } from "../math/matrix";
 import { PLAYER_MODEL_ID } from "../player";
 import { levers, newLever } from "./levers";
 import type { Model } from "./scene";
 import { meshAdd, meshEnd, withEditMatrix, newModel } from "./scene";
+import {
+  boatLerp,
+  rotatingHexCorridorRotation,
+  rotatingPlatform1Rotation,
+  rotatingPlatform2Rotation,
+} from "./world-state";
 
 let _modelIdCounter = PLAYER_MODEL_ID + 1;
 
@@ -217,11 +223,11 @@ export const level1 = () => {
     withEditMatrix(identity.translate(0, 1.2), newLever);
 
     model._update = () => {
-      model.$visible = levers[2]!.$lerpValue > 0.1;
+      model.$visible = levers[2]!.$lerpValue > 0;
       return identity.translate(
         0,
-        (Math.cos(gameTime * 1.5) * 5 + 2) * levers[2]!.$lerpValue * (1 - levers[1]!.$lerpValue) +
-          (1 - levers[2]!.$lerpValue) * -15,
+        (Math.cos(gameTime * 1.5) * 5 + 2) * levers[2]!.$lerpValue2 * (1 - levers[1]!.$lerpValue) +
+          (1 - levers[2]!.$lerpValue2) * -15,
         0,
       );
     };
@@ -234,12 +240,13 @@ export const level1 = () => {
   // ******** LEVEL 2 ********
 
   withEditMatrix(identity.translate(0, 0, 75), () => {
-    const getOscillationAmount = () => min(levers[1]!.$lerpValue, 1 - levers[3]!.$lerpValue);
+    const getOscillationAmount = () => min(levers[1]!.$lerpValue2, 1 - levers[3]!.$lerpValue2);
 
-    const blackPlatform = (oscillation: number) =>
+    const blackPlatform = (oscillation: number, amplitude: number) =>
       // columns
       newModel((model) => {
-        model._update = () => identity.translate(getOscillationAmount() * Math.sin(oscillation + gameTime / 1.5) * 12);
+        model._update = () =>
+          identity.translate(getOscillationAmount() * Math.sin(oscillation + gameTime / 1.5) * amplitude);
         GQuad.map(({ x, z }) => {
           // column body
           meshAdd(
@@ -282,8 +289,8 @@ export const level1 = () => {
         meshAdd(polygons_transform(GBox, identity.translate(0, -3, -40).scale(8, 2, 8), material(0.4, 0.4, 0.4, 0.3)));
       }, ++_modelIdCounter);
 
-    blackPlatform(0);
-    withEditMatrix(identity.translate(0, 0, 20), () => blackPlatform(5));
+    blackPlatform(0, 12);
+    withEditMatrix(identity.translate(0, 0, 20), () => blackPlatform(5, 9.5));
 
     newModel((model) => {
       model._update = () => identity.translate(getOscillationAmount() * Math.sin(gameTime / 1.5 + 2) * 12, 0);
@@ -305,22 +312,25 @@ export const level1 = () => {
     // triangle platform
 
     newModel((model) => {
-      model._update = () => identity.translate((1 - getOscillationAmount()) * 12);
+      model._update = () => identity.translate((1 - getOscillationAmount()) * 9.5);
       meshAdd(
         polygons_transform(
           cylinder(3),
-          identity.translate(-28, -1.5, -20).scale(7, 0.6, 11),
+          identity.translate(-22.5, -1.5, -20).scale(5, 0.6, 9),
           material(0.3, 0.6, 0.6, 0.2),
         ),
       );
 
       meshAdd(
-        polygons_transform(GBox, identity.translate(-28, -3, -20).scale(8, 1.7, 3.8), material(0.5, 0.5, 0.5, 0.3)),
+        polygons_transform(GBox, identity.translate(-22.5, -3, -20).scale(5, 1.7, 3.8), material(0.5, 0.5, 0.5, 0.3)),
       );
 
       // LEVER 3
-      withEditMatrix(identity.translate(-28, -0.5, -14), newLever);
+      withEditMatrix(identity.translate(-22.5, -0.5, -14.5), newLever);
     }, ++_modelIdCounter);
+
+    // fixed mini platform
+    meshAdd(polygons_transform(GBox, identity.translate(-21, -3, -20).scale(3, 1.4, 3), material(0.9, 0.9, 0.9, 0.2)));
 
     // fixed mini platform with hole
 
@@ -339,10 +349,16 @@ export const level1 = () => {
 
     // oscillating mini platforms
 
-    const level3Oscillating = () => levers[3]!.$lerpValue;
-
     newModel((model) => {
-      model._update = () => identity.translate(0, 0, level3Oscillating() * Math.sin(gameTime) * 11);
+      model._update = () =>
+        identity.translate(
+          0,
+          0,
+          clamp01(1 - getOscillationAmount() * 1.5) *
+            lerpneg(levers[3]!.$lerpValue, levers[4]!.$lerpValue) *
+            Math.sin(gameTime) *
+            11,
+        );
       meshAdd(
         polygons_transform(GBox, identity.translate(-27, -3, -20).scale(3, 1.4, 3), material(0.9, 0.9, 0.9, 0.2)),
       );
@@ -356,7 +372,7 @@ export const level1 = () => {
 
     withEditMatrix(identity.translate(-44.5, 0, -20), () =>
       newModel((model) => {
-        model._update = () => identity.translate(0, level3Oscillating() * -6.5);
+        model._update = () => identity.translate(0, levers[3]!.$lerpValue2 * -6.5);
         meshAdd(
           polygons_transform(
             cylinder(6),
@@ -415,19 +431,8 @@ export const level1 = () => {
       newModel((model) => {
         model._update = () => {
           return identity
-            .translate(0, (1 - levers[4]!.$lerpValue) * (1 - levers[5]!.$lerpValue) * 3)
-            .rotate(
-              angle_lerp_degrees(
-                angle_lerp_degrees(
-                  180,
-                  gameTime * 60,
-                  lerp(levers[4]!.$lerpValue, 1 - levers[4]!.$lerpValue, levers[5]!.$lerpValue),
-                ),
-                0,
-                levers[5]!.$lerpValue * levers[4]!.$lerpValue,
-              ),
-              0,
-            );
+            .translate(0, (1 - levers[4]!.$lerpValue2) * (1 - levers[5]!.$lerpValue) * 3)
+            .rotate(180 * (1 - levers[4]!.$lerpValue2) - rotatingHexCorridorRotation, 0);
         };
         meshAdd(hexCorridorPolygons);
       }),
@@ -589,7 +594,7 @@ export const level1 = () => {
     ].map((m, i) => {
       meshAdd(
         polygons_transform(
-          cylinder(((i * 23 + 1) % 5) + 5, 0, 0.6),
+          cylinder(((i * 23 + 1) % 5) + 5, 0, 0.55),
           identity
             .translate(-101 + Math.sin(i) * 5 + i, -2.3 - i, -30.1 - i * 2.8)
             .scaleSelf(5 + i / 2, 1 + i / 6, 5 + i / 3),
@@ -622,7 +627,7 @@ export const level1 = () => {
     // elevators
 
     withEditMatrix(identity.translate(-76.9, -10, -51), () => {
-      const shouldOscillate = () => lerp(levers[6]!.$lerpValue, 1 - levers[6]!.$lerpValue, levers[5]!.$lerpValue);
+      const shouldOscillate = () => lerpneg(levers[6]!.$lerpValue2, levers[5]!.$lerpValue2);
 
       newModel((model) => {
         model._update = () =>
@@ -649,14 +654,22 @@ export const level1 = () => {
     // pad after elevators
 
     withEditMatrix(identity.translate(-44.9, -11.3, -51), () => {
-      meshAdd(polygons_transform(GBox, identity.scale(11, 1, 8), material(0.3, 0.4, 0.6, 0.3)));
-
-      meshAdd(polygons_transform(cylinder(5), identity.scale(7, 1.2, 7), material(0, 0.2, 0.3, 0.5)));
+      meshAdd(
+        csg_polygons(
+          csg_subtract(
+            csg_union_op(
+              polygons_transform(GBox, identity.scale(11, 1, 8), material(0.3, 0.4, 0.6, 0.3)),
+              polygons_transform(cylinder(5), identity.scale(7, 1.2, 7), material(0, 0.2, 0.3, 0.5)),
+            ),
+            polygons_transform(cylinder(5), identity.scale(4.4, 5, 4.4), material(0, 0.2, 0.3, 0.5)),
+          ),
+        ),
+      );
 
       // central sculpture/monument
 
       newModel((model) => {
-        model._update = () => identity.translate(0, levers[6]!.$lerpValue * -5.9);
+        model._update = () => identity.translate(0, levers[6]!.$lerpValue2 * -5.9);
 
         meshAdd(
           csg_polygons(
@@ -731,13 +744,11 @@ export const level1 = () => {
 
   // ******** BOAT ********
 
-  const getBoatStatus = () => levers[8]!.$lerpValue;
-
   withEditMatrix(identity.translate(-123, 1.4, 55), () => {
     newModel((model) => {
       model._update = () => {
         return identity
-          .translate(Math.sin(gameTime + 2) / 5, Math.sin(gameTime * 0.8) / 3, getBoatStatus() * -60)
+          .translate(Math.sin(gameTime + 2) / 5, Math.sin(gameTime * 0.8) / 3, boatLerp * -60)
           .rotate(Math.sin(gameTime) * 2, Math.sin(gameTime * 0.7), Math.sin(gameTime * 0.9));
       };
       meshAdd(
@@ -862,7 +873,7 @@ export const level1 = () => {
 
     // pushing rods
 
-    const shouldPushRods = () => lerp(levers[9]!.$lerpValue, 1 - levers[9]!.$lerpValue, levers[10]!.$lerpValue);
+    const shouldPushRods = () => lerpneg(levers[9]!.$lerpValue, levers[10]!.$lerpValue);
     const shouldBlockRods = () => (1 - levers[9]!.$lerpValue) * (1 - shouldPushRods());
 
     newModel((model) => {
@@ -937,7 +948,7 @@ export const level1 = () => {
 
     // up and down hex pads
 
-    const hexPadShouldOscillate = () => lerp(levers[7]!.$lerpValue, 1 - levers[7]!.$lerpValue, levers[11]!.$lerpValue);
+    const hexPadShouldOscillate = () => lerpneg(levers[7]!.$lerpValue2, levers[11]!.$lerpValue2);
 
     [
       material(0.5, 0.5, 0.6, 0.25),
@@ -950,7 +961,7 @@ export const level1 = () => {
           identity.translate(
             i > 2 ? (1 - hexPadShouldOscillate()) * 2 : 0,
             hexPadShouldOscillate() * Math.sin(gameTime + i * 1.7) * (5 + i / 4),
-            (i & 1 ? -1 : 1) * (1 - levers[7]!.$lerpValue) * (1 - levers[11]!.$lerpValue) * -7,
+            (i & 1 ? -1 : 1) * (1 - levers[7]!.$lerpValue2) * (1 - levers[11]!.$lerpValue2) * -7,
           );
         meshAdd(
           polygons_transform(
@@ -1107,13 +1118,10 @@ export const level1 = () => {
       meshAdd(rotPlatformBase);
     };
 
-    const shouldRotatePlatforms = () =>
-      lerp(levers[11]!.$lerpValue, 1 - levers[11]!.$lerpValue, levers[12]!.$lerpValue);
-
     withEditMatrix(identity.translate(20, 0.3, -9), () => {
       meshAdd(polygons_transform(GBox, identity.translate(8, 0).scale(0.7, 0.8, 2.5), material(0.7, 0.7, 0.7, 0.2)));
       newModel((model) => {
-        model._update = () => identity.rotate(0, angle_lerp_degrees(180, gameTime * 23, shouldRotatePlatforms()));
+        model._update = () => identity.rotate(0, 180 + rotatingPlatform1Rotation);
         meshAdd(
           csg_polygons(
             csg_subtract(
@@ -1136,7 +1144,7 @@ export const level1 = () => {
     withEditMatrix(identity.translate(36, 0.3, -9), () => {
       meshAdd(polygons_transform(GBox, identity.translate(8, 0).scale(0.7, 0.8, 2.5), material(0.7, 0.7, 0.7, 0.2)));
       newModel((model) => {
-        model._update = () => identity.rotate(0, angle_lerp_degrees(0, gameTime * 39, shouldRotatePlatforms()));
+        model._update = () => identity.rotate(0, rotatingPlatform2Rotation);
         rotPlatform();
         [-1, 1].map((x) =>
           meshAdd(
@@ -1159,7 +1167,7 @@ export const level1 = () => {
         polygons_transform(GBox, identity.translate(0, 0, -8).scale(2.5, 0.8, 0.7), material(0.7, 0.7, 0.7, 0.2)),
       );
       newModel((model) => {
-        model._update = () => identity.rotate(0, angle_lerp_degrees(180, gameTime * -39, shouldRotatePlatforms()));
+        model._update = () => identity.rotate(0, 180 - rotatingPlatform2Rotation);
         meshAdd(
           csg_polygons(
             csg_subtract(
@@ -1177,7 +1185,7 @@ export const level1 = () => {
 
     withEditMatrix(identity.translate(52, 0.3, -25), () => {
       newModel((model) => {
-        model._update = () => identity.rotate(0, angle_lerp_degrees(270, gameTime * 39, shouldRotatePlatforms()));
+        model._update = () => identity.rotate(0, 270 + rotatingPlatform2Rotation);
         meshAdd(
           csg_polygons(
             csg_subtract(
@@ -1218,10 +1226,8 @@ export const level1 = () => {
         model._update = () =>
           identity.translate(
             0,
-            (1 - levers[12]!.$lerpValue) * (1 - levers[13]!.$lerpValue) * 3 +
-              lerp(levers[12]!.$lerpValue, 1 - levers[12]!.$lerpValue, levers[13]!.$lerpValue) *
-                Math.sin(gameTime * 1.5 + i * 1.5) *
-                4,
+            (1 - levers[12]!.$lerpValue2) * (1 - levers[13]!.$lerpValue2) * 3 +
+              lerpneg(levers[12]!.$lerpValue2, levers[13]!.$lerpValue2) * Math.sin(gameTime * 1.5 + i * 1.5) * 4,
           );
         meshAdd(
           polygons_transform(
@@ -1293,7 +1299,7 @@ export const level1 = () => {
       withEditMatrix(identity.translate(0, 1.7, -13).rotate(0, 180), newLever);
 
       newModel((model) => {
-        model._update = () => identity.translate(0, (1 - levers[13]!.$lerpValue) * 15);
+        model._update = () => identity.translate(0, lerpneg(levers[13]!.$lerpValue, levers[12]!.$lerpValue2) * 15);
         meshAdd(polygons_transform(cylinder(5), identity.scale(4, 1.1, 4), material(0.5, 0.3, 0.3, 0.4)));
         meshAdd(polygons_transform(cylinder(5), identity.scale(4.5, 0.9, 4.5), material(0.3, 0.3, 0.3, 0.4)));
         meshAdd(

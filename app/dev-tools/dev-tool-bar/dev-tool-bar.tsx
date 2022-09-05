@@ -5,7 +5,7 @@ import { GameCameraComponent } from "./game-camera";
 import { FpsGraph } from "./fps-graph";
 import { GameLightComponent } from "./game-light";
 import { DebugFlagsComponent } from "./debug-flags";
-import { LeversComponent } from "./levers";
+import { LeversComponent } from "./levers-checkboxes";
 
 export const DevToolBar: FC = () => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
