@@ -653,7 +653,7 @@ export const level1 = () => {
 
       meshAdd(polygons_transform(cylinder(5), identity.scale(7, 1.2, 7), material(0, 0.2, 0.3, 0.5)));
 
-      // central sculpture
+      // central sculpture/monument
 
       newModel((model) => {
         model._update = () => identity.translate(0, levers[6]!.$lerpValue * -5.9);
@@ -713,7 +713,7 @@ export const level1 = () => {
 
       meshAdd(polygons_transform(GBox, identity.translate(0, 0, -9).scale(3, 1.2, 3), material(0.35, 0.3, 0.5, 0.5)));
 
-      withEditMatrix(identity.translate(0, 1.7, -11), newLever);
+      withEditMatrix(identity.translate(0, 1.7, -11).rotate(0, 180), newLever);
     });
 
     // Detour lever pad
@@ -760,7 +760,7 @@ export const level1 = () => {
         ),
       );
 
-      withEditMatrix(identity.translate(0, -3.6, -4), newLever);
+      withEditMatrix(identity.translate(0, -3, -4).rotate(0, 180), newLever);
     }, ++_modelIdCounter);
   });
 
@@ -937,9 +937,6 @@ export const level1 = () => {
 
     // up and down hex pads
 
-    // i > 2 ? (1 - levers[7]!.$lerpValue)  : 0,
-    // (1 - (i & 1)) * (1 - levers[7]!.$lerpValue) * -3.5 +
-
     const hexPadShouldOscillate = () => lerp(levers[7]!.$lerpValue, 1 - levers[7]!.$lerpValue, levers[11]!.$lerpValue);
 
     [
@@ -986,7 +983,7 @@ export const level1 = () => {
           meshAdd(polygons_transform(cylinder(10), identity.scale(2, 2.5, 2), material(0.3, 0.8, 0.7, 0.3)));
           meshAdd(polygons_transform(cylinder(5), identity.scale(1, 3, 1), material(0.5, 0.5, 0.5, 0.5)));
 
-          withEditMatrix(identity.translate(0, 3.4), newLever);
+          withEditMatrix(identity.translate(0, 3.4).rotate(0, 180), newLever);
         });
 
         // lateral horns
@@ -1256,8 +1253,6 @@ export const level1 = () => {
         ),
       );
 
-      meshAdd(polygons_transform(cylinder(5), identity.scale(4.5, 0.9, 4.5), material(0.5, 0.3, 0.3, 0.4)));
-
       [8, -11].map((y, p) =>
         integers_map(3, (i) =>
           meshAdd(
@@ -1294,7 +1289,17 @@ export const level1 = () => {
         ),
       );
 
-      withEditMatrix(identity.translate(0, 1.7, -13), newLever);
+      // LEVER13
+      withEditMatrix(identity.translate(0, 1.7, -13).rotate(0, 180), newLever);
+
+      newModel((model) => {
+        model._update = () => identity.translate(0, (1 - levers[13]!.$lerpValue) * 15);
+        meshAdd(polygons_transform(cylinder(5), identity.scale(4, 1.1, 4), material(0.5, 0.3, 0.3, 0.4)));
+        meshAdd(polygons_transform(cylinder(5), identity.scale(4.5, 0.9, 4.5), material(0.3, 0.3, 0.3, 0.4)));
+        meshAdd(
+          polygons_transform(cylinder(5), identity.translate(0, -10).scale(0.5, 10, 0.5), material(0.3, 0.3, 0.3, 0.4)),
+        );
+      }, ++_modelIdCounter);
     });
   });
 };
