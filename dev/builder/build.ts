@@ -136,7 +136,11 @@ export async function build() {
     js = await jsBabel(js, {
       minify: false,
       plugins: [
-        babelPluginSimple({ unmangleableProperties: "mark" }),
+        babelPluginSimple({
+          unmangleableProperties: "mark",
+          // It seems that inlining the material call actually makes the zip bigger. Disable.
+          inlineMaterialCall: false,
+        }),
         resugarConcise,
         resugarFunctionsArrow,
         "babel-plugin-minify-constant-folding",

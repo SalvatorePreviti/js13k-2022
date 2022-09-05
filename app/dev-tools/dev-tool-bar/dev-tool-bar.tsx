@@ -5,6 +5,7 @@ import { GameCameraComponent } from "./game-camera";
 import { FpsGraph } from "./fps-graph";
 import { GameLightComponent } from "./game-light";
 import { DebugFlagsComponent } from "./debug-flags";
+import { LeversComponent } from "./levers";
 
 export const DevToolBar: FC = () => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -30,6 +31,7 @@ export const DevToolBar: FC = () => {
             <GameCameraComponent />
           </div>
         )}
+        <LeversComponent />
         <DebugFlagsComponent />
         <GameLightComponent />
         <canvas

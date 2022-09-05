@@ -43,7 +43,7 @@ export const vec3_distance = /* @__PURE__ */ ({ x, y, z }: Vec3In, b: Vec3In): n
   x -= b.x;
   y -= b.y;
   z -= b.z;
-  return Math.sqrt(x * x + y + y + z * z);
+  return Math.sqrt(x * x + y + y + z * z) || 0;
 };
 
 /**

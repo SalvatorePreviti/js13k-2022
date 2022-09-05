@@ -1,6 +1,7 @@
 import { numberFixedRound } from "@balsamic/dev";
 import { types } from "@babel/core";
 import type { ConfigAPI, NodePath, PluginItem, PluginObj } from "@babel/core";
+import type { NumericLiteral } from "@swc/core";
 
 export const DO_NOT_MANGLE_PREFIX = "@#";
 
@@ -9,11 +10,15 @@ let _pluginCounter = 0;
 export interface BabelPluginSimpleSettings {
   constToLet?: boolean;
   unmangleableProperties?: "mark" | "transform" | undefined;
+  inlineMaterialCall?: boolean;
   removeNoInlineCall?: boolean | undefined;
 
   /** Number of digits to round floating point numbers. If 0, means no rounding at all. */
   floatRound?: number;
 }
+
+const material = (r: number, g: number, b: number, a: number = 0): number =>
+  ((a * 255) << 24) | ((b * 255) << 16) | ((g * 255) << 8) | (r * 255);
 
 /**
  * This magic plugin optimize destructuring by maximizing shorthand.
@@ -49,6 +54,28 @@ export function babelPluginSimple(settings: BabelPluginSimpleSettings): PluginIt
           if (settings.removeNoInlineCall) {
             if (path.node.callee.type === "Identifier" && path.node.callee.name === "NO_INLINE") {
               path.remove();
+              return;
+            }
+          }
+
+          if (
+            settings.inlineMaterialCall &&
+            path.node.callee.type === "Identifier" &&
+            path.node.callee.name === "material"
+          ) {
+            let canReplace = true;
+            for (const arg of path.node.arguments) {
+              if (arg.type === "Identifier" && arg.name === "undefined") {
+                continue;
+              }
+              if (arg.type !== "NumericLiteral") {
+                canReplace = false;
+                break;
+              }
+            }
+            if (canReplace) {
+              const [r, g, b, a] = path.node.arguments as NumericLiteral[];
+              path.replaceWith(types.numericLiteral(material(r?.value || 0, g?.value || 0, b?.value || 0, a?.value)));
             }
           }
         },

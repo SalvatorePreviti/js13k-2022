@@ -10,16 +10,30 @@ import {
   horn,
   polygon_transform,
 } from "../geometry/geometry";
-import { abs, integers_map } from "../math/math";
+import { abs, angle_lerp_degrees, integers_map, lerp, max, min } from "../math/math";
 import { identity } from "../math/matrix";
 import { PLAYER_MODEL_ID } from "../player";
-import { newLever } from "./levers";
+import { levers, newLever } from "./levers";
 import type { Model } from "./scene";
 import { meshAdd, meshEnd, withEditMatrix, newModel } from "./scene";
 
 let _modelIdCounter = PLAYER_MODEL_ID + 1;
 
 const MATERIAL_DEVIL = material(1, 0.3, 0.4);
+
+// ========= entranceBarsMesh ========= //
+
+integers_map(7, (i) =>
+  meshAdd(
+    polygons_transform(
+      cylinder(6, 1),
+      identity.translate(4 * (i / 6 - 0.5), 3).scale(0.2, 3, 0.2),
+      material(0.3, 0.3, 0.38),
+    ),
+  ),
+);
+
+const entranceBarsMesh = meshEnd();
 
 // ========= Player ========= //
 
@@ -44,7 +58,7 @@ export const playerModel = newModel(() => {
 
   const eye = polygons_transform(
     csg_polygons(csg_subtract(cylinder(15, 1), polygons_transform(GBox, identity.translate(0, 0, 1).scale(2, 2, 0.5)))),
-    identity.rotate(-90, 0, 0).scale(0.1, 0.05, 0.1),
+    identity.rotate(-90, 0).scale(0.1, 0.05, 0.1),
     material(0.3, 0.3, 0.3),
   );
 
@@ -54,7 +68,7 @@ export const playerModel = newModel(() => {
   meshAdd(polygons_transform(GBox, identity.translate(0, 0.9, 0.45).scale(0.15, 0.02, 0.06), material(0.3, 0.3, 0.3)));
 
   // body
-  meshAdd(polygons_transform(sphere(15), identity.translate(0, 0, 0).scale(0.7, 0.8, 0.55), MATERIAL_DEVIL));
+  meshAdd(polygons_transform(sphere(15), identity.scale(0.7, 0.8, 0.55), MATERIAL_DEVIL));
 
   // Player legs
 
@@ -66,9 +80,6 @@ export const playerModel = newModel(() => {
 
   return meshEnd();
 }, PLAYER_MODEL_ID);
-
-const lever3 = () => (DEBUG_FLAG0 ? 1 : 0);
-const lever5 = () => (DEBUG_FLAG1 ? 1 : 0);
 
 export const level1 = () => {
   // ******** LEVEL 1 ********
@@ -91,15 +102,14 @@ export const level1 = () => {
   meshAdd(polygons_transform(GBox, identity.translate(0, 1, -15).scale(3, 0.2, 0.35), material(0.5, 0.5, 0.5, 0.3)));
   meshAdd(polygons_transform(GBox, identity.translate(0, 1, 15).scale(3, 0.2, 0.35), material(0.5, 0.5, 0.5, 0.3)));
 
-  // gate bars
+  // in and out gate bars
 
-  integers_map(7, (i) =>
-    meshAdd(
-      polygons_transform(
-        cylinder(6, 1),
-        identity.translate(4 * (i / 6 - 0.5), 3, 15).scale(0.2, 3, 0.2),
-        material(0.3, 0.3, 0.38),
-      ),
+  [-15, 15].map((z, i) =>
+    withEditMatrix(identity.translate(0, 0, z), () =>
+      newModel((model) => {
+        model._update = () => identity.translate(0, -levers[i]!.$lerpValue * 4.7);
+        return entranceBarsMesh;
+      }),
     ),
   );
 
@@ -112,7 +122,7 @@ export const level1 = () => {
           horn(),
           identity
             .translate((j - 0.5) * 18.5, 0, i * 4.8 - 9.5)
-            .rotate(0, 180 - j * 180, 0)
+            .rotate(0, 180 - j * 180)
             .scale(1.2, 10, 1.2),
           material(1, 1, 0.8, 0.2),
         ),
@@ -121,9 +131,22 @@ export const level1 = () => {
   );
 
   // in and out
-  meshAdd(polygons_transform(GBox, identity.translate(0, 0, -23).scale(3, 1, 8), material(0.9, 0.9, 0.9, 0.2)));
+  [-23, 22].map((z) => {
+    meshAdd(polygons_transform(GBox, identity.translate(0, 0, z).scale(3, 1, 8), material(0.9, 0.9, 0.9, 0.2)));
+  });
 
-  meshAdd(polygons_transform(GBox, identity.translate(0, 0, 22).scale(3, 1, 8), material(0.9, 0.9, 0.9, 0.2)));
+  meshAdd(polygons_transform(GBox, identity.translate(3, 1.5, -20).scale(0.5, 2, 5), material(0.7, 0.7, 0.7, 0.2)));
+
+  // first lever pad
+  meshAdd(
+    polygons_transform(
+      cylinder(5),
+      identity.translate(-5.4, 0.3, -20).scale(3, 0.5, 3).rotate(0, -90),
+      material(0.75, 0.75, 0.75, 0.2),
+    ),
+  );
+
+  withEditMatrix(identity.translate(-5.4, 1.2, -20).rotate(0, -90), newLever);
 
   // descent
 
@@ -172,7 +195,7 @@ export const level1 = () => {
           // descent cut
           polygons_transform(
             GBox,
-            identity.rotate(0, 60, 0).translate(14, 0.7, -1).rotate(0, 0, -35).scale(2, 2, 2),
+            identity.rotate(0, 60).translate(14, 0.7, -1).rotate(0, 0, -35).scale(2, 2, 2),
             material(0.5, 0.5, 0.5, 0.5),
           ),
 
@@ -187,25 +210,36 @@ export const level1 = () => {
     ),
   );
 
-  // bottom lever
-
-  withEditMatrix(identity.translate(15, -2, 4), newLever);
-
   // moving central platform
 
   newModel((model) => {
-    model._update = () => identity.translate(0, Math.cos(gameTime * 2) * 5 - 4, 0);
-    meshAdd(polygons_transform(cylinder(5), identity.translate(0, -1.4).scale(5, 1, 5), material(0.6, 0.65, 0.7, 0.3)));
-    newLever();
+    // LEVER1
+    withEditMatrix(identity.translate(0, 1.2), newLever);
+
+    model._update = () => {
+      model.$visible = levers[2]!.$lerpValue > 0.1;
+      return identity.translate(
+        0,
+        (Math.cos(gameTime * 1.5) * 5 + 2) * levers[2]!.$lerpValue * (1 - levers[1]!.$lerpValue) +
+          (1 - levers[2]!.$lerpValue) * -15,
+        0,
+      );
+    };
+    meshAdd(polygons_transform(cylinder(5), identity.translate(0, -0.2).scale(5, 1, 5), material(0.6, 0.65, 0.7, 0.3)));
   }, ++_modelIdCounter);
+
+  // LEVER2
+  withEditMatrix(identity.translate(15, -2, 4), newLever);
 
   // ******** LEVEL 2 ********
 
   withEditMatrix(identity.translate(0, 0, 75), () => {
+    const getOscillationAmount = () => min(levers[1]!.$lerpValue, 1 - levers[3]!.$lerpValue);
+
     const blackPlatform = (oscillation: number) =>
       // columns
       newModel((model) => {
-        model._update = () => identity.translate(lever3() * Math.sin(oscillation + gameTime / 1.5) * 12);
+        model._update = () => identity.translate(getOscillationAmount() * Math.sin(oscillation + gameTime / 1.5) * 12);
         GQuad.map(({ x, z }) => {
           // column body
           meshAdd(
@@ -252,7 +286,7 @@ export const level1 = () => {
     withEditMatrix(identity.translate(0, 0, 20), () => blackPlatform(5));
 
     newModel((model) => {
-      model._update = () => identity.translate(lever3() * Math.sin(gameTime / 1.5 + 2) * 12, 0);
+      model._update = () => identity.translate(getOscillationAmount() * Math.sin(gameTime / 1.5 + 2) * 12, 0);
       meshAdd(
         csg_polygons(
           csg_subtract(
@@ -271,7 +305,7 @@ export const level1 = () => {
     // triangle platform
 
     newModel((model) => {
-      model._update = () => identity.translate(lever3() ? 0 : 12);
+      model._update = () => identity.translate((1 - getOscillationAmount()) * 12);
       meshAdd(
         polygons_transform(
           cylinder(3),
@@ -281,13 +315,10 @@ export const level1 = () => {
       );
 
       meshAdd(
-        polygons_transform(GBox, identity.translate(-28, -3, -20).scale(8, 1.7, 5), material(0.5, 0.5, 0.5, 0.3)),
+        polygons_transform(GBox, identity.translate(-28, -3, -20).scale(8, 1.7, 3.8), material(0.5, 0.5, 0.5, 0.3)),
       );
 
-      meshAdd(
-        polygons_transform(GBox, identity.translate(-28, -3, -20).scale(8, 1.7, 5), material(0.5, 0.5, 0.5, 0.3)),
-      );
-
+      // LEVER 3
       withEditMatrix(identity.translate(-28, -0.5, -14), newLever);
     }, ++_modelIdCounter);
 
@@ -308,8 +339,10 @@ export const level1 = () => {
 
     // oscillating mini platforms
 
+    const level3Oscillating = () => levers[3]!.$lerpValue;
+
     newModel((model) => {
-      model._update = () => (lever3() ? identity : identity.translate(0, 0, Math.sin(gameTime) * 11));
+      model._update = () => identity.translate(0, 0, level3Oscillating() * Math.sin(gameTime) * 11);
       meshAdd(
         polygons_transform(GBox, identity.translate(-27, -3, -20).scale(3, 1.4, 3), material(0.9, 0.9, 0.9, 0.2)),
       );
@@ -323,11 +356,11 @@ export const level1 = () => {
 
     withEditMatrix(identity.translate(-44.5, 0, -20), () =>
       newModel((model) => {
-        model._update = () => (lever3() ? identity : identity.translate(0, -6.5));
+        model._update = () => identity.translate(0, level3Oscillating() * -6.5);
         meshAdd(
           polygons_transform(
             cylinder(6),
-            identity.rotate(90, 90, 0).rotate(0, 90).scale(5.9, 0.5, 5.9),
+            identity.rotate(90, 90).rotate(0, 90).scale(5.9, 0.5, 5.9),
             material(0.7, 0.7, 0.7, 0.4),
           ),
         );
@@ -344,7 +377,7 @@ export const level1 = () => {
             csg_union([
               polygons_transform(
                 cylinder(4, 0, 0.01),
-                identity.translate(0, 6, 0).scale(12, 2, 0.75).rotate(0, 45, 0),
+                identity.translate(0, 6, 0).scale(12, 2, 0.75).rotate(0, 45),
                 material(1, 1, 1),
               ),
               polygons_transform(cylinder(6), identity.rotate(0, 0, 90).scale(5, 12, 5)),
@@ -362,11 +395,40 @@ export const level1 = () => {
 
     meshAdd(polygons_transform(hexCorridorPolygons, identity.translate(-53, 0, -20)));
 
+    meshAdd(
+      polygons_transform(
+        cylinder(6),
+        identity.translate(-61.3, -2.4, -26).scale(3, 1, 5),
+        material(0.4, 0.6, 0.6, 0.3),
+      ),
+    );
+
+    meshAdd(
+      polygons_transform(cylinder(7), identity.translate(-57, -2.6, -29).scale(4, 1, 4), material(0.8, 0.8, 0.8, 0.3)),
+    );
+
+    withEditMatrix(identity.translate(-55, -1.1, -29).rotate(0, 90), newLever);
+
     // rotating hex corridor
 
     withEditMatrix(identity.translate(-75, 0, -20), () =>
       newModel((model) => {
-        model._update = () => (lever3() ? identity : identity.rotate(gameTime * 60, 0));
+        model._update = () => {
+          return identity
+            .translate(0, (1 - levers[4]!.$lerpValue) * (1 - levers[5]!.$lerpValue) * 3)
+            .rotate(
+              angle_lerp_degrees(
+                angle_lerp_degrees(
+                  180,
+                  gameTime * 60,
+                  lerp(levers[4]!.$lerpValue, 1 - levers[4]!.$lerpValue, levers[5]!.$lerpValue),
+                ),
+                0,
+                levers[5]!.$lerpValue * levers[4]!.$lerpValue,
+              ),
+              0,
+            );
+        };
         meshAdd(hexCorridorPolygons);
       }),
     );
@@ -465,7 +527,7 @@ export const level1 = () => {
       ),
     );
 
-    // arc door
+    // first arc door
 
     meshAdd(
       csg_polygons(
@@ -475,7 +537,7 @@ export const level1 = () => {
             polygons_transform(GBox, identity.translate(-100, 0.1, -5).scale(2, 1.7, 10), material(0.5, 0.5, 0.5, 0.4)),
             polygons_transform(
               cylinder(25, 1),
-              identity.translate(-100, 2, -5).scale(2, 2, 10).rotate(90, 0, 0),
+              identity.translate(-100, 2, -5).scale(2, 2, 10).rotate(90, 0),
               material(0.5, 0.5, 0.5, 0.4),
             ),
           ]),
@@ -485,15 +547,26 @@ export const level1 = () => {
 
     // gate bars
 
-    integers_map(6, (i) =>
-      meshAdd(
-        polygons_transform(
-          cylinder(6, 1),
-          identity.translate(-99.7 + 4 * (i / 6 - 0.5), 1, -11.5).scale(0.2, 3, 0.2),
-          material(0.3, 0.3, 0.38),
-        ),
-      ),
-    );
+    withEditMatrix(identity.translate(-99.7, -2, -11.5), () => {
+      newModel((model) => {
+        model._update = () => identity.translate(0, -levers[5]!.$lerpValue * 5.3);
+
+        return entranceBarsMesh;
+      });
+    });
+
+    // newModel((model)=>{
+    //   model._update = ()=>
+    //   integers_map(6, (i) =>
+    //   meshAdd(
+    //     polygons_transform(
+    //       cylinder(6, 1),
+    //       identity.translate(-99.7 + 4 * (i / 6 - 0.5), 1, -11.5).scale(0.2, 3, 0.2),
+    //       material(0.3, 0.3, 0.38),
+    //     ),
+    //   ),
+    // );
+    // })
 
     // hex columns
 
@@ -556,13 +629,20 @@ export const level1 = () => {
       ),
     );
 
+    // LEVER6
     withEditMatrix(identity.translate(-86, -7.5, -44), newLever);
 
     // elevators
 
     withEditMatrix(identity.translate(-76.9, -10, -51), () => {
+      const shouldOscillate = () => lerp(levers[6]!.$lerpValue, 1 - levers[6]!.$lerpValue, levers[5]!.$lerpValue);
+
       newModel((model) => {
-        model._update = () => identity.translate(0, lever3() * Math.sin(gameTime) * 7);
+        model._update = () =>
+          identity.translate(
+            0,
+            (1 - max(levers[5]!.$lerpValue, levers[6]!.$lerpValue)) * 3.5 + shouldOscillate() * Math.sin(gameTime) * 7,
+          );
         [0, 12].map((x) =>
           meshAdd(
             polygons_transform(GBox, identity.translate(x, x / -13).scale(2.8, 1.5, 3), material(0.2, 0.5, 0.6, 0.2)),
@@ -570,7 +650,7 @@ export const level1 = () => {
         );
       }, ++_modelIdCounter);
       newModel((model) => {
-        model._update = () => identity.translate(0, lever3() * Math.sin(gameTime + 3) * 6);
+        model._update = () => identity.translate(0, shouldOscillate() * Math.sin(gameTime + 3) * 6);
         [6, 18].map((x) =>
           meshAdd(
             polygons_transform(GBox, identity.translate(x, x / -13).scale(2.8, 1.5, 3), material(0.1, 0.4, 0.5, 0.2)),
@@ -589,7 +669,7 @@ export const level1 = () => {
       // central sculpture
 
       newModel((model) => {
-        model._update = () => identity.translate(0, lever3() * -5.9);
+        model._update = () => identity.translate(0, levers[6]!.$lerpValue * -5.9);
 
         meshAdd(
           csg_polygons(
@@ -648,15 +728,29 @@ export const level1 = () => {
 
       withEditMatrix(identity.translate(0, 1.7, -11), newLever);
     });
+
+    // Detour lever pad
+    meshAdd(
+      polygons_transform(
+        cylinder(5),
+        identity.translate(-84, -2, 10).scale(4, 0.8, 4).rotate(0, 10, 0),
+        material(0.8, 0.1, 0.25, 0.4),
+      ),
+    );
+
+    // Detour lever
+    withEditMatrix(identity.translate(-84, -0.5, 10).rotate(0, 45), newLever);
   });
 
   // ******** BOAT ********
+
+  const getBoatStatus = () => levers[8]!.$lerpValue;
 
   withEditMatrix(identity.translate(-123, 1.4, 55), () => {
     newModel((model) => {
       model._update = () =>
         identity
-          .translate(Math.sin(gameTime + 2) / 5, Math.sin(gameTime * 0.8) / 3, lever3() ? -60 : +0)
+          .translate(Math.sin(gameTime + 2) / 5, Math.sin(gameTime * 0.8) / 3, getBoatStatus() * -60)
           .rotate(Math.sin(gameTime) * 2, Math.sin(gameTime * 0.7), Math.sin(gameTime * 0.9));
       meshAdd(
         csg_polygons(
@@ -710,12 +804,18 @@ export const level1 = () => {
     // boat attachment
 
     meshAdd(
+      polygons_transform(GBox, identity.translate(7, -2.6).scale(3.2, 1.1, 3).skewX(3), material(0.8, 0.8, 0.8, 0.2)),
+    );
+
+    meshAdd(
       polygons_transform(
-        GBox,
-        identity.translate(7, -2.6, -0).scale(3.2, 1.1, 3).skewX(3),
-        material(0.8, 0.8, 0.8, 0.2),
+        cylinder(6),
+        identity.translate(7, -2.6, -4.5).scale(3.2, 0.8, 3),
+        material(0.6, 0.5, 0.7, 0.2),
       ),
     );
+
+    withEditMatrix(identity.translate(7, -1.4, -6), newLever);
 
     // arcs
 
@@ -774,13 +874,17 @@ export const level1 = () => {
 
     // pushing rods
 
+    const shouldPushRods = () => lerp(levers[9]!.$lerpValue, 1 - levers[9]!.$lerpValue, levers[10]!.$lerpValue);
+    const shouldBlockRods = () => (1 - levers[9]!.$lerpValue) * (1 - shouldPushRods());
+
     newModel((model) => {
-      model._update = () => identity.translate(0, -2, lever3() * -abs(Math.sin(gameTime * 1.2)) * 8.5 + 10);
+      model._update = () => identity.translate(0, -2, shouldPushRods() * abs(Math.sin(gameTime * 1.2)) * -8.5 + 10);
       integers_map(4, (x) => meshAdd(polygons_transform(pushingRod, identity.translate(13 + x * 9, 1.7))));
     });
 
     newModel((model) => {
-      model._update = () => identity.translate(0, -2, lever3() * -abs(Math.sin(gameTime + 1)) * 8.5 + 10);
+      model._update = () =>
+        identity.translate(0, -2, max(shouldBlockRods(), shouldPushRods() * abs(Math.sin(gameTime + 1))) * -8.5 + 10);
       integers_map(3, (x) => meshAdd(polygons_transform(pushingRod, identity.translate(17 + x * 9, 1.7))));
     });
 
@@ -845,6 +949,11 @@ export const level1 = () => {
 
     // up and down hex pads
 
+    // i > 2 ? (1 - levers[7]!.$lerpValue)  : 0,
+    // (1 - (i & 1)) * (1 - levers[7]!.$lerpValue) * -3.5 +
+
+    const hexPadShouldOscillate = () => lerp(levers[7]!.$lerpValue, 1 - levers[7]!.$lerpValue, levers[11]!.$lerpValue);
+
     [
       material(0.5, 0.5, 0.6, 0.25),
       material(0.4, 0.4, 0.6, 0.35),
@@ -853,7 +962,11 @@ export const level1 = () => {
     ].map((m, i) => {
       newModel((model) => {
         model._update = () =>
-          identity.translate(i > 2 ? (lever5() ? 0 : 2) : 0, lever5() * Math.sin(gameTime + i * 1.7) * (5 + i / 4));
+          identity.translate(
+            i > 2 ? (1 - hexPadShouldOscillate()) * 2 : 0,
+            hexPadShouldOscillate() * Math.sin(gameTime + i * 1.7) * (5 + i / 4),
+            (i & 1 ? -1 : 1) * (1 - levers[7]!.$lerpValue) * (1 - levers[11]!.$lerpValue) * -7,
+          );
         meshAdd(
           polygons_transform(
             cylinder(6),
@@ -869,7 +982,7 @@ export const level1 = () => {
     withEditMatrix(identity.translate(-42, -2.5, -21.5), () => {
       // pad with hole
       newModel((model) => {
-        model._update = () => identity.translate(lever5() ? 0 : 3.5, lever5() ? -4 : 0);
+        model._update = () => identity.translate((1 - hexPadShouldOscillate()) * 3.5, (1 - levers[7]!.$lerpValue) * -4);
         meshAdd(
           csg_polygons(
             csg_subtract(
@@ -894,7 +1007,6 @@ export const level1 = () => {
             polygons_transform(
               horn(),
               identity
-                .translate(0, 0, 0)
                 .rotate(-i * 90, 180, 90) //
                 .translate(0, 5, 0)
                 .rotate(0, 0, 40) //
@@ -941,16 +1053,19 @@ export const level1 = () => {
         polygons_transform(
           csg_polygons(
             csg_subtract(
-              polygons_transform(
-                GBox,
-                identity.translate(x * -4, 3.5, -0.5).scale(4, 4, 0.7),
-                material(0.5, 0.5, 0.5, 0.4),
+              csg_union_op(
+                polygons_transform(GBox, identity.translate(8.8, 0, 9).scale(3, 1, 3.3), material(0.7, 0.7, 0.7, 0.2)),
+                polygons_transform(
+                  GBox,
+                  identity.translate(x * -4, 3.5, -0.5).scale(4, 4, 0.7),
+                  material(0.5, 0.5, 0.5, 0.4),
+                ),
               ),
               csg_union([
                 polygons_transform(GBox, identity.scale(3, 3, 10), material(0.6, 0.24, 0.2, 0.5)),
                 polygons_transform(
-                  cylinder(25, 1),
-                  identity.translate(0, 3, -5).scale(3, 4, 10).rotate(90, 0, 0),
+                  cylinder(40, 1),
+                  identity.translate(0, 3, -5).scale(3, 4, 10).rotate(90, 0),
                   material(0.6, 0.24, 0.2, 0.5),
                 ),
                 polygons_transform(
@@ -961,6 +1076,14 @@ export const level1 = () => {
                     .scale(1.7, 5, 1.7),
                   material(0.6, 0.24, 0.2, 0.5),
                 ),
+                polygons_transform(
+                  cylinder(5),
+                  identity
+                    .translate(x * -5.3, 3.8, 0)
+                    .rotate(90, 0, 35)
+                    .scale(0.75, 5, 0.75),
+                  material(0.6, 0.24, 0.2, 0.5),
+                ),
               ]),
             ),
           ),
@@ -969,9 +1092,16 @@ export const level1 = () => {
       );
     });
 
-    // the left bridge after the far arc gate
+    // far arc gate door
 
-    meshAdd(polygons_transform(GBox, identity.translate(10, 0, -9).scale(3.08, 1, 3.5), material(0.7, 0.7, 0.7, 0.2)));
+    withEditMatrix(identity.translate(0, 0, 0), () =>
+      newModel((model) => {
+        model._update = () => identity.translate(0, -0.1 - levers[11]!.$lerpValue * 6, -18.5).scale(0.88, 1.2, 1);
+        return entranceBarsMesh;
+      }),
+    );
+
+    // the left bridge after the far arc gate
 
     const rotPlatformBase = [
       ...polygons_transform(cylinder(30, 1), identity.scale(8, 1, 8), material(0.45, 0.45, 0.45, 0.2)),
@@ -992,10 +1122,13 @@ export const level1 = () => {
       meshAdd(rotPlatformBase);
     };
 
+    const shouldRotatePlatforms = () =>
+      lerp(levers[11]!.$lerpValue, 1 - levers[11]!.$lerpValue, levers[12]!.$lerpValue);
+
     withEditMatrix(identity.translate(20, 0.3, -9), () => {
       meshAdd(polygons_transform(GBox, identity.translate(8, 0).scale(0.7, 0.8, 2.5), material(0.7, 0.7, 0.7, 0.2)));
       newModel((model) => {
-        model._update = () => identity.rotate(0, gameTime * 23);
+        model._update = () => identity.rotate(0, angle_lerp_degrees(180, gameTime * 23, shouldRotatePlatforms()));
         meshAdd(
           csg_polygons(
             csg_subtract(
@@ -1018,7 +1151,7 @@ export const level1 = () => {
     withEditMatrix(identity.translate(36, 0.3, -9), () => {
       meshAdd(polygons_transform(GBox, identity.translate(8, 0).scale(0.7, 0.8, 2.5), material(0.7, 0.7, 0.7, 0.2)));
       newModel((model) => {
-        model._update = () => identity.rotate(0, gameTime * 39);
+        model._update = () => identity.rotate(0, angle_lerp_degrees(0, gameTime * 39, shouldRotatePlatforms()));
         rotPlatform();
         [-1, 1].map((x) =>
           meshAdd(
@@ -1041,7 +1174,7 @@ export const level1 = () => {
         polygons_transform(GBox, identity.translate(0, 0, -8).scale(2.5, 0.8, 0.7), material(0.7, 0.7, 0.7, 0.2)),
       );
       newModel((model) => {
-        model._update = () => identity.rotate(0, gameTime * -39);
+        model._update = () => identity.rotate(0, angle_lerp_degrees(180, gameTime * -39, shouldRotatePlatforms()));
         meshAdd(
           csg_polygons(
             csg_subtract(
@@ -1059,7 +1192,7 @@ export const level1 = () => {
 
     withEditMatrix(identity.translate(52, 0.3, -25), () => {
       newModel((model) => {
-        model._update = () => identity.rotate(0, gameTime * 39);
+        model._update = () => identity.rotate(0, angle_lerp_degrees(270, gameTime * 39, shouldRotatePlatforms()));
         meshAdd(
           csg_polygons(
             csg_subtract(
@@ -1079,14 +1212,14 @@ export const level1 = () => {
     meshAdd(polygons_transform(GBox, identity.translate(61, -0.3, -25).scale(2, 1, 2), material(0.7, 0.7, 0.7, 0.3)));
     meshAdd(polygons_transform(GBox, identity.translate(68, -0.3, -25).scale(5, 1, 3), material(0.7, 0.7, 0.7, 0.3)));
 
-    withEditMatrix(identity.translate(68, 1.8, -20).rotate(-12, 0), () => {
+    withEditMatrix(identity.translate(66, 2, -19).rotate(-12, 0), () => {
       newLever();
     });
 
     meshAdd(
       polygons_transform(
-        cylinder(6),
-        identity.translate(68, -0.5, -19).scale(4, 2, 4).rotate(-20, 0),
+        cylinder(5),
+        identity.translate(66, -0.5, -19).scale(3, 2, 4).rotate(-20, 0),
         material(0.2, 0.5, 0.5, 0.6),
       ),
     );
@@ -1097,7 +1230,14 @@ export const level1 = () => {
 
     [material(0.1, 0.55, 0.45, 0.2), material(0.2, 0.5, 0.5, 0.3), material(0.3, 0.45, 0.55, 0.4)].map((m, i) =>
       newModel((model) => {
-        model._update = () => identity.translate(0, Math.sin(gameTime * 1.5 + i * 1.5) * 4);
+        model._update = () =>
+          identity.translate(
+            0,
+            (1 - levers[12]!.$lerpValue) * (1 - levers[13]!.$lerpValue) * 3 +
+              lerp(levers[12]!.$lerpValue, 1 - levers[12]!.$lerpValue, levers[13]!.$lerpValue) *
+                Math.sin(gameTime * 1.5 + i * 1.5) *
+                4,
+          );
         meshAdd(
           polygons_transform(
             GBox,
@@ -1130,12 +1270,14 @@ export const level1 = () => {
 
       meshAdd(polygons_transform(cylinder(5), identity.scale(4.5, 0.9, 4.5), material(0.5, 0.3, 0.3, 0.4)));
 
-      integers_map(3, (i) =>
-        meshAdd(
-          polygons_transform(
-            bigArc,
-            identity.translate(i * 6 - 6, 8 - (i & 1), 14.5 - 0.2 * (i & 1)),
-            i & 1 ? material(0.5, 0.5, 0.5, 0.3) : material(0.35, 0.35, 0.35, 0.5),
+      [8, -11].map((y, p) =>
+        integers_map(3, (i) =>
+          meshAdd(
+            polygons_transform(
+              bigArc,
+              identity.translate(i * 6 - 6, y - (i & 1), 14.5 - 0.2 * (i & 1) + p),
+              i & 1 ? material(0.5, 0.5, 0.5, 0.3) : material(0.35, 0.35, 0.35, 0.5),
+            ),
           ),
         ),
       );

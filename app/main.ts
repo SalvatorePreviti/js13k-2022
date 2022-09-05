@@ -52,7 +52,6 @@ import {
   input_frameReset,
   mouse_movementX,
   mouse_movementY,
-  KEY_INTERACT,
 } from "./input";
 import { gameTime, gameTimeDelta, gameTimeUpdate, lerpDamp } from "./game-time";
 import { buildWorld, playerLeftLegModel, playerModel, playerRightLegModel } from "./level/level";
@@ -62,8 +61,7 @@ import { gl, initGl, initShaderProgram, loadShader } from "./gl";
 import { player_position_global, player_position_final } from "./player";
 
 import groundTextureSvg from "./groundTexture.svg";
-import { levers, switchLevers } from "./level/levers";
-import { Console } from "console";
+import { levers } from "./level/levers";
 
 let texturesLoaded = false;
 
@@ -532,10 +530,6 @@ const draw = (globalTime: number) => {
 
   if (gameTimeDelta > 0) {
     updateModels(rootModel);
-    if (keyboard_downKeys[KEY_INTERACT]) {
-      console.log("interact");
-      switchLevers();
-    }
 
     // *** CASCADED SHADOWMAPS ***
 

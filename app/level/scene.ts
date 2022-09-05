@@ -9,7 +9,9 @@ export const rootModel: Model = {
   $children: [],
   $initialMatrix: identity,
   $animationMatrix: identity,
+  $finalMatrix: identity,
   $modelId: 1,
+  $visible: 1,
 };
 
 export let currentModel = rootModel;
@@ -52,9 +54,10 @@ export interface Model {
   $children: Model[];
   $initialMatrix: DOMMatrixReadOnly;
   $animationMatrix: DOMMatrixReadOnly;
-  $finalMatrix?: DOMMatrixReadOnly;
+  $finalMatrix: DOMMatrixReadOnly;
   $mesh?: Mesh;
   $modelId: number;
+  $visible: boolean | 0 | 1;
   _update?: ModelUpdateCallback | undefined;
 }
 
@@ -103,7 +106,7 @@ export const meshEnd = () => {
   };
 };
 
-export const newModel = (fn: (model: Model) => void | Mesh | undefined, $modelId = 1) => {
+export const newModel = (fn: (model: Model) => void | Mesh | undefined, $modelId = 0) => {
   const model: Model = {
     $parent: currentModel,
     $children: [],
@@ -111,6 +114,7 @@ export const newModel = (fn: (model: Model) => void | Mesh | undefined, $modelId
     $animationMatrix: identity,
     $finalMatrix: identity,
     $modelId,
+    $visible: 1,
   };
   _pendingPolygonsStack.push([]);
   editMatrixStack.push(identity);
@@ -178,33 +182,43 @@ export const renderModels = (
   renderPlayer: 0 | 1 | boolean,
   collisionModelIdUniformLocation?: WebGLUniformLocation,
 ) => {
+  let currentModelId = 1;
   const recursion = (model = rootModel) => {
+    const modelId = currentModelId;
     if (renderPlayer || model.$modelId !== PLAYER_MODEL_ID) {
-      const { $mesh, $children } = model;
-      for (const child of $children) {
-        recursion(child);
+      if (model.$modelId) {
+        currentModelId = model.$modelId;
       }
-      if ($mesh) {
-        if (collisionModelIdUniformLocation) {
-          gl.uniform1f(collisionModelIdUniformLocation, model.$modelId / 255);
+      const { $mesh, $children, $visible } = model;
+      if ($visible) {
+        for (const child of $children) {
+          recursion(child);
         }
-        gl.uniformMatrix4fv(worldMatrixLoc, false, model.$finalMatrix!.toFloat32Array());
-        gl.drawElements(gl.TRIANGLES, $mesh.$vertexCount, gl.UNSIGNED_SHORT, $mesh.$vertexOffset * 2);
+        if ($mesh) {
+          if (collisionModelIdUniformLocation) {
+            gl.uniform1f(collisionModelIdUniformLocation, currentModelId / 255);
+          }
+          gl.uniformMatrix4fv(worldMatrixLoc, false, model.$finalMatrix.toFloat32Array());
+          gl.drawElements(gl.TRIANGLES, $mesh.$vertexCount, gl.UNSIGNED_SHORT, $mesh.$vertexOffset * 2);
+        }
       }
     }
+    currentModelId = modelId;
   };
   recursion();
 };
 
 export const updateModels = (model: Model, parentMatrix = identity) => {
+  const finalMatrix = parentMatrix.multiply(model.$initialMatrix);
+  model.$finalMatrix = finalMatrix;
+
   const updateResult = model._update?.(model);
+
   if (updateResult) {
     model.$animationMatrix = updateResult;
   }
 
-  const finalMatrix = (model.$finalMatrix = parentMatrix
-    .multiply(model.$initialMatrix)
-    .multiplySelf(model.$animationMatrix));
+  finalMatrix.multiplySelf(model.$animationMatrix);
 
   for (const child of model.$children) {
     updateModels(child, finalMatrix);

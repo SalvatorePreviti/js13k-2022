@@ -151,7 +151,7 @@ export function rollupPluginSwcTransform(): PluginOption {
             resugarBlockScopePlugin,
             "babel-plugin-minify-constant-folding",
             "babel-plugin-minify-dead-code-elimination",
-            babelPluginSimple({ unmangleableProperties: "transform" }),
+            babelPluginSimple({ unmangleableProperties: "transform", inlineMaterialCall: false }),
             // "babel-plugin-pure-calls-annotation",
           ],
         })?.code || js;
