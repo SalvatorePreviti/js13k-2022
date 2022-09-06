@@ -6,7 +6,6 @@ export default {
   aColor: "D",
   aNormal: "E",
   aPosition: "F",
-  lightDir: "G",
   csm_textures: "H",
   csm_matrices: "I",
   viewPos: "J",

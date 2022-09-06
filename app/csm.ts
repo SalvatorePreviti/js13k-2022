@@ -3,18 +3,12 @@ import { polygon_transform } from "./geometry/geometry";
 import { integers_map, max, min } from "./math/math";
 import { identity } from "./math/matrix";
 
-export const lightRotX = 298;
+const LIGHT_ROT_X = 298;
+const LIGHT_ROT_Y = 139;
 
-export const lightRotY = 139;
-
-/**
- * The main directional light rotation matrix.
- * Normalized light direction is { x: m13, y: m23, z: m33 }
- */
-export let lightMatrix = /* @__PURE__ */ identity.rotate(lightRotX, lightRotY);
-
-export function setLightRot(x: number, y: number) {
-  lightMatrix = identity.rotate(x, y);
+if (DEBUG) {
+  const lightMatrix = /* @__PURE__ */ identity.rotate(LIGHT_ROT_X, LIGHT_ROT_Y);
+  console.log("light direction: ", lightMatrix.m13, lightMatrix.m23, lightMatrix.m33);
 }
 
 export const csm_buildMatrix = /* @__PURE__ */ (
@@ -43,7 +37,7 @@ export const csm_buildMatrix = /* @__PURE__ */ (
     return v;
   });
 
-  const lightViewTranslated = lightMatrix.translate(tx / 8, ty / 8, tz / 8);
+  const lightViewTranslated = identity.rotate(LIGHT_ROT_X, LIGHT_ROT_Y).translateSelf(tx / 8, ty / 8, tz / 8);
 
   let left = Infinity;
   let right = -Infinity;

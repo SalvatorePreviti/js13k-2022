@@ -1,6 +1,9 @@
 #version 300 es
 precision highp float;
 
+// as printed by the console.log on csm.ts
+const vec3 lightDir = vec3(-0.6560590289905073, 0.6663690071652679, -0.3543146860766681);
+
 #define CSM_TEXTURE_SIZE 1024.
 
 // Shadow bias
@@ -19,7 +22,6 @@ in highp vec4 UntransformedFragPos;
 in lowp vec4 Color;
 
 uniform vec3 viewPos;
-uniform vec3 lightDir;
 uniform mat4 viewMatrix;
 
 uniform mat4[3] csm_matrices;

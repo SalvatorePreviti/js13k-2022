@@ -3,7 +3,6 @@ import { useState } from "react";
 import Draggable from "react-draggable";
 import { GameCameraComponent } from "./game-camera";
 import { FpsGraph } from "./fps-graph";
-import { GameLightComponent } from "./game-light";
 import { DebugFlagsComponent } from "./debug-flags";
 import { LeversComponent } from "./levers-checkboxes";
 
@@ -33,7 +32,6 @@ export const DevToolBar: FC = () => {
         )}
         <LeversComponent />
         <DebugFlagsComponent />
-        <GameLightComponent />
         <canvas
           id="debug-canvas"
           width={128}

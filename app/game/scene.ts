@@ -208,7 +208,7 @@ export const renderModels = (
 };
 
 export const updateModels = (model: Model, parentMatrix = identity) => {
-  const finalMatrix = (model.$finalMatrix = parentMatrix.multiply(model.$initialMatrix));
+  model.$finalMatrix = parentMatrix.multiply(model.$initialMatrix);
 
   const updateResult = model._update?.(model);
 
@@ -216,10 +216,10 @@ export const updateModels = (model: Model, parentMatrix = identity) => {
     model.$animationMatrix = updateResult;
   }
 
-  finalMatrix.multiplySelf(model.$animationMatrix);
+  model.$finalMatrix = model.$finalMatrix.multiply(model.$animationMatrix);
 
   for (const child of model.$children) {
-    updateModels(child, finalMatrix);
+    updateModels(child, model.$finalMatrix);
   }
 };
 
