@@ -6,6 +6,7 @@ export interface Lever {
   $value: 0 | 1;
   $lerpValue: number;
   $lerpValue2: number;
+  $modelId: number;
   $matrix?: DOMMatrixReadOnly;
 }
 

@@ -44,7 +44,6 @@ import {
 } from "./input";
 import { gl, initGl, initShaderProgram, loadShader } from "./gl";
 
-import groundTextureSvg from "./groundTexture.svg";
 import csm_vsSource from "./shaders/csm-vertex.vert";
 import main_vsSource, {
   uniformName_projectionMatrix,
@@ -66,32 +65,13 @@ import sky_vsSource from "./shaders/sky-vertex.vert";
 import sky_fsSource, { uniformName_iResolution } from "./shaders/sky-fragment.frag";
 import type { Vec3In } from "./math/vectors";
 import { player_last_pulled_lever } from "./game/levers";
+import { loadGroundTexture, texturesLoaded } from "./ground-texture";
 
 const COLLISION_TEXTURE_SIZE = 128;
-
-let texturesLoaded = false;
 
 initGl();
 
 const isFirstPerson = () => DEBUG_FLAG3;
-
-const image = new Image();
-image.onload = () => {
-  const texture = gl.createTexture();
-  gl.activeTexture(gl.TEXTURE3);
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, image.width, image.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, image);
-  gl.generateMipmap(gl.TEXTURE_2D);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  texturesLoaded = true;
-
-  if (DEBUG) {
-    console.timeEnd("LOADED");
-  }
-};
-image.onerror = () => (texturesLoaded = true);
-image.src = groundTextureSvg;
 
 requestAnimationFrame(() => {
   const _frameBuffersInvalidations = [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT];
@@ -115,6 +95,7 @@ requestAnimationFrame(() => {
   let camera_player_dir_x = player_position_global.x;
   let camera_player_dir_y = player_position_global.y + 13;
   let camera_player_dir_z = player_position_global.z - 18;
+  let player_respawned = 1;
 
   const player_forceSetPosition = ({ x, y, z }: Vec3In) => {
     player_speed = 0;
@@ -130,21 +111,20 @@ requestAnimationFrame(() => {
     player_position_final.x = x;
     player_position_final.y = y;
     player_position_final.z = z;
-    currentModelId = 0;
+    player_respawned = 1;
   };
 
   const player_respawn = () => {
-    const lastLeverMatrix = levers[player_last_pulled_lever]!.$matrix;
-    player_forceSetPosition(
-      lastLeverMatrix ? lastLeverMatrix.transformPoint({ x: 0, y: 10, z: -3 }) : player_position_initial,
-    );
+    const { $matrix, $modelId } = levers[player_last_pulled_lever]!;
+    currentModelId = $modelId;
+    player_forceSetPosition($matrix ? $matrix.transformPoint({ x: 0, y: 10, z: -3 }) : player_position_initial);
   };
 
   const player_collision_modelIdCounter = new Int32Array(256);
 
   const doVerticalCollisions = (_collision_buffer: Uint8Array) => {
     let maxModelIdCount = 0;
-    currentModelId = 0;
+    let nextModelId = 0;
     player_collision_modelIdCounter.fill(0);
 
     let lines = 0;
@@ -165,7 +145,7 @@ requestAnimationFrame(() => {
           player_collision_modelIdCounter[i] = count;
           if (count >= maxModelIdCount) {
             maxModelIdCount = count;
-            currentModelId = i;
+            nextModelId = i;
           }
         }
       }
@@ -180,8 +160,18 @@ requestAnimationFrame(() => {
       }
     }
 
-    if (currentModelId) {
+    if (nextModelId) {
       hasGround = 1;
+    }
+
+    if (player_respawned) {
+      // keep the previous modelId until the player touch ground
+      if (nextModelId) {
+        player_respawned = 0;
+        currentModelId = nextModelId;
+      }
+    } else {
+      currentModelId = nextModelId;
     }
 
     player_has_ground = hasGround;
@@ -538,7 +528,7 @@ requestAnimationFrame(() => {
         camera_position.x = interpolate_with_hysteresis(camera_position.x, camera_player_dir_x, 1, gameTimeDelta * 2);
         camera_position.y = interpolate_with_hysteresis(
           camera_position.y,
-          camera_player_dir_y + 13, // max(10, camera_player_dir_y + 13),
+          camera_player_dir_y + 13 + player_respawned * 15, // max(10, camera_player_dir_y + 13),
           4,
           gameTimeDelta * 2,
         );
@@ -553,11 +543,13 @@ requestAnimationFrame(() => {
         const viewDirDiffy = camera_position.y - camera_player_dir_y;
         const viewDirDiffz = camera_position.z - camera_player_dir_z;
 
-        camera_rotation.y = 270 + Math.atan2(viewDirDiffz, viewDirDiffx) / DEG_TO_RAD;
-        camera_rotation.x =
-          90 -
-          Math.atan2(Math.sqrt(viewDirDiffz * viewDirDiffz + viewDirDiffx * viewDirDiffx) || 0, viewDirDiffy) /
-            DEG_TO_RAD;
+        if (abs(viewDirDiffz) > 1 || abs(viewDirDiffx) > 1) {
+          camera_rotation.y = 270 + Math.atan2(viewDirDiffz, viewDirDiffx) / DEG_TO_RAD;
+          camera_rotation.x =
+            90 -
+            Math.atan2(Math.sqrt(viewDirDiffz * viewDirDiffz + viewDirDiffx * viewDirDiffx) || 0, viewDirDiffy) /
+              DEG_TO_RAD;
+        }
       }
     }
 
@@ -634,29 +626,35 @@ requestAnimationFrame(() => {
 
       collisionShader();
 
-      const playerPosMatrix1 = identity
-        .rotate(0, 180)
-        .invertSelf()
-        .translateSelf(-player_position_final.x, -player_position_final.y, 0.3 - player_position_final.z);
+      // first collision render
 
       gl.bindFramebuffer(gl.FRAMEBUFFER, collision_frameBuffer);
       gl.viewport(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
       gl.colorMask(true, false, true, false);
-      gl.clearColor(0, 0, 0, 1);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-      gl.uniformMatrix4fv(collisionShader(uniformName_viewMatrix), false, playerPosMatrix1.toFloat32Array());
+      gl.uniformMatrix4fv(
+        collisionShader(uniformName_viewMatrix),
+        false,
+        identity
+          .rotate(0, 180)
+          .invertSelf()
+          .translateSelf(-player_position_final.x, -player_position_final.y, 0.3 - player_position_final.z)
+          .toFloat32Array(),
+      );
       renderModels(collisionShader(uniformName_worldMatrix), 0, collisionShader(uniformName_modelId));
 
-      const playerPosMatrix2 = identity.translate(
-        -player_position_final.x,
-        -player_position_final.y,
-        -player_position_final.z - 0.3,
-      );
+      // second collision render
 
       gl.colorMask(false, true, false, false);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
       gl.colorMask(false, true, true, false);
-      gl.uniformMatrix4fv(collisionShader(uniformName_viewMatrix), false, playerPosMatrix2.toFloat32Array());
+      gl.uniformMatrix4fv(
+        collisionShader(uniformName_viewMatrix),
+        false,
+        identity
+          .translate(-player_position_final.x, -player_position_final.y, -player_position_final.z - 0.3)
+          .toFloat32Array(),
+      );
       renderModels(collisionShader(uniformName_worldMatrix), 0, collisionShader(uniformName_modelId));
       gl.colorMask(true, true, true, true);
 
@@ -672,9 +670,7 @@ requestAnimationFrame(() => {
     input_frameReset();
   };
 
-  if (DEBUG) {
-    console.timeEnd("boot");
-  }
+  loadGroundTexture();
 
   initInputHandlers();
 
@@ -682,4 +678,9 @@ requestAnimationFrame(() => {
 
   NO_INLINE(doHorizontalCollisions);
   NO_INLINE(doVerticalCollisions);
+  NO_INLINE(buildWorld);
+
+  if (DEBUG) {
+    console.timeEnd("boot");
+  }
 });

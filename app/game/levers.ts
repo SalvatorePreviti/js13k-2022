@@ -6,7 +6,7 @@ import { polygons_transform, cylinder, material, GBox } from "../geometry/geomet
 import { meshAdd, meshEnd, newModel } from "./scene";
 import { keyboard_downKeys, KEY_INTERACT } from "../input";
 
-export let player_last_pulled_lever = 0;
+export let player_last_pulled_lever = 8; // TODO: - must be 0
 
 // ========= Lever mesh ========= //
 
@@ -30,7 +30,7 @@ const leverOnMesh = makeLeverMesh(material(0.7, 1, 0.2));
 const _lever_interact_center = { x: 0, y: 0, z: 0 };
 
 export const newLever = (): void => {
-  const lever: Lever = { $value: 0, $lerpValue: 0, $lerpValue2: 0 };
+  const lever: Lever = { $value: 0, $lerpValue: 0, $lerpValue2: 0, $modelId: 0 };
   const index = levers.push(lever) - 1;
 
   meshAdd(
@@ -54,6 +54,7 @@ export const newLever = (): void => {
     model._update = () => {
       const matrix = model.$finalMatrix;
       lever.$matrix = matrix;
+      lever.$modelId = model.$modelId;
       if (
         keyboard_downKeys[KEY_INTERACT] &&
         vec3_distance(matrix.transformPoint(_lever_interact_center), player_position_final) < 2.7

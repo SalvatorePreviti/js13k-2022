@@ -102,31 +102,29 @@ export const buildWorld = () => {
       );
     });
 
-    //  gate top
+    // in and out
+    [-23, 22].map((z) => {
+      meshAdd(polygons_transform(GBox, identity.translate(0, 0, z).scale(3, 1, 8), material(0.9, 0.9, 0.9, 0.2)));
+    });
 
-    meshAdd(polygons_transform(GBox, identity.translate(0, 6.3, -15).scale(4, 0.3, 1), material(0.3, 0.3, 0.3, 0.4)));
-    meshAdd(polygons_transform(GBox, identity.translate(0, 6.3, 15).scale(4, 0.3, 1), material(0.3, 0.3, 0.3, 0.4)));
-
-    //  gate bottom
-
-    meshAdd(polygons_transform(GBox, identity.translate(0, 1, -15).scale(3, 0.2, 0.35), material(0.5, 0.5, 0.5, 0.3)));
-    meshAdd(polygons_transform(GBox, identity.translate(0, 1, 15).scale(3, 0.2, 0.35), material(0.5, 0.5, 0.5, 0.3)));
-
-    // in and out gate bars
-
-    [-15, 15].map((z, i) =>
+    [-15, 15].map((z, i) => {
+      //  gate top
+      meshAdd(polygons_transform(GBox, identity.translate(0, 6.3, z).scale(4, 0.3, 1), material(0.3, 0.3, 0.3, 0.4)));
+      //  gate bottom
+      meshAdd(polygons_transform(GBox, identity.translate(0, 1, z).scale(3, 0.2, 0.35), material(0.5, 0.5, 0.5, 0.3)));
+      // in and out gate bars
       withEditMatrix(identity.translate(0, 0, z), () =>
         newModel((model) => {
           model._update = () => identity.translate(0, -levers[i]!.$lerpValue * 4.7);
           return entranceBarsMesh;
         }),
-      ),
-    );
+      );
+    });
 
     // horns
 
     integers_map(5, (i) =>
-      integers_map(2, (j) => {
+      integers_map(2, (j) =>
         meshAdd(
           polygons_transform(
             horn(),
@@ -136,14 +134,9 @@ export const buildWorld = () => {
               .scale(1.2, 10, 1.2),
             material(1, 1, 0.8, 0.2),
           ),
-        );
-      }),
+        ),
+      ),
     );
-
-    // in and out
-    [-23, 22].map((z) => {
-      meshAdd(polygons_transform(GBox, identity.translate(0, 0, z).scale(3, 1, 8), material(0.9, 0.9, 0.9, 0.2)));
-    });
 
     meshAdd(polygons_transform(GBox, identity.translate(3, 1.5, -20).scale(0.5, 2, 5), material(0.7, 0.7, 0.7, 0.2)));
 
@@ -1366,5 +1359,3 @@ export const buildWorld = () => {
     console.log(levers.length + " levers");
   }
 };
-
-NO_INLINE(buildWorld);

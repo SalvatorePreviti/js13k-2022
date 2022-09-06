@@ -187,6 +187,8 @@ export const renderModels = (
     if (renderPlayer || model.$modelId !== PLAYER_MODEL_ID) {
       if (model.$modelId) {
         currentModelId = model.$modelId;
+      } else {
+        model.$modelId = currentModelId;
       }
       const { $mesh, $children, $visible } = model;
       if ($visible) {
