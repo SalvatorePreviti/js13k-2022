@@ -21,9 +21,10 @@ declare module "*.frag";
 declare module "*.vert";
 
 /** HTMLCanvas element declared in the page */
-
 declare const hC: HTMLCanvasElement;
-declare const hV: HTMLElement;
+
+/** loading screen */
+declare const hL: HTMLElement;
 
 declare function NO_INLINE(fn: Function);
 

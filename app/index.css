@@ -1,10 +1,28 @@
+html,
 body {
   background: #000;
   color: #fff;
   user-select: none;
+  margin: 0;
+  padding: 0;
+}
+
+#hL,
+#hC {
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+
+#hL {
+  top: 10%;
+  color: #a60;
+  background-color: #200;
+  text-align: center;
+  font-size: 666%;
 }
 
 #hC {
-  margin-top: 20px;
-  margin-left: 200px;
+  top: 0;
+  bottom: 0;
 }

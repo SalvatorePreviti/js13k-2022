@@ -9,6 +9,8 @@ export const GAME_TIME_MAX_DELTA_TIME = 0.07;
 
 let _globalTime: number | undefined;
 
+export const setGameTime = (value: number) => (gameTime = value);
+
 export const lerpDamp = /* @__PURE__ */ (from: number, to: number, speed: number) =>
   lerp(from, to, 1 - Math.exp(-speed * gameTimeDelta));
 

@@ -21,6 +21,7 @@ import { csm_buildMatrix } from "./csm";
 import { gameTime, gameTimeDelta, gameTimeUpdate, lerpDamp } from "./game-time";
 import {
   levers,
+  player_last_pulled_lever,
   player_position_final,
   player_position_global,
   player_position_initial,
@@ -41,6 +42,7 @@ import {
   input_frameReset,
   mouse_movementX,
   mouse_movementY,
+  handleResize,
 } from "./input";
 import { gl, initGl, initShaderProgram, loadShader } from "./gl";
 
@@ -64,7 +66,6 @@ import void_fsSource from "./shaders/void-fragment.frag";
 import sky_vsSource from "./shaders/sky-vertex.vert";
 import sky_fsSource, { uniformName_iResolution } from "./shaders/sky-fragment.frag";
 import type { Vec3In } from "./math/vectors";
-import { player_last_pulled_lever } from "./game/levers";
 import { loadGroundTexture, texturesLoaded } from "./ground-texture";
 
 const COLLISION_TEXTURE_SIZE = 128;
@@ -80,6 +81,8 @@ requestAnimationFrame(() => {
 
   let oldModelId = 0;
   let currentModelId = 0;
+
+  let gameLoaded = false;
 
   let player_look_angle_target = 0;
   let player_look_angle = 0;
@@ -519,9 +522,10 @@ requestAnimationFrame(() => {
       );
 
       if (isFirstPerson()) {
-        camera_position.x = lerpDamp(camera_position.x, player_position_final.x, 18);
-        camera_position.y = lerpDamp(camera_position.y, player_position_final.y + 1.5, 15);
-        camera_position.z = lerpDamp(camera_position.z, player_position_final.z, 18);
+        const interpolationSpeed = player_respawned * 200;
+        camera_position.x = lerpDamp(camera_position.x, player_position_final.x, 18 + interpolationSpeed);
+        camera_position.y = lerpDamp(camera_position.y, player_position_final.y + 1.5, 15 + interpolationSpeed);
+        camera_position.z = lerpDamp(camera_position.z, player_position_final.z, 18 + interpolationSpeed);
         camera_rotation.y = angle_wrap_degrees(camera_rotation.y + mouse_movementX * 0.1);
         camera_rotation.x = max(min(camera_rotation.x + mouse_movementY * 0.1, 87), -87);
       } else {
@@ -543,7 +547,7 @@ requestAnimationFrame(() => {
         const viewDirDiffy = camera_position.y - camera_player_dir_y;
         const viewDirDiffz = camera_position.z - camera_player_dir_z;
 
-        if (abs(viewDirDiffz) > 1 || abs(viewDirDiffx) > 1) {
+        if (abs(viewDirDiffz) > 1) {
           camera_rotation.y = 270 + Math.atan2(viewDirDiffz, viewDirDiffx) / DEG_TO_RAD;
           camera_rotation.x =
             90 -
@@ -668,6 +672,18 @@ requestAnimationFrame(() => {
     updateModels(rootModel);
 
     input_frameReset();
+
+    if (!gameLoaded) {
+      gameLoaded = true;
+      handleResize();
+
+      if (DEBUG) {
+        console.timeEnd("LOADED");
+      }
+
+      // Remove the loading screen
+      hL.remove();
+    }
   };
 
   loadGroundTexture();

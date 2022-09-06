@@ -1,12 +1,10 @@
 import { lerpDamp } from "../game-time";
 import { vec3_distance } from "../math/vectors";
 import { identity } from "../math/matrix";
-import { levers, player_position_final, type Lever } from "./world-state";
+import { levers, player_last_pulled_lever, player_position_final, onPlayerPullLever, type Lever } from "./world-state";
 import { polygons_transform, cylinder, material, GBox } from "../geometry/geometry";
 import { meshAdd, meshEnd, newModel } from "./scene";
 import { keyboard_downKeys, KEY_INTERACT } from "../input";
-
-export let player_last_pulled_lever = 8; // TODO: - must be 0
 
 // ========= Lever mesh ========= //
 
@@ -61,7 +59,9 @@ export const newLever = (): void => {
       ) {
         const { $value: value, $lerpValue: lerpValue } = lever;
         if (lerpValue < 0.3 || lerpValue > 0.7) {
-          player_last_pulled_lever = index;
+          if (player_last_pulled_lever !== index) {
+            onPlayerPullLever(index);
+          }
           lever.$value = value ? 0 : 1;
           if (DEBUG) {
             console.log("switch lever " + levers.indexOf(lever) + " = " + lever.$value);

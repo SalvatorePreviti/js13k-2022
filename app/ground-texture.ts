@@ -14,10 +14,6 @@ export const loadGroundTexture = () => {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     texturesLoaded = true;
-
-    if (DEBUG) {
-      console.timeEnd("LOADED");
-    }
   };
   image.onerror = () => (texturesLoaded = true);
   image.src = groundTextureSvg;

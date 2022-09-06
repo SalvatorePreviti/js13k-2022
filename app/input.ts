@@ -51,6 +51,11 @@ const keyMap: Partial<Record<KEY_CODE, number>> = {
   ["KeyF"]: KEY_DEBUG_FLY_DOWN,
 };
 
+export const handleResize = () => {
+  hC.width = window.innerWidth;
+  hC.height = window.innerHeight;
+};
+
 export const initInputHandlers = () => {
   if (!DEBUG) {
     oncontextmenu = () => false;
@@ -74,4 +79,6 @@ export const initInputHandlers = () => {
       mouse_movementY += movementY;
     }
   };
+
+  onresize = handleResize;
 };
