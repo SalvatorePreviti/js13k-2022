@@ -16,10 +16,16 @@ export const levers: Lever[] = [];
 
 export const PLAYER_MODEL_ID = 2;
 
+// export const player_position_initial: Vec3 = {
+//   x: 0,
+//   y: 10,
+//   z: -27,
+// };
+
 export const player_position_initial: Vec3 = {
-  x: 0,
-  y: 10,
-  z: -27,
+  x: -109,
+  y: 16,
+  z: 93,
 };
 
 export const player_position_global: Vec3 = { ...player_position_initial };

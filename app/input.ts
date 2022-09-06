@@ -8,7 +8,7 @@ export const KEY_RIGHT = 2;
 
 export const KEY_BACK = 3;
 
-export const KEY_RUN = 4;
+export const KEY_SLOW = 4;
 
 export const KEY_INTERACT = 5;
 
@@ -40,8 +40,8 @@ const keyMap: Partial<Record<KEY_CODE, number>> = {
   ["KeyS"]: KEY_BACK,
   ["ArrowDown"]: KEY_BACK,
 
-  ["ShiftLeft"]: KEY_RUN,
-  ["ShiftRight"]: KEY_RUN,
+  ["ShiftLeft"]: KEY_SLOW,
+  ["ShiftRight"]: KEY_SLOW,
 
   ["KeyE"]: KEY_INTERACT,
   ["Space"]: KEY_INTERACT,

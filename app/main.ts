@@ -38,7 +38,7 @@ import {
   KEY_FRONT,
   KEY_LEFT,
   KEY_RIGHT,
-  KEY_RUN,
+  KEY_SLOW,
   input_frameReset,
   mouse_movementX,
   mouse_movementY,
@@ -92,6 +92,7 @@ requestAnimationFrame(() => {
   let player_collision_velocity_x = 0;
   let player_collision_velocity_z = 0;
   let player_selected_velocity = 0;
+  let player_legs_velocity = 0;
   let player_has_ground: 0 | 1 = 0;
   let player_collision_x = 0;
   let player_collision_z = 0;
@@ -342,22 +343,13 @@ requestAnimationFrame(() => {
 
   playerRightLegModel._update = () =>
     identity
-      .translate(
-        0,
-        player_legs_speed * clamp01(Math.sin(gameTime * player_selected_velocity * 1.7 - Math.PI / 2) * 0.45),
-      )
-      .rotateSelf(player_legs_speed * Math.sin(gameTime * player_selected_velocity * 1.7) * (0.25 / DEG_TO_RAD), 0);
+      .translate(0, player_legs_speed * clamp01(Math.sin(gameTime * player_legs_velocity - Math.PI / 2) * 0.45))
+      .rotateSelf(player_legs_speed * Math.sin(gameTime * player_legs_velocity) * (0.25 / DEG_TO_RAD), 0);
 
   playerLeftLegModel._update = () =>
     identity
-      .translate(
-        0,
-        player_legs_speed * clamp01(Math.sin(gameTime * player_selected_velocity * 1.7 + Math.PI / 2) * 0.45),
-      )
-      .rotateSelf(
-        player_legs_speed * Math.sin(gameTime * player_selected_velocity * 1.7 + Math.PI) * (0.25 / DEG_TO_RAD),
-        0,
-      );
+      .translate(0, player_legs_speed * clamp01(Math.sin(gameTime * player_legs_velocity + Math.PI / 2) * 0.45))
+      .rotateSelf(player_legs_speed * Math.sin(gameTime * player_legs_velocity + Math.PI) * (0.25 / DEG_TO_RAD), 0);
 
   initTriangleBuffers();
 
@@ -370,7 +362,23 @@ requestAnimationFrame(() => {
 
     const movStrafe = (keyboard_downKeys[KEY_LEFT] ? 1 : 0) + (keyboard_downKeys[KEY_RIGHT] ? -1 : 0);
     const movForward = (keyboard_downKeys[KEY_FRONT] ? 1 : 0) + (keyboard_downKeys[KEY_BACK] ? -1 : 0);
-    player_selected_velocity = keyboard_downKeys[KEY_RUN] ? 7 : 4;
+    player_selected_velocity = keyboard_downKeys[KEY_SLOW] ? 4 : 7;
+    player_legs_velocity = keyboard_downKeys[KEY_SLOW] ? 4 * 1.7 : 7 * 1.3;
+
+    // const gamepad = navigator.getGamepads()[0];
+    // if (gamepad) {
+    //   this.direction.x = gamepad.axes[0];
+    //   this.direction.z = gamepad.axes[1];
+    //   this.leftTrigger = gamepad.buttons[6].value;
+    //   this.rightTrigger = gamepad.buttons[7].value;
+
+    //   const deadzone = 0.1;
+    //   if (this.direction.magnitude < deadzone) {
+    //     this.direction.x = 0;
+    //     this.direction.z = 0;
+    //   }
+    //   this.isJumpPressed = gamepad.buttons[0].pressed;
+    // }
 
     // *** COLLISIONS ***
 

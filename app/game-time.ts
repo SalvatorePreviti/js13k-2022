@@ -5,7 +5,7 @@ export let gameTime: number = 0;
 export let gameTimeDelta: number = 0.01;
 
 /** Minimum 15.3 frames per second */
-export const GAME_TIME_MAX_DELTA_TIME = 0.07;
+export const GAME_TIME_MAX_DELTA_TIME = 0.0666;
 
 let _globalTime: number | undefined;
 
