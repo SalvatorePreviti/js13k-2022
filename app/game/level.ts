@@ -242,7 +242,6 @@ export const buildWorld = () => {
       const getOscillationAmount = () => min(levers[1]!.$lerpValue2, 1 - levers[3]!.$lerpValue2);
 
       const blackPlatform = (oscillation: number, amplitude: number) =>
-        // columns
         newModel((model) => {
           model._update = () =>
             identity.translate(getOscillationAmount() * Math.sin(oscillation + gameTime / 1.5) * amplitude);
@@ -293,16 +292,31 @@ export const buildWorld = () => {
       blackPlatform(0, 12);
       withEditMatrix(identity.translate(0, 0, 20), () => blackPlatform(5, 9.5));
 
+      // central oscillating platform
       newModel((model) => {
         model._update = () => identity.translate(getOscillationAmount() * Math.sin(gameTime / 1.5 + 2) * 12, 0);
         meshAdd(
           csg_polygons(
             csg_subtract(
-              csg_union_op(
-                polygons_transform(GBox, identity.translate(0, 0, -30).scale(5, 1, 5), material(0.9, 0.9, 0.9, 0.2)),
-                polygons_transform(GBox, identity.translate(0, -2, -30).scale(2, 3.2, 2), material(0.3, 0.8, 0.5, 0.5)),
-              ),
-              polygons_transform(GBox, identity.translate(0, 0, -30).scale(1.5, 10, 1.5), material(0.2, 0.7, 0.4, 0.6)),
+              csg_union([
+                polygons_transform(GBox, identity.translate(0, 0, -30).scale(3, 1, 5), material(0.9, 0.9, 0.9, 0.2)),
+                polygons_transform(
+                  cylinder(6),
+                  identity.translate(0, 0, -30).scale(4, 1, 5),
+                  material(0.9, 0.9, 0.9, 0.2),
+                ),
+                polygons_transform(
+                  GBox,
+                  identity.translate(0, -2, -30).scale(2, 3.2, 1.9),
+                  material(0.3, 0.8, 0.5, 0.5),
+                ),
+                polygons_transform(
+                  cylinder(30, 1, 0, 4),
+                  identity.translate(0, 0, -30).scale(1, 1, 1.5).rotate(0, 90),
+                  material(0.9, 0.9, 0.9, 0.2),
+                ),
+              ]),
+              polygons_transform(GBox, identity.translate(0, 0, -30).scale(1.3, 10, 1.3), material(0.2, 0.7, 0.4, 0.6)),
             ),
           ),
         );
@@ -844,7 +858,7 @@ export const buildWorld = () => {
         ),
       );
 
-      withEditMatrix(identity.translate(7, -1.4, -6), newLever);
+      withEditMatrix(identity.translate(7, -1.4, -6).rotate(0, 180), newLever);
 
       // arcs
 

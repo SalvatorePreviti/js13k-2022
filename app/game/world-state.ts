@@ -22,11 +22,11 @@ export const player_position_initial: Vec3 = {
   z: -27,
 };
 
-export let player_last_pulled_lever = 0;
-
 export const player_position_global: Vec3 = { ...player_position_initial };
 
 export const player_position_final: Vec3 = { ...player_position_initial };
+
+export let player_last_pulled_lever = 0;
 
 export let rotatingPlatform1Rotation = 0;
 
@@ -67,7 +67,16 @@ export const onPlayerPullLever = (leverIndex: number) => {
 export const saveGame = () => {
   localStorage.setItem(
     LOCAL_STORAGE_SAVED_GAME_KEY,
-    JSON.stringify([666, levers.map((lever) => lever.$value), player_last_pulled_lever, gameTime]),
+    JSON.stringify([
+      666,
+      levers.map((lever) => lever.$value),
+      player_last_pulled_lever,
+      gameTime,
+      rotatingPlatform1Rotation,
+      rotatingPlatform2Rotation,
+      rotatingHexCorridorRotation,
+      boatLerp,
+    ]),
   );
 };
 
@@ -79,13 +88,24 @@ export const newGame = () => {
 
 export const loadGame = () => {
   try {
-    const [header, savedLevers, savedLastPulledLever, savedGameTime] = JSON.parse(
-      localStorage.getItem(LOCAL_STORAGE_SAVED_GAME_KEY)!,
-    );
+    const [
+      header,
+      savedLevers,
+      savedLastPulledLever,
+      savedGameTime,
+      savedRotatingPlatform1Rotation,
+      savedRotatingPlatform2Rotation,
+      savedRotatingHexCorridorRotation,
+      savedBoatLerp,
+    ] = JSON.parse(localStorage.getItem(LOCAL_STORAGE_SAVED_GAME_KEY)!);
     if (header === 666) {
       levers.map((lever, index) => (lever.$value = (savedLevers[index] | 0) as 0 | 1));
       player_last_pulled_lever = savedLastPulledLever | 0;
       setGameTime(savedGameTime | 0);
+      rotatingPlatform1Rotation = savedRotatingPlatform1Rotation | 0;
+      rotatingPlatform2Rotation = savedRotatingPlatform2Rotation | 0;
+      rotatingHexCorridorRotation = savedRotatingHexCorridorRotation | 0;
+      boatLerp = savedBoatLerp | 0;
       return;
     }
   } catch {}
