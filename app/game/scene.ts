@@ -1,11 +1,9 @@
 import type { Polygon } from "../geometry/geometry";
-import { GQuad, polygon_transform, polygons_transform } from "../geometry/geometry";
+import { GQuad, polygons_transform } from "../geometry/geometry";
 import { identity } from "../math/matrix";
+import type { Vec3Optional } from "../math/vectors";
 import { plane_fromPolygon } from "../math/vectors";
 import { gl } from "../gl";
-import { PLAYER_MODEL_ID } from "./world-state";
-import { mainMenuVisible } from "../menu";
-import { playerModel } from "./level";
 
 export const rootModel: Model = {
   $children: [],
@@ -84,8 +82,14 @@ const getVertex = (i: number): number => {
   return index;
 };
 
-export const meshAdd = (polygons: Polygon[]) =>
-  _pendingPolygonsStack.at(-1)!.push(...polygons_transform(polygons, editMatrixStack.at(-1)!));
+export const meshAdd = (
+  polygons: Polygon<Readonly<Vec3Optional>>[],
+  transform: DOMMatrixReadOnly = identity,
+  color?: number | undefined,
+) =>
+  _pendingPolygonsStack
+    .at(-1)!
+    .push(...polygons_transform(polygons, editMatrixStack.at(-1)!.multiply(transform), color));
 
 export const meshEnd = (): Mesh => {
   const pendingPolygons = _pendingPolygonsStack.at(-1)!;
@@ -196,5 +200,5 @@ export const updateModels = (model: Model, parentMatrix = identity) => {
 
 // Initialize the full screen triangle for the sky
 
-meshAdd([polygon_transform(GQuad.slice(1), identity.translate(-2).scale3d(3).rotate(90, 0))]);
+meshAdd([GQuad.slice(1)], identity.translate(-2).scale3d(3).rotate(90, 0));
 meshEnd();

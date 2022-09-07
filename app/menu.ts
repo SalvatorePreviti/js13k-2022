@@ -3,10 +3,10 @@ import { handleResize } from "./input";
 
 export let mainMenuVisible: boolean | undefined;
 
-export const setMainMenuVisible = (value?: boolean) => {
+export const setMainMenuVisible = (value: boolean) => {
   if (mainMenuVisible !== value) {
     handleResize();
-    mainMenuVisible = !!value;
+    mainMenuVisible = value;
     if (mainMenuVisible) {
       document.exitPointerLock();
     }
@@ -17,7 +17,7 @@ export const setMainMenuVisible = (value?: boolean) => {
 export const initHtmlElements = () => {
   // HTML elements
 
-  b1.onclick = () => setMainMenuVisible();
+  b1.onclick = () => setMainMenuVisible(false);
 
   b2.onclick = () => hC.requestPointerLock();
 

@@ -218,7 +218,7 @@ requestAnimationFrame(() => {
 
   const boot = () => {
     gameBooted = true;
-    setMainMenuVisible(true);
+    setMainMenuVisible(!DEBUG);
     initHtmlElements();
     initInputHandlers();
     updateModels(rootModel);
@@ -367,6 +367,7 @@ requestAnimationFrame(() => {
   gl.clearDepth(1); // Clear everything. Default value is 1
   gl.cullFace(gl.BACK); // Default value is already BACK
   gl.depthFunc(gl.LEQUAL); // LEQUAL is required for sky
+  gl.clearColor(0, 0, 0, 1);
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, collision_frameBuffer);
   gl.bindRenderbuffer(gl.RENDERBUFFER, collision_renderBuffer);
@@ -613,8 +614,6 @@ requestAnimationFrame(() => {
     // *** MAIN RENDER ***
 
     mainShader();
-
-    gl.clearColor(0, 0, 0, 1);
 
     gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
