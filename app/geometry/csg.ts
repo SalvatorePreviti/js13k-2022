@@ -1,5 +1,4 @@
-import type { Vec3 } from "../math/vectors";
-import { plane_fromPolygon, type Vec3In, type Plane, vec3_dot } from "../math/vectors";
+import { plane_fromPolygon, type Vec3, type Vec3In, type Plane, vec3_dot } from "../math";
 import { polygon_color, type Polygon } from "./geometry";
 
 export const PLANE_EPSILON = 0.00008;
@@ -169,39 +168,6 @@ export const csg_tree = /* @__PURE__ */ (n: CSGInput): CSGNode =>
     : // An object? We assume is a BSP tree.
       (n as CSGNode);
 
-/**
- * Union a = a U b
- * @param a First geometry and target of the union
- * @param b Source second geometry to add
- * @returns
- */
-export const csg_union_op = /* @__PURE__ */ (a: CSGInput, b: CSGInput | undefined): CSGNode => {
-  const polygonsToAdd: [Plane, CSGPolygon[]][] = [];
-  a = csg_tree(a);
-  if (b) {
-    b = csg_tree(b);
-
-    // clip to a, b
-    csg_tree_each(a, (node) => (node.$polygons = csg_tree_clipNode(b as CSGNode, node, 1)));
-
-    // get the list of polygons to be added from b clipped to a
-    csg_tree_each(b, (node) => polygonsToAdd.push([node, csg_tree_clipNode(a as CSGNode, node, -1)]));
-
-    // add the polygons to a
-    for (const [plane, polygons] of polygonsToAdd) {
-      for (const pp of polygons) {
-        csg_tree_addPolygon(a, pp, plane);
-      }
-    }
-  }
-  return a;
-};
-
-/**
- * Union a[0] = a[0] U a[1] U a[2] U ...
- */
-export const csg_union = /* @__PURE__ */ (inputs: CSGInput[]): CSGNode => inputs.reduce(csg_union_op) as CSGNode;
-
 /** Convert solid space to empty space and empty space to solid space. */
 export const csg_tree_flip = (root: CSGNode | 0 | undefined): unknown =>
   csg_tree_each(root, (node) => {
@@ -218,12 +184,38 @@ export const csg_tree_flip = (root: CSGNode | 0 | undefined): unknown =>
   });
 
 /**
+ * Union a[0] = a[0] U a[1] U a[2] U ...
+ */
+export const csg_union = /* @__PURE__ */ (...inputs: CSGInput[]): CSGNode =>
+  inputs.reduce((a: CSGInput, b: CSGInput | undefined): CSGNode => {
+    const polygonsToAdd: [Plane, CSGPolygon[]][] = [];
+    a = csg_tree(a);
+    if (b) {
+      b = csg_tree(b);
+
+      // clip to a, b
+      csg_tree_each(a, (node) => (node.$polygons = csg_tree_clipNode(b as CSGNode, node, 1)));
+
+      // get the list of polygons to be added from b clipped to a
+      csg_tree_each(b, (node) => polygonsToAdd.push([node, csg_tree_clipNode(a as CSGNode, node, -1)]));
+
+      // add the polygons to a
+      for (const [plane, polygons] of polygonsToAdd) {
+        for (const pp of polygons) {
+          csg_tree_addPolygon(a, pp, plane);
+        }
+      }
+    }
+    return a;
+  }) as CSGNode;
+
+/**
  * Subtraction a = a - b
  */
 export const csg_subtract = /* @__PURE__ */ (a: CSGInput, b: CSGInput): CSGNode => {
   a = csg_tree(a);
   csg_tree_flip(a);
-  csg_union_op(a, b);
+  csg_union(a, b);
   csg_tree_flip(a);
   return a;
 };
@@ -262,29 +254,4 @@ export const csg_polygons = /* @__PURE__ */ (tree: CSGNode): Polygon[] => {
   });
 };
 
-// const csg_tree_clipPolygon = /* @__PURE__ */ (
-//   node: CSGNode,
-//   polygon: CSGPolygon,
-//   polygonPlane: Plane,
-//   polygonPlaneFlipped: -1 | 1,
-//   result: CSGPolygon[],
-// ): void => {
-//   let { $front, $back } = CSGPolygon_split(node, polygon);
-//   if (!$front && !$back) {
-//     if (vec3_dot(node, polygonPlane) * polygonPlaneFlipped > 0) {
-//       $front = polygon; // Coplanar front
-//     } else {
-//       $back = polygon; // Coplanar back
-//     }
-//   }
-//   if ($front) {
-//     if (node.$front) {
-//       csg_tree_clipPolygon(node.$front, $front, polygonPlane, polygonPlaneFlipped, result);
-//     } else {
-//       result.push($front);
-//     }
-//   }
-//   if ($back && node.$back) {
-//     csg_tree_clipPolygon(node.$back, $back, polygonPlane, polygonPlaneFlipped, result);
-//   }
-// };
+NO_INLINE(CSGPolygon_splitSpanning);

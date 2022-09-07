@@ -1,10 +1,10 @@
+import { identity } from "../math";
 import { gl } from "../gl";
-import { identity } from "../math/matrix";
-import { mainMenuVisible } from "../menu";
-import { playerModel, playerRightLegModel } from "./level";
+import { PLAYER_MODEL_ID } from "./world-state";
+import { playerModel, playerRightLegModel } from "./objects";
 import type { Mesh, Model } from "./scene";
 import { rootModel } from "./scene";
-import { PLAYER_MODEL_ID } from "./world-state";
+import { mainMenuVisible } from "../menu";
 
 const drawMesh = ($mesh: Mesh) =>
   gl.drawElements(gl.TRIANGLES, $mesh.$vertexCount, gl.UNSIGNED_SHORT, $mesh.$vertexOffset * 2);

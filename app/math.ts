@@ -3,6 +3,9 @@ export const DEG_TO_RAD = Math.PI / 180;
 
 export const TWO_PI = Math.PI * 2;
 
+/** The identity matrix */
+export const identity: DOMMatrixReadOnly = /* @__PURE__ */ new DOMMatrix();
+
 export const min = /* @__PURE__ */ (a: number, b: number) => (a < b ? a : b);
 
 export const max = /* @__PURE__ */ (a: number, b: number) => (a > b ? a : b);
@@ -51,3 +54,93 @@ export const interpolate_with_hysteresis = /* @__PURE__ */ (
   );
 
 export const integers_map = <T>(n: number, fn: (i: number) => T) => Array.from(Array(n), (_, i) => fn(i));
+
+export const mat_perspectiveXY = /* @__PURE__ */ (mx: number, my: number, near: number, far: number) => [
+  mx,
+  0,
+  0,
+  0,
+  0,
+  my,
+  0,
+  0,
+  0,
+  0,
+  (far + near) / (near - far),
+  -1,
+  0,
+  0,
+  (2 * far * near) / (near - far),
+  0,
+];
+
+export interface Vec2 {
+  x: number;
+  y: number;
+}
+
+export interface Vec3 {
+  x: number;
+  y: number;
+  z: number;
+}
+
+export interface Vec4 {
+  x: number;
+  y: number;
+  z: number;
+  w: number;
+}
+
+export interface Vec3Optional {
+  x?: number | undefined;
+  y?: number | undefined;
+  z?: number | undefined;
+}
+
+export interface Plane {
+  x: number;
+  y: number;
+  z: number;
+  w: number;
+}
+
+export type Vec2In = Readonly<Vec2>;
+
+export type Vec3In = Readonly<Vec3>;
+
+export type Vec4In = Readonly<Vec4>;
+
+export const vec3_dot = /* @__PURE__ */ ({ x, y, z }: Vec3In, v: Vec3In): number => x * v.x + y * v.y + z * v.z;
+
+export const vec3_distance = /* @__PURE__ */ ({ x, y, z }: Vec3In, b: Vec3In): number => {
+  x -= b.x;
+  y -= b.y;
+  z -= b.z;
+  return Math.sqrt(x * x + y + y + z * z) || 0;
+};
+
+/**
+ * Computes a polygon plane using the Newell's method.
+ * We are not using plane from 3 points algorithm,
+ * because this can handle coplanar points and has precision problems.
+ */
+export const plane_fromPolygon = /* @__PURE__ */ (polygon: readonly Vec3In[]): Plane => {
+  // Newell's method
+  let x = 0;
+  let y = 0;
+  let z = 0;
+  let a = polygon.at(-1)!;
+  let b: Vec3In | number;
+  for (b of polygon) {
+    x += (a.y - b.y) * (a.z + b.z);
+    y += (a.z - b.z) * (a.x + b.x);
+    z += (a.x - b.x) * (a.y + b.y);
+    a = b;
+  }
+  b = Math.hypot(x, y, z);
+  x /= b;
+  y /= b;
+  z /= b;
+  return { x, y, z, w: x * a.x + y * a.y + z * a.z };
+};

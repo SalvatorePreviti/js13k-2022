@@ -1,10 +1,27 @@
-import { vec3_distance } from "../math/vectors";
-import { identity } from "../math/matrix";
-import type { Soul } from "./world-state";
-import { levers, player_position_final, onPlayerPullLever, type Lever, lerpDamp } from "./world-state";
-import { cylinder, material, GBox } from "../geometry/geometry";
-import { meshAdd, meshEnd, newModel } from "./scene";
+import { identity, vec3_distance } from "../math";
+import { cylinder, material, GBox, polygons_transform, horn, sphere, GQuad } from "../geometry/geometry";
+import { csg_polygons, csg_subtract } from "../geometry/csg";
+import {
+  PLAYER_MODEL_ID,
+  levers,
+  player_position_final,
+  onPlayerPullLever,
+  onSoulCollected,
+  lerpDamp,
+  type Lever,
+  type Soul,
+  souls,
+} from "./world-state";
+import type { Model } from "./scene";
+import { withEditMatrix, meshAdd, meshEnd, newModel } from "./scene";
 import { keyboard_downKeys, KEY_INTERACT } from "../input";
+
+// ========= Sky mesh ========= //
+
+// Initialize the full screen triangle for the sky. Must be the first mesh!
+
+meshAdd([GQuad.slice(1)], identity.translate(-2).scale3d(3).rotate(90, 0));
+meshEnd();
 
 // ========= Lever mesh ========= //
 
@@ -26,6 +43,51 @@ const SOUL_SENSITIVITY_RADIUS = 1.5;
 
 meshAdd(cylinder(6), identity, material(1, 0.3, 0.5));
 const soulMesh = meshEnd();
+
+// ========= Player ========= //
+
+meshAdd(cylinder(10, 1), identity.translate(-0.3, -1, 0).scale(0.2, 0.5, 0.24), material(1, 0.3, 0.4));
+const rightLegMesh = meshEnd();
+
+export let playerRightLegModel: Model;
+
+export let playerLeftLegModel: Model;
+
+export const playerModel = newModel((model) => {
+  model.$collisions = 0;
+  const rhorn = polygons_transform(
+    horn(),
+    identity.translate(0.2, 1.32, 0).rotate(0, 0, -30).scale(0.2, 0.6, 0.2),
+    material(1, 1, 0.8),
+  );
+
+  meshAdd(rhorn);
+
+  // left horn
+  meshAdd(rhorn, identity.rotate(0, 180));
+
+  // head
+  meshAdd(sphere(30), identity.translate(0, 1, 0).scale(0.5, 0.5, 0.5), material(1, 0.3, 0.4));
+
+  const eye = polygons_transform(
+    csg_polygons(csg_subtract(cylinder(15, 1), polygons_transform(GBox, identity.translate(0, 0, 1).scale(2, 2, 0.5)))),
+    identity.rotate(-90, 0).scale(0.1, 0.05, 0.1),
+    material(0.3, 0.3, 0.3),
+  );
+
+  [-1, 1].map((i) => meshAdd(eye, identity.translate(i * 0.2, 1.2, 0.4).rotate(0, i * 20, i * 20)));
+
+  // mouth
+  meshAdd(GBox, identity.translate(0, 0.9, 0.45).scale(0.15, 0.02, 0.06), material(0.3, 0.3, 0.3));
+
+  // body
+  meshAdd(sphere(15), identity.scale(0.7, 0.8, 0.55), material(1, 0.3, 0.4));
+
+  // Player legs
+
+  playerRightLegModel = newModel(() => rightLegMesh);
+  playerLeftLegModel = withEditMatrix(identity.translate(0.6), () => newModel(() => rightLegMesh));
+}, PLAYER_MODEL_ID);
 
 export const newLever = (): void => {
   const lever: Lever = { $value: 0, $lerpValue: 0, $lerpValue2: 0, $modelId: 0 };
@@ -62,16 +124,20 @@ export const newLever = (): void => {
 };
 
 export const newSoul = (): void => {
-  const soul: Soul = { $value: 1 };
+  const soul: Soul = { $value: 0 };
+  const index = souls.push(soul);
 
   newModel((model) => {
     model.$collisions = 0;
     model._update = () => {
-      if (vec3_distance(model.$finalMatrix.transformPoint(), player_position_final) < SOUL_SENSITIVITY_RADIUS) {
-        console.log("soul in distance");
-        soul.$value = 0;
+      if (
+        !soul.$value &&
+        vec3_distance(model.$finalMatrix.transformPoint(), player_position_final) < SOUL_SENSITIVITY_RADIUS
+      ) {
+        soul.$value = 1;
+        onSoulCollected(index);
       }
-      model.$visible = soul.$value;
+      model.$visible = (1 - soul.$value) as 0 | 1;
     };
     return soulMesh;
   });

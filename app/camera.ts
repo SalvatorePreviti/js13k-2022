@@ -1,5 +1,4 @@
-import { DEG_TO_RAD } from "./math/math";
-import { mat_perspectiveXY } from "./math/matrix";
+import { DEG_TO_RAD, mat_perspectiveXY } from "./math";
 import { player_position_global } from "./game/world-state";
 
 import { constDef_zNear, constDef_zFar } from "./shaders/main-fragment.frag";
@@ -10,7 +9,7 @@ export const zFar = constDef_zFar;
 
 export const fieldOfViewDegrees = 60;
 
-export const fieldOfViewRadians = fieldOfViewDegrees * DEG_TO_RAD; // in radians
+export const fieldOfViewRadians = /* @__PURE__ */ fieldOfViewDegrees * DEG_TO_RAD; // in radians
 
 const fieldOfViewAmount = 1 / Math.tan(fieldOfViewRadians / 2);
 

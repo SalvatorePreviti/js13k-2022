@@ -1,5 +1,4 @@
-import { lerp, min, angle_wrap_degrees, lerpneg, abs } from "../math/math";
-import type { Vec3 } from "../math/vectors";
+import { lerp, min, angle_wrap_degrees, lerpneg, abs, type Vec3 } from "../math";
 import { mainMenuVisible } from "../menu";
 
 export let absoluteTime = 0;
@@ -120,13 +119,12 @@ export const saveGame = () => {
 
 export const loadGame = () => {
   try {
-    const [header, savedLevers, savedLastPulledLever, savedGameTime, savedBoatLerp] = JSON.parse(
+    const [header, savedLevers, savedSouls, savedLastPulledLever, savedGameTime, savedBoatLerp] = JSON.parse(
       localStorage[LOCAL_STORAGE_SAVED_GAME_KEY]!,
     );
     if (header === 666) {
       levers.map((lever, index) => (lever.$value = (savedLevers[index] | 0) as 0 | 1));
-      console.log(levers.map(getItemValue));
-      console.log(souls.map(getItemValue));
+      souls.map((soul, index) => (soul.$value = (savedSouls[index] | 0) as 0 | 1));
       player_last_pulled_lever = savedLastPulledLever | 0;
       setGameTime(savedGameTime | 0);
       boatLerp = savedBoatLerp | 0;
@@ -144,5 +142,13 @@ export const onPlayerPullLever = (leverIndex: number) => {
   }
 
   player_last_pulled_lever = leverIndex;
+  saveGame();
+};
+
+export const onSoulCollected = (soulIndex: number) => {
+  if (DEBUG) {
+    console.log("soul " + soulIndex + " collected");
+  }
+
   saveGame();
 };

@@ -1,6 +1,5 @@
 import { camera_position, camera_rotation } from "../camera";
-import { angle_wrap_degrees, DEG_TO_RAD } from "../math/math";
-import type { Vec3 } from "../math/vectors";
+import { angle_wrap_degrees, DEG_TO_RAD, type Vec3 } from "../math";
 import type { KEY_CODE } from "../utils/keycodes";
 
 export const debug_camera_position: Vec3 = { x: 0, y: 0, z: 0 };

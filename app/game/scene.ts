@@ -1,9 +1,6 @@
-import type { Polygon } from "../geometry/geometry";
-import { GQuad, polygons_transform } from "../geometry/geometry";
-import { identity } from "../math/matrix";
-import type { Vec3Optional } from "../math/vectors";
-import { plane_fromPolygon } from "../math/vectors";
 import { gl } from "../gl";
+import { identity, plane_fromPolygon, type Vec3Optional } from "../math";
+import { polygons_transform, type Polygon } from "../geometry/geometry";
 
 export const rootModel: Model = {
   $children: [],
@@ -197,8 +194,3 @@ export const updateModels = (model: Model, parentMatrix = identity) => {
     updateModels(child, model.$finalMatrix);
   }
 };
-
-// Initialize the full screen triangle for the sky
-
-meshAdd([GQuad.slice(1)], identity.translate(-2).scale3d(3).rotate(90, 0));
-meshEnd();

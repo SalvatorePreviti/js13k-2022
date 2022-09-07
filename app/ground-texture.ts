@@ -5,7 +5,7 @@ export let texturesLoaded = false;
 
 export const loadGroundTexture = () => {
   const image = new Image();
-  image.onload = () => {
+  image.onload = image.onerror = () => {
     const texture = gl.createTexture();
     gl.activeTexture(gl.TEXTURE3);
     gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -15,6 +15,5 @@ export const loadGroundTexture = () => {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     texturesLoaded = true;
   };
-  image.onerror = () => (texturesLoaded = true);
   image.src = groundTextureSvg;
 };

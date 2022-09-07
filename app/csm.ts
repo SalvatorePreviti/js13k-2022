@@ -1,7 +1,6 @@
-import { mat_perspective, camera_view } from "./camera";
+import { integers_map, max, min, identity } from "./math";
 import { polygon_transform } from "./geometry/geometry";
-import { integers_map, max, min } from "./math/math";
-import { identity } from "./math/matrix";
+import { mat_perspective, camera_view } from "./camera";
 
 const LIGHT_ROT_X = 298;
 const LIGHT_ROT_Y = 139;

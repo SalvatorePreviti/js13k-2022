@@ -1,7 +1,6 @@
-import { identity } from "../math/matrix";
-import { abs, clamp01, integers_map, lerpneg, max, min } from "../math/math";
-import { material, GQuad, GBox, cylinder, polygons_transform, sphere, horn } from "../geometry/geometry";
-import { csg_subtract, csg_polygons, csg_union, csg_union_op } from "../geometry/csg";
+import { abs, clamp01, integers_map, lerpneg, max, min, identity } from "../math";
+import { material, GQuad, GBox, cylinder, polygons_transform, horn } from "../geometry/geometry";
+import { csg_subtract, csg_polygons, csg_union } from "../geometry/csg";
 import {
   boatLerp,
   gameTime,
@@ -11,16 +10,8 @@ import {
   rotatingPlatform1Rotation,
   rotatingPlatform2Rotation,
 } from "./world-state";
-import { meshAdd, meshEnd, withEditMatrix, newModel, type Model } from "./scene";
+import { meshAdd, meshEnd, withEditMatrix, newModel } from "./scene";
 import { newLever, newSoul } from "./objects";
-
-export let playerRightLegModel: Model;
-
-export let playerLeftLegModel: Model;
-
-export let playerModel: Model;
-
-export let playerStatue: Model;
 
 export const buildWorld = () => {
   let _modelIdCounter = PLAYER_MODEL_ID + 1;
@@ -28,7 +19,7 @@ export const buildWorld = () => {
   const bigArc = csg_polygons(
     csg_subtract(
       polygons_transform(GBox, identity.translate(0, -8).scale(6, 15, 2.2)),
-      csg_union_op(
+      csg_union(
         polygons_transform(GBox, identity.translate(0, -14.1, 0).scale(4, 13, 4)),
         polygons_transform(cylinder(30, 1), identity.translate(0, -1).rotate(90, 0, 90).scale3d(4)),
       ),
@@ -42,52 +33,7 @@ export const buildWorld = () => {
   );
   const entranceBarsMesh = meshEnd();
 
-  // ========= Player ========= //
-
-  meshAdd(cylinder(10, 1), identity.translate(-0.3, -1, 0).scale(0.2, 0.5, 0.24), material(1, 0.3, 0.4));
-  const rightLegMesh = meshEnd();
-
-  playerModel = newModel((model) => {
-    model.$collisions = 0;
-    const rhorn = polygons_transform(
-      horn(),
-      identity.translate(0.2, 1.32, 0).rotate(0, 0, -30).scale(0.2, 0.6, 0.2),
-      material(1, 1, 0.8),
-    );
-
-    meshAdd(rhorn);
-
-    // left horn
-    meshAdd(rhorn, identity.rotate(0, 180));
-
-    // head
-    meshAdd(sphere(30), identity.translate(0, 1, 0).scale(0.5, 0.5, 0.5), material(1, 0.3, 0.4));
-
-    const eye = polygons_transform(
-      csg_polygons(
-        csg_subtract(cylinder(15, 1), polygons_transform(GBox, identity.translate(0, 0, 1).scale(2, 2, 0.5))),
-      ),
-      identity.rotate(-90, 0).scale(0.1, 0.05, 0.1),
-      material(0.3, 0.3, 0.3),
-    );
-
-    [-1, 1].map((i) => meshAdd(eye, identity.translate(i * 0.2, 1.2, 0.4).rotate(0, i * 20, i * 20)));
-
-    // mouth
-    meshAdd(GBox, identity.translate(0, 0.9, 0.45).scale(0.15, 0.02, 0.06), material(0.3, 0.3, 0.3));
-
-    // body
-    meshAdd(sphere(15), identity.scale(0.7, 0.8, 0.55), material(1, 0.3, 0.4));
-
-    // Player legs
-
-    playerRightLegModel = newModel(() => rightLegMesh);
-    playerLeftLegModel = withEditMatrix(identity.translate(0.6), () => newModel(() => rightLegMesh));
-  }, PLAYER_MODEL_ID);
-
   newModel(() => {
-    // test souls
-
     withEditMatrix(identity.translate(0, 3, -6), newSoul);
 
     // gate columns
@@ -154,7 +100,7 @@ export const buildWorld = () => {
     meshAdd(
       csg_polygons(
         csg_subtract(
-          csg_union([
+          csg_union(
             // lower base
             polygons_transform(
               cylinder(6, 0, 0, 0.3),
@@ -171,8 +117,8 @@ export const buildWorld = () => {
               identity.translate(0, -0.92).scale(13, 2, 13),
               material(0.8, 0.8, 0.8, 0.2),
             ),
-          ]),
-          csg_union([
+          ),
+          csg_union(
             // hole
             polygons_transform(cylinder(5), identity.scale(5, 30, 5), material(0.4, 0.2, 0.6, 0.5)),
 
@@ -196,7 +142,7 @@ export const buildWorld = () => {
               identity.translate(15, -1.5, 4).scale(3.5, 1, 3.5),
               material(0.5, 0.5, 0.5, 0.5),
             ),
-          ]),
+          ),
         ),
       ),
     );
@@ -247,7 +193,7 @@ export const buildWorld = () => {
               csg_subtract(
                 polygons_transform(GBox, identity.translate(0, 0, -40).scale(5, 1, 5), material(0.8, 0.8, 0.8, 0.3)),
                 csg_union(
-                  [-1, 1].map((i) =>
+                  ...[-1, 1].map((i) =>
                     polygons_transform(
                       GBox,
                       identity
@@ -274,7 +220,7 @@ export const buildWorld = () => {
         meshAdd(
           csg_polygons(
             csg_subtract(
-              csg_union([
+              csg_union(
                 polygons_transform(GBox, identity.translate(0, 0, -30).scale(1.5, 1, 5), material(0.9, 0.9, 0.9, 0.2)),
                 polygons_transform(
                   cylinder(6),
@@ -291,7 +237,7 @@ export const buildWorld = () => {
                   identity.translate(0, 0, -30).scale(1, 1, 1.5).rotate(0, 90),
                   material(0.9, 0.9, 0.9, 0.2),
                 ),
-              ]),
+              ),
               polygons_transform(GBox, identity.translate(0, 0, -30).scale(1.3, 10, 1.3), material(0.2, 0.7, 0.4, 0.6)),
             ),
           ),
@@ -380,7 +326,7 @@ export const buildWorld = () => {
           csg_polygons(
             csg_subtract(
               polygons_transform(cylinder(6), identity.rotate(0, 0, 90).scale(6, 8, 6)),
-              csg_union([
+              csg_union(
                 polygons_transform(
                   cylinder(4, 0, 0.01),
                   identity.translate(0, 6, 0).scale(12, 2, 0.75).rotate(0, 45),
@@ -390,7 +336,7 @@ export const buildWorld = () => {
                 ...[5, 0, -5].map((x) =>
                   polygons_transform(cylinder(5), identity.translate(x, 2.5).rotate(90, 0, 36).scale(1.8, 10, 1.8)),
                 ),
-              ]),
+              ),
             ),
           ),
           identity,
@@ -439,7 +385,7 @@ export const buildWorld = () => {
       meshAdd(
         csg_polygons(
           csg_subtract(
-            csg_union([
+            csg_union(
               // base
               polygons_transform(
                 GBox,
@@ -483,9 +429,9 @@ export const buildWorld = () => {
                 identity.translate(-100, 0.42, 17).scale(3, 1.1, 4.1),
                 material(0.8, 0.8, 0.8, 0.2),
               ),
-            ]),
+            ),
 
-            csg_union([
+            csg_union(
               // decorative octagon
               polygons_transform(
                 cylinder(8),
@@ -502,7 +448,7 @@ export const buildWorld = () => {
                 identity.translate(-100, -3, -20).scale(0.6, 1, 0.6),
                 material(0.4, 0.4, 0.4, 0.5),
               ),
-            ]),
+            ),
           ),
         ),
         identity,
@@ -514,7 +460,7 @@ export const buildWorld = () => {
         csg_polygons(
           csg_subtract(
             polygons_transform(GBox, identity.translate(-100, 1, -12).scale(7.5, 4, 1), material(0.5, 0.5, 0.5, 0.4)),
-            csg_union([
+            csg_union(
               polygons_transform(
                 GBox,
                 identity.translate(-100, 0.1, -5).scale(2, 1.7, 10),
@@ -525,7 +471,7 @@ export const buildWorld = () => {
                 identity.translate(-100, 2, -5).scale(2, 2, 10).rotate(90, 0),
                 material(0.5, 0.5, 0.5, 0.4),
               ),
-            ]),
+            ),
           ),
         ),
       );
@@ -625,7 +571,7 @@ export const buildWorld = () => {
         meshAdd(
           csg_polygons(
             csg_subtract(
-              csg_union_op(
+              csg_union(
                 polygons_transform(GBox, identity.scale(11, 1, 8), material(0.3, 0.4, 0.6, 0.3)),
                 polygons_transform(cylinder(5), identity.scale(7, 1.2, 7), material(0, 0.2, 0.3, 0.5)),
               ),
@@ -642,7 +588,7 @@ export const buildWorld = () => {
           meshAdd(
             csg_polygons(
               csg_subtract(
-                csg_union([
+                csg_union(
                   polygons_transform(
                     cylinder(5),
                     identity.translate(0, 2).scale(4, 6, 4).skewY(8),
@@ -658,7 +604,7 @@ export const buildWorld = () => {
                     identity.translate(0, 9).scale(1.2, 5, 1.2).skewY(8),
                     material(0.35, 0.3, 0.5, 0.5),
                   ),
-                ]),
+                ),
                 polygons_transform(
                   cylinder(5),
                   identity.translate(0, 5).scale(1.5, 1.5, 8).rotate(90, 0, 35),
@@ -717,7 +663,7 @@ export const buildWorld = () => {
                 identity.translate(0, -3).scale(3.5, 1, 3.5),
                 material(0.7, 0.4, 0.25, 0.7),
               ),
-              csg_union_op(
+              csg_union(
                 polygons_transform(
                   cylinder(20, 1, 1.3, 1),
                   identity.translate(0, -2.5).scale(2.6, 1, 3),
@@ -743,7 +689,7 @@ export const buildWorld = () => {
             identity.translate(0, -0.5, 1).scale(1.15, 1.2, 6.5),
             material(0.25, 0.25, 0.35, 0.3),
           ),
-          csg_union([
+          csg_union(
             polygons_transform(
               cylinder(3),
               identity.translate(0, 0, -5.5).scale(3, 2, 1),
@@ -756,7 +702,7 @@ export const buildWorld = () => {
                 material(0.7, 0.2, 0, 0.3),
               ),
             ),
-          ]),
+          ),
         ),
       );
 
@@ -784,7 +730,7 @@ export const buildWorld = () => {
               identity.translate(46, -13.9).scale(4, 18.2, 4),
               material(0.7, 0.7, 0.7, 0.2),
             ),
-            csg_union([
+            csg_union(
               polygons_transform(GBox, identity.translate(44, 0).scale(3.5, 2.2, 1.3), material(0.4, 0.5, 0.6, 0.2)),
               polygons_transform(GBox, identity.translate(46, 0, -2).scale(1.5, 2.2, 2), material(0.4, 0.5, 0.6, 0.2)),
               polygons_transform(
@@ -792,7 +738,7 @@ export const buildWorld = () => {
                 identity.translate(46, 2.8).scale(3, 5, 3),
                 material(0.4, 0.5, 0.6, 0.2),
               ),
-            ]),
+            ),
           ),
         ),
       );
@@ -806,18 +752,18 @@ export const buildWorld = () => {
       meshAdd(
         csg_polygons(
           csg_subtract(
-            csg_union_op(
+            csg_union(
               polygons_transform(GBox, identity.translate(26.5, -1.6, 10).scale(17, 2.08, 3)),
               polygons_transform(GBox, identity.translate(26.5, -0.6, 10).scale(17, 2, 0.5)),
             ),
-            csg_union([
+            csg_union(
               ...integers_map(4, (x) =>
                 polygons_transform(GBox, identity.translate(13 + x * 9 + (x & 1), -0.8, 9).scale(1.35, 1.35, 9)),
               ),
               ...integers_map(3, (x) =>
                 polygons_transform(GBox, identity.translate(17 + x * 9, -0.8, 9).scale(1.35, 1.35, 9)),
               ),
-            ]),
+            ),
           ),
         ),
         identity,
@@ -885,7 +831,7 @@ export const buildWorld = () => {
       meshAdd(
         csg_polygons(
           csg_subtract(
-            csg_union([
+            csg_union(
               polygons_transform(
                 cylinder(6, 0, 0, 0.6),
                 identity.translate(0, 0, -9.5).scale(8, 1, 11),
@@ -897,7 +843,7 @@ export const buildWorld = () => {
                 material(0.7, 0.7, 0.7, 0.2),
               ),
               polygons_transform(GBox, identity.translate(8.8, 0, -8).scale(3, 1, 3.3), material(0.7, 0.7, 0.7, 0.2)),
-            ]),
+            ),
             polygons_transform(cylinder(5), identity.translate(0, 0, -2).scale(4, 3, 4), material(0.7, 0.7, 0.7, 0.2)),
           ),
         ),
@@ -1012,7 +958,7 @@ export const buildWorld = () => {
                 identity.translate(x * -4, 3.5, -0.5).scale(4, 4, 0.7),
                 material(0.5, 0.5, 0.5, 0.4),
               ),
-              csg_union([
+              csg_union(
                 polygons_transform(GBox, identity.scale(3, 3, 10), material(0.6, 0.24, 0.2, 0.5)),
                 polygons_transform(
                   cylinder(40, 1),
@@ -1035,7 +981,7 @@ export const buildWorld = () => {
                     .scale(0.75, 5, 0.75),
                   material(0.6, 0.24, 0.2, 0.5),
                 ),
-              ]),
+              ),
             ),
           ),
           identity.translate(x, 0, -18),
@@ -1115,10 +1061,10 @@ export const buildWorld = () => {
             csg_polygons(
               csg_subtract(
                 polygons_transform(cylinder(30, 1), identity.translate(0, 2).scale(8, 1, 8), material(0.35, 0, 0, 0.3)),
-                csg_union([
+                csg_union(
                   polygons_transform(GBox, identity.translate(7).scale(9, 5, 2), material(0.3, 0, 0, 0.3)),
                   polygons_transform(GBox, identity.translate(0, 0, 7).scale(2, 5, 9), material(0.3, 0, 0, 0.3)),
-                ]),
+                ),
               ),
             ),
           );
@@ -1133,10 +1079,10 @@ export const buildWorld = () => {
             csg_polygons(
               csg_subtract(
                 polygons_transform(cylinder(30, 1), identity.translate(0, 2).scale(8, 1, 8), material(0.35, 0, 0, 0.3)),
-                csg_union([
+                csg_union(
                   polygons_transform(GBox, identity.translate(7).scale(9, 5, 2), material(0.3, 0, 0, 0.3)),
                   polygons_transform(GBox, identity.translate(0, 0, -7).scale(2, 5, 9), material(0.3, 0, 0, 0.3)),
-                ]),
+                ),
               ),
             ),
           );

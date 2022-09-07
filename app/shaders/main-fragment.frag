@@ -21,7 +21,7 @@ uniform mat4 viewMatrix;
 
 uniform mat4[3] csm_matrices;
 uniform highp sampler2DShadow csm_textures[3];
-uniform sampler2D groundTexture;
+uniform highp sampler2D groundTexture;
 
 out vec4 O;
 

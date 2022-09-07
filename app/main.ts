@@ -14,10 +14,14 @@ import {
   lerp,
   max,
   min,
-} from "./math/math";
-import { identity, mat_perspectiveXY } from "./math/matrix";
+  identity,
+  mat_perspectiveXY,
+  type Vec3In,
+} from "./math";
+
 import { mat_perspective, zFar, zNear, camera_position, camera_rotation, camera_view } from "./camera";
 import { csm_buildMatrix } from "./csm";
+
 import {
   absoluteTime,
   gameTime,
@@ -32,8 +36,18 @@ import {
   player_position_initial,
   worldStateUpdate,
 } from "./game/world-state";
-import { updateModels, rootModel, initTriangleBuffers, modelsByModelId } from "./game/scene";
-import { buildWorld, playerLeftLegModel, playerModel, playerRightLegModel } from "./game/level";
+
+import { updateModels, rootModel, initTriangleBuffers, modelsByModelId, newModel } from "./game/scene";
+
+import { playerLeftLegModel, playerModel, playerRightLegModel } from "./game/objects";
+import { buildWorld } from "./game/level";
+
+import { gl, initShaderProgram, loadShader } from "./gl";
+
+import { initHtmlElements, mainMenuVisible, setMainMenuVisible } from "./menu";
+import { renderModels } from "./game/render-models";
+import { loadGroundTexture, texturesLoaded } from "./ground-texture";
+
 import {
   initInputHandlers,
   keyboard_downKeys,
@@ -44,8 +58,8 @@ import {
   input_frameReset,
   mouse_movementX,
   mouse_movementY,
+  player_first_person,
 } from "./input";
-import { gl, initGl, initShaderProgram, loadShader } from "./gl";
 
 import csm_vsSource from "./shaders/csm-vertex.vert";
 import main_vsSource, {
@@ -66,30 +80,24 @@ import collider_fsSource, { uniformName_modelId } from "./shaders/collider-fragm
 import void_fsSource from "./shaders/void-fragment.frag";
 import sky_vsSource from "./shaders/sky-vertex.vert";
 import sky_fsSource, { uniformName_iResolution } from "./shaders/sky-fragment.frag";
-import type { Vec3In } from "./math/vectors";
-import { loadGroundTexture, texturesLoaded } from "./ground-texture";
-import { initHtmlElements, mainMenuVisible, setMainMenuVisible } from "./menu";
-import { renderModels } from "./game/render-models";
 
 const PLAYER_LEGS_VELOCITY = 7 * 1.3;
 
 const COLLISION_TEXTURE_SIZE = 128;
 
-initGl();
-
-const isFirstPerson = () => DEBUG_FLAG3 || !!document.pointerLockElement;
+let debug2dctx: CanvasRenderingContext2D | null | undefined;
 
 requestAnimationFrame(() => {
   const _frameBuffersInvalidations = [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT];
 
-  let debug2dctx: CanvasRenderingContext2D | null | undefined;
+  let gameBooted: 0 | 1 | undefined;
 
-  let oldModelId = 0;
+  let oldModelId: number | undefined;
   let currentModelIdTMinus1 = 0;
   let currentModelId = 0;
 
-  let gameBooted = false;
-
+  let player_has_ground: 0 | 1 | undefined;
+  let player_respawned: 0 | 1 = 0;
   let player_look_angle_target = 0;
   let player_look_angle = 0;
   let player_legs_speed = 0;
@@ -97,13 +105,12 @@ requestAnimationFrame(() => {
   let player_speed = 0;
   let player_collision_velocity_x = 0;
   let player_collision_velocity_z = 0;
-  let player_has_ground: 0 | 1 = 0;
   let player_collision_x = 0;
   let player_collision_z = 0;
+
   let camera_player_dir_x = player_position_global.x;
   let camera_player_dir_y = player_position_global.y + 13;
   let camera_player_dir_z = player_position_global.z - 18;
-  let player_respawned = 1;
 
   const player_forceSetPosition = ({ x, y, z }: Vec3In) => {
     player_speed = 0;
@@ -157,7 +164,7 @@ requestAnimationFrame(() => {
 
     const effectivePlayerSpeed = (movStrafe && movForward ? Math.SQRT1_2 : 1) * player_speed * gameTimeDelta;
 
-    if (isFirstPerson()) {
+    if (player_first_person) {
       const yradians = camera_rotation.y * DEG_TO_RAD;
       const s = Math.sin(yradians) * effectivePlayerSpeed;
       const c = Math.cos(yradians) * effectivePlayerSpeed;
@@ -217,7 +224,7 @@ requestAnimationFrame(() => {
   };
 
   const boot = () => {
-    gameBooted = true;
+    gameBooted = 1;
     setMainMenuVisible(!DEBUG);
     initHtmlElements();
     initInputHandlers();
@@ -432,17 +439,13 @@ requestAnimationFrame(() => {
         } else {
           gl.clear(gl.DEPTH_BUFFER_BIT);
           gl.uniformMatrix4fv(csmShader(uniformName_viewMatrix), false, (lightSpaceMatrix = matrix));
-          renderModels(csmShader(uniformName_worldMatrix), !isFirstPerson());
+          renderModels(csmShader(uniformName_worldMatrix), !player_first_person);
         }
       } else {
         gl.uniformMatrix4fv(lightSpaceMatrixLoc, false, lightSpaceMatrix);
       }
     };
   });
-
-  buildWorld();
-
-  initTriangleBuffers();
 
   playerModel._update = () =>
     identity
@@ -547,7 +550,7 @@ requestAnimationFrame(() => {
           gameTimeDelta,
         );
 
-        if (isFirstPerson()) {
+        if (player_first_person) {
           const interpolationSpeed = player_respawned * 200;
           camera_position.x = lerpDamp(camera_position.x, player_position_final.x, 18 + interpolationSpeed);
           camera_position.y = lerpDamp(camera_position.y, player_position_final.y + 1.5, 15 + interpolationSpeed);
@@ -626,13 +629,13 @@ requestAnimationFrame(() => {
     csm_render[1]!();
     csm_render[2]!();
 
-    renderModels(mainShader(uniformName_worldMatrix), !isFirstPerson());
+    renderModels(mainShader(uniformName_worldMatrix), !player_first_person);
 
     // invalidate csm framebuffers
 
-    csm_render[0]!(1);
-    csm_render[1]!(1);
     csm_render[2]!(1);
+    csm_render[1]!(1);
+    csm_render[0]!(1);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
     // *** SKY RENDER ***
@@ -685,14 +688,14 @@ requestAnimationFrame(() => {
       );
       renderModels(collisionShader(uniformName_worldMatrix), 0, collisionShader(uniformName_modelId));
       gl.colorMask(true, true, true, true);
+    }
 
+    if (gameTimeDelta > 0) {
       // Special handling for the boat (lever 8) - the boat must be on the side of the map the player is
       if (currentModelId === 1) {
         levers[8]!.$value = player_position_final.x < -15 && player_position_final.z < 0 ? 1 : 0;
       }
-    }
 
-    if (gameTimeDelta > 0) {
       // We update the models for the next frame, for performance
       updateModels(rootModel);
     }
@@ -702,13 +705,15 @@ requestAnimationFrame(() => {
 
   loadGroundTexture();
 
+  newModel(buildWorld);
+  initTriangleBuffers();
+
   requestAnimationFrame(draw);
 
   NO_INLINE(doHorizontalCollisions);
   NO_INLINE(doVerticalCollisions);
-  NO_INLINE(buildWorld);
-  NO_INLINE(boot);
-  NO_INLINE(loadGame);
+
+  // NO_INLINE(boot);
 
   if (DEBUG) {
     console.timeEnd("boot");

@@ -17,6 +17,8 @@ export let mouse_movementX = 0;
 
 export let mouse_movementY = 0;
 
+export let player_first_person: boolean | undefined;
+
 /** Resets the input status after a frame */
 export const input_frameReset = () => (keyboard_downKeys[KEY_INTERACT] = mouse_movementX = mouse_movementY = 0);
 
@@ -72,7 +74,8 @@ export const initInputHandlers = () => {
   document.onvisibilitychange = () => document.hidden && setMainMenuVisible(true);
 
   document.onpointerlockchange = () => {
-    if (document.pointerLockElement) {
+    player_first_person = !!document.pointerLockElement;
+    if (player_first_person) {
       setMainMenuVisible(false);
     }
   };

@@ -1,6 +1,4 @@
-import { abs, integers_map } from "../math/math";
-import { identity } from "../math/matrix";
-import { type Vec3, type Vec3Optional } from "../math/vectors";
+import { abs, integers_map, identity, type Vec3, type Vec3Optional } from "../math";
 
 export const material = /* @__PURE__ */ (r: number, g: number, b: number, a: number = 0): number =>
   ((a * 255) << 24) | ((b * 255) << 16) | ((g * 255) << 8) | (r * 255);
@@ -59,9 +57,6 @@ export const polygon_regular = /* @__PURE__ */ (segments: number, elongate: numb
     };
   });
 
-export const polygon_elongate = /* @__PURE__ */ (polygon: Polygon, amount: number) =>
-  polygon.map(({ x, y, z }) => ({ x, y, z: z < 0 ? z - amount : z + amount }));
-
 /**
  * Connects a top and a bottom polygon with side polygons.
  * Top and bottom polygons must have the same length.
@@ -79,30 +74,20 @@ export const cylinder_sides = /* @__PURE__ */ (btm: Polygon, top: Polygon, smoot
 export const cone_sides = /* @__PURE__ */ (btm: Polygon, smooth?: 0 | 1 | undefined): Polygon[] =>
   btm.map((btmi, i, { length }) => polygon_color([btm[(i + 1) % length]!, { x: 0, y: 1, z: 0 }, btmi], 0, smooth));
 
-/**
- * Extrudes a polygon into a solid.
- * To remove bottom and top polygons, use solid_extrude(...).slice(2).
- * The solid will be centered at 0 vertically and its height will be 2 (from -1 to 1)
- */
-export const polygon_extrude = /* @__PURE__ */ (
-  points: Polygon<Readonly<Vec3Optional>>,
+/** Simplest composition of polygon functions. */
+export const cylinder = /* @__PURE__ */ (
+  segments: number,
   smooth?: 0 | 1,
-  topSize = 0,
+  topSize: number = 0,
+  elongate?: number,
 ): Polygon[] => {
+  const points = polygon_regular(segments, elongate);
   const bottom = polygon_transform(points, identity.translate(0, -1).scale3d(topSize < 0 ? -topSize : 1)).reverse();
   const top = polygon_transform(points, identity.translate(0, 1).scale3d(topSize > 0 ? topSize : 1));
   const sides = cylinder_sides(bottom as Polygon, top, smooth);
   sides.push(bottom, top);
   return sides;
 };
-
-/** Simplest composition of polygon functions. */
-export const cylinder = /* @__PURE__ */ (
-  segments: number,
-  smooth?: 0 | 1,
-  topSize?: number,
-  elongate?: number,
-): Polygon[] => polygon_extrude(polygon_regular(segments, elongate), smooth, topSize);
 
 export const cone = /* @__PURE__ */ (segments: number, smooth?: 0 | 1 | undefined): Polygon[] => {
   const bottom = polygon_transform(polygon_regular(segments), identity.translate(0, -1));
@@ -159,6 +144,9 @@ export const GQuad = [
   { x: -1, z: -1 },
 ];
 
-export const GBox = /* @__PURE__ */ polygon_extrude(GQuad);
+// export const GBox = /* @__PURE__ */ polygon_extrude(GQuad);
 
-// export const GBox = polygons_transform(cylinder(4), identity.scale(Math.SQRT2, 1, Math.SQRT2).rotate(0, -45, 0));
+export const GBox = /* @__PURE__ */ polygons_transform(
+  cylinder(4),
+  identity.scale(Math.SQRT2, 1, Math.SQRT2).rotate(0, -45, 0),
+);
