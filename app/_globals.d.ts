@@ -23,8 +23,9 @@ declare module "*.vert";
 /** HTMLCanvas element declared in the page */
 declare const hC: HTMLCanvasElement;
 
-/** loading screen */
-declare const hL: HTMLElement;
+declare const b1: HTMLButtonElement;
+declare const b2: HTMLButtonElement;
+declare const b3: HTMLButtonElement;
 
 declare function NO_INLINE(fn: Function);
 

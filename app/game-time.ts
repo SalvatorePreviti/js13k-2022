@@ -1,6 +1,9 @@
 import { lerp, min } from "./math/math";
+import { mainMenuVisible } from "./menu";
 
-export let gameTime: number = 0;
+export let absoluteTime = 0;
+
+export let gameTime = 0;
 
 export let gameTimeDelta: number = 0.01;
 
@@ -15,8 +18,10 @@ export const lerpDamp = /* @__PURE__ */ (from: number, to: number, speed: number
   lerp(from, to, 1 - Math.exp(-speed * gameTimeDelta));
 
 export const gameTimeUpdate = (time: number) => {
-  gameTimeDelta = min(GAME_TIME_MAX_DELTA_TIME, (time - (_globalTime || time)) / 1000);
+  const dt = (time - (_globalTime || time)) / 1000;
+  gameTimeDelta = mainMenuVisible ? 0 : min(GAME_TIME_MAX_DELTA_TIME, dt);
   gameTime += gameTimeDelta;
+  absoluteTime += dt;
   _globalTime = time;
 };
 

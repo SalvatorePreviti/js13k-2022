@@ -2,6 +2,8 @@ DOMMatrix.prototype.invertSelf = function () {};
 
 DOMMatrix.prototype.setMatrixValue = function (v) {};
 
+Document.prototype.onpointerlockchange = function () {};
+
 var location,
   history,
   locationbar,

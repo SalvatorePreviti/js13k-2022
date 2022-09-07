@@ -4,6 +4,8 @@ import { identity } from "../math/matrix";
 import { plane_fromPolygon } from "../math/vectors";
 import { gl } from "../gl";
 import { PLAYER_MODEL_ID } from "./world-state";
+import { mainMenuVisible } from "../menu";
+import { playerModel } from "./level";
 
 export const rootModel: Model = {
   $children: [],
@@ -174,39 +176,6 @@ export const initTriangleBuffers = () => {
         _triangleIndices.length / 3,
     );
   }
-};
-
-export const renderModels = (
-  worldMatrixLoc: WebGLUniformLocation,
-  renderPlayer: 0 | 1 | boolean,
-  collisionModelIdUniformLocation?: WebGLUniformLocation,
-) => {
-  let currentModelId = 1;
-  const recursion = (model = rootModel) => {
-    const modelId = currentModelId;
-    if (renderPlayer || model.$modelId !== PLAYER_MODEL_ID) {
-      if (model.$modelId) {
-        currentModelId = model.$modelId;
-      } else {
-        model.$modelId = currentModelId;
-      }
-      const { $mesh, $children, $visible } = model;
-      if ($visible) {
-        for (const child of $children) {
-          recursion(child);
-        }
-        if ($mesh) {
-          if (collisionModelIdUniformLocation) {
-            gl.uniform1f(collisionModelIdUniformLocation, currentModelId / 255);
-          }
-          gl.uniformMatrix4fv(worldMatrixLoc, false, model.$finalMatrix.toFloat32Array());
-          gl.drawElements(gl.TRIANGLES, $mesh.$vertexCount, gl.UNSIGNED_SHORT, $mesh.$vertexOffset * 2);
-        }
-      }
-    }
-    currentModelId = modelId;
-  };
-  recursion();
 };
 
 export const updateModels = (model: Model, parentMatrix = identity) => {

@@ -31,7 +31,7 @@ export async function htmlCssToJs(sources: ViteBundledOutput) {
       }
 
       if (bodyHtml) {
-        jsHtml = `document.write(${JSON.stringify(bodyHtml)});`;
+        jsHtml = `document.body.innerHTML+=${JSON.stringify(bodyHtml)};`;
       }
 
       if (js) {

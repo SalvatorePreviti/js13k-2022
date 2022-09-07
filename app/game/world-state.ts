@@ -2,7 +2,7 @@ import { lerp, angle_wrap_degrees, lerpneg, abs } from "../math/math";
 import type { Vec3 } from "../math/vectors";
 import { lerpDamp, gameTimeDelta, gameTime, setGameTime } from "../game-time";
 
-const LOCAL_STORAGE_SAVED_GAME_KEY = "666SpH3Ll22";
+export const LOCAL_STORAGE_SAVED_GAME_KEY = "666SpH3Ll22";
 
 export interface Lever {
   $value: 0 | 1;
@@ -16,16 +16,10 @@ export const levers: Lever[] = [];
 
 export const PLAYER_MODEL_ID = 2;
 
-// export const player_position_initial: Vec3 = {
-//   x: 0,
-//   y: 10,
-//   z: -27,
-// };
-
 export const player_position_initial: Vec3 = {
-  x: -109,
-  y: 16,
-  z: 93,
+  x: 0,
+  y: 10,
+  z: -27,
 };
 
 export const player_position_global: Vec3 = { ...player_position_initial };
@@ -53,37 +47,27 @@ export const worldStateUpdate = () => {
 
   rotatingPlatform1Rotation = lerp(
     lerpDamp(rotatingPlatform1Rotation, 0, 5),
-    angle_wrap_degrees(rotatingPlatform1Rotation + gameTimeDelta * 23),
+    angle_wrap_degrees(rotatingPlatform1Rotation + gameTimeDelta * 56),
     shouldRotatePlatforms,
   );
 
   rotatingPlatform2Rotation = lerp(
     lerpDamp(rotatingPlatform2Rotation, 0, 4),
-    angle_wrap_degrees(rotatingPlatform2Rotation + gameTimeDelta * 39),
+    angle_wrap_degrees(rotatingPlatform2Rotation + gameTimeDelta * 48),
     shouldRotatePlatforms,
   );
 
   boatLerp = lerpDamp(boatLerp, levers[8]!.$lerpValue2, 0.2 + 0.3 * abs(levers[8]!.$lerpValue2 * 2 - 1));
 };
 
-export const onPlayerPullLever = (leverIndex: number) => {
-  player_last_pulled_lever = leverIndex;
-};
-
 export const saveGame = () => {
-  localStorage.setItem(
-    LOCAL_STORAGE_SAVED_GAME_KEY,
-    JSON.stringify([
-      666,
-      levers.map((lever) => lever.$value),
-      player_last_pulled_lever,
-      gameTime,
-      rotatingPlatform1Rotation,
-      rotatingPlatform2Rotation,
-      rotatingHexCorridorRotation,
-      boatLerp,
-    ]),
-  );
+  localStorage[LOCAL_STORAGE_SAVED_GAME_KEY] = JSON.stringify([
+    666,
+    levers.map((lever) => lever.$value),
+    player_last_pulled_lever,
+    gameTime,
+    boatLerp,
+  ]);
 };
 
 export const newGame = () => {
@@ -94,26 +78,24 @@ export const newGame = () => {
 
 export const loadGame = () => {
   try {
-    const [
-      header,
-      savedLevers,
-      savedLastPulledLever,
-      savedGameTime,
-      savedRotatingPlatform1Rotation,
-      savedRotatingPlatform2Rotation,
-      savedRotatingHexCorridorRotation,
-      savedBoatLerp,
-    ] = JSON.parse(localStorage.getItem(LOCAL_STORAGE_SAVED_GAME_KEY)!);
+    const [header, savedLevers, savedLastPulledLever, savedGameTime, savedBoatLerp] = JSON.parse(
+      localStorage[LOCAL_STORAGE_SAVED_GAME_KEY]!,
+    );
     if (header === 666) {
       levers.map((lever, index) => (lever.$value = (savedLevers[index] | 0) as 0 | 1));
       player_last_pulled_lever = savedLastPulledLever | 0;
       setGameTime(savedGameTime | 0);
-      rotatingPlatform1Rotation = savedRotatingPlatform1Rotation | 0;
-      rotatingPlatform2Rotation = savedRotatingPlatform2Rotation | 0;
-      rotatingHexCorridorRotation = savedRotatingHexCorridorRotation | 0;
       boatLerp = savedBoatLerp | 0;
-      return;
     }
-  } catch {}
-  newGame();
+  } catch (e) {
+    newGame();
+    if (DEBUG) {
+      console.log(e);
+    }
+  }
+};
+
+export const onPlayerPullLever = (leverIndex: number) => {
+  player_last_pulled_lever = leverIndex;
+  saveGame();
 };

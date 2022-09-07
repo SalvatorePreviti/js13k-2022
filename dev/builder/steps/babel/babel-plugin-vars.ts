@@ -11,9 +11,7 @@ let _pluginCounter = 0;
 /**
  * This magic plugin optimize destructuring by maximizing shorthand.
  */
-export function babelPluginVars(
-  settings: { lazyVariablesOptimization?: boolean; splitVars?: boolean; constToLet?: boolean } = {},
-): PluginItem {
+export function babelPluginVars(settings: { splitVars?: boolean; constToLet?: boolean } = {}): PluginItem {
   return [jsFinalVarsPlugin, {}, `vars${++_pluginCounter}`];
 
   function jsFinalVarsPlugin(api: ConfigAPI): PluginObj {
@@ -78,9 +76,6 @@ export function babelPluginVars(
         Block: {
           enter(path) {
             objectPropertiesCollected.push([]);
-            if (settings.lazyVariablesOptimization) {
-              lazyVariablesOptimization(path);
-            }
 
             const parent = path.parent;
             if (
@@ -145,81 +140,26 @@ export function babelPluginVars(
       },
     };
 
-    function lazyVariablesOptimization(block: NodePath<types.Block>) {
-      const statementsPaths: NodePath<types.Statement>[] = [];
-      traverse<{}>(
-        block.node,
-        {
-          Statement(path: NodePath<types.Statement>) {
-            if (path.parent === block.node) {
-              statementsPaths.push(path);
-            }
-            path.skip();
-          },
-        },
-        block.scope,
-        {},
-        block,
-      );
-
-      const newStatements: types.Statement[] = [];
-      const pendingEmptyVariables: types.VariableDeclaration[] = [];
-      const pendingVariablesSet = new Set<string>();
-
-      const flushPendingVariables = () => {
-        newStatements.push(...pendingEmptyVariables);
-        pendingEmptyVariables.length = 0;
-        pendingVariablesSet.clear();
-      };
-
-      for (const statement of statementsPaths) {
-        if (statement.node.type === "VariableDeclaration") {
-          let hasInit = false;
-          for (const declarator of statement.node.declarations) {
-            if (declarator.init || declarator.id.type !== "Identifier") {
-              hasInit = true;
-              break;
-            }
-          }
-          if (!hasInit) {
-            for (const declarator of statement.node.declarations) {
-              pendingVariablesSet.add((declarator.id as types.Identifier).name);
-            }
-            pendingEmptyVariables.push(statement.node);
-            continue;
-          }
-        }
-
-        if (pendingEmptyVariables.length > 0) {
-          if (isIdentifiersUsed(statement, pendingVariablesSet)) {
-            flushPendingVariables();
-          }
-        }
-
-        newStatements.push(statement.node);
-      }
-      block.node.body = newStatements;
-    }
-
     function declarationShorthand(lval: LVal, path: NodePath) {
-      if (lval.type === "ObjectPattern") {
-        for (const prop of lval.properties) {
-          if (prop.type === "ObjectProperty" && prop.key.type === "Identifier" && prop.value.type === "Identifier") {
-            const key = prop.key.name;
-            const value = prop.value.name;
-            if (key === value) {
-              prop.shorthand = true;
-            } else if (key.length < 20) {
-              if (!isIdentifierUsed(path, key)) {
-                path.scope.rename(value, key);
-                if (prop.value.name === prop.key.name) {
-                  prop.shorthand = true;
-                }
-              }
-            }
-          }
-        }
-      }
+      // TODO this seems to be still broken :( - however currently seems to save only few bytes
+      // if (lval.type === "ObjectPattern") {
+      //   for (const prop of lval.properties) {
+      //     if (prop.type === "ObjectProperty" && prop.key.type === "Identifier" && prop.value.type === "Identifier") {
+      //       const key = prop.key.name;
+      //       const value = prop.value.name;
+      //       if (key === value) {
+      //         prop.shorthand = true;
+      //       } else if (key.length < 20) {
+      //         if (!isIdentifierUsed(path, key)) {
+      //           path.scope.rename(value, key);
+      //           if (prop.value.name === prop.key.name) {
+      //             prop.shorthand = true;
+      //           }
+      //         }
+      //       }
+      //     }
+      //   }
+      // }
     }
   }
 
@@ -233,30 +173,6 @@ export function babelPluginVars(
       {
         ReferencedIdentifier(path: NodePath<types.Identifier>) {
           if (path.node.name === name) {
-            referenced = true;
-            path.stop();
-          }
-        },
-      } as unknown as TraverseOptions<{}>,
-      parentPath.scope,
-      {},
-      parentPath,
-    );
-    return referenced;
-  }
-
-  function isIdentifiersUsed(parentPath: NodePath, names: Set<string>) {
-    let referenced = false;
-    for (const name of names) {
-      if (parentPath.scope.bindings[name]) {
-        return true;
-      }
-    }
-    traverse<{}>(
-      parentPath.node,
-      {
-        ReferencedIdentifier(path: NodePath<types.Identifier>) {
-          if (names.has(path.node.name)) {
             referenced = true;
             path.stop();
           }

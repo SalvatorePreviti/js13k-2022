@@ -1,3 +1,4 @@
+import { mainMenuVisible, setMainMenuVisible } from "./menu";
 import type { KEY_CODE } from "./utils/keycodes";
 
 export const KEY_LEFT = 0;
@@ -8,13 +9,7 @@ export const KEY_RIGHT = 2;
 
 export const KEY_BACK = 3;
 
-export const KEY_SLOW = 4;
-
 export const KEY_INTERACT = 5;
-
-export const KEY_DEBUG_FLY_UP = 6;
-
-export const KEY_DEBUG_FLY_DOWN = 7;
 
 export const keyboard_downKeys: (boolean | 0 | undefined)[] = [];
 
@@ -24,8 +19,6 @@ export let mouse_movementY = 0;
 
 /** Resets the input status after a frame */
 export const input_frameReset = () => (keyboard_downKeys[KEY_INTERACT] = mouse_movementX = mouse_movementY = 0);
-
-let _mouseDown: boolean | 0 | undefined;
 
 const keyMap: Partial<Record<KEY_CODE, number>> = {
   ["KeyA"]: KEY_LEFT,
@@ -40,20 +33,15 @@ const keyMap: Partial<Record<KEY_CODE, number>> = {
   ["KeyS"]: KEY_BACK,
   ["ArrowDown"]: KEY_BACK,
 
-  ["ShiftLeft"]: KEY_SLOW,
-  ["ShiftRight"]: KEY_SLOW,
-
   ["KeyE"]: KEY_INTERACT,
   ["Space"]: KEY_INTERACT,
   ["Enter"]: KEY_INTERACT,
-
-  ["KeyR"]: KEY_DEBUG_FLY_UP,
-  ["KeyF"]: KEY_DEBUG_FLY_DOWN,
 };
 
 export const handleResize = () => {
   hC.width = window.innerWidth;
   hC.height = window.innerHeight;
+  keyboard_downKeys.length = mouse_movementX = mouse_movementY = 0;
 };
 
 export const initInputHandlers = () => {
@@ -61,24 +49,46 @@ export const initInputHandlers = () => {
     oncontextmenu = () => false;
   }
 
-  onblur = () => (keyboard_downKeys.length = _mouseDown = mouse_movementX = mouse_movementY = 0);
+  onresize = handleResize;
+  onblur = handleResize;
 
   onkeydown = onkeyup = ({ code, target, type, repeat }) => {
     if (!repeat) {
-      keyboard_downKeys[keyMap[code as KEY_CODE]!] = type[5] ? target === document.body : 0;
+      if (type[5] && code === "Escape") {
+        setMainMenuVisible(!mainMenuVisible);
+      } else {
+        keyboard_downKeys[keyMap[code as KEY_CODE]!] = type[5] ? target === document.body : 0;
+      }
     }
   };
 
-  onmousedown = onmouseup = ({ target, buttons, type }: MouseEvent) => {
-    _mouseDown = type[5] ? (buttons === 1 && target === document.body) || target === hC : 0;
-  };
-
   onmousemove = ({ buttons, movementX, movementY }) => {
-    if (((buttons > 0 && _mouseDown) || document.pointerLockElement) && document.activeElement) {
+    if (document.pointerLockElement || (DEBUG && buttons > 0 && document.activeElement)) {
       mouse_movementX += movementX;
       mouse_movementY += movementY;
     }
   };
 
-  onresize = handleResize;
+  document.onvisibilitychange = () => document.hidden && setMainMenuVisible(true);
+
+  document.onpointerlockchange = () => {
+    if (document.pointerLockElement) {
+      setMainMenuVisible(false);
+    }
+  };
 };
+
+// const gamepad = navigator.getGamepads()[0];
+// if (gamepad) {
+//   this.direction.x = gamepad.axes[0];
+//   this.direction.z = gamepad.axes[1];
+//   this.leftTrigger = gamepad.buttons[6].value;
+//   this.rightTrigger = gamepad.buttons[7].value;
+
+//   const deadzone = 0.1;
+//   if (this.direction.magnitude < deadzone) {
+//     this.direction.x = 0;
+//     this.direction.z = 0;
+//   }
+//   this.isJumpPressed = gamepad.buttons[0].pressed;
+// }

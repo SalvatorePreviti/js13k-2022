@@ -1,3 +1,10 @@
+  // ========= Main menu player block ========= //
+  meshAdd([
+    ...polygons_transform(cylinder(5), identity.translate(0, -2).scale(1.5, 0.4, 1.5), material(0.2, 0.2, 0.2, 0.2)),
+    ...polygons_transform(cylinder(5), identity.translate(0, -2).scale(1.2, 0.5, 1.2), material(0.7, 0.7, 0.7, 0.2)),
+  ]);
+  mainMenuPlayerBlockMesh = meshEnd();
+
 // background
         integers_map(4, (i) =>
           meshAdd(

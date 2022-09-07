@@ -97,7 +97,7 @@ export async function build() {
     await fs.writeFile(path.resolve(outPath_bundle, "index.gz"), gzippedHtml);
 
     const [zippedRolledBuffer, zippedPlainBuffer] = await Promise.all([
-      zipRoadRoller(sources, bundled),
+      zipRoadRoller(sources),
       zipBundle(bundled, "plain"),
     ]);
 
@@ -146,7 +146,7 @@ export async function build() {
         "babel-plugin-minify-constant-folding",
         "babel-plugin-minify-dead-code-elimination",
         // resugarBlockScope,
-        babelPluginVars({ constToLet: false }),
+        // babelPluginVars({ constToLet: false }),
       ],
     });
 
@@ -170,7 +170,7 @@ export async function build() {
         resugarFunctionsArrow,
         resugarObjectsShorthand,
         // resugarBlockScope,
-        babelPluginVars({ constToLet: true }),
+        // babelPluginVars({ constToLet: true }),
         // "babel-plugin-pure-calls-annotation",
       ],
     });
@@ -190,7 +190,7 @@ export async function build() {
         resugarFunctionsArrow,
         resugarObjectsShorthand,
         // resugarBlockScope,
-        babelPluginVars({ constToLet: true }),
+        // babelPluginVars({ constToLet: true }),
         babelPluginSimple({ unmangleableProperties: "transform", floatRound: floatRoundAmount }),
         // "babel-plugin-pure-calls-annotation",
       ],
@@ -200,7 +200,7 @@ export async function build() {
 
     js = await streamedClosureCompiler.compileOne(js);
 
-    js = await jsTransformSwc(js, { final: false, computed_props: true, minify: false }, swcPluginVars());
+    js = await jsTransformSwc(js, { final: false, computed_props: true, minify: false, mangle: true }, swcPluginVars());
 
     js = await jsBabel(js, {
       minify: false,
@@ -209,7 +209,7 @@ export async function build() {
         resugarObjectsShorthand,
         resugarFunctionsArrow,
         resugarBlockScope,
-        babelPluginVars({ constToLet: true }),
+        // babelPluginVars({ constToLet: true }),
         // "babel-plugin-pure-calls-annotation",
       ],
     });
@@ -247,6 +247,29 @@ export async function build() {
         resugarFunctionsArrow,
         resugarBlockScope,
         babelPluginSimple({ removeNoInlineCall: true }),
+        // babelPluginVars({ constToLet: true }),
+        // "babel-plugin-pure-calls-annotation",
+      ],
+    });
+
+    js = await jsTransformSwc(js, false, swcPluginVars({ constToLet: true, floatRound: 6 }));
+
+    js = await jsTerser(js, {
+      mangle: "variables",
+      final: false,
+      join_vars: true,
+      sequences: true,
+      computed_props: true,
+    });
+
+    js = await jsBabel(js, {
+      minify: false,
+      plugins: [
+        resugarConcise,
+        resugarObjectsShorthand,
+        resugarFunctionsArrow,
+        resugarBlockScope,
+        babelPluginSimple({ removeNoInlineCall: true }),
         babelPluginVars({ constToLet: true }),
         // "babel-plugin-pure-calls-annotation",
       ],
@@ -266,7 +289,7 @@ export async function build() {
   }
 }
 
-async function zipRoadRoller(sources: ViteBundledOutput, bundled: WriteBundleInput) {
+async function zipRoadRoller(sources: ViteBundledOutput) {
   const htmlCssJsBundle = await htmlCssToJs(sources);
   const bundledHtmlBodyAndCss = await jsTdeMinify(htmlCssJsBundle.jsHtml);
   htmlCssJsBundle.jsHtml = "";
@@ -284,7 +307,7 @@ async function zipRoadRoller(sources: ViteBundledOutput, bundled: WriteBundleInp
     ).html,
   };
 
-  compressedBundle.html = await jsRoadroller(bundled.html);
+  compressedBundle.html = await jsRoadroller(compressedBundle.html);
 
   logTableBundled(compressedBundle, "rolled");
 

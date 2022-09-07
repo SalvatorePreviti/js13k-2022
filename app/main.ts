@@ -18,27 +18,25 @@ import {
 import { identity, mat_perspectiveXY } from "./math/matrix";
 import { mat_perspective, zFar, zNear, camera_position, camera_rotation, camera_view } from "./camera";
 import { csm_buildMatrix } from "./csm";
-import { gameTime, gameTimeDelta, gameTimeUpdate, lerpDamp } from "./game-time";
+import { absoluteTime, gameTime, gameTimeDelta, gameTimeUpdate, lerpDamp } from "./game-time";
 import {
   levers,
+  loadGame,
   player_last_pulled_lever,
   player_position_final,
   player_position_global,
   player_position_initial,
   worldStateUpdate,
 } from "./game/world-state";
-import { renderModels, updateModels, rootModel, initTriangleBuffers, modelsByModelId } from "./game/scene";
+import { updateModels, rootModel, initTriangleBuffers, modelsByModelId } from "./game/scene";
 import { buildWorld, playerLeftLegModel, playerModel, playerRightLegModel } from "./game/level";
 import {
   initInputHandlers,
   keyboard_downKeys,
   KEY_BACK,
-  KEY_DEBUG_FLY_DOWN,
-  KEY_DEBUG_FLY_UP,
   KEY_FRONT,
   KEY_LEFT,
   KEY_RIGHT,
-  KEY_SLOW,
   input_frameReset,
   mouse_movementX,
   mouse_movementY,
@@ -67,12 +65,16 @@ import sky_vsSource from "./shaders/sky-vertex.vert";
 import sky_fsSource, { uniformName_iResolution } from "./shaders/sky-fragment.frag";
 import type { Vec3In } from "./math/vectors";
 import { loadGroundTexture, texturesLoaded } from "./ground-texture";
+import { initHtmlElements, mainMenuVisible, setMainMenuVisible } from "./menu";
+import { renderModels } from "./game/render-models";
+
+const PLAYER_LEGS_VELOCITY = 7 * 1.3;
 
 const COLLISION_TEXTURE_SIZE = 128;
 
 initGl();
 
-const isFirstPerson = () => DEBUG_FLAG3;
+const isFirstPerson = () => DEBUG_FLAG3 || !!document.pointerLockElement;
 
 requestAnimationFrame(() => {
   const _frameBuffersInvalidations = [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT];
@@ -80,6 +82,7 @@ requestAnimationFrame(() => {
   let debug2dctx: CanvasRenderingContext2D | null | undefined;
 
   let oldModelId = 0;
+  let currentModelIdTMinus1 = 0;
   let currentModelId = 0;
 
   let gameLoaded = false;
@@ -91,8 +94,6 @@ requestAnimationFrame(() => {
   let player_speed = 0;
   let player_collision_velocity_x = 0;
   let player_collision_velocity_z = 0;
-  let player_selected_velocity = 0;
-  let player_legs_velocity = 0;
   let player_has_ground: 0 | 1 = 0;
   let player_collision_x = 0;
   let player_collision_z = 0;
@@ -116,12 +117,112 @@ requestAnimationFrame(() => {
     player_position_final.y = y;
     player_position_final.z = z;
     player_respawned = 1;
+    currentModelIdTMinus1 = 0;
   };
 
   const player_respawn = () => {
     const { $matrix, $modelId } = levers[player_last_pulled_lever]!;
     currentModelId = $modelId;
-    player_forceSetPosition($matrix ? $matrix.transformPoint({ x: 0, y: 10, z: -3 }) : player_position_initial);
+    player_forceSetPosition(
+      player_last_pulled_lever && $matrix ? $matrix.transformPoint({ x: 0, y: 10, z: -3 }) : player_position_initial,
+    );
+  };
+
+  const updatePlayer = () => {
+    const movStrafe = (keyboard_downKeys[KEY_LEFT] ? 1 : 0) + (keyboard_downKeys[KEY_RIGHT] ? -1 : 0);
+    const movForward = (keyboard_downKeys[KEY_FRONT] ? 1 : 0) + (keyboard_downKeys[KEY_BACK] ? -1 : 0);
+
+    const playerSpeedCollision = clamp01(1 - max(abs(player_collision_x), abs(player_collision_z)) * 5);
+
+    // // adjust collision push back based on the duration of the frame, to address slower machines with lower FPS
+    // const collisionPushBackReduction = lerp(3.65, 1.1, max(0.008, gameTimeDelta) / GAME_TIME_MAX_DELTA_TIME);
+    // ddx /= collisionPushBackReduction;
+    // ddz /= collisionPushBackReduction;
+
+    if (!currentModelId) {
+      player_collision_x += player_collision_velocity_x * playerSpeedCollision * gameTimeDelta;
+      player_collision_z += player_collision_velocity_z * playerSpeedCollision * gameTimeDelta;
+    }
+    player_collision_velocity_x = lerpDamp(player_collision_velocity_x, 0, player_has_ground ? 8 : 4);
+    player_collision_velocity_z = lerpDamp(player_collision_velocity_z, 0, player_has_ground ? 8 : 4);
+
+    player_speed = lerpDamp(
+      player_speed,
+      player_has_ground ? (movStrafe || movForward ? (player_has_ground ? 7 : 4) : 0) * playerSpeedCollision : 0,
+      player_has_ground ? (playerSpeedCollision > 0.1 ? 10 : movStrafe || movForward ? 5 : 7) : 1,
+    );
+
+    const effectivePlayerSpeed = (movStrafe && movForward ? Math.SQRT1_2 : 1) * player_speed * gameTimeDelta;
+
+    if (isFirstPerson()) {
+      const yradians = camera_rotation.y * DEG_TO_RAD;
+      const s = Math.sin(yradians) * effectivePlayerSpeed;
+      const c = Math.cos(yradians) * effectivePlayerSpeed;
+      player_collision_x -= movStrafe * c - movForward * s;
+      player_collision_z -= movStrafe * s + movForward * c;
+    } else {
+      player_collision_x += movStrafe * effectivePlayerSpeed;
+      player_collision_z += movForward * effectivePlayerSpeed;
+    }
+
+    const referenceMatrix = modelsByModelId[currentModelId]?.$finalMatrix || identity;
+    const referenceMatrixInverse = referenceMatrix.inverse();
+
+    ({ x: player_collision_x, z: player_collision_z } = referenceMatrixInverse.transformPoint({
+      x: player_collision_x,
+      y: 0,
+      z: player_collision_z,
+      w: 0,
+    }));
+
+    player_position_global.z += player_collision_z;
+    player_position_global.x += player_collision_x;
+
+    if (currentModelId !== oldModelId) {
+      if (DEBUG) {
+        console.log("modelId: " + oldModelId + " -> " + currentModelId);
+      }
+
+      oldModelId = currentModelId;
+      ({
+        x: player_position_global.x,
+        y: player_position_global.y,
+        z: player_position_global.z,
+      } = referenceMatrixInverse.transformPoint(player_position_final));
+    }
+
+    const oldx = player_position_final.x;
+    const oldz = player_position_final.z;
+
+    ({
+      x: player_position_final.x,
+      y: player_position_final.y,
+      z: player_position_final.z,
+    } = referenceMatrix.transformPoint(player_position_global));
+
+    if (currentModelId) {
+      player_collision_velocity_x = (player_position_final.x - oldx) / gameTimeDelta;
+      player_collision_velocity_z = (player_position_final.z - oldz) / gameTimeDelta;
+    }
+
+    if (movStrafe || movForward) {
+      player_look_angle_target = Math.atan2(movStrafe, movForward);
+    }
+    player_look_angle = angle_lerp(player_look_angle, player_look_angle_target, gameTimeDelta * 8);
+    player_legs_speed = lerp(player_legs_speed, movStrafe || movForward ? 1 : 0, gameTimeDelta * 10);
+  };
+
+  const boot = () => {
+    gameLoaded = true;
+    setMainMenuVisible(true);
+    initHtmlElements();
+    updateModels(rootModel);
+    loadGame();
+    player_respawn();
+
+    if (DEBUG) {
+      console.timeEnd("LOADED");
+    }
   };
 
   const player_collision_modelIdCounter = new Int32Array(256);
@@ -175,17 +276,15 @@ requestAnimationFrame(() => {
         currentModelId = nextModelId;
       }
     } else {
-      currentModelId = nextModelId;
+      currentModelId = nextModelId || currentModelIdTMinus1;
     }
+    currentModelIdTMinus1 = nextModelId;
 
     player_has_ground = hasGround;
     player_gravity = lerpDamp(player_gravity, hasGround ? 6.5 : 8, 4);
 
-    if (!DEBUG || (!keyboard_downKeys[KEY_DEBUG_FLY_UP] && !keyboard_downKeys[KEY_DEBUG_FLY_DOWN])) {
-      // push up and gravity
-      return lines / 41 - (hasGround ? 1 : player_gravity) * (grav / 41) * player_gravity * gameTimeDelta;
-    }
-    return 0;
+    // push up and gravity
+    return lines / 41 - (hasGround ? 1 : player_gravity) * (grav / 41) * player_gravity * gameTimeDelta;
   };
 
   const doHorizontalCollisions = (_collision_buffer: Uint8Array) => {
@@ -336,6 +435,8 @@ requestAnimationFrame(() => {
 
   buildWorld();
 
+  initTriangleBuffers();
+
   playerModel._update = () =>
     identity
       .translate(player_position_final.x, player_position_final.y, player_position_final.z)
@@ -343,15 +444,13 @@ requestAnimationFrame(() => {
 
   playerRightLegModel._update = () =>
     identity
-      .translate(0, player_legs_speed * clamp01(Math.sin(gameTime * player_legs_velocity - Math.PI / 2) * 0.45))
-      .rotateSelf(player_legs_speed * Math.sin(gameTime * player_legs_velocity) * (0.25 / DEG_TO_RAD), 0);
+      .translate(0, player_legs_speed * clamp01(Math.sin(gameTime * PLAYER_LEGS_VELOCITY - Math.PI / 2) * 0.45))
+      .rotateSelf(player_legs_speed * Math.sin(gameTime * PLAYER_LEGS_VELOCITY) * (0.25 / DEG_TO_RAD), 0);
 
   playerLeftLegModel._update = () =>
     identity
-      .translate(0, player_legs_speed * clamp01(Math.sin(gameTime * player_legs_velocity + Math.PI / 2) * 0.45))
-      .rotateSelf(player_legs_speed * Math.sin(gameTime * player_legs_velocity + Math.PI) * (0.25 / DEG_TO_RAD), 0);
-
-  initTriangleBuffers();
+      .translate(0, player_legs_speed * clamp01(Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI / 2) * 0.45))
+      .rotateSelf(player_legs_speed * Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI) * (0.25 / DEG_TO_RAD), 0);
 
   const draw = (globalTime: number) => {
     requestAnimationFrame(draw);
@@ -360,36 +459,11 @@ requestAnimationFrame(() => {
       return;
     }
 
-    const movStrafe = (keyboard_downKeys[KEY_LEFT] ? 1 : 0) + (keyboard_downKeys[KEY_RIGHT] ? -1 : 0);
-    const movForward = (keyboard_downKeys[KEY_FRONT] ? 1 : 0) + (keyboard_downKeys[KEY_BACK] ? -1 : 0);
-    player_selected_velocity = keyboard_downKeys[KEY_SLOW] ? 4 : 7;
-    player_legs_velocity = keyboard_downKeys[KEY_SLOW] ? 4 * 1.7 : 7 * 1.3;
-
-    // const gamepad = navigator.getGamepads()[0];
-    // if (gamepad) {
-    //   this.direction.x = gamepad.axes[0];
-    //   this.direction.z = gamepad.axes[1];
-    //   this.leftTrigger = gamepad.buttons[6].value;
-    //   this.rightTrigger = gamepad.buttons[7].value;
-
-    //   const deadzone = 0.1;
-    //   if (this.direction.magnitude < deadzone) {
-    //     this.direction.x = 0;
-    //     this.direction.z = 0;
-    //   }
-    //   this.isJumpPressed = gamepad.buttons[0].pressed;
-    // }
+    if (!gameLoaded) {
+      boot();
+    }
 
     // *** COLLISIONS ***
-
-    if (DEBUG) {
-      if (keyboard_downKeys[KEY_DEBUG_FLY_UP]) {
-        player_position_global.y += 4 * gameTimeDelta;
-      }
-      // if (keyboard_downKeys[KEY_DEBUG_FLY_DOWN]) {
-      //   player_position_global.y -= 4 * gameTimeDelta;
-      // }
-    }
 
     if (gameTimeDelta > 0) {
       // *** COLLISION from the previos frame ***
@@ -398,87 +472,12 @@ requestAnimationFrame(() => {
       gl.readPixels(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE, gl.RGBA, gl.UNSIGNED_BYTE, collision_buffer);
       gl.invalidateFramebuffer(gl.FRAMEBUFFER, _frameBuffersInvalidations);
 
-      // Ground Collision:
+      // compute collisions
 
       player_position_global.y += doVerticalCollisions(collision_buffer);
       doHorizontalCollisions(collision_buffer);
 
-      // sides collision
-
-      const playerSpeedCollision = clamp01(1 - max(abs(player_collision_x), abs(player_collision_z)) * 5);
-
-      // // adjust collision push back based on the duration of the frame, to address slower machines with lower FPS
-      // const collisionPushBackReduction = lerp(3.65, 1.1, max(0.008, gameTimeDelta) / GAME_TIME_MAX_DELTA_TIME);
-      // ddx /= collisionPushBackReduction;
-      // ddz /= collisionPushBackReduction;
-
-      if (!currentModelId) {
-        player_collision_x += player_collision_velocity_x * playerSpeedCollision * gameTimeDelta;
-        player_collision_z += player_collision_velocity_z * playerSpeedCollision * gameTimeDelta;
-      }
-      player_collision_velocity_x = lerpDamp(player_collision_velocity_x, 0, player_has_ground ? 8 : 4);
-      player_collision_velocity_z = lerpDamp(player_collision_velocity_z, 0, player_has_ground ? 8 : 4);
-
-      player_speed = lerpDamp(
-        player_speed,
-        player_has_ground || (DEBUG && keyboard_downKeys[KEY_DEBUG_FLY_UP]) || keyboard_downKeys[KEY_DEBUG_FLY_DOWN]
-          ? (movStrafe || movForward ? player_selected_velocity : 0) * playerSpeedCollision
-          : 0,
-        player_has_ground ? (playerSpeedCollision > 0.1 ? 10 : movStrafe || movForward ? 5 : 7) : 1,
-      );
-
-      const effectivePlayerSpeed = (movStrafe && movForward ? Math.SQRT1_2 : 1) * player_speed * gameTimeDelta;
-
-      if (isFirstPerson()) {
-        const yradians = camera_rotation.y * DEG_TO_RAD;
-        const s = Math.sin(yradians) * effectivePlayerSpeed;
-        const c = Math.cos(yradians) * effectivePlayerSpeed;
-        player_collision_x -= movStrafe * c - movForward * s;
-        player_collision_z -= movStrafe * s + movForward * c;
-      } else {
-        player_collision_x += movStrafe * effectivePlayerSpeed;
-        player_collision_z += movForward * effectivePlayerSpeed;
-      }
-
-      const referenceMatrix = modelsByModelId[currentModelId]?.$finalMatrix || identity;
-      const referenceMatrixInverse = referenceMatrix.inverse();
-
-      ({ x: player_collision_x, z: player_collision_z } = referenceMatrixInverse.transformPoint({
-        x: player_collision_x,
-        y: 0,
-        z: player_collision_z,
-        w: 0,
-      }));
-
-      player_position_global.z += player_collision_z;
-      player_position_global.x += player_collision_x;
-
-      if (currentModelId !== oldModelId) {
-        if (DEBUG) {
-          console.log("modelId: " + oldModelId + " -> " + currentModelId);
-        }
-
-        oldModelId = currentModelId;
-        ({
-          x: player_position_global.x,
-          y: player_position_global.y,
-          z: player_position_global.z,
-        } = referenceMatrixInverse.transformPoint(player_position_final));
-      }
-
-      const oldx = player_position_final.x;
-      const oldz = player_position_final.z;
-
-      ({
-        x: player_position_final.x,
-        y: player_position_final.y,
-        z: player_position_final.z,
-      } = referenceMatrix.transformPoint(player_position_global));
-
-      if (currentModelId) {
-        player_collision_velocity_x = (player_position_final.x - oldx) / gameTimeDelta;
-        player_collision_velocity_z = (player_position_final.z - oldz) / gameTimeDelta;
-      }
+      updatePlayer();
 
       if (DEBUG) {
         const debugCanvas = document.getElementById("debug-canvas") as HTMLCanvasElement;
@@ -491,11 +490,11 @@ requestAnimationFrame(() => {
               const i = ((COLLISION_TEXTURE_SIZE - y) * COLLISION_TEXTURE_SIZE + x) * 4;
               const r = collision_buffer[i]!;
               const g = collision_buffer[i + 1]!;
-              // const b = collision_buffer[i + 2]!;
+              const b = collision_buffer[i + 2]!;
 
               buf[(y * COLLISION_TEXTURE_SIZE + x) * 4] = r;
               buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 1] = g;
-              // buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 2] = b ? 200 : 0;
+              buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 2] = b ? 200 : 0;
               buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 3] = 255;
             }
           }
@@ -511,129 +510,141 @@ requestAnimationFrame(() => {
     }
 
     // Update time here, after collision. Collision is for the previous frame
-
     gameTimeUpdate(globalTime);
 
-    if (!DEBUG_CAMERA) {
-      camera_player_dir_x = interpolate_with_hysteresis(
-        camera_player_dir_x,
-        player_position_final.x,
-        0.5,
-        gameTimeDelta,
-      );
-      camera_player_dir_y = interpolate_with_hysteresis(camera_player_dir_y, player_position_final.y, 2, gameTimeDelta);
-      camera_player_dir_z = interpolate_with_hysteresis(
-        camera_player_dir_z,
-        player_position_final.z,
-        0.5,
-        gameTimeDelta,
-      );
-
-      if (isFirstPerson()) {
-        const interpolationSpeed = player_respawned * 200;
-        camera_position.x = lerpDamp(camera_position.x, player_position_final.x, 18 + interpolationSpeed);
-        camera_position.y = lerpDamp(camera_position.y, player_position_final.y + 1.5, 15 + interpolationSpeed);
-        camera_position.z = lerpDamp(camera_position.z, player_position_final.z, 18 + interpolationSpeed);
-        camera_rotation.y = angle_wrap_degrees(camera_rotation.y + mouse_movementX * 0.1);
-        camera_rotation.x = max(min(camera_rotation.x + mouse_movementY * 0.1, 87), -87);
-      } else {
-        camera_position.x = interpolate_with_hysteresis(camera_position.x, camera_player_dir_x, 1, gameTimeDelta * 2);
-        camera_position.y = interpolate_with_hysteresis(
-          camera_position.y,
-          camera_player_dir_y + 13 + player_respawned * 15, // max(10, camera_player_dir_y + 13),
-          4,
-          gameTimeDelta * 2,
+    if (mainMenuVisible) {
+      // Main menu camera
+      camera_view
+        .setMatrixValue("none")
+        .rotateSelf(-30, -90)
+        .invertSelf()
+        .translateSelf(4.5 - hC.clientHeight / hC.clientWidth, -2.5, -2.2 + min(1, hC.clientHeight / hC.clientWidth));
+    } else {
+      if (!DEBUG_CAMERA) {
+        camera_player_dir_x = interpolate_with_hysteresis(
+          camera_player_dir_x,
+          player_position_final.x,
+          0.5,
+          gameTimeDelta,
         );
-        camera_position.z = interpolate_with_hysteresis(
-          camera_position.z,
-          camera_player_dir_z - 18,
-          1,
-          gameTimeDelta * 2,
+        camera_player_dir_y = interpolate_with_hysteresis(
+          camera_player_dir_y,
+          player_position_final.y,
+          2,
+          gameTimeDelta,
+        );
+        camera_player_dir_z = interpolate_with_hysteresis(
+          camera_player_dir_z,
+          player_position_final.z,
+          0.5,
+          gameTimeDelta,
         );
 
-        const viewDirDiffx = camera_position.x - camera_player_dir_x;
-        const viewDirDiffy = camera_position.y - camera_player_dir_y;
-        const viewDirDiffz = camera_position.z - camera_player_dir_z;
+        if (isFirstPerson()) {
+          const interpolationSpeed = player_respawned * 200;
+          camera_position.x = lerpDamp(camera_position.x, player_position_final.x, 18 + interpolationSpeed);
+          camera_position.y = lerpDamp(camera_position.y, player_position_final.y + 1.5, 15 + interpolationSpeed);
+          camera_position.z = lerpDamp(camera_position.z, player_position_final.z, 18 + interpolationSpeed);
+          camera_rotation.y = angle_wrap_degrees(camera_rotation.y + mouse_movementX * 0.1);
+          camera_rotation.x = max(min(camera_rotation.x + mouse_movementY * 0.1, 87), -87);
+        } else {
+          camera_position.x = interpolate_with_hysteresis(camera_position.x, camera_player_dir_x, 1, gameTimeDelta * 2);
+          camera_position.y = interpolate_with_hysteresis(
+            camera_position.y,
+            camera_player_dir_y + 13 + player_respawned * 15, // max(10, camera_player_dir_y + 13),
+            4,
+            gameTimeDelta * 2,
+          );
+          camera_position.z = interpolate_with_hysteresis(
+            camera_position.z,
+            camera_player_dir_z - 18,
+            1,
+            gameTimeDelta * 2,
+          );
 
-        if (abs(viewDirDiffz) > 1) {
-          camera_rotation.y = 270 + Math.atan2(viewDirDiffz, viewDirDiffx) / DEG_TO_RAD;
-          camera_rotation.x =
-            90 -
-            Math.atan2(Math.sqrt(viewDirDiffz * viewDirDiffz + viewDirDiffx * viewDirDiffx) || 0, viewDirDiffy) /
-              DEG_TO_RAD;
+          const viewDirDiffx = camera_position.x - camera_player_dir_x;
+          const viewDirDiffy = camera_position.y - camera_player_dir_y;
+          const viewDirDiffz = camera_position.z - camera_player_dir_z;
+
+          if (abs(viewDirDiffz) > 1) {
+            camera_rotation.y = 270 + Math.atan2(viewDirDiffz, viewDirDiffx) / DEG_TO_RAD;
+            camera_rotation.x =
+              90 -
+              Math.atan2(Math.sqrt(viewDirDiffz * viewDirDiffz + viewDirDiffx * viewDirDiffx) || 0, viewDirDiffy) /
+                DEG_TO_RAD;
+          }
+        }
+      }
+
+      camera_view
+        .setMatrixValue("none")
+        .rotateSelf(-camera_rotation.x, -camera_rotation.y, -camera_rotation.z)
+        .invertSelf()
+        .translateSelf(-camera_position.x, -camera_position.y, -camera_position.z);
+
+      if (gameTimeDelta > 0) {
+        worldStateUpdate();
+
+        const PLAYER_FELL_IN_LAVA_Y = -25;
+        if (player_position_final.y < PLAYER_FELL_IN_LAVA_Y) {
+          player_respawn();
         }
       }
     }
 
-    camera_view
-      .setMatrixValue("none")
-      .rotateSelf(-camera_rotation.x, -camera_rotation.y, -camera_rotation.z)
-      .invertSelf()
-      .translateSelf(-camera_position.x, -camera_position.y, -camera_position.z);
+    // *** CASCADED SHADOWMAPS ***
 
-    if (movStrafe || movForward) {
-      player_look_angle_target = Math.atan2(movStrafe, movForward);
-    }
+    csmShader();
 
-    player_look_angle = angle_lerp(player_look_angle, player_look_angle_target, gameTimeDelta * 8);
-    player_legs_speed = lerp(player_legs_speed, movStrafe || movForward ? 1 : 0, gameTimeDelta * 10);
+    gl.viewport(0, 0, CSM_TEXTURE_SIZE, CSM_TEXTURE_SIZE);
 
-    if (gameTimeDelta > 0) {
-      worldStateUpdate();
+    csm_render[0]!(csm_buildMatrix(zNear, CSM_PLANE_DISTANCE0, 10));
+    csm_render[1]!(csm_buildMatrix(CSM_PLANE_DISTANCE0, CSM_PLANE_DISTANCE1, 11));
+    csm_render[2]!(csm_buildMatrix(CSM_PLANE_DISTANCE1, zFar, 15));
 
-      const PLAYER_FELL_IN_LAVA_Y = -25;
-      if (player_position_final.y < PLAYER_FELL_IN_LAVA_Y) {
-        player_respawn();
-      }
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
-      // *** CASCADED SHADOWMAPS ***
+    // *** MAIN RENDER ***
 
-      csmShader();
+    mainShader();
 
-      gl.viewport(0, 0, CSM_TEXTURE_SIZE, CSM_TEXTURE_SIZE);
+    gl.clearColor(0, 0, 0, 1);
 
-      csm_render[0]!(csm_buildMatrix(zNear, CSM_PLANE_DISTANCE0, 10));
-      csm_render[1]!(csm_buildMatrix(CSM_PLANE_DISTANCE0, CSM_PLANE_DISTANCE1, 11));
-      csm_render[2]!(csm_buildMatrix(CSM_PLANE_DISTANCE1, zFar, 15));
+    gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.uniformMatrix4fv(mainShader(uniformName_projectionMatrix), false, mat_perspective(zNear, zFar));
+    gl.uniformMatrix4fv(mainShader(uniformName_viewMatrix), false, camera_view.toFloat32Array());
+    gl.uniform3f(mainShader(uniformName_viewPos), camera_position.x, camera_position.y, camera_position.z);
 
-      // *** MAIN RENDER ***
+    csm_render[0]!();
+    csm_render[1]!();
+    csm_render[2]!();
 
-      mainShader();
+    renderModels(mainShader(uniformName_worldMatrix), !isFirstPerson());
 
-      gl.clearColor(0, 0, 0, 1);
+    // invalidate csm framebuffers
 
-      gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
-      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    csm_render[0]!(1);
+    csm_render[1]!(1);
+    csm_render[2]!(1);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
-      gl.uniformMatrix4fv(mainShader(uniformName_projectionMatrix), false, mat_perspective(zNear, zFar));
-      gl.uniformMatrix4fv(mainShader(uniformName_viewMatrix), false, camera_view.toFloat32Array());
-      gl.uniform3f(mainShader(uniformName_viewPos), camera_position.x, camera_position.y, camera_position.z);
+    // *** SKY RENDER ***
 
-      csm_render[0]!();
-      csm_render[1]!();
-      csm_render[2]!();
+    skyShader();
 
-      renderModels(mainShader(uniformName_worldMatrix), !isFirstPerson());
-
-      // invalidate csm framebuffers
-
-      csm_render[0]!(1);
-      csm_render[1]!(1);
-      csm_render[2]!(1);
-      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
-      // *** SKY RENDER ***
-
-      skyShader();
-
-      gl.uniform3f(skyShader(uniformName_iResolution), gl.drawingBufferWidth, gl.drawingBufferHeight, gameTime);
+    gl.uniform3f(skyShader(uniformName_iResolution), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime);
+    if (mainMenuVisible) {
+      gl.uniform3f(skyShader(uniformName_viewPos), 0, -0, 0);
+    } else {
       gl.uniform3f(skyShader(uniformName_viewPos), camera_position.x, camera_position.y, camera_position.z);
-      gl.uniformMatrix4fv(skyShader(uniformName_viewMatrix), false, camera_view.invertSelf().toFloat32Array());
+    }
+    gl.uniformMatrix4fv(skyShader(uniformName_viewMatrix), false, camera_view.invertSelf().toFloat32Array());
 
-      gl.drawElements(gl.TRIANGLES, 3, gl.UNSIGNED_SHORT, 0);
+    gl.drawElements(gl.TRIANGLES, 3, gl.UNSIGNED_SHORT, 0);
 
+    if (!mainMenuVisible) {
       // *** COLLISION RENDERER ***
 
       collisionShader();
@@ -676,22 +687,12 @@ requestAnimationFrame(() => {
       }
     }
 
-    // We update the models for the next frame, for performance
-    updateModels(rootModel);
+    if (gameTimeDelta > 0) {
+      // We update the models for the next frame, for performance
+      updateModels(rootModel);
+    }
 
     input_frameReset();
-
-    if (!gameLoaded) {
-      gameLoaded = true;
-      handleResize();
-
-      if (DEBUG) {
-        console.timeEnd("LOADED");
-      }
-
-      // Remove the loading screen
-      hL.remove();
-    }
   };
 
   loadGroundTexture();
@@ -703,6 +704,7 @@ requestAnimationFrame(() => {
   NO_INLINE(doHorizontalCollisions);
   NO_INLINE(doVerticalCollisions);
   NO_INLINE(buildWorld);
+  NO_INLINE(boot);
 
   if (DEBUG) {
     console.timeEnd("boot");
