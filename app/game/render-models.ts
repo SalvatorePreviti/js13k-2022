@@ -17,28 +17,32 @@ export const renderModels = (
   let currentModelId = 1;
   const recursion = (model: Model) => {
     const modelId = currentModelId;
-    if (renderPlayer || model.$modelId !== PLAYER_MODEL_ID) {
-      if (model.$modelId) {
-        currentModelId = model.$modelId;
-      } else {
-        model.$modelId = currentModelId;
+    if (!renderPlayer && model.$modelId === PLAYER_MODEL_ID) {
+      return;
+    }
+    if (collisionModelIdUniformLocation && !model.$collisions) {
+      return;
+    }
+
+    if (model.$modelId) {
+      currentModelId = model.$modelId;
+    } else {
+      model.$modelId = currentModelId;
+    }
+    const { $mesh, $children, $visible } = model;
+    if ($visible) {
+      for (const child of $children) {
+        recursion(child);
       }
-      const { $mesh, $children, $visible } = model;
-      if ($visible) {
-        for (const child of $children) {
-          recursion(child);
+      if ($mesh) {
+        if (collisionModelIdUniformLocation) {
+          gl.uniform1f(collisionModelIdUniformLocation, currentModelId / 255);
         }
-        if ($mesh) {
-          if (collisionModelIdUniformLocation) {
-            gl.uniform1f(collisionModelIdUniformLocation, currentModelId / 255);
-          }
-          gl.uniformMatrix4fv(worldMatrixLoc, false, model.$finalMatrix.toFloat32Array());
-          drawMesh($mesh);
-        }
-      } else {
-        console.log("INVISIBLE");
+        gl.uniformMatrix4fv(worldMatrixLoc, false, model.$finalMatrix.toFloat32Array());
+        drawMesh($mesh);
       }
     }
+
     currentModelId = modelId;
   };
 

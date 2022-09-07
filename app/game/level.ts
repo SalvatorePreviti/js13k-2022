@@ -12,7 +12,7 @@ import {
   rotatingPlatform2Rotation,
 } from "./world-state";
 import { meshAdd, meshEnd, withEditMatrix, newModel, type Model } from "./scene";
-import { newLever } from "./new-lever";
+import { newLever, newSoul } from "./objects";
 
 export let playerRightLegModel: Model;
 
@@ -47,7 +47,8 @@ export const buildWorld = () => {
   meshAdd(cylinder(10, 1), identity.translate(-0.3, -1, 0).scale(0.2, 0.5, 0.24), material(1, 0.3, 0.4));
   const rightLegMesh = meshEnd();
 
-  playerModel = newModel(() => {
+  playerModel = newModel((model) => {
+    model.$collisions = 0;
     const rhorn = polygons_transform(
       horn(),
       identity.translate(0.2, 1.32, 0).rotate(0, 0, -30).scale(0.2, 0.6, 0.2),
@@ -85,6 +86,10 @@ export const buildWorld = () => {
   }, PLAYER_MODEL_ID);
 
   newModel(() => {
+    // test souls
+
+    withEditMatrix(identity.translate(0, 3, -6), newSoul);
+
     // gate columns
 
     GQuad.map(({ x, z }) => {

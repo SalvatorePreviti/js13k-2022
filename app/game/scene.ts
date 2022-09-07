@@ -11,6 +11,7 @@ export const rootModel: Model = {
   $animationMatrix: identity,
   $finalMatrix: identity,
   $modelId: 1,
+  $collisions: 1,
   $visible: 1,
 };
 
@@ -57,6 +58,7 @@ export interface Model {
   $finalMatrix: DOMMatrixReadOnly;
   $mesh?: Mesh;
   $modelId: number;
+  $collisions: 0 | 1;
   $visible: boolean | 0 | 1;
   _update?: ModelUpdateCallback | undefined;
 }
@@ -113,13 +115,11 @@ export const meshEnd = (): Mesh => {
 
 export const newModel = (fn: (model: Model) => void | Mesh | undefined, $modelId = 0) => {
   const model: Model = {
+    ...rootModel,
     $parent: currentModel,
     $children: [],
     $initialMatrix: editMatrixStack.at(-1)!,
-    $animationMatrix: identity,
-    $finalMatrix: identity,
     $modelId,
-    $visible: 1,
   };
   _pendingPolygonsStack.push([]);
   editMatrixStack.push(identity);

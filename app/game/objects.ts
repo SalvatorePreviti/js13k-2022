@@ -1,5 +1,6 @@
 import { vec3_distance } from "../math/vectors";
 import { identity } from "../math/matrix";
+import type { Soul } from "./world-state";
 import { levers, player_position_final, onPlayerPullLever, type Lever, lerpDamp } from "./world-state";
 import { cylinder, material, GBox } from "../geometry/geometry";
 import { meshAdd, meshEnd, newModel } from "./scene";
@@ -18,6 +19,14 @@ const leverOffMesh = makeLeverMesh(material(1, 0.5, 0.2));
 
 const leverOnMesh = makeLeverMesh(material(0.7, 1, 0.2));
 
+const LEVER_SENSITIVITY_RADIUS = 2.7;
+const SOUL_SENSITIVITY_RADIUS = 1.5;
+
+// ========= Soul mesh ========= //
+
+meshAdd(cylinder(6), identity, material(1, 0.3, 0.5));
+const soulMesh = meshEnd();
+
 export const newLever = (): void => {
   const lever: Lever = { $value: 0, $lerpValue: 0, $lerpValue2: 0, $modelId: 0 };
   const index = levers.push(lever) - 1;
@@ -31,7 +40,10 @@ export const newLever = (): void => {
       const matrix = model.$finalMatrix;
       lever.$matrix = matrix;
       lever.$modelId = model.$modelId;
-      if (keyboard_downKeys[KEY_INTERACT] && vec3_distance(matrix.transformPoint(), player_position_final) < 2.7) {
+      if (
+        keyboard_downKeys[KEY_INTERACT] &&
+        vec3_distance(matrix.transformPoint(), player_position_final) < LEVER_SENSITIVITY_RADIUS
+      ) {
         const { $value: value, $lerpValue: lerpValue } = lever;
         if (lerpValue < 0.3 || lerpValue > 0.7) {
           lever.$value = value ? 0 : 1;
@@ -46,5 +58,21 @@ export const newLever = (): void => {
       return identity.rotate(lever.$lerpValue * 60 - 30, 0).translateSelf(0, 1, 0);
     };
     return leverOffMesh;
+  });
+};
+
+export const newSoul = (): void => {
+  const soul: Soul = { $value: 1 };
+
+  newModel((model) => {
+    model.$collisions = 0;
+    model._update = () => {
+      if (vec3_distance(model.$finalMatrix.transformPoint(), player_position_final) < SOUL_SENSITIVITY_RADIUS) {
+        console.log("soul in distance");
+        soul.$value = 0;
+      }
+      model.$visible = soul.$value;
+    };
+    return soulMesh;
   });
 };

@@ -41,7 +41,7 @@ export const gameTimeUpdate = (time: number) => {
 //   }
 // };
 
-export const LOCAL_STORAGE_SAVED_GAME_KEY = "666SpH3Ll22";
+export const LOCAL_STORAGE_SAVED_GAME_KEY = "s66622";
 
 export interface Lever {
   $value: 0 | 1;
@@ -51,7 +51,15 @@ export interface Lever {
   $matrix?: DOMMatrixReadOnly;
 }
 
+export interface Soul {
+  $value: 0 | 1;
+}
+
+const getItemValue = <T>({ $value }: { readonly $value: T }) => $value;
+
 export const levers: Lever[] = [];
+
+export const souls: Soul[] = [];
 
 export const PLAYER_MODEL_ID = 2;
 
@@ -102,17 +110,12 @@ export const worldStateUpdate = () => {
 export const saveGame = () => {
   localStorage[LOCAL_STORAGE_SAVED_GAME_KEY] = JSON.stringify([
     666,
-    levers.map((lever) => lever.$value),
+    levers.map(getItemValue),
+    souls.map(getItemValue),
     player_last_pulled_lever,
     gameTime,
     boatLerp,
   ]);
-};
-
-export const newGame = () => {
-  levers.map((lever) => (lever.$value = 0));
-  player_last_pulled_lever = 0;
-  setGameTime(0);
 };
 
 export const loadGame = () => {
@@ -122,13 +125,13 @@ export const loadGame = () => {
     );
     if (header === 666) {
       levers.map((lever, index) => (lever.$value = (savedLevers[index] | 0) as 0 | 1));
-      console.log(levers.map((lever) => lever.$value));
+      console.log(levers.map(getItemValue));
+      console.log(souls.map(getItemValue));
       player_last_pulled_lever = savedLastPulledLever | 0;
       setGameTime(savedGameTime | 0);
       boatLerp = savedBoatLerp | 0;
     }
   } catch (e) {
-    newGame();
     if (DEBUG) {
       console.log(e);
     }
