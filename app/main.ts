@@ -40,7 +40,6 @@ import {
   input_frameReset,
   mouse_movementX,
   mouse_movementY,
-  handleResize,
 } from "./input";
 import { gl, initGl, initShaderProgram, loadShader } from "./gl";
 
@@ -705,6 +704,7 @@ requestAnimationFrame(() => {
   NO_INLINE(doVerticalCollisions);
   NO_INLINE(buildWorld);
   NO_INLINE(boot);
+  NO_INLINE(loadGame);
 
   if (DEBUG) {
     console.timeEnd("boot");
