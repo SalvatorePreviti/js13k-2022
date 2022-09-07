@@ -6,15 +6,10 @@ const vec3 lightDir = vec3(-0.6560590289905073, 0.6663690071652679, -0.354314686
 
 #define CSM_TEXTURE_SIZE 1024.
 
-// Shadow bias
-// Could be computed based on normal and light, something like 0.0003 * (1. -
-// clamp(dot(normal, lightDir), 0., 1.))
-const float shadowBias = 1. / CSM_TEXTURE_SIZE / 2.8; // / 2.5  --- // 0.00018;
-
 #define zNear 0.3
-#define CSM_PLANE_DISTANCE0 50.
-#define CSM_PLANE_DISTANCE1 110.
-#define zFar 180.
+#define CSM_PLANE_DISTANCE0 40.
+#define CSM_PLANE_DISTANCE1 85.
+#define zFar 177.
 
 in highp vec4 VNormal;
 in highp vec4 FragPos;
@@ -54,9 +49,18 @@ void main() {
 
   if (csmCoords.z < 1.) { // Only if inside far plane
     shadow = 0.;
+
+    // TODO: Shadow bias could be computed based on normal and light, something like 0.0003 * (1. -
+    // clamp(dot(normal, lightDir), 0., 1.))
+
     for (float x = -1.; x <= 1.; ++x) {
       for (float y = -1.; y <= 1.; ++y) {
-        vec3 c = vec3(csmCoords.xy + vec2(x, y) / CSM_TEXTURE_SIZE, csmCoords.z - shadowBias);
+        vec3 c = vec3(
+          csmCoords.xy + vec2(x, y) / CSM_TEXTURE_SIZE,
+          csmCoords.z -
+            // shadow bias
+            (1. / CSM_TEXTURE_SIZE / 2.8)
+        );
         shadow += depthValue < CSM_PLANE_DISTANCE0 ? texture(csm_textures[0], c)
           : depthValue < CSM_PLANE_DISTANCE1       ? texture(csm_textures[1], c)
                                                    : texture(csm_textures[2], c);

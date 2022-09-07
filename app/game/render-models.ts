@@ -35,6 +35,8 @@ export const renderModels = (
           gl.uniformMatrix4fv(worldMatrixLoc, false, model.$finalMatrix.toFloat32Array());
           drawMesh($mesh);
         }
+      } else {
+        console.log("INVISIBLE");
       }
     }
     currentModelId = modelId;

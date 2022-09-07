@@ -203,11 +203,11 @@ export const buildWorld = () => {
       withEditMatrix(identity.translate(0, 1.2), newLever);
 
       model._update = () => {
-        model.$visible = levers[2]!.$lerpValue > 0;
+        model.$visible = levers[2]!.$lerpValue > 0.01;
         return identity.translate(
           0,
           (Math.cos(gameTime * 1.5) * 5 + 2) * levers[2]!.$lerpValue2 * (1 - levers[1]!.$lerpValue) +
-            (1 - levers[2]!.$lerpValue2) * -15,
+            (1 - levers[2]!.$lerpValue) * -15,
           0,
         );
       };
@@ -701,7 +701,7 @@ export const buildWorld = () => {
       newModel((model) => {
         model._update = () => {
           return identity
-            .translate(Math.sin(gameTime + 2) / 5, Math.sin(gameTime * 0.8) / 3, boatLerp * -60)
+            .translate(Math.sin(gameTime + 2) / 5, Math.sin(gameTime * 0.8) / 3, boatLerp * -65)
             .rotate(Math.sin(gameTime) * 2, Math.sin(gameTime * 0.7), Math.sin(gameTime * 0.9));
         };
         meshAdd(
@@ -730,7 +730,7 @@ export const buildWorld = () => {
 
     // ******** LEVEL AFTER BOAT ********
 
-    withEditMatrix(identity.translate(-123, 0, -5), () => {
+    withEditMatrix(identity.translate(-123, 0, -12), () => {
       const pushingRod = csg_polygons(
         csg_subtract(
           polygons_transform(
@@ -757,7 +757,7 @@ export const buildWorld = () => {
 
       // boat attachment
 
-      meshAdd(GBox, identity.translate(7, -2.6).scale(3.2, 1.1, 3).skewX(3), material(0.8, 0.8, 0.8, 0.2));
+      meshAdd(GBox, identity.translate(7, -2.6).scale(3.2, 1.1, 4).skewX(3), material(0.8, 0.8, 0.8, 0.2));
 
       meshAdd(cylinder(6), identity.translate(7, -2.6, -4.5).scale(3.2, 0.8, 3), material(0.6, 0.5, 0.7, 0.2));
 
@@ -771,7 +771,26 @@ export const buildWorld = () => {
         meshAdd(bigArc, identity.translate(46, -9, i * -12 - 8).rotate(0, 90), material(0.6, 0.6, 0.6, 0.3)),
       );
 
-      meshAdd(cylinder(8), identity.translate(46, -16.9).scale(3.5, 15.2, 3.5), material(0.6, 0.6, 0.6, 0.2));
+      meshAdd(
+        csg_polygons(
+          csg_subtract(
+            polygons_transform(
+              cylinder(12),
+              identity.translate(46, -13.9).scale(4, 18.2, 4),
+              material(0.7, 0.7, 0.7, 0.2),
+            ),
+            csg_union([
+              polygons_transform(GBox, identity.translate(44, 0).scale(3.5, 2.2, 1.3), material(0.4, 0.5, 0.6, 0.2)),
+              polygons_transform(GBox, identity.translate(46, 0, -2).scale(1.5, 2.2, 2), material(0.4, 0.5, 0.6, 0.2)),
+              polygons_transform(
+                cylinder(12),
+                identity.translate(46, 2.8).scale(3, 5, 3),
+                material(0.4, 0.5, 0.6, 0.2),
+              ),
+            ]),
+          ),
+        ),
+      );
 
       meshAdd(GBox, identity.translate(7.5, -17).scale(0.5, 15, 2.2), material(0.6, 0.6, 0.6, 0.3));
 
