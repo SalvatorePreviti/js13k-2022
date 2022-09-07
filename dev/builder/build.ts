@@ -200,7 +200,11 @@ export async function build() {
 
     js = await streamedClosureCompiler.compileOne(js);
 
-    js = await jsTransformSwc(js, { final: false, computed_props: true, minify: false, mangle: true }, swcPluginVars());
+    js = await jsTransformSwc(
+      js,
+      { final: false, computed_props: true, minify: false, mangle: false },
+      swcPluginVars(),
+    );
 
     js = await jsBabel(js, {
       minify: false,
@@ -214,6 +218,8 @@ export async function build() {
       ],
     });
 
+    js = await jsTransformSwc(js, { final: false, computed_props: true, minify: false, mangle: true }, swcPluginVars());
+
     js = await jsUglify(js, {
       varify: false,
       final: false,
@@ -225,7 +231,7 @@ export async function build() {
 
     js = await jsTransformSwc(
       js,
-      { final: false, computed_props: true, minify: false },
+      { final: true, computed_props: true, minify: false },
       swcPluginVars({ constToLet: true, floatRound: 6 }),
     );
 
@@ -247,7 +253,7 @@ export async function build() {
         resugarFunctionsArrow,
         resugarBlockScope,
         babelPluginSimple({ removeNoInlineCall: true }),
-        // babelPluginVars({ constToLet: true }),
+        babelPluginVars({ constToLet: true }),
         // "babel-plugin-pure-calls-annotation",
       ],
     });

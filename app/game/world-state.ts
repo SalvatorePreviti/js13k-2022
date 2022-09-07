@@ -1,6 +1,45 @@
-import { lerp, angle_wrap_degrees, lerpneg, abs } from "../math/math";
+import { lerp, min, angle_wrap_degrees, lerpneg, abs } from "../math/math";
 import type { Vec3 } from "../math/vectors";
-import { lerpDamp, gameTimeDelta, gameTime, setGameTime } from "../game-time";
+import { mainMenuVisible } from "../menu";
+
+export let absoluteTime = 0;
+
+export let gameTime = 0;
+
+export let gameTimeDelta: number = 0.01;
+
+/** Minimum 15.3 frames per second */
+export const GAME_TIME_MAX_DELTA_TIME = 0.0666;
+
+let _globalTime: number | undefined;
+
+export const setGameTime = (value: number) => (gameTime = value);
+
+export const lerpDamp = /* @__PURE__ */ (from: number, to: number, speed: number) =>
+  lerp(from, to, 1 - Math.exp(-speed * gameTimeDelta));
+
+export const gameTimeUpdate = (time: number) => {
+  const dt = (time - (_globalTime || time)) / 1000;
+  gameTimeDelta = mainMenuVisible ? 0 : min(GAME_TIME_MAX_DELTA_TIME, dt);
+  gameTime += gameTimeDelta;
+  absoluteTime += dt;
+  _globalTime = time;
+};
+
+// export const gameTimeUpdate = (time: number) => {
+//   const delta = (time - (_globalTime || time)) / 1000;
+//   if (delta >= GAME_TIME_MAX_DELTA_TIME) {
+//     gameTimeDelta = Math.min(GAME_TIME_MAX_DELTA_TIME, (time - (_globalTime || time)) / 1000);
+//     gameTime += gameTimeDelta;
+//     _globalTime = time;
+//   } else {
+//     gameTimeDelta = 0;
+//   }
+
+//   if (!_globalTime) {
+//     _globalTime = time;
+//   }
+// };
 
 export const LOCAL_STORAGE_SAVED_GAME_KEY = "666SpH3Ll22";
 
@@ -83,6 +122,7 @@ export const loadGame = () => {
     );
     if (header === 666) {
       levers.map((lever, index) => (lever.$value = (savedLevers[index] | 0) as 0 | 1));
+      console.log(levers.map((lever) => lever.$value));
       player_last_pulled_lever = savedLastPulledLever | 0;
       setGameTime(savedGameTime | 0);
       boatLerp = savedBoatLerp | 0;
@@ -96,6 +136,10 @@ export const loadGame = () => {
 };
 
 export const onPlayerPullLever = (leverIndex: number) => {
+  if (DEBUG) {
+    console.log("switch lever " + leverIndex + " = " + levers[leverIndex]?.$value);
+  }
+
   player_last_pulled_lever = leverIndex;
   saveGame();
 };

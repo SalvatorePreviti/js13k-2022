@@ -13,16 +13,15 @@ import {
 import { csg_subtract, csg_polygons, csg_union, csg_union_op } from "../geometry/csg";
 import {
   boatLerp,
+  gameTime,
   levers,
   PLAYER_MODEL_ID,
   rotatingHexCorridorRotation,
   rotatingPlatform1Rotation,
   rotatingPlatform2Rotation,
 } from "./world-state";
-import { gameTime } from "../game-time";
-import type { Mesh } from "./scene";
 import { meshAdd, meshEnd, withEditMatrix, newModel, type Model } from "./scene";
-import { newLever } from "./levers";
+import { newLever } from "./new-lever";
 
 export let playerRightLegModel: Model;
 

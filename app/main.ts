@@ -18,8 +18,12 @@ import {
 import { identity, mat_perspectiveXY } from "./math/matrix";
 import { mat_perspective, zFar, zNear, camera_position, camera_rotation, camera_view } from "./camera";
 import { csm_buildMatrix } from "./csm";
-import { absoluteTime, gameTime, gameTimeDelta, gameTimeUpdate, lerpDamp } from "./game-time";
 import {
+  absoluteTime,
+  gameTime,
+  gameTimeDelta,
+  gameTimeUpdate,
+  lerpDamp,
   levers,
   loadGame,
   player_last_pulled_lever,
@@ -84,7 +88,7 @@ requestAnimationFrame(() => {
   let currentModelIdTMinus1 = 0;
   let currentModelId = 0;
 
-  let gameLoaded = false;
+  let gameBooted = false;
 
   let player_look_angle_target = 0;
   let player_look_angle = 0;
@@ -183,6 +187,7 @@ requestAnimationFrame(() => {
       }
 
       oldModelId = currentModelId;
+
       ({
         x: player_position_global.x,
         y: player_position_global.y,
@@ -212,9 +217,10 @@ requestAnimationFrame(() => {
   };
 
   const boot = () => {
-    gameLoaded = true;
+    gameBooted = true;
     setMainMenuVisible(true);
     initHtmlElements();
+    initInputHandlers();
     updateModels(rootModel);
     loadGame();
     player_respawn();
@@ -283,7 +289,8 @@ requestAnimationFrame(() => {
     player_gravity = lerpDamp(player_gravity, hasGround ? 6.5 : 8, 4);
 
     // push up and gravity
-    return lines / 41 - (hasGround ? 1 : player_gravity) * (grav / 41) * player_gravity * gameTimeDelta;
+    player_position_global.y +=
+      lines / 41 - (hasGround ? 1 : player_gravity) * (grav / 41) * player_gravity * gameTimeDelta;
   };
 
   const doHorizontalCollisions = (_collision_buffer: Uint8Array) => {
@@ -458,7 +465,7 @@ requestAnimationFrame(() => {
       return;
     }
 
-    if (!gameLoaded) {
+    if (!gameBooted && gameTimeDelta > 0) {
       boot();
     }
 
@@ -473,7 +480,7 @@ requestAnimationFrame(() => {
 
       // compute collisions
 
-      player_position_global.y += doVerticalCollisions(collision_buffer);
+      doVerticalCollisions(collision_buffer);
       doHorizontalCollisions(collision_buffer);
 
       updatePlayer();
@@ -695,8 +702,6 @@ requestAnimationFrame(() => {
   };
 
   loadGroundTexture();
-
-  initInputHandlers();
 
   requestAnimationFrame(draw);
 

@@ -12,7 +12,7 @@ export const abs = /* @__PURE__ */ (n: number) => (n < 0 ? -n : n);
 export const clamp01 = /* @__PURE__ */ (t: number) => (t < 0 ? 0 : t > 1 ? 1 : t);
 
 /** Linear interpolation */
-export const lerp = /* @__PURE__ */ (from: number, to: number, t: number) => clamp01(t) * (to - from) + from;
+export const lerp = /* @__PURE__ */ (from: number, to: number, t: number) => from + (to - from) * clamp01(t);
 
 export const lerpneg = /* @__PURE__ */ (v: number, t: number) => {
   v = clamp01(v);
