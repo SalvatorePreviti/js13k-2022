@@ -1,6 +1,14 @@
 import { identity, integers_map } from "../math";
-import type { Polygon } from "./geometry";
-import { cylinder, cylinder_sides, polygon_regular, polygon_transform } from "./geometry";
+import { cylinder, cylinder_sides, polygon_regular, polygon_transform, type Polygon } from "./geometry";
+
+export const GQuad = /* @__PURE__ */ [
+  { x: -1, z: 1 },
+  { x: 1, z: 1 },
+  { x: 1, z: -1 },
+  { x: -1, z: -1 },
+];
+
+export const GBox = cylinder(GQuad);
 
 const HORN_STACKS = 15;
 
@@ -12,15 +20,8 @@ export const GHorn = /* @__PURE__ */ ((): Polygon[] => {
       .scale(1.0001 - i / HORN_STACKS, 0, 1 - i / HORN_STACKS),
   );
 
-  const p = polygon_regular(25);
+  const p = polygon_regular(20);
   return integers_map(HORN_STACKS, (i) =>
     cylinder_sides(polygon_transform(p, matrices[i]!).reverse(), polygon_transform(p, matrices[i + 1]!), 1),
   ).flat();
 })();
-
-export const GQuad = /* @__PURE__ */ [
-  { x: -1, z: 1 },
-  { x: 1, z: 1 },
-  { x: 1, z: -1 },
-  { x: -1, z: -1 },
-];

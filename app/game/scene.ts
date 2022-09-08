@@ -10,7 +10,7 @@ export const rootModel: Model = {
   $visible: 1,
 };
 
-export let currentModel = rootModel;
+export let currentEditModel = rootModel;
 
 export const modelsByModelId: Model[] = [];
 
@@ -23,13 +23,6 @@ export const withEditMatrix = <T>(matrix: DOMMatrixReadOnly, fn: () => T) => {
   return result;
 };
 
-const _pendingPolygonsStack: Polygon[][] = [[]];
-
-const _vertexMap = new Map<string, number>();
-const _vertexInts = new Int32Array(7);
-const _vertexIntsSmooth = new Int32Array(_vertexInts.buffer, 0, 4);
-const _vertexFloats = new Float32Array(_vertexInts.buffer);
-
 export const _triangleIndices: number[] = [];
 
 export const _vertexPositions: number[] = [];
@@ -37,6 +30,13 @@ export const _vertexPositions: number[] = [];
 export const _vertexNormals: number[] = [];
 
 export const _vertexColors: number[] = [];
+
+const _pendingPolygonsStack: Polygon[][] = [[]];
+
+const _vertexMap = new Map<string, number>();
+const _vertexInts = new Int32Array(7);
+const _vertexIntsSmooth = new Int32Array(_vertexInts.buffer, 0, 4);
+const _vertexFloats = new Float32Array(_vertexInts.buffer);
 
 let _polygon: Polygon | undefined;
 let _meshFirstIndex: number = 0;
@@ -113,22 +113,22 @@ export const meshEnd = (): Mesh => {
 export const newModel = (fn: (model: Model) => void | Mesh | undefined, $modelId = 0) => {
   const model: Model = {
     ...rootModel,
-    $parent: currentModel,
+    $parent: currentEditModel,
     $children: [],
     $initialMatrix: editMatrixStack.at(-1)!,
     $modelId,
   };
-  _pendingPolygonsStack.push([]);
   editMatrixStack.push(identity);
-  currentModel.$children.push(model);
-  currentModel = model;
+  _pendingPolygonsStack.push([]);
+  currentEditModel.$children.push(model);
+  currentEditModel = model;
 
   const modelMesh = fn(model) || meshEnd();
   modelsByModelId[model.$modelId] = model;
   if (modelMesh && modelMesh.$vertexCount) {
     model.$mesh = modelMesh;
   }
-  currentModel = model.$parent!;
+  currentEditModel = model.$parent!;
   editMatrixStack.pop();
   _pendingPolygonsStack.pop();
   return model;
@@ -136,6 +136,9 @@ export const newModel = (fn: (model: Model) => void | Mesh | undefined, $modelId
 
 export const updateModels = (model: Model, parentMatrix = identity) => {
   const update = model._update;
+  if (model.$parent && !model.$modelId) {
+    model.$modelId = model.$parent.$modelId || 1;
+  }
   model.$finalMatrix = parentMatrix.multiply(model.$initialMatrix);
   if (update) {
     const updateResult = update(model);

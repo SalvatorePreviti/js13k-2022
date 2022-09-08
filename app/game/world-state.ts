@@ -1,5 +1,6 @@
 import { lerp, min, angle_wrap_degrees, lerpneg, abs, type Vec3 } from "../math";
 import { mainMenuVisible } from "../page";
+import type { Model } from "./scene";
 
 export let absoluteTime = 0;
 
@@ -11,8 +12,6 @@ export let gameTimeDelta: number = 0.01;
 export const GAME_TIME_MAX_DELTA_TIME = 0.0666;
 
 let _globalTime: number | undefined;
-
-export const setGameTime = (value: number) => (gameTime = value);
 
 export const lerpDamp = /* @__PURE__ */ (from: number, to: number, speed: number) =>
   lerp(from, to, 1 - Math.exp(-speed * gameTimeDelta));
@@ -46,7 +45,7 @@ export interface Lever {
   $value: 0 | 1;
   $lerpValue: number;
   $lerpValue2: number;
-  $modelId: number;
+  $model?: Model;
   $matrix?: DOMMatrixReadOnly;
 }
 
@@ -123,10 +122,12 @@ export const loadGame = () => {
       localStorage[LOCAL_STORAGE_SAVED_GAME_KEY]!,
     );
     if (header === 666) {
-      levers.map((lever, index) => (lever.$value = (savedLevers[index] | 0) as 0 | 1));
+      levers.map(
+        (lever, index) => (lever.$lerpValue = lever.$lerpValue2 = lever.$value = (savedLevers[index] | 0) as 0 | 1),
+      );
       souls.map((soul, index) => (soul.$value = (savedSouls[index] | 0) as 0 | 1));
       player_last_pulled_lever = savedLastPulledLever | 0;
-      setGameTime(savedGameTime | 0);
+      gameTime = savedGameTime | 0;
       boatLerp = savedBoatLerp | 0;
     }
   } catch (e) {

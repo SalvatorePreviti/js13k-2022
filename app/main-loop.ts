@@ -31,7 +31,6 @@ import {
   min,
   identity,
   mat_perspectiveXY,
-  type Vec3In,
   angle_lerp_degrees,
 } from "./math";
 import { mat_perspective, zFar, zNear, camera_position, camera_rotation, camera_view } from "./camera";
@@ -65,7 +64,8 @@ import {
   mainMenuVisible,
   initPage,
 } from "./page";
-import { initTriangleBuffers, renderModels } from "./game/triangle-buffers";
+import { initTriangleBuffers } from "./game/triangle-buffers";
+import { renderModels } from "./game/render-models";
 
 const PLAYER_LEGS_VELOCITY = 7 * 1.3;
 
@@ -81,7 +81,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   let currentModelId = 0;
 
   let player_has_ground: 0 | 1 | undefined;
-  let player_respawned: 0 | 1 = 0;
+  let player_respawned: 0 | 1 = 1;
   let player_look_angle_target = 0;
   let player_look_angle = 0;
   let player_legs_speed = 0;
@@ -95,24 +95,6 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   let camera_player_dir_x = player_position_global.x;
   let camera_player_dir_y = player_position_global.y + 13;
   let camera_player_dir_z = player_position_global.z - 18;
-
-  const player_forceSetPosition = ({ x, y, z }: Vec3In) => {
-    player_speed = 0;
-    player_gravity = -15;
-    player_collision_velocity_x = 0;
-    player_collision_velocity_z = 0;
-    player_has_ground = 0;
-    player_collision_x = 0;
-    player_collision_z = 0;
-    player_position_global.x = x;
-    player_position_global.y = y;
-    player_position_global.z = z;
-    player_position_final.x = x;
-    player_position_final.y = y;
-    player_position_final.z = z;
-    player_respawned = 1;
-    currentModelIdTMinus1 = 0;
-  };
 
   const mainVertexShader = loadShader(main_vsSource);
   const skyShader = initShaderProgram(loadShader(sky_vsSource), sky_fsSource);
@@ -228,11 +210,24 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
   const player_respawn = () => {
-    const { $matrix, $modelId } = levers[player_last_pulled_lever]!;
-    player_forceSetPosition(
-      player_last_pulled_lever && $matrix ? $matrix.transformPoint({ x: 0, y: 10, z: -3 }) : player_position_initial,
-    );
-    currentModelId = $modelId;
+    const { $matrix, $model } = levers[player_last_pulled_lever]!;
+
+    const { x, y, z } =
+      player_last_pulled_lever && $matrix ? $matrix.transformPoint({ x: 0, y: 15, z: -3 }) : player_position_initial;
+
+    player_position_final.x = player_position_global.x = x;
+    player_position_final.y = player_position_global.y = y;
+    player_position_final.z = player_position_global.z = z;
+
+    player_speed = 0;
+    player_gravity = 0;
+    player_collision_velocity_x = 0;
+    player_collision_velocity_z = 0;
+    player_has_ground = 0;
+    player_collision_x = 0;
+    player_collision_z = 0;
+    player_respawned = 1;
+    currentModelIdTMinus1 = currentModelId = $model!.$modelId || 1;
   };
 
   const updatePlayer = () => {

@@ -84,8 +84,8 @@ export const cylinder = /* @__PURE__ */ (
   const points = (segments as Vec3Optional[]).length
     ? (segments as Vec3Optional[])
     : polygon_regular(segments as number, elongate);
-  const bottom = polygon_transform(points, identity.translate(0, -1).scale3d(topSize < 0 ? -topSize : 1)).reverse();
   const top = polygon_transform(points, identity.translate(0, 1).scale3d(topSize > 0 ? topSize : 1));
+  const bottom = polygon_transform(points, identity.translate(0, -1).scale3d(topSize < 0 ? -topSize : 1)).reverse();
   const sides = cylinder_sides(bottom as Polygon, top, smooth);
   sides.push(bottom, top);
   return sides;

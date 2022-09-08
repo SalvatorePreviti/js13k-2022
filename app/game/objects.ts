@@ -6,13 +6,13 @@ import { meshAdd, meshEnd, newModel, type Model } from "./scene";
 import {
   PLAYER_MODEL_ID,
   levers,
+  souls,
   player_position_final,
   onPlayerPullLever,
   onSoulCollected,
   lerpDamp,
   type Lever,
   type Soul,
-  souls,
 } from "./world-state";
 import { keyboard_downKeys, KEY_INTERACT } from "../page";
 
@@ -93,7 +93,7 @@ export const playerModel = newModel((model) => {
 }, PLAYER_MODEL_ID);
 
 export const newLever = (): void => {
-  const lever: Lever = { $value: 0, $lerpValue: 0, $lerpValue2: 0, $modelId: 0 };
+  const lever: Lever = { $value: 0, $lerpValue: 0, $lerpValue2: 0 };
   const index = levers.push(lever) - 1;
 
   meshAdd(cylinder(5), identity.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
@@ -101,10 +101,10 @@ export const newLever = (): void => {
   meshAdd(cylinder(GQuad), identity.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
 
   newModel((model) => {
+    lever.$model = model;
     model._update = () => {
       const matrix = model.$finalMatrix;
       lever.$matrix = matrix;
-      lever.$modelId = model.$modelId;
       if (
         keyboard_downKeys[KEY_INTERACT] &&
         vec3_distance(matrix.transformPoint(), player_position_final) < LEVER_SENSITIVITY_RADIUS
