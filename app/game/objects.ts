@@ -1,6 +1,8 @@
 import { identity, vec3_distance } from "../math";
-import { cylinder, material, GBox, polygons_transform, horn, sphere, GQuad } from "../geometry/geometry";
+import { cylinder, material, polygons_transform, sphere } from "../geometry/geometry";
 import { csg_polygons, csg_subtract } from "../geometry/csg";
+import { GQuad, GHorn, GBox, G6, G5 } from "../geometry/solids";
+import { meshAdd, meshEnd, newModel, type Model } from "./scene";
 import {
   PLAYER_MODEL_ID,
   levers,
@@ -12,9 +14,7 @@ import {
   type Soul,
   souls,
 } from "./world-state";
-import type { Model } from "./scene";
-import { withEditMatrix, meshAdd, meshEnd, newModel } from "./scene";
-import { keyboard_downKeys, KEY_INTERACT } from "../input";
+import { keyboard_downKeys, KEY_INTERACT } from "../page";
 
 // ========= Sky mesh ========= //
 
@@ -41,13 +41,15 @@ const SOUL_SENSITIVITY_RADIUS = 1.5;
 
 // ========= Soul mesh ========= //
 
-meshAdd(cylinder(6), identity, material(1, 0.3, 0.5));
+meshAdd(G6, identity, material(1, 0.3, 0.5));
 const soulMesh = meshEnd();
 
 // ========= Player ========= //
 
-meshAdd(cylinder(10, 1), identity.translate(-0.3, -1, 0).scale(0.2, 0.5, 0.24), material(1, 0.3, 0.4));
-const rightLegMesh = meshEnd();
+const legsMeshes = [-0.3, 0.3].map((x) => {
+  meshAdd(cylinder(10, 1), identity.translate(x, -1, 0).scale(0.2, 0.5, 0.24), material(1, 0.3, 0.4));
+  return meshEnd();
+});
 
 export let playerRightLegModel: Model;
 
@@ -55,16 +57,15 @@ export let playerLeftLegModel: Model;
 
 export const playerModel = newModel((model) => {
   model.$collisions = 0;
-  const rhorn = polygons_transform(
-    horn(),
-    identity.translate(0.2, 1.32, 0).rotate(0, 0, -30).scale(0.2, 0.6, 0.2),
-    material(1, 1, 0.8),
+
+  // horns
+  [0, 180].map((r) =>
+    meshAdd(
+      GHorn,
+      identity.rotate(0, r).translate(0.2, 1.32, 0).rotate(0, 0, -30).scale(0.2, 0.6, 0.2),
+      material(1, 1, 0.8),
+    ),
   );
-
-  meshAdd(rhorn);
-
-  // left horn
-  meshAdd(rhorn, identity.rotate(0, 180));
 
   // head
   meshAdd(sphere(30), identity.translate(0, 1, 0).scale(0.5, 0.5, 0.5), material(1, 0.3, 0.4));
@@ -85,16 +86,16 @@ export const playerModel = newModel((model) => {
 
   // Player legs
 
-  playerRightLegModel = newModel(() => rightLegMesh);
-  playerLeftLegModel = withEditMatrix(identity.translate(0.6), () => newModel(() => rightLegMesh));
+  playerRightLegModel = newModel(() => legsMeshes[0]!);
+  playerLeftLegModel = newModel(() => legsMeshes[1]!);
 }, PLAYER_MODEL_ID);
 
 export const newLever = (): void => {
   const lever: Lever = { $value: 0, $lerpValue: 0, $lerpValue2: 0, $modelId: 0 };
   const index = levers.push(lever) - 1;
 
-  meshAdd(cylinder(5), identity.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
-  meshAdd(cylinder(5), identity.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
+  meshAdd(G5, identity.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
+  meshAdd(G5, identity.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
   meshAdd(GBox, identity.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
 
   newModel((model) => {

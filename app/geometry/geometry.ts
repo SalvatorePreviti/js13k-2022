@@ -76,12 +76,14 @@ export const cone_sides = /* @__PURE__ */ (btm: Polygon, smooth?: 0 | 1 | undefi
 
 /** Simplest composition of polygon functions. */
 export const cylinder = /* @__PURE__ */ (
-  segments: number,
+  segments: number | Vec3Optional[],
   smooth?: 0 | 1,
   topSize: number = 0,
   elongate?: number,
 ): Polygon[] => {
-  const points = polygon_regular(segments, elongate);
+  const points = (segments as Vec3Optional[]).length
+    ? (segments as Vec3Optional[])
+    : polygon_regular(segments as number, elongate);
   const bottom = polygon_transform(points, identity.translate(0, -1).scale3d(topSize < 0 ? -topSize : 1)).reverse();
   const top = polygon_transform(points, identity.translate(0, 1).scale3d(topSize > 0 ? topSize : 1));
   const sides = cylinder_sides(bottom as Polygon, top, smooth);
@@ -94,22 +96,6 @@ export const cone = /* @__PURE__ */ (segments: number, smooth?: 0 | 1 | undefine
   const sides = cone_sides(bottom, smooth);
   sides.push(bottom);
   return sides;
-};
-
-export const horn = /* @__PURE__ */ (curvature: number = 0): Polygon[] => {
-  const stacks = 10;
-
-  const p = polygon_regular(20);
-
-  const getMatrix = (i: number) =>
-    identity
-      .translate(Math.sin((i / stacks) * Math.PI) + curvature * i, i / stacks)
-      .rotate(10 * (i / stacks))
-      .scale(1 - i / stacks, 0, 1 - i / stacks);
-
-  return integers_map(stacks, (i) =>
-    cylinder_sides(polygon_transform(p, getMatrix(i)).reverse(), polygon_transform(p, getMatrix(i + 1)), 1),
-  ).flat();
 };
 
 export const sphere = /* @__PURE__ */ (slices: number, smooth: 0 | 1 | undefined = 1): Polygon[] => {
@@ -136,17 +122,3 @@ export const sphere = /* @__PURE__ */ (slices: number, smooth: 0 | 1 | undefined
   }
   return polygons;
 };
-
-export const GQuad = [
-  { x: -1, z: 1 },
-  { x: 1, z: 1 },
-  { x: 1, z: -1 },
-  { x: -1, z: -1 },
-];
-
-// export const GBox = /* @__PURE__ */ polygon_extrude(GQuad);
-
-export const GBox = /* @__PURE__ */ polygons_transform(
-  cylinder(4),
-  identity.scale(Math.SQRT2, 1, Math.SQRT2).rotate(0, -45, 0),
-);

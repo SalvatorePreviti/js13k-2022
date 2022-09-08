@@ -32,8 +32,6 @@ export const initShaderProgram = (vertexShader: WebGLShader, sfsSource: string):
     throw new Error("Unable to initialize the shader program: " + gl.getProgramInfoLog(program));
   }
 
-  gl.useProgram(program);
-
   return (name?: string): any =>
     name ? uniforms[name] || (uniforms[name] = gl.getUniformLocation(program, name)!) : gl.useProgram(program);
 };

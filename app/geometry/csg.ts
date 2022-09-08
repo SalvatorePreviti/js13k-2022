@@ -87,7 +87,7 @@ const CSGPolygon_split = /* @__PURE__ */ (plane: Plane, polygon: CSGPolygon): Sp
       $front = polygon;
     }
     if ($back && $front) {
-      return CSGPolygon_splitSpanning(plane, polygon);
+      return NO_INLINE(CSGPolygon_splitSpanning)(plane, polygon);
     }
   }
   return { $front, $back };
@@ -169,7 +169,7 @@ export const csg_tree = /* @__PURE__ */ (n: CSGInput): CSGNode =>
       (n as CSGNode);
 
 /** Convert solid space to empty space and empty space to solid space. */
-export const csg_tree_flip = (root: CSGNode | 0 | undefined): unknown =>
+export const csg_tree_flip = <T extends CSGNode | 0 | undefined>(root: T): T => {
   csg_tree_each(root, (node) => {
     const { $front, $back } = node;
     node.$back = $front;
@@ -182,6 +182,8 @@ export const csg_tree_flip = (root: CSGNode | 0 | undefined): unknown =>
       polygon.$flipped = !polygon.$flipped;
     }
   });
+  return root;
+};
 
 /**
  * Union a[0] = a[0] U a[1] U a[2] U ...
@@ -210,15 +212,11 @@ export const csg_union = /* @__PURE__ */ (...inputs: CSGInput[]): CSGNode =>
   }) as CSGNode;
 
 /**
- * Subtraction a = a - b
+ * Subtraction a = a - (b[0] U b[1] U ...)
+ * Note that a will be modified if is a tree.
  */
-export const csg_subtract = /* @__PURE__ */ (a: CSGInput, b: CSGInput): CSGNode => {
-  a = csg_tree(a);
-  csg_tree_flip(a);
-  csg_union(a, b);
-  csg_tree_flip(a);
-  return a;
-};
+export const csg_subtract = /* @__PURE__ */ (a: CSGInput, ...b: CSGInput[]): CSGNode =>
+  csg_tree_flip(csg_union(csg_tree_flip(csg_tree(a)), ...b));
 
 /**
  * Extracts all the polygons from a BSP tree.
@@ -253,5 +251,3 @@ export const csg_polygons = /* @__PURE__ */ (tree: CSGNode): Polygon[] => {
     return polygon_color(flipped ? polygon.reverse() : polygon, $polygon.$color, $polygon.$smooth);
   });
 };
-
-NO_INLINE(CSGPolygon_splitSpanning);

@@ -1,66 +1,4 @@
-if (DEBUG) {
-  console.time("boot");
-  console.time("LOADED");
-}
-
-import {
-  abs,
-  angle_lerp,
-  angle_wrap_degrees,
-  clamp01,
-  DEG_TO_RAD,
-  integers_map,
-  interpolate_with_hysteresis,
-  lerp,
-  max,
-  min,
-  identity,
-  mat_perspectiveXY,
-  type Vec3In,
-} from "./math";
-
-import { mat_perspective, zFar, zNear, camera_position, camera_rotation, camera_view } from "./camera";
-import { csm_buildMatrix } from "./csm";
-
-import {
-  absoluteTime,
-  gameTime,
-  gameTimeDelta,
-  gameTimeUpdate,
-  lerpDamp,
-  levers,
-  loadGame,
-  player_last_pulled_lever,
-  player_position_final,
-  player_position_global,
-  player_position_initial,
-  worldStateUpdate,
-} from "./game/world-state";
-
-import { updateModels, rootModel, initTriangleBuffers, modelsByModelId, newModel } from "./game/scene";
-
-import { playerLeftLegModel, playerModel, playerRightLegModel } from "./game/objects";
-import { buildWorld } from "./game/level";
-
-import { gl, initShaderProgram, loadShader } from "./gl";
-
-import { initHtmlElements, mainMenuVisible, setMainMenuVisible } from "./menu";
-import { renderModels } from "./game/render-models";
-import { loadGroundTexture, texturesLoaded } from "./ground-texture";
-
-import {
-  initInputHandlers,
-  keyboard_downKeys,
-  KEY_BACK,
-  KEY_FRONT,
-  KEY_LEFT,
-  KEY_RIGHT,
-  input_frameReset,
-  mouse_movementX,
-  mouse_movementY,
-  player_first_person,
-} from "./input";
-
+// shaders
 import csm_vsSource from "./shaders/csm-vertex.vert";
 import main_vsSource, {
   uniformName_projectionMatrix,
@@ -81,16 +19,62 @@ import void_fsSource from "./shaders/void-fragment.frag";
 import sky_vsSource from "./shaders/sky-vertex.vert";
 import sky_fsSource, { uniformName_iResolution } from "./shaders/sky-fragment.frag";
 
+import {
+  abs,
+  angle_wrap_degrees,
+  clamp01,
+  DEG_TO_RAD,
+  integers_map,
+  interpolate_with_hysteresis,
+  lerp,
+  max,
+  min,
+  identity,
+  mat_perspectiveXY,
+  type Vec3In,
+  angle_lerp_degrees,
+} from "./math";
+import { mat_perspective, zFar, zNear, camera_position, camera_rotation, camera_view } from "./camera";
+import { csm_buildMatrix } from "./csm";
+import { updateModels, rootModel, modelsByModelId } from "./game/scene";
+import { playerLeftLegModel, playerModel, playerRightLegModel } from "./game/objects";
+import { gl, initShaderProgram, loadShader } from "./gl";
+import {
+  absoluteTime,
+  gameTime,
+  gameTimeDelta,
+  gameTimeUpdate,
+  lerpDamp,
+  levers,
+  player_last_pulled_lever,
+  player_position_final,
+  player_position_global,
+  player_position_initial,
+  worldStateUpdate,
+} from "./game/world-state";
+import {
+  keyboard_downKeys,
+  KEY_BACK,
+  KEY_FRONT,
+  KEY_LEFT,
+  KEY_RIGHT,
+  input_frameReset,
+  mouse_movementX,
+  mouse_movementY,
+  player_first_person,
+  mainMenuVisible,
+  initPage,
+} from "./page";
+import { initTriangleBuffers, renderModels } from "./game/triangle-buffers";
+
 const PLAYER_LEGS_VELOCITY = 7 * 1.3;
 
 const COLLISION_TEXTURE_SIZE = 128;
 
 let debug2dctx: CanvasRenderingContext2D | null | undefined;
 
-requestAnimationFrame(() => {
-  const _frameBuffersInvalidations = [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT];
-
-  let gameBooted: 0 | 1 | undefined;
+export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
+  const player_collision_modelIdCounter = new Int32Array(256);
 
   let oldModelId: number | undefined;
   let currentModelIdTMinus1 = 0;
@@ -130,12 +114,125 @@ requestAnimationFrame(() => {
     currentModelIdTMinus1 = 0;
   };
 
+  const mainVertexShader = loadShader(main_vsSource);
+  const skyShader = initShaderProgram(loadShader(sky_vsSource), sky_fsSource);
+  const csmShader = initShaderProgram(loadShader(csm_vsSource), void_fsSource);
+  const collisionShader = initShaderProgram(mainVertexShader, collider_fsSource);
+  const mainShader = initShaderProgram(mainVertexShader, main_fsSource);
+
+  const collision_buffer = new Uint8Array(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
+  const collision_texture = gl.createTexture()!;
+  const collision_frameBuffer = gl.createFramebuffer()!;
+  const collision_renderBuffer = gl.createRenderbuffer();
+
+  const csm_render = integers_map(3, (csmSplit: number) => {
+    let lightSpaceMatrix: Float32Array;
+    const texture = gl.createTexture()!;
+    const frameBuffer = gl.createFramebuffer();
+    const lightSpaceMatrixLoc = mainShader(uniformName_csm_matrices + `[${csmSplit}]`);
+
+    mainShader();
+    gl.uniform1i(mainShader(uniformName_csm_textures + `[${csmSplit}]`), csmSplit);
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
+
+    // Disable rendering to the color buffer, we just need the depth buffer
+    gl.drawBuffers([gl.NONE]);
+    gl.readBuffer(gl.NONE);
+
+    gl.activeTexture(gl.TEXTURE0 + csmSplit);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, texture, 0);
+    gl.texImage2D(
+      gl.TEXTURE_2D,
+      0,
+      gl.DEPTH_COMPONENT32F,
+      CSM_TEXTURE_SIZE,
+      CSM_TEXTURE_SIZE,
+      0,
+      gl.DEPTH_COMPONENT,
+      gl.FLOAT,
+      null,
+    );
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_FUNC, gl.LEQUAL); // Can be LESS or LEQUAL
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_MODE, gl.COMPARE_REF_TO_TEXTURE);
+
+    return (matrix?: Float32Array | 1) => {
+      if (matrix) {
+        gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
+        if (matrix === 1) {
+          gl.invalidateFramebuffer(gl.FRAMEBUFFER, [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT]);
+        } else {
+          gl.clear(gl.DEPTH_BUFFER_BIT);
+          gl.uniformMatrix4fv(csmShader(uniformName_viewMatrix), false, (lightSpaceMatrix = matrix));
+          renderModels(csmShader(uniformName_worldMatrix), !player_first_person);
+        }
+      } else {
+        gl.uniformMatrix4fv(lightSpaceMatrixLoc, false, lightSpaceMatrix);
+      }
+    };
+  });
+
+  initTriangleBuffers();
+
+  gl.enable(gl.DEPTH_TEST); // Enable depth testing
+  gl.enable(gl.CULL_FACE); // Don't render triangle backs
+
+  gl.clearDepth(1); // Clear everything. Default value is 1
+  gl.cullFace(gl.BACK); // Default value is already BACK
+  gl.depthFunc(gl.LEQUAL); // LEQUAL to make sky works
+  gl.clearColor(0, 0, 0, 1);
+
+  skyShader();
+  gl.uniform1i(skyShader(uniformName_groundTexture), 3); // TEXTURE3
+
+  collisionShader();
+  gl.uniformMatrix4fv(collisionShader(uniformName_projectionMatrix), false, mat_perspectiveXY(1.4, 0.59, 0.0001, 1));
+
+  mainShader();
+  gl.uniform1i(mainShader(uniformName_groundTexture), 3); // TEXTURE3
+
+  // Collision framebuffer
+
+  gl.bindFramebuffer(gl.FRAMEBUFFER, collision_frameBuffer);
+  gl.bindRenderbuffer(gl.RENDERBUFFER, collision_renderBuffer);
+
+  gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
+  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, collision_renderBuffer);
+
+  gl.activeTexture(gl.TEXTURE3);
+  gl.bindTexture(gl.TEXTURE_2D, collision_texture);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, collision_texture, 0);
+  gl.texImage2D(
+    gl.TEXTURE_2D,
+    0,
+    gl.RGB,
+    COLLISION_TEXTURE_SIZE,
+    COLLISION_TEXTURE_SIZE,
+    0,
+    gl.RGB,
+    gl.UNSIGNED_BYTE,
+    null,
+  );
+
+  // Ground texture
+
+  gl.bindTexture(gl.TEXTURE_2D, gl.createTexture());
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1024, 1024, 0, gl.RGBA, gl.UNSIGNED_BYTE, groundTextureImage);
+  gl.generateMipmap(gl.TEXTURE_2D);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
   const player_respawn = () => {
     const { $matrix, $modelId } = levers[player_last_pulled_lever]!;
-    currentModelId = $modelId;
     player_forceSetPosition(
       player_last_pulled_lever && $matrix ? $matrix.transformPoint({ x: 0, y: 10, z: -3 }) : player_position_initial,
     );
+    currentModelId = $modelId;
   };
 
   const updatePlayer = () => {
@@ -217,27 +314,11 @@ requestAnimationFrame(() => {
     }
 
     if (movStrafe || movForward) {
-      player_look_angle_target = Math.atan2(movStrafe, movForward);
+      player_look_angle_target = Math.atan2(movStrafe, movForward) / DEG_TO_RAD;
     }
-    player_look_angle = angle_lerp(player_look_angle, player_look_angle_target, gameTimeDelta * 8);
+    player_look_angle = angle_lerp_degrees(player_look_angle, player_look_angle_target, gameTimeDelta * 8);
     player_legs_speed = lerp(player_legs_speed, movStrafe || movForward ? 1 : 0, gameTimeDelta * 10);
   };
-
-  const boot = () => {
-    gameBooted = 1;
-    setMainMenuVisible(!DEBUG);
-    initHtmlElements();
-    initInputHandlers();
-    updateModels(rootModel);
-    loadGame();
-    player_respawn();
-
-    if (DEBUG) {
-      console.timeEnd("LOADED");
-    }
-  };
-
-  const player_collision_modelIdCounter = new Int32Array(256);
 
   const doVerticalCollisions = (_collision_buffer: Uint8Array) => {
     let maxModelIdCount = 0;
@@ -350,128 +431,8 @@ requestAnimationFrame(() => {
     player_collision_z = ddz;
   };
 
-  const collision_buffer = new Uint8Array(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
-  const collision_texture = gl.createTexture()!;
-  const collision_frameBuffer = gl.createFramebuffer()!;
-  const collision_renderBuffer = gl.createRenderbuffer();
-
-  const skyShader = initShaderProgram(loadShader(sky_vsSource), sky_fsSource);
-  gl.uniform1i(skyShader(uniformName_groundTexture), 3); // TEXTURE3
-
-  const csmShader = initShaderProgram(loadShader(csm_vsSource), void_fsSource);
-
-  const main_vertexShader = loadShader(main_vsSource);
-  const collisionShader = initShaderProgram(main_vertexShader, collider_fsSource);
-
-  gl.uniformMatrix4fv(collisionShader(uniformName_projectionMatrix), false, mat_perspectiveXY(1.4, 0.59, 0.0001, 1));
-
-  const mainShader = initShaderProgram(main_vertexShader, main_fsSource);
-  gl.uniform1i(mainShader(uniformName_groundTexture), 3); // TEXTURE3
-
-  gl.enable(gl.DEPTH_TEST); // Enable depth testing
-  gl.enable(gl.CULL_FACE); // Don't render triangle backs
-
-  gl.clearDepth(1); // Clear everything. Default value is 1
-  gl.cullFace(gl.BACK); // Default value is already BACK
-  gl.depthFunc(gl.LEQUAL); // LEQUAL is required for sky
-  gl.clearColor(0, 0, 0, 1);
-
-  gl.bindFramebuffer(gl.FRAMEBUFFER, collision_frameBuffer);
-  gl.bindRenderbuffer(gl.RENDERBUFFER, collision_renderBuffer);
-
-  gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
-  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, collision_renderBuffer);
-
-  gl.activeTexture(gl.TEXTURE3);
-  gl.bindTexture(gl.TEXTURE_2D, collision_texture);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, collision_texture, 0);
-  gl.texImage2D(
-    gl.TEXTURE_2D,
-    0,
-    gl.RGB,
-    COLLISION_TEXTURE_SIZE,
-    COLLISION_TEXTURE_SIZE,
-    0,
-    gl.RGB,
-    gl.UNSIGNED_BYTE,
-    null,
-  );
-
-  const csm_render = integers_map(3, (csmSplit: number) => {
-    let lightSpaceMatrix: Float32Array;
-    const texture = gl.createTexture()!;
-    const frameBuffer = gl.createFramebuffer();
-    const lightSpaceMatrixLoc = mainShader(uniformName_csm_matrices + `[${csmSplit}]`);
-    gl.uniform1i(mainShader(uniformName_csm_textures + `[${csmSplit}]`), csmSplit);
-
-    gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
-
-    // Disable rendering to the color buffer, we just need the depth buffer
-    gl.drawBuffers([gl.NONE]);
-    gl.readBuffer(gl.NONE);
-
-    gl.activeTexture(gl.TEXTURE0 + csmSplit);
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, texture, 0);
-    gl.texImage2D(
-      gl.TEXTURE_2D,
-      0,
-      gl.DEPTH_COMPONENT32F,
-      CSM_TEXTURE_SIZE,
-      CSM_TEXTURE_SIZE,
-      0,
-      gl.DEPTH_COMPONENT,
-      gl.FLOAT,
-      null,
-    );
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_FUNC, gl.LEQUAL); // Can be LESS or LEQUAL
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_MODE, gl.COMPARE_REF_TO_TEXTURE);
-
-    return (matrix?: Float32Array | 1) => {
-      if (matrix) {
-        gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
-        if (matrix === 1) {
-          gl.invalidateFramebuffer(gl.FRAMEBUFFER, _frameBuffersInvalidations);
-        } else {
-          gl.clear(gl.DEPTH_BUFFER_BIT);
-          gl.uniformMatrix4fv(csmShader(uniformName_viewMatrix), false, (lightSpaceMatrix = matrix));
-          renderModels(csmShader(uniformName_worldMatrix), !player_first_person);
-        }
-      } else {
-        gl.uniformMatrix4fv(lightSpaceMatrixLoc, false, lightSpaceMatrix);
-      }
-    };
-  });
-
-  playerModel._update = () =>
-    identity
-      .translate(player_position_final.x, player_position_final.y, player_position_final.z)
-      .rotateSelf(0, player_look_angle / DEG_TO_RAD);
-
-  playerRightLegModel._update = () =>
-    identity
-      .translate(0, player_legs_speed * clamp01(Math.sin(gameTime * PLAYER_LEGS_VELOCITY - Math.PI / 2) * 0.45))
-      .rotateSelf(player_legs_speed * Math.sin(gameTime * PLAYER_LEGS_VELOCITY) * (0.25 / DEG_TO_RAD), 0);
-
-  playerLeftLegModel._update = () =>
-    identity
-      .translate(0, player_legs_speed * clamp01(Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI / 2) * 0.45))
-      .rotateSelf(player_legs_speed * Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI) * (0.25 / DEG_TO_RAD), 0);
-
-  const draw = (globalTime: number) => {
-    requestAnimationFrame(draw);
-
-    if (!texturesLoaded) {
-      return;
-    }
-
-    if (!gameBooted && gameTimeDelta > 0) {
-      boot();
-    }
+  const mainLoop = (globalTime: number) => {
+    requestAnimationFrame(mainLoop);
 
     // *** COLLISIONS ***
 
@@ -480,12 +441,13 @@ requestAnimationFrame(() => {
 
       gl.bindFramebuffer(gl.FRAMEBUFFER, collision_frameBuffer);
       gl.readPixels(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE, gl.RGBA, gl.UNSIGNED_BYTE, collision_buffer);
-      gl.invalidateFramebuffer(gl.FRAMEBUFFER, _frameBuffersInvalidations);
+      gl.invalidateFramebuffer(gl.FRAMEBUFFER, [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT]);
 
       // compute collisions
 
-      doVerticalCollisions(collision_buffer);
-      doHorizontalCollisions(collision_buffer);
+      NO_INLINE(doVerticalCollisions)(collision_buffer);
+
+      NO_INLINE(doHorizontalCollisions)(collision_buffer);
 
       updatePlayer();
 
@@ -703,19 +665,25 @@ requestAnimationFrame(() => {
     input_frameReset();
   };
 
-  loadGroundTexture();
+  playerModel._update = () =>
+    identity
+      .translate(player_position_final.x, player_position_final.y, player_position_final.z)
+      .rotateSelf(0, player_look_angle);
 
-  newModel(buildWorld);
-  initTriangleBuffers();
+  playerRightLegModel._update = () =>
+    identity
+      .translate(0, player_legs_speed * clamp01(Math.sin(gameTime * PLAYER_LEGS_VELOCITY - Math.PI / 2) * 0.45))
+      .rotateSelf(player_legs_speed * Math.sin(gameTime * PLAYER_LEGS_VELOCITY) * (0.25 / DEG_TO_RAD), 0);
 
-  requestAnimationFrame(draw);
+  playerLeftLegModel._update = () =>
+    identity
+      .translate(0, player_legs_speed * clamp01(Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI / 2) * 0.45))
+      .rotateSelf(player_legs_speed * Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI) * (0.25 / DEG_TO_RAD), 0);
 
-  NO_INLINE(doHorizontalCollisions);
-  NO_INLINE(doVerticalCollisions);
+  updateModels(rootModel);
 
-  // NO_INLINE(boot);
+  initPage();
+  player_respawn();
 
-  if (DEBUG) {
-    console.timeEnd("boot");
-  }
-});
+  requestAnimationFrame(mainLoop);
+};

@@ -45,7 +45,7 @@
     [-1, 1].map((i) =>
       meshAdd(
         polygons_transform(
-          horn(),
+          horn
           identity
             .translate(i * 4, 0.5, -20.8)
             .rotate(0, i * 90 - 90, i * 23)
@@ -60,7 +60,7 @@
           [-1, 1].map((i) =>
         meshAdd(
           polygons_transform(
-            horn(),
+            horn,
             identity
               .translate(-42, -3, -21.5)
               .rotate(0, i * 90, i * 90) //

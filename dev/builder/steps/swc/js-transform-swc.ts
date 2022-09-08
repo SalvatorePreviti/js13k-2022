@@ -14,6 +14,7 @@ export interface SwcMinifySettings {
   minify?: boolean;
   final: boolean;
   computed_props: boolean;
+  timed?: boolean;
 }
 
 export async function jsTransformSwc(
@@ -77,7 +78,7 @@ export async function jsTransformSwc(
       this.setSuccessText(sizeDifference(source, result));
       return result;
     },
-    { spinner: true },
+    { spinner: true, timed: typeof minify !== "object" || !minify || minify.timed === undefined || !!minify.timed },
   );
 }
 
@@ -311,7 +312,7 @@ export function getSwcMinifyOptions(settings: SwcMinifySettings): JsMinifyOption
       // do not count as references unless set to "keep_assign")
       unused: true,
 
-      const_to_let: true,
+      const_to_let: false,
       pristine_globals: true,
     },
 

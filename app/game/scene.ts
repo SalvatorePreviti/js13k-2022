@@ -1,11 +1,9 @@
-import { gl } from "../gl";
 import { identity, plane_fromPolygon, type Vec3Optional } from "../math";
 import { polygons_transform, type Polygon } from "../geometry/geometry";
 
 export const rootModel: Model = {
   $children: [],
   $initialMatrix: identity,
-  $animationMatrix: identity,
   $finalMatrix: identity,
   $modelId: 1,
   $collisions: 1,
@@ -32,10 +30,13 @@ const _vertexInts = new Int32Array(7);
 const _vertexIntsSmooth = new Int32Array(_vertexInts.buffer, 0, 4);
 const _vertexFloats = new Float32Array(_vertexInts.buffer);
 
-const _triangleIndices: number[] = [];
-const _vertexPositions: number[] = [];
-const _vertexNormals: number[] = [];
-const _vertexColors: number[] = [];
+export const _triangleIndices: number[] = [];
+
+export const _vertexPositions: number[] = [];
+
+export const _vertexNormals: number[] = [];
+
+export const _vertexColors: number[] = [];
 
 let _polygon: Polygon | undefined;
 let _meshFirstIndex: number = 0;
@@ -45,13 +46,12 @@ export interface Mesh {
   $vertexCount: number;
 }
 
-export type ModelUpdateCallback = (this: Model, model: Model) => void | DOMMatrixReadOnly;
+export type ModelUpdateCallback = (model: Model) => void | DOMMatrixReadOnly;
 
 export interface Model {
   $parent?: Model | undefined;
   $children: Model[];
   $initialMatrix: DOMMatrixReadOnly;
-  $animationMatrix: DOMMatrixReadOnly;
   $finalMatrix: DOMMatrixReadOnly;
   $mesh?: Mesh;
   $modelId: number;
@@ -134,62 +134,15 @@ export const newModel = (fn: (model: Model) => void | Mesh | undefined, $modelId
   return model;
 };
 
-export const initTriangleBuffers = () => {
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.createBuffer());
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(_triangleIndices), gl.STATIC_DRAW);
-
-  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(_vertexPositions), gl.STATIC_DRAW);
-  gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
-
-  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
-  gl.bufferData(gl.ARRAY_BUFFER, new Int16Array(_vertexNormals), gl.STATIC_DRAW);
-  gl.vertexAttribPointer(1, 3, gl.SHORT, true, 0, 0);
-
-  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
-  gl.bufferData(gl.ARRAY_BUFFER, new Uint32Array(_vertexColors), gl.STATIC_DRAW);
-  gl.vertexAttribPointer(2, 4, gl.UNSIGNED_BYTE, true, 0, 0);
-
-  gl.enableVertexAttribArray(0);
-  gl.enableVertexAttribArray(1);
-  gl.enableVertexAttribArray(2);
-
-  if (DEBUG) {
-    let modelsCount = 0;
-    const recursion = (model = rootModel) => {
-      const { $mesh, $children } = model;
-      for (const child of $children) {
-        recursion(child);
-      }
-      if ($mesh) {
-        ++modelsCount;
-      }
-    };
-    recursion();
-
-    console.log(
-      "models: " + modelsCount,
-      "vertices: " +
-        _vertexPositions.length / 3 +
-        " indices:" +
-        _triangleIndices.length +
-        " triangles:" +
-        _triangleIndices.length / 3,
-    );
-  }
-};
-
 export const updateModels = (model: Model, parentMatrix = identity) => {
+  const update = model._update;
   model.$finalMatrix = parentMatrix.multiply(model.$initialMatrix);
-
-  const updateResult = model._update?.(model);
-
-  if (updateResult) {
-    model.$animationMatrix = updateResult;
+  if (update) {
+    const updateResult = update(model);
+    if (updateResult) {
+      model.$finalMatrix = model.$finalMatrix.multiply(updateResult);
+    }
   }
-
-  model.$finalMatrix = model.$finalMatrix.multiply(model.$animationMatrix);
-
   for (const child of model.$children) {
     updateModels(child, model.$finalMatrix);
   }

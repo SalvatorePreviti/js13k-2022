@@ -14,6 +14,7 @@ interface ClosureCompiler extends ClosureCompilerBase {
 }
 
 export interface StreamedClosureCompilerOptions {
+  compilation_level: "ADVANCED" | "SIMPLE" | "WHITESPACE_ONLY";
   beautify: boolean;
   rename_variable_prefix?: string;
 }
@@ -98,7 +99,7 @@ export class StreamedClosureCompiler {
       env: "BROWSER",
       language_in: "ECMASCRIPT_NEXT",
       language_out: "ECMASCRIPT_NEXT",
-      compilation_level: "ADVANCED",
+      compilation_level: this.options.compilation_level,
       charset: "UTF-8",
       use_types_for_optimization: true,
       assume_function_wrapper: true,

@@ -26,7 +26,7 @@ export async function jsTerser(input: string, settings: TerserMinifySettings) {
       this.setSuccessText(sizeDifference(input, result));
       return result;
     },
-    { spinner: true },
+    { spinner: true, timed: settings.timed === undefined || !!settings.timed },
   );
 }
 
@@ -37,6 +37,7 @@ export interface TerserMinifySettings {
   join_vars: boolean;
   sequences: boolean;
   computed_props: boolean;
+  timed?: boolean;
 }
 
 export function getTerserMinifyOptions(settings: TerserMinifySettings): TerserMinifyOptions {
@@ -147,7 +148,7 @@ export function getTerserMinifyOptions(settings: TerserMinifySettings): TerserMi
 
       // hoist var declarations
       // (this is false by default because it seems to increase the size of the output in general)
-      hoist_vars: false,
+      hoist_vars: true,
 
       // optimizations for if/return and if/continue
       if_return: true,

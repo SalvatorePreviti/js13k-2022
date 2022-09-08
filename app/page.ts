@@ -1,4 +1,6 @@
-import { mainMenuVisible, setMainMenuVisible } from "./menu";
+export let mainMenuVisible: boolean | undefined;
+
+import { loadGame, LOCAL_STORAGE_SAVED_GAME_KEY } from "./game/world-state";
 import type { KEY_CODE } from "./utils/keycodes";
 
 export const KEY_LEFT = 0;
@@ -40,13 +42,35 @@ const keyMap: Partial<Record<KEY_CODE, number>> = {
   ["Enter"]: KEY_INTERACT,
 };
 
-export const handleResize = () => {
-  hC.width = window.innerWidth;
-  hC.height = window.innerHeight;
-  keyboard_downKeys.length = mouse_movementX = mouse_movementY = 0;
+const setMainMenuVisible = (value: boolean) => {
+  if (mainMenuVisible !== value) {
+    mainMenuVisible = value;
+    if (mainMenuVisible) {
+      document.exitPointerLock();
+    }
+    document.body.className = value ? "l m" : "l";
+  }
 };
 
-export const initInputHandlers = () => {
+export const initPage = () => {
+  const handleResize = () => {
+    hC.width = innerWidth;
+    hC.height = innerHeight;
+    keyboard_downKeys.length = mouse_movementX = mouse_movementY = 0;
+  };
+
+  b1.onclick = () => setMainMenuVisible(false);
+
+  b2.onclick = () => hC.requestPointerLock();
+
+  b3.onclick = () => {
+    // eslint-disable-next-line no-alert
+    if (confirm("Delete saved game and restart?")) {
+      localStorage[LOCAL_STORAGE_SAVED_GAME_KEY] = "";
+      location.reload();
+    }
+  };
+
   if (!DEBUG) {
     oncontextmenu = () => false;
   }
@@ -79,6 +103,10 @@ export const initInputHandlers = () => {
       setMainMenuVisible(false);
     }
   };
+
+  loadGame();
+  handleResize();
+  setMainMenuVisible(!DEBUG);
 };
 
 // const gamepad = navigator.getGamepads()[0];

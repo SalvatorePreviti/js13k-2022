@@ -28,7 +28,6 @@ import { dprint } from "./steps/dprint";
 import { StreamedClosureCompiler } from "./steps/js-closure";
 import { swcPluginVars } from "./steps/swc/transforms/swc-plugin-vars";
 import { jsBabel } from "./steps/babel/js-babel";
-import { babelPluginVars } from "./steps/babel/babel-plugin-vars";
 import resugarBlockScopePlugin from "@resugar/codemod-declarations-block-scope";
 import resugarFunctionsArrow from "@resugar/codemod-functions-arrow";
 import resugarObjectsShorthand from "@resugar/codemod-objects-shorthand";
@@ -44,7 +43,8 @@ devLog.titlePaddingWidth = 18;
 export async function build() {
   const streamedClosureCompiler = new StreamedClosureCompiler({
     beautify: true,
-    rename_variable_prefix: "$$$",
+    compilation_level: "ADVANCED",
+    // rename_variable_prefix: "$$$",
   });
 
   try {
@@ -131,94 +131,26 @@ export async function build() {
   }
 
   async function minifyJavascript(js: string): Promise<string> {
-    js = await dprint(js);
+    // js = await dprint(js);
 
     js = await jsBabel(js, {
       minify: false,
-      plugins: [
-        babelPluginSimple({
-          unmangleableProperties: "mark",
-          // It seems that inlining the material call actually makes the zip bigger. Disable.
-          inlineMaterialCall: false,
-        }),
-        resugarConcise,
-        resugarFunctionsArrow,
-        "babel-plugin-minify-constant-folding",
-        "babel-plugin-minify-dead-code-elimination",
-        // resugarBlockScope,
-        // babelPluginVars({ constToLet: false }),
-      ],
+      plugins: [babelPluginSimple({ unmangleableProperties: "mark" })],
     });
-
-    js = await jsTransformSwc(js, false, swcPluginVars());
-
-    js = await jsUglify(js, {
-      varify: false,
-      final: false,
-      reduce_vars: true,
-      join_vars: true,
-      sequences: true,
-      computed_props: true,
-    });
-
-    js = await jsTransformSwc(js, { final: false, computed_props: true }, swcPluginVars());
-
-    js = await jsBabel(js, {
-      minify: false,
-      plugins: [
-        resugarConcise,
-        resugarFunctionsArrow,
-        resugarObjectsShorthand,
-        // resugarBlockScope,
-        // babelPluginVars({ constToLet: true }),
-        // "babel-plugin-pure-calls-annotation",
-      ],
-    });
-
-    js = await jsTerser(js, {
-      mangle: false,
-      final: false,
-      join_vars: true,
-      sequences: true,
-      computed_props: true,
-    });
-
-    js = await jsBabel(js, {
-      minify: false,
-      plugins: [
-        resugarConcise,
-        resugarFunctionsArrow,
-        resugarObjectsShorthand,
-        // resugarBlockScope,
-        // babelPluginVars({ constToLet: true }),
-        babelPluginSimple({ unmangleableProperties: "transform", floatRound: floatRoundAmount }),
-        // "babel-plugin-pure-calls-annotation",
-      ],
-    });
-
-    // Google closure compiler.
-
-    js = await streamedClosureCompiler.compileOne(js);
 
     js = await jsTransformSwc(
       js,
-      { final: false, computed_props: true, minify: false, mangle: false },
+      { computed_props: true, final: false, mangle: false, minify: false },
       swcPluginVars(),
     );
 
-    js = await jsBabel(js, {
-      minify: false,
-      plugins: [
-        resugarConcise,
-        resugarObjectsShorthand,
-        resugarFunctionsArrow,
-        resugarBlockScope,
-        // babelPluginVars({ constToLet: true }),
-        // "babel-plugin-pure-calls-annotation",
-      ],
+    js = await jsTerser(js, {
+      mangle: false,
+      final: false,
+      join_vars: true,
+      sequences: true,
+      computed_props: true,
     });
-
-    js = await jsTransformSwc(js, { final: false, computed_props: true, minify: false, mangle: true }, swcPluginVars());
 
     js = await jsUglify(js, {
       varify: false,
@@ -227,59 +159,48 @@ export async function build() {
       join_vars: true,
       sequences: true,
       computed_props: true,
-    });
-
-    js = await jsTransformSwc(
-      js,
-      { final: true, computed_props: true, minify: false },
-      swcPluginVars({ constToLet: true, floatRound: 6 }),
-    );
-
-    // Mangling
-
-    js = await jsTerser(js, {
-      mangle: "variables",
-      final: false,
-      join_vars: true,
-      sequences: true,
-      computed_props: true,
+      inline: false,
     });
 
     js = await jsBabel(js, {
       minify: false,
       plugins: [
         resugarConcise,
-        resugarObjectsShorthand,
         resugarFunctionsArrow,
+        resugarObjectsShorthand,
         resugarBlockScope,
-        babelPluginSimple({ removeNoInlineCall: true }),
-        babelPluginVars({ constToLet: true }),
-        // "babel-plugin-pure-calls-annotation",
+        babelPluginSimple({
+          unmangleableProperties: "transform",
+          floatRound: floatRoundAmount,
+        }),
       ],
     });
 
-    js = await jsTransformSwc(js, false, swcPluginVars({ constToLet: true, floatRound: 6 }));
+    // ===== Google closure compiler =====
 
-    js = await jsTerser(js, {
-      mangle: "variables",
-      final: false,
-      join_vars: true,
-      sequences: true,
-      computed_props: true,
-    });
+    js = await streamedClosureCompiler.compileOne(js);
+
+    // ===== Second part =====
 
     js = await jsBabel(js, {
       minify: false,
-      plugins: [
-        resugarConcise,
-        resugarObjectsShorthand,
-        resugarFunctionsArrow,
-        resugarBlockScope,
-        babelPluginSimple({ removeNoInlineCall: true }),
-        babelPluginVars({ constToLet: true }),
-        // "babel-plugin-pure-calls-annotation",
-      ],
+      plugins: [resugarConcise, resugarFunctionsArrow, resugarObjectsShorthand, resugarBlockScope],
     });
+
+    // js = await jsTransformSwc(js, false, swcPluginVars({ constToLet: true, floatRound: 6 }));
+
+    js = await jsUglify(js, {
+      mangle: false,
+      varify: false,
+      final: false,
+      reduce_vars: true,
+      join_vars: true,
+      sequences: true,
+      computed_props: true,
+      inline: true,
+    });
+
+    // js = await jsTransformSwc(js, false, swcPluginVars({ constToLet: true, floatRound: 6 }));
 
     js = await jsTerser(js, {
       mangle: false,
@@ -287,6 +208,41 @@ export async function build() {
       join_vars: true,
       sequences: true,
       computed_props: true,
+    });
+
+    js = await jsBabel(js, {
+      minify: false,
+      plugins: [resugarConcise, resugarObjectsShorthand, resugarFunctionsArrow, resugarBlockScope],
+    });
+
+    js = await jsTerser(js, {
+      mangle: "variables",
+      final: false,
+      join_vars: true,
+      sequences: true,
+      computed_props: true,
+    });
+
+    js = await jsBabel(js, {
+      minify: false,
+      plugins: [
+        resugarConcise,
+        resugarObjectsShorthand,
+        resugarFunctionsArrow,
+        resugarBlockScope,
+        babelPluginSimple({ removeNoInlineCall: true, constToLet: true }),
+      ],
+    });
+
+    js = await jsUglify(js, {
+      varify: false,
+      final: false,
+      mangle: true,
+      reduce_vars: true,
+      join_vars: true,
+      sequences: true,
+      computed_props: true,
+      inline: false,
     });
 
     js = await jsTdeMinify(js);

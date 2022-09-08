@@ -7,16 +7,20 @@ import { swcPluginSimpleTransform } from "./swc-plugin-simple";
 class SwcVarsTransformer extends SwcVisitor {
   override visitProgram(n: Program): Program {
     n = super.visitProgram(n);
-    return { ...n, body: this._sortStatements(n.body) as any };
+    return { ...n, body: this._sortStatements(n.body, true) as any };
   }
 
   override visitBlockStatement(block: BlockStatement): BlockStatement {
     block = super.visitBlockStatement(block);
-    return { ...block, stmts: this._sortStatements(block.stmts) as any };
+    return { ...block, stmts: this._sortStatements(block.stmts, false) as any };
   }
 
-  private _sortStatements(statements: readonly Statement[] | readonly ModuleItem[]): ModuleItem[] {
+  private _sortStatements(
+    statements: readonly Statement[] | readonly ModuleItem[],
+    moveNoInlineToEnd: boolean,
+  ): ModuleItem[] {
     const topVariableDeclarations: VariableDeclaration[] = [];
+    const lastStatements: Statement[] = [];
 
     const bodyStatements: ModuleItem[] = [];
     for (const stmt of statements) {
@@ -27,12 +31,25 @@ class SwcVarsTransformer extends SwcVisitor {
           continue;
         }
       }
+
+      if (
+        moveNoInlineToEnd &&
+        stmt.type === "ExpressionStatement" &&
+        stmt.expression.type === "CallExpression" &&
+        stmt.expression.callee.type === "Identifier" &&
+        stmt.expression.callee.value === "NO_INLINE" &&
+        stmt.expression.arguments[0]?.expression.type !== "StringLiteral"
+      ) {
+        lastStatements.push(stmt);
+        continue;
+      }
+
       bodyStatements.push(stmt);
     }
 
     topVariableDeclarations.sort(variableDeclarationSortCompare);
 
-    return [...topVariableDeclarations, ...bodyStatements];
+    return [...topVariableDeclarations, ...bodyStatements, ...lastStatements];
   }
 }
 

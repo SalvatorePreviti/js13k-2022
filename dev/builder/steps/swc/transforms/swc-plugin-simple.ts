@@ -153,7 +153,7 @@ class SwcSimpleTransformer extends SwcVisitor {
 
   override visitVariableDeclaration(n: VariableDeclaration): VariableDeclaration {
     if (this.settings.constToLet && n.kind === "const") {
-      n.kind = "let";
+      n = { ...n, kind: "let" };
     }
     return super.visitVariableDeclaration(n);
   }

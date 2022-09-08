@@ -1,5 +1,5 @@
 import { lerp, min, angle_wrap_degrees, lerpneg, abs, type Vec3 } from "../math";
-import { mainMenuVisible } from "../menu";
+import { mainMenuVisible } from "../page";
 
 export let absoluteTime = 0;
 

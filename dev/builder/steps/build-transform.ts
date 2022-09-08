@@ -5,13 +5,6 @@ import { outPath_build } from "../out-paths";
 import type { PluginOption } from "vite";
 import { glConstants, glFunctions } from "../lib/gl-context";
 import { swcPluginVars } from "./swc/transforms/swc-plugin-vars";
-import { transform } from "@babel/core";
-import path from "path";
-import resugarBlockScopePlugin from "@resugar/codemod-declarations-block-scope";
-import resugarConcise from "@resugar/codemod-objects-concise";
-import resugarFunctionsArrow from "@resugar/codemod-functions-arrow";
-import { babelPluginSimple } from "./babel/babel-plugin-simple";
-import { jsUglify } from "./js-uglify";
 
 class Transformer extends SwcVisitor {
   override visitMemberExpression(n: MemberExpression): MemberExpression {
@@ -82,79 +75,11 @@ export function rollupPluginSwcTransform(): PluginOption {
             },
             plugin: (m) => {
               m = new Transformer().visitProgram(m);
-              m = swcPluginVars()(m);
+              m = swcPluginVars({ constToLet: false })(m);
               return m;
             },
           })
         ).code || js;
-
-      js =
-        transform(js, {
-          root: path.dirname(id),
-          cwd: path.dirname(id),
-          configFile: false,
-          babelrc: false,
-          envName: "production",
-          comments: true,
-          compact: false,
-          minified: false,
-          sourceType: "module",
-          parserOpts: {
-            sourceType: "module",
-            allowAwaitOutsideFunction: true,
-            allowImportExportEverywhere: true,
-            allowReturnOutsideFunction: true,
-            allowSuperOutsideMethod: true,
-            allowUndeclaredExports: true,
-          },
-          plugins: [
-            resugarFunctionsArrow,
-            // resugarBlockScopePlugin,
-            "babel-plugin-minify-constant-folding",
-            "babel-plugin-minify-dead-code-elimination",
-            babelPluginSimple({ unmangleableProperties: "mark" }),
-          ],
-        })?.code || js;
-
-      js = await jsUglify(js, {
-        varify: false,
-        final: false,
-        reduce_vars: true,
-        join_vars: true,
-        sequences: true,
-        computed_props: true,
-        timed: false,
-      });
-
-      js =
-        transform(js, {
-          root: path.dirname(id),
-          cwd: path.dirname(id),
-          configFile: false,
-          babelrc: false,
-          envName: "production",
-          comments: true,
-          compact: false,
-          minified: false,
-          sourceType: "module",
-          parserOpts: {
-            sourceType: "module",
-            allowAwaitOutsideFunction: true,
-            allowImportExportEverywhere: true,
-            allowReturnOutsideFunction: true,
-            allowSuperOutsideMethod: true,
-            allowUndeclaredExports: true,
-          },
-          plugins: [
-            resugarConcise,
-            resugarFunctionsArrow,
-            resugarBlockScopePlugin,
-            "babel-plugin-minify-constant-folding",
-            "babel-plugin-minify-dead-code-elimination",
-            babelPluginSimple({ unmangleableProperties: "transform", inlineMaterialCall: false }),
-            // "babel-plugin-pure-calls-annotation",
-          ],
-        })?.code || js;
 
       return { code: js, map: null };
     },

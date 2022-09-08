@@ -36,9 +36,10 @@ export interface JsUglifySettings {
   join_vars: boolean;
   computed_props: boolean;
   timed?: boolean;
+  inline: boolean;
 }
 
-export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: Record<string, unknown>): UglifyOptions {
+export function getUglifyOptions(settings: JsUglifySettings, nameCache?: Record<string, unknown>): UglifyOptions {
   const module = true;
   const toplevel = true;
   const passes = 16;
@@ -57,7 +58,7 @@ export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: R
     // Sourcemap support
     sourceMap: false,
 
-    nameCache: terserNameCache,
+    nameCache,
 
     ie8: false,
     keep_fnames: !mangle,
@@ -108,10 +109,10 @@ export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: R
 
       // discard calls to console.* functions.
       // If you wish to drop a specific function call such as console.info
-      drop_console: false,
+      drop_console: true,
 
       // remove debugger; statements
-      drop_debugger: false,
+      drop_debugger: true,
 
       // attempt to evaluate constant expressions
       evaluate: settings.computed_props,
@@ -128,13 +129,13 @@ export function getUglifyOptions(settings: JsUglifySettings, terserNameCache?: R
 
       // hoist var declarations
       // (this is false by default because it seems to increase the size of the output in general)
-      hoist_vars: false,
+      hoist_vars: true,
 
       // optimizations for if/return and if/continue
       if_return: true,
 
       // Inline calls to function with simple/return statement
-      inline: true,
+      inline: settings.inline === undefined || !!settings.inline,
 
       // join consecutive var statements
       join_vars: settings.join_vars,
