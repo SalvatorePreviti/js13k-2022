@@ -1,6 +1,6 @@
 export let mainMenuVisible: boolean | undefined;
 
-import { loadGame, LOCAL_STORAGE_SAVED_GAME_KEY } from "./game/world-state";
+import { loadGame, LOCAL_STORAGE_SAVED_GAME_KEY, souls } from "./game/world-state";
 import type { KEY_CODE } from "./utils/keycodes";
 
 export const KEY_LEFT = 0;

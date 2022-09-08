@@ -36,7 +36,7 @@ void main() {
       vec3 rayTracedLava = viewPos + ray * rayTracedLavalDistance;
       vec4 tt = texture(
         groundTexture,
-        rayTracedLava.xz / 300. + vec2(sin(rayTracedLava.z / 35. + gameTime), cos(rayTracedLava.x / 25. + gameTime)) / 80.
+        rayTracedLava.xz / 150. + vec2(sin(rayTracedLava.z / 35. + gameTime), cos(rayTracedLava.x / 25. + gameTime)) / 80.
       );
 
       float h = (0.9 - tt.y) * multiplier;

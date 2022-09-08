@@ -1,7 +1,7 @@
 import { identity, vec3_distance } from "../math";
 import type { Polygon } from "../geometry/geometry";
 import { cylinder, material, polygons_transform, sphere } from "../geometry/geometry";
-import { csg_polygons, csg_subtract, csg_union } from "../geometry/csg";
+import { csg_polygons, csg_subtract } from "../geometry/csg";
 import { GQuad, GHorn } from "../geometry/solids";
 import { meshAdd, meshEnd, newModel, type Model } from "./scene";
 import {
@@ -122,15 +122,15 @@ const GHOST_STACKS = 40;
 
 meshAdd(
   sphere(GHOST_SLICES, GHOST_STACKS, (a: number, b: number, polygon: Polygon) => {
-    if (b === GHOST_STACKS - 1) {
-      polygon.$smooth = 0;
-      return { x: 0, y: -0.5, z: 0 };
-    }
     const am = a / GHOST_SLICES;
     const bm = b / GHOST_STACKS;
     const theta = am * Math.PI * 2;
     const phixz = (bm ** 0.6 * Math.PI) / 2;
     const osc = (bm * bm * Math.sin(am * 40)) / 3;
+    if (b === GHOST_STACKS - 1) {
+      polygon.$smooth = 0;
+      return { x: 0, y: -0.5, z: 0 };
+    }
     return {
       x: Math.cos(theta) * Math.sin(phixz),
       y: Math.cos(bm * Math.PI) - bm - osc,
@@ -141,13 +141,13 @@ meshAdd(
   material(1, 1, 1),
 );
 
-[-0.16, 0.16].map((x) => meshAdd(sphere(15), identity.translate(x, 0.4, -0.36).scale(0.08, 0.08, 0.08)));
+[-0.16, 0.16].map((x) => meshAdd(sphere(15), identity.translate(x, 0.4, -0.36).scale3d(0.09)));
 
 const soulMesh = meshEnd();
 
 export const newSoul = (): void => {
   const soul: Soul = { $value: 0 };
-  const index = souls.push(soul);
+  souls.push(soul);
 
   newModel((model) => {
     model.$collisions = 0;
@@ -157,7 +157,7 @@ export const newSoul = (): void => {
         vec3_distance(model.$finalMatrix.transformPoint(), player_position_final) < SOUL_SENSITIVITY_RADIUS
       ) {
         soul.$value = 1;
-        onSoulCollected(index);
+        onSoulCollected();
       }
       model.$visible = (1 - soul.$value) as 0 | 1;
     };

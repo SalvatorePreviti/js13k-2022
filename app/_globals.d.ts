@@ -27,6 +27,9 @@ declare const b1: HTMLButtonElement;
 declare const b2: HTMLButtonElement;
 declare const b3: HTMLButtonElement;
 
+/** Souls counter */
+declare const hS: HTMLCanvasElement;
+
 declare function NO_INLINE(fn: Function);
 
 interface Array<T> {
