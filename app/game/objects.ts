@@ -25,38 +25,32 @@ meshEnd();
 
 // ========= Lever mesh ========= //
 
-const makeLeverMesh = (handleMaterial: number) => {
+const leverMeshes = [material(1, 0.5, 0.2), material(0.7, 1, 0.2)].map((handleMaterial) => {
   meshAdd(cylinder(6, 1), identity.scale(0.13, 1.4, 0.13), material(0.3, 0.3, 0.5));
   meshAdd(cylinder(8), identity.translate(0, 1, 0).scale(0.21, 0.3, 0.21), handleMaterial);
   meshAdd(cylinder(3), identity.translate(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3), material(0.2, 0.2, 0.2));
   return meshEnd();
-};
-
-const leverOffMesh = makeLeverMesh(material(1, 0.5, 0.2));
-
-const leverOnMesh = makeLeverMesh(material(0.7, 1, 0.2));
+});
 
 const LEVER_SENSITIVITY_RADIUS = 2.7;
 const SOUL_SENSITIVITY_RADIUS = 1.5;
 
-// ========= Soul mesh ========= //
-
-meshAdd(cylinder(6), identity, material(1, 0.3, 0.5));
-const soulMesh = meshEnd();
-
 // ========= Player ========= //
 
-const legsMeshes = [-0.3, 0.3].map((x) => {
-  meshAdd(cylinder(10, 1), identity.translate(x, -1, 0).scale(0.2, 0.5, 0.24), material(1, 0.3, 0.4));
-  return meshEnd();
-});
-
-export let playerRightLegModel: Model;
-
-export let playerLeftLegModel: Model;
+export let playerLegsModels: [Model, Model];
 
 export const playerModel = newModel((model) => {
   model.$collisions = 0;
+
+  // Player legs
+
+  playerLegsModels = [-0.3, 0.3].map((x) =>
+    newModel(() => {
+      meshAdd(cylinder(10, 1), identity.translate(x, -1, 0).scale(0.2, 0.5, 0.24), material(1, 0.3, 0.4));
+    }),
+  ) as [Model, Model];
+
+  // Player body
 
   // horns
   [0, 180].map((r) =>
@@ -85,25 +79,14 @@ export const playerModel = newModel((model) => {
 
   // body
   meshAdd(sphere(15), identity.scale(0.7, 0.8, 0.55), material(1, 0.3, 0.4));
-
-  // Player legs
-
-  playerRightLegModel = newModel(() => legsMeshes[0]!);
-  playerLeftLegModel = newModel(() => legsMeshes[1]!);
 }, PLAYER_MODEL_ID);
 
 export const newLever = (): void => {
-  const lever: Lever = { $value: 0, $lerpValue: 0, $lerpValue2: 0 };
-  const index = levers.push(lever) - 1;
-
-  meshAdd(cylinder(5), identity.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
-  meshAdd(cylinder(5), identity.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
-  meshAdd(cylinder(GQuad), identity.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
-
-  newModel((model) => {
-    lever.$model = model;
-    model._update = () => {
-      const matrix = model.$finalMatrix;
+  newModel(($model) => {
+    const lever: Lever = { $value: 0, $lerpValue: 0, $lerpValue2: 0, $model };
+    const index = levers.push(lever) - 1;
+    $model._update = () => {
+      const matrix = $model.$finalMatrix;
       lever.$matrix = matrix;
       if (
         keyboard_downKeys[KEY_INTERACT] &&
@@ -119,12 +102,20 @@ export const newLever = (): void => {
       const { $value: value, $lerpValue, $lerpValue2 } = lever;
       lever.$lerpValue = lerpDamp($lerpValue, value, 4);
       lever.$lerpValue2 = lerpDamp($lerpValue2, value, 1);
-      model.$mesh = $lerpValue > 0.5 ? leverOnMesh : leverOffMesh;
+      $model.$mesh = leverMeshes[$lerpValue > 0.5 ? 1 : 0]!;
       return identity.rotate(lever.$lerpValue * 60 - 30, 0).translateSelf(0, 1, 0);
     };
-    return leverOffMesh;
   });
+
+  meshAdd(cylinder(5), identity.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
+  meshAdd(cylinder(5), identity.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
+  meshAdd(cylinder(GQuad), identity.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
 };
+
+// ========= Soul mesh ========= //
+
+meshAdd(cylinder(6), identity, material(1, 0.3, 0.5));
+const soulMesh = meshEnd();
 
 export const newSoul = (): void => {
   const soul: Soul = { $value: 0 };

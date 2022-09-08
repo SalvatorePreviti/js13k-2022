@@ -1,7 +1,7 @@
 import { rootModel, type Mesh, type Model } from "./scene";
 import { identity } from "../math";
 import { mainMenuVisible } from "../page";
-import { playerModel, playerRightLegModel, playerLeftLegModel } from "./objects";
+import { playerModel, playerLegsModels } from "./objects";
 import { PLAYER_MODEL_ID } from "./world-state";
 import { gl } from "../gl";
 
@@ -40,8 +40,7 @@ export const renderModels = (
     const m = identity.rotate(0, -70);
     gl.uniformMatrix4fv(worldMatrixLoc, false, m.toFloat32Array());
     drawMesh(playerModel.$mesh!);
-    drawMesh(playerRightLegModel.$mesh!);
-    drawMesh(playerLeftLegModel.$mesh!);
+    playerLegsModels.map((legModel) => drawMesh(legModel.$mesh!));
   } else {
     recursion(rootModel);
   }

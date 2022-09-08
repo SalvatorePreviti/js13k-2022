@@ -45,7 +45,7 @@ export interface Lever {
   $value: 0 | 1;
   $lerpValue: number;
   $lerpValue2: number;
-  $model?: Model;
+  $model: Model;
   $matrix?: DOMMatrixReadOnly;
 }
 

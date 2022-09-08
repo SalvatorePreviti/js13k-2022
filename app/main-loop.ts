@@ -36,7 +36,7 @@ import {
 import { mat_perspective, zFar, zNear, camera_position, camera_rotation, camera_view } from "./camera";
 import { csm_buildMatrix } from "./csm";
 import { updateModels, rootModel, modelsByModelId } from "./game/scene";
-import { playerLeftLegModel, playerModel, playerRightLegModel } from "./game/objects";
+import { playerModel, playerLegsModels } from "./game/objects";
 import { gl, initShaderProgram, loadShader } from "./gl";
 import {
   absoluteTime,
@@ -227,7 +227,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     player_collision_x = 0;
     player_collision_z = 0;
     player_respawned = 1;
-    currentModelIdTMinus1 = currentModelId = $model!.$modelId || 1;
+    currentModelIdTMinus1 = currentModelId = $model.$modelId || 1;
   };
 
   const updatePlayer = () => {
@@ -665,15 +665,18 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       .translate(player_position_final.x, player_position_final.y, player_position_final.z)
       .rotateSelf(0, player_look_angle);
 
-  playerRightLegModel._update = () =>
-    identity
-      .translate(0, player_legs_speed * clamp01(Math.sin(gameTime * PLAYER_LEGS_VELOCITY - Math.PI / 2) * 0.45))
-      .rotateSelf(player_legs_speed * Math.sin(gameTime * PLAYER_LEGS_VELOCITY) * (0.25 / DEG_TO_RAD), 0);
-
-  playerLeftLegModel._update = () =>
-    identity
-      .translate(0, player_legs_speed * clamp01(Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI / 2) * 0.45))
-      .rotateSelf(player_legs_speed * Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI) * (0.25 / DEG_TO_RAD), 0);
+  playerLegsModels.map((model, i) => {
+    model._update = () =>
+      identity
+        .translate(
+          0,
+          player_legs_speed * clamp01(Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI * i - Math.PI / 2) * 0.45),
+        )
+        .rotateSelf(
+          player_legs_speed * Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI * i) * (0.25 / DEG_TO_RAD),
+          0,
+        );
+  });
 
   updateModels(rootModel);
 
