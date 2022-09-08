@@ -33,7 +33,7 @@ export const buildWorld = () => {
   const entranceBarsMesh = meshEnd();
 
   newModel(() => {
-    withEditMatrix(identity.translate(0, 3, -6), newSoul);
+    withEditMatrix(identity.translate(0, 3, 10), newSoul);
 
     // gate columns
 

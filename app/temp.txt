@@ -1,4 +1,20 @@
-  // ========= Main menu player block ========= //
+
+  // arms
+  meshAdd(sphere(10), identity.translate(0.3, 0.48, 0).rotate(0, 0, -10).scale(0.45, 0.2, 0.2), material(1, 0.3, 0.4));
+
+  // meshAdd(
+  //   sphere(10),
+  //   identity.translate(0.7, 0.3, 0).rotate(0, 0, 15).scale(0.14, 0.3, 0.14),
+  //   material(1, 0.3, 0.4),
+  // );
+
+  // meshAdd(
+  //   sphere(10),
+  //   identity.translate(0.7, 0, 0).scale(0.3, 0.25, 0.2).rotate(0, 30, 35).skewY(35).skewX(35),
+  //   material(1, 0.3, 0.4),
+  // );
+  
+    // ========= Main menu player block ========= //
   meshAdd([
     ...polygons_transform(cylinder(5), identity.translate(0, -2).scale(1.5, 0.4, 1.5), material(0.2, 0.2, 0.2, 0.2)),
     ...polygons_transform(cylinder(5), identity.translate(0, -2).scale(1.2, 0.5, 1.2), material(0.7, 0.7, 0.7, 0.2)),

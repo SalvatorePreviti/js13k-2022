@@ -1,4 +1,4 @@
-import { abs, integers_map, identity, type Vec3, type Vec3Optional } from "../math";
+import { abs, integers_map, identity, type Vec3, type Vec3Optional, max, clamp01 } from "../math";
 
 export const material = /* @__PURE__ */ (r: number, g: number, b: number, a: number = 0): number =>
   ((a * 255) << 24) | ((b * 255) << 16) | ((g * 255) << 8) | (r * 255);
@@ -98,27 +98,110 @@ export const cone = /* @__PURE__ */ (segments: number, smooth?: 0 | 1 | undefine
   return sides;
 };
 
-export const sphere = /* @__PURE__ */ (slices: number, smooth: 0 | 1 | undefined = 1): Polygon[] => {
-  const stacks = slices;
+// export const sphere = /* @__PURE__ */ (slices: number, stacks = 40): Polygon[] => {
+//   const polygons: Polygon[] = [];
+//   for (let i = 0; i < slices; i++) {
+//     for (let j = 0; j < stacks; j++) {
+//       const vertices = polygon_color([], 0, 1);
+//       const vertex = (a: number, b: number) => {
+//         const am = a / slices;
+//         const bm = b / stacks;
+
+//         const phi = bm * Math.PI;
+//         const theta = am * Math.PI * 2;
+
+//         const phixz = (bm ** 0.6 * Math.PI) / 2;
+
+//         const osc = (bm * bm * Math.sin(am * 40)) / 3;
+
+//         const x = Math.cos(theta) * Math.sin(phixz);
+
+//         const y = Math.cos(bm * Math.PI) - bm - osc;
+
+//         if (b > stacks - 2) {
+//           return vertices.push({ x: 0, y: y / 2, z: 0 });
+//         }
+
+//         const z = Math.sin(theta) * Math.sin(phixz) + Math.sin(osc * Math.PI * 2) / 4;
+
+//         // + (clamp01(bm - 0.5) ** 4 * Math.sin(am * 17 * Math.PI)) / 2
+
+//         // if (b > 0.)
+
+//         // if (b >= 0.9) {
+//         //   y = -1;
+//         // }
+
+//         return vertices.push({ x, y, z });
+//       };
+//       vertex(i, j);
+//       if (j) {
+//         vertex(i + 1, j);
+//       }
+//       if (j < stacks - 1) {
+//         vertex(i + 1, j + 1);
+//       }
+//       vertex(i, j + 1);
+//       polygons.push(vertices);
+//     }
+//   }
+//   return polygons;
+// };
+
+export const sphere = /* @__PURE__ */ (
+  slices: number,
+  stacks = slices,
+  vertexFunc: (slice: number, stack: number, polygon: Polygon) => Vec3 = (x: number, y: number) => {
+    y *= Math.PI / stacks;
+    x *= (Math.PI * 2) / slices;
+    return { x: Math.cos(x) * Math.sin(y), y: Math.cos(y), z: Math.sin(x) * Math.sin(y) };
+  },
+): Polygon[] => {
   const polygons: Polygon[] = [];
   for (let i = 0; i < slices; i++) {
     for (let j = 0; j < stacks; j++) {
-      const vertices = polygon_color([], 0, smooth);
-      const vertex = (theta: number, phi: number) => {
-        phi *= Math.PI;
-        theta *= Math.PI * 2;
-        vertices.push({ x: Math.cos(theta) * Math.sin(phi), y: Math.cos(phi), z: Math.sin(theta) * Math.sin(phi) });
-      };
-      vertex(i / slices, j / stacks);
+      const polygon = polygon_color([], 0, 1);
+      const vertex = (x: number, y: number) => polygon.push(vertexFunc(x, y, polygon));
+      vertex(i, j);
       if (j) {
-        vertex((i + 1) / slices, j / stacks);
+        vertex((i + 1) % slices, j);
       }
       if (j < stacks - 1) {
-        vertex((i + 1) / slices, (j + 1) / stacks);
+        vertex((i + 1) % slices, j + (1 % stacks));
       }
-      vertex(i / slices, (j + 1) / stacks);
-      polygons.push(vertices);
+      vertex(i, j + (1 % stacks));
+      polygons.push(polygon);
     }
   }
   return polygons;
 };
+
+// export const sphere = /* @__PURE__ */ (slices: number): Polygon[] => {
+//   const stacks = slices;
+//   const polygons: Polygon[] = [];
+
+//   const newVertex = (theta: number, phi: number) => {
+//     phi *= Math.PI;
+//     theta *= Math.PI * 2;
+//     return { x: Math.cos(theta) * Math.sin(phi), y: Math.cos(phi), z: Math.sin(theta) * Math.sin(phi) };
+//   };
+
+//   const vmatrix = integers_map(slices, (x) => integers_map(stacks, (y) => newVertex(x / slices, y / stacks)));
+
+//   for (let i = 0; i < slices; i++) {
+//     for (let j = 0; j < stacks; j++) {
+//       const vertices = polygon_color([], 0, 1);
+//       const vertex = (x: number, y: number) => vertices.push(vmatrix[x % slices]![y % stacks]!);
+//       vertex(i, j);
+//       if (j) {
+//         vertex(i + 1, j);
+//       }
+//       if (j < stacks - 1) {
+//         vertex(i + 1, j + 1);
+//       }
+//       vertex(i, j + 1);
+//       polygons.push(vertices);
+//     }
+//   }
+//   return polygons;
+// };

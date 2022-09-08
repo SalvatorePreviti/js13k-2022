@@ -1,6 +1,7 @@
 import { identity, vec3_distance } from "../math";
+import type { Polygon } from "../geometry/geometry";
 import { cylinder, material, polygons_transform, sphere } from "../geometry/geometry";
-import { csg_polygons, csg_subtract } from "../geometry/csg";
+import { csg_polygons, csg_subtract, csg_union } from "../geometry/csg";
 import { GQuad, GHorn } from "../geometry/solids";
 import { meshAdd, meshEnd, newModel, type Model } from "./scene";
 import {
@@ -15,6 +16,9 @@ import {
   type Soul,
 } from "./world-state";
 import { keyboard_downKeys, KEY_INTERACT } from "../page";
+
+const LEVER_SENSITIVITY_RADIUS = 2.7;
+const SOUL_SENSITIVITY_RADIUS = 1.5;
 
 // ========= Sky mesh ========= //
 
@@ -31,55 +35,6 @@ const leverMeshes = [material(1, 0.5, 0.2), material(0.7, 1, 0.2)].map((handleMa
   meshAdd(cylinder(3), identity.translate(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3), material(0.2, 0.2, 0.2));
   return meshEnd();
 });
-
-const LEVER_SENSITIVITY_RADIUS = 2.7;
-const SOUL_SENSITIVITY_RADIUS = 1.5;
-
-// ========= Player ========= //
-
-export let playerLegsModels: [Model, Model];
-
-export const playerModel = newModel((model) => {
-  model.$collisions = 0;
-
-  // Player legs
-
-  playerLegsModels = [-0.3, 0.3].map((x) =>
-    newModel(() => {
-      meshAdd(cylinder(10, 1), identity.translate(x, -1, 0).scale(0.2, 0.5, 0.24), material(1, 0.3, 0.4));
-    }),
-  ) as [Model, Model];
-
-  // Player body
-
-  // horns
-  [0, 180].map((r) =>
-    meshAdd(
-      GHorn,
-      identity.rotate(0, r).translate(0.2, 1.32, 0).rotate(0, 0, -30).scale(0.2, 0.6, 0.2),
-      material(1, 1, 0.8),
-    ),
-  );
-
-  // head
-  meshAdd(sphere(30), identity.translate(0, 1, 0).scale(0.5, 0.5, 0.5), material(1, 0.3, 0.4));
-
-  const eye = polygons_transform(
-    csg_polygons(
-      csg_subtract(cylinder(15, 1), polygons_transform(cylinder(GQuad), identity.translate(0, 0, 1).scale(2, 2, 0.5))),
-    ),
-    identity.rotate(-90, 0).scale(0.1, 0.05, 0.1),
-    material(0.3, 0.3, 0.3),
-  );
-
-  [-1, 1].map((i) => meshAdd(eye, identity.translate(i * 0.2, 1.2, 0.4).rotate(0, i * 20, i * 20)));
-
-  // mouth
-  meshAdd(cylinder(GQuad), identity.translate(0, 0.9, 0.45).scale(0.15, 0.02, 0.06), material(0.3, 0.3, 0.3));
-
-  // body
-  meshAdd(sphere(15), identity.scale(0.7, 0.8, 0.55), material(1, 0.3, 0.4));
-}, PLAYER_MODEL_ID);
 
 export const newLever = (): void => {
   newModel(($model) => {
@@ -112,9 +67,82 @@ export const newLever = (): void => {
   meshAdd(cylinder(GQuad), identity.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
 };
 
+// ========= Player ========= //
+
+export let playerLegsModels: [Model, Model];
+
+export const playerModel = newModel((model) => {
+  model.$collisions = 0;
+
+  // Player legs
+
+  playerLegsModels = [-0.3, 0.3].map((x) =>
+    newModel(() => {
+      meshAdd(cylinder(10, 1), identity.translate(x, -0.8, 0).scale(0.2, 0.7, 0.24), material(1, 0.3, 0.4));
+    }),
+  ) as [Model, Model];
+
+  // Player body
+
+  // horns
+  [0, 180].map((r) =>
+    meshAdd(
+      GHorn,
+      identity.rotate(0, r).translate(0.2, 1.32, 0).rotate(0, 0, -30).scale(0.2, 0.6, 0.2),
+      material(1, 1, 0.8),
+    ),
+  );
+
+  // head
+  meshAdd(sphere(30), identity.translate(0, 1, 0).scale(0.5, 0.5, 0.5), material(1, 0.3, 0.4));
+
+  const eye = polygons_transform(
+    csg_polygons(
+      csg_subtract(cylinder(15, 1), polygons_transform(cylinder(GQuad), identity.translate(0, 0, 1).scale(2, 2, 0.5))),
+    ),
+    identity.rotate(-90, 0).scale(0.1, 0.05, 0.1),
+    material(0.3, 0.3, 0.3),
+  );
+
+  [-1, 1].map((i) => meshAdd(eye, identity.translate(i * 0.2, 1.2, 0.4).rotate(0, i * 20, i * 20)));
+
+  // mouth
+  meshAdd(cylinder(GQuad), identity.translate(0, 0.9, 0.45).scale(0.15, 0.02, 0.06), material(0.3, 0.3, 0.3));
+
+  // body
+  meshAdd(sphere(30), identity.scale(0.7, 0.8, 0.55), material(1, 0.3, 0.4));
+}, PLAYER_MODEL_ID);
+
 // ========= Soul mesh ========= //
 
-meshAdd(cylinder(6), identity, material(1, 0.3, 0.5));
+// meshAdd(cylinder(6), identity, material(1, 0.3, 0.5));
+
+const GHOST_SLICES = 120;
+const GHOST_STACKS = 40;
+
+meshAdd(
+  sphere(GHOST_SLICES, GHOST_STACKS, (a: number, b: number, polygon: Polygon) => {
+    if (b === GHOST_STACKS - 1) {
+      polygon.$smooth = 0;
+      return { x: 0, y: -0.5, z: 0 };
+    }
+    const am = a / GHOST_SLICES;
+    const bm = b / GHOST_STACKS;
+    const theta = am * Math.PI * 2;
+    const phixz = (bm ** 0.6 * Math.PI) / 2;
+    const osc = (bm * bm * Math.sin(am * 40)) / 3;
+    return {
+      x: Math.cos(theta) * Math.sin(phixz),
+      y: Math.cos(bm * Math.PI) - bm - osc,
+      z: Math.sin(theta) * Math.sin(phixz) + Math.sin(osc * Math.PI * 2) / 4,
+    };
+  }),
+  identity.scale(0.7, 0.7, 0.7),
+  material(1, 1, 1),
+);
+
+[-0.16, 0.16].map((x) => meshAdd(sphere(15), identity.translate(x, 0.4, -0.36).scale(0.08, 0.08, 0.08)));
+
 const soulMesh = meshEnd();
 
 export const newSoul = (): void => {

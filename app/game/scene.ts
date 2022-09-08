@@ -61,7 +61,7 @@ export interface Model {
 }
 
 const getVertex = (i: number): number => {
-  let { x, y, z } = _polygon![i]!;
+  let { x, y, z } = _polygon![i]! as any;
   _vertexFloats[0] = x;
   _vertexFloats[1] = y;
   _vertexFloats[2] = z;
