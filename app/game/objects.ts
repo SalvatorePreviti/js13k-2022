@@ -1,7 +1,7 @@
 import { identity, vec3_distance } from "../math";
 import { cylinder, material, polygons_transform, sphere } from "../geometry/geometry";
 import { csg_polygons, csg_subtract } from "../geometry/csg";
-import { GQuad, GHorn, GBox, G6, G5 } from "../geometry/solids";
+import { GQuad, GHorn } from "../geometry/solids";
 import { meshAdd, meshEnd, newModel, type Model } from "./scene";
 import {
   PLAYER_MODEL_ID,
@@ -41,7 +41,7 @@ const SOUL_SENSITIVITY_RADIUS = 1.5;
 
 // ========= Soul mesh ========= //
 
-meshAdd(G6, identity, material(1, 0.3, 0.5));
+meshAdd(cylinder(6), identity, material(1, 0.3, 0.5));
 const soulMesh = meshEnd();
 
 // ========= Player ========= //
@@ -71,7 +71,9 @@ export const playerModel = newModel((model) => {
   meshAdd(sphere(30), identity.translate(0, 1, 0).scale(0.5, 0.5, 0.5), material(1, 0.3, 0.4));
 
   const eye = polygons_transform(
-    csg_polygons(csg_subtract(cylinder(15, 1), polygons_transform(GBox, identity.translate(0, 0, 1).scale(2, 2, 0.5)))),
+    csg_polygons(
+      csg_subtract(cylinder(15, 1), polygons_transform(cylinder(GQuad), identity.translate(0, 0, 1).scale(2, 2, 0.5))),
+    ),
     identity.rotate(-90, 0).scale(0.1, 0.05, 0.1),
     material(0.3, 0.3, 0.3),
   );
@@ -79,7 +81,7 @@ export const playerModel = newModel((model) => {
   [-1, 1].map((i) => meshAdd(eye, identity.translate(i * 0.2, 1.2, 0.4).rotate(0, i * 20, i * 20)));
 
   // mouth
-  meshAdd(GBox, identity.translate(0, 0.9, 0.45).scale(0.15, 0.02, 0.06), material(0.3, 0.3, 0.3));
+  meshAdd(cylinder(GQuad), identity.translate(0, 0.9, 0.45).scale(0.15, 0.02, 0.06), material(0.3, 0.3, 0.3));
 
   // body
   meshAdd(sphere(15), identity.scale(0.7, 0.8, 0.55), material(1, 0.3, 0.4));
@@ -94,9 +96,9 @@ export const newLever = (): void => {
   const lever: Lever = { $value: 0, $lerpValue: 0, $lerpValue2: 0, $modelId: 0 };
   const index = levers.push(lever) - 1;
 
-  meshAdd(G5, identity.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
-  meshAdd(G5, identity.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
-  meshAdd(GBox, identity.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
+  meshAdd(cylinder(5), identity.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
+  meshAdd(cylinder(5), identity.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
+  meshAdd(cylinder(GQuad), identity.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
 
   newModel((model) => {
     model._update = () => {

@@ -24,9 +24,3 @@ export const GQuad = /* @__PURE__ */ [
   { x: 1, z: -1 },
   { x: -1, z: -1 },
 ];
-
-export const GBox = /* @__PURE__ */ cylinder(GQuad);
-
-export const G5 = /* @__PURE__ */ cylinder(5);
-
-export const G6 = /* @__PURE__ */ cylinder(6);
