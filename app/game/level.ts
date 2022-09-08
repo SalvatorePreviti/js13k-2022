@@ -1046,7 +1046,7 @@ export const buildWorld = () => {
             identity.translate(76.5, -2.1 + i / 2, -25 + 7.5 * (1 - i / 30) * i).scale(3.3, 3 - i / 2, 3.45 - i / 5),
             m,
           );
-        }),
+        }, ++_modelIdCounter),
       );
 
       withEditMatrix(identity.translate(100, 0.2, -20), () => {
