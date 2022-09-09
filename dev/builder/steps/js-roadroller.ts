@@ -5,6 +5,7 @@ import { sizeDifference } from "../lib/logging";
 import { JSDOM } from "jsdom";
 import { htmlMinify } from "./html-minify";
 import { stripUtf8BOM } from "../lib/code-utils";
+import { jsUglify } from "./js-uglify";
 
 /**
  * you can try to set LEVEL to 2 if you want to squeeze as much bytes as possible.
@@ -19,7 +20,19 @@ export async function jsRoadroller(html: string): Promise<string> {
       const dom = new JSDOM(stripUtf8BOM(html));
 
       const scriptsTags = Array.from(dom.window.document.querySelectorAll("script"));
-      const js = scriptsTags.map((scriptTag) => `(()=>{${scriptTag.textContent}})()`).join("\n");
+      let js = scriptsTags.map((scriptTag) => `(()=>{${scriptTag.textContent}})()`).join("\n");
+
+      js = await jsUglify(js, {
+        varify: false,
+        final: true,
+        computed_props: true,
+        inline: true,
+        join_vars: true,
+        reduce_vars: true,
+        sequences: true,
+        mangle: true,
+      });
+
       scriptsTags.forEach((scriptTag) => scriptTag.remove());
 
       const packer = new Packer(
@@ -30,7 +43,9 @@ export async function jsRoadroller(html: string): Promise<string> {
             action: "eval" as InputAction,
           },
         ],
-        {},
+        {
+          allowFreeVars: true,
+        },
       );
 
       await packer.optimize(LEVEL, (info) => {
@@ -44,7 +59,6 @@ export async function jsRoadroller(html: string): Promise<string> {
 
       if (compressedJs) {
         const script = dom.window.document.createElement("script");
-        script.type = "module";
         // script.type = "module";
         script.textContent = compressedJs;
         dom.window.document.body.appendChild(script);
@@ -52,7 +66,7 @@ export async function jsRoadroller(html: string): Promise<string> {
 
       let bundled = dom.serialize();
 
-      bundled = await htmlMinify(bundled, { type: "page", prependUtf8BOM: true, timed: false });
+      bundled = await htmlMinify(bundled, { type: "page", prependUtf8BOM: false, timed: false });
 
       process.stdout.clearLine(-1);
       this.setSuccessText(sizeDifference(html, bundled));

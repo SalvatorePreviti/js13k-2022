@@ -1,6 +1,6 @@
 export let mainMenuVisible: boolean | undefined;
 
-import { loadGame, LOCAL_STORAGE_SAVED_GAME_KEY, souls } from "./game/world-state";
+import { loadGame, LOCAL_STORAGE_SAVED_GAME_KEY } from "./game/world-state";
 import type { KEY_CODE } from "./utils/keycodes";
 
 export const KEY_LEFT = 0;
@@ -80,7 +80,7 @@ export const initPage = () => {
 
   onkeydown = onkeyup = ({ code, target, type, repeat }) => {
     if (!repeat) {
-      if (type[5] && code === "Escape") {
+      if (type[5] && (code === "Escape" || (code === "Enter" && mainMenuVisible))) {
         setMainMenuVisible(!mainMenuVisible);
       } else {
         keyboard_downKeys[keyMap[code as KEY_CODE]!] = type[5] ? target === document.body : 0;

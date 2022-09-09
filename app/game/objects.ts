@@ -1,9 +1,9 @@
-import { identity, vec3_distance } from "../math";
+import { angle_lerp_degrees, DEG_TO_RAD, identity, max, min, vec3_distance } from "../math";
 import type { Polygon } from "../geometry/geometry";
 import { cylinder, material, polygons_transform, sphere } from "../geometry/geometry";
 import { csg_polygons, csg_subtract } from "../geometry/csg";
 import { GQuad, GHorn } from "../geometry/solids";
-import { meshAdd, meshEnd, newModel, type Model } from "./scene";
+import { meshAdd, meshEnd, newModel, withEditMatrix, type Model } from "./scene";
 import {
   PLAYER_MODEL_ID,
   levers,
@@ -14,11 +14,13 @@ import {
   lerpDamp,
   type Lever,
   type Soul,
+  gameTimeDelta,
+  gameTime,
 } from "./world-state";
 import { keyboard_downKeys, KEY_INTERACT } from "../page";
 
 const LEVER_SENSITIVITY_RADIUS = 2.7;
-const SOUL_SENSITIVITY_RADIUS = 1.5;
+const SOUL_SENSITIVITY_RADIUS = 1.1;
 
 // ========= Sky mesh ========= //
 
@@ -117,8 +119,8 @@ export const playerModel = newModel((model) => {
 
 // meshAdd(cylinder(6), identity, material(1, 0.3, 0.5));
 
-const GHOST_SLICES = 120;
-const GHOST_STACKS = 40;
+const GHOST_SLICES = 100;
+const GHOST_STACKS = 30;
 
 meshAdd(
   sphere(GHOST_SLICES, GHOST_STACKS, (a: number, b: number, polygon: Polygon) => {
@@ -126,7 +128,7 @@ meshAdd(
     const bm = b / GHOST_STACKS;
     const theta = am * Math.PI * 2;
     const phixz = (bm ** 0.6 * Math.PI) / 2;
-    const osc = (bm * bm * Math.sin(am * 40)) / 3;
+    const osc = (bm * bm * Math.sin(am * Math.PI * 14)) / 4;
     if (b === GHOST_STACKS - 1) {
       polygon.$smooth = 0;
       return { x: 0, y: -0.5, z: 0 };
@@ -145,22 +147,115 @@ meshAdd(
 
 const soulMesh = meshEnd();
 
-export const newSoul = (): void => {
-  const soul: Soul = { $value: 0 };
-  souls.push(soul);
+export type Circle = [number, number, number];
 
-  newModel((model) => {
-    model.$collisions = 0;
-    model._update = () => {
-      if (
-        !soul.$value &&
-        vec3_distance(model.$finalMatrix.transformPoint(), player_position_final) < SOUL_SENSITIVITY_RADIUS
-      ) {
-        soul.$value = 1;
-        onSoulCollected();
+export const newSoul = (transform: DOMMatrixReadOnly, walkingPath: Circle[]): void => {
+  withEditMatrix(transform, () => {
+    const soul: Soul = { $value: 0 };
+    souls.push(soul);
+
+    const circles = walkingPath.map(([x, z, w], i) => ({ x, z, w, i }));
+
+    if (DEBUG_FLAG0) {
+      for (const circle of circles) {
+        meshAdd(
+          cylinder(12),
+          identity.translate(circle.x, -1.7, circle.z).scale(circle.w, 0.01, circle.w),
+          material(0.3, 0.3, 0.38),
+        );
       }
-      model.$visible = (1 - soul.$value) as 0 | 1;
-    };
-    return soulMesh;
+    }
+
+    let circle = circles[0]!;
+
+    let dirX = -1;
+    let dirZ = 0;
+    let targetX = circles[0]!.x;
+    let targetZ = circles[0]!.z;
+    let wasInside: boolean | undefined | 1 = 1;
+    let randAngle = 0;
+    let lookAngle = 0;
+    let soulX = targetX;
+    let soulZ = targetZ;
+    let velocity = 3;
+    let prevX = 0;
+    let prevZ = 0;
+
+    newModel((model) => {
+      model.$collisions = 0;
+      model._update = () => {
+        model.$visible = (1 - soul.$value) as 0 | 1;
+
+        let contextualVelocity = 1;
+        let mindist = Infinity;
+        let isInside: boolean | undefined;
+        for (const c of circles) {
+          const { x, z, w } = c;
+          const distance = Math.hypot(targetX - x, targetZ - z);
+          const circleSDF = distance - w;
+          isInside ||= distance < w;
+          if (circleSDF > 0 && circleSDF < mindist) {
+            mindist = circleSDF;
+            circle = c;
+          }
+          contextualVelocity = min(contextualVelocity, distance / w);
+        }
+
+        if (!isInside) {
+          const { x, z, w } = circle;
+          const ax = targetX - x;
+          const az = targetZ - z;
+          let magnitude = Math.hypot(ax, az);
+          let angle = Math.atan2(-az, ax);
+          if (wasInside) {
+            randAngle = ((Math.random() - 0.5) * Math.PI) / 2;
+            velocity = max(1, velocity / (1 + Math.random()));
+          }
+          angle += randAngle;
+          dirX = -Math.cos(angle);
+          dirZ = Math.sin(angle);
+          if (magnitude > 0.1) {
+            // limit the vector length to the circle radius, as a security measure
+            magnitude = min(magnitude, w) / (magnitude || 1);
+            targetX = ax * magnitude + x;
+            targetZ = az * magnitude + z;
+          }
+        }
+
+        wasInside = isInside;
+
+        velocity = lerpDamp(velocity, 3 + (1 - contextualVelocity) * 6, 3 + contextualVelocity);
+
+        targetX = lerpDamp(targetX, targetX + dirX, velocity);
+        targetZ = lerpDamp(targetZ, targetZ + dirZ, velocity);
+
+        soulX = lerpDamp(soulX, targetX, velocity);
+        soulZ = lerpDamp(soulZ, targetZ, velocity);
+
+        lookAngle = angle_lerp_degrees(
+          lookAngle,
+          Math.atan2(soulX - prevX, soulZ - prevZ) / DEG_TO_RAD - 180,
+          3 * gameTimeDelta,
+        );
+
+        prevX = soulX;
+        prevZ = soulZ;
+
+        const animationMatrix = identity
+          .translate(soulX, 0, soulZ)
+          .rotateSelf(0, lookAngle)
+          .skewXSelf(Math.sin(gameTime * 2) * 7)
+          .skewYSelf(Math.sin(gameTime * 1.4) * 7);
+
+        const soulPos = model.$finalMatrix.multiply(animationMatrix).transformPoint();
+        if (!soul.$value && vec3_distance(soulPos, player_position_final) < SOUL_SENSITIVITY_RADIUS) {
+          soul.$value = 1;
+          onSoulCollected();
+        }
+
+        return animationMatrix;
+      };
+      return soulMesh;
+    });
   });
 };

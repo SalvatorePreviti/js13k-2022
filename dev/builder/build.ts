@@ -62,7 +62,7 @@ export async function build() {
       try {
         devLog.log();
         [sources.html, sources.css, sources.js] = await Promise.all([
-          htmlMinify(sources.html, { prependUtf8BOM: true, type: "page" }),
+          htmlMinify(sources.html, { prependUtf8BOM: false, type: "page" }),
           cssOptimize(sources.css),
           minifyJavascript(`NO_INLINE(${JSON.stringify(`${sources.html} ${sources.css}`)});\n${sources.js}`),
         ]);

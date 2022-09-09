@@ -1,4 +1,241 @@
 
+  newModel((model) => {
+    model.$collisions = 0;
+    model._update = () => {
+      const soulPos = model.$finalMatrix.transformPoint();
+      if (!soul.$value && vec3_distance(soulPos, player_position_final) < SOUL_SENSITIVITY_RADIUS) {
+        soul.$value = 1;
+        onSoulCollected();
+      }
+      model.$visible = (1 - soul.$value) as 0 | 1;
+
+      // const ax = targetX - (soulX + mX) / 2;
+      // const az = targetZ - (soulZ + mZ) / 2;
+
+      // let centerX = 0;
+      // let centerZ = 0;
+      // let bestDist = Infinity;
+      // let bestCircle = lastCircle;
+      // for (const circle of circles) {
+      //   const aax = mX - circle[0]!;
+      //   const aaz = mZ - circle[1]!;
+      //   const adistance = Math.hypot(aax, aaz);
+      //   if (adistance < bestDist) {
+      //     bestDist = adistance + Math.sin(gameTime);
+      //     centerX = circle[0]!;
+      //     centerZ = circle[1]!;
+      //     maxDistanceDelta = circle[2]!;
+      //     bestCircle = circle;
+      //   }
+      // }
+
+      // console.log(bestCircle);
+
+      const ax = targetX - soulX;
+      const az = targetZ - soulZ;
+
+      const mag = Math.hypot(ax, az);
+
+      const XXX = 0;
+
+      if (mag > maxDistanceDelta && mag) {
+        // soulX = lerpDamp(soulX, soulX + (ax / mag) * maxDistanceDelta, 2);
+        // soulZ = lerpDamp(soulZ, soulZ + (az / mag) * maxDistanceDelta, 2);
+
+        soulX += (ax / mag) * maxDistanceDelta * gameTimeDelta * (1.5 + XXX);
+        soulZ += (az / mag) * maxDistanceDelta * gameTimeDelta * (1.5 + XXX);
+      } else {
+        angle = Math.atan2(-az, ax);
+        const rand = 1 - Math.random() / 2;
+        angle += rand;
+        // angle += Math.sin(gameTime) / 2;
+        targetX = centerX - Math.cos(angle) * maxDistanceDelta * 2;
+        targetZ = centerZ + Math.sin(angle) * maxDistanceDelta * 2;
+        soulX = lerpDamp(soulX, targetX, 1);
+        soulZ = lerpDamp(soulZ, targetZ, 1);
+      }
+
+      mX = lerpDamp(mX, soulX, 2 + XXX);
+      mZ = lerpDamp(mZ, soulZ, 2 + XXX);
+
+      const dx = mX - prevX;
+      const dz = mZ - prevZ;
+      if (dx || dz) {
+        look_angle = angle_lerp_degrees(look_angle, Math.atan2(dx, dz) / DEG_TO_RAD - 180, gameTimeDelta * 7);
+      }
+
+      prevX = mX;
+      prevZ = mZ;
+      // const vx = mag / gameTimeDelta;
+
+      // console.log(vx);
+
+      // mX = lerpDamp(mX, soulX, 1 + mag);
+      // mZ = lerpDamp(mZ, soulZ, 1 + mag);
+
+      return identity.translate(mX, 0, mZ).rotateSelf(0, look_angle);
+    };
+    return soulMesh;
+  });
+};
+
+
+
+
+
+
+  const centerX = 0;
+  const centerZ = 0;
+
+  let targetX = 1;
+  let targetZ = 0;
+  let oldt = 0;
+
+  const containerWidth = 5;
+  const containerHeight = 5;
+
+      oldt += gameTimeDelta;
+      const timeReset = oldt > 2 ? (oldt = 0) : 1;
+
+      const dx = soulX - centerX;
+      const dz = soulZ - centerZ;
+      const nl = Math.sqrt(dx * dx + dz * dz);
+
+      if (abs(dx) >= containerWidth / 3 || abs(dz) >= containerHeight / 3 || !timeReset) {
+        // targetX = -dx / nl;
+        // targetZ = -dz / nl;
+
+        const alpha = Math.atan2(targetX, targetZ);
+
+        const theta = Math.PI * 2 - alpha + Math.random() * 2 - 1;
+
+        const tx = Math.cos(theta);
+        targetZ = Math.sin(theta);
+        targetX = tx;
+
+        console.log(targetX.toFixed(3), targetZ.toFixed(3));
+      }
+
+      soulX = lerpDamp(soulX, targetX * containerWidth, 2);
+      soulZ = lerpDamp(soulX, targetZ * containerHeight, 2);
+
+
+/////////////
+  const containerR = 3;
+
+  let vx = 1;
+  let vy = 0;
+
+  let oldt = 0;
+  let lookatRadians = 0;
+
+  let soulX = 0;
+  let soulZ = 0;
+
+  const centerX = 0;
+  const centerZ = 0;
+
+
+      oldt += gameTimeDelta;
+      const timeReset = oldt > 2 ? (oldt = 0) : 1;
+
+      const dx = soulX - centerX;
+      const dy = soulZ - centerZ;
+      const nl = Math.sqrt(dx * dx + dy * dy);
+
+      if (!timeReset) {
+        const theta = Math.random() / 2;
+        const tx = vx * Math.cos(theta) - vy * Math.sin(theta);
+        vy = vx * Math.sin(theta) + vy * Math.cos(theta);
+        vx = tx;
+      }
+
+      if (nl > containerR) {
+        // // the normal at the point of collision is -dx, -dy normalized
+        const tx = -dx / nl;
+        const ty = -dy / nl;
+
+        // rotate by a random vector
+
+        // // calculate new velocity: v' = v - 2 * dot(d, v) * n
+        const dot = vx * tx + vy * ty;
+
+        vx -= 2 * dot * tx;
+        vy -= 2 * dot * ty;
+
+        soulX *= containerR / nl;
+        soulZ *= containerR / nl;
+      }
+
+      const angle = Math.atan2(-vx, -vy);
+
+      // lookatRadians = angle_lerp_degrees(lookatRadians, angle, gameTimeDelta * 3);
+      lookatRadians = lerpDamp(lookatRadians, angle, 5);
+
+      // console.log(Math.sqrt(vx * vx + vy * vy).toFixed(3));
+
+      // soulX += vx * gameTimeDelta * 5;
+      // soulZ += vy * gameTimeDelta * 5;
+
+      soulX = lerpDamp(soulX, soulX + vx, 2 + (1 - vx) * 2);
+      soulZ = lerpDamp(soulZ, soulZ + vy, 2 + (1 - vy) * 2);
+
+      // console.log(vx.toFixed(3), -Math.sin(angle).toFixed(3));
+      // console.log(vy.toFixed(3), -Math.cos(angle).toFixed(3));
+
+      // const dx = soul.x - containerR;
+      // const dy = soul.z - containerR;
+      // if (Math.sqrt(dx * dx + dy * dy) >= containerR) {
+      //   // current speed
+      //   const v = Math.sqrt(vx * vx + vy * vy);
+      //   // Angle from center of large circle to center of small circle,
+      //   // which is the same as angle from center of large cercle
+      //   // to the collision point
+      //   const angleToCollisionPoint = Math.atan2(-dy, dx);
+      //   // Angle of the current movement
+      //   const oldAngle = Math.atan2(-vy, vx);
+      //   // New angle
+      //   const newAngle = 2 * angleToCollisionPoint - oldAngle;
+      //   // new x/y speeds, using current speed and new angle
+      //   vx = -v * Math.cos(newAngle);
+      //   vy = v * Math.sin(newAngle);
+      // }
+
+      // const RADIUS = 10;
+
+      // const dx = soulPos.x - RADIUS;
+      // const dz = soulPos.z - RADIUS;
+      // const nl = Math.hypot(dx, dz) - 5;
+      // const collision = nl >= RADIUS;
+
+      // if (collision) {
+      //   // the normal at the point of collision is -dx, -dy normalized
+      //   const nx = -dx / nl;
+      //   const nz = -dz / nl;
+      //   // calculate new velocity: v' = v - 2 * dot(d, v) * n
+      //   const dot = pvelX * nx + pvelY * nz;
+      //   pvelX -= 2 * dot * nx;
+      //   pvelY -= 2 * dot * nz;
+      // }
+
+      // soul.x += pvelX;
+      // soul.z += pvelY;
+
+      /* const { x, z } = soul;
+      const dist = Math.hypot(x, z) || 0;
+
+      if (dist > 5) {
+        soul.$angle = Math.atan2(z, x) + Math.random();
+        console.log(x, z, Math.atan2(z, x));
+        // soul.$targetAngle = Math.random() * Math.PI * 2;
+      }
+      // soul.$angle = lerpDamp(soul.$angle, soul.$targetAngle, 0.1);
+      soul.x += Math.cos(soul.$angle) * gameTimeDelta * 10;
+      soul.z += Math.sin(soul.$angle) * gameTimeDelta * 10; */
+
+      return identity.translate(soulX, 0, soulZ).rotateSelf(0, lookatRadians / DEG_TO_RAD);
+
+
   // arms
   meshAdd(sphere(10), identity.translate(0.3, 0.48, 0).rotate(0, 0, -10).scale(0.45, 0.2, 0.2), material(1, 0.3, 0.4));
 

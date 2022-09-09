@@ -41,8 +41,6 @@ export const gameTimeUpdate = (time: number) => {
 
 export const LOCAL_STORAGE_SAVED_GAME_KEY = "s66622";
 
-const ROMAN_NUMERALS = "0 I II III IV V VI VII VIII IX X XI XII XIII".split(" ");
-
 export interface Lever {
   $value: 0 | 1;
   $lerpValue: number;
@@ -108,7 +106,11 @@ export const worldStateUpdate = () => {
 };
 
 const updateCollectedSoulsCounter = () => {
-  hS.innerText = " " + ROMAN_NUMERALS[souls.reduce((acc, cur) => acc + cur.$value, 0)]!;
+  hS.innerText =
+    " " +
+    ["0", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII"][
+      souls.reduce((acc, cur) => acc + cur.$value, 0)
+    ]!;
 };
 
 export const saveGame = () => {
@@ -132,7 +134,9 @@ export const loadGame = () => {
       levers.map(
         (lever, index) => (lever.$lerpValue = lever.$lerpValue2 = lever.$value = (savedLevers[index] | 0) as 0 | 1),
       );
-      souls.map((soul, index) => (soul.$value = (savedSouls[index] | 0) as 0 | 1));
+      souls.map((soul, index) => {
+        soul.$value = (savedSouls[index] | 0) as 0 | 1;
+      });
       player_last_pulled_lever = savedLastPulledLever | 0;
       gameTime = savedGameTime | 0;
       boatLerp = savedBoatLerp | 0;

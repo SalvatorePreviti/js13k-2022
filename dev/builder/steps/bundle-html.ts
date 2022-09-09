@@ -38,7 +38,7 @@ export async function bundleHtml(input: BundleHtmlInput): Promise<BundleHtmlOutp
 
       let bundled = dom.serialize();
 
-      bundled = await htmlMinify(bundled, { type: "page", prependUtf8BOM: true, timed: false });
+      bundled = await htmlMinify(bundled, { type: "page", prependUtf8BOM: false, timed: false });
 
       const finalSize = utf8ByteLength(bundled);
 

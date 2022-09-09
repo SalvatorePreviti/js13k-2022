@@ -44,7 +44,7 @@ export async function htmlCssToJs(sources: ViteBundledOutput) {
 
       const finalHtml = await htmlMinify(dom.serialize(), {
         type: "page",
-        prependUtf8BOM: true,
+        prependUtf8BOM: false,
         timed: false,
       });
 
