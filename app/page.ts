@@ -42,7 +42,7 @@ const keyMap: Partial<Record<KEY_CODE, number>> = {
   ["Enter"]: KEY_INTERACT,
 };
 
-const setMainMenuVisible = (value: boolean) => {
+export const setMainMenuVisible = (value: boolean) => {
   if (mainMenuVisible !== value) {
     mainMenuVisible = value;
     if (mainMenuVisible) {

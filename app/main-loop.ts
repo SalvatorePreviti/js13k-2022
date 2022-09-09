@@ -52,11 +52,6 @@ import {
   worldStateUpdate,
 } from "./game/world-state";
 import {
-  keyboard_downKeys,
-  KEY_BACK,
-  KEY_FRONT,
-  KEY_LEFT,
-  KEY_RIGHT,
   input_frameReset,
   mouse_movementX,
   mouse_movementY,
@@ -66,6 +61,7 @@ import {
 } from "./page";
 import { initTriangleBuffers } from "./game/triangle-buffers";
 import { renderModels } from "./game/render-models";
+import { movement_strafe, movement_forward, input_frameUpdate } from "./input";
 
 const PLAYER_LEGS_VELOCITY = 7 * 1.3;
 
@@ -231,9 +227,6 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   };
 
   const updatePlayer = () => {
-    const movStrafe = (keyboard_downKeys[KEY_LEFT] ? 1 : 0) + (keyboard_downKeys[KEY_RIGHT] ? -1 : 0);
-    const movForward = (keyboard_downKeys[KEY_FRONT] ? 1 : 0) + (keyboard_downKeys[KEY_BACK] ? -1 : 0);
-
     const playerSpeedCollision = clamp01(1 - max(abs(player_collision_x), abs(player_collision_z)) * 5);
 
     // // adjust collision push back based on the duration of the frame, to address slower machines with lower FPS
@@ -250,21 +243,24 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
     player_speed = lerpDamp(
       player_speed,
-      player_has_ground ? (movStrafe || movForward ? (player_has_ground ? 7 : 4) : 0) * playerSpeedCollision : 0,
-      player_has_ground ? (playerSpeedCollision > 0.1 ? 10 : movStrafe || movForward ? 5 : 7) : 1,
+      player_has_ground
+        ? (movement_strafe || movement_forward ? (player_has_ground ? 7 : 4) : 0) * playerSpeedCollision
+        : 0,
+      player_has_ground ? (playerSpeedCollision > 0.1 ? 10 : movement_strafe || movement_forward ? 5 : 7) : 1,
     );
 
-    const effectivePlayerSpeed = (movStrafe && movForward ? Math.SQRT1_2 : 1) * player_speed * gameTimeDelta;
+    const effectivePlayerSpeed =
+      (movement_strafe && movement_forward ? Math.SQRT1_2 : 1) * player_speed * gameTimeDelta;
 
     if (player_first_person) {
       const yradians = camera_rotation.y * DEG_TO_RAD;
       const s = Math.sin(yradians) * effectivePlayerSpeed;
       const c = Math.cos(yradians) * effectivePlayerSpeed;
-      player_collision_x -= movStrafe * c - movForward * s;
-      player_collision_z -= movStrafe * s + movForward * c;
+      player_collision_x -= movement_strafe * c - movement_forward * s;
+      player_collision_z -= movement_strafe * s + movement_forward * c;
     } else {
-      player_collision_x += movStrafe * effectivePlayerSpeed;
-      player_collision_z += movForward * effectivePlayerSpeed;
+      player_collision_x += movement_strafe * effectivePlayerSpeed;
+      player_collision_z += movement_forward * effectivePlayerSpeed;
     }
 
     const referenceMatrix = modelsByModelId[currentModelId]?.$finalMatrix || identity;
@@ -308,11 +304,11 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       player_collision_velocity_z = (player_position_final.z - oldz) / gameTimeDelta;
     }
 
-    if (movStrafe || movForward) {
-      player_look_angle_target = Math.atan2(movStrafe, movForward) / DEG_TO_RAD;
+    if (movement_strafe || movement_forward) {
+      player_look_angle_target = Math.atan2(movement_strafe, movement_forward) / DEG_TO_RAD;
     }
     player_look_angle = angle_lerp_degrees(player_look_angle, player_look_angle_target, gameTimeDelta * 8);
-    player_legs_speed = lerp(player_legs_speed, movStrafe || movForward ? 1 : 0, gameTimeDelta * 10);
+    player_legs_speed = lerp(player_legs_speed, movement_strafe || movement_forward ? 1 : 0, gameTimeDelta * 10);
   };
 
   const doVerticalCollisions = (_collision_buffer: Uint8Array) => {
@@ -430,6 +426,8 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     requestAnimationFrame(mainLoop);
 
     // *** COLLISIONS ***
+
+    input_frameUpdate();
 
     if (gameTimeDelta > 0) {
       // *** COLLISION from the previos frame ***

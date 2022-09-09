@@ -1,3 +1,25 @@
+export const GAMEPAD_BUTTON_UP = 12;
+
+export const GAMEPAD_BUTTON_DOWN = 13;
+
+export const GAMEPAD_BUTTON_LEFT = 14;
+
+export const GAMEPAD_BUTTON_RIGHT = 15;
+
+export const GAMEPAD_BUTTON_START = 9;
+
+export const GAMEPAD_BUTTON_A = 1;
+
+export const GAMEPAD_BUTTON_B = 0;
+
+export const GAMEPAD_BUTTON_X = 3;
+
+export const GAMEPAD_BUTTON_Y = 2;
+
+export const GAMEPAD_BUTTON_LB = 4;
+
+export const GAMEPAD_BUTTON_RB = 5;
+
 export const KEY_CODE_EMPTY = "";
 
 export const KEY_CODE_AGAIN = "Again";

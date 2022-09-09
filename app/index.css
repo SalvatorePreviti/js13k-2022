@@ -24,6 +24,7 @@ li {
   text-decoration: none;
 }
 
+h2,
 a:hover,
 li:hover {
   border-bottom: 3px solid;
