@@ -1,8 +1,6 @@
 /** Amount to be multiplied to an angle in degrees to obtain an angle in radians, approximately 0.017453292519943295 */
 export const DEG_TO_RAD = Math.PI / 180;
 
-export const TWO_PI = Math.PI * 2;
-
 /** The identity matrix */
 export const identity: DOMMatrixReadOnly = /* @__PURE__ */ new DOMMatrix();
 

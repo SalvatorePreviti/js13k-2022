@@ -8,6 +8,10 @@ declare let DEBUG_FLAG1: boolean;
 declare let DEBUG_FLAG2: boolean;
 declare let DEBUG_FLAG3: boolean;
 
+type ArrayElement<ArrayType extends readonly unknown[]> = ArrayType extends readonly (infer ElementType)[]
+  ? ElementType
+  : never;
+
 interface Window {
   DEBUG_CAMERA: boolean;
   DEBUG_FLAG0: boolean;

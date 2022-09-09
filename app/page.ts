@@ -21,6 +21,8 @@ export let mouse_movementY = 0;
 
 export let player_first_person: boolean | undefined;
 
+import { makePlaye } from "./music/xxxaudio";
+
 /** Resets the input status after a frame */
 export const input_frameReset = () => (keyboard_downKeys[KEY_INTERACT] = mouse_movementX = mouse_movementY = 0);
 
@@ -59,9 +61,15 @@ export const initPage = () => {
     keyboard_downKeys.length = mouse_movementX = mouse_movementY = 0;
   };
 
-  b1.onclick = () => setMainMenuVisible(false);
+  b1.onclick = () => {
+    makePlaye();
 
-  b2.onclick = () => hC.requestPointerLock();
+    setMainMenuVisible(false);
+  };
+
+  b2.onclick = () => {
+    hC.requestPointerLock();
+  };
 
   b3.onclick = () => {
     // eslint-disable-next-line no-alert
@@ -107,6 +115,12 @@ export const initPage = () => {
   loadGame();
   handleResize();
   setMainMenuVisible(!DEBUG);
+
+  /* const wave = player.createWave();
+  console.log(wave.length);
+  hA.src = URL.createObjectURL(new Blob([wave], { type: "audio/wav" })); */
+
+  // eslint-disable-next-line @typescript-eslint/no-floating-promises
 };
 
 // const gamepad = navigator.getGamepads()[0];
