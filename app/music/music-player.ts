@@ -66,22 +66,19 @@ export const soundbox_mixbuffer = new Int32Array(song_numWords);
  */
 export const soundbox_generate = (channelIndex: number) => {
   let mixIndex = 0;
-  const [
+  let [
     OSC1_VOL,
     OSC1_SEMI,
     OSC1_XENV,
     OSC2_VOL,
     OSC2_SEMI,
-    OSC2_DETUNE,
     OSC2_XENV,
     NOISE_VOL,
     ENV_ATTACK,
     ENV_SUSTAIN,
     ENV_RELEASE,
     ENV_EXP_DECAY,
-    ARP_CHORD,
     LFO_FREQ,
-    FX_FILTER,
     FX_FREQ,
     FX_RESONANCE,
     FX_DRIVE,
@@ -93,7 +90,7 @@ export const soundbox_generate = (channelIndex: number) => {
     COLUMNS,
   ] = song_instruments[channelIndex]!;
 
-  console.log(FX_FILTER, channelIndex, FX_FILTER === 1);
+  ENV_RELEASE = (ENV_RELEASE * ENV_RELEASE * 4) as any;
 
   for (const song_rowLen of [song_rowLen0, song_rowLen1, song_rowLen2]) {
     // Local variables
@@ -113,65 +110,50 @@ export const soundbox_generate = (channelIndex: number) => {
     const noteCache = [];
 
     // Put performance critical instrument properties in local variables
-    const lfoAmt = LFO_AMT / 512;
     const lfoFreq = 2 ** (LFO_FREQ - 9) / song_rowLen;
-    const fxFreq = FX_FREQ * ((43.23529 * 3.141592) / 44100);
-    const q = 1 - FX_RESONANCE / 255;
-    const drive = FX_DRIVE / 32;
-    const panAmt = FX_PAN_AMT / 512;
     const panFreq = (Math.PI * 2 ** (FX_PAN_FREQ - 8)) / song_rowLen;
-    const dlyAmt = FX_DELAY_AMT / 255;
     const dly = (FX_DELAY_TIME * song_rowLen) & ~1; // Must be an even number
 
-    const createNote = function (note: number) {
+    const createNote = (note: number) => {
       const OSC1_WAVEFORM = channelIndex < 2 ? osc_saw : osc_sin; // mOscillators[0|2]
       const OSC2_WAVEFORM = channelIndex < 2 ? (channelIndex < 1 ? osc_square : osc_tri) : osc_sin;
-      const o1xenv = OSC1_XENV / 32;
-      const o2xenv = OSC2_XENV / 32;
-      const attack = ENV_ATTACK ** 2 * 4;
-      const sustain = ENV_SUSTAIN ** 2 * 4;
-      const release = ENV_RELEASE ** 2 * 4;
-      const expDecay = -ENV_EXP_DECAY / 16;
-      let arp: number = ARP_CHORD;
 
-      const noteBuf = new Int32Array(attack + sustain + release);
+      const noteBuf = new Int32Array(ENV_ATTACK + ENV_SUSTAIN + ENV_RELEASE);
 
       // Re-trig oscillators
       let c1 = 0;
       let c2 = 0;
 
       // Local variables.
-      let e: number;
       let o1t: number;
       let o2t: number;
 
       // Generate one note (attack + sustain + release)
-      for (let j1 = 0, j2 = 0; j1 < attack + sustain + release; ++j1, ++j2) {
+      for (let j1 = 0, j2 = 0; j1 < ENV_ATTACK + ENV_SUSTAIN + ENV_RELEASE; ++j1, ++j2) {
+        let e = 1;
+        // Envelope
+        if (j1 < ENV_ATTACK) {
+          e = j1 / ENV_ATTACK;
+        } else if (j1 >= ENV_ATTACK + ENV_SUSTAIN) {
+          e = (j1 - ENV_ATTACK - ENV_SUSTAIN) / ENV_RELEASE;
+          e = (1 - e) * 3 ** ((-ENV_EXP_DECAY / 16) * e);
+        }
+
         if (j2 >= 0) {
           // Switch arpeggio note.
-          arp = (arp >> 8) | ((arp & 255) << 4);
           j2 -= song_rowLen * 4;
 
           // Calculate note frequencies for the oscillators
-          o1t = getnotefreq(note + (arp & 15) + OSC1_SEMI);
-          o2t = getnotefreq(note + (arp & 15) + OSC2_SEMI) * (1 + 0.0008 * OSC2_DETUNE);
-        }
-
-        // Envelope
-        e = 1;
-        if (j1 < attack) {
-          e = j1 / attack;
-        } else if (j1 >= attack + sustain) {
-          e = (j1 - attack - sustain) / release;
-          e = (1 - e) * 3 ** (expDecay * e);
+          o1t = getnotefreq(note + OSC1_SEMI);
+          o2t = getnotefreq(note + OSC2_SEMI) * (1 + (channelIndex ? 0 : 0.0008 * 9));
         }
 
         // Add to (mono) channel buffer
         noteBuf[j1] =
           (80 * // Oscillator 1
-            (OSC1_WAVEFORM((c1 += o1t! * e ** o1xenv)) * OSC1_VOL +
+            (OSC1_WAVEFORM((c1 += o1t! * e ** (OSC1_XENV / 32))) * OSC1_VOL +
               // Oscillator 2
-              OSC2_WAVEFORM((c2 += o2t! * e ** o2xenv)) * OSC2_VOL +
+              OSC2_WAVEFORM((c2 += o2t! * e ** (OSC2_XENV / 32))) * OSC2_VOL +
               // Noise oscillator
               (NOISE_VOL ? (Math.random() * 2 - 1) * NOISE_VOL : 0)) *
             e) |
@@ -189,7 +171,11 @@ export const soundbox_generate = (channelIndex: number) => {
 
         // Generate notes for this pattern row
         for (let col = 0; col < 4; ++col) {
-          n = cp ? COLUMNS[cp - 1]![row + col * song_patternLen] : 0;
+          n = 0;
+          if (cp) {
+            n = COLUMNS[cp - 1]!.charCodeAt(row + col * song_patternLen) - 40;
+            n += n > 0 ? 106 : 0;
+          }
           if (n) {
             const noteBuf = noteCache[n] || (noteCache[n] = createNote(n));
             for (let j = 0, i = rowStartSample * 2; j < noteBuf.length; ++j, i += 2) {
@@ -208,13 +194,13 @@ export const soundbox_generate = (channelIndex: number) => {
           // We only do effects if we have some sound input
           if (rsample || filterActive) {
             // State variable filter
-            f = fxFreq;
+            f = FX_FREQ * ((43.23529 * 3.141592) / 44100);
             if (channelIndex === 1 || channelIndex === 4) {
-              f *= osc_sin(lfoFreq * k) * lfoAmt + 0.5;
+              f *= (osc_sin(lfoFreq * k) * LFO_AMT) / 512 + 0.5;
             }
             f = 1.5 * Math.sin(f);
             low += f * band;
-            high = q * (rsample - band) - low;
+            high = (1 - FX_RESONANCE / 255) * (rsample - band) - low;
             band += f * high;
             rsample = channelIndex === 4 ? band : channelIndex === 3 ? high : low;
 
@@ -226,13 +212,13 @@ export const soundbox_generate = (channelIndex: number) => {
             }
 
             // Drive
-            rsample *= drive;
+            rsample *= FX_DRIVE / 32;
 
             // Is the filter active (i.e. still audiable)?
             filterActive = rsample * rsample > 1e-5;
 
             // Panning
-            t = Math.sin(panFreq * k) * panAmt + 0.5;
+            t = (Math.sin(panFreq * k) * FX_PAN_AMT) / 512 + 0.5;
             lsample = rsample * (1 - t);
             rsample *= t;
           }
@@ -240,10 +226,10 @@ export const soundbox_generate = (channelIndex: number) => {
           // Delay is always done, since it does not need sound input
           if (k >= dly) {
             // Left channel = left + right[-p] * t
-            lsample += chnBuf[k - dly + 1]! * dlyAmt;
+            lsample += (chnBuf[k - dly + 1]! * FX_DELAY_AMT) / 255;
 
             // Right channel = right + left[-p] * t
-            rsample += chnBuf[k - dly]! * dlyAmt;
+            rsample += (chnBuf[k - dly]! * FX_DELAY_AMT) / 255;
           }
 
           soundbox_mixbuffer[mixIndex + k] += chnBuf[k] = lsample;
