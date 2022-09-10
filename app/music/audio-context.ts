@@ -1,4 +1,5 @@
-import { song_numWords, soundbox_mixbuffer } from "./music-player";
+import { soundbox_mixbuffer } from "./music-player";
+import { song_numWords } from "./song";
 
 export const audioContext = new AudioContext();
 

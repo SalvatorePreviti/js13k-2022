@@ -26,12 +26,18 @@
 // Source code of the original player was manually modified to reduce bundle size.
 // This makes this version not compatible with default soundbox songs.
 
-import { song_endPattern, song_rowLens, song_patternLen, type song_songData } from "./song";
-
-const getSegmentNumWords = (song_rowLen: number) => song_rowLen * song_patternLen * (song_endPattern + 1) * 2;
-
-export const song_numWords =
-  getSegmentNumWords(song_rowLens[0]) + getSegmentNumWords(song_rowLens[1]) + getSegmentNumWords(song_rowLens[2]);
+import {
+  song_endPattern,
+  song_patternLen,
+  song_patterns,
+  song_instruments,
+  song_columns,
+  song_numWords,
+  getSegmentNumWords,
+  song_rowLen0,
+  song_rowLen1,
+  song_rowLen2,
+} from "./song";
 
 const getnotefreq = (n: number) => 0.003959503758 * 2 ** ((n - 256) / 12);
 
@@ -61,11 +67,42 @@ export const soundbox_mixbuffer = new Int32Array(song_numWords);
  * Have to be repeated from 0 to song_numChannels-1
  * @returns
  */
-export const soundbox_generate = (channel: ArrayElement<typeof song_songData>) => {
+export const soundbox_generate = (channelIndex: number) => {
   let mixIndex = 0;
-  for (const song_rowLen of song_rowLens) {
-    const arpInterval = song_rowLen * 4;
-    const [instrument, patterns, columns] = channel;
+
+  for (const song_rowLen of [song_rowLen0, song_rowLen1, song_rowLen2]) {
+    const instrument = song_instruments[channelIndex]!;
+    const columns = song_columns[channelIndex]!;
+
+    // Local variables
+    let n;
+    let t;
+    let f;
+
+    const chnBuf = new Int32Array(getSegmentNumWords(song_rowLen));
+
+    // Clear effect state
+    let low = 0;
+    let band = 0;
+    let high;
+    let filterActive: boolean | undefined;
+
+    // Clear note cache.
+    const noteCache = [];
+
+    // Put performance critical instrument properties in local variables
+    const lfoAmt = instrument[17] / 512;
+    const lfoFreq = 2 ** (instrument[18] - 9) / song_rowLen;
+    const fxLFO = instrument[19];
+    const fxFilter = instrument[20];
+    const fxFreq = (instrument[21] * 43.23529 * 3.141592) / 44100;
+    const q = 1 - instrument[22] / 255;
+    const dist = instrument[23] * 1e-5;
+    const drive = instrument[24] / 32;
+    const panAmt = instrument[25] / 512;
+    const panFreq = (Math.PI * 2 ** (instrument[26] - 8)) / song_rowLen;
+    const dlyAmt = instrument[27] / 255;
+    const dly = (instrument[28] * song_rowLen) & ~1; // Must be an even number
 
     const createNote = function (note: number) {
       const osc1 = _oscillators[instrument[0]]!; // mOscillators[0|2]
@@ -97,7 +134,7 @@ export const soundbox_generate = (channel: ArrayElement<typeof song_songData>) =
         if (j2 >= 0) {
           // Switch arpeggio note.
           arp = (arp >> 8) | ((arp & 255) << 4);
-          j2 -= arpInterval;
+          j2 -= song_rowLen * 4;
 
           // Calculate note frequencies for the oscillators
           o1t = getnotefreq(note + (arp & 15) + instrument[2]);
@@ -127,50 +164,16 @@ export const soundbox_generate = (channel: ArrayElement<typeof song_songData>) =
       return noteBuf;
     };
 
-    // Local variables
-    let n;
-    let t;
-    let f;
-
-    // Put performance critical items in local variables
-    const chnBuf = new Int32Array(getSegmentNumWords(song_rowLen));
-    const patternLen = song_patternLen;
-
-    // Clear effect state
-    let low = 0;
-    let band = 0;
-    let high;
-    let filterActive: boolean | undefined;
-
-    // Clear note cache.
-    const noteCache = [];
-
     // Patterns
-    for (let p = 0, cp; p <= song_endPattern; ++p) {
-      cp = patterns[p]!;
-
+    for (let p = 0; p <= song_endPattern; ++p) {
       // Pattern rows
-      for (let row = 0; row < patternLen; ++row) {
-        // Put performance critical instrument properties in local variables
-        const lfoAmt = instrument[17] / 512;
-        const lfoFreq = 2 ** (instrument[18] - 9) / song_rowLen;
-        const fxLFO = instrument[19];
-        const fxFilter = instrument[20];
-        const fxFreq = (instrument[21] * 43.23529 * 3.141592) / 44100;
-        const q = 1 - instrument[22] / 255;
-        const dist = instrument[23] * 1e-5;
-        const drive = instrument[24] / 32;
-        const panAmt = instrument[25] / 512;
-        const panFreq = (Math.PI * 2 ** (instrument[26] - 8)) / song_rowLen;
-        const dlyAmt = instrument[27] / 255;
-        const dly = (instrument[28] * song_rowLen) & ~1; // Must be an even number
-
+      for (let row = 0, cp = +song_patterns[channelIndex * 12 + p]!; row < song_patternLen; ++row) {
         // Calculate start sample number for this row in the pattern
-        const rowStartSample = (p * patternLen + row) * song_rowLen;
+        const rowStartSample = (p * song_patternLen + row) * song_rowLen;
 
         // Generate notes for this pattern row
         for (let col = 0; col < 4; ++col) {
-          n = cp ? columns[cp - 1]![row + col * patternLen] : 0;
+          n = cp ? columns[cp - 1]![row + col * song_patternLen] : 0;
           if (n) {
             const noteBuf = noteCache[n] || (noteCache[n] = createNote(n));
             for (let j = 0, i = rowStartSample * 2; j < noteBuf.length; ++j, i += 2) {
@@ -181,9 +184,9 @@ export const soundbox_generate = (channel: ArrayElement<typeof song_songData>) =
 
         // Perform effects for this pattern row
         for (let j = 0, rsample; j < song_rowLen; ++j) {
-          let lsample = 0;
           // Dry mono-sample
-          const k = (rowStartSample + j) * 2;
+          let k = (rowStartSample + j) * 2;
+          let lsample = 0;
           rsample = chnBuf[k]!;
 
           // We only do effects if we have some sound input
@@ -227,13 +230,9 @@ export const soundbox_generate = (channel: ArrayElement<typeof song_songData>) =
             rsample += chnBuf[k - dly]! * dlyAmt;
           }
 
-          // Store in stereo channel buffer (needed for the delay effect)
-          chnBuf[k] = lsample | 0;
-          chnBuf[k + 1] = rsample | 0;
-
-          // ...and add to stereo mix buffer
-          soundbox_mixbuffer[mixIndex + k] += lsample | 0;
-          soundbox_mixbuffer[mixIndex + k + 1] += rsample | 0;
+          soundbox_mixbuffer[mixIndex + k] += chnBuf[k] = lsample;
+          ++k;
+          soundbox_mixbuffer[mixIndex + k] += chnBuf[k] = rsample;
         }
       }
     }

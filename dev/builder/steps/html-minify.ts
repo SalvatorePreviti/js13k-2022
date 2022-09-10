@@ -69,7 +69,7 @@ export function getHtmlMinifierOptions(): HtmlMinifierOptions {
     collapseBooleanAttributes: true,
 
     // Don't leave any spaces between display:inline; elements when collapsing. Must be used in conjunction with collapseWhitespace=true
-    collapseInlineTagWhitespace: true,
+    collapseInlineTagWhitespace: false,
 
     /**
      * Collapse white space that contributes to text nodes in a document tree
@@ -78,7 +78,7 @@ export function getHtmlMinifierOptions(): HtmlMinifierOptions {
     collapseWhitespace: true,
 
     // Always collapse to 1 space (never remove it entirely). Must be used in conjunction with collapseWhitespace=true
-    conservativeCollapse: true,
+    conservativeCollapse: false,
 
     /** Handle parse errors instead of aborting */
     continueOnParseError: true,

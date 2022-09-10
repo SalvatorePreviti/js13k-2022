@@ -11,7 +11,7 @@ import groundTextureSvg from "./groundTexture.svg";
 import { buildWorld } from "./game/level";
 import { newModel } from "./game/scene";
 import { startMainLoop } from "./main-loop";
-import { song_numChannels, song_songData } from "./music/song";
+import { song_numChannels } from "./music/song";
 import { soundbox_generate } from "./music/music-player";
 import { loadSong } from "./music/audio-context";
 
@@ -38,7 +38,7 @@ requestAnimationFrame(() => {
 
   const asyncLoadSongChannels = () => {
     if (songLoad < song_numChannels) {
-      soundbox_generate(song_songData[songLoad++]!);
+      soundbox_generate(songLoad++);
       setTimeout(asyncLoadSongChannels);
     } else {
       loadSong();
