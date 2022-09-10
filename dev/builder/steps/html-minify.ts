@@ -78,7 +78,7 @@ export function getHtmlMinifierOptions(): HtmlMinifierOptions {
     collapseWhitespace: true,
 
     // Always collapse to 1 space (never remove it entirely). Must be used in conjunction with collapseWhitespace=true
-    conservativeCollapse: false,
+    conservativeCollapse: true,
 
     /** Handle parse errors instead of aborting */
     continueOnParseError: true,
