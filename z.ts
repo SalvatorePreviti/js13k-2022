@@ -1,13 +1,19 @@
-import { song_songData } from "./app/music/song";
+import { song_instruments } from "./app/music/song";
+
+// for (const channel of song_instruments) {
+//   for (let i = 0; i < channel.length; i++) {
+//     if (Array.isArray(channel[i])) {
+//       console.log(i);
+//     }
+//   }
+// }
+// console.log(s);
 
 let s = "";
-
-for (const channel of song_songData) {
-  const pattern = channel[1];
-  for (let i = 0; i < 12; ++i) {
-    s += `${pattern[i] || 0}`;
-  }
+for (let i = 0; i < 29; ++i) {
+  s += `instrument${i}, `;
 }
+
 console.log(s);
 
 // console.log(song_songData);

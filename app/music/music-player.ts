@@ -23,7 +23,8 @@
  *
  */
 
-// Source code of the original player was manually modified to reduce bundle size.
+// WARNING: Source code of the original player was heavily manually modified to reduce bundle size.
+// This player plays only the game song and is modified.
 // This makes this version not compatible with default soundbox songs.
 
 import {
@@ -31,7 +32,6 @@ import {
   song_patternLen,
   song_patterns,
   song_instruments,
-  song_columns,
   song_numWords,
   getSegmentNumWords,
   song_rowLen0,
@@ -56,9 +56,6 @@ const osc_tri = (value: number) => {
   return v2 < 2 ? v2 - 1 : 3 - v2;
 };
 
-// Array of oscillator functions
-const _oscillators = [osc_sin, osc_square, osc_saw, osc_tri] as const;
-
 // Work buffer
 export const soundbox_mixbuffer = new Int32Array(song_numWords);
 
@@ -69,11 +66,36 @@ export const soundbox_mixbuffer = new Int32Array(song_numWords);
  */
 export const soundbox_generate = (channelIndex: number) => {
   let mixIndex = 0;
+  const [
+    OSC1_VOL,
+    OSC1_SEMI,
+    OSC1_XENV,
+    OSC2_VOL,
+    OSC2_SEMI,
+    OSC2_DETUNE,
+    OSC2_XENV,
+    NOISE_VOL,
+    ENV_ATTACK,
+    ENV_SUSTAIN,
+    ENV_RELEASE,
+    ENV_EXP_DECAY,
+    ARP_CHORD,
+    LFO_FREQ,
+    FX_FILTER,
+    FX_FREQ,
+    FX_RESONANCE,
+    FX_DRIVE,
+    FX_PAN_AMT,
+    FX_PAN_FREQ,
+    FX_DELAY_AMT,
+    FX_DELAY_TIME,
+    LFO_AMT,
+    COLUMNS,
+  ] = song_instruments[channelIndex]!;
+
+  console.log(FX_FILTER, channelIndex, FX_FILTER === 1);
 
   for (const song_rowLen of [song_rowLen0, song_rowLen1, song_rowLen2]) {
-    const instrument = song_instruments[channelIndex]!;
-    const columns = song_columns[channelIndex]!;
-
     // Local variables
     let n;
     let t;
@@ -91,32 +113,26 @@ export const soundbox_generate = (channelIndex: number) => {
     const noteCache = [];
 
     // Put performance critical instrument properties in local variables
-    const lfoAmt = instrument[17] / 512;
-    const lfoFreq = 2 ** (instrument[18] - 9) / song_rowLen;
-    const fxLFO = instrument[19];
-    const fxFilter = instrument[20];
-    const fxFreq = (instrument[21] * 43.23529 * 3.141592) / 44100;
-    const q = 1 - instrument[22] / 255;
-    const dist = instrument[23] * 1e-5;
-    const drive = instrument[24] / 32;
-    const panAmt = instrument[25] / 512;
-    const panFreq = (Math.PI * 2 ** (instrument[26] - 8)) / song_rowLen;
-    const dlyAmt = instrument[27] / 255;
-    const dly = (instrument[28] * song_rowLen) & ~1; // Must be an even number
+    const lfoAmt = LFO_AMT / 512;
+    const lfoFreq = 2 ** (LFO_FREQ - 9) / song_rowLen;
+    const fxFreq = FX_FREQ * ((43.23529 * 3.141592) / 44100);
+    const q = 1 - FX_RESONANCE / 255;
+    const drive = FX_DRIVE / 32;
+    const panAmt = FX_PAN_AMT / 512;
+    const panFreq = (Math.PI * 2 ** (FX_PAN_FREQ - 8)) / song_rowLen;
+    const dlyAmt = FX_DELAY_AMT / 255;
+    const dly = (FX_DELAY_TIME * song_rowLen) & ~1; // Must be an even number
 
     const createNote = function (note: number) {
-      const osc1 = _oscillators[instrument[0]]!; // mOscillators[0|2]
-      const o1vol = instrument[1];
-      const o1xenv = instrument[3] / 32;
-      const osc2 = _oscillators[instrument[4]]!; // mOscillators[0|1|3]
-      const o2vol = instrument[5];
-      const o2xenv = instrument[8] / 32;
-      const noiseVol = instrument[9];
-      const attack = instrument[10] ** 2 * 4;
-      const sustain = instrument[11] ** 2 * 4;
-      const release = instrument[12] ** 2 * 4;
-      const expDecay = -instrument[13] / 16;
-      let arp: number = instrument[14];
+      const OSC1_WAVEFORM = channelIndex < 2 ? osc_saw : osc_sin; // mOscillators[0|2]
+      const OSC2_WAVEFORM = channelIndex < 2 ? (channelIndex < 1 ? osc_square : osc_tri) : osc_sin;
+      const o1xenv = OSC1_XENV / 32;
+      const o2xenv = OSC2_XENV / 32;
+      const attack = ENV_ATTACK ** 2 * 4;
+      const sustain = ENV_SUSTAIN ** 2 * 4;
+      const release = ENV_RELEASE ** 2 * 4;
+      const expDecay = -ENV_EXP_DECAY / 16;
+      let arp: number = ARP_CHORD;
 
       const noteBuf = new Int32Array(attack + sustain + release);
 
@@ -137,8 +153,8 @@ export const soundbox_generate = (channelIndex: number) => {
           j2 -= song_rowLen * 4;
 
           // Calculate note frequencies for the oscillators
-          o1t = getnotefreq(note + (arp & 15) + instrument[2]);
-          o2t = getnotefreq(note + (arp & 15) + instrument[6]) * (1 + 0.0008 * instrument[7]);
+          o1t = getnotefreq(note + (arp & 15) + OSC1_SEMI);
+          o2t = getnotefreq(note + (arp & 15) + OSC2_SEMI) * (1 + 0.0008 * OSC2_DETUNE);
         }
 
         // Envelope
@@ -153,11 +169,11 @@ export const soundbox_generate = (channelIndex: number) => {
         // Add to (mono) channel buffer
         noteBuf[j1] =
           (80 * // Oscillator 1
-            (osc1((c1 += o1t! * e ** o1xenv)) * o1vol +
+            (OSC1_WAVEFORM((c1 += o1t! * e ** o1xenv)) * OSC1_VOL +
               // Oscillator 2
-              osc2((c2 += o2t! * e ** o2xenv)) * o2vol +
+              OSC2_WAVEFORM((c2 += o2t! * e ** o2xenv)) * OSC2_VOL +
               // Noise oscillator
-              (noiseVol ? (Math.random() * 2 - 1) * noiseVol : 0)) *
+              (NOISE_VOL ? (Math.random() * 2 - 1) * NOISE_VOL : 0)) *
             e) |
           0;
       }
@@ -173,7 +189,7 @@ export const soundbox_generate = (channelIndex: number) => {
 
         // Generate notes for this pattern row
         for (let col = 0; col < 4; ++col) {
-          n = cp ? columns[cp - 1]![row + col * song_patternLen] : 0;
+          n = cp ? COLUMNS[cp - 1]![row + col * song_patternLen] : 0;
           if (n) {
             const noteBuf = noteCache[n] || (noteCache[n] = createNote(n));
             for (let j = 0, i = rowStartSample * 2; j < noteBuf.length; ++j, i += 2) {
@@ -193,20 +209,20 @@ export const soundbox_generate = (channelIndex: number) => {
           if (rsample || filterActive) {
             // State variable filter
             f = fxFreq;
-            if (fxLFO) {
+            if (channelIndex === 1 || channelIndex === 4) {
               f *= osc_sin(lfoFreq * k) * lfoAmt + 0.5;
             }
             f = 1.5 * Math.sin(f);
             low += f * band;
             high = q * (rsample - band) - low;
             band += f * high;
-            rsample = fxFilter === 3 ? band : fxFilter === 1 ? high : low;
+            rsample = channelIndex === 4 ? band : channelIndex === 3 ? high : low;
 
             // Distortion
-            if (dist) {
-              rsample *= dist;
+            if (!channelIndex) {
+              rsample *= 22 * 1e-5;
               rsample = rsample < 1 ? (rsample > -1 ? osc_sin(rsample / 4) : -1) : 1;
-              rsample /= dist;
+              rsample /= 22 * 1e-5;
             }
 
             // Drive
