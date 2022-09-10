@@ -216,8 +216,10 @@ export const song_songData = [
   ],
 ] as const
 
+export const song_rowLens = [5513, 4562, 3891] as const
+
 // In sample lengths
-export const song_rowLen = 3891
+// export const song_rowLen = 3891
 
 // Rows per pattern
 export const song_patternLen = 32
