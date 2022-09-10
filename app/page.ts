@@ -1,6 +1,7 @@
 export let mainMenuVisible: boolean | undefined;
 
 import { loadGame, LOCAL_STORAGE_SAVED_GAME_KEY } from "./game/world-state";
+import { songAudioSource } from "./music/audio-context";
 import type { KEY_CODE } from "./utils/keycodes";
 
 export const KEY_LEFT = 0;
@@ -20,8 +21,6 @@ export let mouse_movementX = 0;
 export let mouse_movementY = 0;
 
 export let player_first_person: boolean | undefined;
-
-import { makePlaye } from "./music/xxxaudio";
 
 /** Resets the input status after a frame */
 export const input_frameReset = () => (keyboard_downKeys[KEY_INTERACT] = mouse_movementX = mouse_movementY = 0);
@@ -62,7 +61,7 @@ export const initPage = () => {
   };
 
   b1.onclick = () => {
-    makePlaye();
+    songAudioSource.start();
 
     setMainMenuVisible(false);
   };
@@ -115,25 +114,4 @@ export const initPage = () => {
   loadGame();
   handleResize();
   setMainMenuVisible(!DEBUG);
-
-  /* const wave = player.createWave();
-  console.log(wave.length);
-  hA.src = URL.createObjectURL(new Blob([wave], { type: "audio/wav" })); */
-
-  // eslint-disable-next-line @typescript-eslint/no-floating-promises
 };
-
-// const gamepad = navigator.getGamepads()[0];
-// if (gamepad) {
-//   this.direction.x = gamepad.axes[0];
-//   this.direction.z = gamepad.axes[1];
-//   this.leftTrigger = gamepad.buttons[6].value;
-//   this.rightTrigger = gamepad.buttons[7].value;
-
-//   const deadzone = 0.1;
-//   if (this.direction.magnitude < deadzone) {
-//     this.direction.x = 0;
-//     this.direction.z = 0;
-//   }
-//   this.isJumpPressed = gamepad.buttons[0].pressed;
-// }

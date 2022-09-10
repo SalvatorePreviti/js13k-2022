@@ -30,7 +30,10 @@ import type { song_songData } from "./song";
 import { song_endPattern, song_rowLen, song_patternLen } from "./song";
 
 const arpInterval = song_rowLen * 4;
-const mNumWords = song_rowLen * song_patternLen * (song_endPattern + 1) * 2;
+
+export const song_numWords = song_rowLen * song_patternLen * (song_endPattern + 1) * 2;
+
+const getnotefreq = (n: number) => 0.003959503758 * 2 ** ((n - 256) / 12);
 
 /** oscillator 0 */
 const osc_sin = (value: number) => Math.sin(value * Math.PI * 2);
@@ -50,10 +53,8 @@ const osc_tri = (value: number) => {
 // Array of oscillator functions
 const _oscillators = [osc_sin, osc_square, osc_saw, osc_tri] as const;
 
-const getnotefreq = (n: number) => 0.003959503758 * 2 ** ((n - 256) / 12);
-
 // Work buffer
-const _audoMixBuf = new Int32Array(mNumWords);
+export const soundbox_mixbuffer = new Int32Array(song_numWords);
 
 /**
  * Generate audio data for a single track/channel.
@@ -129,7 +130,7 @@ export const soundbox_generate = (channel: ArrayElement<typeof song_songData>) =
   let f;
 
   // Put performance critical items in local variables
-  const chnBuf = new Int32Array(mNumWords);
+  const chnBuf = new Int32Array(song_numWords);
   const patternLen = song_patternLen;
 
   // Clear effect state
@@ -228,20 +229,9 @@ export const soundbox_generate = (channel: ArrayElement<typeof song_songData>) =
         chnBuf[k + 1] = rsample | 0;
 
         // ...and add to stereo mix buffer
-        _audoMixBuf[k] += lsample | 0;
-        _audoMixBuf[k + 1] += rsample | 0;
+        soundbox_mixbuffer[k] += lsample | 0;
+        soundbox_mixbuffer[k + 1] += rsample | 0;
       }
     }
   }
-};
-
-// Create a AudioBuffer from the generated audio data
-export const soundbox_createAudioBuffer = (audioContext: AudioContext) => {
-  const buffer = audioContext.createBuffer(2, mNumWords / 2, 44100);
-  for (let i = 0; i < 2; i++) {
-    for (let j = i, data = buffer.getChannelData(i); j < mNumWords; j += 2) {
-      data[j >> 1] = _audoMixBuf[j]! / 65536;
-    }
-  }
-  return buffer;
 };

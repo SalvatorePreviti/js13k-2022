@@ -33,6 +33,7 @@ declare const b3: HTMLButtonElement;
 
 /** Souls counter */
 declare const hS: HTMLCanvasElement;
+declare const hL: HTMLElement;
 
 declare function NO_INLINE(fn: Function);
 
