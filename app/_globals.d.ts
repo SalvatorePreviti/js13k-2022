@@ -8,6 +8,10 @@ declare let DEBUG_FLAG1: boolean;
 declare let DEBUG_FLAG2: boolean;
 declare let DEBUG_FLAG3: boolean;
 
+type ArrayElement<ArrayType extends readonly unknown[]> = ArrayType extends readonly (infer ElementType)[]
+  ? ElementType
+  : never;
+
 interface Window {
   DEBUG_CAMERA: boolean;
   DEBUG_FLAG0: boolean;
@@ -23,12 +27,14 @@ declare module "*.vert";
 /** HTMLCanvas element declared in the page */
 declare const hC: HTMLCanvasElement;
 
-declare const b1: HTMLButtonElement;
-declare const b2: HTMLButtonElement;
-declare const b3: HTMLButtonElement;
+declare const b1: HTMLElement;
+declare const b2: HTMLElement;
+declare const b3: HTMLElement;
+declare const b4: HTMLElement;
 
 /** Souls counter */
-declare const hS: HTMLCanvasElement;
+declare const h3: HTMLCanvasElement;
+declare const h1: HTMLElement;
 
 declare function NO_INLINE(fn: Function);
 

@@ -1,3 +1,5 @@
+app/music/song.ts
+
 *.frag
 dist
 
