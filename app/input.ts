@@ -9,6 +9,7 @@ import {
   KEY_LEFT,
   KEY_RIGHT,
   mainMenuVisible,
+  game_play_clicked_once,
   setMainMenuVisible,
 } from "./page";
 import {
@@ -63,7 +64,7 @@ export const input_frameUpdate = () => {
 
     if (_gamepadStartPressed !== startPressed) {
       _gamepadStartPressed = startPressed;
-      if (startPressed) {
+      if (startPressed && game_play_clicked_once) {
         setMainMenuVisible(!mainMenuVisible);
       }
     }

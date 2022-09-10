@@ -20,6 +20,8 @@ export const keyboard_downKeys: (boolean | 0 | undefined)[] = [];
 
 let music_on = !DEBUG;
 
+export let game_play_clicked_once: undefined | 1;
+
 /** Resets the input status after a frame */
 export const input_frameReset = () => (keyboard_downKeys[KEY_INTERACT] = 0);
 
@@ -54,13 +56,15 @@ const updateMusicState = () => {
   b4.innerHTML = "Music: " + music_on;
 };
 
-export const setMainMenuVisible = (value: boolean) => {
+export const setMainMenuVisible = (value: boolean = false) => {
   if (mainMenuVisible !== value) {
     mainMenuVisible = value;
     updateMusicState();
     document.body.className = value ? "l m" : "l";
     if (value) {
       document.exitPointerLock();
+    } else {
+      game_play_clicked_once = 1;
     }
   }
 };
@@ -72,9 +76,9 @@ export const initPage = () => {
     keyboard_downKeys.length = 0;
   };
 
-  b1.onclick = () => setMainMenuVisible(false);
+  b1.onclick = () => setMainMenuVisible();
   b2.onclick = () => {
-    setMainMenuVisible(false);
+    setMainMenuVisible();
     hC.requestPointerLock();
   };
 
@@ -101,7 +105,9 @@ export const initPage = () => {
   onkeydown = onkeyup = ({ code, target, type, repeat }) => {
     if (!repeat) {
       if (type[5] && (code === "Escape" || (code === "Enter" && mainMenuVisible))) {
-        setMainMenuVisible(!mainMenuVisible);
+        if (game_play_clicked_once) {
+          setMainMenuVisible(!mainMenuVisible);
+        }
       } else {
         keyboard_downKeys[keyMap[code as KEY_CODE]!] = type[5] ? target === document.body : 0;
       }
