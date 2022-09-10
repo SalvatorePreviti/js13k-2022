@@ -20,7 +20,4 @@ export const loadSong = () => {
 
   // Load the buffer into the audio source
   songAudioSource.buffer = buffer;
-
-  // connect the AudioBufferSourceNode to the  destination so we can hear the sound
-  songAudioSource.connect(audioContext.destination);
 };

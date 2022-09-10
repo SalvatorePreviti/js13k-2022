@@ -1,7 +1,7 @@
 export let mainMenuVisible: boolean | undefined;
 
 import { loadGame, LOCAL_STORAGE_SAVED_GAME_KEY } from "./game/world-state";
-import { songAudioSource } from "./music/audio-context";
+import { audioContext, songAudioSource } from "./music/audio-context";
 import type { KEY_CODE } from "./utils/keycodes";
 
 export const KEY_LEFT = 0;
@@ -20,7 +20,7 @@ export let mouse_movementX = 0;
 
 export let mouse_movementY = 0;
 
-export let player_first_person: boolean | undefined;
+let music_on = !DEBUG;
 
 /** Resets the input status after a frame */
 export const input_frameReset = () => (keyboard_downKeys[KEY_INTERACT] = mouse_movementX = mouse_movementY = 0);
@@ -43,13 +43,27 @@ const keyMap: Partial<Record<KEY_CODE, number>> = {
   ["Enter"]: KEY_INTERACT,
 };
 
+const updateMusicState = () => {
+  try {
+    if (mainMenuVisible || !music_on) {
+      songAudioSource.disconnect();
+    } else {
+      // connect the AudioBufferSourceNode to the  destination so we can hear the sound
+      songAudioSource.connect(audioContext.destination);
+      songAudioSource.start();
+    }
+  } catch {}
+  b4.innerHTML = "Audio: " + music_on;
+};
+
 export const setMainMenuVisible = (value: boolean) => {
   if (mainMenuVisible !== value) {
     mainMenuVisible = value;
-    if (mainMenuVisible) {
+    updateMusicState();
+    document.body.className = value ? "l m" : "l";
+    if (value) {
       document.exitPointerLock();
     }
-    document.body.className = value ? "l m" : "l";
   }
 };
 
@@ -60,13 +74,9 @@ export const initPage = () => {
     keyboard_downKeys.length = mouse_movementX = mouse_movementY = 0;
   };
 
-  b1.onclick = () => {
-    songAudioSource.start();
-
-    setMainMenuVisible(false);
-  };
-
+  b1.onclick = () => setMainMenuVisible(false);
   b2.onclick = () => {
+    setMainMenuVisible(false);
     hC.requestPointerLock();
   };
 
@@ -76,6 +86,11 @@ export const initPage = () => {
       localStorage[LOCAL_STORAGE_SAVED_GAME_KEY] = "";
       location.reload();
     }
+  };
+
+  b4.onclick = () => {
+    music_on = !music_on;
+    updateMusicState();
   };
 
   if (!DEBUG) {
@@ -103,13 +118,6 @@ export const initPage = () => {
   };
 
   document.onvisibilitychange = () => document.hidden && setMainMenuVisible(true);
-
-  document.onpointerlockchange = () => {
-    player_first_person = !!document.pointerLockElement;
-    if (player_first_person) {
-      setMainMenuVisible(false);
-    }
-  };
 
   loadGame();
   handleResize();

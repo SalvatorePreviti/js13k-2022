@@ -106,7 +106,7 @@ export const worldStateUpdate = () => {
 };
 
 const updateCollectedSoulsCounter = () => {
-  hS.innerHTML =
+  h3.innerHTML =
     " " +
     ["0", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII"][
       souls.reduce((acc, cur) => acc + cur.$value, 0)

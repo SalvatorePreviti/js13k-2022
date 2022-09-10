@@ -26,8 +26,7 @@
 // Source code of the original player was manually modified to reduce bundle size.
 // This makes this version not compatible with default soundbox songs.
 
-import type { song_songData } from "./song";
-import { song_endPattern, song_rowLen, song_patternLen } from "./song";
+import { song_endPattern, song_rowLen, song_patternLen, type song_songData } from "./song";
 
 const arpInterval = song_rowLen * 4;
 
@@ -90,7 +89,7 @@ export const soundbox_generate = (channel: ArrayElement<typeof song_songData>) =
     let o2t: number;
 
     // Generate one note (attack + sustain + release)
-    for (let j1 = 0, j2 = 0; j1 < attack + sustain + release; j1++, j2++) {
+    for (let j1 = 0, j2 = 0; j1 < attack + sustain + release; ++j1, ++j2) {
       if (j2 >= 0) {
         // Switch arpeggio note.
         arp = (arp >> 8) | ((arp & 255) << 4);
@@ -170,14 +169,14 @@ export const soundbox_generate = (channel: ArrayElement<typeof song_songData>) =
         n = cp ? columns[cp - 1]![row + col * patternLen] : 0;
         if (n) {
           const noteBuf = noteCache[n] || (noteCache[n] = createNote(n));
-          for (let j = 0, i = rowStartSample * 2; j < noteBuf.length; j++, i += 2) {
+          for (let j = 0, i = rowStartSample * 2; j < noteBuf.length; ++j, i += 2) {
             chnBuf[i] += noteBuf[j]!;
           }
         }
       }
 
       // Perform effects for this pattern row
-      for (let j = 0, rsample; j < song_rowLen; j++) {
+      for (let j = 0, rsample; j < song_rowLen; ++j) {
         let lsample = 0;
         // Dry mono-sample
         const k = (rowStartSample + j) * 2;

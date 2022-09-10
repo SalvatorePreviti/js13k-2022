@@ -17,7 +17,8 @@ p {
 
 /* main menu items */
 a,
-li {
+li,
+em {
   margin-bottom: 0.5em;
   cursor: pointer;
   border-bottom: 3px solid #00000000;
@@ -26,7 +27,8 @@ li {
 
 h2,
 a:hover,
-li:hover {
+li:hover,
+em:hover {
   border-bottom: 3px solid;
 }
 
