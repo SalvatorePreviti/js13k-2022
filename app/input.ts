@@ -1,4 +1,6 @@
-import { abs, clamp01 } from "./math";
+import { camera_rotation } from "./camera";
+import { gameTimeDelta } from "./game/world-state";
+import { abs } from "./math";
 import {
   keyboard_downKeys,
   KEY_BACK,
@@ -25,10 +27,13 @@ export let movement_strafe = 0;
 
 export let movement_forward = 0;
 
+export let player_first_person: boolean | undefined;
+
 let _gamepadStartPressed = false;
 let _gamepadInteractPressed = false;
 
 export const input_frameUpdate = () => {
+  player_first_person = !!document.pointerLockElement;
   movement_strafe = (keyboard_downKeys[KEY_LEFT] ? 1 : 0) + (keyboard_downKeys[KEY_RIGHT] ? -1 : 0);
   movement_forward = (keyboard_downKeys[KEY_FRONT] ? 1 : 0) + (keyboard_downKeys[KEY_BACK] ? -1 : 0);
 
@@ -38,13 +43,22 @@ export const input_frameUpdate = () => {
     const getGamepadButtonState = (index: number) => buttons[index]?.pressed || (buttons[index]?.value as any) > 0;
     const startPressed = getGamepadButtonState(GAMEPAD_BUTTON_START);
     movement_strafe +=
-      (abs(-axes[0]!) > 0.1 ? Math.sign(-axes[0]!) : 0) +
+      (abs(-axes[0]!) > 0.2 ? Math.sign(-axes[0]!) : 0) +
       (getGamepadButtonState(GAMEPAD_BUTTON_LEFT) ? 1 : 0) +
       (getGamepadButtonState(GAMEPAD_BUTTON_RIGHT) ? -1 : 0);
     movement_forward +=
-      (abs(-axes[1]!) > 0.1 ? Math.sign(-axes[1]!) : 0) +
+      (abs(-axes[1]!) > 0.2 ? Math.sign(-axes[1]!) : 0) +
       (getGamepadButtonState(GAMEPAD_BUTTON_UP) ? 1 : 0) +
       (getGamepadButtonState(GAMEPAD_BUTTON_DOWN) ? -1 : 0);
+
+    if (player_first_person) {
+      if (abs(axes[2]!) > 0.3) {
+        camera_rotation.x += axes[2]! * gameTimeDelta * 80;
+      }
+      if (abs(axes[3]!) > 0.3) {
+        camera_rotation.y += axes[3]! * gameTimeDelta * 80;
+      }
+    }
 
     if (_gamepadStartPressed !== startPressed) {
       _gamepadStartPressed = startPressed;

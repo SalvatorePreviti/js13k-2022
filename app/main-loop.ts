@@ -54,7 +54,7 @@ import {
 import { input_frameReset, mouse_movementX, mouse_movementY, mainMenuVisible, initPage } from "./page";
 import { initTriangleBuffers } from "./game/triangle-buffers";
 import { renderModels } from "./game/render-models";
-import { movement_strafe, movement_forward, input_frameUpdate } from "./input";
+import { movement_strafe, movement_forward, input_frameUpdate, player_first_person } from "./input";
 
 const PLAYER_LEGS_VELOCITY = 7 * 1.3;
 
@@ -80,7 +80,6 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   let player_collision_velocity_z = 0;
   let player_collision_x = 0;
   let player_collision_z = 0;
-  let player_first_person: boolean | undefined;
 
   let camera_player_dir_x = player_position_global.x;
   let camera_player_dir_y = player_position_global.y + 13;
@@ -422,8 +421,6 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     // *** COLLISIONS ***
 
     input_frameUpdate();
-
-    player_first_person = !!document.pointerLockElement;
 
     if (gameTimeDelta > 0) {
       // *** COLLISION from the previos frame ***
