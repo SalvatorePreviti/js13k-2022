@@ -17,6 +17,52 @@ export interface SwcMinifySettings {
   timed?: boolean;
 }
 
+export async function jsMinifySwc(
+  source: string,
+  swcOptions: JsMinifyOptions,
+  minifyWhitespaces: boolean,
+): Promise<string> {
+  return devLog.timed(
+    "js swc minify",
+    async function js_swc_transform() {
+      let result =
+        (
+          await swcTransform(source, {
+            cwd: outPath_build,
+            inputSourceMap: false,
+            sourceMaps: false,
+            configFile: false,
+            filename: "index.js",
+            isModule: true,
+            minify: minifyWhitespaces,
+            swcrc: false,
+            jsc: {
+              transform: {
+                optimizer: {
+                  simplify: true,
+                },
+                useDefineForClassFields: false,
+                treatConstEnumAsEnum: true,
+                decoratorMetadata: false,
+              },
+              keepClassNames: false,
+              target: "es2022",
+              minify: swcOptions,
+            },
+          })
+        ).code || source;
+
+      if (minifyWhitespaces) {
+        result = jsRemoveEndingSemicolons(result);
+      }
+
+      this.setSuccessText(sizeDifference(source, result));
+      return result;
+    },
+    { spinner: true },
+  );
+}
+
 export async function jsTransformSwc(
   source: string,
   minify: "simple" | SwcMinifySettings | null | undefined | false,

@@ -27,11 +27,13 @@ requestAnimationFrame(() => {
   }
 
   const onThingLoaded = () => {
+    h1.innerHTML += ".";
     if (!--thingsToLoad) {
-      console.timeEnd("load");
+      if (DEBUG) {
+        console.timeEnd("load");
+      }
       startMainLoop(image);
     }
-    h1.innerHTML += ".";
   };
 
   const asyncLoadSongChannels = () => {

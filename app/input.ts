@@ -42,6 +42,7 @@ export const input_frameUpdate = () => {
     const { buttons, axes } = gamepad;
     const getGamepadButtonState = (index: number) => buttons[index]?.pressed || (buttons[index]?.value as any) > 0;
     const startPressed = getGamepadButtonState(GAMEPAD_BUTTON_START);
+
     movement_strafe +=
       (abs(-axes[0]!) > 0.2 ? Math.sign(-axes[0]!) : 0) +
       (getGamepadButtonState(GAMEPAD_BUTTON_LEFT) ? 1 : 0) +
@@ -53,10 +54,10 @@ export const input_frameUpdate = () => {
 
     if (player_first_person) {
       if (abs(axes[2]!) > 0.3) {
-        camera_rotation.x += axes[2]! * gameTimeDelta * 80;
+        camera_rotation.y += axes[2]! * 80 * gameTimeDelta;
       }
       if (abs(axes[3]!) > 0.3) {
-        camera_rotation.y += axes[3]! * gameTimeDelta * 80;
+        camera_rotation.x += axes[3]! * 80 * gameTimeDelta;
       }
     }
 

@@ -33,8 +33,8 @@ import resugarFunctionsArrow from "@resugar/codemod-functions-arrow";
 import resugarObjectsShorthand from "@resugar/codemod-objects-shorthand";
 import resugarConcise from "@resugar/codemod-objects-concise";
 import { jsTdeMinify } from "./steps/js-tde-minify";
-import { floatRoundAmount } from "./lib/js-config";
 import { babelPluginSimple } from "./steps/babel/babel-plugin-simple";
+import { jsEsbuildMinify } from "./steps/js-esbuild";
 
 const resugarBlockScope = [resugarBlockScopePlugin, { "declarations.block-scope": { disableConst: true } }];
 
@@ -131,18 +131,16 @@ export async function build() {
   }
 
   async function minifyJavascript(js: string): Promise<string> {
-    // js = await dprint(js);
+    js = await dprint(js);
 
     js = await jsBabel(js, {
       minify: false,
-      plugins: [babelPluginSimple({ unmangleableProperties: "mark" })],
+      plugins: [
+        "babel-plugin-minify-dead-code-elimination",
+        babelPluginSimple({ unmangleableProperties: "mark" }),
+        resugarFunctionsArrow,
+      ],
     });
-
-    js = await jsTransformSwc(
-      js,
-      { computed_props: true, final: false, mangle: false, minify: false },
-      swcPluginVars(),
-    );
 
     js = await jsTerser(js, {
       mangle: false,
@@ -152,6 +150,8 @@ export async function build() {
       computed_props: true,
     });
 
+    js = await jsTransformSwc(js, false, swcPluginVars());
+
     js = await jsUglify(js, {
       varify: false,
       final: false,
@@ -159,19 +159,20 @@ export async function build() {
       join_vars: true,
       sequences: true,
       computed_props: true,
-      inline: false,
+      inline: true,
     });
+
+    js = await jsTransformSwc(js, false, swcPluginVars({ floatRound: 6 }));
 
     js = await jsBabel(js, {
       minify: false,
       plugins: [
         resugarConcise,
         resugarFunctionsArrow,
-        resugarObjectsShorthand,
         resugarBlockScope,
         babelPluginSimple({
           unmangleableProperties: "transform",
-          floatRound: floatRoundAmount,
+          floatRound: 6,
         }),
       ],
     });
@@ -184,10 +185,10 @@ export async function build() {
 
     js = await jsBabel(js, {
       minify: false,
-      plugins: [resugarConcise, resugarFunctionsArrow, resugarObjectsShorthand, resugarBlockScope],
+      plugins: [resugarBlockScope, resugarConcise, resugarFunctionsArrow, resugarObjectsShorthand],
     });
 
-    // js = await jsTransformSwc(js, false, swcPluginVars({ constToLet: true, floatRound: 6 }));
+    js = await jsTransformSwc(js, false, swcPluginVars({ constToLet: true, floatRound: 6 }));
 
     js = await jsUglify(js, {
       mangle: false,
@@ -200,7 +201,7 @@ export async function build() {
       inline: true,
     });
 
-    // js = await jsTransformSwc(js, false, swcPluginVars({ constToLet: true, floatRound: 6 }));
+    js = await jsTransformSwc(js, false, swcPluginVars({ constToLet: true, floatRound: 6 }));
 
     js = await jsTerser(js, {
       mangle: false,
@@ -215,6 +216,8 @@ export async function build() {
       plugins: [resugarConcise, resugarObjectsShorthand, resugarFunctionsArrow, resugarBlockScope],
     });
 
+    js = await jsTransformSwc(js, false, swcPluginVars({ constToLet: true, floatRound: 6 }));
+
     js = await jsTerser(js, {
       mangle: "variables",
       final: false,
@@ -223,20 +226,26 @@ export async function build() {
       computed_props: true,
     });
 
+    js = await jsTransformSwc(js, false, swcPluginVars({ constToLet: true, floatRound: 6 }));
+
     js = await jsBabel(js, {
-      minify: false,
+      minify: true,
       plugins: [
+        "babel-plugin-minify-constant-folding",
+        "babel-plugin-minify-dead-code-elimination",
         resugarConcise,
         resugarObjectsShorthand,
         resugarFunctionsArrow,
-        resugarBlockScope,
+        // resugarBlockScope,
         babelPluginSimple({ removeNoInlineCall: true, constToLet: true }),
       ],
     });
 
+    js = await jsTransformSwc(js, false, swcPluginVars({ constToLet: true, floatRound: 6 }));
+
     js = await jsUglify(js, {
       varify: false,
-      final: false,
+      final: true,
       mangle: true,
       reduce_vars: true,
       join_vars: true,

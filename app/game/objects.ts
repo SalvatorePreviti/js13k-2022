@@ -8,7 +8,6 @@ import {
   PLAYER_MODEL_ID,
   levers,
   souls,
-  player_position_final,
   onPlayerPullLever,
   onSoulCollected,
   lerpDamp,
@@ -18,6 +17,7 @@ import {
   gameTime,
 } from "./world-state";
 import { keyboard_downKeys, KEY_INTERACT } from "../page";
+import { player_position_final } from "./player-position";
 
 const LEVER_SENSITIVITY_RADIUS = 2.7;
 const SOUL_SENSITIVITY_RADIUS = 1.1;
@@ -78,9 +78,9 @@ export const playerModel = newModel((model) => {
 
   // Player legs
 
-  playerLegsModels = [-0.3, 0.3].map((x) =>
+  playerLegsModels = [-1, 1].map((x) =>
     newModel(() => {
-      meshAdd(cylinder(10, 1), identity.translate(x, -0.8, 0).scale(0.2, 0.7, 0.24), material(1, 0.3, 0.4));
+      meshAdd(cylinder(10, 1), identity.translate(x * 0.3, -0.8, 0).scale(0.2, 0.7, 0.24), material(1, 0.3, 0.4));
     }),
   ) as [Model, Model];
 
@@ -143,7 +143,7 @@ meshAdd(
   material(1, 1, 1),
 );
 
-[-0.16, 0.16].map((x) => meshAdd(sphere(15), identity.translate(x, 0.4, -0.36).scale3d(0.09)));
+[-1, 1].map((x) => meshAdd(sphere(15), identity.translate(x * 0.16, 0.4, -0.36).scale3d(0.09)));
 
 const soulMesh = meshEnd();
 
@@ -152,9 +152,8 @@ export type Circle = [number, number, number];
 export const newSoul = (transform: DOMMatrixReadOnly, walkingPath: Circle[]): void => {
   withEditMatrix(transform, () => {
     const soul: Soul = { $value: 0 };
-    souls.push(soul);
 
-    const circles = walkingPath.map(([x, z, w], i) => ({ x, z, w, i }));
+    const circles = walkingPath.map(([x, z, w]) => ({ x, z, w }));
 
     if (DEBUG_FLAG0) {
       for (const circle of circles) {
@@ -167,11 +166,9 @@ export const newSoul = (transform: DOMMatrixReadOnly, walkingPath: Circle[]): vo
     }
 
     let circle = circles[0]!;
-
+    let { x: targetX, z: targetZ } = circle;
     let dirX = -1;
     let dirZ = 0;
-    let targetX = circles[0]!.x;
-    let targetZ = circles[0]!.z;
     let wasInside: boolean | undefined | 1 = 1;
     let randAngle = 0;
     let lookAngle = 0;
@@ -180,6 +177,8 @@ export const newSoul = (transform: DOMMatrixReadOnly, walkingPath: Circle[]): vo
     let velocity = 3;
     let prevX = 0;
     let prevZ = 0;
+
+    souls.push(soul);
 
     newModel((model) => {
       model.$collisions = 0;

@@ -1,5 +1,5 @@
+import { player_position_global } from "./game/player-position";
 import { DEG_TO_RAD, mat_perspectiveXY } from "./math";
-import { player_position_global } from "./game/world-state";
 
 import { constDef_zNear, constDef_zFar } from "./shaders/main-fragment.frag";
 

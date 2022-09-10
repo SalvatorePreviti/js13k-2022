@@ -46,15 +46,13 @@ import {
   lerpDamp,
   levers,
   player_last_pulled_lever,
-  player_position_final,
-  player_position_global,
-  player_position_initial,
   worldStateUpdate,
 } from "./game/world-state";
-import { input_frameReset, mouse_movementX, mouse_movementY, mainMenuVisible, initPage } from "./page";
+import { input_frameReset, mainMenuVisible, initPage } from "./page";
 import { initTriangleBuffers } from "./game/triangle-buffers";
 import { renderModels } from "./game/render-models";
 import { movement_strafe, movement_forward, input_frameUpdate, player_first_person } from "./input";
+import { player_position_global, player_position_initial, player_position_final } from "./game/player-position";
 
 const PLAYER_LEGS_VELOCITY = 7 * 1.3;
 
@@ -220,6 +218,121 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   };
 
   const updatePlayer = () => {
+    const doVerticalCollisions = (_collision_buffer: Uint8Array) => {
+      let maxModelIdCount = 0;
+      let nextModelId = 0;
+      player_collision_modelIdCounter.fill(0);
+
+      let lines = 0;
+      let grav = 0;
+      let hasGround: 0 | 1 = 0;
+      for (let y = 0; y < 31; ++y) {
+        let up = 0;
+        const yindex = y * (COLLISION_TEXTURE_SIZE * 4);
+        for (let x = 0; x < COLLISION_TEXTURE_SIZE - 0; x++) {
+          let i = yindex + x * 4;
+          const a = (_collision_buffer[i]! + _collision_buffer[i + 1]!) / 255;
+          i = _collision_buffer[i + 2]!;
+          if (x > 14 && x < COLLISION_TEXTURE_SIZE - 14) {
+            up += a;
+          }
+          if (i && a) {
+            const count = player_collision_modelIdCounter[i]! + 1;
+            player_collision_modelIdCounter[i] = count;
+            if (count >= maxModelIdCount) {
+              maxModelIdCount = count;
+              nextModelId = i;
+            }
+          }
+        }
+        if (up < 3 && y > 5) {
+          grav += y / 32;
+        }
+        if (up > 3) {
+          if (y > 7) {
+            lines += y / 15;
+          }
+          hasGround = 1;
+        }
+      }
+
+      if (nextModelId) {
+        hasGround = 1;
+      }
+
+      if (player_respawned) {
+        // keep the previous modelId until the player touch ground
+        if (nextModelId) {
+          player_respawned = 0;
+          currentModelId = nextModelId;
+        }
+      } else {
+        currentModelId = nextModelId || currentModelIdTMinus1;
+      }
+      currentModelIdTMinus1 = nextModelId;
+
+      player_has_ground = hasGround;
+      player_gravity = lerpDamp(player_gravity, hasGround ? 6.5 : 8, 4);
+
+      // push up and gravity
+      player_position_global.y +=
+        lines / 41 - (hasGround ? 1 : player_gravity) * (grav / 41) * player_gravity * gameTimeDelta;
+    };
+
+    const doHorizontalCollisions = (_collision_buffer: Uint8Array) => {
+      let ddx = 0;
+      let ddz = 0;
+      for (let y = 32; y < COLLISION_TEXTURE_SIZE; y += 2) {
+        let front = 0;
+        let back = 0;
+        let left = 0;
+        let right = 0;
+        const yindex = y * (COLLISION_TEXTURE_SIZE * 4);
+        for (let x = (y >> 1) & 1; x < COLLISION_TEXTURE_SIZE; x += 2) {
+          const i1 = yindex + x * 4;
+          const i2 = yindex + (COLLISION_TEXTURE_SIZE - 1 - x) * 4;
+          const dist1 = _collision_buffer[i1]! / 255;
+          const dist2 = _collision_buffer[i2 + 1]! / 255;
+
+          const t = 1 - abs(2 * (x / (COLLISION_TEXTURE_SIZE - 1)) - 1);
+
+          if (x > 10 && x < COLLISION_TEXTURE_SIZE - 10) {
+            const dist1Opposite = _collision_buffer[i2]! / 255;
+            front = max(front, max(dist1 * t, dist1 * dist1Opposite * 2));
+            const dist2Opposite = _collision_buffer[i1 + 1]! / 255;
+            back = max(back, max(dist2 * t, dist2 * dist2Opposite));
+          }
+
+          if (x < COLLISION_TEXTURE_SIZE / 2 - 10 || x > COLLISION_TEXTURE_SIZE / 2 + 10) {
+            const xdist = ((1 - t) * max(dist1, dist2)) / 3;
+            if (xdist > 0.001) {
+              if (x < COLLISION_TEXTURE_SIZE / 2 && left < xdist) {
+                left = xdist;
+              } else if (x > COLLISION_TEXTURE_SIZE / 2 && right < xdist) {
+                right = xdist;
+              }
+            }
+          }
+        }
+
+        const dx = right - left;
+        const dz = back - front;
+
+        if (abs(dx) > abs(ddx)) {
+          ddx = dx;
+        }
+        if (abs(dz) > abs(ddz)) {
+          ddz = dz;
+        }
+      }
+      player_collision_x = ddx;
+      player_collision_z = ddz;
+    };
+
+    NO_INLINE(doVerticalCollisions)(collision_buffer);
+
+    NO_INLINE(doHorizontalCollisions)(collision_buffer);
+
     const playerSpeedCollision = clamp01(1 - max(abs(player_collision_x), abs(player_collision_z)) * 5);
 
     // // adjust collision push back based on the duration of the frame, to address slower machines with lower FPS
@@ -304,117 +417,6 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     player_legs_speed = lerp(player_legs_speed, movement_strafe || movement_forward ? 1 : 0, gameTimeDelta * 10);
   };
 
-  const doVerticalCollisions = (_collision_buffer: Uint8Array) => {
-    let maxModelIdCount = 0;
-    let nextModelId = 0;
-    player_collision_modelIdCounter.fill(0);
-
-    let lines = 0;
-    let grav = 0;
-    let hasGround: 0 | 1 = 0;
-    for (let y = 0; y < 31; ++y) {
-      let up = 0;
-      const yindex = y * (COLLISION_TEXTURE_SIZE * 4);
-      for (let x = 0; x < COLLISION_TEXTURE_SIZE - 0; x++) {
-        let i = yindex + x * 4;
-        const a = (_collision_buffer[i]! + _collision_buffer[i + 1]!) / 255;
-        i = _collision_buffer[i + 2]!;
-        if (x > 14 && x < COLLISION_TEXTURE_SIZE - 14) {
-          up += a;
-        }
-        if (i && a) {
-          const count = player_collision_modelIdCounter[i]! + 1;
-          player_collision_modelIdCounter[i] = count;
-          if (count >= maxModelIdCount) {
-            maxModelIdCount = count;
-            nextModelId = i;
-          }
-        }
-      }
-      if (up < 3 && y > 5) {
-        grav += y / 32;
-      }
-      if (up > 3) {
-        if (y > 7) {
-          lines += y / 15;
-        }
-        hasGround = 1;
-      }
-    }
-
-    if (nextModelId) {
-      hasGround = 1;
-    }
-
-    if (player_respawned) {
-      // keep the previous modelId until the player touch ground
-      if (nextModelId) {
-        player_respawned = 0;
-        currentModelId = nextModelId;
-      }
-    } else {
-      currentModelId = nextModelId || currentModelIdTMinus1;
-    }
-    currentModelIdTMinus1 = nextModelId;
-
-    player_has_ground = hasGround;
-    player_gravity = lerpDamp(player_gravity, hasGround ? 6.5 : 8, 4);
-
-    // push up and gravity
-    player_position_global.y +=
-      lines / 41 - (hasGround ? 1 : player_gravity) * (grav / 41) * player_gravity * gameTimeDelta;
-  };
-
-  const doHorizontalCollisions = (_collision_buffer: Uint8Array) => {
-    let ddx = 0;
-    let ddz = 0;
-    for (let y = 32; y < COLLISION_TEXTURE_SIZE; y += 2) {
-      let front = 0;
-      let back = 0;
-      let left = 0;
-      let right = 0;
-      const yindex = y * (COLLISION_TEXTURE_SIZE * 4);
-      for (let x = (y >> 1) & 1; x < COLLISION_TEXTURE_SIZE; x += 2) {
-        const i1 = yindex + x * 4;
-        const i2 = yindex + (COLLISION_TEXTURE_SIZE - 1 - x) * 4;
-        const dist1 = _collision_buffer[i1]! / 255;
-        const dist2 = _collision_buffer[i2 + 1]! / 255;
-
-        const t = 1 - abs(2 * (x / (COLLISION_TEXTURE_SIZE - 1)) - 1);
-
-        if (x > 10 && x < COLLISION_TEXTURE_SIZE - 10) {
-          const dist1Opposite = _collision_buffer[i2]! / 255;
-          front = max(front, max(dist1 * t, dist1 * dist1Opposite * 2));
-          const dist2Opposite = _collision_buffer[i1 + 1]! / 255;
-          back = max(back, max(dist2 * t, dist2 * dist2Opposite));
-        }
-
-        if (x < COLLISION_TEXTURE_SIZE / 2 - 10 || x > COLLISION_TEXTURE_SIZE / 2 + 10) {
-          const xdist = ((1 - t) * max(dist1, dist2)) / 3;
-          if (xdist > 0.001) {
-            if (x < COLLISION_TEXTURE_SIZE / 2 && left < xdist) {
-              left = xdist;
-            } else if (x > COLLISION_TEXTURE_SIZE / 2 && right < xdist) {
-              right = xdist;
-            }
-          }
-        }
-      }
-
-      const dx = right - left;
-      const dz = back - front;
-
-      if (abs(dx) > abs(ddx)) {
-        ddx = dx;
-      }
-      if (abs(dz) > abs(ddz)) {
-        ddz = dz;
-      }
-    }
-    player_collision_x = ddx;
-    player_collision_z = ddz;
-  };
-
   const mainLoop = (globalTime: number) => {
     requestAnimationFrame(mainLoop);
 
@@ -430,10 +432,6 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       gl.invalidateFramebuffer(gl.FRAMEBUFFER, [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT]);
 
       // compute collisions
-
-      NO_INLINE(doVerticalCollisions)(collision_buffer);
-
-      NO_INLINE(doHorizontalCollisions)(collision_buffer);
 
       updatePlayer();
 
@@ -503,8 +501,8 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
           camera_position.x = lerpDamp(camera_position.x, player_position_final.x, 18 + interpolationSpeed);
           camera_position.y = lerpDamp(camera_position.y, player_position_final.y + 1.5, 15 + interpolationSpeed);
           camera_position.z = lerpDamp(camera_position.z, player_position_final.z, 18 + interpolationSpeed);
-          camera_rotation.y = angle_wrap_degrees(camera_rotation.y + mouse_movementX * 0.1);
-          camera_rotation.x = max(min(camera_rotation.x + mouse_movementY * 0.1, 87), -87);
+          camera_rotation.y = angle_wrap_degrees(camera_rotation.y);
+          camera_rotation.x = max(min(camera_rotation.x, 87), -87);
         } else {
           camera_position.x = interpolate_with_hysteresis(camera_position.x, camera_player_dir_x, 1, gameTimeDelta * 2);
           camera_position.y = interpolate_with_hysteresis(
@@ -672,6 +670,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   updateModels(rootModel);
 
   initPage();
+
   player_respawn();
 
   requestAnimationFrame(mainLoop);

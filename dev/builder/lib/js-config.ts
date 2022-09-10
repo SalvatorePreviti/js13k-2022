@@ -2,8 +2,6 @@ export const mangleConfig = {
   reserved: ["x", "y", "z", "w"],
 };
 
-export const floatRoundAmount = 6;
-
 export const global_defs = {
   DEV: false,
   DEBUG: false,

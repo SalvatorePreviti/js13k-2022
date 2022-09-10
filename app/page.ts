@@ -1,6 +1,8 @@
 export let mainMenuVisible: boolean | undefined;
 
+import { camera_rotation } from "./camera";
 import { loadGame, LOCAL_STORAGE_SAVED_GAME_KEY } from "./game/world-state";
+import { player_first_person } from "./input";
 import { audioContext, songAudioSource } from "./music/audio-context";
 import type { KEY_CODE } from "./utils/keycodes";
 
@@ -16,14 +18,10 @@ export const KEY_INTERACT = 5;
 
 export const keyboard_downKeys: (boolean | 0 | undefined)[] = [];
 
-export let mouse_movementX = 0;
-
-export let mouse_movementY = 0;
-
 let music_on = !DEBUG;
 
 /** Resets the input status after a frame */
-export const input_frameReset = () => (keyboard_downKeys[KEY_INTERACT] = mouse_movementX = mouse_movementY = 0);
+export const input_frameReset = () => (keyboard_downKeys[KEY_INTERACT] = 0);
 
 const keyMap: Partial<Record<KEY_CODE, number>> = {
   ["KeyA"]: KEY_LEFT,
@@ -53,7 +51,7 @@ const updateMusicState = () => {
       songAudioSource.start();
     }
   } catch {}
-  b4.innerHTML = "Audio: " + music_on;
+  b4.innerHTML = "Music: " + music_on;
 };
 
 export const setMainMenuVisible = (value: boolean) => {
@@ -71,7 +69,7 @@ export const initPage = () => {
   const handleResize = () => {
     hC.width = innerWidth;
     hC.height = innerHeight;
-    keyboard_downKeys.length = mouse_movementX = mouse_movementY = 0;
+    keyboard_downKeys.length = 0;
   };
 
   b1.onclick = () => setMainMenuVisible(false);
@@ -110,10 +108,10 @@ export const initPage = () => {
     }
   };
 
-  onmousemove = ({ buttons, movementX, movementY }) => {
-    if (document.pointerLockElement || (DEBUG && buttons > 0 && document.activeElement)) {
-      mouse_movementX += movementX;
-      mouse_movementY += movementY;
+  onmousemove = ({ movementX, movementY }) => {
+    if (player_first_person) {
+      camera_rotation.y += movementX * 0.1;
+      camera_rotation.x += movementY * 0.1;
     }
   };
 
