@@ -124,6 +124,12 @@ export const initPage = () => {
     }
   };
 
+  onmousedown = ({ button }) => {
+    if (!mainMenuVisible && player_first_person && button === 0) {
+      keyboard_downKeys[KEY_INTERACT] = true;
+    }
+  };
+
   document.onvisibilitychange = () => document.hidden && setMainMenuVisible(true);
 
   loadGame();
