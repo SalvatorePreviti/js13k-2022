@@ -125,7 +125,7 @@ export const worldStateUpdate = () => {
       levers[0]!.$value = 0;
       showMessage("Not leaving now, there are souls to catch!", 3);
     } else if (!game_completed) {
-      showMessage("Well done Dante! You completed your task.<br/>Thanks for playing.", 0);
+      showMessage("Well done Dante! You completed your task.<br>Thanks for playing.", 0);
       game_completed = 1;
     }
   }
@@ -195,19 +195,19 @@ export const onSoulCollected = (soulIndex: number) => {
   showMessage(
     [
       ,
-      "Andrzej Mazur<br/>is evil, very evil",
-      "Mark Zuckemberg<br/>made the world worse",
+      "Andrzej Mazur<br>is evil, very evil",
+      "Mark Zuckemberg<br>made the world worse",
       ,
-      "Maxime Euziere<br/>forced me to finish this game",
-      "Donald Trump<br/>lied, lied, and lied",
-      "Kim Jong-un<br/>Dictator, and liked pineapple on pizza",
+      "Maxime Euziere<br>forced me to finish this game",
+      "Donald Trump<br>lied, lied, and lied",
+      "Kim Jong-un<br>Dictator, and liked pineapple on pizza",
       "She traded NFTs.",
       ,
-      "Vladimir Putin<br/>caused war and death",
+      "Vladimir Putin<br>caused war and death",
       "He was NOT a good person.",
       ,
-      "Salvatore Previti<br/>made this evil game<br/>All souls collected, go back to the boat",
-    ][soulIndex] || 'Catched a "crypto bro".<br/>"Web3" is all scam, lies and grift.',
+      "Salvatore Previti<br>made this evil game<br>All souls collected, go back to the boat",
+    ][soulIndex] || 'Catched a "crypto bro".<br>"Web3" is all scam, lies and grift.',
     soulIndex && soulIndex < 13 ? 5 : 7,
   );
 

@@ -581,21 +581,13 @@ export const buildWorld = () => {
 
     // crystals
 
-    [
-      material(0.5, 0.5, 0.6, 0.25),
-      material(0.4, 0.4, 0.6, 0.35),
-      material(0.35, 0.5, 0.6, 0.45),
-      material(0.3, 0.6, 0.6, 0.25),
-      material(0.25, 0.5, 0.6, 0.35),
-      material(0.2, 0.4, 0.6, 0.25),
-      material(0.15, 0.5, 0.6, 0.35),
-    ].map((m, i) => {
+    integers_map(7, (i) => {
       meshAdd(
         cylinder(((i * 23 + 1) % 5) + 5, 0, 0.55),
         identity
           .translate(-101 + Math.sin(i) * 5 + i, -2.3 - i, -30.1 - i * 2.8)
           .scaleSelf(5 + i / 2, 1 + i / 6, 5 + i / 3),
-        m,
+        material(0.5 - i / 17, 0.5 - (i & 1) / 9, 0.6, 0.3),
       );
     });
 
