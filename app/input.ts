@@ -1,6 +1,6 @@
 import { camera_rotation } from "./camera";
 import { gameTimeDelta } from "./game/world-state";
-import { abs } from "./math";
+import { abs, max, min } from "./math";
 import {
   keyboard_downKeys,
   KEY_BACK,
@@ -45,11 +45,11 @@ export const input_frameUpdate = () => {
     const startPressed = getGamepadButtonState(GAMEPAD_BUTTON_START);
 
     movement_strafe +=
-      (abs(-axes[0]!) > 0.2 ? Math.sign(-axes[0]!) : 0) +
+      (abs(-axes[0]!) > 0.2 ? -axes[0]! : 0) +
       (getGamepadButtonState(GAMEPAD_BUTTON_LEFT) ? 1 : 0) +
       (getGamepadButtonState(GAMEPAD_BUTTON_RIGHT) ? -1 : 0);
     movement_forward +=
-      (abs(-axes[1]!) > 0.2 ? Math.sign(-axes[1]!) : 0) +
+      (abs(-axes[1]!) > 0.2 ? -axes[1]! : 0) +
       (getGamepadButtonState(GAMEPAD_BUTTON_UP) ? 1 : 0) +
       (getGamepadButtonState(GAMEPAD_BUTTON_DOWN) ? -1 : 0);
 
@@ -80,6 +80,6 @@ export const input_frameUpdate = () => {
     }
   }
 
-  movement_strafe = Math.sign(movement_strafe);
-  movement_forward = Math.sign(movement_forward);
+  movement_strafe = max(-1, min(1, movement_strafe));
+  movement_forward = max(-1, min(1, movement_forward));
 };
