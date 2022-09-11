@@ -32,7 +32,49 @@ export const buildWorld = () => {
   );
   const entranceBarsMesh = meshEnd();
 
+  // ========= boat mesh ========= //
+
+  meshAdd(
+    csg_polygons(
+      csg_subtract(
+        polygons_transform(
+          cylinder(20, 1, 1.15, 1),
+          identity.translate(0, -3).scale(3.5, 1, 3.5),
+          material(0.7, 0.4, 0.25, 0.7),
+        ),
+        polygons_transform(
+          cylinder(20, 1, 1.3, 1),
+          identity.translate(0, -2.5).scale(2.6, 1, 3),
+          material(0.7, 0.4, 0.25, 0.2),
+        ),
+        polygons_transform(cylinder(GQuad), identity.translate(4, -1.2, 0).scale3d(2), material(0.7, 0.4, 0.25, 0.3)),
+      ),
+    ),
+  );
+
+  const boatMesh = meshEnd();
+
+  const getBoatAnimationMatrix = (z: number) => {
+    return identity
+      .translate(Math.sin(gameTime + 2) / 5, Math.sin(gameTime * 0.8) / 3, z)
+      .rotate(Math.sin(gameTime) * 2, Math.sin(gameTime * 0.7), Math.sin(gameTime * 0.9));
+  };
+
   // ========= WORLD! ========= //
+
+  // ========= FIRST BOAT! ========= //
+
+  withEditMatrix(identity.translate(-12, 4.2, -26), () => {
+    newModel((model) => {
+      model._update = () => getBoatAnimationMatrix(0);
+      withEditMatrix(identity.translate(0, -3, 4), newLever);
+      return boatMesh;
+    }, ++_modelIdCounter);
+  });
+
+  // first boat attachment
+
+  meshAdd(cylinder(GQuad), identity.translate(-5, -0.2, -26).scale(3.2, 1, 2.5).skewX(3), material(0.8, 0.8, 0.8, 0.2));
 
   // !!! SOUL 1 !!!
   newSoul(identity.translate(0, 2.8), [
@@ -48,9 +90,9 @@ export const buildWorld = () => {
   });
 
   // in and out
-  [-23, 22].map((z) => {
-    meshAdd(cylinder(GQuad), identity.translate(0, 0, z).scale(3, 1, 8), material(0.9, 0.9, 0.9, 0.2));
-  });
+  [-23, 22].map((z) =>
+    meshAdd(cylinder(GQuad), identity.translate(0, 0, z).scale(3, 1, 8), material(0.9, 0.9, 0.9, 0.2)),
+  );
 
   [-15, 15].map((z, i) => {
     //  gate top
@@ -60,7 +102,7 @@ export const buildWorld = () => {
     // in and out gate bars
     withEditMatrix(identity.translate(0, 0, z), () =>
       newModel((model) => {
-        model._update = () => identity.translate(0, -levers[i]!.$lerpValue * 4.7);
+        model._update = () => identity.translate(0, -levers[i + 1]!.$lerpValue * 4.7);
         return entranceBarsMesh;
       }),
     );
@@ -85,12 +127,13 @@ export const buildWorld = () => {
 
   // first lever pad
   meshAdd(
-    cylinder(5),
-    identity.translate(-5.4, 0.3, -20).scale(3, 0.5, 3).rotate(0, -90),
+    cylinder(GQuad),
+    identity.translate(-3.4, -0.2, -19).scale(2, 1, 1.5).rotate(0, -90),
     material(0.75, 0.75, 0.75, 0.2),
   );
+  meshAdd(cylinder(5), identity.translate(-5.4, 0, -19).scale(2, 1, 2).rotate(0, -90), material(0.6, 0.3, 0.3, 0.4));
 
-  withEditMatrix(identity.translate(-5.4, 1.2, -20).rotate(0, -90), newLever);
+  withEditMatrix(identity.translate(-5.4, 1.2, -19).rotate(0, -90), newLever);
 
   // descent
 
@@ -157,11 +200,11 @@ export const buildWorld = () => {
     withEditMatrix(identity.translate(0, 1.2), newLever);
 
     model._update = () => {
-      model.$visible = levers[2]!.$lerpValue > 0.01;
+      model.$visible = levers[3]!.$lerpValue > 0.01;
       return identity.translate(
         0,
-        (Math.cos(gameTime * 1.5) * 5 + 2) * levers[2]!.$lerpValue2 * (1 - levers[1]!.$lerpValue) +
-          (1 - levers[2]!.$lerpValue) * -15,
+        (Math.cos(gameTime * 1.5) * 5 + 2) * levers[3]!.$lerpValue2 * (1 - levers[2]!.$lerpValue) +
+          (1 - levers[3]!.$lerpValue) * -15,
         0,
       );
     };
@@ -174,7 +217,7 @@ export const buildWorld = () => {
   // ******** LEVEL 2 ********
 
   withEditMatrix(identity.translate(0, 0, 75), () => {
-    const getOscillationAmount = () => min(levers[1]!.$lerpValue2, 1 - levers[3]!.$lerpValue2);
+    const getOscillationAmount = () => min(levers[2]!.$lerpValue2, 1 - levers[4]!.$lerpValue2);
 
     const blackPlatform = (oscillation: number, amplitude: number) =>
       newModel((model) => {
@@ -266,12 +309,11 @@ export const buildWorld = () => {
       meshAdd(cylinder(GQuad), identity.translate(-23, -2.2, -13).scale(3, 1, 4), material(0.5, 0.5, 0.5, 0.3));
       meshAdd(cylinder(8), identity.translate(-23, -2.2, -8.5).scale(1.5, 1.2, 1.5), material(0.8, 0.8, 0.8, 0.2));
 
-      // LEVER 3
       withEditMatrix(identity.translate(-23, -0.5, -8.5), newLever);
     }, ++_modelIdCounter);
 
     const level3Oscillation = () =>
-      clamp01(1 - getOscillationAmount() * 5) * lerpneg(levers[3]!.$lerpValue, levers[4]!.$lerpValue);
+      clamp01(1 - getOscillationAmount() * 5) * lerpneg(levers[4]!.$lerpValue, levers[5]!.$lerpValue);
 
     // vertically oscillating mini platforms
 
@@ -333,7 +375,7 @@ export const buildWorld = () => {
 
     withEditMatrix(identity.translate(-44.5, 0, -20), () =>
       newModel((model) => {
-        model._update = () => identity.translate(0, levers[3]!.$lerpValue2 * -6.5);
+        model._update = () => identity.translate(0, levers[4]!.$lerpValue2 * -6.5);
         meshAdd(cylinder(6), identity.rotate(90, 90).rotate(0, 90).scale(5.9, 0.5, 5.9), material(0.7, 0.7, 0.7, 0.4));
       }),
     );
@@ -385,8 +427,8 @@ export const buildWorld = () => {
       newModel((model) => {
         model._update = () => {
           return identity
-            .translate(0, (1 - levers[4]!.$lerpValue2) * (1 - levers[5]!.$lerpValue) * 3)
-            .rotate(180 * (1 - levers[4]!.$lerpValue2) + rotatingHexCorridorRotation, 0);
+            .translate(0, (1 - levers[5]!.$lerpValue2) * (1 - levers[6]!.$lerpValue) * 3)
+            .rotate(180 * (1 - levers[5]!.$lerpValue2) + rotatingHexCorridorRotation, 0);
         };
         meshAdd(hexCorridorPolygons);
       }),
@@ -517,7 +559,7 @@ export const buildWorld = () => {
 
     withEditMatrix(identity.translate(-99.7, -2, -11.5), () =>
       newModel((model) => {
-        model._update = () => identity.translate(0, -levers[5]!.$lerpValue * 5.3);
+        model._update = () => identity.translate(0, -levers[6]!.$lerpValue * 5.3);
 
         return entranceBarsMesh;
       }),
@@ -576,14 +618,14 @@ export const buildWorld = () => {
     // elevators
 
     withEditMatrix(identity.translate(-76.9, -10, -51), () => {
-      const shouldOscillate = () => lerpneg(levers[6]!.$lerpValue2, levers[5]!.$lerpValue2);
+      const shouldOscillate = () => lerpneg(levers[7]!.$lerpValue2, levers[6]!.$lerpValue2);
 
       newModel((model) => {
         model._update = () => {
           const osc = shouldOscillate();
           return identity.translate(
             0,
-            (1 - max(levers[5]!.$lerpValue, levers[6]!.$lerpValue)) * 3.5 + osc * Math.sin(gameTime) * 5,
+            (1 - max(levers[6]!.$lerpValue, levers[7]!.$lerpValue)) * 3.5 + osc * Math.sin(gameTime) * 5,
           );
         };
         [0, 12, 24].map((x) =>
@@ -629,7 +671,7 @@ export const buildWorld = () => {
       // central sculpture/monument
 
       newModel((model) => {
-        model._update = () => identity.translate(0, levers[6]!.$lerpValue2 * -7.3);
+        model._update = () => identity.translate(0, levers[7]!.$lerpValue2 * -7.3);
 
         // !!! SOUL 5 !!!
         newSoul(
@@ -725,38 +767,14 @@ export const buildWorld = () => {
     withEditMatrix(identity.translate(-84, -0.5, 10).rotate(0, 45), newLever);
   });
 
-  // ******** BOAT ********
+  // ******** SECOND BOAT ********
 
   withEditMatrix(identity.translate(-123, 1.4, 55), () => {
     newModel((model) => {
-      model._update = () => {
-        return identity
-          .translate(Math.sin(gameTime + 2) / 5, Math.sin(gameTime * 0.8) / 3, boatLerp * -65)
-          .rotate(Math.sin(gameTime) * 2, Math.sin(gameTime * 0.7), Math.sin(gameTime * 0.9));
-      };
-      meshAdd(
-        csg_polygons(
-          csg_subtract(
-            polygons_transform(
-              cylinder(20, 1, 1.15, 1),
-              identity.translate(0, -3).scale(3.5, 1, 3.5),
-              material(0.7, 0.4, 0.25, 0.7),
-            ),
-            polygons_transform(
-              cylinder(20, 1, 1.3, 1),
-              identity.translate(0, -2.5).scale(2.6, 1, 3),
-              material(0.7, 0.4, 0.25, 0.2),
-            ),
-            polygons_transform(
-              cylinder(GQuad),
-              identity.translate(4, -1.2, 0).scale3d(2),
-              material(0.7, 0.4, 0.25, 0.3),
-            ),
-          ),
-        ),
-      );
+      model._update = () => getBoatAnimationMatrix(boatLerp * -65);
 
       withEditMatrix(identity.translate(0, -3, -4).rotate(0, 180), newLever);
+      return boatMesh;
     }, ++_modelIdCounter);
   });
 
@@ -856,8 +874,8 @@ export const buildWorld = () => {
 
     // pushing rods
 
-    const shouldPushRods = () => lerpneg(levers[9]!.$lerpValue, levers[10]!.$lerpValue);
-    const shouldBlockRods = () => (1 - levers[9]!.$lerpValue) * (1 - shouldPushRods());
+    const shouldPushRods = () => lerpneg(levers[10]!.$lerpValue, levers[11]!.$lerpValue);
+    const shouldBlockRods = () => (1 - levers[10]!.$lerpValue) * (1 - shouldPushRods());
 
     newModel((model) => {
       model._update = () => identity.translate(0, -2, shouldPushRods() * abs(Math.sin(gameTime * 1.1)) * -8.5 + 10);
@@ -943,7 +961,7 @@ export const buildWorld = () => {
 
     // oscillating hex pads
 
-    const hexPadShouldOscillate = () => lerpneg(levers[7]!.$lerpValue2, levers[11]!.$lerpValue2);
+    const hexPadShouldOscillate = () => lerpneg(levers[8]!.$lerpValue2, levers[12]!.$lerpValue2);
 
     [
       material(0.5, 0.5, 0.6, 0.25),
@@ -957,7 +975,7 @@ export const buildWorld = () => {
           return identity.translate(
             i > 2 ? (1 - osc) * 2 + osc : 0,
             osc * Math.sin(gameTime + i * 1.7) * (5 + i / 4),
-            (i & 1 ? -1 : 1) * (1 - levers[7]!.$lerpValue2) * (1 - levers[11]!.$lerpValue2) * -7 +
+            (i & 1 ? -1 : 1) * (1 - levers[8]!.$lerpValue2) * (1 - levers[12]!.$lerpValue2) * -7 +
               max(0.05, osc) * Math.cos(gameTime + i * 7) * (6 - 2 * (1 - i / 3)),
           );
         };
@@ -979,7 +997,7 @@ export const buildWorld = () => {
           return identity
             .translate(
               (1 - osc) * 3.5,
-              (1 - levers[7]!.$lerpValue) * -4 + osc * Math.sin(gameTime * 0.7) * -4,
+              (1 - levers[8]!.$lerpValue) * -4 + osc * Math.sin(gameTime * 0.7) * -4,
               osc * (Math.sin(gameTime * 0.9) * 2 - 1) * 3,
             )
             .rotateSelf(Math.cos(gameTime * 1.3) * (osc * 4 + 3), 0);
@@ -1205,8 +1223,8 @@ export const buildWorld = () => {
         model._update = () =>
           identity.translate(
             0,
-            (1 - levers[12]!.$lerpValue2) * (1 - levers[13]!.$lerpValue2) * 3 +
-              lerpneg(levers[12]!.$lerpValue2, levers[13]!.$lerpValue2) * Math.sin(gameTime * 1.5 + i * 1.5) * 4,
+            (1 - levers[13]!.$lerpValue2) * (1 - levers[14]!.$lerpValue2) * 3 +
+              lerpneg(levers[13]!.$lerpValue2, levers[14]!.$lerpValue2) * Math.sin(gameTime * 1.5 + i * 1.5) * 4,
           );
         meshAdd(
           cylinder(GQuad),
@@ -1338,8 +1356,8 @@ export const buildWorld = () => {
 
       newModel((model) => {
         model._update = () => {
-          let v = lerpneg((levers[13]!.$lerpValue + levers[13]!.$lerpValue2) / 2, levers[12]!.$lerpValue2);
-          v = lerpneg(v, (levers[14]!.$lerpValue + levers[14]!.$lerpValue2) / 2);
+          let v = lerpneg((levers[14]!.$lerpValue + levers[14]!.$lerpValue2) / 2, levers[13]!.$lerpValue2);
+          v = lerpneg(v, (levers[15]!.$lerpValue + levers[15]!.$lerpValue2) / 2);
           return identity.translate(0, v * 16, clamp01(v * 2 - 1) * 8.5);
         };
         meshAdd(cylinder(5), identity.scale(5, 1.1, 5), material(0.5, 0.3, 0.3, 0.4));

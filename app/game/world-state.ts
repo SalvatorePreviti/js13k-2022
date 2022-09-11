@@ -6,12 +6,28 @@ export let absoluteTime = 0;
 
 export let gameTime = 0;
 
-export let gameTimeDelta: number = 0.01;
+export let souls_collected_count = 0;
 
 /** Minimum 15.3 frames per second */
 export const GAME_TIME_MAX_DELTA_TIME = 0.0666;
 
+export let gameTimeDelta: number = GAME_TIME_MAX_DELTA_TIME;
+
 let _globalTime: number | undefined;
+
+let _messageEndTime = 0;
+
+export const showMessage = (message: string, duration: number) => {
+  h4.innerHTML = message;
+  _messageEndTime = gameTime + duration;
+};
+
+const updateMessageState = () => {
+  if (gameTime > _messageEndTime) {
+    _messageEndTime = 0;
+    h4.innerHTML = "";
+  }
+};
 
 export const lerpDamp = /* @__PURE__ */ (from: number, to: number, speed: number) =>
   lerp(from, to, 1 - Math.exp(-speed * gameTimeDelta));
@@ -72,12 +88,14 @@ export let rotatingHexCorridorRotation = 0;
 export let boatLerp = 0;
 
 export const worldStateUpdate = () => {
-  const shouldRotatePlatforms = lerpneg(levers[11]!.$lerpValue, levers[12]!.$lerpValue);
+  updateMessageState();
+
+  const shouldRotatePlatforms = lerpneg(levers[12]!.$lerpValue, levers[13]!.$lerpValue);
 
   rotatingHexCorridorRotation = lerp(
     lerpDamp(rotatingHexCorridorRotation, 0, 1),
     angle_wrap_degrees(rotatingHexCorridorRotation + gameTimeDelta * 60),
-    levers[4]!.$lerpValue - levers[5]!.$lerpValue2,
+    levers[5]!.$lerpValue - levers[6]!.$lerpValue2,
   );
 
   rotatingPlatform1Rotation = lerp(
@@ -92,15 +110,19 @@ export const worldStateUpdate = () => {
     shouldRotatePlatforms,
   );
 
-  boatLerp = lerpDamp(boatLerp, levers[8]!.$lerpValue2, 0.2 + 0.3 * abs(levers[8]!.$lerpValue2 * 2 - 1));
+  boatLerp = lerpDamp(boatLerp, levers[9]!.$lerpValue2, 0.2 + 0.3 * abs(levers[9]!.$lerpValue2 * 2 - 1));
+
+  if (levers[0]!.$value && levers[0]!.$lerpValue > 0.8 && souls_collected_count < 13) {
+    levers[0]!.$value = 0;
+    showMessage("Not leaving now, there are souls to catch!", 3);
+  }
 };
 
 const updateCollectedSoulsCounter = () => {
+  souls_collected_count = souls.reduce((acc, cur) => acc + cur.$value, 0);
   h3.innerHTML =
     " " +
-    ["0", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII"][
-      souls.reduce((acc, cur) => acc + cur.$value, 0)
-    ]!;
+    ["0", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII"][souls_collected_count]!;
 };
 
 export const saveGame = () => {
@@ -137,6 +159,9 @@ export const loadGame = () => {
     }
   }
   updateCollectedSoulsCounter();
+  showMessage("", 0);
+  h4.innerHTML = "";
+  _messageEndTime = 0;
 };
 
 export const onPlayerPullLever = (leverIndex: number) => {
@@ -145,9 +170,34 @@ export const onPlayerPullLever = (leverIndex: number) => {
   }
 
   player_last_pulled_lever = leverIndex;
-  saveGame();
+  if (leverIndex) {
+    showMessage("checkpoint", 1);
+    saveGame();
+  }
 };
 
-export const onSoulCollected = () => {
+export const onSoulCollected = (soulIndex: number) => {
+  if (DEBUG) {
+    console.log("soul catched " + soulIndex);
+  }
+  showMessage(
+    [
+      ,
+      "Andrzej Mazur<br/>he is evil, very evil",
+      "Mark Zuckemberg<br/>made the world worse",
+      ,
+      "Maxime Euziere<br/>forced me to finish this game",
+      "Donald Trump<br/>lied, lied, and lied",
+      "He liked pineapple on pizza",
+      "She traded NFTs.",
+      ,
+      "Vladimir Putin<br/>caused war and death",
+      "He was NOT a good person.",
+      ,
+      "Salvatore Previti<br/>made this evil game",
+    ][soulIndex] || 'Catched a "crypto bro".<br/>"Web3" is all scam, lies and grift.',
+    soulIndex ? 5 : 7,
+  );
+
   saveGame();
 };

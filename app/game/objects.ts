@@ -178,7 +178,7 @@ export const newSoul = (transform: DOMMatrixReadOnly, walkingPath: number[][]): 
     let prevX = 0;
     let prevZ = 0;
 
-    souls.push(soul);
+    const index = souls.push(soul) - 1;
 
     newModel((model) => {
       model.$collisions = 0;
@@ -249,7 +249,7 @@ export const newSoul = (transform: DOMMatrixReadOnly, walkingPath: number[][]): 
         const soulPos = model.$finalMatrix.multiply(animationMatrix).transformPoint();
         if (!soul.$value && vec3_distance(soulPos, player_position_final) < SOUL_SENSITIVITY_RADIUS) {
           soul.$value = 1;
-          onSoulCollected();
+          onSoulCollected(index);
         }
 
         return animationMatrix;

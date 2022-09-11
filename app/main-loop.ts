@@ -52,7 +52,7 @@ import { input_frameReset, mainMenuVisible, initPage } from "./page";
 import { initTriangleBuffers } from "./game/triangle-buffers";
 import { renderModels } from "./game/render-models";
 import { movement_strafe, movement_forward, input_frameUpdate, player_first_person } from "./input";
-import { player_position_global, player_position_initial, player_position_final } from "./game/player-position";
+import { player_position_global, player_position_final } from "./game/player-position";
 
 const PLAYER_LEGS_VELOCITY = 7 * 1.3;
 
@@ -199,8 +199,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   const player_respawn = () => {
     const { $matrix, $model } = levers[player_last_pulled_lever]!;
 
-    const { x, y, z } =
-      player_last_pulled_lever && $matrix ? $matrix.transformPoint({ x: 0, y: 15, z: -3 }) : player_position_initial;
+    const { x, y, z } = $matrix!.transformPoint({ x: 0, y: 15, z: -3 });
 
     player_position_final.x = player_position_global.x = x;
     player_position_final.y = player_position_global.y = y;
@@ -469,12 +468,14 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     gameTimeUpdate(globalTime);
 
     if (mainMenuVisible) {
+      const screenDist = clamp01(hC.clientWidth / 1000);
+      console.log(screenDist);
       // Main menu camera
       camera_view
         .setMatrixValue("none")
-        .rotateSelf(-30, -90)
+        .rotateSelf(-20, -90)
         .invertSelf()
-        .translateSelf(4.5 - hC.clientHeight / hC.clientWidth, -2.5, -2.2 + min(1, hC.clientHeight / hC.clientWidth));
+        .translateSelf(4.5, -2, -3.2 + screenDist);
     } else {
       if (!DEBUG_CAMERA) {
         camera_player_dir_x = interpolate_with_hysteresis(
@@ -637,9 +638,9 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     }
 
     if (gameTimeDelta > 0) {
-      // Special handling for the boat (lever 8) - the boat must be on the side of the map the player is
+      // Special handling for the second boat (lever 7) - the boat must be on the side of the map the player is
       if (currentModelId === 1) {
-        levers[8]!.$value = player_position_final.x < -15 && player_position_final.z < 0 ? 1 : 0;
+        levers[7]!.$value = player_position_final.x < -15 && player_position_final.z < 0 ? 1 : 0;
       }
 
       // We update the models for the next frame, for performance

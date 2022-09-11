@@ -1,94 +1,103 @@
 html,
 body {
+  margin: 0;
   user-select: none;
-  font-family: serif;
+  font-family: "Times New Roman", serif;
   background: #000;
-  font-size: 5vh;
+  font-size: max(3.5vh, 35px);
+  text-shadow: 4px 4px 2px #000, -2px -2px 8px #000;
+}
+
+* {
+  font-weight: 100;
+}
+
+body,
+a {
   color: #fda;
-  text-shadow: 5px 5px 2px #000;
 }
 
-a,
-i,
-p {
-  font-size: 0.5em;
-  color: #fda !important;
-}
-
-/* main menu items */
-a,
-li {
-  margin-bottom: 0.5em;
-  cursor: pointer;
-  border-bottom: 3px solid #00000000;
-  text-decoration: none;
-}
-
-h2,
-a:hover,
-li:hover {
-  border-bottom: 3px solid;
-}
-
-h2 {
-  color: #f61;
-  margin-top: 0;
-  margin-bottom: 0.4em;
-}
-
-h1,
-main,
-#hC,
-h3 {
+body > * {
   position: absolute;
-  left: 0;
+}
+
+/* souls counter */
+.l h3 {
+  display: block;
+  text-align: right;
+  right: 5%;
   bottom: 0;
 }
 
+/* loading message */
 h1,
-main,
-#hC {
+/* messages */
+.l h4 {
+  left: 0;
   top: 0;
   right: 0;
-}
-
-h3 {
-  text-align: right;
-  right: 5%;
-}
-
-/* loading screen */
-h1 {
   text-align: center;
 }
 
-/* main menu */
-main {
-  left: auto;
-  min-width: 70%;
-  justify-content: center;
-  align-items: center;
-}
-
-main,
-h3,
-.l h1 {
-  display: none;
-}
-
-.l h3 {
-  display: block;
-}
-
-/* main menu visible */
+/* main menu container */
 .m main {
   display: flex;
+  justify-content: center;
+  align-items: center;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  min-width: 70%;
 }
 
 /* main menu inner */
 nav {
-  min-height: 70%;
   min-width: 50%;
-  padding: 0.5em;
+  max-width: 800px;
   background: #00000080;
+  border-radius: 1em;
+  padding: 1em;
+}
+
+/* menu bottom text */
+p,
+/* small text */
+em {
+  font-size: 0.7em;
+}
+
+/* menu title */
+h2 {
+  color: #f61;
+  margin: 0 0 0.7em;
+}
+
+/* links */
+a,
+/* menu buttons */
+li {
+  cursor: pointer;
+  margin-bottom: 0.5em;
+  text-decoration: none;
+  border-bottom: 3px solid #00000000;
+}
+
+/* menu title */
+h2,
+/* links hover */
+a:hover,
+/* menu button hover */
+li:hover {
+  border-bottom: 3px solid;
+}
+
+/* hide main menu by default */
+main,
+/* hide souls counter by default */
+h3,
+/* hide loading text if loaded */
+.l h1,
+/* hide messages if in menu */
+.m h4 {
+  display: none;
 }
