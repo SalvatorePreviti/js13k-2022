@@ -35,25 +35,21 @@ export const buildWorld = () => {
 
   // ========= boat mesh ========= //
 
-  meshAdd(
-    csg_polygons(
-      csg_subtract(
-        polygons_transform(
-          cylinder(20, 1, 1.15, 1),
-          identity.translate(0, -3).scale(3.5, 1, 3.5),
-          material(0.7, 0.4, 0.25, 0.7),
-        ),
-        polygons_transform(
-          cylinder(20, 1, 1.3, 1),
-          identity.translate(0, -2.5).scale(2.6, 1, 3),
-          material(0.7, 0.4, 0.25, 0.2),
-        ),
-        polygons_transform(cylinder(GQuad), identity.translate(4, -1.2, 0).scale3d(2), material(0.7, 0.4, 0.25, 0.3)),
+  const boatPolygons = csg_polygons(
+    csg_subtract(
+      polygons_transform(
+        cylinder(20, 1, 1.15, 1),
+        identity.translate(0, -3).scale(3.5, 1, 3.5),
+        material(0.7, 0.4, 0.25, 0.7),
       ),
+      polygons_transform(
+        cylinder(20, 1, 1.3, 1),
+        identity.translate(0, -2.5).scale(2.6, 1, 3),
+        material(0.7, 0.4, 0.25, 0.2),
+      ),
+      polygons_transform(cylinder(GQuad), identity.translate(4, -1.2, 0).scale3d(2), material(0.7, 0.4, 0.25, 0.3)),
     ),
   );
-
-  const boatMesh = meshEnd();
 
   const getBoatAnimationMatrix = (z: number) => {
     return identity
@@ -69,7 +65,7 @@ export const buildWorld = () => {
     newModel((model) => {
       model._update = () => getBoatAnimationMatrix(firstBoatLerp * 40);
       withEditMatrix(identity.translate(0, -3, 4), newLever);
-      return boatMesh;
+      meshAdd(boatPolygons);
     }, ++_modelIdCounter);
   });
 
@@ -134,7 +130,7 @@ export const buildWorld = () => {
   );
   meshAdd(cylinder(5), identity.translate(-5.4, 0, -19).scale(2, 1, 2).rotate(0, -90), material(0.6, 0.3, 0.3, 0.4));
 
-  withEditMatrix(identity.translate(-5.4, 1.2, -19).rotate(0, -90), newLever);
+  withEditMatrix(identity.translate(-5.4, 1.5, -19).rotate(0, -90), newLever);
 
   // descent
 
@@ -773,9 +769,8 @@ export const buildWorld = () => {
   withEditMatrix(identity.translate(-123, 1.4, 55), () => {
     newModel((model) => {
       model._update = () => getBoatAnimationMatrix(secondBoatLerp * -65);
-
       withEditMatrix(identity.translate(0, -3, -4).rotate(0, 180), newLever);
-      return boatMesh;
+      meshAdd(boatPolygons);
     }, ++_modelIdCounter);
   });
 

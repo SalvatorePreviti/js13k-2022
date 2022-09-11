@@ -4,7 +4,7 @@ body {
   user-select: none;
   font-family: "Times New Roman", serif;
   background: #000;
-  font-size: max(3.5vh, 35px);
+  font-size: max(min(3.8vw, 3.8vh), 25px);
   text-shadow: 4px 4px 2px #000, -2px -2px 8px #000;
 }
 
