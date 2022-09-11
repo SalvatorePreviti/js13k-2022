@@ -1,4 +1,4 @@
-import { lerp, min, angle_wrap_degrees, lerpneg, abs } from "../math";
+import { lerp, min, angle_wrap_degrees, lerpneg, abs, clamp01 } from "../math";
 import { mainMenuVisible } from "../page";
 import type { Model } from "./scene";
 
@@ -16,18 +16,6 @@ export let gameTimeDelta: number = GAME_TIME_MAX_DELTA_TIME;
 let _globalTime: number | undefined;
 
 let _messageEndTime = 0;
-
-export const showMessage = (message: string, duration: number) => {
-  h4.innerHTML = message;
-  _messageEndTime = gameTime + duration;
-};
-
-const updateMessageState = () => {
-  if (gameTime > _messageEndTime) {
-    _messageEndTime = 0;
-    h4.innerHTML = "";
-  }
-};
 
 export const lerpDamp = /* @__PURE__ */ (from: number, to: number, speed: number) =>
   lerp(from, to, 1 - Math.exp(-speed * gameTimeDelta));
@@ -85,10 +73,24 @@ export let rotatingPlatform2Rotation = 0;
 
 export let rotatingHexCorridorRotation = 0;
 
-export let boatLerp = 0;
+export let game_completed: 0 | 1 = 0;
+
+export let firstBoatLerp = 0;
+
+export let secondBoatLerp = 0;
+
+export const showMessage = (message: string, duration: number) => {
+  if (!game_completed) {
+    h4.innerHTML = message;
+    _messageEndTime = gameTime + duration;
+  }
+};
 
 export const worldStateUpdate = () => {
-  updateMessageState();
+  if (gameTime > _messageEndTime) {
+    showMessage("", 0);
+    _messageEndTime = 0;
+  }
 
   const shouldRotatePlatforms = lerpneg(levers[12]!.$lerpValue, levers[13]!.$lerpValue);
 
@@ -110,11 +112,22 @@ export const worldStateUpdate = () => {
     shouldRotatePlatforms,
   );
 
-  boatLerp = lerpDamp(boatLerp, levers[9]!.$lerpValue2, 0.2 + 0.3 * abs(levers[9]!.$lerpValue2 * 2 - 1));
+  secondBoatLerp = lerpDamp(secondBoatLerp, levers[9]!.$lerpValue2, 0.2 + 0.3 * abs(levers[9]!.$lerpValue2 * 2 - 1));
 
-  if (levers[0]!.$value && levers[0]!.$lerpValue > 0.8 && souls_collected_count < 13) {
-    levers[0]!.$value = 0;
-    showMessage("Not leaving now, there are souls to catch!", 3);
+  firstBoatLerp = lerpDamp(
+    firstBoatLerp,
+    game_completed ? lerp(firstBoatLerp, -9, gameTimeDelta * 3) : clamp01(gameTime / 3),
+    1,
+  );
+
+  if (levers[0]!.$value === 1 && levers[0]!.$lerpValue > 0.8) {
+    if (souls_collected_count < 13) {
+      levers[0]!.$value = 0;
+      showMessage("Not leaving now, there are souls to catch!", 3);
+    } else if (!game_completed) {
+      showMessage("Well done Dante! You completed your task.<br/>Thanks for playing.", 0);
+      game_completed = 1;
+    }
   }
 };
 
@@ -128,36 +141,35 @@ const updateCollectedSoulsCounter = () => {
 export const saveGame = () => {
   updateCollectedSoulsCounter();
   localStorage[LOCAL_STORAGE_SAVED_GAME_KEY] = JSON.stringify([
-    666,
     levers.map(getItemValue),
     souls.map(getItemValue),
     player_last_pulled_lever,
     gameTime,
-    boatLerp,
+    secondBoatLerp,
   ]);
 };
 
 export const loadGame = () => {
   try {
-    const [header, savedLevers, savedSouls, savedLastPulledLever, savedGameTime, savedBoatLerp] = JSON.parse(
+    const [savedLevers, savedSouls, savedLastPulledLever, savedGameTime, savedBoatLerp] = JSON.parse(
       localStorage[LOCAL_STORAGE_SAVED_GAME_KEY]!,
     );
-    if (header === 666) {
-      levers.map(
-        (lever, index) => (lever.$lerpValue = lever.$lerpValue2 = lever.$value = (savedLevers[index] | 0) as 0 | 1),
-      );
-      souls.map((soul, index) => {
-        soul.$value = (savedSouls[index] | 0) as 0 | 1;
-      });
-      player_last_pulled_lever = savedLastPulledLever | 0;
-      gameTime = savedGameTime | 0;
-      boatLerp = savedBoatLerp | 0;
-    }
+    levers.map(
+      (lever, index) =>
+        (lever.$lerpValue = lever.$lerpValue2 = lever.$value = index ? ((savedLevers[index] | 0) as 0 | 1) : 0),
+    );
+    souls.map((soul, index) => {
+      soul.$value = (savedSouls[index] | 0) as 0 | 1;
+    });
+    player_last_pulled_lever = savedLastPulledLever | 0;
+    gameTime = savedGameTime | 0;
+    secondBoatLerp = savedBoatLerp | 0;
   } catch (e) {
     if (DEBUG) {
       console.log(e);
     }
   }
+  firstBoatLerp = 0;
   updateCollectedSoulsCounter();
   showMessage("", 0);
   h4.innerHTML = "";
@@ -188,15 +200,15 @@ export const onSoulCollected = (soulIndex: number) => {
       ,
       "Maxime Euziere<br/>forced me to finish this game",
       "Donald Trump<br/>lied, lied, and lied",
-      "Kim Jong-un<br/>Dictator, and he liked pineapple on pizza",
+      "Kim Jong-un<br/>Dictator, and liked pineapple on pizza",
       "She traded NFTs.",
       ,
       "Vladimir Putin<br/>caused war and death",
       "He was NOT a good person.",
       ,
-      "Salvatore Previti<br/>made this evil game",
+      "Salvatore Previti<br/>made this evil game<br/>All souls collected, go back to the boat",
     ][soulIndex] || 'Catched a "crypto bro".<br/>"Web3" is all scam, lies and grift.',
-    soulIndex ? 5 : 7,
+    soulIndex && soulIndex < 13 ? 5 : 7,
   );
 
   saveGame();

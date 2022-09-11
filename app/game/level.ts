@@ -4,13 +4,14 @@ import { csg_subtract, csg_polygons, csg_union } from "../geometry/csg";
 import { GQuad, GHorn } from "../geometry/solids";
 import { meshAdd, meshEnd, withEditMatrix, newModel } from "./scene";
 import {
-  boatLerp,
+  secondBoatLerp,
   gameTime,
   levers,
   PLAYER_MODEL_ID,
   rotatingHexCorridorRotation,
   rotatingPlatform1Rotation,
   rotatingPlatform2Rotation,
+  firstBoatLerp,
 } from "./world-state";
 import { newLever, newSoul } from "./objects";
 
@@ -64,9 +65,9 @@ export const buildWorld = () => {
 
   // ========= FIRST BOAT! ========= //
 
-  withEditMatrix(identity.translate(-12, 4.2, -26), () => {
+  withEditMatrix(identity.translate(-12, 4.2, -26 - 40), () => {
     newModel((model) => {
-      model._update = () => getBoatAnimationMatrix(0);
+      model._update = () => getBoatAnimationMatrix(firstBoatLerp * 40);
       withEditMatrix(identity.translate(0, -3, 4), newLever);
       return boatMesh;
     }, ++_modelIdCounter);
@@ -771,7 +772,7 @@ export const buildWorld = () => {
 
   withEditMatrix(identity.translate(-123, 1.4, 55), () => {
     newModel((model) => {
-      model._update = () => getBoatAnimationMatrix(boatLerp * -65);
+      model._update = () => getBoatAnimationMatrix(secondBoatLerp * -65);
 
       withEditMatrix(identity.translate(0, -3, -4).rotate(0, 180), newLever);
       return boatMesh;
