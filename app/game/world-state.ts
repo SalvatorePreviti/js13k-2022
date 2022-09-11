@@ -183,12 +183,12 @@ export const onSoulCollected = (soulIndex: number) => {
   showMessage(
     [
       ,
-      "Andrzej Mazur<br/>he is evil, very evil",
+      "Andrzej Mazur<br/>is evil, very evil",
       "Mark Zuckemberg<br/>made the world worse",
       ,
       "Maxime Euziere<br/>forced me to finish this game",
       "Donald Trump<br/>lied, lied, and lied",
-      "He liked pineapple on pizza",
+      "Kim Jong-un<br/>Dictator, and he liked pineapple on pizza",
       "She traded NFTs.",
       ,
       "Vladimir Putin<br/>caused war and death",
