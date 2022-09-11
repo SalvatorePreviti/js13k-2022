@@ -38,35 +38,37 @@ const leverMeshes = [material(1, 0.5, 0.2), material(0.7, 1, 0.2)].map((handleMa
   return meshEnd();
 });
 
-export const newLever = (): void => {
-  newModel(($model) => {
-    const lever: Lever = { $value: 0, $lerpValue: 0, $lerpValue2: 0, $model };
-    const index = levers.push(lever) - 1;
-    $model._update = () => {
-      const matrix = $model.$finalMatrix;
-      lever.$matrix = matrix;
-      if (
-        keyboard_downKeys[KEY_INTERACT] &&
-        vec3_distance(matrix.transformPoint(), player_position_final) < LEVER_SENSITIVITY_RADIUS
-      ) {
-        const { $value: value, $lerpValue: lerpValue } = lever;
-        if (lerpValue < 0.3 || lerpValue > 0.7) {
-          lever.$value = value ? 0 : 1;
-          onPlayerPullLever(index);
+export const newLever = (transform: DOMMatrixReadOnly): void => {
+  withEditMatrix(transform, () => {
+    newModel(($model) => {
+      const lever: Lever = { $value: 0, $lerpValue: 0, $lerpValue2: 0, $model };
+      const index = levers.push(lever) - 1;
+      $model._update = () => {
+        const matrix = $model.$finalMatrix;
+        lever.$matrix = matrix;
+        if (
+          keyboard_downKeys[KEY_INTERACT] &&
+          vec3_distance(matrix.transformPoint(), player_position_final) < LEVER_SENSITIVITY_RADIUS
+        ) {
+          const { $value: value, $lerpValue: lerpValue } = lever;
+          if (lerpValue < 0.3 || lerpValue > 0.7) {
+            lever.$value = value ? 0 : 1;
+            onPlayerPullLever(index);
+          }
         }
-      }
 
-      const { $value: value, $lerpValue, $lerpValue2 } = lever;
-      lever.$lerpValue = lerpDamp($lerpValue, value, 4);
-      lever.$lerpValue2 = lerpDamp($lerpValue2, value, 1);
-      $model.$mesh = leverMeshes[$lerpValue > 0.5 ? 1 : 0]!;
-      return identity.rotate(lever.$lerpValue * 60 - 30, 0).translateSelf(0, 1, 0);
-    };
+        const { $value: value, $lerpValue, $lerpValue2 } = lever;
+        lever.$lerpValue = lerpDamp($lerpValue, value, 4);
+        lever.$lerpValue2 = lerpDamp($lerpValue2, value, 1);
+        $model.$mesh = leverMeshes[$lerpValue > 0.5 ? 1 : 0]!;
+        return identity.rotate(lever.$lerpValue * 60 - 30, 0).translateSelf(0, 1, 0);
+      };
+    });
+
+    meshAdd(cylinder(5), identity.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
+    meshAdd(cylinder(5), identity.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
+    meshAdd(cylinder(GQuad), identity.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
   });
-
-  meshAdd(cylinder(5), identity.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
-  meshAdd(cylinder(5), identity.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
-  meshAdd(cylinder(GQuad), identity.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
 };
 
 // ========= Player ========= //

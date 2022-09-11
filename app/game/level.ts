@@ -64,7 +64,7 @@ export const buildWorld = () => {
   withEditMatrix(identity.translate(-12, 4.2, -26 - 40), () => {
     newModel((model) => {
       model._update = () => getBoatAnimationMatrix(firstBoatLerp * 40);
-      withEditMatrix(identity.translate(0, -3, 4), newLever);
+      newLever(identity.translate(0, -3, 4));
       meshAdd(boatPolygons);
     }, ++_modelIdCounter);
   });
@@ -130,7 +130,7 @@ export const buildWorld = () => {
   );
   meshAdd(cylinder(5), identity.translate(-5.4, 0, -19).scale(2, 1, 2).rotate(0, -90), material(0.6, 0.3, 0.3, 0.4));
 
-  withEditMatrix(identity.translate(-5.4, 1.5, -19).rotate(0, -90), newLever);
+  newLever(identity.translate(-5.4, 1.5, -19).rotate(0, -90));
 
   // descent
 
@@ -194,7 +194,7 @@ export const buildWorld = () => {
 
   newModel((model) => {
     // LEVER1
-    withEditMatrix(identity.translate(0, 1.2), newLever);
+    newLever(identity.translate(0, 1.2));
 
     model._update = () => {
       model.$visible = levers[3]!.$lerpValue > 0.01;
@@ -209,17 +209,17 @@ export const buildWorld = () => {
   }, ++_modelIdCounter);
 
   // LEVER2
-  withEditMatrix(identity.translate(15, -2, 4), newLever);
+  newLever(identity.translate(15, -2, 4));
 
   // ******** LEVEL 2 ********
 
   withEditMatrix(identity.translate(0, 0, 75), () => {
     const getOscillationAmount = () => min(levers[2]!.$lerpValue2, 1 - levers[4]!.$lerpValue2);
 
-    const blackPlatform = (oscillation: number, amplitude: number) =>
+    const blackPlatform = (freq: number, amplitude: number) =>
       newModel((model) => {
         model._update = () =>
-          identity.translate(getOscillationAmount() * Math.sin(oscillation + gameTime / 1.5) * amplitude);
+          identity.translate(getOscillationAmount() * Math.sin(freq * 3 + gameTime * freq) * amplitude);
         GQuad.map(({ x, z }) => {
           // column body
           meshAdd(
@@ -260,8 +260,8 @@ export const buildWorld = () => {
         meshAdd(cylinder(GQuad), identity.translate(0, -3, -40).scale(8, 2, 8), material(0.4, 0.4, 0.4, 0.3));
       }, ++_modelIdCounter);
 
-    blackPlatform(0, 12);
-    withEditMatrix(identity.translate(0, 0, 20), () => blackPlatform(5, 8.2));
+    blackPlatform(0.7, 12);
+    withEditMatrix(identity.translate(0, 0, 20), () => blackPlatform(1, 8.2));
 
     // central oscillating platform
     newModel((model) => {
@@ -306,7 +306,7 @@ export const buildWorld = () => {
       meshAdd(cylinder(GQuad), identity.translate(-23, -2.2, -13).scale(3, 1, 4), material(0.5, 0.5, 0.5, 0.3));
       meshAdd(cylinder(8), identity.translate(-23, -2.2, -8.5).scale(1.5, 1.2, 1.5), material(0.8, 0.8, 0.8, 0.2));
 
-      withEditMatrix(identity.translate(-23, -0.5, -8.5), newLever);
+      newLever(identity.translate(-23, -0.5, -8.5));
     }, ++_modelIdCounter);
 
     const level3Oscillation = () =>
@@ -416,7 +416,7 @@ export const buildWorld = () => {
 
     meshAdd(cylinder(7), identity.translate(-57, -2.6, -29).scale(4, 1, 4), material(0.8, 0.8, 0.8, 0.3));
 
-    withEditMatrix(identity.translate(-55, -1.1, -29).rotate(0, 90), newLever);
+    newLever(identity.translate(-55, -1.1, -29).rotate(0, 90));
 
     // rotating hex corridor
 
@@ -602,7 +602,7 @@ export const buildWorld = () => {
     meshAdd(cylinder(25, 1), identity.translate(-86, -9, -44).scale(1.5, 1, 1.5), material(0.3, 0.3, 0.4, 0.1));
 
     // LEVER6
-    withEditMatrix(identity.translate(-86, -7.5, -44), newLever);
+    newLever(identity.translate(-86, -7.5, -44));
 
     // elevators
 
@@ -655,7 +655,7 @@ export const buildWorld = () => {
         ),
       );
 
-      withEditMatrix(identity.translate(0, 1.7, -7), newLever);
+      newLever(identity.translate(0, 1.7, -7));
 
       // central sculpture/monument
 
@@ -753,7 +753,7 @@ export const buildWorld = () => {
     );
 
     // Detour lever
-    withEditMatrix(identity.translate(-84, -0.5, 10).rotate(0, 45), newLever);
+    newLever(identity.translate(-84, -0.5, 10).rotate(0, 45));
   });
 
   // ******** SECOND BOAT ********
@@ -761,7 +761,7 @@ export const buildWorld = () => {
   withEditMatrix(identity.translate(-123, 1.4, 55), () => {
     newModel((model) => {
       model._update = () => getBoatAnimationMatrix(secondBoatLerp * -65);
-      withEditMatrix(identity.translate(0, -3, -4).rotate(0, 180), newLever);
+      newLever(identity.translate(0, -3, -4).rotate(0, 180));
       meshAdd(boatPolygons);
     }, ++_modelIdCounter);
   });
@@ -793,7 +793,7 @@ export const buildWorld = () => {
 
     meshAdd(cylinder(6), identity.translate(7, -2.6, -4.5).scale(3.2, 0.8, 3), material(0.6, 0.5, 0.7, 0.2));
 
-    withEditMatrix(identity.translate(7, -1.4, -6).rotate(0, 180), newLever);
+    newLever(identity.translate(7, -1.4, -6).rotate(0, 180));
 
     // !!! SOUL 13 !!!
     newSoul(identity.translate(8, 0.2, 0), [[0, 0, 3.5]]);
@@ -914,7 +914,7 @@ export const buildWorld = () => {
 
     meshAdd(cylinder(9), identity.translate(25, -5.8, -28).scale(2.5, 0.9, 2.5), material(0.5, 0.5, 0.5, 0.3));
 
-    withEditMatrix(identity.translate(25, -4.4, -28).rotate(0, 90), newLever);
+    newLever(identity.translate(25, -4.4, -28).rotate(0, 90));
   });
 
   // ******** LEVEL AFTER CENTRAL GATE ********
@@ -1005,7 +1005,7 @@ export const buildWorld = () => {
           meshAdd(cylinder(10), identity.scale(2, 2.5, 2), material(0.3, 0.8, 0.7, 0.3));
           meshAdd(cylinder(5), identity.scale(1, 3, 1), material(0.5, 0.5, 0.5, 0.5));
 
-          withEditMatrix(identity.translate(0, 3.4).rotate(0, 180), newLever);
+          newLever(identity.translate(0, 3.4).rotate(0, 180));
         });
 
         // !!! SOUL 12 !!!
@@ -1198,7 +1198,7 @@ export const buildWorld = () => {
     meshAdd(cylinder(GQuad), identity.translate(61, -0.3, -25).scale(2, 1, 2), material(0.7, 0.7, 0.7, 0.3));
     meshAdd(cylinder(GQuad), identity.translate(68, -0.3, -25).scale(5, 1, 3), material(0.7, 0.7, 0.7, 0.3));
 
-    withEditMatrix(identity.translate(66, 2, -19).rotate(-12, 0), newLever);
+    newLever(identity.translate(66, 2, -19).rotate(-12, 0));
 
     meshAdd(cylinder(5), identity.translate(66, -0.5, -19).scale(3, 2, 4).rotate(-20, 0), material(0.2, 0.5, 0.5, 0.6));
 
@@ -1271,7 +1271,7 @@ export const buildWorld = () => {
       );
 
       // LEVER13
-      withEditMatrix(identity.translate(0, 1.7, -13).rotate(0, 180), newLever);
+      newLever(identity.translate(0, 1.7, -13).rotate(0, 180));
 
       // !!! SOUL 8 !!!
       newSoul(
@@ -1352,7 +1352,7 @@ export const buildWorld = () => {
         meshAdd(cylinder(5), identity.scale(5.5, 0.9, 5.5), material(0.25, 0.25, 0.25, 0.4));
 
         // LEVER14
-        withEditMatrix(identity.translate(0, 1.5, -1).rotate(0, 180), newLever);
+        newLever(identity.translate(0, 1.5, -1).rotate(0, 180));
       }, ++_modelIdCounter);
     });
   });

@@ -251,3 +251,5 @@ export const csg_polygons = /* @__PURE__ */ (tree: CSGNode): Polygon[] => {
     return polygon_color(flipped ? polygon.reverse() : polygon, $polygon.$color, $polygon.$smooth);
   });
 };
+
+export const csg_polygons_subtract = (...input: CSGInput[]) => csg_polygons((csg_subtract as any)(...input));
