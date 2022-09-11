@@ -57,7 +57,13 @@ requestAnimationFrame(() => {
   };
   image.src = groundTextureSvg;
 
-  setTimeout(asyncLoadSongChannels, 50);
+  if (DEBUG) {
+    for (let i = 0; i < song_numChannels; ++i) {
+      onThingLoaded();
+    }
+  } else {
+    setTimeout(asyncLoadSongChannels, 50);
+  }
 
   newModel(buildWorld);
 

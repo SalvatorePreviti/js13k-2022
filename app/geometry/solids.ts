@@ -1,5 +1,5 @@
 import { identity, integers_map } from "../math";
-import { cylinder, cylinder_sides, polygon_regular, polygon_transform, type Polygon } from "./geometry";
+import { cylinder_sides, polygon_regular, polygon_transform, type Polygon } from "./geometry";
 
 export const GQuad = /* @__PURE__ */ [
   { x: -1, z: 1 },
@@ -7,8 +7,6 @@ export const GQuad = /* @__PURE__ */ [
   { x: 1, z: -1 },
   { x: -1, z: -1 },
 ];
-
-export const GBox = cylinder(GQuad);
 
 const HORN_STACKS = 15;
 

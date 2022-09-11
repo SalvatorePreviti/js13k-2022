@@ -541,8 +541,8 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       if (gameTimeDelta > 0) {
         worldStateUpdate();
 
-        const PLAYER_FELL_IN_LAVA_Y = -25;
-        if (player_position_final.y < PLAYER_FELL_IN_LAVA_Y) {
+        if (player_position_final.y < (player_position_final.x < -25 || player_position_final.z < 109 ? -25 : -9)) {
+          // Player fell in lava
           player_respawn();
         }
       }

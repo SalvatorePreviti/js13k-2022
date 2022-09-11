@@ -20,7 +20,7 @@ import { keyboard_downKeys, KEY_INTERACT } from "../page";
 import { player_position_final } from "./player-position";
 
 const LEVER_SENSITIVITY_RADIUS = 2.7;
-const SOUL_SENSITIVITY_RADIUS = 1.1;
+const SOUL_SENSITIVITY_RADIUS = 1.5;
 
 // ========= Sky mesh ========= //
 
@@ -149,11 +149,11 @@ const soulMesh = meshEnd();
 
 export type Circle = [number, number, number];
 
-export const newSoul = (transform: DOMMatrixReadOnly, walkingPath: Circle[]): void => {
+export const newSoul = (transform: DOMMatrixReadOnly, walkingPath: number[][]): void => {
   withEditMatrix(transform, () => {
     const soul: Soul = { $value: 0 };
 
-    const circles = walkingPath.map(([x, z, w]) => ({ x, z, w }));
+    const circles = (walkingPath as Circle[]).map(([x, z, w]) => ({ x, z, w }));
 
     if (DEBUG_FLAG0) {
       for (const circle of circles) {

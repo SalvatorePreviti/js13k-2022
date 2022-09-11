@@ -1,4 +1,3 @@
-import { player_position_global } from "./game/player-position";
 import { DEG_TO_RAD, mat_perspectiveXY } from "./math";
 
 import { constDef_zNear, constDef_zFar } from "./shaders/main-fragment.frag";
@@ -18,14 +17,14 @@ if (DEBUG) {
 }
 
 export const camera_position = {
-  x: player_position_global.x,
-  y: player_position_global.y + 13,
-  z: player_position_global.z - 18,
+  x: 0,
+  y: 10 + 13,
+  z: -27 - 18,
 };
 
 export const camera_rotation = {
   x: 0,
-  y: 180,
+  y: 0,
   z: 0,
 };
 

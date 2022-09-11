@@ -43,29 +43,31 @@ const keyMap: Partial<Record<KEY_CODE, number>> = {
   ["Enter"]: KEY_INTERACT,
 };
 
-const updateMusicState = () => {
-  try {
-    if (mainMenuVisible || !music_on) {
-      songAudioSource.disconnect();
-    } else {
-      // connect the AudioBufferSourceNode to the  destination so we can hear the sound
-      songAudioSource.connect(audioContext.destination);
-      songAudioSource.start();
-    }
-  } catch {}
+const updateMusicOnState = () => {
+  if (mainMenuVisible || !music_on) {
+    songAudioSource.disconnect();
+  } else {
+    // connect the AudioBufferSourceNode to the  destination so we can hear the sound
+    songAudioSource.connect(audioContext.destination);
+  }
   b4.innerHTML = "Music: " + music_on;
 };
 
 export const setMainMenuVisible = (value: boolean = false) => {
   if (mainMenuVisible !== value) {
     mainMenuVisible = value;
-    updateMusicState();
-    document.body.className = value ? "l m" : "l";
+
     if (value) {
       document.exitPointerLock();
     } else {
+      try {
+        songAudioSource.start();
+      } catch {}
       game_play_clicked_once = 1;
     }
+
+    updateMusicOnState();
+    document.body.className = value ? "l m" : "l";
   }
 };
 
@@ -77,6 +79,7 @@ export const initPage = () => {
   };
 
   b1.onclick = () => setMainMenuVisible();
+
   b2.onclick = () => {
     setMainMenuVisible();
     hC.requestPointerLock();
@@ -92,7 +95,7 @@ export const initPage = () => {
 
   b4.onclick = () => {
     music_on = !music_on;
-    updateMusicState();
+    updateMusicOnState();
   };
 
   if (!DEBUG) {
