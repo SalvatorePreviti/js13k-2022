@@ -33,7 +33,7 @@ meshEnd();
 
 const leverMeshes = [material(1, 0.5, 0.2), material(0.7, 1, 0.2)].map((handleMaterial) => {
   meshAdd(cylinder(6, 1), identity.scale(0.13, 1.4, 0.13), material(0.3, 0.3, 0.5));
-  meshAdd(cylinder(8), identity.translate(0, 1, 0).scale(0.21, 0.3, 0.21), handleMaterial);
+  meshAdd(cylinder(8), identity.translate(0, 1).scale(0.21, 0.3, 0.21), handleMaterial);
   meshAdd(cylinder(3), identity.translate(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3), material(0.2, 0.2, 0.2));
   return meshEnd();
 });
@@ -61,7 +61,7 @@ export const newLever = (transform: DOMMatrixReadOnly): void => {
         lever.$lerpValue = lerpDamp($lerpValue, value, 4);
         lever.$lerpValue2 = lerpDamp($lerpValue2, value, 1);
         $model.$mesh = leverMeshes[$lerpValue > 0.5 ? 1 : 0]!;
-        return identity.rotate(lever.$lerpValue * 60 - 30, 0).translateSelf(0, 1, 0);
+        return identity.rotate(lever.$lerpValue * 60 - 30, 0).translateSelf(0, 1);
       };
     });
 
@@ -82,7 +82,7 @@ export const playerModel = newModel((model) => {
 
   playerLegsModels = [-1, 1].map((x) =>
     newModel(() => {
-      meshAdd(cylinder(10, 1), identity.translate(x * 0.3, -0.8, 0).scale(0.2, 0.7, 0.24), material(1, 0.3, 0.4));
+      meshAdd(cylinder(10, 1), identity.translate(x * 0.3, -0.8).scale(0.2, 0.7, 0.24), material(1, 0.3, 0.4));
     }),
   ) as [Model, Model];
 
@@ -92,13 +92,13 @@ export const playerModel = newModel((model) => {
   [0, 180].map((r) =>
     meshAdd(
       GHorn,
-      identity.rotate(0, r).translate(0.2, 1.32, 0).rotate(0, 0, -30).scale(0.2, 0.6, 0.2),
+      identity.rotate(0, r).translate(0.2, 1.32).rotate(0, 0, -30).scale(0.2, 0.6, 0.2),
       material(1, 1, 0.8),
     ),
   );
 
   // head
-  meshAdd(sphere(30), identity.translate(0, 1, 0).scale(0.5, 0.5, 0.5), material(1, 0.3, 0.4));
+  meshAdd(sphere(30), identity.translate(0, 1).scale(0.5, 0.5, 0.5), material(1, 0.3, 0.4));
 
   const eye = polygons_transform(
     csg_polygons(
@@ -151,21 +151,11 @@ const soulMesh = meshEnd();
 
 export type Circle = [number, number, number];
 
-export const newSoul = (transform: DOMMatrixReadOnly, walkingPath: number[][]): void => {
+export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]): void => {
   withEditMatrix(transform, () => {
     const soul: Soul = { $value: 0 };
 
     const circles = (walkingPath as Circle[]).map(([x, z, w]) => ({ x, z, w }));
-
-    if (DEBUG_FLAG0) {
-      for (const circle of circles) {
-        meshAdd(
-          cylinder(12),
-          identity.translate(circle.x, -1.7, circle.z).scale(circle.w, 0.01, circle.w),
-          material(0.3, 0.3, 0.38),
-        );
-      }
-    }
 
     let circle = circles[0]!;
     let { x: targetX, z: targetZ } = circle;
@@ -180,7 +170,13 @@ export const newSoul = (transform: DOMMatrixReadOnly, walkingPath: number[][]): 
     let prevX = 0;
     let prevZ = 0;
 
-    const index = souls.push(soul) - 1;
+    if (DEBUG_FLAG0) {
+      for (const c of circles) {
+        meshAdd(cylinder(12), identity.translate(c.x, -1.7, c.z).scale(c.w, 0.01, c.w), material(0.3, 0.3, 0.38));
+      }
+    }
+
+    souls.push(soul);
 
     newModel((model) => {
       model.$collisions = 0;
@@ -251,7 +247,7 @@ export const newSoul = (transform: DOMMatrixReadOnly, walkingPath: number[][]): 
         const soulPos = model.$finalMatrix.multiply(animationMatrix).transformPoint();
         if (!soul.$value && vec3_distance(soulPos, player_position_final) < SOUL_SENSITIVITY_RADIUS) {
           soul.$value = 1;
-          onSoulCollected(index);
+          onSoulCollected();
         }
 
         return animationMatrix;

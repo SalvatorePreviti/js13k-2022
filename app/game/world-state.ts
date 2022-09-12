@@ -151,7 +151,7 @@ export const saveGame = () => {
 
 export const loadGame = () => {
   try {
-    const [savedLevers, savedSouls, savedLastPulledLever, savedGameTime, savedBoatLerp] = JSON.parse(
+    const [savedLevers, savedSouls, savedLastPulledLever, savedGameTime, savedSecondBoatLerp] = JSON.parse(
       localStorage[LOCAL_STORAGE_SAVED_GAME_KEY]!,
     );
     levers.map(
@@ -162,14 +162,14 @@ export const loadGame = () => {
       soul.$value = (savedSouls[index] | 0) as 0 | 1;
     });
     player_last_pulled_lever = savedLastPulledLever | 0;
-    gameTime = savedGameTime | 0;
-    secondBoatLerp = savedBoatLerp | 0;
+    gameTime = +savedGameTime;
+    secondBoatLerp = +savedSecondBoatLerp;
   } catch (e) {
     if (DEBUG) {
       console.log(e);
     }
   }
-  firstBoatLerp = 0;
+  firstBoatLerp = clamp01(player_last_pulled_lever);
   updateCollectedSoulsCounter();
   showMessage("", 0);
   h4.innerHTML = "";
@@ -181,17 +181,14 @@ export const onPlayerPullLever = (leverIndex: number) => {
     console.log("switch lever " + leverIndex + " = " + levers[leverIndex]?.$value);
   }
 
-  player_last_pulled_lever = leverIndex;
   if (leverIndex) {
+    player_last_pulled_lever = leverIndex;
     showMessage("checkpoint", 1);
     saveGame();
   }
 };
 
-export const onSoulCollected = (soulIndex: number) => {
-  if (DEBUG) {
-    console.log("soul catched " + soulIndex);
-  }
+export const onSoulCollected = () => {
   showMessage(
     [
       ,
@@ -206,9 +203,9 @@ export const onSoulCollected = (soulIndex: number) => {
       "Vladimir Putin<br>caused war and death",
       "He was NOT a good person.",
       ,
-      "Salvatore Previti<br>made this evil game<br>All souls collected, go back to the boat",
-    ][soulIndex] || 'Catched a "crypto bro".<br>"Web3" is all scam, lies and grift.',
-    soulIndex && soulIndex < 13 ? 5 : 7,
+      "Salvatore Previti<br>made this evil game<br><br>All souls catched, go back to the boat",
+    ][souls_collected_count] || 'Catched a "crypto bro".<br>"Web3" is all scam, lies and grift.',
+    souls_collected_count && souls_collected_count < 12 ? 5 : 7,
   );
 
   saveGame();

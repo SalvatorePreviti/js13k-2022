@@ -21,7 +21,7 @@ export const buildWorld = () => {
   const bigArc = csg_polygons(
     csg_subtract(
       polygons_transform(cylinder(GQuad), identity.translate(0, -8).scale(6, 15, 2.2)),
-      polygons_transform(cylinder(GQuad), identity.translate(0, -14.1, 0).scale(4, 13, 4)),
+      polygons_transform(cylinder(GQuad), identity.translate(0, -14.1).scale(4, 13, 4)),
       polygons_transform(cylinder(30, 1), identity.translate(0, -1).rotate(90, 0, 90).scale3d(4)),
     ),
   );
@@ -47,15 +47,14 @@ export const buildWorld = () => {
         identity.translate(0, -2.5).scale(2.6, 1, 3),
         material(0.7, 0.4, 0.25, 0.2),
       ),
-      polygons_transform(cylinder(GQuad), identity.translate(4, -1.2, 0).scale3d(2), material(0.7, 0.4, 0.25, 0.3)),
+      polygons_transform(cylinder(GQuad), identity.translate(4, -1.2).scale3d(2), material(0.7, 0.4, 0.25, 0.3)),
     ),
   );
 
-  const getBoatAnimationMatrix = (z: number) => {
-    return identity
+  const getBoatAnimationMatrix = (z: number) =>
+    identity
       .translate(Math.sin(gameTime + 2) / 5, Math.sin(gameTime * 0.8) / 3, z)
       .rotate(Math.sin(gameTime) * 2, Math.sin(gameTime * 0.7), Math.sin(gameTime * 0.9));
-  };
 
   // ========= WORLD! ========= //
 
@@ -74,17 +73,18 @@ export const buildWorld = () => {
   meshAdd(cylinder(GQuad), identity.translate(-5, -0.2, -26).scale(3.2, 1, 2.5).skewX(3), material(0.8, 0.8, 0.8, 0.2));
 
   // !!! SOUL 1 !!!
-  newSoul(identity.translate(0, 2.8), [
+  newSoul(
+    identity.translate(0, 2.8),
     [5, 10, 3],
     [-5, 10, 3],
     ...polygon_regular(18).map(({ x, z }) => [x * 7, z * 10, 4.5 - abs(x) * 2]),
-  ]);
+  );
 
   // gate columns
 
-  GQuad.map(({ x, z }) => {
-    meshAdd(cylinder(6), identity.translate(x * 3, 3, z * 15).scale(0.7, 4, 0.7), material(0.6, 0.3, 0.3, 0.4));
-  });
+  GQuad.map(({ x, z }) =>
+    meshAdd(cylinder(6), identity.translate(x * 3, 3, z * 15).scale(0.7, 4, 0.7), material(0.6, 0.3, 0.3, 0.4)),
+  );
 
   // in and out
   [-23, 22].map((z) =>
@@ -136,7 +136,7 @@ export const buildWorld = () => {
 
   meshAdd(
     cylinder(GQuad),
-    identity.rotate(0, 60, 0).translate(14.8, -1.46, -1).rotate(0, 0, -30).scale(4, 0.6, 4.5),
+    identity.rotate(0, 60).translate(14.8, -1.46, -1).rotate(0, 0, -30).scale(4, 0.6, 4.5),
     material(0.8, 0.2, 0.2, 0.5),
   );
 
@@ -169,7 +169,7 @@ export const buildWorld = () => {
         // smooth hole
         polygons_transform(
           cylinder(5, 0, 1.5),
-          identity.translate(0, 1, 0).scale(4.5, 0.3, 4.5),
+          identity.translate(0, 1).scale(4.5, 0.3, 4.5),
           material(0.7, 0.5, 0.9, 0.2),
         ),
 
@@ -266,7 +266,7 @@ export const buildWorld = () => {
     // central oscillating platform
     newModel((model) => {
       withEditMatrix(identity.translate(0, 0, -30), () => {
-        model._update = () => identity.translate(getOscillationAmount() * Math.sin(gameTime / 1.5 + 2) * 12, 0);
+        model._update = () => identity.translate(getOscillationAmount() * Math.sin(gameTime / 1.5 + 2) * 12);
         meshAdd(
           csg_polygons(
             csg_subtract(
@@ -290,7 +290,7 @@ export const buildWorld = () => {
         );
 
         // !!! SOUL 2 !!!
-        newSoul(identity.translate(0, 2.8), [[0, 0, 4.5]]);
+        newSoul(identity.translate(0, 2.8), [0, 0, 4.5]);
       });
     }, ++_modelIdCounter);
 
@@ -385,14 +385,14 @@ export const buildWorld = () => {
           csg_union(
             polygons_transform(
               cylinder(GQuad),
-              identity.translate(0, -3, 0).scale(11, 1.4, 3),
+              identity.translate(0, -3).scale(11, 1.4, 3),
               material(0.9, 0.9, 0.9, 0.2),
             ),
             csg_subtract(
               polygons_transform(cylinder(6), identity.rotate(0, 0, 90).scale(6, 8, 6), material(0.3, 0.6, 0.6, 0.3)),
               polygons_transform(
                 cylinder(4, 0, 0.01),
-                identity.translate(0, 6, 0).scale(12, 2, 0.75).rotate(0, 45),
+                identity.translate(0, 6).scale(12, 2, 0.75).rotate(0, 45),
                 material(0.3, 0.6, 0.6, 0.3),
               ),
               polygons_transform(cylinder(6), identity.rotate(0, 0, 90).scale(5, 12, 5), material(0.3, 0.6, 0.6, 0.3)),
@@ -448,12 +448,7 @@ export const buildWorld = () => {
     // platform after the rotating hex corridor
 
     // !!! SOUL 3 !!!
-    newSoul(identity.translate(-100, 0.2, -20), [
-      [0, 0, 7.5],
-      [-8, 0, 3.5],
-      [-12, 0, 3.5],
-      [-15, 0, 3.5],
-    ]);
+    newSoul(identity.translate(-100, 0.2, -20), [0, 0, 7.5], [-8, 0, 3.5], [-12, 0, 3.5], [-15, 0, 3.5]);
 
     meshAdd(
       csg_polygons(
@@ -550,14 +545,13 @@ export const buildWorld = () => {
     );
 
     // !!! SOUL 4 !!!
-    newSoul(identity.translate(-89, 0.2, 5), [[0, 0, 6]]);
+    newSoul(identity.translate(-89, 0.2, 5), [0, 0, 6]);
 
     // gate bars
 
     withEditMatrix(identity.translate(-99.7, -2, -11.5), () =>
       newModel((model) => {
         model._update = () => identity.translate(0, -levers[6]!.$lerpValue * 5.3);
-
         return entranceBarsMesh;
       }),
     );
@@ -665,7 +659,7 @@ export const buildWorld = () => {
         // !!! SOUL 5 !!!
         newSoul(
           identity.translate(0, 11).rotate(0, 0, 10),
-          polygon_regular(15).map(({ x, z }) => [x * 3, z * 3, 1.5]),
+          ...polygon_regular(15).map(({ x, z }) => [x * 3, z * 3, 1.5]),
         );
 
         meshAdd(
@@ -742,15 +736,11 @@ export const buildWorld = () => {
       );
 
       // !!! SOUL 10 !!!
-      newSoul(identity.translate(0, 2.9, -38), [[0, 0, 12]]);
+      newSoul(identity.translate(0, 2.9, -38), [0, 0, 12]);
     });
 
     // Detour lever pad
-    meshAdd(
-      cylinder(5),
-      identity.translate(-84, -2, 10).scale(4, 0.8, 4).rotate(0, 10, 0),
-      material(0.8, 0.1, 0.25, 0.4),
-    );
+    meshAdd(cylinder(5), identity.translate(-84, -2, 10).scale(4, 0.8, 4).rotate(0, 10), material(0.8, 0.1, 0.25, 0.4));
 
     // Detour lever
     newLever(identity.translate(-84, -0.5, 10).rotate(0, 45));
@@ -796,7 +786,7 @@ export const buildWorld = () => {
     newLever(identity.translate(7, -1.4, -6).rotate(0, 180));
 
     // !!! SOUL 13 !!!
-    newSoul(identity.translate(8, 0.2, 0), [[0, 0, 3.5]]);
+    newSoul(identity.translate(8, 0.2), [0, 0, 3.5]);
 
     // arcs
 
@@ -816,7 +806,7 @@ export const buildWorld = () => {
           ),
           polygons_transform(
             cylinder(GQuad),
-            identity.translate(44, 0).scale(3.5, 2.2, 1.3),
+            identity.translate(44).scale(3.5, 2.2, 1.3),
             material(0.4, 0.5, 0.6, 0.2),
           ),
           polygons_transform(
@@ -907,10 +897,7 @@ export const buildWorld = () => {
     );
 
     // !!! SOUL 6 !!!
-    newSoul(identity.translate(30, -3, -28).rotate(0, 0, 4), [
-      [0, -2, 3.5],
-      [0, 2, 3.5],
-    ]);
+    newSoul(identity.translate(30, -3, -28).rotate(0, 0, 4), [0, -2, 3.5], [0, 2, 3.5]);
 
     meshAdd(cylinder(9), identity.translate(25, -5.8, -28).scale(2.5, 0.9, 2.5), material(0.5, 0.5, 0.5, 0.3));
 
@@ -1009,10 +996,7 @@ export const buildWorld = () => {
         });
 
         // !!! SOUL 12 !!!
-        newSoul(identity.translate(-5, 4, 0), [
-          [0, -1.2, 1.7],
-          [0, 1.2, 1.7],
-        ]);
+        newSoul(identity.translate(-5, 4), [0, -1.2, 1.7], [0, 1.2, 1.7]);
 
         // lateral horns
         [-1, 1].map((i) =>
@@ -1020,7 +1004,7 @@ export const buildWorld = () => {
             GHorn,
             identity
               .rotate(-i * 90, 180, 90) //
-              .translate(0, 5, 0)
+              .translate(0, 5)
               .rotate(0, 0, 40) //
               .scale(1.3, 10, 1.3), //
             material(1, 1, 0.8, 0.2),
@@ -1067,7 +1051,7 @@ export const buildWorld = () => {
             polygons_transform(
               cylinder(5),
               identity
-                .translate(x * -5.3, 7, 0)
+                .translate(x * -5.3, 7)
                 .rotate(90, 0)
                 .scale(1.7, 5, 1.7),
               material(0.6, 0.24, 0.2, 0.5),
@@ -1075,7 +1059,7 @@ export const buildWorld = () => {
             polygons_transform(
               cylinder(5),
               identity
-                .translate(x * -5.3, 3.8, 0)
+                .translate(x * -5.3, 3.8)
                 .rotate(90, 0, 35)
                 .scale(0.75, 5, 0.75),
               material(0.6, 0.24, 0.2, 0.5),
@@ -1131,15 +1115,12 @@ export const buildWorld = () => {
         meshAdd(cylinder(5), identity.translate(0, 2).scale(1, 2, 1), material(0.3, 0.3, 0.3, 0.2));
 
         // !!! SOUL 7 !!!
-        newSoul(
-          identity.translate(0, 3),
-          polygon_regular(10).map(({ x, z }) => [x * 5.6, z * 5.6, 2.5]),
-        );
+        newSoul(identity.translate(0, 3), ...polygon_regular(10).map(({ x, z }) => [x * 5.6, z * 5.6, 2.5]));
       }, ++_modelIdCounter);
     });
 
     withEditMatrix(identity.translate(36, 0.3, -9), () => {
-      meshAdd(cylinder(GQuad), identity.translate(8, 0).scale(0.7, 0.8, 2.5), material(0.7, 0.7, 0.7, 0.2));
+      meshAdd(cylinder(GQuad), identity.translate(8).scale(0.7, 0.8, 2.5), material(0.7, 0.7, 0.7, 0.2));
       newModel((model) => {
         model._update = () => identity.rotate(0, rotatingPlatform2Rotation);
         rotPlatform();
@@ -1274,10 +1255,7 @@ export const buildWorld = () => {
       newLever(identity.translate(0, 1.7, -13).rotate(0, 180));
 
       // !!! SOUL 8 !!!
-      newSoul(
-        identity.translate(0, 3),
-        polygon_regular(9).map(({ x, z }) => [x * 9, z * 9, 4]),
-      );
+      newSoul(identity.translate(0, 3), ...polygon_regular(9).map(({ x, z }) => [x * 9, z * 9, 4]));
 
       meshAdd(
         csg_polygons(
@@ -1334,13 +1312,10 @@ export const buildWorld = () => {
       meshAdd(cylinder(7), identity.translate(0, 16.2, 38).scale(5, 1, 5), material(0.4, 0.5, 0.6, 0.4));
 
       // !!! SOUL 9 !!!
-      newSoul(identity.translate(0, 19, 39), [[0, 0, 3.5]]);
+      newSoul(identity.translate(0, 19, 39), [0, 0, 3.5]);
 
       // !!! SOUL 11 !!!
-      newSoul(
-        identity.translate(0, 19, 15.5),
-        integers_map(6, (x) => [x * 2.8 - 7, 0, 3]),
-      );
+      newSoul(identity.translate(0, 19, 15.5), ...integers_map(6, (x) => [x * 2.8 - 7, 0, 3]));
 
       newModel((model) => {
         model._update = () => {

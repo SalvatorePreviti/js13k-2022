@@ -40,11 +40,13 @@ import { playerModel, playerLegsModels } from "./game/objects";
 import { gl, initShaderProgram, loadShader } from "./gl";
 import {
   absoluteTime,
+  firstBoatLerp,
   gameTime,
   gameTimeDelta,
   gameTimeUpdate,
   lerpDamp,
   levers,
+  loadGame,
   player_last_pulled_lever,
   worldStateUpdate,
 } from "./game/world-state";
@@ -53,6 +55,9 @@ import { initTriangleBuffers } from "./game/triangle-buffers";
 import { renderModels } from "./game/render-models";
 import { movement_strafe, movement_forward, input_frameUpdate, player_first_person } from "./input";
 import { player_position_global, player_position_final } from "./game/player-position";
+
+const CAMERA_PLAYER_Y_DIST = 13;
+const CAMERA_PLAYER_Z_DIST = -18;
 
 const PLAYER_LEGS_VELOCITY = 7 * 1.3;
 
@@ -79,9 +84,9 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   let player_collision_x = 0;
   let player_collision_z = 0;
 
-  let camera_player_dir_x = player_position_global.x;
-  let camera_player_dir_y = player_position_global.y + 13;
-  let camera_player_dir_z = player_position_global.z - 18;
+  let camera_player_dir_x: number;
+  let camera_player_dir_y: number;
+  let camera_player_dir_z: number;
 
   const mainVertexShader = loadShader(main_vsSource);
   const skyShader = initShaderProgram(loadShader(sky_vsSource), sky_fsSource);
@@ -199,7 +204,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   const player_respawn = () => {
     const { $matrix, $model } = levers[player_last_pulled_lever]!;
 
-    const { x, y, z } = $matrix!.transformPoint({ x: 0, y: 15, z: -3 });
+    const { x, y, z } = $matrix!.transformPoint({ x: 0, y: min(firstBoatLerp, 0.2) * 15, z: -3 });
 
     player_position_final.x = player_position_global.x = x;
     player_position_final.y = player_position_global.y = y;
@@ -334,11 +339,6 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
     const playerSpeedCollision = clamp01(1 - max(abs(player_collision_x), abs(player_collision_z)) * 5);
 
-    // // adjust collision push back based on the duration of the frame, to address slower machines with lower FPS
-    // const collisionPushBackReduction = lerp(3.65, 1.1, max(0.008, gameTimeDelta) / GAME_TIME_MAX_DELTA_TIME);
-    // ddx /= collisionPushBackReduction;
-    // ddz /= collisionPushBackReduction;
-
     if (!currentModelId) {
       player_collision_x += player_collision_velocity_x * playerSpeedCollision * gameTimeDelta;
       player_collision_z += player_collision_velocity_z * playerSpeedCollision * gameTimeDelta;
@@ -382,10 +382,6 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     player_position_global.x += player_collision_x;
 
     if (currentModelId !== oldModelId) {
-      if (DEBUG) {
-        console.log("modelId: " + oldModelId + " -> " + currentModelId);
-      }
-
       oldModelId = currentModelId;
 
       ({
@@ -468,14 +464,12 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     gameTimeUpdate(globalTime);
 
     if (mainMenuVisible) {
-      const screenDist = clamp01(hC.clientWidth / 1000);
-      console.log(screenDist);
       // Main menu camera
       camera_view
         .setMatrixValue("none")
         .rotateSelf(-20, -90)
         .invertSelf()
-        .translateSelf(4.5, -2, -3.2 + screenDist);
+        .translateSelf(4.5, -2, -3.2 + clamp01(hC.clientWidth / 1000));
     } else {
       if (!DEBUG_CAMERA) {
         camera_player_dir_x = interpolate_with_hysteresis(
@@ -508,13 +502,13 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
           camera_position.x = interpolate_with_hysteresis(camera_position.x, camera_player_dir_x, 1, gameTimeDelta * 2);
           camera_position.y = interpolate_with_hysteresis(
             camera_position.y,
-            camera_player_dir_y + 13 + player_respawned * 15, // max(10, camera_player_dir_y + 13),
+            camera_player_dir_y + CAMERA_PLAYER_Y_DIST + player_respawned * 15,
             4,
             gameTimeDelta * 2,
           );
           camera_position.z = interpolate_with_hysteresis(
             camera_position.z,
-            camera_player_dir_z - 18,
+            camera_player_dir_z + CAMERA_PLAYER_Z_DIST,
             1,
             gameTimeDelta * 2,
           );
@@ -640,7 +634,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     if (gameTimeDelta > 0) {
       // Special handling for the second boat (lever 7) - the boat must be on the side of the map the player is
       if (currentModelId === 1) {
-        levers[7]!.$value = player_position_final.x < -15 && player_position_final.z < 0 ? 1 : 0;
+        levers[9]!.$value = player_position_final.x < -15 && player_position_final.z < 0 ? 1 : 0;
       }
 
       // We update the models for the next frame, for performance
@@ -668,11 +662,17 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
         );
   });
 
+  loadGame();
+
   updateModels(rootModel);
 
   initPage();
 
   player_respawn();
+
+  camera_position.x = camera_player_dir_x = player_position_final.x;
+  camera_position.y = (camera_player_dir_y = player_position_final.y) + CAMERA_PLAYER_Y_DIST;
+  camera_position.z = (camera_player_dir_z = player_position_final.z) + CAMERA_PLAYER_Z_DIST;
 
   requestAnimationFrame(mainLoop);
 };

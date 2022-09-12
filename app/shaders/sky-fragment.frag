@@ -32,16 +32,11 @@ void main() {
       O.xyz = vec3(dot(vec2(texture(groundTexture, ray.xy).z, texture(groundTexture, ray.yz * 2.).z), absRay.zx) * absRay.y);
 
     } else {
-      // Render lava
-      vec3 rayTracedLava = viewPos + ray * rayTracedLavalDistance;
-      vec4 tt = texture(
-        groundTexture,
-        rayTracedLava.xz / 150. + vec2(sin(rayTracedLava.z / 35. + gameTime), cos(rayTracedLava.x / 25. + gameTime)) / 80.
-      );
-
-      float h = (0.9 - tt.y) * multiplier;
-      O.x = h;
-      O.y = h * h * h;
+      // Render raytraced lava
+      ray = viewPos + ray * rayTracedLavalDistance;
+      O.x = multiplier *=
+        0.9 - texture(groundTexture, ray.xz / 150. + vec2(sin(ray.z / 35. + gameTime), cos(ray.x / 25. + gameTime)) / 80.).y;
+      O.y = multiplier * multiplier * multiplier;
     }
   }
 }

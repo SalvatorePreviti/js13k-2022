@@ -1,7 +1,7 @@
 export let mainMenuVisible: boolean | undefined;
 
 import { camera_rotation } from "./camera";
-import { loadGame, LOCAL_STORAGE_SAVED_GAME_KEY } from "./game/world-state";
+import { LOCAL_STORAGE_SAVED_GAME_KEY } from "./game/world-state";
 import { player_first_person } from "./input";
 import { audioContext, songAudioSource } from "./music/audio-context";
 import type { KEY_CODE } from "./utils/keycodes";
@@ -132,7 +132,6 @@ export const initPage = () => {
 
   document.onvisibilitychange = () => document.hidden && setMainMenuVisible(true);
 
-  loadGame();
   handleResize();
   setMainMenuVisible(!DEBUG);
 };
