@@ -22,12 +22,12 @@ export const buildWorld = () => {
   const boatPolygons = csg_polygons(
     csg_subtract(
       polygons_transform(
-        cylinder(20, 1, 1.15, 1),
+        cylinder(40, 1, 1.15, 1),
         identity.translate(0, -3).scale(3.5, 1, 3.5),
         material(0.7, 0.4, 0.25, 0.7),
       ),
       polygons_transform(
-        cylinder(20, 1, 1.3, 1),
+        cylinder(40, 1, 1.3, 1),
         identity.translate(0, -2.5).scale(2.6, 1, 3),
         material(0.7, 0.4, 0.25, 0.2),
       ),

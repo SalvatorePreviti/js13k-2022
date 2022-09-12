@@ -77,7 +77,7 @@ void main() {
       // diffuse
       rgbColor * (max(0., lambert) * .5 + (rgbColor * lambert * lambert * vec3(.5, .45, .3))) * (shadow * .7 + .3) +
       // lava light
-      rgbColor * max(dot(normal, normalize(vec3(.1, -1, -.1))), 0.) * (1. - FragPos.y) * (vec3(1, .15, 0) / 14.) +
+      rgbColor * max(dot(normal, normalize(vec3(.1, -1, -.1))), 0.) * max(0., 2. - FragPos.y) * (vec3(.6, .1, 0) / 14.) +
       // specular
       vec3(.6, .6, .5) * pow(max(0., dot(normalize(FragPos.xyz - viewPos), reflect(lightDir, normal))), 35.) * shadow,
     1
