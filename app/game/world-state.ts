@@ -43,7 +43,7 @@ export const gameTimeUpdate = (time: number) => {
 //   }
 // };
 
-export const LOCAL_STORAGE_SAVED_GAME_KEY = "s66622";
+export const LOCAL_STORAGE_SAVED_GAME_KEY = "s666$22";
 
 export interface Lever {
   $value: 0 | 1;
@@ -183,7 +183,7 @@ export const onPlayerPullLever = (leverIndex: number) => {
 
   if (leverIndex) {
     player_last_pulled_lever = leverIndex;
-    showMessage("checkpoint", 1);
+    showMessage("click", 1);
     saveGame();
   }
 };
@@ -192,13 +192,13 @@ export const onSoulCollected = () => {
   showMessage(
     [
       ,
-      "Andrzej Mazur<br>is evil, very evil",
       "Mark Zuckemberg<br>made the world worse",
       ,
-      "Maxime Euziere<br>forced me to finish this game",
+      "Andrzej Mazur<br>for the js13k competition",
       "Donald Trump<br>lied, lied, and lied",
       "Kim Jong-un<br>Dictator, and liked pineapple on pizza",
-      "She traded NFTs.",
+      "Maxime Euziere<br>forced me to finish this game",
+      "She traded monkeys NFTs.",
       ,
       "Vladimir Putin<br>caused war and death",
       "He was NOT a good person.",
