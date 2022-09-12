@@ -73,14 +73,13 @@ void main() {
 
   O = vec4(
     // ambient
-    .1 * rgbColor +
+    vec3(.09, .05, .1) * rgbColor +
       // diffuse
-      rgbColor * (max(0., lambert) * .5 + (rgbColor * lambert * lambert * .4)) * (shadow * .7 + .3) +
+      rgbColor * (max(0., lambert) * .5 + (rgbColor * lambert * lambert * vec3(.5, .45, .3))) * (shadow * .7 + .3) +
+      // lava light
+      rgbColor * max(dot(normal, normalize(vec3(.1, -1, -.1))), 0.) * max(0., 2. - FragPos.y) * (vec3(.6, .1, 0) / 14.) +
       // specular
-      .7 * pow(max(0., dot(normalize(FragPos.xyz - viewPos), reflect(lightDir, normal))), 35.) * shadow,
+      vec3(.6, .6, .5) * pow(max(0., dot(normalize(FragPos.xyz - viewPos), reflect(lightDir, normal))), 35.) * shadow,
     1
   );
-
-  // .5 * diffuse * (diffuse + 1.1)
-  // color += 0.125 * (concrete.x - concrete.y + concrete.z - concrete.w);
 }
