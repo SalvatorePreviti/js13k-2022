@@ -12,11 +12,28 @@ import {
   rotatingPlatform1Rotation,
   rotatingPlatform2Rotation,
   firstBoatLerp,
+  souls_collected_count,
 } from "./world-state";
-import { newLever, newSoul } from "./objects";
+import { newLever, newSoul, soulMesh } from "./objects";
 
 export const buildWorld = () => {
   let _modelIdCounter = PLAYER_MODEL_ID + 1;
+
+  const boatPolygons = csg_polygons(
+    csg_subtract(
+      polygons_transform(
+        cylinder(20, 1, 1.15, 1),
+        identity.translate(0, -3).scale(3.5, 1, 3.5),
+        material(0.7, 0.4, 0.25, 0.7),
+      ),
+      polygons_transform(
+        cylinder(20, 1, 1.3, 1),
+        identity.translate(0, -2.5).scale(2.6, 1, 3),
+        material(0.7, 0.4, 0.25, 0.2),
+      ),
+      polygons_transform(cylinder(GQuad), identity.translate(4, -1.2).scale3d(2), material(0.7, 0.4, 0.25, 0.3)),
+    ),
+  );
 
   const bigArc = csg_polygons(
     csg_subtract(
@@ -35,26 +52,10 @@ export const buildWorld = () => {
 
   // ========= boat mesh ========= //
 
-  const boatPolygons = csg_polygons(
-    csg_subtract(
-      polygons_transform(
-        cylinder(20, 1, 1.15, 1),
-        identity.translate(0, -3).scale(3.5, 1, 3.5),
-        material(0.7, 0.4, 0.25, 0.7),
-      ),
-      polygons_transform(
-        cylinder(20, 1, 1.3, 1),
-        identity.translate(0, -2.5).scale(2.6, 1, 3),
-        material(0.7, 0.4, 0.25, 0.2),
-      ),
-      polygons_transform(cylinder(GQuad), identity.translate(4, -1.2).scale3d(2), material(0.7, 0.4, 0.25, 0.3)),
-    ),
-  );
-
   const getBoatAnimationMatrix = (z: number) =>
     identity
       .translate(Math.sin(gameTime + 2) / 5, Math.sin(gameTime * 0.8) / 3, z)
-      .rotate(Math.sin(gameTime) * 2, Math.sin(gameTime * 0.7), Math.sin(gameTime * 0.9));
+      .rotateSelf(Math.sin(gameTime) * 2, Math.sin(gameTime * 0.7), Math.sin(gameTime * 0.9));
 
   // ========= WORLD! ========= //
 
@@ -63,8 +64,24 @@ export const buildWorld = () => {
   withEditMatrix(identity.translate(-12, 4.2, -26 - 40), () => {
     newModel((model) => {
       model._update = () => getBoatAnimationMatrix(firstBoatLerp * 40);
+
       newLever(identity.translate(0, -3, 4));
+
       meshAdd(boatPolygons);
+
+      integers_map(13, (i) => {
+        withEditMatrix(identity.translate((i % 4) * 1.2 - 1.7, -2, -5.5 + ((i / 4) | 0) * 1.7 + abs((i % 4) - 2)), () =>
+          newModel((capturedSoulModel) => {
+            capturedSoulModel._update = () => {
+              if ((capturedSoulModel.$visible = 12 - i < souls_collected_count)) {
+                return identity.translate(Math.sin(gameTime + i) / 6, 0, Math.cos(gameTime / 1.5 + i) / 6);
+              }
+              return undefined;
+            };
+            return soulMesh;
+          }),
+        );
+      });
     }, ++_modelIdCounter);
   });
 
@@ -72,7 +89,8 @@ export const buildWorld = () => {
 
   meshAdd(cylinder(GQuad), identity.translate(-5, -0.2, -26).scale(3.2, 1, 2.5).skewX(3), material(0.8, 0.8, 0.8, 0.2));
 
-  // !!! SOUL 1 !!!
+  newSoul(identity.translate(-0.5, 2.8, -20), [0, 0, 2.5], [0, -3, 2.5]);
+
   newSoul(
     identity.translate(0, 2.8),
     [5, 10, 3],
@@ -193,7 +211,6 @@ export const buildWorld = () => {
   // moving central platform
 
   newModel((model) => {
-    // LEVER1
     newLever(identity.translate(0, 1.2));
 
     model._update = () => {
@@ -208,7 +225,6 @@ export const buildWorld = () => {
     meshAdd(cylinder(5), identity.translate(0, -0.2).scale(5, 1, 5), material(0.6, 0.65, 0.7, 0.3));
   }, ++_modelIdCounter);
 
-  // LEVER2
   newLever(identity.translate(15, -2, 4));
 
   // ******** LEVEL 2 ********
@@ -289,7 +305,6 @@ export const buildWorld = () => {
           ),
         );
 
-        // !!! SOUL 2 !!!
         newSoul(identity.translate(0, 2.8), [0, 0, 4.5]);
       });
     }, ++_modelIdCounter);
@@ -447,7 +462,6 @@ export const buildWorld = () => {
 
     // platform after the rotating hex corridor
 
-    // !!! SOUL 3 !!!
     newSoul(identity.translate(-100, 0.2, -20), [0, 0, 7.5], [-8, 0, 3.5], [-12, 0, 3.5], [-15, 0, 3.5]);
 
     meshAdd(
@@ -544,7 +558,6 @@ export const buildWorld = () => {
       ),
     );
 
-    // !!! SOUL 4 !!!
     newSoul(identity.translate(-89, 0.2, 5), [0, 0, 6]);
 
     // gate bars
@@ -595,7 +608,6 @@ export const buildWorld = () => {
 
     meshAdd(cylinder(25, 1), identity.translate(-86, -9, -44).scale(1.5, 1, 1.5), material(0.3, 0.3, 0.4, 0.1));
 
-    // LEVER6
     newLever(identity.translate(-86, -7.5, -44));
 
     // elevators
@@ -656,7 +668,6 @@ export const buildWorld = () => {
       newModel((model) => {
         model._update = () => identity.translate(0, levers[7]!.$lerpValue2 * -7.3);
 
-        // !!! SOUL 5 !!!
         newSoul(
           identity.translate(0, 11).rotate(0, 0, 10),
           ...polygon_regular(15).map(({ x, z }) => [x * 3, z * 3, 1.5]),
@@ -735,7 +746,6 @@ export const buildWorld = () => {
         ),
       );
 
-      // !!! SOUL 10 !!!
       newSoul(identity.translate(0, 2.9, -38), [0, 0, 12]);
     });
 
@@ -785,7 +795,6 @@ export const buildWorld = () => {
 
     newLever(identity.translate(7, -1.4, -6).rotate(0, 180));
 
-    // !!! SOUL 13 !!!
     newSoul(identity.translate(8, 0.2), [0, 0, 3.5]);
 
     // arcs
@@ -896,7 +905,6 @@ export const buildWorld = () => {
       ),
     );
 
-    // !!! SOUL 6 !!!
     newSoul(identity.translate(30, -3, -28).rotate(0, 0, 4), [0, -2, 3.5], [0, 2, 3.5]);
 
     meshAdd(cylinder(9), identity.translate(25, -5.8, -28).scale(2.5, 0.9, 2.5), material(0.5, 0.5, 0.5, 0.3));
@@ -995,7 +1003,6 @@ export const buildWorld = () => {
           newLever(identity.translate(0, 3.4).rotate(0, 180));
         });
 
-        // !!! SOUL 12 !!!
         newSoul(identity.translate(-5, 4), [0, -1.2, 1.7], [0, 1.2, 1.7]);
 
         // lateral horns
@@ -1073,7 +1080,7 @@ export const buildWorld = () => {
     // far arc gate door
 
     newModel((model) => {
-      model._update = () => identity.translate(0, -0.1 - levers[11]!.$lerpValue * 6, -18.5).scale(0.88, 1.2, 1);
+      model._update = () => identity.translate(0, -0.1 - levers[12]!.$lerpValue * 6, -18.5).scale(0.88, 1.2, 1);
       return entranceBarsMesh;
     });
 
@@ -1098,7 +1105,7 @@ export const buildWorld = () => {
 
     withEditMatrix(identity.translate(20, 0.3, -9), () => {
       newModel((model) => {
-        model._update = () => identity.rotate(0, 180 + rotatingPlatform1Rotation);
+        model._update = () => identity.rotate(0, 140 + rotatingPlatform1Rotation);
         meshAdd(
           csg_polygons(
             csg_subtract(
@@ -1114,7 +1121,6 @@ export const buildWorld = () => {
         meshAdd(cylinder(8), identity.translate(0, 2).scale(3, 1.5, 3), material(0.7, 0.7, 0.7, 0.1));
         meshAdd(cylinder(5), identity.translate(0, 2).scale(1, 2, 1), material(0.3, 0.3, 0.3, 0.2));
 
-        // !!! SOUL 7 !!!
         newSoul(identity.translate(0, 3), ...polygon_regular(10).map(({ x, z }) => [x * 5.6, z * 5.6, 2.5]));
       }, ++_modelIdCounter);
     });
@@ -1251,10 +1257,8 @@ export const buildWorld = () => {
         material(0.5, 0.3, 0.3, 0.4),
       );
 
-      // LEVER13
       newLever(identity.translate(0, 1.7, -13).rotate(0, 180));
 
-      // !!! SOUL 8 !!!
       newSoul(identity.translate(0, 3), ...polygon_regular(9).map(({ x, z }) => [x * 9, z * 9, 4]));
 
       meshAdd(
@@ -1311,11 +1315,7 @@ export const buildWorld = () => {
       meshAdd(cylinder(GQuad), identity.translate(0, 16, 34).scale(1.5, 1, 2), material(0.5, 0.6, 0.7, 0.3));
       meshAdd(cylinder(7), identity.translate(0, 16.2, 38).scale(5, 1, 5), material(0.4, 0.5, 0.6, 0.4));
 
-      // !!! SOUL 9 !!!
       newSoul(identity.translate(0, 19, 39), [0, 0, 3.5]);
-
-      // !!! SOUL 11 !!!
-      newSoul(identity.translate(0, 19, 15.5), ...integers_map(6, (x) => [x * 2.8 - 7, 0, 3]));
 
       newModel((model) => {
         model._update = () => {
@@ -1326,7 +1326,6 @@ export const buildWorld = () => {
         meshAdd(cylinder(5), identity.scale(5, 1.1, 5), material(0.5, 0.3, 0.3, 0.4));
         meshAdd(cylinder(5), identity.scale(5.5, 0.9, 5.5), material(0.25, 0.25, 0.25, 0.4));
 
-        // LEVER14
         newLever(identity.translate(0, 1.5, -1).rotate(0, 180));
       }, ++_modelIdCounter);
     });

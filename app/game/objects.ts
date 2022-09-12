@@ -147,7 +147,7 @@ meshAdd(
 
 [-1, 1].map((x) => meshAdd(sphere(15), identity.translate(x * 0.16, 0.4, -0.36).scale3d(0.09)));
 
-const soulMesh = meshEnd();
+export const soulMesh = meshEnd();
 
 export type Circle = [number, number, number];
 
