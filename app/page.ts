@@ -4,6 +4,7 @@ import type { KEY_CODE } from "./utils/keycodes";
 import { camera_rotation } from "./camera";
 import { absoluteTime, LOCAL_STORAGE_SAVED_GAME_KEY } from "./game/world-state";
 import { audioContext, songAudioSource } from "./music/audio-context";
+import { abs } from "./math";
 
 export const KEY_LEFT = 0;
 
@@ -63,8 +64,8 @@ export const initPage = () => {
   const handleResize = () => {
     hC.width = innerWidth;
     hC.height = innerHeight;
-    cameraRotTouch = cameraPosTouch = undefined;
     keyboard_downKeys.length = touch_movementX = touch_movementY = 0;
+    cameraRotTouch = cameraPosTouch = undefined;
     if (document.hidden) {
       setMainMenuVisible(true);
     }
@@ -81,7 +82,7 @@ export const initPage = () => {
 
   b3.onclick = () => {
     // eslint-disable-next-line no-alert
-    if (confirm("Delete game progress?")) {
+    if (confirm("Restart game?")) {
       localStorage[LOCAL_STORAGE_SAVED_GAME_KEY] = "";
       location.reload();
     }
@@ -99,11 +100,7 @@ export const initPage = () => {
   onclick = () => {
     pageClicked = 1;
     if (!mainMenuVisible) {
-      const diff = absoluteTime - touchStartTime;
-      console.log(diff);
-      if (!touchStartTime || (diff > 0.07 && diff < 0.8)) {
-        keyboard_downKeys[KEY_INTERACT] = true;
-      }
+      keyboard_downKeys[KEY_INTERACT] = true;
       if (player_first_person) {
         hC.requestPointerLock();
       }
@@ -183,8 +180,10 @@ export const initPage = () => {
           camera_rotation.x = touchStartCameraRotY + (pageY - cameraRotTouch.pageY) / 3;
         }
         if (cameraPosTouch?.identifier === identifier) {
-          touch_movementX = -(pageX - cameraPosTouch.pageX) / 20;
-          touch_movementY = -(pageY - cameraPosTouch.pageY) / 20;
+          touch_movementX = -(pageX - cameraPosTouch.pageX) / 18;
+          touch_movementY = -(pageY - cameraPosTouch.pageY) / 18;
+          touch_movementX = abs(touch_movementX) < 0.35 ? 0 : touch_movementX * 0.8;
+          touch_movementY = abs(touch_movementY) < 0.35 ? 0 : touch_movementY * 0.8;
         }
       }
     }
@@ -199,6 +198,11 @@ export const initPage = () => {
         cameraPosTouch = undefined;
         touch_movementY = touch_movementX = 0;
       }
+    }
+    e.preventDefault();
+    const diff = absoluteTime - touchStartTime;
+    if (!touchStartTime || (diff > 0.02 && diff < 0.4)) {
+      keyboard_downKeys[KEY_INTERACT] = true;
     }
   };
 

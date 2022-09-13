@@ -137,7 +137,7 @@ export const worldStateUpdate = () => {
       levers[0]!.$value = 0;
       showMessage("Not leaving now, there are souls to catch!", 3);
     } else if (!game_completed) {
-      showMessage("Well done Dante! All souls will be punished.<br>Thanks for playing.", Infinity);
+      showMessage("Well done. They will be punished.<br>Thanks for playing", Infinity);
       game_completed = 1;
     }
   }
@@ -204,14 +204,14 @@ export const onSoulCollected = () => {
       ,
       "Andrzej Mazur<br>for the js13k competition",
       "Donald Trump<br>lies",
-      "Kim Jong-un<br>Dictator, and liked pineapple on pizza",
+      "Kim Jong-un<br>Dictator, liked pineapple on pizza",
       "Maxime Euziere<br>forced me to finish this game",
-      "She traded NFTs monkeys",
+      "She traded NFTs apes",
       ,
-      "Vladimir Putin<br>another war",
+      "Vladimir Putin<br>evil, war",
       "He was NOT a good person",
       ,
-      'Salvatore Previti<br>made this evil game<br><br>All "good", go back to the boat',
+      "Salvatore Previti<br>made this evil game<br><br>Done. Go back to the boat",
     ][souls_collected_count] || 'Catched a "crypto bro".<br>"Web3" is all scam, lies and grift',
     souls_collected_count && souls_collected_count < 12 ? 5 : 7,
   );

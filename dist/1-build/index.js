@@ -493,8 +493,8 @@ const initPage = () => {
     const handleResize = () => {
         hC.width = innerWidth;
         hC.height = innerHeight;
-        cameraRotTouch = cameraPosTouch = void 0;
         keyboard_downKeys.length = touch_movementX = touch_movementY = 0;
+        cameraRotTouch = cameraPosTouch = void 0;
         document.hidden && setMainMenuVisible(!0);
     };
     b1.onclick = () => setMainMenuVisible();
@@ -503,7 +503,7 @@ const initPage = () => {
         player_first_person = 1;
     };
     b3.onclick = () => {
-        if (confirm("Delete game progress?")) {
+        if (confirm("Restart game?")) {
             localStorage[LOCAL_STORAGE_SAVED_GAME_KEY] = "";
             location.reload();
         }
@@ -516,9 +516,7 @@ const initPage = () => {
     onclick = () => {
         pageClicked = 1;
         if (!mainMenuVisible) {
-            const diff = absoluteTime - touchStartTime;
-            console.log(diff);
-            (!touchStartTime || diff > .07 && .8 > diff) && (keyboard_downKeys[5] = !0);
+            keyboard_downKeys[5] = !0;
             player_first_person && hC.requestPointerLock();
         }
     };
@@ -569,8 +567,10 @@ const initPage = () => {
                 camera_rotation.x = touchStartCameraRotY + (pageY - cameraRotTouch.pageY) / 3;
             }
             if (cameraPosTouch?.identifier === identifier) {
-                touch_movementX = -(pageX - cameraPosTouch.pageX) / 20;
-                touch_movementY = -(pageY - cameraPosTouch.pageY) / 20;
+                touch_movementX = -(pageX - cameraPosTouch.pageX) / 18;
+                touch_movementY = -(pageY - cameraPosTouch.pageY) / 18;
+                touch_movementX = .35 > abs(touch_movementX) ? 0 : .8 * touch_movementX;
+                touch_movementY = .35 > abs(touch_movementY) ? 0 : .8 * touch_movementY;
             }
         }
     };
@@ -582,6 +582,9 @@ const initPage = () => {
                 touch_movementY = touch_movementX = 0;
             }
         }
+        e.preventDefault();
+        const diff = absoluteTime - touchStartTime;
+        (!touchStartTime || diff > .02 && .4 > diff) && (keyboard_downKeys[5] = !0);
     };
     oncontextmenu = () => !1;
     handleResize();
@@ -764,7 +767,7 @@ const newSoul = (transform, ...walkingPath) => {
                 if (!soul.$value && 1.5 > vec3_distance(soulPos, player_position_final)) {
                     soul.$value = 1;
                     (() => {
-                        showMessage([ , "Mark Zuckemberg<br>made the world worse", , "Andrzej Mazur<br>for the js13k competition", "Donald Trump<br>lies", "Kim Jong-un<br>Dictator, and liked pineapple on pizza", "Maxime Euziere<br>forced me to finish this game", "She traded NFTs monkeys", , "Vladimir Putin<br>another war", "He was NOT a good person", , 'Salvatore Previti<br>made this evil game<br><br>All "good", go back to the boat' ][souls_collected_count] || 'Catched a "crypto bro".<br>"Web3" is all scam, lies and grift', souls_collected_count && 12 > souls_collected_count ? 5 : 7);
+                        showMessage([ , "Mark Zuckemberg<br>made the world worse", , "Andrzej Mazur<br>for the js13k competition", "Donald Trump<br>lies", "Kim Jong-un<br>Dictator, liked pineapple on pizza", "Maxime Euziere<br>forced me to finish this game", "She traded NFTs apes", , "Vladimir Putin<br>evil, war", "He was NOT a good person", , "Salvatore Previti<br>made this evil game<br><br>Done. Go back to the boat" ][souls_collected_count] || 'Catched a "crypto bro".<br>"Web3" is all scam, lies and grift', souls_collected_count && 12 > souls_collected_count ? 5 : 7);
                         saveGame();
                     })();
                 }
@@ -1469,7 +1472,7 @@ const startMainLoop = groundTextureImage => {
                         levers[0].$value = 0;
                         showMessage("Not leaving now, there are souls to catch!", 3);
                     } else if (!game_completed) {
-                        showMessage("Well done Dante! All souls will be punished.<br>Thanks for playing.", Infinity);
+                        showMessage("Well done. They will be punished.<br>Thanks for playing", Infinity);
                         game_completed = 1;
                     }
                 })();
