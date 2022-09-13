@@ -113,12 +113,8 @@ export const sqr = (n: number) => n * n;
 
 export const vec3_dot = /* @__PURE__ */ ({ x, y, z }: Vec3In, v: Vec3In): number => x * v.x + y * v.y + z * v.z;
 
-export const vec3_distance = /* @__PURE__ */ ({ x, y, z }: Vec3In, b: Vec3In): number => {
-  x -= b.x;
-  y -= b.y;
-  z -= b.z;
-  return Math.sqrt(x * x + y + y + z * z) || 0;
-};
+export const vec3_distance = /* @__PURE__ */ ({ x, y, z }: Vec3In, b: Vec3In): number =>
+  Math.hypot(x - b.x, y - b.y, z - b.z) || 0;
 
 /**
  * Computes a polygon plane using the Newell's method.

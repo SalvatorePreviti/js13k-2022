@@ -113,11 +113,15 @@ export const buildWorld = () => {
     //  gate top
     meshAdd(cylinder(GQuad), identity.translate(0, 6.3, z).scale(4, 0.3, 1), material(0.3, 0.3, 0.3, 0.4));
     //  gate bottom
-    meshAdd(cylinder(GQuad), identity.translate(0, 1, z).scale(3, 0.2, 0.35), material(0.5, 0.5, 0.5, 0.3));
+    meshAdd(cylinder(GQuad), identity.translate(0, 1, z).scale(3, 0.2, 0.35), material(0.3, 0.3, 0.38, 0.2));
     // in and out gate bars
     withEditMatrix(identity.translate(0, 0, z), () =>
       newModel((model) => {
-        model._update = () => identity.translate(0, -levers[i + 1]!.$lerpValue * 4.7);
+        model._update = () => {
+          const v = levers[i + 1]!.$lerpValue;
+          model.$visible = v < 0.99;
+          return identity.translate(0, -v * 5);
+        };
         return entranceBarsMesh;
       }),
     );
@@ -954,6 +958,7 @@ export const buildWorld = () => {
     ].map((m, i) => {
       newModel((model) => {
         model._update = () => {
+          model.$visible = levers[1]!.$value && levers[2]!.$value;
           const osc = hexPadShouldOscillate();
           return identity.translate(
             i > 2 ? (1 - osc) * 2 + osc : 0,
@@ -976,6 +981,7 @@ export const buildWorld = () => {
       // pad with hole
       newModel((model) => {
         model._update = () => {
+          model.$visible = levers[1]!.$value && levers[2]!.$value;
           const osc = hexPadShouldOscillate();
           return identity
             .translate(

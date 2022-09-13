@@ -22,17 +22,18 @@ export const renderModels = (
       return;
     }
 
-    if ($visible) {
-      for (const child of $children) {
-        recursion(child);
+    if (!$visible) {
+      return;
+    }
+    for (const child of $children) {
+      recursion(child);
+    }
+    if ($mesh) {
+      if (collisionModelIdUniformLocation) {
+        gl.uniform1f(collisionModelIdUniformLocation, $modelId / 255);
       }
-      if ($mesh) {
-        if (collisionModelIdUniformLocation) {
-          gl.uniform1f(collisionModelIdUniformLocation, $modelId / 255);
-        }
-        gl.uniformMatrix4fv(worldMatrixLoc, false, model.$finalMatrix.toFloat32Array());
-        drawMesh($mesh);
-      }
+      gl.uniformMatrix4fv(worldMatrixLoc, false, model.$finalMatrix.toFloat32Array());
+      drawMesh($mesh);
     }
   };
 

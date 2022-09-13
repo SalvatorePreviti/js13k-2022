@@ -17,9 +17,11 @@ in lowp vec4 Color;
 
 uniform vec3 viewPos;
 uniform mat4 viewMatrix;
+uniform mat4 csm_matrix0;
+uniform mat4 csm_matrix1;
 
-uniform mat4[2] csm_matrices;
-uniform highp sampler2DShadow csm_textures[2];
+uniform highp sampler2DShadow csm_texture0;
+uniform highp sampler2DShadow csm_texture1;
 uniform highp sampler2D groundTexture;
 
 out vec4 O;
@@ -41,7 +43,7 @@ void main() {
   float depthValue = abs((viewMatrix * FragPos).z);
 
   // Gets the fragment position in light space
-  vec4 csmCoords = csm_matrices[depthValue < CSM_PLANE_DISTANCE ? 0 : 1] * FragPos;
+  vec4 csmCoords = (depthValue < CSM_PLANE_DISTANCE ? csm_matrix0 : csm_matrix1) * FragPos;
 
   // perform perspective divide and transform to [0,1] range
   csmCoords = (csmCoords / csmCoords.w) * .5 + .5;
@@ -60,7 +62,7 @@ void main() {
             // shadow bias
             (1. / CSM_TEXTURE_SIZE / 2.8)
         );
-        shadow += depthValue < CSM_PLANE_DISTANCE ? texture(csm_textures[0], c) : texture(csm_textures[1], c);
+        shadow += depthValue < CSM_PLANE_DISTANCE ? texture(csm_texture0, c) : texture(csm_texture1, c);
       }
     }
     shadow /= 9.;

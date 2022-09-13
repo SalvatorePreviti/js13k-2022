@@ -13,10 +13,6 @@ body {
   touch-action: none;
   overscroll-behavior: contain;
   -webkit-user-select: none;
-}
-
-body,
-a {
   color: #fda;
 }
 
@@ -25,8 +21,15 @@ body > * {
 }
 
 /* souls counter */
-.l h3 {
+.l h3,
+/* menu hamburger */
+.l #b5 {
   display: block;
+  padding: 10px;
+}
+
+/* souls counter */
+.l h3 {
   text-align: right;
   right: 5%;
   bottom: 0;
@@ -63,9 +66,7 @@ nav {
 }
 
 /* menu bottom text */
-p,
-/* small text */
-em {
+p {
   font-size: 0.7em;
 }
 
@@ -101,17 +102,6 @@ h3,
 /* hide loading text if loaded */
 .l h1,
 /* hide messages if in menu */
-.m h4,
-.m #b5 {
-  display: none;
-}
-
-.l #b5 {
-  display: block;
-  padding: 10px;
-}
-
-#b5,
-.m #b5 {
+.m h4 {
   display: none;
 }

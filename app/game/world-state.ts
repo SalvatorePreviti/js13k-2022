@@ -96,8 +96,7 @@ export const showMessage = (message: string, duration: number) => {
 
 export const worldStateUpdate = () => {
   if (gameTime > _messageEndTime) {
-    showMessage("", 0);
-    _messageEndTime = 0;
+    showMessage("", -gameTime);
   }
 
   const shouldRotatePlatforms = lerpneg(levers[12]!.$lerpValue, levers[13]!.$lerpValue);
@@ -179,9 +178,7 @@ export const loadGame = () => {
   }
   firstBoatLerp = clamp01(player_last_pulled_lever);
   updateCollectedSoulsCounter();
-  showMessage("", 0);
-  h4.innerHTML = "";
-  _messageEndTime = 0;
+  showMessage("", -gameTime);
 };
 
 export const onPlayerPullLever = (leverIndex: number) => {
@@ -203,16 +200,16 @@ export const onSoulCollected = () => {
       "Mark Zuckemberg<br>made the world worse",
       ,
       "Andrzej Mazur<br>for the js13k competition",
-      "Donald Trump<br>lied, lied, and lied",
+      "Donald Trump<br>lies",
       "Kim Jong-un<br>Dictator, and liked pineapple on pizza",
       "Maxime Euziere<br>forced me to finish this game",
-      "She traded monkeys NFTs.",
+      "She traded monkeys NFTs",
       ,
-      "Vladimir Putin<br>caused war and death",
-      "He was NOT a good person.",
+      "Vladimir Putin<br>another war",
+      "He was NOT a good person",
       ,
       "Salvatore Previti<br>made this evil game<br><br>All souls catched, go back to the boat",
-    ][souls_collected_count] || 'Catched a "crypto bro".<br>"Web3" is all scam, lies and grift.',
+    ][souls_collected_count] || 'Catched a "crypto bro".<br>"Web3" is all scam, lies and grift',
     souls_collected_count && souls_collected_count < 12 ? 5 : 7,
   );
 

@@ -7,8 +7,10 @@ import main_vsSource, {
 } from "./shaders/main-vertex.vert";
 import main_fsSource, {
   uniformName_viewPos,
-  uniformName_csm_matrices,
-  uniformName_csm_textures,
+  uniformName_csm_matrix0,
+  uniformName_csm_matrix1,
+  uniformName_csm_texture0,
+  uniformName_csm_texture1,
   uniformName_groundTexture,
   constDef_CSM_TEXTURE_SIZE as CSM_TEXTURE_SIZE,
   constDef_CSM_PLANE_DISTANCE as CSM_PLANE_DISTANCE,
@@ -102,6 +104,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   let player_speed = 0;
   let player_collision_velocity_x = 0;
   let player_collision_velocity_z = 0;
+  let player_model_y = 0;
 
   let _gamepadStartPressed = false;
   let _gamepadInteractPressed = false;
@@ -124,14 +127,14 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   const collision_frameBuffer = gl.createFramebuffer()!;
   const collision_renderBuffer = gl.createRenderbuffer();
 
-  const csm_render = integers_map(3, (csmSplit: number) => {
+  const csm_render = integers_map(2, (csmSplit: number) => {
     let lightSpaceMatrix: Float32Array;
     const texture = gl.createTexture()!;
     const frameBuffer = gl.createFramebuffer();
-    const lightSpaceMatrixLoc = mainShader(uniformName_csm_matrices + `[${csmSplit}]`);
+    const lightSpaceMatrixLoc = mainShader(csmSplit ? uniformName_csm_matrix1 : uniformName_csm_matrix0);
 
     mainShader();
-    gl.uniform1i(mainShader(uniformName_csm_textures + `[${csmSplit}]`), csmSplit);
+    gl.uniform1i(mainShader(csmSplit ? uniformName_csm_texture1 : uniformName_csm_texture0), csmSplit);
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
 
@@ -230,7 +233,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     const { x, y, z } = $matrix!.transformPoint({ x: 0, y: min(firstBoatLerp, 0.2) * 15, z: -3 });
 
     player_position_final.x = player_position_global.x = x;
-    player_position_final.y = player_position_global.y = y;
+    player_position_final.y = player_position_global.y = player_model_y = y;
     player_position_final.z = player_position_global.z = z;
 
     player_speed = 0;
@@ -381,12 +384,11 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
         }
       }
 
-      if (_gamepadStartPressed !== startPressed) {
-        _gamepadStartPressed = startPressed;
-        if (startPressed && game_play_clicked_once) {
-          setMainMenuVisible(!mainMenuVisible);
-        }
+      if (_gamepadStartPressed !== startPressed && startPressed && game_play_clicked_once) {
+        setMainMenuVisible(!mainMenuVisible);
       }
+
+      _gamepadStartPressed = startPressed;
 
       const interactButtonPressed =
         getGamepadButtonState(GAMEPAD_BUTTON_A) ||
@@ -396,6 +398,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       if (interactButtonPressed !== _gamepadInteractPressed && interactButtonPressed) {
         keyboard_downKeys[KEY_INTERACT] = 1;
       }
+
       _gamepadInteractPressed = interactButtonPressed;
     }
 
@@ -467,6 +470,9 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     player_position_final.x = x;
     player_position_final.y = y;
     player_position_final.z = z;
+
+    const ydiff = abs(player_model_y - y);
+    player_model_y = lerpDamp(player_model_y, y + 0.1, ydiff * 50 + 5);
 
     if (currentModelId) {
       player_collision_velocity_x = (player_position_final.x - oldx) / gameTimeDelta;
@@ -691,7 +697,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
   playerModel._update = () =>
     identity
-      .translate(player_position_final.x, player_position_final.y, player_position_final.z)
+      .translate(player_position_final.x, player_model_y, player_position_final.z)
       .rotateSelf(0, player_look_angle);
 
   playerLegsModels.map((model, i) => {
