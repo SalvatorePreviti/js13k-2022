@@ -1422,7 +1422,11 @@ setTimeout(() => {
               },
               hC.ontouchstart = a => {
                 if (!Z) {
-                  for (let t of a.changedTouches) $ && t.pageX > hC.clientWidth / 2 ? (n = t, r = J, s = U) : o = t;
+                  for (let t of a.changedTouches) {
+                    $ && t.pageX > hC.clientWidth / 2
+                      ? n || (n = t, r = J, s = U)
+                      : o = o || t;
+                  }
                   e = rt;
                 }
               },

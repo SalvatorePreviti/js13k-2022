@@ -162,10 +162,12 @@ export const initPage = () => {
     if (!mainMenuVisible) {
       for (const touch of e.changedTouches) {
         if (player_first_person && touch.pageX > hC.clientWidth / 2) {
-          cameraRotTouch = touch;
-          touchStartCameraRotX = camera_rotation.y;
-          touchStartCameraRotY = camera_rotation.x;
-        } else {
+          if (!cameraRotTouch) {
+            cameraRotTouch = touch;
+            touchStartCameraRotX = camera_rotation.y;
+            touchStartCameraRotY = camera_rotation.x;
+          }
+        } else if (!cameraPosTouch) {
           cameraPosTouch = touch;
         }
       }

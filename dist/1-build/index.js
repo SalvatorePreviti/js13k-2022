@@ -553,10 +553,12 @@ const initPage = () => {
     hC.ontouchstart = e => {
         if (!mainMenuVisible) {
             for (const touch of e.changedTouches) if (player_first_person && touch.pageX > hC.clientWidth / 2) {
-                cameraRotTouch = touch;
-                touchStartCameraRotX = camera_rotation.y;
-                touchStartCameraRotY = camera_rotation.x;
-            } else cameraPosTouch = touch;
+                if (!cameraRotTouch) {
+                    cameraRotTouch = touch;
+                    touchStartCameraRotX = camera_rotation.y;
+                    touchStartCameraRotY = camera_rotation.x;
+                }
+            } else cameraPosTouch || (cameraPosTouch = touch);
             touchStartTime = absoluteTime;
         }
     };
