@@ -4,11 +4,10 @@ precision highp float;
 // as printed by the console.log on csm.ts
 const vec3 lightDir = vec3(-0.6560590289905073, 0.6663690071652679, -0.3543146860766681);
 
-#define CSM_TEXTURE_SIZE 1024.
+#define CSM_TEXTURE_SIZE 2048.
 
 #define zNear 0.3
-#define CSM_PLANE_DISTANCE0 40.
-#define CSM_PLANE_DISTANCE1 85.
+#define CSM_PLANE_DISTANCE 55.
 #define zFar 177.
 
 in highp vec4 VNormal;
@@ -19,8 +18,8 @@ in lowp vec4 Color;
 uniform vec3 viewPos;
 uniform mat4 viewMatrix;
 
-uniform mat4[3] csm_matrices;
-uniform highp sampler2DShadow csm_textures[3];
+uniform mat4[2] csm_matrices;
+uniform highp sampler2DShadow csm_textures[2];
 uniform highp sampler2D groundTexture;
 
 out vec4 O;
@@ -42,7 +41,7 @@ void main() {
   float depthValue = abs((viewMatrix * FragPos).z);
 
   // Gets the fragment position in light space
-  vec4 csmCoords = csm_matrices[depthValue < CSM_PLANE_DISTANCE0 ? 0 : depthValue < CSM_PLANE_DISTANCE1 ? 1 : 2] * FragPos;
+  vec4 csmCoords = csm_matrices[depthValue < CSM_PLANE_DISTANCE ? 0 : 1] * FragPos;
 
   // perform perspective divide and transform to [0,1] range
   csmCoords = (csmCoords / csmCoords.w) * .5 + .5;
@@ -61,9 +60,7 @@ void main() {
             // shadow bias
             (1. / CSM_TEXTURE_SIZE / 2.8)
         );
-        shadow += depthValue < CSM_PLANE_DISTANCE0 ? texture(csm_textures[0], c)
-          : depthValue < CSM_PLANE_DISTANCE1       ? texture(csm_textures[1], c)
-                                                   : texture(csm_textures[2], c);
+        shadow += depthValue < CSM_PLANE_DISTANCE ? texture(csm_textures[0], c) : texture(csm_textures[1], c);
       }
     }
     shadow /= 9.;

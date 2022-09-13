@@ -11,8 +11,7 @@ import main_fsSource, {
   uniformName_csm_textures,
   uniformName_groundTexture,
   constDef_CSM_TEXTURE_SIZE as CSM_TEXTURE_SIZE,
-  constDef_CSM_PLANE_DISTANCE0 as CSM_PLANE_DISTANCE0,
-  constDef_CSM_PLANE_DISTANCE1 as CSM_PLANE_DISTANCE1,
+  constDef_CSM_PLANE_DISTANCE as CSM_PLANE_DISTANCE,
 } from "./shaders/main-fragment.frag";
 import collider_fsSource, { uniformName_modelId } from "./shaders/collider-fragment.frag";
 import void_fsSource from "./shaders/void-fragment.frag";
@@ -654,9 +653,8 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
     gl.viewport(0, 0, CSM_TEXTURE_SIZE, CSM_TEXTURE_SIZE);
 
-    csm_render[0]!(csm_buildMatrix(camera_view, zNear, CSM_PLANE_DISTANCE0, 10));
-    csm_render[1]!(csm_buildMatrix(camera_view, CSM_PLANE_DISTANCE0, CSM_PLANE_DISTANCE1, 11));
-    csm_render[2]!(csm_buildMatrix(camera_view, CSM_PLANE_DISTANCE1, zFar, 15));
+    csm_render[0]!(csm_buildMatrix(camera_view, zNear, CSM_PLANE_DISTANCE, 10));
+    csm_render[1]!(csm_buildMatrix(camera_view, CSM_PLANE_DISTANCE, zFar, 11));
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
@@ -673,7 +671,6 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
     csm_render[0]!();
     csm_render[1]!();
-    csm_render[2]!();
 
     renderModels(mainShader(uniformName_worldMatrix), !player_first_person);
 
