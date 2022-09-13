@@ -15,7 +15,7 @@ import { song_numChannels } from "./music/song";
 import { soundbox_generate } from "./music/music-player";
 import { loadSong } from "./music/audio-context";
 
-requestAnimationFrame(() => {
+setTimeout(() => {
   let songLoad = 0;
   let thingsToLoad = 1 + song_numChannels;
   const image = new Image();
@@ -65,7 +65,7 @@ requestAnimationFrame(() => {
     setTimeout(asyncLoadSongChannels, 50);
   }
 
-  newModel(buildWorld);
+  newModel(NO_INLINE(buildWorld));
 
   if (DEBUG) {
     console.timeEnd("boot");

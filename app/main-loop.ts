@@ -100,11 +100,11 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   let player_look_angle_target = 0;
   let player_look_angle = 0;
   let player_legs_speed = 0;
-  let player_gravity = 1;
-  let player_speed = 0;
-  let player_collision_velocity_x = 0;
-  let player_collision_velocity_z = 0;
-  let player_model_y = 0;
+  let player_gravity: number;
+  let player_speed: number;
+  let player_collision_velocity_x: number;
+  let player_collision_velocity_z: number;
+  let player_model_y: number;
 
   let _gamepadStartPressed = false;
   let _gamepadInteractPressed = false;
@@ -375,15 +375,6 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
         (getGamepadButtonState(GAMEPAD_BUTTON_UP) ? 1 : 0) +
         (getGamepadButtonState(GAMEPAD_BUTTON_DOWN) ? -1 : 0);
 
-      if (player_first_person) {
-        if (abs(axes[2]!) > 0.3) {
-          camera_rotation.y += axes[2]! * 80 * gameTimeDelta;
-        }
-        if (abs(axes[3]!) > 0.3) {
-          camera_rotation.x += axes[3]! * 80 * gameTimeDelta;
-        }
-      }
-
       if (_gamepadStartPressed !== startPressed && startPressed && game_play_clicked_once) {
         setMainMenuVisible(!mainMenuVisible);
       }
@@ -400,6 +391,15 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       }
 
       _gamepadInteractPressed = interactButtonPressed;
+
+      if (player_first_person) {
+        if (abs(axes[2]!) > 0.3) {
+          camera_rotation.y += axes[2]! * 80 * gameTimeDelta;
+        }
+        if (abs(axes[3]!) > 0.3) {
+          camera_rotation.x += axes[3]! * 80 * gameTimeDelta;
+        }
+      }
     }
 
     if (abs(forward) < 0.05) {
@@ -502,7 +502,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       gl.readPixels(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE, gl.RGBA, gl.UNSIGNED_BYTE, collision_buffer);
       gl.invalidateFramebuffer(gl.FRAMEBUFFER, framebufferInvalidationArg);
 
-      updatePlayer();
+      NO_INLINE(updatePlayer)();
 
       updateModels(rootModel);
 
@@ -717,7 +717,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
   updateModels(rootModel);
 
-  initPage();
+  NO_INLINE(initPage)();
 
   player_respawn();
 

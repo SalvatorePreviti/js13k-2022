@@ -45,7 +45,7 @@ export const newLever = (transform: DOMMatrixReadOnly): void => {
       const lever: Lever = { $value: 0, $lerpValue: 0, $lerpValue2: 0, $model };
       const index = levers.push(lever) - 1;
       $model._update = () => {
-        const { $value: value, $lerpValue, $lerpValue2 } = lever;
+        const { $value, $lerpValue, $lerpValue2 } = lever;
         const matrix = $model.$finalMatrix;
         const point = matrix.transformPoint();
         lever.$matrix = matrix;
@@ -54,13 +54,13 @@ export const newLever = (transform: DOMMatrixReadOnly): void => {
 
         if (vec3_distance(point, player_position_final) < LEVER_SENSITIVITY_RADIUS && keyboard_downKeys[KEY_INTERACT]) {
           if ($lerpValue < 0.3 || $lerpValue > 0.7) {
-            lever.$value = value ? 0 : 1;
+            lever.$value = $value ? 0 : 1;
             onPlayerPullLever(index);
           }
         }
 
-        lever.$lerpValue = lerpDamp($lerpValue, value, 4);
-        lever.$lerpValue2 = lerpDamp($lerpValue2, value, 1);
+        lever.$lerpValue = lerpDamp($lerpValue, $value, 4);
+        lever.$lerpValue2 = lerpDamp($lerpValue2, $value, 1);
         $model.$mesh = leverMeshes[$lerpValue > 0.5 ? 1 : 0]!;
         return identity.rotate(lever.$lerpValue * 60 - 30, 0).translateSelf(0, 1);
       };
