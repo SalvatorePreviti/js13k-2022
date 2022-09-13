@@ -8,6 +8,7 @@ export const rootModel: Model = {
   $modelId: 1,
   $collisions: 1,
   $visible: 1,
+  $skipShadow: 0,
 };
 
 export let currentEditModel = rootModel;
@@ -57,6 +58,7 @@ export interface Model {
   $modelId: number;
   $collisions: 0 | 1;
   $visible: boolean | 0 | 1;
+  $skipShadow: boolean | 0 | 1;
   _update?: ModelUpdateCallback | undefined;
 }
 

@@ -18,6 +18,7 @@ import {
 } from "./world-state";
 import { player_position_final } from "./player-position";
 import { keyboard_downKeys, KEY_INTERACT } from "../page";
+import { camera_position } from "../camera";
 
 const LEVER_SENSITIVITY_RADIUS = 2.8;
 const SOUL_SENSITIVITY_RADIUS = 1.5;
@@ -44,21 +45,20 @@ export const newLever = (transform: DOMMatrixReadOnly): void => {
       const lever: Lever = { $value: 0, $lerpValue: 0, $lerpValue2: 0, $model };
       const index = levers.push(lever) - 1;
       $model._update = () => {
+        const { $value: value, $lerpValue, $lerpValue2 } = lever;
         const matrix = $model.$finalMatrix;
+        const point = matrix.transformPoint();
         lever.$matrix = matrix;
 
-        if (
-          keyboard_downKeys[KEY_INTERACT] &&
-          vec3_distance(matrix.transformPoint(), player_position_final) < LEVER_SENSITIVITY_RADIUS
-        ) {
-          const { $value: value, $lerpValue: lerpValue } = lever;
-          if (lerpValue < 0.3 || lerpValue > 0.7) {
+        $model.$skipShadow = vec3_distance(point, camera_position) > 80;
+
+        if (vec3_distance(point, player_position_final) < LEVER_SENSITIVITY_RADIUS && keyboard_downKeys[KEY_INTERACT]) {
+          if ($lerpValue < 0.3 || $lerpValue > 0.7) {
             lever.$value = value ? 0 : 1;
             onPlayerPullLever(index);
           }
         }
 
-        const { $value: value, $lerpValue, $lerpValue2 } = lever;
         lever.$lerpValue = lerpDamp($lerpValue, value, 4);
         lever.$lerpValue2 = lerpDamp($lerpValue2, value, 1);
         $model.$mesh = leverMeshes[$lerpValue > 0.5 ? 1 : 0]!;
@@ -122,16 +122,15 @@ export const playerModel = newModel((model) => {
 
 // meshAdd(cylinder(6), identity, material(1, 0.3, 0.5));
 
-const GHOST_SLICES = 60;
-const GHOST_STACKS = 20;
+const GHOST_SLICES = 40;
+const GHOST_STACKS = 30;
 
 meshAdd(
   sphere(GHOST_SLICES, GHOST_STACKS, (a: number, b: number, polygon: Polygon) => {
-    const am = a / GHOST_SLICES;
     const bm = b / GHOST_STACKS;
-    const theta = am * Math.PI * 2;
+    const theta = a * (Math.PI * (2 / GHOST_SLICES));
     const phixz = (bm ** 0.6 * Math.PI) / 2;
-    const osc = (bm * bm * Math.sin(am * Math.PI * 14)) / 4;
+    const osc = (bm * bm * Math.sin(a * Math.PI * (14 / GHOST_SLICES))) / 4;
     if (b === GHOST_STACKS - 1) {
       polygon.$smooth = 0;
       return { x: 0, y: -0.5, z: 0 };
@@ -142,7 +141,7 @@ meshAdd(
       z: Math.sin(theta) * Math.sin(phixz) + Math.sin(osc * Math.PI * 2) / 4,
     };
   }),
-  identity.scale(0.7, 0.7, 0.7),
+  identity.scale3d(0.7),
   material(1, 1, 1),
 );
 
@@ -246,6 +245,9 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]
           .skewYSelf(Math.sin(gameTime * 1.4) * 7);
 
         const soulPos = model.$finalMatrix.multiply(animationMatrix).transformPoint();
+
+        model.$skipShadow = vec3_distance(soulPos, camera_position) > 100;
+
         if (!soul.$value && vec3_distance(soulPos, player_position_final) < SOUL_SENSITIVITY_RADIUS) {
           soul.$value = 1;
           onSoulCollected();

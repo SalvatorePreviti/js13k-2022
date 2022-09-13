@@ -35,7 +35,6 @@ declare const b5: HTMLElement;
 
 /** Souls counter */
 declare const h3: HTMLCanvasElement;
-declare const h1: HTMLHeadingElement;
 
 /** Messages */
 declare const h4: HTMLHeadingElement;

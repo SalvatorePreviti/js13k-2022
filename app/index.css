@@ -35,10 +35,8 @@ body > * {
   bottom: 0;
 }
 
-/* loading message */
-h1,
 /* messages */
-.l h4 {
+h4 {
   left: 0;
   top: 0;
   right: 0;
@@ -99,8 +97,6 @@ li:hover {
 main,
 /* hide souls counter by default */
 h3,
-/* hide loading text if loaded */
-.l h1,
 /* hide messages if in menu */
 .m h4 {
   display: none;

@@ -27,7 +27,7 @@ requestAnimationFrame(() => {
   }
 
   const onThingLoaded = () => {
-    h1.innerHTML += ".";
+    h4.innerHTML += ".";
     if (!--thingsToLoad) {
       if (DEBUG) {
         console.timeEnd("load");

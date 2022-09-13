@@ -83,9 +83,7 @@ export const cylinder = /* @__PURE__ */ (
     : polygon_regular(segments as number, elongate);
   const top = polygon_transform(points, identity.translate(0, 1).scale3d(topSize > 0 ? topSize : 1));
   const bottom = polygon_transform(points, identity.translate(0, -1).scale3d(topSize < 0 ? -topSize : 1)).reverse();
-  const sides = cylinder_sides(bottom as Polygon, top, smooth);
-  sides.push(bottom, top);
-  return sides;
+  return [...cylinder_sides(bottom as Polygon, top, smooth), bottom, top];
 };
 
 export const sphere = /* @__PURE__ */ (
@@ -101,6 +99,7 @@ export const sphere = /* @__PURE__ */ (
   for (let i = 0; i < slices; i++) {
     for (let j = 0; j < stacks; j++) {
       const polygon = polygon_color([], 0, 1);
+      polygons.push(polygon);
       const vertex = (x: number, y: number) => polygon.push(vertexFunc(x, y, polygon));
       vertex(i, j);
       if (j) {
@@ -110,7 +109,6 @@ export const sphere = /* @__PURE__ */ (
         vertex((i + 1) % slices, j + (1 % stacks));
       }
       vertex(i, j + (1 % stacks));
-      polygons.push(polygon);
     }
   }
   return polygons;

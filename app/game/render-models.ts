@@ -8,20 +8,23 @@ import { gl } from "../gl";
 export const renderModels = (
   worldMatrixLoc: WebGLUniformLocation,
   renderPlayer: 0 | 1 | boolean,
+  isShadowPass?: 1 | 0,
   collisionModelIdUniformLocation?: WebGLUniformLocation,
 ) => {
   const drawMesh = ($mesh: Mesh) =>
     gl.drawElements(gl.TRIANGLES, $mesh.$vertexCount, gl.UNSIGNED_SHORT, $mesh.$vertexOffset * 2);
 
   const recursion = (model: Model) => {
-    const { $mesh, $children, $visible, $modelId } = model;
+    const { $modelId, $mesh, $children, $visible, $skipShadow } = model;
     if (!renderPlayer && model.$modelId === PLAYER_MODEL_ID) {
       return;
     }
     if (collisionModelIdUniformLocation && !model.$collisions) {
       return;
     }
-
+    if (isShadowPass && $skipShadow) {
+      return;
+    }
     if (!$visible) {
       return;
     }

@@ -170,7 +170,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
         gl.invalidateFramebuffer(gl.FRAMEBUFFER, framebufferInvalidationArg);
         gl.clear(gl.DEPTH_BUFFER_BIT);
         gl.uniformMatrix4fv(csmShader(uniformName_viewMatrix), false, lightSpaceMatrix);
-        renderModels(csmShader(uniformName_worldMatrix), !player_first_person);
+        renderModels(csmShader(uniformName_worldMatrix), !player_first_person, 1);
       } else {
         gl.uniformMatrix4fv(lightSpaceMatrixLoc, false, lightSpaceMatrix);
       }
@@ -630,7 +630,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
           .translateSelf(-player_position_final.x, -player_position_final.y, 0.3 - player_position_final.z)
           .toFloat32Array(),
       );
-      renderModels(collisionShader(uniformName_worldMatrix), 0, collisionShader(uniformName_modelId));
+      renderModels(collisionShader(uniformName_worldMatrix), 0, 0, collisionShader(uniformName_modelId));
 
       // second collision render
 
@@ -644,7 +644,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
           .translate(-player_position_final.x, -player_position_final.y, -player_position_final.z - 0.3)
           .toFloat32Array(),
       );
-      renderModels(collisionShader(uniformName_worldMatrix), 0, collisionShader(uniformName_modelId));
+      renderModels(collisionShader(uniformName_worldMatrix), 0, 0, collisionShader(uniformName_modelId));
       gl.colorMask(true, true, true, true);
 
       // Special handling for the second boat (lever 7) - the boat must be on the side of the map the player is

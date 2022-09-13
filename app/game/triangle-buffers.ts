@@ -1,3 +1,4 @@
+import type { Model } from "./scene";
 import { rootModel, _triangleIndices, _vertexPositions, _vertexNormals, _vertexColors } from "./scene";
 import { gl } from "../gl";
 
@@ -23,8 +24,7 @@ export const initTriangleBuffers = () => {
 
   if (DEBUG) {
     let modelsCount = 0;
-    const recursion = (model = rootModel) => {
-      const { $mesh, $children } = model;
+    const recursion = ({ $mesh, $children }: Model) => {
       for (const child of $children) {
         recursion(child);
       }
@@ -32,7 +32,7 @@ export const initTriangleBuffers = () => {
         ++modelsCount;
       }
     };
-    recursion();
+    recursion(rootModel);
 
     console.log(
       "models: " + modelsCount,

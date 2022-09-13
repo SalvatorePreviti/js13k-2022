@@ -9,7 +9,7 @@ export let gameTime = 0;
 export let souls_collected_count = 0;
 
 /** Minimum 15.3 frames per second */
-export const GAME_TIME_MAX_DELTA_TIME = 0.0666;
+export const GAME_TIME_MAX_DELTA_TIME = 0.066;
 
 export let gameTimeDelta: number = GAME_TIME_MAX_DELTA_TIME;
 
