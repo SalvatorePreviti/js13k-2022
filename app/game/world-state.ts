@@ -1,6 +1,6 @@
+import type { Model } from "./scene";
 import { lerp, min, angle_wrap_degrees, lerpneg, abs, clamp01 } from "../math";
 import { keyboard_downKeys, KEY_INTERACT, mainMenuVisible } from "../page";
-import type { Model } from "./scene";
 
 export let absoluteTime = 0;
 
@@ -51,7 +51,7 @@ export const gameTimeUpdate = (time: number) => {
 //   }
 // };
 
-export const LOCAL_STORAGE_SAVED_GAME_KEY = "s666$22";
+export const LOCAL_STORAGE_SAVED_GAME_KEY = "DanteSP22";
 
 export interface Lever {
   $value: 0 | 1;
@@ -94,9 +94,14 @@ export const showMessage = (message: string, duration: number) => {
   }
 };
 
+const clearMessage = () => {
+  h4.innerHTML = "";
+  _messageEndTime = 0;
+};
+
 export const worldStateUpdate = () => {
   if (gameTime > _messageEndTime) {
-    showMessage("", -gameTime);
+    clearMessage();
   }
 
   const shouldRotatePlatforms = lerpneg(levers[12]!.$lerpValue, levers[13]!.$lerpValue);
@@ -177,8 +182,8 @@ export const loadGame = () => {
     }
   }
   firstBoatLerp = clamp01(player_last_pulled_lever);
+  clearMessage();
   updateCollectedSoulsCounter();
-  showMessage("", -gameTime);
 };
 
 export const onPlayerPullLever = (leverIndex: number) => {
@@ -188,7 +193,7 @@ export const onPlayerPullLever = (leverIndex: number) => {
 
   if (leverIndex) {
     player_last_pulled_lever = leverIndex;
-    showMessage("click", 1);
+    showMessage("* click *", 1);
     saveGame();
   }
 };

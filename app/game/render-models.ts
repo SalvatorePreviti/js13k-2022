@@ -8,7 +8,7 @@ import { gl } from "../gl";
 export const renderModels = (
   worldMatrixLoc: WebGLUniformLocation,
   renderPlayer: 0 | 1 | boolean,
-  isShadowPass?: 1 | 0,
+  skipFarObjects?: 1 | 0,
   collisionModelIdUniformLocation?: WebGLUniformLocation,
 ) => {
   const drawMesh = ($mesh: Mesh) =>
@@ -19,10 +19,7 @@ export const renderModels = (
     if (!renderPlayer && model.$modelId === PLAYER_MODEL_ID) {
       return;
     }
-    if (collisionModelIdUniformLocation && !model.$collisions) {
-      return;
-    }
-    if (isShadowPass && $skipShadow) {
+    if (skipFarObjects && $skipShadow) {
       return;
     }
     if (!$visible) {

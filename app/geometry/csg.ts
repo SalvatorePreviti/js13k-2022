@@ -87,7 +87,7 @@ const CSGPolygon_split = /* @__PURE__ */ (plane: Plane, polygon: CSGPolygon): Sp
       $front = polygon;
     }
     if ($back && $front) {
-      return NO_INLINE(CSGPolygon_splitSpanning)(plane, polygon);
+      return CSGPolygon_splitSpanning(plane, polygon);
     }
   }
   return { $front, $back };

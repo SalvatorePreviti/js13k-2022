@@ -106,7 +106,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   let player_collision_velocity_z: number;
   let player_model_y: number;
 
-  let _gamepadStartPressed = false;
+  // let _gamepadStartPressed = false;
   let _gamepadInteractPressed = false;
 
   let camera_player_dir_x: number;
@@ -357,6 +357,9 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       }
     };
 
+    NO_INLINE(doVerticalCollisions)();
+    NO_INLINE(doHorizontalCollisions)();
+
     let strafe = (keyboard_downKeys[KEY_LEFT] ? 1 : 0) + (keyboard_downKeys[KEY_RIGHT] ? -1 : 0) + touch_movementX;
     let forward = (keyboard_downKeys[KEY_FRONT] ? 1 : 0) + (keyboard_downKeys[KEY_BACK] ? -1 : 0) + touch_movementY;
 
@@ -364,7 +367,17 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     if (gamepad) {
       const { buttons, axes } = gamepad;
       const getGamepadButtonState = (index: number) => buttons[index]?.pressed || (buttons[index]?.value as any) > 0;
-      const startPressed = getGamepadButtonState(GAMEPAD_BUTTON_START);
+
+      const interactButtonPressed =
+        getGamepadButtonState(GAMEPAD_BUTTON_A) ||
+        getGamepadButtonState(GAMEPAD_BUTTON_X) ||
+        getGamepadButtonState(GAMEPAD_BUTTON_B);
+      if (interactButtonPressed !== _gamepadInteractPressed) {
+        _gamepadInteractPressed = interactButtonPressed;
+        if (_gamepadInteractPressed) {
+          keyboard_downKeys[KEY_INTERACT] = 1;
+        }
+      }
 
       strafe +=
         (abs(-axes[0]!) > 0.2 ? -axes[0]! : 0) +
@@ -375,22 +388,12 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
         (getGamepadButtonState(GAMEPAD_BUTTON_UP) ? 1 : 0) +
         (getGamepadButtonState(GAMEPAD_BUTTON_DOWN) ? -1 : 0);
 
-      if (_gamepadStartPressed !== startPressed && startPressed && game_play_clicked_once) {
-        setMainMenuVisible(!mainMenuVisible);
-      }
+      // const startPressed = getGamepadButtonState(GAMEPAD_BUTTON_START);
+      // if (_gamepadStartPressed !== startPressed && startPressed && game_play_clicked_once) {
+      //   setMainMenuVisible(!mainMenuVisible);
+      // }
 
-      _gamepadStartPressed = startPressed;
-
-      const interactButtonPressed =
-        getGamepadButtonState(GAMEPAD_BUTTON_A) ||
-        getGamepadButtonState(GAMEPAD_BUTTON_X) ||
-        getGamepadButtonState(GAMEPAD_BUTTON_Y) ||
-        getGamepadButtonState(GAMEPAD_BUTTON_B);
-      if (interactButtonPressed !== _gamepadInteractPressed && interactButtonPressed) {
-        keyboard_downKeys[KEY_INTERACT] = 1;
-      }
-
-      _gamepadInteractPressed = interactButtonPressed;
+      // _gamepadStartPressed = startPressed;
 
       if (player_first_person) {
         if (abs(axes[2]!) > 0.3) {
@@ -414,10 +417,6 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
     strafe = amount * Math.cos(angle);
     forward = amount * Math.sin(angle);
-
-    NO_INLINE(doVerticalCollisions)(collision_buffer);
-
-    NO_INLINE(doHorizontalCollisions)(collision_buffer);
 
     const playerSpeedCollision = clamp01(1 - max(abs(player_collision_x), abs(player_collision_z)) * 5);
 
@@ -630,7 +629,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
           .translateSelf(-player_position_final.x, -player_position_final.y, 0.3 - player_position_final.z)
           .toFloat32Array(),
       );
-      renderModels(collisionShader(uniformName_worldMatrix), 0, 0, collisionShader(uniformName_modelId));
+      renderModels(collisionShader(uniformName_worldMatrix), 0, 1, collisionShader(uniformName_modelId));
 
       // second collision render
 
@@ -644,7 +643,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
           .translate(-player_position_final.x, -player_position_final.y, -player_position_final.z - 0.3)
           .toFloat32Array(),
       );
-      renderModels(collisionShader(uniformName_worldMatrix), 0, 0, collisionShader(uniformName_modelId));
+      renderModels(collisionShader(uniformName_worldMatrix), 0, 1, collisionShader(uniformName_modelId));
       gl.colorMask(true, true, true, true);
 
       // Special handling for the second boat (lever 7) - the boat must be on the side of the map the player is

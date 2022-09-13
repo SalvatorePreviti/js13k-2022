@@ -1,9 +1,9 @@
 export let mainMenuVisible: boolean | undefined;
 
+import type { KEY_CODE } from "./utils/keycodes";
 import { camera_rotation } from "./camera";
 import { gameTime, LOCAL_STORAGE_SAVED_GAME_KEY } from "./game/world-state";
 import { audioContext, songAudioSource } from "./music/audio-context";
-import type { KEY_CODE } from "./utils/keycodes";
 
 export const KEY_LEFT = 0;
 
@@ -67,6 +67,9 @@ export const initPage = () => {
     hC.height = innerHeight;
     cameraRotTouch = cameraPosTouch = undefined;
     keyboard_downKeys.length = touch_movementX = touch_movementY = 0;
+    if (document.hidden) {
+      setMainMenuVisible(true);
+    }
   };
 
   b1.onclick = () => setMainMenuVisible();
@@ -107,8 +110,7 @@ export const initPage = () => {
     }
   };
 
-  onresize = handleResize;
-  onblur = handleResize;
+  document.onvisibilitychange = onresize = onblur = handleResize;
 
   onkeydown = onkeyup = ({ code, target, type, repeat }) => {
     if (!repeat) {
@@ -197,8 +199,6 @@ export const initPage = () => {
       }
     }
   };
-
-  document.onvisibilitychange = () => document.hidden && setMainMenuVisible(true);
 
   if (!DEBUG) {
     oncontextmenu = () => false;

@@ -76,9 +76,7 @@ export const newLever = (transform: DOMMatrixReadOnly): void => {
 
 export let playerLegsModels: [Model, Model];
 
-export const playerModel = newModel((model) => {
-  model.$collisions = 0;
-
+export const playerModel = newModel(() => {
   // Player legs
 
   playerLegsModels = [-1, 1].map((x) =>
@@ -179,7 +177,6 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]
     souls.push(soul);
 
     newModel((model) => {
-      model.$collisions = 0;
       model._update = () => {
         model.$visible = (1 - soul.$value) as 0 | 1;
 

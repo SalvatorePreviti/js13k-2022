@@ -12,7 +12,7 @@ import { jsTdeMinify } from "./js-tde-minify";
  * you can try to set LEVEL to 2 if you want to squeeze as much bytes as possible.
  * Is much slower.
  */
-const LEVEL = 1;
+const LEVEL = 2;
 
 export async function jsRoadroller(html: string): Promise<string> {
   return devLog.timed(
