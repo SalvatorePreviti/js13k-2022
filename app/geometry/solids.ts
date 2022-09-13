@@ -1,5 +1,5 @@
 import { identity, integers_map } from "../math";
-import { cylinder_sides, polygon_regular, polygon_transform, type Polygon } from "./geometry";
+import { cylinder, cylinder_sides, polygon_regular, polygon_transform, type Polygon } from "./geometry";
 
 export const GQuad = /* @__PURE__ */ [
   { x: -1, z: 1 },

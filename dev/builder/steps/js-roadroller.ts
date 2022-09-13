@@ -7,7 +7,6 @@ import { htmlMinify } from "./html-minify";
 import { jsRemoveEndingSemicolons, stripUtf8BOM } from "../lib/code-utils";
 import { jsUglify } from "./js-uglify";
 import { jsTdeMinify } from "./js-tde-minify";
-import { jsTerser } from "./js-terser";
 
 /**
  * you can try to set LEVEL to 2 if you want to squeeze as much bytes as possible.
