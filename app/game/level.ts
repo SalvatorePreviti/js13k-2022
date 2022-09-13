@@ -20,6 +20,21 @@ import { camera_position } from "../camera";
 export const buildWorld = () => {
   let _modelIdCounter = PLAYER_MODEL_ID + 1;
 
+  const bigArc = csg_polygons(
+    csg_subtract(
+      polygons_transform(cylinder(GQuad), identity.translate(0, -8).scale(6, 15, 2.2)),
+      polygons_transform(cylinder(GQuad), identity.translate(0, -14.1).scale(4, 13, 4)),
+      polygons_transform(cylinder(20, 1), identity.translate(0, -1).rotate(90, 0, 90).scale3d(4)),
+    ),
+  );
+
+  // ========= boat mesh ========= //
+
+  const getBoatAnimationMatrix = (z: number) =>
+    identity
+      .translate(Math.sin(gameTime + 2) / 5, Math.sin(gameTime * 0.8) / 3, z)
+      .rotateSelf(Math.sin(gameTime) * 2, Math.sin(gameTime * 0.7), Math.sin(gameTime * 0.9));
+
   const boatPolygons = csg_polygons(
     csg_subtract(
       polygons_transform(
@@ -36,27 +51,12 @@ export const buildWorld = () => {
     ),
   );
 
-  const bigArc = csg_polygons(
-    csg_subtract(
-      polygons_transform(cylinder(GQuad), identity.translate(0, -8).scale(6, 15, 2.2)),
-      polygons_transform(cylinder(GQuad), identity.translate(0, -14.1).scale(4, 13, 4)),
-      polygons_transform(cylinder(20, 1), identity.translate(0, -1).rotate(90, 0, 90).scale3d(4)),
-    ),
-  );
-
   // ========= entranceBarsMesh ========= //
 
   integers_map(7, (i) =>
     meshAdd(cylinder(6, 1), identity.translate(4 * (i / 6 - 0.5), 3).scale(0.2, 3, 0.2), material(0.3, 0.3, 0.38)),
   );
   const entranceBarsMesh = meshEnd();
-
-  // ========= boat mesh ========= //
-
-  const getBoatAnimationMatrix = (z: number) =>
-    identity
-      .translate(Math.sin(gameTime + 2) / 5, Math.sin(gameTime * 0.8) / 3, z)
-      .rotateSelf(Math.sin(gameTime) * 2, Math.sin(gameTime * 0.7), Math.sin(gameTime * 0.9));
 
   // ========= WORLD! ========= //
 
