@@ -1,0 +1,24 @@
+<svg width="1024" height="1024" color-interpolation-filters="sRGB" xmlns="http://www.w3.org/2000/svg">
+  <filter id="filter" filterUnits="userSpaceOnUse" x="0" y="0" width="1026" height="1026">
+    <feTurbulence x="1" y="1" width="1025" height="1025" type="fractalNoise" baseFrequency=".007" numOctaves="6"
+      stitchTiles="stitch" result="z" />
+    <feTile x="-1" y="-1" width="1024" height="1024" />
+    <feTile />
+    <feDiffuseLighting diffuseConstant="4" surfaceScale="5" lighting-color="#f00">
+      <feDistantLight elevation="5" azimuth="270" />
+    </feDiffuseLighting>
+    <feTile x="1" y="1" width="1024" height="1024" />
+    <feTile result="x" />
+
+    <feColorMatrix in="z" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 1" />
+    <feTile x="1" y="1" width="1024" height="1024" />
+    <feTile result="z" />
+
+    <feTurbulence width="1024" height="1024" baseFrequency=".01" numOctaves="5" stitchTiles="stitch" />
+    <feColorMatrix type="matrix" values="0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1" />
+
+    <feBlend in2="x" mode="screen" />
+    <feBlend in2="z" mode="screen" />
+  </filter>
+  <rect width="100%" height="100%" filter="url(#filter)" />
+</svg>

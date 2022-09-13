@@ -2,7 +2,7 @@ export let mainMenuVisible: boolean | undefined;
 
 import type { KEY_CODE } from "./utils/keycodes";
 import { camera_rotation } from "./camera";
-import { gameTime, LOCAL_STORAGE_SAVED_GAME_KEY } from "./game/world-state";
+import { absoluteTime, LOCAL_STORAGE_SAVED_GAME_KEY } from "./game/world-state";
 import { audioContext, songAudioSource } from "./music/audio-context";
 
 export const KEY_LEFT = 0;
@@ -99,8 +99,9 @@ export const initPage = () => {
   onclick = () => {
     pageClicked = 1;
     if (!mainMenuVisible) {
-      const diff = gameTime - touchStartTime;
-      if (diff > 0.07 && diff < 0.8) {
+      const diff = absoluteTime - touchStartTime;
+      console.log(diff);
+      if (!touchStartTime || (diff > 0.07 && diff < 0.8)) {
         keyboard_downKeys[KEY_INTERACT] = true;
       }
       if (player_first_person) {
@@ -168,7 +169,7 @@ export const initPage = () => {
           cameraPosTouch = touch;
         }
       }
-      touchStartTime = gameTime;
+      touchStartTime = absoluteTime;
     }
   };
 

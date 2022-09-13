@@ -1,6 +1,6 @@
 app/old-src/**/*
 
-dist
+# dist
 
 # excluded files for security
 .npmrc

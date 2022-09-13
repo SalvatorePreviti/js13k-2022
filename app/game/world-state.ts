@@ -100,11 +100,11 @@ const clearMessage = () => {
 };
 
 export const worldStateUpdate = () => {
+  const shouldRotatePlatforms = lerpneg(levers[12]!.$lerpValue, levers[13]!.$lerpValue);
+
   if (gameTime > _messageEndTime) {
     clearMessage();
   }
-
-  const shouldRotatePlatforms = lerpneg(levers[12]!.$lerpValue, levers[13]!.$lerpValue);
 
   rotatingHexCorridorRotation = lerp(
     lerpDamp(rotatingHexCorridorRotation, 0, 1),
@@ -137,7 +137,7 @@ export const worldStateUpdate = () => {
       levers[0]!.$value = 0;
       showMessage("Not leaving now, there are souls to catch!", 3);
     } else if (!game_completed) {
-      showMessage("Well done Dante! You completed your task.<br>Thanks for playing.", Infinity);
+      showMessage("Well done Dante! All souls will be punished.<br>Thanks for playing.", Infinity);
       game_completed = 1;
     }
   }
@@ -170,10 +170,8 @@ export const loadGame = () => {
       (lever, index) =>
         (lever.$lerpValue = lever.$lerpValue2 = lever.$value = index ? ((savedLevers[index] | 0) as 0 | 1) : 0),
     );
-    souls.map((soul, index) => {
-      soul.$value = (savedSouls[index] | 0) as 0 | 1;
-    });
-    player_last_pulled_lever = savedLastPulledLever || 1;
+    souls.map((soul, index) => (soul.$value = (savedSouls[index] | 0) as 0 | 1));
+    player_last_pulled_lever = savedLastPulledLever;
     gameTime = savedGameTime;
     secondBoatLerp = savedSecondBoatLerp;
   } catch (e) {
@@ -191,11 +189,11 @@ export const onPlayerPullLever = (leverIndex: number) => {
     console.log("switch lever " + leverIndex + " = " + levers[leverIndex]?.$value);
   }
 
-  player_last_pulled_lever = leverIndex;
   if (leverIndex) {
     showMessage("* click *", 1);
-    saveGame();
   }
+  player_last_pulled_lever = leverIndex;
+  saveGame();
 };
 
 export const onSoulCollected = () => {
@@ -208,7 +206,7 @@ export const onSoulCollected = () => {
       "Donald Trump<br>lies",
       "Kim Jong-un<br>Dictator, and liked pineapple on pizza",
       "Maxime Euziere<br>forced me to finish this game",
-      "She traded monkeys NFTs",
+      "She traded NFTs monkeys",
       ,
       "Vladimir Putin<br>another war",
       "He was NOT a good person",

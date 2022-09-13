@@ -1,0 +1,75 @@
+html,
+body {
+  margin: 0;
+  font-family: "Times New Roman", serif;
+  background: #000;
+  font-size: max(min(3.8vw, 3.8vh), 15px);
+  text-shadow: 4px 4px 2px #000, -2px -2px 8px #000;
+}
+* {
+  font-weight: 100;
+  user-select: none;
+  touch-action: none;
+  overscroll-behavior: contain;
+  -webkit-user-select: none;
+  color: #fda;
+}
+body > * {
+  position: absolute;
+}
+.l h3,
+.l #b5 {
+  display: block;
+  padding: 10px;
+}
+.l h3 {
+  text-align: right;
+  right: 5%;
+  bottom: 0;
+}
+h4 {
+  left: 0;
+  top: 0;
+  right: 0;
+  text-align: center;
+}
+.m main {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  min-width: 70%;
+}
+nav {
+  min-width: 50%;
+  max-width: 800px;
+  background: #00000080;
+  border-radius: 1em;
+  padding: 1em;
+}
+p {
+  font-size: 0.7em;
+}
+h2 {
+  color: #f61;
+  margin: 0 0 0.7em;
+}
+a,
+li {
+  cursor: pointer;
+  margin-bottom: 0.5em;
+  text-decoration: none;
+  border-bottom: 3px solid #00000000;
+}
+h2,
+a:hover,
+li:hover {
+  border-bottom: 3px solid;
+}
+main,
+h3,
+.m h4 {
+  display: none;
+}

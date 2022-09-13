@@ -41,7 +41,6 @@ import { playerModel, playerLegsModels } from "./game/objects";
 import { gl, initShaderProgram, loadShader } from "./gl";
 import {
   absoluteTime,
-  firstBoatLerp,
   gameTime,
   gameTimeDelta,
   gameTimeUpdate,
@@ -75,6 +74,7 @@ import {
   GAMEPAD_BUTTON_A,
   GAMEPAD_BUTTON_X,
   GAMEPAD_BUTTON_B,
+  GAMEPAD_BUTTON_Y,
 } from "./utils/keycodes";
 
 const CAMERA_PLAYER_Y_DIST = 13;
@@ -367,6 +367,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       const interactButtonPressed =
         getGamepadButtonState(GAMEPAD_BUTTON_A) ||
         getGamepadButtonState(GAMEPAD_BUTTON_X) ||
+        getGamepadButtonState(GAMEPAD_BUTTON_Y) ||
         getGamepadButtonState(GAMEPAD_BUTTON_B);
       if (interactButtonPressed !== _gamepadInteractPressed) {
         _gamepadInteractPressed = interactButtonPressed;
