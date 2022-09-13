@@ -46,11 +46,8 @@ export const newLever = (transform: DOMMatrixReadOnly): void => {
       const index = levers.push(lever) - 1;
       $model._update = () => {
         const { $value, $lerpValue, $lerpValue2 } = lever;
-        const matrix = $model.$finalMatrix;
-        const point = matrix.transformPoint();
-        lever.$matrix = matrix;
-
-        $model.$skipShadow = vec3_distance(point, camera_position) > 80;
+        const point = (lever.$matrix = $model.$finalMatrix).transformPoint();
+        const cameraDistance = vec3_distance(point, camera_position);
 
         if (vec3_distance(point, player_position_final) < LEVER_SENSITIVITY_RADIUS && keyboard_downKeys[KEY_INTERACT]) {
           if ($lerpValue < 0.3 || $lerpValue > 0.7) {
@@ -61,6 +58,8 @@ export const newLever = (transform: DOMMatrixReadOnly): void => {
 
         lever.$lerpValue = lerpDamp($lerpValue, $value, 4);
         lever.$lerpValue2 = lerpDamp($lerpValue2, $value, 1);
+        $model.$skipShadow = vec3_distance(point, camera_position) > 80;
+        $model.$visible = cameraDistance < 150;
         $model.$mesh = leverMeshes[$lerpValue > 0.5 ? 1 : 0]!;
         return identity.rotate(lever.$lerpValue * 60 - 30, 0).translateSelf(0, 1);
       };
@@ -178,8 +177,6 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]
 
     newModel((model) => {
       model._update = () => {
-        model.$visible = (1 - soul.$value) as 0 | 1;
-
         let contextualVelocity = 1;
         let mindist = Infinity;
         let isInside: boolean | undefined;
@@ -243,8 +240,8 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]
 
         const soulPos = model.$finalMatrix.multiply(animationMatrix).transformPoint();
 
+        model.$visible = (1 - soul.$value) as 0 | 1;
         model.$skipShadow = vec3_distance(soulPos, camera_position) > 100;
-
         if (!soul.$value && vec3_distance(soulPos, player_position_final) < SOUL_SENSITIVITY_RADIUS) {
           soul.$value = 1;
           onSoulCollected();

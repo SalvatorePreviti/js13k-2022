@@ -19,7 +19,7 @@ export const keyboard_downKeys: (boolean | 0 | 1 | undefined)[] = [];
 
 let music_on = !DEBUG;
 
-export let game_play_clicked_once: undefined | 1;
+export let page_clicked: undefined | 1;
 
 export let player_first_person: 0 | 1 | undefined;
 
@@ -45,7 +45,6 @@ export const setMainMenuVisible = (value: boolean = false) => {
       if (value) {
         document.exitPointerLock();
       } else {
-        game_play_clicked_once = 1;
         songAudioSource.start();
       }
     } catch {}
@@ -99,6 +98,7 @@ export const initPage = () => {
   b5.onclick = () => setMainMenuVisible(true);
 
   onclick = () => {
+    page_clicked = 1;
     if (!mainMenuVisible) {
       const diff = gameTime - touchStartTime;
       if (diff > 0.07 && diff < 0.8) {
@@ -117,7 +117,7 @@ export const initPage = () => {
       const pressed = !!type[5] && target === document.body;
 
       if (pressed && (code === "Escape" || (code === "Enter" && mainMenuVisible))) {
-        if (!mainMenuVisible || game_play_clicked_once) {
+        if (!mainMenuVisible || page_clicked) {
           setMainMenuVisible(!mainMenuVisible);
         }
       } else {

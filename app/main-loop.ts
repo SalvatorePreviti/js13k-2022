@@ -55,7 +55,7 @@ import {
   mainMenuVisible,
   initPage,
   player_first_person,
-  game_play_clicked_once,
+  page_clicked,
   keyboard_downKeys,
   KEY_BACK,
   KEY_FRONT,
@@ -68,7 +68,7 @@ import {
 } from "./page";
 import { initTriangleBuffers } from "./game/triangle-buffers";
 import { renderModels } from "./game/render-models";
-import { player_position_global, player_position_final } from "./game/player-position";
+import { player_position_final } from "./game/player-position";
 import {
   GAMEPAD_BUTTON_START,
   GAMEPAD_BUTTON_LEFT,
@@ -105,6 +105,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   let player_collision_velocity_x: number;
   let player_collision_velocity_z: number;
   let player_model_y: number;
+  const player_position_global = { x: 0, y: 0, z: 0 };
 
   // let _gamepadStartPressed = false;
   let _gamepadInteractPressed = false;
@@ -114,18 +115,26 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   let camera_player_dir_z: number;
 
   const player_collision_modelIdCounter = new Int32Array(256);
-  const framebufferInvalidationArg = [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT];
+  const collision_buffer = new Uint8Array(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
 
   const mainVertexShader = loadShader(main_vsSource);
-  const skyShader = initShaderProgram(loadShader(sky_vsSource), sky_fsSource);
   const csmShader = initShaderProgram(loadShader(csm_vsSource), void_fsSource);
+  const skyShader = initShaderProgram(loadShader(sky_vsSource), sky_fsSource);
   const collisionShader = initShaderProgram(mainVertexShader, collider_fsSource);
   const mainShader = initShaderProgram(mainVertexShader, main_fsSource);
 
-  const collision_buffer = new Uint8Array(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
-  const collision_texture = gl.createTexture()!;
+  skyShader();
+  gl.uniform1i(skyShader(uniformName_groundTexture), 3); // TEXTURE3
+
+  collisionShader();
+  gl.uniformMatrix4fv(collisionShader(uniformName_projectionMatrix), false, mat_perspectiveXY(1.4, 0.59, 0.0001, 1));
+
+  mainShader();
+  gl.uniform1i(mainShader(uniformName_groundTexture), 3); // TEXTURE3
+
   const collision_frameBuffer = gl.createFramebuffer()!;
   const collision_renderBuffer = gl.createRenderbuffer();
+  const collision_texture = gl.createTexture()!;
 
   const csm_render = integers_map(2, (csmSplit: number) => {
     let lightSpaceMatrix: Float32Array;
@@ -156,18 +165,18 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       gl.UNSIGNED_INT,
       null,
     );
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_FUNC, gl.LEQUAL); // Can be LESS or LEQUAL
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_MODE, gl.COMPARE_REF_TO_TEXTURE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 
     return (matrix?: Float32Array) => {
       if (matrix) {
         lightSpaceMatrix = matrix;
         gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
-        gl.invalidateFramebuffer(gl.FRAMEBUFFER, framebufferInvalidationArg);
+        gl.invalidateFramebuffer(gl.FRAMEBUFFER, [gl.DEPTH_ATTACHMENT]);
         gl.clear(gl.DEPTH_BUFFER_BIT);
         gl.uniformMatrix4fv(csmShader(uniformName_viewMatrix), false, lightSpaceMatrix);
         renderModels(csmShader(uniformName_worldMatrix), !player_first_person, 1);
@@ -186,15 +195,6 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   gl.cullFace(gl.BACK); // Default value is already BACK
   gl.depthFunc(gl.LEQUAL); // LEQUAL to make sky works
   gl.clearColor(0, 0, 0, 1);
-
-  skyShader();
-  gl.uniform1i(skyShader(uniformName_groundTexture), 3); // TEXTURE3
-
-  collisionShader();
-  gl.uniformMatrix4fv(collisionShader(uniformName_projectionMatrix), false, mat_perspectiveXY(1.4, 0.59, 0.0001, 1));
-
-  mainShader();
-  gl.uniform1i(mainShader(uniformName_groundTexture), 3); // TEXTURE3
 
   // Collision framebuffer
 
@@ -499,7 +499,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
       gl.bindFramebuffer(gl.FRAMEBUFFER, collision_frameBuffer);
       gl.readPixels(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE, gl.RGBA, gl.UNSIGNED_BYTE, collision_buffer);
-      gl.invalidateFramebuffer(gl.FRAMEBUFFER, framebufferInvalidationArg);
+      gl.invalidateFramebuffer(gl.FRAMEBUFFER, [gl.COLOR_ATTACHMENT0]);
 
       NO_INLINE(updatePlayer)();
 
