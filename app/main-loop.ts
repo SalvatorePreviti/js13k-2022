@@ -55,13 +55,11 @@ import {
   mainMenuVisible,
   initPage,
   player_first_person,
-  page_clicked,
   keyboard_downKeys,
   KEY_BACK,
   KEY_FRONT,
   KEY_LEFT,
   KEY_RIGHT,
-  setMainMenuVisible,
   touch_movementX,
   touch_movementY,
   KEY_INTERACT,
@@ -70,14 +68,12 @@ import { initTriangleBuffers } from "./game/triangle-buffers";
 import { renderModels } from "./game/render-models";
 import { player_position_final } from "./game/player-position";
 import {
-  GAMEPAD_BUTTON_START,
   GAMEPAD_BUTTON_LEFT,
   GAMEPAD_BUTTON_RIGHT,
   GAMEPAD_BUTTON_UP,
   GAMEPAD_BUTTON_DOWN,
   GAMEPAD_BUTTON_A,
   GAMEPAD_BUTTON_X,
-  GAMEPAD_BUTTON_Y,
   GAMEPAD_BUTTON_B,
 } from "./utils/keycodes";
 
@@ -230,7 +226,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   const player_respawn = () => {
     const { $matrix, $model } = levers[player_last_pulled_lever]!;
 
-    const { x, y, z } = $matrix!.transformPoint({ x: 0, y: min(firstBoatLerp, 0.2) * 15, z: -3 });
+    const { x, y, z } = $matrix!.transformPoint({ x: 0, y: 8, z: -3 });
 
     player_position_final.x = player_position_global.x = x;
     player_position_final.y = player_position_global.y = player_model_y = y;

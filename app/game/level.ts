@@ -75,7 +75,8 @@ export const buildWorld = () => {
           newModel((capturedSoulModel) => {
             capturedSoulModel._update = () => {
               capturedSoulModel.$skipShadow =
-                Math.hypot(camera_position.x + 11, camera_position.y - 4, camera_position.z + 27) > 60;
+                Math.hypot(camera_position.x + 11, camera_position.y - 4, camera_position.z + 27 - firstBoatLerp * 40) >
+                60;
               if ((capturedSoulModel.$visible = 12 - i < souls_collected_count)) {
                 return identity.translate(Math.sin(gameTime + i) / 6, 0, Math.cos(gameTime / 1.5 + i) / 6);
               }
@@ -1324,8 +1325,6 @@ export const buildWorld = () => {
       meshAdd(cylinder(GQuad), identity.translate(0, 16, 34).scale(1.5, 1, 2), material(0.5, 0.6, 0.7, 0.3));
       meshAdd(cylinder(7), identity.translate(0, 16.2, 38).scale(5, 1, 5), material(0.4, 0.5, 0.6, 0.4));
 
-      newSoul(identity.translate(0, 19, 39), [0, 0, 3.5]);
-
       newModel((model) => {
         model._update = () => {
           let v = lerpneg((levers[14]!.$lerpValue + levers[14]!.$lerpValue2) / 2, levers[13]!.$lerpValue2);
@@ -1337,6 +1336,8 @@ export const buildWorld = () => {
 
         newLever(identity.translate(0, 1.5, -1).rotate(0, 180));
       }, ++_modelIdCounter);
+
+      newSoul(identity.translate(0, 19, 39), [0, 0, 3.5]);
     });
   });
 

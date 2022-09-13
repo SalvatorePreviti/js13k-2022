@@ -16,9 +16,9 @@ export const loadSong = () => {
     }
   }
 
-  // Loop forever
-  songAudioSource.loop = true;
-
   // Load the buffer into the audio source
   songAudioSource.buffer = buffer;
+
+  // Loop forever
+  songAudioSource.loop = true;
 };

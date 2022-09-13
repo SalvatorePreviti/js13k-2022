@@ -20,7 +20,7 @@ import { player_position_final } from "./player-position";
 import { keyboard_downKeys, KEY_INTERACT } from "../page";
 import { camera_position } from "../camera";
 
-const LEVER_SENSITIVITY_RADIUS = 2.8;
+const LEVER_SENSITIVITY_RADIUS = 2.9;
 const SOUL_SENSITIVITY_RADIUS = 1.5;
 
 // ========= Sky mesh ========= //

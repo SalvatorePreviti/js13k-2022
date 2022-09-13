@@ -128,7 +128,7 @@ export const worldStateUpdate = () => {
 
   firstBoatLerp = lerpDamp(
     firstBoatLerp,
-    game_completed ? lerp(firstBoatLerp, -9, gameTimeDelta * 3) : clamp01(gameTime / 3),
+    game_completed ? lerp(firstBoatLerp, -9, gameTimeDelta * 1.5) : clamp01(gameTime / 3),
     1,
   );
 
@@ -137,7 +137,7 @@ export const worldStateUpdate = () => {
       levers[0]!.$value = 0;
       showMessage("Not leaving now, there are souls to catch!", 3);
     } else if (!game_completed) {
-      showMessage("Well done Dante! You completed your task.<br>Thanks for playing.", 0);
+      showMessage("Well done Dante! You completed your task.<br>Thanks for playing.", Infinity);
       game_completed = 1;
     }
   }
@@ -173,9 +173,9 @@ export const loadGame = () => {
     souls.map((soul, index) => {
       soul.$value = (savedSouls[index] | 0) as 0 | 1;
     });
-    player_last_pulled_lever = savedLastPulledLever | 0;
-    gameTime = +savedGameTime;
-    secondBoatLerp = +savedSecondBoatLerp;
+    player_last_pulled_lever = savedLastPulledLever || 1;
+    gameTime = savedGameTime;
+    secondBoatLerp = savedSecondBoatLerp;
   } catch (e) {
     if (DEBUG) {
       console.log(e);
@@ -191,8 +191,8 @@ export const onPlayerPullLever = (leverIndex: number) => {
     console.log("switch lever " + leverIndex + " = " + levers[leverIndex]?.$value);
   }
 
+  player_last_pulled_lever = leverIndex;
   if (leverIndex) {
-    player_last_pulled_lever = leverIndex;
     showMessage("* click *", 1);
     saveGame();
   }
@@ -213,7 +213,7 @@ export const onSoulCollected = () => {
       "Vladimir Putin<br>another war",
       "He was NOT a good person",
       ,
-      "Salvatore Previti<br>made this evil game<br><br>All souls catched, go back to the boat",
+      'Salvatore Previti<br>made this evil game<br><br>All "good", go back to the boat',
     ][souls_collected_count] || 'Catched a "crypto bro".<br>"Web3" is all scam, lies and grift',
     souls_collected_count && souls_collected_count < 12 ? 5 : 7,
   );

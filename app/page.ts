@@ -19,8 +19,6 @@ export const keyboard_downKeys: (boolean | 0 | 1 | undefined)[] = [];
 
 let music_on = !DEBUG;
 
-export let page_clicked: undefined | 1;
-
 export let player_first_person: 0 | 1 | undefined;
 
 export let touch_movementX = 0;
@@ -57,6 +55,7 @@ export const setMainMenuVisible = (value: boolean = false) => {
 export const initPage = () => {
   let cameraRotTouch: Touch | undefined;
   let cameraPosTouch: Touch | undefined;
+  let pageClicked: undefined | 1;
   let touchStartCameraRotX = 0;
   let touchStartCameraRotY = 0;
   let touchStartTime = 0;
@@ -98,7 +97,7 @@ export const initPage = () => {
   b5.onclick = () => setMainMenuVisible(true);
 
   onclick = () => {
-    page_clicked = 1;
+    pageClicked = 1;
     if (!mainMenuVisible) {
       const diff = gameTime - touchStartTime;
       if (diff > 0.07 && diff < 0.8) {
@@ -117,7 +116,7 @@ export const initPage = () => {
       const pressed = !!type[5] && target === document.body;
 
       if (pressed && (code === "Escape" || (code === "Enter" && mainMenuVisible))) {
-        if (!mainMenuVisible || page_clicked) {
+        if (!mainMenuVisible || pageClicked) {
           setMainMenuVisible(!mainMenuVisible);
         }
       } else {
