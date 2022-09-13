@@ -12,14 +12,14 @@ out vec4 O;
 #define gameTime iResolution.z
 
 /* 1 / Math.tan(fieldOfViewRadians / 2) */
-const float fieldOfViewAmount = 1.7320508075688774;
+const float fieldOfViewAmount = 1.73205;
 
 void main() {
   vec2 fragCoord = (gl_FragCoord.xy / iResolution.xy) * 2. - 1.;
   vec3 ray =
     normalize(viewMatrix * vec4(fragCoord.x * -(iResolution.x / iResolution.y), -fragCoord.y, fieldOfViewAmount, 0.)).xyz;
   float rayTracedLavalDistance = (-32. - viewPos.y) / ray.y;
-  float multiplier = (1. - clamp(abs(rayTracedLavalDistance / 10000.), 0., 1.));
+  float multiplier = (1. - clamp(abs(rayTracedLavalDistance / 9999.), 0., 1.));
 
   O = vec4(0, 0, 0, 1);
 

@@ -74,9 +74,6 @@ export const buildWorld = () => {
         withEditMatrix(identity.translate((i % 4) * 1.2 - 1.7, -2, -5.5 + ((i / 4) | 0) * 1.7 + abs((i % 4) - 2)), () =>
           newModel((capturedSoulModel) => {
             capturedSoulModel._update = () => {
-              capturedSoulModel.$skipShadow =
-                Math.hypot(camera_position.x + 11, camera_position.y - 4, camera_position.z + 27 - firstBoatLerp * 40) >
-                60;
               if ((capturedSoulModel.$visible = 12 - i < souls_collected_count)) {
                 return identity.translate(Math.sin(gameTime + i) / 6, 0, Math.cos(gameTime / 1.5 + i) / 6);
               }

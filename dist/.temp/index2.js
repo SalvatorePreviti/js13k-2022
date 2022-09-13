@@ -845,8 +845,8 @@ const newSoul = (transform, ...walkingPath) => {
                 "Maxime Euziere<br>forced me to finish this game",
                 "She traded NFTs apes",
                 ,
-                "Vladimir Putin<br>evil, war",
-                "He was NOT a good person",
+                "Vladimir Putin<br>evil war",
+                "He was not a good person",
                 ,
                 "Salvatore Previti<br>made this evil game<br><br>Done. Go back to the boat",
               ][souls_collected_count] || "Catched a \"crypto bro\".<br>\"Web3\" is all scam, lies and grift",
@@ -905,14 +905,7 @@ const buildWorld = () => {
         integers_map(13, i => {
           withEditMatrix(identity.translate(i % 4 * 1.2 - 1.7, -2, 1.7 * (i / 4 | 0) - 5.5 + abs(i % 4 - 2)), () =>
             newModel(capturedSoulModel => (capturedSoulModel._update = () => {
-              if (
-                capturedSoulModel.$skipShadow = 60
-                  < Math.hypot(
-                    camera_position.x + 11,
-                    camera_position.y - 4,
-                    camera_position.z + 27 - 40 * firstBoatLerp,
-                  ), capturedSoulModel.$visible = souls_collected_count > 12 - i
-              ) {
+              if (capturedSoulModel.$visible = souls_collected_count > 12 - i) {
                 return identity.translate(Math.sin(gameTime + i) / 6, 0, Math.cos(gameTime / 1.5 + i) / 6);
               }
             },
@@ -2470,7 +2463,7 @@ setTimeout(() => {
                 .3 - player_position_final.z,
               ).toFloat32Array(),
             ),
-            renderModels(collisionShader("c"), 0, 1, collisionShader("i")),
+            renderModels(collisionShader("c"), 0, 1, collisionShader("j")),
             gl["cbf"](!1, !0, !1, !1),
             gl["c4s"](16640),
             gl["cbf"](!1, !0, !0, !1),
@@ -2480,7 +2473,7 @@ setTimeout(() => {
               identity.translate(-player_position_final.x, -player_position_final.y, -player_position_final.z - .3)
                 .toFloat32Array(),
             ),
-            renderModels(collisionShader("c"), 0, 1, collisionShader("i")),
+            renderModels(collisionShader("c"), 0, 1, collisionShader("j")),
             gl["cbf"](!0, !0, !0, !0),
             1 === currentModelId
             && (levers[9].$value = player_position_final.x < -15 && player_position_final.z < 0 ? 1 : 0)),
@@ -2494,15 +2487,15 @@ setTimeout(() => {
           gl["c4s"](16640),
           gl["uae"](mainShader("a"), !1, mat_perspective(.3, 177)),
           gl["uae"](mainShader("b"), !1, camera_view.toFloat32Array()),
-          gl["ubu"](mainShader("j"), camera_position.x, camera_position.y, camera_position.z),
+          gl["ubu"](mainShader("k"), camera_position.x, camera_position.y, camera_position.z),
           csm_render[0](),
           csm_render[1](),
           renderModels(mainShader("c"), !player_first_person),
           skyShader(),
-          gl["ubu"](skyShader("c"), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime),
+          gl["ubu"](skyShader("j"), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime),
           mainMenuVisible
-            ? gl["ubu"](skyShader("j"), 0, 0, 0)
-            : gl["ubu"](skyShader("j"), camera_position.x, camera_position.y, camera_position.z),
+            ? gl["ubu"](skyShader("k"), 0, 0, 0)
+            : gl["ubu"](skyShader("k"), camera_position.x, camera_position.y, camera_position.z),
           gl["uae"](skyShader("b"), !1, camera_view.inverse().toFloat32Array()),
           gl["d97"](4, 3, 5123, 0);
       };
@@ -2510,7 +2503,7 @@ setTimeout(() => {
       const collision_buffer = new Uint8Array(65536);
       const groundTextureImage = image;
       const mainVertexShader = loadShader(
-        "#version 300 es\nlayout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 n,l,m,k;uniform mat4 a,b,c;void main(){k=d,m=f,l=c*f,gl_Position=a*b*l,n=c*vec4(e,0);}",
+        "#version 300 es\nlayout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 a,b,c;void main(){l=d,n=f,m=c*f,gl_Position=a*b*m,o=c*vec4(e,0);}",
       );
       const csmShader = initShaderProgram(
         loadShader("#version 300 es\nin vec4 f;uniform mat4 b,c;void main(){gl_Position=b*c*f;}"),
@@ -2518,23 +2511,23 @@ setTimeout(() => {
       );
       const skyShader = initShaderProgram(
         loadShader("#version 300 es\nin vec4 f;void main(){gl_Position=vec4(f.xy,1,1);}"),
-        "#version 300 es\nprecision highp float;uniform vec3 c,j;uniform mat4 b;uniform highp sampler2D d;out vec4 O;void main(){vec2 t=gl_FragCoord.xy/c.xy*2.-1.;vec3 e=(normalize(b*vec4(t.x*-(c.x/c.y),-t.y,sqrt(3.),0.))).xyz;float i=(-32.-j.y)/e.y,o=1.-clamp(abs(i/1e4),0.,1.);if(O=vec4(0,0,0,1),o>.01){if(i>0.){float o=cos(c.z/30.),i=sin(c.z/30.);e.xz*=mat2(o,i,-i,o);vec3 t=abs(e);O.xyz=vec3(dot(vec2(texture(d,e.xy).z,texture(d,e.yz*2.).z),t.zx)*t.y);}else e=j+e*i,O.x=(o*=.9-texture(d,e.xz/150.+vec2(sin(e.z/35.+c.z),cos(e.x/25.+c.z))/80.).y),O.y=o*o*o;}}",
+        "#version 300 es\nprecision highp float;uniform vec3 j,k;uniform mat4 b;uniform highp sampler2D q;out vec4 O;void main(){vec2 t=gl_FragCoord.xy/j.xy*2.-1.;vec3 e=(normalize(b*vec4(t.x*-(j.x/j.y),-t.y,1.73205,0.))).xyz;float i=(-32.-k.y)/e.y,o=1.-clamp(abs(i/9999.),0.,1.);if(O=vec4(0,0,0,1),o>.01){if(i>0.){float o=cos(j.z/30.),i=sin(j.z/30.);e.xz*=mat2(o,i,-i,o);vec3 t=abs(e);O.xyz=vec3(dot(vec2(texture(q,e.xy).z,texture(q,e.yz*2.).z),t.zx)*t.y);}else e=k+e*i,O.x=(o*=.9-texture(q,e.xz/150.+vec2(sin(e.z/35.+j.z),cos(e.x/25.+j.z))/80.).y),O.y=o*o*o;}}",
       );
       const collisionShader = initShaderProgram(
         mainVertexShader,
-        "#version 300 es\nprecision highp float;in vec4 n,l;uniform mat4 b;uniform float i;out vec4 O;void main(){vec4 o=b*l;float a=i>0.?1.-min(abs(o.z/o.w),1.):0.;O=vec4(vec2(a*(gl_FragCoord.y>31.?1.:abs(n.y))),a>0.?i:0.,1);}",
+        "#version 300 es\nprecision highp float;in vec4 o,m;uniform mat4 b;uniform float j;out vec4 O;void main(){vec4 a=b*m;float e=j>0.?1.-min(abs(a.z/a.w),1.):0.;O=vec4(vec2(e*(gl_FragCoord.y>31.?1.:abs(o.y))),e>0.?j:0.,1);}",
       );
       const mainShader = initShaderProgram(
         mainVertexShader,
-        "#version 300 es\nprecision highp float;in vec4 n,l,m,k;uniform vec3 j;uniform mat4 b,i,w;uniform highp sampler2DShadow g,h;uniform highp sampler2D d;out vec4 O;void main(){vec3 e=normalize(n.xyz),x=k.w*(texture(d,m.yz*.035)*e.x+texture(d,m.xz*.035)*e.y+texture(d,m.xy*.035)*e.z).xyz;e=normalize(e+x*.5);float a=dot(e,vec3(-.656059,.666369,-.35431468)),o=1.,c=abs((b*l).z);vec4 r=(c<55.?i:w)*l;if(r=r/r.w*.5+.5,r.z<1.){o=0.;for(float e=-1.;e<=1.;++e)for(float t=-1.;t<=1.;++t){vec3 a=vec3(r.xy+vec2(e,t)/2048.,r.z-.00017439);o+=c<55.?texture(g,a):texture(h,a);}o/=9.;}vec3 t=k.xyz*(1.-x.x);O=vec4(vec3(.09,.05,.1)*t+t*(max(0.,a)*.5+t*a*a*vec3(.5,.45,.3))*(o*.7+.3)+t*max(dot(e,vec3(.09901475,-.99014753,-.09901475)),0.)*max(0.,2.-l.y)*vec3(.04285714,.00714286,0)+vec3(.6,.6,.5)*pow(max(0.,dot(normalize(l.xyz-j),reflect(vec3(-.656059,.666369,-.35431468),e))),35.)*o,1);}",
+        "#version 300 es\nprecision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform highp sampler2DShadow g,h;uniform highp sampler2D q;out vec4 O;void main(){vec3 e=normalize(o.xyz),c=l.w*(texture(q,n.yz*.035)*e.x+texture(q,n.xz*.035)*e.y+texture(q,n.xy*.035)*e.z).xyz;e=normalize(e+c*.5);float x=dot(e,vec3(-.656059,.666369,-.35431468)),t=1.,s=abs((b*m).z);vec4 r=(s<55.?i:j)*m;if(r=r/r.w*.5+.5,r.z<1.){t=0.;for(float e=-1.;e<=1.;++e)for(float a=-1.;a<=1.;++a){vec3 x=vec3(r.xy+vec2(e,a)/2048.,r.z-.00017439);t+=s<55.?texture(g,x):texture(h,x);}t/=9.;}vec3 a=l.xyz*(1.-c.x);O=vec4(vec3(.09,.05,.1)*a+a*(max(0.,x)*.5+a*x*x*vec3(.5,.45,.3))*(t*.7+.3)+a*max(dot(e,vec3(.09901475,-.99014753,-.09901475)),0.)*max(0.,2.-m.y)*vec3(.04285714,.00714286,0)+vec3(.6,.6,.5)*pow(max(0.,dot(normalize(m.xyz-k),reflect(vec3(-.656059,.666369,-.35431468),e))),35.)*t,1);}",
       );
       const collision_frameBuffer =
         (skyShader(),
-          gl["ubh"](skyShader("d"), 3),
+          gl["ubh"](skyShader("q"), 3),
           collisionShader(),
           gl["uae"](collisionShader("a"), !1, mat_perspectiveXY(1.4, .59, 1e-4, 1)),
           mainShader(),
-          gl["ubh"](mainShader("d"), 3),
+          gl["ubh"](mainShader("q"), 3),
           gl["c5w"]());
       const collision_renderBuffer = gl["c3z"]();
       const collision_texture = gl["c25"]();
@@ -2542,7 +2535,7 @@ setTimeout(() => {
         let lightSpaceMatrix;
         const texture = gl["c25"]();
         const frameBuffer = gl["c5w"]();
-        const lightSpaceMatrixLoc = mainShader(csmSplit ? "w" : "i");
+        const lightSpaceMatrixLoc = mainShader(csmSplit ? "j" : "i");
         return mainShader(),
           gl["ubh"](mainShader(csmSplit ? "h" : "g"), csmSplit),
           gl["b6o"](36160, frameBuffer),
