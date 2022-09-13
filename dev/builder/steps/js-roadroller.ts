@@ -68,7 +68,14 @@ export async function jsRoadroller(html: string): Promise<string> {
       }); // takes less than 10 seconds by default
 
       const { firstLine, secondLine } = packer.makeDecoder();
-      let compressedJs = firstLine + secondLine;
+
+      // let compressedJs = firstLine + secondLine;
+
+      // trick, instead of relying on M variable in the generated code, replace it with the string
+      let compressedJs = secondLine.replace(
+        "M.charCodeAt",
+        `${jsRemoveEndingSemicolons(firstLine.slice(2))}.charCodeAt`,
+      );
 
       compressedJs = await jsUglify(compressedJs, {
         varify: false,

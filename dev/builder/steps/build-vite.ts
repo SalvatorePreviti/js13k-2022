@@ -80,7 +80,7 @@ export const buildWithViteTerserOptions: MinifyOptions = {
     properties: false,
     unsafe_math: true,
     unsafe_undefined: true,
-    hoist_vars: false,
+    hoist_vars: true,
     arguments: true,
     directives: true,
     unsafe_comps: true,
