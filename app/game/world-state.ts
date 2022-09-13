@@ -1,5 +1,5 @@
 import { lerp, min, angle_wrap_degrees, lerpneg, abs, clamp01 } from "../math";
-import { mainMenuVisible } from "../page";
+import { keyboard_downKeys, KEY_INTERACT, mainMenuVisible } from "../page";
 import type { Model } from "./scene";
 
 export let absoluteTime = 0;
@@ -22,22 +22,30 @@ export const lerpDamp = /* @__PURE__ */ (from: number, to: number, speed: number
 
 export const gameTimeUpdate = (time: number) => {
   const dt = (time - (_globalTime || time)) / 1000;
-  gameTimeDelta = mainMenuVisible ? 0 : min(GAME_TIME_MAX_DELTA_TIME, dt);
+  if (mainMenuVisible) {
+    keyboard_downKeys[KEY_INTERACT] = 0;
+    gameTimeDelta = 0;
+  } else {
+    gameTimeDelta = min(GAME_TIME_MAX_DELTA_TIME, dt);
+  }
   gameTime += gameTimeDelta;
   absoluteTime += dt;
   _globalTime = time;
 };
 
 // export const gameTimeUpdate = (time: number) => {
+//   if (mainMenuVisible) {
+//     keyboard_downKeys[KEY_INTERACT] = 0;
+//   }
 //   const delta = (time - (_globalTime || time)) / 1000;
-//   if (delta >= GAME_TIME_MAX_DELTA_TIME) {
-//     gameTimeDelta = Math.min(GAME_TIME_MAX_DELTA_TIME, (time - (_globalTime || time)) / 1000);
+//   if (delta >= 0.06) {
+//     gameTimeDelta = mainMenuVisible ? 0 : Math.min(GAME_TIME_MAX_DELTA_TIME, (time - (_globalTime || time)) / 1000);
 //     gameTime += gameTimeDelta;
 //     _globalTime = time;
 //   } else {
 //     gameTimeDelta = 0;
 //   }
-
+//   absoluteTime += delta;
 //   if (!_globalTime) {
 //     _globalTime = time;
 //   }

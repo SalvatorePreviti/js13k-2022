@@ -4,8 +4,10 @@ import { Packer } from "roadroller";
 import { sizeDifference } from "../lib/logging";
 import { JSDOM } from "jsdom";
 import { htmlMinify } from "./html-minify";
-import { stripUtf8BOM } from "../lib/code-utils";
+import { jsRemoveEndingSemicolons, stripUtf8BOM } from "../lib/code-utils";
 import { jsUglify } from "./js-uglify";
+import { jsTdeMinify } from "./js-tde-minify";
+import { jsTerser } from "./js-terser";
 
 /**
  * you can try to set LEVEL to 2 if you want to squeeze as much bytes as possible.
@@ -22,16 +24,27 @@ export async function jsRoadroller(html: string): Promise<string> {
       const scriptsTags = Array.from(dom.window.document.querySelectorAll("script"));
       let js = scriptsTags.map((scriptTag) => `(()=>{${scriptTag.textContent}})()`).join("\n");
 
-      js = await jsUglify(js, {
-        varify: false,
-        final: true,
-        computed_props: true,
-        inline: true,
-        join_vars: true,
-        reduce_vars: true,
-        sequences: true,
-        mangle: true,
-      });
+      // js = await jsUglify(js, {
+      //   varify: false,
+      //   final: true,
+      //   computed_props: true,
+      //   inline: true,
+      //   join_vars: true,
+      //   reduce_vars: true,
+      //   sequences: true,
+      //   mangle: true,
+      // });
+
+      // js = await jsTerser(js, {
+      //   computed_props: true,
+      //   final: true,
+      //   join_vars: true,
+      //   mangle: "variables",
+      //   sequences: true,
+      // });
+
+      js = await jsTdeMinify(js);
+      js = jsRemoveEndingSemicolons(js);
 
       scriptsTags.forEach((scriptTag) => scriptTag.remove());
 
@@ -55,7 +68,18 @@ export async function jsRoadroller(html: string): Promise<string> {
       }); // takes less than 10 seconds by default
 
       const { firstLine, secondLine } = packer.makeDecoder();
-      const compressedJs = firstLine + secondLine;
+      let compressedJs = firstLine + secondLine;
+
+      compressedJs = await jsUglify(compressedJs, {
+        varify: false,
+        final: true,
+        computed_props: true,
+        inline: true,
+        join_vars: true,
+        reduce_vars: true,
+        sequences: true,
+        mangle: true,
+      });
 
       if (compressedJs) {
         const script = dom.window.document.createElement("script");
@@ -63,6 +87,8 @@ export async function jsRoadroller(html: string): Promise<string> {
         script.textContent = compressedJs;
         dom.window.document.body.appendChild(script);
       }
+      compressedJs = await jsTdeMinify(compressedJs);
+      compressedJs = jsRemoveEndingSemicolons(compressedJs);
 
       let bundled = dom.serialize();
 

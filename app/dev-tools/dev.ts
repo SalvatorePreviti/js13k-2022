@@ -57,20 +57,28 @@ export function debug_camera_save() {
 
 export function debug_camera_load() {
   const debugCameraSaved = localStorage.getItem("DEV_CAMERA") || "";
+  let savedDebugCameraContent;
   if (debugCameraSaved) {
-    const { pos, rot, debugCamera, DEBUG_FLAG0, DEBUG_FLAG1, DEBUG_FLAG2, DEBUG_FLAG3 } = JSON.parse(debugCameraSaved);
+    try {
+      savedDebugCameraContent = JSON.parse(debugCameraSaved);
+    } catch {}
+  }
+  const { pos, rot, debugCamera, DEBUG_FLAG0, DEBUG_FLAG1, DEBUG_FLAG2, DEBUG_FLAG3 } = savedDebugCameraContent || {};
+  if (pos) {
     debug_camera_position.x = pos.x;
     debug_camera_position.y = pos.y;
     debug_camera_position.z = pos.z;
+  }
+  if (rot) {
     debug_camera_rotation.x = rot.x;
     debug_camera_rotation.y = rot.y;
     debug_camera_rotation.z = rot.z;
-    window.DEBUG_CAMERA = !!debugCamera;
-    window.DEBUG_FLAG0 = !!DEBUG_FLAG0;
-    window.DEBUG_FLAG1 = !!DEBUG_FLAG1;
-    window.DEBUG_FLAG2 = !!DEBUG_FLAG2;
-    window.DEBUG_FLAG3 = !!DEBUG_FLAG3;
   }
+  window.DEBUG_CAMERA = !!debugCamera;
+  window.DEBUG_FLAG0 = !!DEBUG_FLAG0;
+  window.DEBUG_FLAG1 = !!DEBUG_FLAG1;
+  window.DEBUG_FLAG2 = !!DEBUG_FLAG2;
+  window.DEBUG_FLAG3 = !!DEBUG_FLAG3;
 }
 
 export function devInit() {

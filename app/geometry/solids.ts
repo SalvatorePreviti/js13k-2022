@@ -8,7 +8,7 @@ export const GQuad = /* @__PURE__ */ [
   { x: -1, z: -1 },
 ];
 
-const HORN_STACKS = 15;
+const HORN_STACKS = 10;
 
 export const GHorn = /* @__PURE__ */ ((): Polygon[] => {
   const matrices = integers_map(HORN_STACKS + 1, (i: number) =>
@@ -18,7 +18,7 @@ export const GHorn = /* @__PURE__ */ ((): Polygon[] => {
       .scale(1.0001 - i / HORN_STACKS, 0, 1 - i / HORN_STACKS),
   );
 
-  const p = polygon_regular(20);
+  const p = polygon_regular(18);
   return integers_map(HORN_STACKS, (i) =>
     cylinder_sides(polygon_transform(p, matrices[i]!).reverse(), polygon_transform(p, matrices[i + 1]!), 1),
   ).flat();

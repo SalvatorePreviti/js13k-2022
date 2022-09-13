@@ -66,7 +66,6 @@ function rollupPluginSvgDev(): PluginOption {
 function parseCommandLine(argv: string[]) {
   let host: string | undefined | boolean;
   let port: number | undefined;
-
   for (let i = 0; i < argv.length; ++i) {
     switch (argv[i]) {
       case "--host":

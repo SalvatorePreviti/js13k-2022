@@ -33,7 +33,7 @@ import {
   mat_perspectiveXY,
   angle_lerp_degrees,
 } from "./math";
-import { mat_perspective, zFar, zNear, camera_position, camera_rotation, camera_view } from "./camera";
+import { mat_perspective, zFar, zNear, camera_position, camera_rotation } from "./camera";
 import { csm_buildMatrix } from "./csm";
 import { updateModels, rootModel, modelsByModelId } from "./game/scene";
 import { playerModel, playerLegsModels } from "./game/objects";
@@ -50,11 +50,35 @@ import {
   player_last_pulled_lever,
   worldStateUpdate,
 } from "./game/world-state";
-import { input_frameReset, mainMenuVisible, initPage } from "./page";
+import {
+  mainMenuVisible,
+  initPage,
+  player_first_person,
+  game_play_clicked_once,
+  keyboard_downKeys,
+  KEY_BACK,
+  KEY_FRONT,
+  KEY_LEFT,
+  KEY_RIGHT,
+  setMainMenuVisible,
+  touch_movementX,
+  touch_movementY,
+  KEY_INTERACT,
+} from "./page";
 import { initTriangleBuffers } from "./game/triangle-buffers";
 import { renderModels } from "./game/render-models";
-import { movement_strafe, movement_forward, input_frameUpdate, player_first_person } from "./input";
 import { player_position_global, player_position_final } from "./game/player-position";
+import {
+  GAMEPAD_BUTTON_START,
+  GAMEPAD_BUTTON_LEFT,
+  GAMEPAD_BUTTON_RIGHT,
+  GAMEPAD_BUTTON_UP,
+  GAMEPAD_BUTTON_DOWN,
+  GAMEPAD_BUTTON_A,
+  GAMEPAD_BUTTON_X,
+  GAMEPAD_BUTTON_Y,
+  GAMEPAD_BUTTON_B,
+} from "./utils/keycodes";
 
 const CAMERA_PLAYER_Y_DIST = 13;
 const CAMERA_PLAYER_Z_DIST = -18;
@@ -63,11 +87,9 @@ const PLAYER_LEGS_VELOCITY = 7 * 1.3;
 
 const COLLISION_TEXTURE_SIZE = 128;
 
-let debug2dctx: CanvasRenderingContext2D | null | undefined;
+// let debug2dctx: CanvasRenderingContext2D | null | undefined;
 
 export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
-  const player_collision_modelIdCounter = new Int32Array(256);
-
   let oldModelId: number | undefined;
   let currentModelIdTMinus1 = 0;
   let currentModelId = 0;
@@ -81,12 +103,16 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   let player_speed = 0;
   let player_collision_velocity_x = 0;
   let player_collision_velocity_z = 0;
-  let player_collision_x = 0;
-  let player_collision_z = 0;
+
+  let _gamepadStartPressed = false;
+  let _gamepadInteractPressed = false;
 
   let camera_player_dir_x: number;
   let camera_player_dir_y: number;
   let camera_player_dir_z: number;
+
+  const player_collision_modelIdCounter = new Int32Array(256);
+  const framebufferInvalidationArg = [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT];
 
   const mainVertexShader = loadShader(main_vsSource);
   const skyShader = initShaderProgram(loadShader(sky_vsSource), sky_fsSource);
@@ -120,12 +146,12 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     gl.texImage2D(
       gl.TEXTURE_2D,
       0,
-      gl.DEPTH_COMPONENT32F,
+      gl.DEPTH_COMPONENT24,
       CSM_TEXTURE_SIZE,
       CSM_TEXTURE_SIZE,
       0,
       gl.DEPTH_COMPONENT,
-      gl.FLOAT,
+      gl.UNSIGNED_INT,
       null,
     );
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -135,16 +161,14 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_FUNC, gl.LEQUAL); // Can be LESS or LEQUAL
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_MODE, gl.COMPARE_REF_TO_TEXTURE);
 
-    return (matrix?: Float32Array | 1) => {
+    return (matrix?: Float32Array) => {
       if (matrix) {
+        lightSpaceMatrix = matrix;
         gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
-        if (matrix === 1) {
-          gl.invalidateFramebuffer(gl.FRAMEBUFFER, [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT]);
-        } else {
-          gl.clear(gl.DEPTH_BUFFER_BIT);
-          gl.uniformMatrix4fv(csmShader(uniformName_viewMatrix), false, (lightSpaceMatrix = matrix));
-          renderModels(csmShader(uniformName_worldMatrix), !player_first_person);
-        }
+        gl.invalidateFramebuffer(gl.FRAMEBUFFER, framebufferInvalidationArg);
+        gl.clear(gl.DEPTH_BUFFER_BIT);
+        gl.uniformMatrix4fv(csmShader(uniformName_viewMatrix), false, lightSpaceMatrix);
+        renderModels(csmShader(uniformName_worldMatrix), !player_first_person);
       } else {
         gl.uniformMatrix4fv(lightSpaceMatrixLoc, false, lightSpaceMatrix);
       }
@@ -215,14 +239,16 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     player_collision_velocity_x = 0;
     player_collision_velocity_z = 0;
     player_has_ground = 0;
-    player_collision_x = 0;
-    player_collision_z = 0;
+
     player_respawned = 1;
     currentModelIdTMinus1 = currentModelId = $model.$modelId || 1;
   };
 
   const updatePlayer = () => {
-    const doVerticalCollisions = (_collision_buffer: Uint8Array) => {
+    let player_collision_x = 0;
+    let player_collision_z = 0;
+
+    const doVerticalCollisions = () => {
       let maxModelIdCount = 0;
       let nextModelId = 0;
       player_collision_modelIdCounter.fill(0);
@@ -235,8 +261,8 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
         const yindex = y * (COLLISION_TEXTURE_SIZE * 4);
         for (let x = 0; x < COLLISION_TEXTURE_SIZE - 0; x++) {
           let i = yindex + x * 4;
-          const a = (_collision_buffer[i]! + _collision_buffer[i + 1]!) / 255;
-          i = _collision_buffer[i + 2]!;
+          const a = (collision_buffer[i]! + collision_buffer[i + 1]!) / 255;
+          i = collision_buffer[i + 2]!;
           if (x > 14 && x < COLLISION_TEXTURE_SIZE - 14) {
             up += a;
           }
@@ -283,9 +309,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
         lines / 41 - (hasGround ? 1 : player_gravity) * (grav / 41) * player_gravity * gameTimeDelta;
     };
 
-    const doHorizontalCollisions = (_collision_buffer: Uint8Array) => {
-      let ddx = 0;
-      let ddz = 0;
+    const doHorizontalCollisions = () => {
       for (let y = 32; y < COLLISION_TEXTURE_SIZE; y += 2) {
         let front = 0;
         let back = 0;
@@ -295,15 +319,15 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
         for (let x = (y >> 1) & 1; x < COLLISION_TEXTURE_SIZE; x += 2) {
           const i1 = yindex + x * 4;
           const i2 = yindex + (COLLISION_TEXTURE_SIZE - 1 - x) * 4;
-          const dist1 = _collision_buffer[i1]! / 255;
-          const dist2 = _collision_buffer[i2 + 1]! / 255;
+          const dist1 = collision_buffer[i1]! / 255;
+          const dist2 = collision_buffer[i2 + 1]! / 255;
 
           const t = 1 - abs(2 * (x / (COLLISION_TEXTURE_SIZE - 1)) - 1);
 
           if (x > 10 && x < COLLISION_TEXTURE_SIZE - 10) {
-            const dist1Opposite = _collision_buffer[i2]! / 255;
+            const dist1Opposite = collision_buffer[i2]! / 255;
             front = max(front, max(dist1 * t, dist1 * dist1Opposite * 2));
-            const dist2Opposite = _collision_buffer[i1 + 1]! / 255;
+            const dist2Opposite = collision_buffer[i1 + 1]! / 255;
             back = max(back, max(dist2 * t, dist2 * dist2Opposite));
           }
 
@@ -322,16 +346,72 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
         const dx = right - left;
         const dz = back - front;
 
-        if (abs(dx) > abs(ddx)) {
-          ddx = dx;
+        if (abs(dx) > abs(player_collision_x)) {
+          player_collision_x = dx;
         }
-        if (abs(dz) > abs(ddz)) {
-          ddz = dz;
+        if (abs(dz) > abs(player_collision_z)) {
+          player_collision_z = dz;
         }
       }
-      player_collision_x = ddx;
-      player_collision_z = ddz;
     };
+
+    let strafe = (keyboard_downKeys[KEY_LEFT] ? 1 : 0) + (keyboard_downKeys[KEY_RIGHT] ? -1 : 0) + touch_movementX;
+    let forward = (keyboard_downKeys[KEY_FRONT] ? 1 : 0) + (keyboard_downKeys[KEY_BACK] ? -1 : 0) + touch_movementY;
+
+    const gamepad = navigator.getGamepads()[0];
+    if (gamepad) {
+      const { buttons, axes } = gamepad;
+      const getGamepadButtonState = (index: number) => buttons[index]?.pressed || (buttons[index]?.value as any) > 0;
+      const startPressed = getGamepadButtonState(GAMEPAD_BUTTON_START);
+
+      strafe +=
+        (abs(-axes[0]!) > 0.2 ? -axes[0]! : 0) +
+        (getGamepadButtonState(GAMEPAD_BUTTON_LEFT) ? 1 : 0) +
+        (getGamepadButtonState(GAMEPAD_BUTTON_RIGHT) ? -1 : 0);
+      forward +=
+        (abs(-axes[1]!) > 0.2 ? -axes[1]! : 0) +
+        (getGamepadButtonState(GAMEPAD_BUTTON_UP) ? 1 : 0) +
+        (getGamepadButtonState(GAMEPAD_BUTTON_DOWN) ? -1 : 0);
+
+      if (player_first_person) {
+        if (abs(axes[2]!) > 0.3) {
+          camera_rotation.y += axes[2]! * 80 * gameTimeDelta;
+        }
+        if (abs(axes[3]!) > 0.3) {
+          camera_rotation.x += axes[3]! * 80 * gameTimeDelta;
+        }
+      }
+
+      if (_gamepadStartPressed !== startPressed) {
+        _gamepadStartPressed = startPressed;
+        if (startPressed && game_play_clicked_once) {
+          setMainMenuVisible(!mainMenuVisible);
+        }
+      }
+
+      const interactButtonPressed =
+        getGamepadButtonState(GAMEPAD_BUTTON_A) ||
+        getGamepadButtonState(GAMEPAD_BUTTON_X) ||
+        getGamepadButtonState(GAMEPAD_BUTTON_Y) ||
+        getGamepadButtonState(GAMEPAD_BUTTON_B);
+      if (interactButtonPressed !== _gamepadInteractPressed && interactButtonPressed) {
+        keyboard_downKeys[KEY_INTERACT] = 1;
+      }
+      _gamepadInteractPressed = interactButtonPressed;
+    }
+
+    if (abs(forward) < 0.05) {
+      forward = 0;
+    }
+    if (abs(strafe) < 0.05) {
+      strafe = 0;
+    }
+
+    const angle = Math.atan2(forward, strafe);
+    const amount = clamp01(Math.hypot(forward, strafe));
+
+    strafe = amount * Math.cos(angle);
+    forward = amount * Math.sin(angle);
 
     NO_INLINE(doVerticalCollisions)(collision_buffer);
 
@@ -348,129 +428,110 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
     player_speed = lerpDamp(
       player_speed,
-      player_has_ground
-        ? (movement_strafe || movement_forward ? (player_has_ground ? 7 : 4) : 0) * playerSpeedCollision
-        : 0,
-      player_has_ground ? (playerSpeedCollision > 0.1 ? 10 : movement_strafe || movement_forward ? 5 : 7) : 1,
+      player_has_ground ? (strafe || forward ? (player_has_ground ? 7 : 4) : 0) * playerSpeedCollision : 0,
+      player_has_ground ? (playerSpeedCollision > 0.1 ? 10 : strafe || forward ? 5 : 7) : 1,
     );
 
-    const effectivePlayerSpeed =
-      (movement_strafe && movement_forward ? Math.SQRT1_2 : 1) * player_speed * gameTimeDelta;
-
-    if (player_first_person) {
-      const yradians = camera_rotation.y * DEG_TO_RAD;
-      const s = Math.sin(yradians) * effectivePlayerSpeed;
-      const c = Math.cos(yradians) * effectivePlayerSpeed;
-      player_collision_x -= movement_strafe * c - movement_forward * s;
-      player_collision_z -= movement_strafe * s + movement_forward * c;
-    } else {
-      player_collision_x += movement_strafe * effectivePlayerSpeed;
-      player_collision_z += movement_forward * effectivePlayerSpeed;
-    }
+    const movementRadians = player_first_person ? camera_rotation.y * DEG_TO_RAD : Math.PI;
+    const s = Math.sin(movementRadians) * player_speed * gameTimeDelta;
+    const c = Math.cos(movementRadians) * player_speed * gameTimeDelta;
+    player_collision_x -= strafe * c - forward * s;
+    player_collision_z -= strafe * s + forward * c;
 
     const referenceMatrix = modelsByModelId[currentModelId]?.$finalMatrix || identity;
-    const referenceMatrixInverse = referenceMatrix.inverse();
-
-    ({ x: player_collision_x, z: player_collision_z } = referenceMatrixInverse.transformPoint({
+    const inverseReferenceRotationMatrix = referenceMatrix.inverse();
+    inverseReferenceRotationMatrix.m41 = 0;
+    inverseReferenceRotationMatrix.m42 = 0;
+    inverseReferenceRotationMatrix.m43 = 0;
+    ({ x: player_collision_x, z: player_collision_z } = inverseReferenceRotationMatrix.transformPoint({
       x: player_collision_x,
-      y: 0,
       z: player_collision_z,
       w: 0,
     }));
 
-    player_position_global.z += player_collision_z;
     player_position_global.x += player_collision_x;
+    player_position_global.z += player_collision_z;
 
     if (currentModelId !== oldModelId) {
       oldModelId = currentModelId;
 
-      ({
-        x: player_position_global.x,
-        y: player_position_global.y,
-        z: player_position_global.z,
-      } = referenceMatrixInverse.transformPoint(player_position_final));
+      const { x, y, z } = referenceMatrix.inverse().transformPoint(player_position_final);
+      player_position_global.x = x;
+      player_position_global.y = y;
+      player_position_global.z = z;
     }
 
     const oldx = player_position_final.x;
     const oldz = player_position_final.z;
 
-    ({
-      x: player_position_final.x,
-      y: player_position_final.y,
-      z: player_position_final.z,
-    } = referenceMatrix.transformPoint(player_position_global));
+    const { x, y, z } = referenceMatrix.transformPoint(player_position_global);
+    player_position_final.x = x;
+    player_position_final.y = y;
+    player_position_final.z = z;
 
     if (currentModelId) {
       player_collision_velocity_x = (player_position_final.x - oldx) / gameTimeDelta;
       player_collision_velocity_z = (player_position_final.z - oldz) / gameTimeDelta;
     }
 
-    if (movement_strafe || movement_forward) {
-      player_look_angle_target = Math.atan2(movement_strafe, movement_forward) / DEG_TO_RAD;
+    if (strafe || forward) {
+      player_look_angle_target = 90 - angle / DEG_TO_RAD;
     }
     player_look_angle = angle_lerp_degrees(player_look_angle, player_look_angle_target, gameTimeDelta * 8);
-    player_legs_speed = lerp(player_legs_speed, movement_strafe || movement_forward ? 1 : 0, gameTimeDelta * 10);
+    player_legs_speed = lerp(player_legs_speed, amount, gameTimeDelta * 10);
   };
 
   const mainLoop = (globalTime: number) => {
+    let camera_view: DOMMatrixReadOnly = identity;
+
     requestAnimationFrame(mainLoop);
 
-    // *** COLLISIONS ***
+    gameTimeUpdate(globalTime);
 
-    input_frameUpdate();
+    // *** COLLISIONS ***
 
     if (gameTimeDelta > 0) {
       // *** COLLISION from the previos frame ***
 
       gl.bindFramebuffer(gl.FRAMEBUFFER, collision_frameBuffer);
       gl.readPixels(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE, gl.RGBA, gl.UNSIGNED_BYTE, collision_buffer);
-      gl.invalidateFramebuffer(gl.FRAMEBUFFER, [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT]);
-
-      // compute collisions
+      gl.invalidateFramebuffer(gl.FRAMEBUFFER, framebufferInvalidationArg);
 
       updatePlayer();
 
-      if (DEBUG) {
-        const debugCanvas = document.getElementById("debug-canvas") as HTMLCanvasElement;
+      updateModels(rootModel);
 
-        const buf = new Uint8ClampedArray(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
+      // if (DEBUG) {
+      //   const debugCanvas = document.getElementById("debug-canvas") as HTMLCanvasElement;
 
-        if (debugCanvas) {
-          for (let y = 0; y < COLLISION_TEXTURE_SIZE; ++y) {
-            for (let x = 0; x < COLLISION_TEXTURE_SIZE; ++x) {
-              const i = ((COLLISION_TEXTURE_SIZE - y) * COLLISION_TEXTURE_SIZE + x) * 4;
-              const r = collision_buffer[i]!;
-              const g = collision_buffer[i + 1]!;
-              const b = collision_buffer[i + 2]!;
+      //   const buf = new Uint8ClampedArray(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
 
-              buf[(y * COLLISION_TEXTURE_SIZE + x) * 4] = r;
-              buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 1] = g;
-              buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 2] = b ? 200 : 0;
-              buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 3] = 255;
-            }
-          }
+      //   if (debugCanvas) {
+      //     for (let y = 0; y < COLLISION_TEXTURE_SIZE; ++y) {
+      //       for (let x = 0; x < COLLISION_TEXTURE_SIZE; ++x) {
+      //         const i = ((COLLISION_TEXTURE_SIZE - y) * COLLISION_TEXTURE_SIZE + x) * 4;
+      //         const r = collision_buffer[i]!;
+      //         const g = collision_buffer[i + 1]!;
+      //         const b = collision_buffer[i + 2]!;
 
-          const imgdata = new ImageData(buf, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
+      //         buf[(y * COLLISION_TEXTURE_SIZE + x) * 4] = r;
+      //         buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 1] = g;
+      //         buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 2] = b ? 200 : 0;
+      //         buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 3] = 255;
+      //       }
+      //     }
 
-          if (!debug2dctx) {
-            debug2dctx = debugCanvas.getContext("2d")!;
-          }
-          debug2dctx.putImageData(imgdata, 0, 0, 0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
-        }
-      }
+      //     const imgdata = new ImageData(buf, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
+
+      //     if (!debug2dctx) {
+      //       debug2dctx = debugCanvas.getContext("2d")!;
+      //     }
+      //     debug2dctx.putImageData(imgdata, 0, 0, 0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
+      //   }
+      // }
     }
 
-    // Update time here, after collision. Collision is for the previous frame
-    gameTimeUpdate(globalTime);
-
-    if (mainMenuVisible) {
-      // Main menu camera
-      camera_view
-        .setMatrixValue("none")
-        .rotateSelf(-20, -90)
-        .invertSelf()
-        .translateSelf(4.5, -2, -3.2 + clamp01(hC.clientWidth / 1000));
-    } else {
+    if (gameTimeDelta > 0) {
       if (!DEBUG_CAMERA) {
         camera_player_dir_x = interpolate_with_hysteresis(
           camera_player_dir_x,
@@ -496,7 +557,6 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
           camera_position.x = lerpDamp(camera_position.x, player_position_final.x, 18 + interpolationSpeed);
           camera_position.y = lerpDamp(camera_position.y, player_position_final.y + 1.5, 15 + interpolationSpeed);
           camera_position.z = lerpDamp(camera_position.z, player_position_final.z, 18 + interpolationSpeed);
-          camera_rotation.y = angle_wrap_degrees(camera_rotation.y);
           camera_rotation.x = max(min(camera_rotation.x, 87), -87);
         } else {
           camera_position.x = interpolate_with_hysteresis(camera_position.x, camera_player_dir_x, 1, gameTimeDelta * 2);
@@ -513,28 +573,20 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
             gameTimeDelta * 2,
           );
 
-          const viewDirDiffx = camera_position.x - camera_player_dir_x;
-          const viewDirDiffy = camera_position.y - camera_player_dir_y;
           const viewDirDiffz = camera_position.z - camera_player_dir_z;
-
           if (abs(viewDirDiffz) > 1) {
+            const viewDirDiffx = camera_position.x - camera_player_dir_x;
+            const viewDirDiffy = camera_position.y - camera_player_dir_y;
             camera_rotation.y = 270 + Math.atan2(viewDirDiffz, viewDirDiffx) / DEG_TO_RAD;
-            camera_rotation.x =
-              90 -
-              Math.atan2(Math.sqrt(viewDirDiffz * viewDirDiffz + viewDirDiffx * viewDirDiffx) || 0, viewDirDiffy) /
-                DEG_TO_RAD;
+            camera_rotation.x = 90 - Math.atan2(Math.hypot(viewDirDiffz, viewDirDiffx), viewDirDiffy) / DEG_TO_RAD;
           }
         }
       }
-
-      camera_view
-        .setMatrixValue("none")
-        .rotateSelf(-camera_rotation.x, -camera_rotation.y, -camera_rotation.z)
-        .invertSelf()
-        .translateSelf(-camera_position.x, -camera_position.y, -camera_position.z);
+      camera_rotation.y = angle_wrap_degrees(camera_rotation.y);
 
       if (gameTimeDelta > 0) {
         worldStateUpdate();
+        keyboard_downKeys[KEY_INTERACT] = 0;
 
         if (player_position_final.y < (player_position_final.x < -25 || player_position_final.z < 109 ? -25 : -9)) {
           // Player fell in lava
@@ -543,57 +595,17 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       }
     }
 
-    // *** CASCADED SHADOWMAPS ***
+    camera_view = mainMenuVisible
+      ? identity
+          .rotate(-20, -90)
+          .invertSelf()
+          .translateSelf(4.5, -2, -3.2 + clamp01(hC.clientWidth / 1000))
+      : identity
+          .rotate(-camera_rotation.x, -camera_rotation.y, -camera_rotation.z)
+          .invertSelf()
+          .translateSelf(-camera_position.x, -camera_position.y, -camera_position.z);
 
-    csmShader();
-
-    gl.viewport(0, 0, CSM_TEXTURE_SIZE, CSM_TEXTURE_SIZE);
-
-    csm_render[0]!(csm_buildMatrix(zNear, CSM_PLANE_DISTANCE0, 10));
-    csm_render[1]!(csm_buildMatrix(CSM_PLANE_DISTANCE0, CSM_PLANE_DISTANCE1, 11));
-    csm_render[2]!(csm_buildMatrix(CSM_PLANE_DISTANCE1, zFar, 15));
-
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
-    // *** MAIN RENDER ***
-
-    mainShader();
-
-    gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-    gl.uniformMatrix4fv(mainShader(uniformName_projectionMatrix), false, mat_perspective(zNear, zFar));
-    gl.uniformMatrix4fv(mainShader(uniformName_viewMatrix), false, camera_view.toFloat32Array());
-    gl.uniform3f(mainShader(uniformName_viewPos), camera_position.x, camera_position.y, camera_position.z);
-
-    csm_render[0]!();
-    csm_render[1]!();
-    csm_render[2]!();
-
-    renderModels(mainShader(uniformName_worldMatrix), !player_first_person);
-
-    // invalidate csm framebuffers
-
-    csm_render[2]!(1);
-    csm_render[1]!(1);
-    csm_render[0]!(1);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
-    // *** SKY RENDER ***
-
-    skyShader();
-
-    gl.uniform3f(skyShader(uniformName_iResolution), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime);
-    if (mainMenuVisible) {
-      gl.uniform3f(skyShader(uniformName_viewPos), 0, -0, 0);
-    } else {
-      gl.uniform3f(skyShader(uniformName_viewPos), camera_position.x, camera_position.y, camera_position.z);
-    }
-    gl.uniformMatrix4fv(skyShader(uniformName_viewMatrix), false, camera_view.invertSelf().toFloat32Array());
-
-    gl.drawElements(gl.TRIANGLES, 3, gl.UNSIGNED_SHORT, 0);
-
-    if (!mainMenuVisible) {
+    if (gameTimeDelta > 0) {
       // *** COLLISION RENDERER ***
 
       collisionShader();
@@ -629,19 +641,55 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       );
       renderModels(collisionShader(uniformName_worldMatrix), 0, collisionShader(uniformName_modelId));
       gl.colorMask(true, true, true, true);
-    }
 
-    if (gameTimeDelta > 0) {
       // Special handling for the second boat (lever 7) - the boat must be on the side of the map the player is
       if (currentModelId === 1) {
         levers[9]!.$value = player_position_final.x < -15 && player_position_final.z < 0 ? 1 : 0;
       }
-
-      // We update the models for the next frame, for performance
-      updateModels(rootModel);
     }
 
-    input_frameReset();
+    // *** CASCADED SHADOWMAPS ***
+
+    csmShader();
+
+    gl.viewport(0, 0, CSM_TEXTURE_SIZE, CSM_TEXTURE_SIZE);
+
+    csm_render[0]!(csm_buildMatrix(camera_view, zNear, CSM_PLANE_DISTANCE0, 10));
+    csm_render[1]!(csm_buildMatrix(camera_view, CSM_PLANE_DISTANCE0, CSM_PLANE_DISTANCE1, 11));
+    csm_render[2]!(csm_buildMatrix(camera_view, CSM_PLANE_DISTANCE1, zFar, 15));
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+    // *** MAIN RENDER ***
+
+    mainShader();
+
+    gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    gl.uniformMatrix4fv(mainShader(uniformName_projectionMatrix), false, mat_perspective(zNear, zFar));
+    gl.uniformMatrix4fv(mainShader(uniformName_viewMatrix), false, camera_view.toFloat32Array());
+    gl.uniform3f(mainShader(uniformName_viewPos), camera_position.x, camera_position.y, camera_position.z);
+
+    csm_render[0]!();
+    csm_render[1]!();
+    csm_render[2]!();
+
+    renderModels(mainShader(uniformName_worldMatrix), !player_first_person);
+
+    // *** SKY RENDER ***
+
+    skyShader();
+
+    gl.uniform3f(skyShader(uniformName_iResolution), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime);
+    if (mainMenuVisible) {
+      gl.uniform3f(skyShader(uniformName_viewPos), 0, 0, 0);
+    } else {
+      gl.uniform3f(skyShader(uniformName_viewPos), camera_position.x, camera_position.y, camera_position.z);
+    }
+    gl.uniformMatrix4fv(skyShader(uniformName_viewMatrix), false, camera_view.inverse().toFloat32Array());
+
+    gl.drawElements(gl.TRIANGLES, 3, gl.UNSIGNED_SHORT, 0);
   };
 
   playerModel._update = () =>

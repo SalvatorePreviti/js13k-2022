@@ -16,10 +16,10 @@ import {
   gameTimeDelta,
   gameTime,
 } from "./world-state";
-import { keyboard_downKeys, KEY_INTERACT } from "../page";
 import { player_position_final } from "./player-position";
+import { keyboard_downKeys, KEY_INTERACT } from "../page";
 
-const LEVER_SENSITIVITY_RADIUS = 2.7;
+const LEVER_SENSITIVITY_RADIUS = 2.8;
 const SOUL_SENSITIVITY_RADIUS = 1.5;
 
 // ========= Sky mesh ========= //
@@ -46,6 +46,7 @@ export const newLever = (transform: DOMMatrixReadOnly): void => {
       $model._update = () => {
         const matrix = $model.$finalMatrix;
         lever.$matrix = matrix;
+
         if (
           keyboard_downKeys[KEY_INTERACT] &&
           vec3_distance(matrix.transformPoint(), player_position_final) < LEVER_SENSITIVITY_RADIUS
@@ -98,7 +99,7 @@ export const playerModel = newModel((model) => {
   );
 
   // head
-  meshAdd(sphere(30), identity.translate(0, 1).scale(0.5, 0.5, 0.5), material(1, 0.3, 0.4));
+  meshAdd(sphere(20), identity.translate(0, 1).scale(0.5, 0.5, 0.5), material(1, 0.3, 0.4));
 
   const eye = polygons_transform(
     csg_polygons(
@@ -114,15 +115,15 @@ export const playerModel = newModel((model) => {
   meshAdd(cylinder(GQuad), identity.translate(0, 0.9, 0.45).scale(0.15, 0.02, 0.06), material(0.3, 0.3, 0.3));
 
   // body
-  meshAdd(sphere(30), identity.scale(0.7, 0.8, 0.55), material(1, 0.3, 0.4));
+  meshAdd(sphere(20), identity.scale(0.7, 0.8, 0.55), material(1, 0.3, 0.4));
 }, PLAYER_MODEL_ID);
 
 // ========= Soul mesh ========= //
 
 // meshAdd(cylinder(6), identity, material(1, 0.3, 0.5));
 
-const GHOST_SLICES = 100;
-const GHOST_STACKS = 30;
+const GHOST_SLICES = 60;
+const GHOST_STACKS = 20;
 
 meshAdd(
   sphere(GHOST_SLICES, GHOST_STACKS, (a: number, b: number, polygon: Polygon) => {

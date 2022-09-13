@@ -1,4 +1,4 @@
-import { abs, integers_map, identity, type Vec3, type Vec3Optional, max, clamp01 } from "../math";
+import { abs, integers_map, identity, type Vec3, type Vec3Optional } from "../math";
 
 export const material = /* @__PURE__ */ (r: number, g: number, b: number, a: number = 0): number =>
   ((a * 255) << 24) | ((b * 255) << 16) | ((g * 255) << 8) | (r * 255);
@@ -71,9 +71,6 @@ export const cylinder_sides = /* @__PURE__ */ (btm: Polygon, top: Polygon, smoot
     ),
   );
 
-export const cone_sides = /* @__PURE__ */ (btm: Polygon, smooth?: 0 | 1 | undefined): Polygon[] =>
-  btm.map((btmi, i, { length }) => polygon_color([btm[(i + 1) % length]!, { x: 0, y: 1, z: 0 }, btmi], 0, smooth));
-
 /** Simplest composition of polygon functions. */
 export const cylinder = /* @__PURE__ */ (
   segments: number | Vec3Optional[],
@@ -88,13 +85,6 @@ export const cylinder = /* @__PURE__ */ (
   const bottom = polygon_transform(points, identity.translate(0, -1).scale3d(topSize < 0 ? -topSize : 1)).reverse();
   const sides = cylinder_sides(bottom as Polygon, top, smooth);
   sides.push(bottom, top);
-  return sides;
-};
-
-export const cone = /* @__PURE__ */ (segments: number, smooth?: 0 | 1 | undefined): Polygon[] => {
-  const bottom = polygon_transform(polygon_regular(segments), identity.translate(0, -1));
-  const sides = cone_sides(bottom, smooth);
-  sides.push(bottom);
   return sides;
 };
 

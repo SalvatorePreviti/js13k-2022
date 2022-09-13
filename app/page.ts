@@ -1,8 +1,7 @@
 export let mainMenuVisible: boolean | undefined;
 
 import { camera_rotation } from "./camera";
-import { LOCAL_STORAGE_SAVED_GAME_KEY } from "./game/world-state";
-import { player_first_person } from "./input";
+import { gameTime, LOCAL_STORAGE_SAVED_GAME_KEY } from "./game/world-state";
 import { audioContext, songAudioSource } from "./music/audio-context";
 import type { KEY_CODE } from "./utils/keycodes";
 
@@ -16,32 +15,17 @@ export const KEY_BACK = 3;
 
 export const KEY_INTERACT = 5;
 
-export const keyboard_downKeys: (boolean | 0 | undefined)[] = [];
+export const keyboard_downKeys: (boolean | 0 | 1 | undefined)[] = [];
 
 let music_on = !DEBUG;
 
 export let game_play_clicked_once: undefined | 1;
 
-/** Resets the input status after a frame */
-export const input_frameReset = () => (keyboard_downKeys[KEY_INTERACT] = 0);
+export let player_first_person: 0 | 1 | undefined;
 
-const keyMap: Partial<Record<KEY_CODE, number>> = {
-  ["KeyA"]: KEY_LEFT,
-  ["ArrowLeft"]: KEY_LEFT,
+export let touch_movementX = 0;
 
-  ["KeyW"]: KEY_FRONT,
-  ["ArrowUp"]: KEY_FRONT,
-
-  ["KeyD"]: KEY_RIGHT,
-  ["ArrowRight"]: KEY_RIGHT,
-
-  ["KeyS"]: KEY_BACK,
-  ["ArrowDown"]: KEY_BACK,
-
-  ["KeyE"]: KEY_INTERACT,
-  ["Space"]: KEY_INTERACT,
-  ["Enter"]: KEY_INTERACT,
-};
+export let touch_movementY = 0;
 
 const updateMusicOnState = () => {
   if (mainMenuVisible || !music_on) {
@@ -56,33 +40,42 @@ const updateMusicOnState = () => {
 export const setMainMenuVisible = (value: boolean = false) => {
   if (mainMenuVisible !== value) {
     mainMenuVisible = value;
-
-    if (value) {
-      document.exitPointerLock();
-    } else {
-      try {
+    player_first_person = 0;
+    try {
+      if (value) {
+        document.exitPointerLock();
+      } else {
+        game_play_clicked_once = 1;
         songAudioSource.start();
-      } catch {}
-      game_play_clicked_once = 1;
-    }
+      }
+    } catch {}
 
-    updateMusicOnState();
     document.body.className = value ? "l m" : "l";
+    updateMusicOnState();
   }
 };
 
 export const initPage = () => {
+  let cameraRotTouch: Touch | undefined;
+  let cameraPosTouch: Touch | undefined;
+  let touchStartCameraRotX = 0;
+  let touchStartCameraRotY = 0;
+  let touchStartTime = 0;
+
   const handleResize = () => {
     hC.width = innerWidth;
     hC.height = innerHeight;
-    keyboard_downKeys.length = 0;
+    cameraRotTouch = cameraPosTouch = undefined;
+    keyboard_downKeys.length = touch_movementX = touch_movementY = 0;
   };
 
   b1.onclick = () => setMainMenuVisible();
 
+  // b2.ontouchend = () => (touch_first_person = 1);
+
   b2.onclick = () => {
     setMainMenuVisible();
-    hC.requestPointerLock();
+    player_first_person = 1;
   };
 
   b3.onclick = () => {
@@ -98,39 +91,118 @@ export const initPage = () => {
     updateMusicOnState();
   };
 
-  if (!DEBUG) {
-    oncontextmenu = () => false;
-  }
+  // touch controls
+
+  b5.onclick = () => setMainMenuVisible(true);
+
+  onclick = () => {
+    if (!mainMenuVisible) {
+      const diff = gameTime - touchStartTime;
+      if (diff > 0.07 && diff < 0.8) {
+        keyboard_downKeys[KEY_INTERACT] = true;
+      }
+      if (player_first_person) {
+        hC.requestPointerLock();
+      }
+    }
+  };
 
   onresize = handleResize;
   onblur = handleResize;
 
   onkeydown = onkeyup = ({ code, target, type, repeat }) => {
     if (!repeat) {
-      if (type[5] && (code === "Escape" || (code === "Enter" && mainMenuVisible))) {
-        if (game_play_clicked_once) {
+      const pressed = !!type[5] && target === document.body;
+
+      if (pressed && (code === "Escape" || (code === "Enter" && mainMenuVisible))) {
+        if (!mainMenuVisible || game_play_clicked_once) {
           setMainMenuVisible(!mainMenuVisible);
         }
       } else {
-        keyboard_downKeys[keyMap[code as KEY_CODE]!] = type[5] ? target === document.body : 0;
+        const mapped = (
+          {
+            ["KeyA"]: KEY_LEFT,
+            ["ArrowLeft"]: KEY_LEFT,
+
+            ["KeyW"]: KEY_FRONT,
+            ["ArrowUp"]: KEY_FRONT,
+
+            ["KeyD"]: KEY_RIGHT,
+            ["ArrowRight"]: KEY_RIGHT,
+
+            ["KeyS"]: KEY_BACK,
+            ["ArrowDown"]: KEY_BACK,
+
+            ["KeyE"]: KEY_INTERACT,
+            ["Space"]: KEY_INTERACT,
+            ["Enter"]: KEY_INTERACT,
+          } as Partial<Record<KEY_CODE, number>>
+        )[code as KEY_CODE]!;
+        if (mapped === KEY_INTERACT) {
+          if (pressed) {
+            keyboard_downKeys[mapped] = 1;
+          }
+        } else {
+          keyboard_downKeys[mapped] = pressed;
+        }
       }
     }
   };
 
   onmousemove = ({ movementX, movementY }) => {
-    if (player_first_person) {
+    if (player_first_person && (movementX || movementY)) {
       camera_rotation.y += movementX * 0.1;
       camera_rotation.x += movementY * 0.1;
     }
   };
 
-  onmousedown = ({ button }) => {
-    if (!mainMenuVisible && player_first_person && button === 0) {
-      keyboard_downKeys[KEY_INTERACT] = true;
+  hC.ontouchstart = (e) => {
+    if (!mainMenuVisible) {
+      for (const touch of e.changedTouches) {
+        if (player_first_person && touch.pageX > hC.clientWidth / 2) {
+          cameraRotTouch = touch;
+          touchStartCameraRotX = camera_rotation.y;
+          touchStartCameraRotY = camera_rotation.x;
+        } else {
+          cameraPosTouch = touch;
+        }
+      }
+      touchStartTime = gameTime;
+    }
+  };
+
+  hC.ontouchmove = ({ changedTouches }) => {
+    if (!mainMenuVisible) {
+      for (const { pageX, pageY, identifier } of changedTouches) {
+        if (cameraRotTouch?.identifier === identifier) {
+          camera_rotation.y = touchStartCameraRotX + (pageX - cameraRotTouch.pageX) / 3;
+          camera_rotation.x = touchStartCameraRotY + (pageY - cameraRotTouch.pageY) / 3;
+        }
+        if (cameraPosTouch?.identifier === identifier) {
+          touch_movementX = -(pageX - cameraPosTouch.pageX) / 20;
+          touch_movementY = -(pageY - cameraPosTouch.pageY) / 20;
+        }
+      }
+    }
+  };
+
+  hC.ontouchend = (e) => {
+    for (const touch of e.changedTouches) {
+      if (touch.identifier === cameraRotTouch?.identifier) {
+        cameraRotTouch = undefined;
+      }
+      if (touch.identifier === cameraPosTouch?.identifier) {
+        cameraPosTouch = undefined;
+        touch_movementY = touch_movementX = 0;
+      }
     }
   };
 
   document.onvisibilitychange = () => document.hidden && setMainMenuVisible(true);
+
+  if (!DEBUG) {
+    oncontextmenu = () => false;
+  }
 
   handleResize();
   setMainMenuVisible(!DEBUG);

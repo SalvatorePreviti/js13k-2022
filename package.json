@@ -66,7 +66,7 @@
     "csso": "^5.0.5",
     "dprint": "^0.32.1",
     "esbuild": "^0.15.7",
-    "eslint": "^8.23.0",
+    "eslint": "^8.23.1",
     "eslint-plugin-chai-expect": "^3.0.0",
     "eslint-plugin-json": "^3.1.0",
     "eslint-plugin-mocha": "^10.1.0",

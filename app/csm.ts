@@ -1,6 +1,6 @@
 import { integers_map, max, min, identity } from "./math";
 import { polygon_transform } from "./geometry/geometry";
-import { mat_perspective, camera_view } from "./camera";
+import { mat_perspective } from "./camera";
 
 const LIGHT_ROT_X = 298;
 const LIGHT_ROT_Y = 139;
@@ -11,6 +11,7 @@ if (DEBUG) {
 }
 
 export const csm_buildMatrix = /* @__PURE__ */ (
+  camera_view: DOMMatrixReadOnly,
   nearPlane: number,
   farPlane: number,
   zMultiplier: number,

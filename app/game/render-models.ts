@@ -5,14 +5,14 @@ import { playerModel, playerLegsModels } from "./objects";
 import { absoluteTime, PLAYER_MODEL_ID } from "./world-state";
 import { gl } from "../gl";
 
-const drawMesh = ($mesh: Mesh) =>
-  gl.drawElements(gl.TRIANGLES, $mesh.$vertexCount, gl.UNSIGNED_SHORT, $mesh.$vertexOffset * 2);
-
 export const renderModels = (
   worldMatrixLoc: WebGLUniformLocation,
   renderPlayer: 0 | 1 | boolean,
   collisionModelIdUniformLocation?: WebGLUniformLocation,
 ) => {
+  const drawMesh = ($mesh: Mesh) =>
+    gl.drawElements(gl.TRIANGLES, $mesh.$vertexCount, gl.UNSIGNED_SHORT, $mesh.$vertexOffset * 2);
+
   const recursion = (model: Model) => {
     const { $mesh, $children, $visible, $modelId } = model;
     if (!renderPlayer && model.$modelId === PLAYER_MODEL_ID) {

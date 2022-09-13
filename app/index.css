@@ -1,15 +1,18 @@
 html,
 body {
   margin: 0;
-  user-select: none;
   font-family: "Times New Roman", serif;
   background: #000;
-  font-size: max(min(3.8vw, 3.8vh), 25px);
+  font-size: max(min(3.8vw, 3.8vh), 15px);
   text-shadow: 4px 4px 2px #000, -2px -2px 8px #000;
 }
 
 * {
   font-weight: 100;
+  user-select: none;
+  touch-action: none;
+  overscroll-behavior: contain;
+  -webkit-user-select: none;
 }
 
 body,
@@ -98,6 +101,17 @@ h3,
 /* hide loading text if loaded */
 .l h1,
 /* hide messages if in menu */
-.m h4 {
+.m h4,
+.m #b5 {
+  display: none;
+}
+
+.l #b5 {
+  display: block;
+  padding: 10px;
+}
+
+#b5,
+.m #b5 {
   display: none;
 }

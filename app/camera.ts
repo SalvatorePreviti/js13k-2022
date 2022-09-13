@@ -28,7 +28,5 @@ export const camera_rotation = {
   z: 0,
 };
 
-export const camera_view = new DOMMatrix();
-
 export const mat_perspective = (near: number, far: number) =>
   mat_perspectiveXY((hC.clientHeight / hC.clientWidth) * fieldOfViewAmount, fieldOfViewAmount, near, far);

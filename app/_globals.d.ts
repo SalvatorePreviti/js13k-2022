@@ -31,6 +31,7 @@ declare const b1: HTMLElement;
 declare const b2: HTMLElement;
 declare const b3: HTMLElement;
 declare const b4: HTMLElement;
+declare const b5: HTMLElement;
 
 /** Souls counter */
 declare const h3: HTMLCanvasElement;
