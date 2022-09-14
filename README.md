@@ -9,7 +9,7 @@ Sources and references:
 - Constructive Solid Geometry based on Binary Space Partition Trees:
     - https://people.eecs.berkeley.edu/~jrs/274s19/bsptreefaq.html 
     - https://www.researchgate.net/publication/220721659_Set_operation_on_polyhedra_using_binary_space_partitioning_trees
-    - https://github.com/evanw/csg.js/ from which I got inspiration for the optimized and stripped down implementation used here
+    - https://github.com/evanw/csg.js/ from which I got inspiration for the implementation used here
 
 - Cascaded shadowmaps, I use 2 levels for cascaded shadowmaps so the shadows are always rendered in the camera frustum
     - implementation losely based on https://github.com/JoeyDeVries/LearnOpenGL/tree/master/src/8.guest/2021/2.csm
