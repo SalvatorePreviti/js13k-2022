@@ -1,6 +1,6 @@
 # "Dante", an Entry for js13k 2022.
 
-Play it here: https://js13kgames.com/games/dante/index.html
+Play it here: [https://js13kgames.com/games/dante/index.html](https://js13kgames.com/public/entries/dante)
 
 Music by https://twitter.com/ryanmalm and Beethoven https://en.wikipedia.org/wiki/Piano_Sonata_No._14_(Beethoven) (third movement).
 
