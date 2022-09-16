@@ -1,5 +1,4 @@
-import type { Model } from "./scene";
-import { rootModel, _triangleIndices, _vertexPositions, _vertexNormals, _vertexColors } from "./scene";
+import { _triangleIndices, _vertexPositions, _vertexNormals, _vertexColors, allModels } from "./scene";
 import { gl } from "../gl";
 
 export const initTriangleBuffers = () => {
@@ -23,19 +22,8 @@ export const initTriangleBuffers = () => {
   gl.enableVertexAttribArray(2);
 
   if (DEBUG) {
-    let modelsCount = 0;
-    const recursion = ({ $mesh, $children }: Model) => {
-      for (const child of $children) {
-        recursion(child);
-      }
-      if ($mesh) {
-        ++modelsCount;
-      }
-    };
-    recursion(rootModel);
-
     console.log(
-      "models: " + modelsCount,
+      "models: " + allModels.length,
       "vertices: " +
         _vertexPositions.length / 3 +
         " indices:" +

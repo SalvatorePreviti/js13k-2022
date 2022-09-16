@@ -5,7 +5,6 @@ import { csg_polygons, csg_subtract } from "../geometry/csg";
 import { GQuad, GHorn } from "../geometry/solids";
 import { meshAdd, meshEnd, newModel, withEditMatrix, type Model } from "./scene";
 import {
-  PLAYER_MODEL_ID,
   levers,
   souls,
   onPlayerPullLever,
@@ -42,7 +41,8 @@ const leverMeshes = [material(1, 0.5, 0.2), material(0.7, 1, 0.2)].map((handleMa
 export const newLever = (transform: DOMMatrixReadOnly): void => {
   withEditMatrix(transform, () => {
     newModel(($model) => {
-      const lever: Lever = { $value: 0, $lerpValue: 0, $lerpValue2: 0, $model };
+      const $parent = $model.$parent!;
+      const lever: Lever = { $value: 0, $lerpValue: 0, $lerpValue2: 0, $parent };
       const index = levers.push(lever) - 1;
       $model._update = () => {
         const { $value, $lerpValue, $lerpValue2 } = lever;
@@ -75,45 +75,52 @@ export const newLever = (transform: DOMMatrixReadOnly): void => {
 
 export let playerLegsModels: [Model, Model];
 
-export const playerModel = newModel(() => {
-  // Player legs
+export let playerModel: Model;
 
-  playerLegsModels = [-1, 1].map((x) =>
-    newModel(() => {
-      meshAdd(cylinder(10, 1), identity.translate(x * 0.3, -0.8).scale(0.2, 0.7, 0.24), material(1, 0.3, 0.4));
-    }),
-  ) as [Model, Model];
+export const initPlayerModel = () => {
+  playerModel = newModel(() => {
+    // Player legs
 
-  // Player body
+    playerLegsModels = [-1, 1].map((x) =>
+      newModel(() => {
+        meshAdd(cylinder(10, 1), identity.translate(x * 0.3, -0.8).scale(0.2, 0.7, 0.24), material(1, 0.3, 0.4));
+      }),
+    ) as [Model, Model];
 
-  // horns
-  [0, 180].map((r) =>
-    meshAdd(
-      GHorn,
-      identity.rotate(0, r).translate(0.2, 1.32).rotate(0, 0, -30).scale(0.2, 0.6, 0.2),
-      material(1, 1, 0.8),
-    ),
-  );
+    // Player body
 
-  // head
-  meshAdd(sphere(20), identity.translate(0, 1).scale(0.5, 0.5, 0.5), material(1, 0.3, 0.4));
+    // horns
+    [0, 180].map((r) =>
+      meshAdd(
+        GHorn,
+        identity.rotate(0, r).translate(0.2, 1.32).rotate(0, 0, -30).scale(0.2, 0.6, 0.2),
+        material(1, 1, 0.8),
+      ),
+    );
 
-  const eye = polygons_transform(
-    csg_polygons(
-      csg_subtract(cylinder(15, 1), polygons_transform(cylinder(GQuad), identity.translate(0, 0, 1).scale(2, 2, 0.5))),
-    ),
-    identity.rotate(-90, 0).scale(0.1, 0.05, 0.1),
-    material(0.3, 0.3, 0.3),
-  );
+    // head
+    meshAdd(sphere(20), identity.translate(0, 1).scale(0.5, 0.5, 0.5), material(1, 0.3, 0.4));
 
-  [-1, 1].map((i) => meshAdd(eye, identity.translate(i * 0.2, 1.2, 0.4).rotate(0, i * 20, i * 20)));
+    const eye = polygons_transform(
+      csg_polygons(
+        csg_subtract(
+          cylinder(15, 1),
+          polygons_transform(cylinder(GQuad), identity.translate(0, 0, 1).scale(2, 2, 0.5)),
+        ),
+      ),
+      identity.rotate(-90, 0).scale(0.1, 0.05, 0.1),
+      material(0.3, 0.3, 0.3),
+    );
 
-  // mouth
-  meshAdd(cylinder(GQuad), identity.translate(0, 0.9, 0.45).scale(0.15, 0.02, 0.06), material(0.3, 0.3, 0.3));
+    [-1, 1].map((i) => meshAdd(eye, identity.translate(i * 0.2, 1.2, 0.4).rotate(0, i * 20, i * 20)));
 
-  // body
-  meshAdd(sphere(20), identity.scale(0.7, 0.8, 0.55), material(1, 0.3, 0.4));
-}, PLAYER_MODEL_ID);
+    // mouth
+    meshAdd(cylinder(GQuad), identity.translate(0, 0.9, 0.45).scale(0.15, 0.02, 0.06), material(0.3, 0.3, 0.3));
+
+    // body
+    meshAdd(sphere(20), identity.scale(0.7, 0.8, 0.55), material(1, 0.3, 0.4));
+  });
+};
 
 // ========= Soul mesh ========= //
 

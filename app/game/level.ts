@@ -7,7 +7,6 @@ import {
   secondBoatLerp,
   gameTime,
   levers,
-  PLAYER_MODEL_ID,
   rotatingHexCorridorRotation,
   rotatingPlatform1Rotation,
   rotatingPlatform2Rotation,
@@ -15,11 +14,8 @@ import {
   souls_collected_count,
 } from "./world-state";
 import { newLever, newSoul, soulMesh } from "./objects";
-import { camera_position } from "../camera";
 
 export const buildWorld = () => {
-  let _modelIdCounter = PLAYER_MODEL_ID + 1;
-
   const bigArc = csg_polygons(
     csg_subtract(
       polygons_transform(cylinder(GQuad), identity.translate(0, -8).scale(6, 15, 2.2)),
@@ -83,7 +79,7 @@ export const buildWorld = () => {
           }),
         );
       });
-    }, ++_modelIdCounter);
+    });
   });
 
   // first boat attachment
@@ -228,7 +224,7 @@ export const buildWorld = () => {
       );
     };
     meshAdd(cylinder(5), identity.translate(0, -0.2).scale(5, 1, 5), material(0.6, 0.65, 0.7, 0.3));
-  }, ++_modelIdCounter);
+  });
 
   newLever(identity.translate(15, -2, 4));
 
@@ -279,7 +275,7 @@ export const buildWorld = () => {
         );
         // bottom
         meshAdd(cylinder(GQuad), identity.translate(0, -3, -40).scale(8, 2, 8), material(0.4, 0.4, 0.4, 0.3));
-      }, ++_modelIdCounter);
+      });
 
     blackPlatform(0.7, 12);
     withEditMatrix(identity.translate(0, 0, 20), () => blackPlatform(1, 8.2));
@@ -312,7 +308,7 @@ export const buildWorld = () => {
 
         newSoul(identity.translate(0, 2.8), [0, 0, 4.5]);
       });
-    }, ++_modelIdCounter);
+    });
 
     // ******** LEVEL 3 ********
 
@@ -327,7 +323,7 @@ export const buildWorld = () => {
       meshAdd(cylinder(GQuad), identity.translate(-23, -2.2, -13).scale(3, 1, 4), material(0.5, 0.5, 0.5, 0.3));
 
       newLever(identity.translate(-23, -0.5, -8.5));
-    }, ++_modelIdCounter);
+    });
 
     const level3Oscillation = () =>
       clamp01(1 - getOscillationAmount() * 5) * lerpneg(levers[4]!.$lerpValue, levers[5]!.$lerpValue);
@@ -359,7 +355,7 @@ export const buildWorld = () => {
         identity.translate(-33, -3, -20),
         material(0.7, 0.7, 0.7, 0.2),
       );
-    }, ++_modelIdCounter);
+    });
 
     // horizontaly oscillating mini platforms
 
@@ -383,7 +379,7 @@ export const buildWorld = () => {
       );
 
       meshAdd(cylinder(GQuad), identity.translate(-39, -3, -20).scale(3, 1.4, 2.7), material(0.9, 0.9, 0.9, 0.2));
-    }, ++_modelIdCounter);
+    });
 
     // hex corridor door
 
@@ -628,7 +624,7 @@ export const buildWorld = () => {
         [0, 12, 24].map((x) =>
           meshAdd(cylinder(GQuad), identity.translate(x, x / -13).scale(2.8, 1.5, 3), material(0.2, 0.5, 0.6, 0.2)),
         );
-      }, ++_modelIdCounter);
+      });
 
       newModel((model) => {
         model._update = () => {
@@ -638,7 +634,7 @@ export const buildWorld = () => {
         [6, 18].map((x) =>
           meshAdd(cylinder(GQuad), identity.translate(x, x / -13).scale(2.8, 1.5, 3), material(0.1, 0.4, 0.5, 0.2)),
         );
-      }, ++_modelIdCounter);
+      });
     });
 
     // pad after elevators
@@ -765,7 +761,7 @@ export const buildWorld = () => {
       model._update = () => getBoatAnimationMatrix(secondBoatLerp * -65);
       newLever(identity.translate(0, -3, -4).rotate(0, 180));
       meshAdd(boatPolygons);
-    }, ++_modelIdCounter);
+    });
   });
 
   // ******** LEVEL AFTER BOAT ********
@@ -965,7 +961,7 @@ export const buildWorld = () => {
           identity.translate(-14.6 - i * 4.8 - (i > 2 ? 2 : 0), -i / 2.3, -21.5).scale(2.6, 1, 2.5),
           material(0.5 - i / 8, i / 12 + 0.5, 0.7, 0.3),
         );
-      }, ++_modelIdCounter),
+      }),
     );
 
     // after the hex pads
@@ -1012,7 +1008,7 @@ export const buildWorld = () => {
             material(1, 1, 0.8, 0.2),
           ),
         );
-      }, ++_modelIdCounter);
+      });
     });
 
     // far arc gate
@@ -1117,7 +1113,7 @@ export const buildWorld = () => {
         meshAdd(cylinder(5), identity.translate(0, 2).scale(1, 2), material(0.3, 0.3, 0.3, 0.2));
 
         newSoul(identity.translate(0, 3), ...polygon_regular(10).map(({ x, z }) => [x * 5.6, z * 5.6, 2.5]));
-      }, ++_modelIdCounter);
+      });
     });
 
     withEditMatrix(identity.translate(36, 0.3, -9), () => {
@@ -1136,7 +1132,7 @@ export const buildWorld = () => {
             material(1, 1, 0.8),
           ),
         );
-      }, ++_modelIdCounter);
+      });
     });
 
     withEditMatrix(identity.translate(52, 0.3, -9), () => {
@@ -1153,7 +1149,7 @@ export const buildWorld = () => {
           ),
         );
         meshAdd(rotPlatformBase);
-      }, ++_modelIdCounter);
+      });
     });
 
     withEditMatrix(identity.translate(52, 0.3, -25), () => {
@@ -1173,7 +1169,7 @@ export const buildWorld = () => {
           ),
         );
         meshAdd(rotPlatformBase);
-      }, ++_modelIdCounter);
+      });
     });
 
     // exit from the rotating platforms
@@ -1201,7 +1197,7 @@ export const buildWorld = () => {
           identity.translate(76.5, -2.1 + i / 2, -25 + 7.5 * (1 - i / 30) * i).scale(3.3, 3 - i / 2, 3.45 - i / 5),
           m,
         );
-      }, ++_modelIdCounter),
+      }),
     );
 
     withEditMatrix(identity.translate(100, 0.2, -20), () => {
@@ -1299,7 +1295,7 @@ export const buildWorld = () => {
           );
           meshAdd(cylinder(GQuad), identity.translate(0, 6.2, z).scale(0.5, 11, 0.5), material(0.5, 0.3, 0.3, 0.4));
         });
-      }, ++_modelIdCounter);
+      });
 
       meshAdd(
         cylinder(6),
@@ -1320,7 +1316,7 @@ export const buildWorld = () => {
         meshAdd(cylinder(5), identity.scale(5.5, 0.9, 5.5), material(0.25, 0.25, 0.25, 0.4));
 
         newLever(identity.translate(0, 1.5, -1).rotate(0, 180));
-      }, ++_modelIdCounter);
+      });
 
       newSoul(identity.translate(0, 19, 39), [0, 0, 3.5]);
     });

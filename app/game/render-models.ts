@@ -2,7 +2,7 @@ import { rootModel, type Mesh, type Model } from "./scene";
 import { identity } from "../math";
 import { mainMenuVisible } from "../page";
 import { playerModel, playerLegsModels } from "./objects";
-import { absoluteTime, PLAYER_MODEL_ID } from "./world-state";
+import { absoluteTime } from "./world-state";
 import { gl } from "../gl";
 
 export const renderModels = (
@@ -16,7 +16,7 @@ export const renderModels = (
 
   const recursion = (model: Model) => {
     const { $modelId, $mesh, $children, $visible, $skipShadow } = model;
-    if (!renderPlayer && model.$modelId === PLAYER_MODEL_ID) {
+    if (!renderPlayer && (model === playerModel || model === playerLegsModels[0] || model === playerLegsModels[1])) {
       return;
     }
     if (skipFarObjects && $skipShadow) {

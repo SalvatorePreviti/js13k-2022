@@ -14,6 +14,7 @@ import { startMainLoop } from "./main-loop";
 import { song_numChannels } from "./music/song";
 import { soundbox_generate } from "./music/music-player";
 import { loadSong } from "./music/audio-context";
+import { initPlayerModel } from "./game/objects";
 
 setTimeout(() => {
   let songLoad = 0;
@@ -66,6 +67,8 @@ setTimeout(() => {
   }
 
   newModel(NO_INLINE(buildWorld));
+
+  initPlayerModel();
 
   if (DEBUG) {
     console.timeEnd("boot");

@@ -57,7 +57,7 @@ export interface Lever {
   $value: 0 | 1;
   $lerpValue: number;
   $lerpValue2: number;
-  $model: Model;
+  $parent: Model;
   $matrix?: DOMMatrixReadOnly;
 }
 
@@ -70,8 +70,6 @@ const getItemValue = <T>({ $value }: { readonly $value: T }) => $value;
 export const levers: Lever[] = [];
 
 export const souls: Soul[] = [];
-
-export const PLAYER_MODEL_ID = 2;
 
 export let player_last_pulled_lever = 0;
 

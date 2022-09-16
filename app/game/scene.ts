@@ -12,7 +12,7 @@ export const rootModel: Model = {
 
 export let currentEditModel = rootModel;
 
-export const modelsByModelId: Model[] = [];
+export const allModels: Model[] = [];
 
 export const editMatrixStack: DOMMatrixReadOnly[] = [identity];
 
@@ -110,24 +110,22 @@ export const meshEnd = (): Mesh => {
   };
 };
 
-export const newModel = (fn: (model: Model) => void | Mesh | undefined, $modelId = 0) => {
+export const newModel = (fn: (model: Model) => void | Mesh | undefined) => {
   const model: Model = {
     ...rootModel,
     $parent: currentEditModel,
     $children: [],
     $initialMatrix: editMatrixStack.at(-1)!,
-    $modelId,
+    $modelId: allModels.length + 1,
   };
+  allModels.push(model);
   editMatrixStack.push(identity);
   _pendingPolygonsStack.push([]);
   currentEditModel.$children.push(model);
   currentEditModel = model;
 
   const modelMesh = fn(model) || meshEnd();
-  modelsByModelId[model.$modelId] = model;
-  if (modelMesh && modelMesh.$vertexCount) {
-    model.$mesh = modelMesh;
-  }
+  model.$mesh = modelMesh;
   currentEditModel = model.$parent!;
   editMatrixStack.pop();
   _pendingPolygonsStack.pop();
@@ -136,9 +134,6 @@ export const newModel = (fn: (model: Model) => void | Mesh | undefined, $modelId
 
 export const updateModels = (model: Model, parentMatrix = identity) => {
   const update = model._update;
-  if (model.$parent && !model.$modelId) {
-    model.$modelId = model.$parent.$modelId || 1;
-  }
   model.$finalMatrix = parentMatrix.multiply(model.$initialMatrix);
   if (update) {
     const updateResult = update(model);
