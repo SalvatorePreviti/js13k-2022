@@ -34,8 +34,10 @@ export const buildWorld = () => {
       material(0.8, 0.8, 0.8, 0.2),
     );
 
+    // SOUL 0 - soul after first boat
     newSoul(identity.translate(-0.5, 2.8, -20), [0, 0, 2.5], [0, -3, 2.5]);
 
+    // SOUL 1 - soul after first gate
     newSoul(
       identity.translate(0, 2.8),
       [5, 10, 3],
@@ -252,6 +254,7 @@ export const buildWorld = () => {
             ),
           );
 
+          // SOUL 2 - soul over the central oscillating platform in the second level
           newSoul(identity.translate(0, 2.8), [0, 0, 4.5]);
         });
       });
@@ -419,6 +422,7 @@ export const buildWorld = () => {
 
       // platform after the rotating hex corridor
 
+      // SOUL 3 - soul in the central area, after the rotating hex corridor
       newSoul(identity.translate(-100, 0.2, -20), [0, 0, 7.5], [-8, 0, 3.5], [-12, 0, 3.5], [-15, 0, 3.5]);
 
       meshAdd(
@@ -515,6 +519,7 @@ export const buildWorld = () => {
         ),
       );
 
+      // SOUL 4 - soul after the central gate
       newSoul(identity.translate(-89, 0.2, 5), [0, 0, 6]);
 
       // gate bars
@@ -625,6 +630,7 @@ export const buildWorld = () => {
         newModel((model) => {
           model._update = () => identity.translate(0, levers[7]!.$lerpValue2 * -7.3);
 
+          // SOUL 5 - soul over the central sculpture/monument
           newSoul(
             identity.translate(0, 11).rotate(0, 0, 10),
             ...polygon_regular(15).map(({ x, z }) => [x * 3, z * 3, 1.5]),
@@ -705,6 +711,7 @@ export const buildWorld = () => {
           ),
         );
 
+        // SOUL 6 - soul over the grid with hex holes
         newSoul(identity.translate(0, 2.9, -38), [0, 0, 12]);
       });
 
@@ -758,6 +765,7 @@ export const buildWorld = () => {
 
       newLever(identity.translate(7, -1.4, -6).rotate(0, 180));
 
+      // SOUL 7 - soul after the second boat
       newSoul(identity.translate(8, 0.2), [0, 0, 3.5]);
 
       // arcs
@@ -874,6 +882,7 @@ export const buildWorld = () => {
         ),
       );
 
+      // SOUL 8 - soul after the pushing rods
       newSoul(identity.translate(30, -3, -28).rotate(0, 0, 4), [0, -2, 3.5], [0, 2, 3.5]);
 
       meshAdd(cylinder(9), identity.translate(25, -5.8, -28).scale(2.5, 0.9, 2.5), material(0.5, 0.5, 0.5, 0.3));
@@ -963,6 +972,7 @@ export const buildWorld = () => {
             newLever(identity.translate(0, 3.4).rotate(0, 180));
           });
 
+          // SOUL 9 - soul after the hex pads, in the hex donut with horns
           newSoul(identity.translate(-5, 4), [0, -1.2, 1.7], [0, 1.2, 1.7]);
 
           // lateral horns
@@ -1085,6 +1095,7 @@ export const buildWorld = () => {
           meshAdd(cylinder(8), identity.translate(0, 2).scale(3, 1.5, 3), material(0.7, 0.7, 0.7, 0.1));
           meshAdd(cylinder(5), identity.translate(0, 2).scale(1, 2), material(0.3, 0.3, 0.3, 0.2));
 
+          // SOUL 10 - soul over the first rotating platform
           newSoul(identity.translate(0, 3), ...polygon_regular(10).map(({ x, z }) => [x * 5.6, z * 5.6, 2.5]));
         });
       });
@@ -1231,6 +1242,7 @@ export const buildWorld = () => {
 
         newLever(identity.translate(0, 1.7, -13).rotate(0, 180));
 
+        // SOUL 11 - soul in the last platform
         newSoul(identity.translate(0, 3), ...polygon_regular(9).map(({ x, z }) => [x * 9, z * 9, 4]));
 
         meshAdd(
@@ -1299,6 +1311,7 @@ export const buildWorld = () => {
           newLever(identity.translate(0, 1.5, -1).rotate(0, 180));
         });
 
+        // SOUL 12 - soul after the pendulums
         newSoul(identity.translate(0, 19, 39), [0, 0, 3.5]);
       });
     });
