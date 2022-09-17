@@ -449,8 +449,6 @@ const newModel = fn => {
     $initialMatrix: editMatrixStack.at(-1),
     $finalMatrix: identity,
     $modelId: allModels.length + 1,
-    $visible: 1,
-    $skipShadow: 0,
     $attachPlayer: 1,
     $parent: previousModel === allModels[0] ? void 0 : previousModel,
   };
@@ -733,7 +731,6 @@ const newLever = transform => {
           $lerpValue2,
         } = lever;
         const point = (lever.$matrix = $model.$finalMatrix).transformPoint();
-        const cameraDistance = vec3_distance(point, camera_position);
         return vec3_distance(point, player_position_final) < 2.9 && keyboard_downKeys[5]
           && ($lerpValue < .3 || .7 < $lerpValue)
           && (lever.$value = $value ? 0 : 1,
@@ -742,8 +739,6 @@ const newLever = transform => {
             saveGame()),
           lever.$lerpValue = lerpDamp($lerpValue, $value, 4),
           lever.$lerpValue2 = lerpDamp($lerpValue2, $value, 1),
-          $model.$skipShadow = 80 < vec3_distance(point, camera_position),
-          $model.$visible = cameraDistance < 150,
           $model.$mesh = leverMeshes[.5 < $lerpValue ? 1 : 0],
           identity.rotate(60 * lever.$lerpValue - 30, 0).translateSelf(0, 1);
       };
@@ -846,8 +841,7 @@ const newSoul = (transform, ...walkingPath) => {
             7 * Math.sin(2 * gameTime),
           ).skewYSelf(7 * Math.sin(1.4 * gameTime));
         const soulPos = model.$finalMatrix.multiply(animationMatrix).transformPoint();
-        model.$skipShadow = 100 < vec3_distance(soulPos, camera_position),
-          vec3_distance(soulPos, player_position_final) < 1.5
+        vec3_distance(soulPos, player_position_final) < 1.5
           && (soul.$value = 1,
             showMessage(
               [
@@ -873,7 +867,6 @@ const newSoul = (transform, ...walkingPath) => {
       return soul.$value
         && (model.$parent = firstBoatModel,
           model.$initialMatrix = identity,
-          model.$skipShadow = !1,
           animationMatrix = identity.translate(
             index2 % 4 * 1.2 - 1.7 + Math.sin(gameTime + index2) / 6,
             -2,
@@ -924,12 +917,10 @@ const buildWorld = () => {
       ),
       [-15, 15].map((z, i) => {
         meshAdd(cylinder(GQuad), identity.translate(0, 6.3, z).scale(4, .3, 1), material(.3, .3, .3, .4)),
-          meshAdd(cylinder(GQuad), identity.translate(0, 1, z).scale(3, .2, .35), material(.3, .3, .38, .2)),
+          meshAdd(cylinder(GQuad), identity.translate(0, 1, z).scale(3, .2, .35), material(.5, .5, .5, .3)),
           withEditMatrix(identity.translate(0, 0, z), () =>
-            newModel(model => (model._update = () => {
-              const v = levers[i + 1].$lerpValue;
-              return model.$visible = v < .99, identity.translate(0, 5 * -v);
-            },
+            newModel(model => (model._update = () =>
+              identity.translate(0, 4.7 * -levers[i + 1].$lerpValue),
               entranceBarsMesh)
             ));
       }),
@@ -990,13 +981,15 @@ const buildWorld = () => {
       ),
       newModel(model => {
         newLever(identity.translate(0, 1.2)),
-          model._update = () => (model.$visible = .01 < levers[3].$lerpValue,
+          model._update = () =>
             identity.translate(
               0,
-              (5 * Math.cos(1.5 * gameTime) + 2) * levers[3].$lerpValue2 * (1 - levers[2].$lerpValue)
-                + -15 * (1 - levers[3].$lerpValue),
+              .01 < levers[3].$lerpValue
+                ? (5 * Math.cos(1.5 * gameTime) + 2) * levers[3].$lerpValue2 * (1 - levers[2].$lerpValue)
+                  + -15 * (1 - levers[3].$lerpValue)
+                : -500,
               0,
-            )),
+            ),
           meshAdd(cylinder(5), identity.translate(0, -0.2).scale(5, 1, 5), material(.6, .65, .7, .3));
       }),
       newLever(identity.translate(15, -2, 4)),
@@ -1606,7 +1599,6 @@ const buildWorld = () => {
           integers_map(4, i =>
             newModel(model => {
               model._update = () => {
-                model.$visible = levers[1].$value && levers[2].$value;
                 const osc = hexPadShouldOscillate();
                 return identity.translate(
                   2 < i ? 2 * (1 - osc) + osc : 0,
@@ -1624,7 +1616,6 @@ const buildWorld = () => {
           withEditMatrix(identity.translate(-39.7, -2.5, -21.5), () => {
             newModel(model => {
               model._update = () => {
-                model.$visible = levers[1].$value && levers[2].$value;
                 const osc = hexPadShouldOscillate();
                 return identity.translate(
                   2.5 * (1 - osc),
@@ -2014,7 +2005,7 @@ const initShaderProgram = (vertexShader, sfsSource) => {
     name => name ? uniforms[name] || (uniforms[name] = gl["gan"](program, name)) : gl["u7y"](program);
 };
 
-const renderModels = (worldMatrixLoc, renderPlayer, skipFarObjects, collisionModelIdUniformLocation) => {
+const renderModels = (worldMatrixLoc, renderPlayer, collisionModelIdUniformLocation) => {
   const drawMesh = $mesh => gl["d97"](4, $mesh.$vertexCount, 5123, 2 * $mesh.$vertexOffset);
 
   if (mainMenuVisible) {
@@ -2026,13 +2017,9 @@ const renderModels = (worldMatrixLoc, renderPlayer, skipFarObjects, collisionMod
       const {
         $modelId,
         $mesh,
-        $visible,
-        $skipShadow,
-        $parent,
       } = model;
-      !(renderPlayer || model !== playerModel && model !== playerLegsModels[0] && model !== playerLegsModels[1])
-        || skipFarObjects && $skipShadow || !$visible || $parent && !$parent.$visible || !$mesh
-        || (collisionModelIdUniformLocation && gl["ube"](collisionModelIdUniformLocation, $modelId / 255),
+      (renderPlayer || model !== playerModel && model !== playerLegsModels[0] && model !== playerLegsModels[1]) && $mesh
+        && (collisionModelIdUniformLocation && gl["ube"](collisionModelIdUniformLocation, $modelId / 255),
           gl["uae"](worldMatrixLoc, !1, model.$finalMatrix.toFloat32Array()),
           drawMesh($mesh));
     }
@@ -2483,7 +2470,7 @@ setTimeout(() => {
                 .3 - player_position_final.z,
               ).toFloat32Array(),
             ),
-            renderModels(collisionShader("c"), 0, 1, collisionShader("j")),
+            renderModels(collisionShader("c"), 0, collisionShader("j")),
             gl["cbf"](!1, !0, !1, !1),
             gl["c4s"](16640),
             gl["cbf"](!1, !0, !0, !1),
@@ -2493,7 +2480,7 @@ setTimeout(() => {
               identity.translate(-player_position_final.x, -player_position_final.y, -player_position_final.z - .3)
                 .toFloat32Array(),
             ),
-            renderModels(collisionShader("c"), 0, 1, collisionShader("j")),
+            renderModels(collisionShader("c"), 0, collisionShader("j")),
             gl["cbf"](!0, !0, !0, !0),
             1 === currentModelId
             && (levers[9].$value = player_position_final.x < -15 && player_position_final.z < 0 ? 1 : 0)),
@@ -2578,7 +2565,7 @@ setTimeout(() => {
                 gl["iay"](36160, [36096]),
                 gl["c4s"](256),
                 gl["uae"](csmShader("b"), !1, lightSpaceMatrix),
-                renderModels(csmShader("c"), !player_first_person, 1))
+                renderModels(csmShader("c"), !player_first_person))
               : gl["uae"](lightSpaceMatrixLoc, !1, lightSpaceMatrix);
           };
       });

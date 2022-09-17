@@ -66,15 +66,11 @@ export const buildWorld = () => {
       //  gate top
       meshAdd(cylinder(GQuad), identity.translate(0, 6.3, z).scale(4, 0.3, 1), material(0.3, 0.3, 0.3, 0.4));
       //  gate bottom
-      meshAdd(cylinder(GQuad), identity.translate(0, 1, z).scale(3, 0.2, 0.35), material(0.3, 0.3, 0.38, 0.2));
+      meshAdd(cylinder(GQuad), identity.translate(0, 1, z).scale(3, 0.2, 0.35), material(0.5, 0.5, 0.5, 0.3));
       // in and out gate bars
       withEditMatrix(identity.translate(0, 0, z), () =>
         newModel((model) => {
-          model._update = () => {
-            const v = levers[i + 1]!.$lerpValue;
-            model.$visible = v < 0.99;
-            return identity.translate(0, -v * 5);
-          };
+          model._update = () => identity.translate(0, -levers[i + 1]!.$lerpValue * 4.7);
           return entranceBarsMesh;
         }),
       );
@@ -171,11 +167,13 @@ export const buildWorld = () => {
       newLever(identity.translate(0, 1.2));
 
       model._update = () => {
-        model.$visible = levers[3]!.$lerpValue > 0.01;
         return identity.translate(
           0,
-          (Math.cos(gameTime * 1.5) * 5 + 2) * levers[3]!.$lerpValue2 * (1 - levers[2]!.$lerpValue) +
-            (1 - levers[3]!.$lerpValue) * -15,
+          levers[3]!.$lerpValue > 0.01
+            ? (Math.cos(gameTime * 1.5) * 5 + 2) * levers[3]!.$lerpValue2 * (1 - levers[2]!.$lerpValue) +
+                (1 - levers[3]!.$lerpValue) * -15
+            : // invisible
+              -500,
           0,
         );
       };
@@ -929,7 +927,6 @@ export const buildWorld = () => {
       integers_map(4, (i) =>
         newModel((model) => {
           model._update = () => {
-            model.$visible = levers[1]!.$value && levers[2]!.$value;
             const osc = hexPadShouldOscillate();
             return identity.translate(
               i > 2 ? (1 - osc) * 2 + osc : 0,
@@ -952,7 +949,6 @@ export const buildWorld = () => {
         // pad with hole
         newModel((model) => {
           model._update = () => {
-            model.$visible = levers[1]!.$value && levers[2]!.$value;
             const osc = hexPadShouldOscillate();
             return identity
               .translate((1 - osc) * 2.5, (1 - levers[8]!.$lerpValue) * -3 + osc * Math.sin(gameTime * 0.8) * -1)

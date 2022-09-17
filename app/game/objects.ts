@@ -18,7 +18,6 @@ import {
 } from "./world-state";
 import { player_position_final } from "./player-position";
 import { keyboard_downKeys, KEY_INTERACT } from "../page";
-import { camera_position } from "../camera";
 
 const LEVER_SENSITIVITY_RADIUS = 2.9;
 const SOUL_SENSITIVITY_RADIUS = 1.5;
@@ -48,7 +47,6 @@ export const newLever = (transform: DOMMatrixReadOnly): void => {
       $model._update = () => {
         const { $value, $lerpValue, $lerpValue2 } = lever;
         const point = (lever.$matrix = $model.$finalMatrix).transformPoint();
-        const cameraDistance = vec3_distance(point, camera_position);
 
         if (vec3_distance(point, player_position_final) < LEVER_SENSITIVITY_RADIUS && keyboard_downKeys[KEY_INTERACT]) {
           if ($lerpValue < 0.3 || $lerpValue > 0.7) {
@@ -59,8 +57,6 @@ export const newLever = (transform: DOMMatrixReadOnly): void => {
 
         lever.$lerpValue = lerpDamp($lerpValue, $value, 4);
         lever.$lerpValue2 = lerpDamp($lerpValue2, $value, 1);
-        $model.$skipShadow = vec3_distance(point, camera_position) > 80;
-        $model.$visible = cameraDistance < 150;
         $model.$mesh = leverMeshes[$lerpValue > 0.5 ? 1 : 0]!;
         return identity.rotate(lever.$lerpValue * 60 - 30, 0).translateSelf(0, 1);
       };
@@ -275,7 +271,6 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]
 
           const soulPos = model.$finalMatrix.multiply(animationMatrix).transformPoint();
 
-          model.$skipShadow = vec3_distance(soulPos, camera_position) > 100;
           if (vec3_distance(soulPos, player_position_final) < SOUL_SENSITIVITY_RADIUS) {
             soul.$value = 1;
             onSoulCollected();
@@ -286,7 +281,6 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]
           // Captured.
           model.$parent = firstBoatModel;
           model.$initialMatrix = identity;
-          model.$skipShadow = false;
 
           animationMatrix = identity.translate(
             (index % 4) * 1.2 - 1.7 + Math.sin(gameTime + index) / 6,
