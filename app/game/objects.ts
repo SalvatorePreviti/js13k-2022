@@ -176,7 +176,7 @@ export const soulMesh = meshEnd();
 
 export type Circle = [number, number, number];
 
-export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]): void => {
+export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]) =>
   withEditMatrix(transform, () => {
     const soul: Soul = { $value: 0 };
 
@@ -203,7 +203,7 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]
 
     const index = souls.push(soul) - 1;
 
-    newModel((model) => {
+    return newModel((model) => {
       model._update = () => {
         let animationMatrix: DOMMatrixReadOnly;
 
@@ -294,4 +294,3 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]
       return soulMesh;
     });
   });
-};

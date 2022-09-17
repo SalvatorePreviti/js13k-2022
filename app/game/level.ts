@@ -1,7 +1,8 @@
 import { abs, clamp01, integers_map, lerpneg, max, min, identity } from "../math";
-import { material, cylinder, polygons_transform, polygon_regular } from "../geometry/geometry";
+import { material, cylinder, polygons_transform } from "../geometry/geometry";
 import { csg_subtract, csg_polygons, csg_union } from "../geometry/csg";
 import { GQuad, GHorn, boatPolygons, bigArc } from "../geometry/solids";
+import type { Model } from "./scene";
 import { meshAdd, meshEnd, withEditMatrix, newModel } from "./scene";
 import {
   secondBoatLerp,
@@ -11,8 +12,16 @@ import {
   rotatingPlatform1Rotation,
   rotatingPlatform2Rotation,
 } from "./world-state";
-import { getBoatAnimationMatrix, initFirstBoatModel, newLever, newSoul } from "./objects";
+import { getBoatAnimationMatrix, initFirstBoatModel, newLever } from "./objects";
 import { initSouls } from "./init-souls";
+
+export let centralOscillatingPlatformModel: Model;
+
+export let centralSculptureMonumentModel: Model;
+
+export let donutWithHornsModel: Model;
+
+export let firstRotatingPlatformModel: Model;
 
 export const buildWorld = () => {
   newModel(() => {
@@ -52,12 +61,10 @@ export const buildWorld = () => {
       //  gate bottom
       meshAdd(cylinder(GQuad), identity.translate(0, 1, z).scale(3, 0.2, 0.35), material(0.5, 0.5, 0.5, 0.3));
       // in and out gate bars
-      withEditMatrix(identity.translate(0, 0, z), () =>
-        newModel((model) => {
-          model._update = () => identity.translate(0, -levers[i + 1]!.$lerpValue * 4.7);
-          return entranceBarsMesh;
-        }),
-      );
+      newModel((model) => {
+        model._update = () => identity.translate(0, -levers[i + 1]!.$lerpValue * 4.7, z);
+        return entranceBarsMesh;
+      });
     });
 
     // horns
@@ -148,8 +155,6 @@ export const buildWorld = () => {
     // moving central platform
 
     newModel((model) => {
-      newLever(identity.translate(0, 1.2));
-
       model._update = () => {
         return identity.translate(
           0,
@@ -161,6 +166,9 @@ export const buildWorld = () => {
           0,
         );
       };
+
+      newLever(identity.translate(0, 1.2));
+
       meshAdd(cylinder(5), identity.translate(0, -0.2).scale(5, 1, 5), material(0.6, 0.65, 0.7, 0.3));
     });
 
@@ -168,542 +176,520 @@ export const buildWorld = () => {
 
     // ******** LEVEL 2 ********
 
-    withEditMatrix(identity.translate(0, 0, 75), () => {
-      const getOscillationAmount = () => min(levers[2]!.$lerpValue2, 1 - levers[4]!.$lerpValue2);
+    const getOscillationAmount = () => min(levers[2]!.$lerpValue2, 1 - levers[4]!.$lerpValue2);
 
-      const blackPlatform = (freq: number, amplitude: number) =>
-        newModel((model) => {
-          model._update = () =>
-            identity.translate(getOscillationAmount() * Math.sin(freq * 3 + gameTime * freq) * amplitude);
-          GQuad.map(({ x, z }) => {
-            // column body
-            meshAdd(
-              cylinder(11, 1),
-              identity.translate(x * 4, 4, z * 4 - 40).scale(0.8, 3, 0.8),
-              material(0.5, 0.3, 0.7, 0.6),
-            );
-            // column top
-            meshAdd(
-              cylinder(GQuad),
-              identity.translate(x * 4, 7, z * 4 - 40).scale(1, 0.3),
-              material(0.5, 0.5, 0.5, 0.3),
-            );
-          });
-
+    const blackPlatform = (freq: number, amplitude: number, pz: number) =>
+      newModel((model) => {
+        model._update = () =>
+          identity.translate(getOscillationAmount() * Math.sin(freq * 3 + gameTime * freq) * amplitude);
+        GQuad.map(({ x, z }) => {
+          // column body
           meshAdd(
-            csg_polygons(
-              csg_subtract(
+            cylinder(11, 1),
+            identity.translate(x * 4, 4, pz + z * 4).scale(0.8, 3, 0.8),
+            material(0.5, 0.3, 0.7, 0.6),
+          );
+          // column top
+          meshAdd(
+            cylinder(GQuad),
+            identity.translate(x * 4, 7, pz + z * 4).scale(1, 0.3),
+            material(0.5, 0.5, 0.5, 0.3),
+          );
+        });
+
+        meshAdd(
+          csg_polygons(
+            csg_subtract(
+              polygons_transform(
+                cylinder(GQuad),
+                identity.translate(0, 0, pz).scale(5, 1, 5),
+                material(0.8, 0.8, 0.8, 0.3),
+              ),
+              ...[-1, 1].map((i) =>
                 polygons_transform(
                   cylinder(GQuad),
-                  identity.translate(0, 0, -40).scale(5, 1, 5),
+                  identity
+                    .translate(5 * i, 0.2, pz)
+                    .rotate(0, 0, i * -30)
+                    .scale(4, 1, 2),
                   material(0.8, 0.8, 0.8, 0.3),
                 ),
-                ...[-1, 1].map((i) =>
-                  polygons_transform(
-                    cylinder(GQuad),
-                    identity
-                      .translate(5 * i, 0.2, -40)
-                      .rotate(0, 0, i * -30)
-                      .scale(4, 1, 2),
-                    material(0.8, 0.8, 0.8, 0.3),
-                  ),
-                ),
               ),
             ),
-          );
-          // bottom
-          meshAdd(cylinder(GQuad), identity.translate(0, -3, -40).scale(8, 2, 8), material(0.4, 0.4, 0.4, 0.3));
-        });
-
-      blackPlatform(0.7, 12);
-      withEditMatrix(identity.translate(0, 0, 20), () => blackPlatform(1, 8.2));
-
-      // central oscillating platform
-      newModel((model) => {
-        withEditMatrix(identity.translate(0, 0, -30), () => {
-          model._update = () => identity.translate(getOscillationAmount() * Math.sin(gameTime / 1.5 + 2) * 12);
-          meshAdd(
-            csg_polygons(
-              csg_subtract(
-                csg_union(
-                  polygons_transform(cylinder(GQuad), identity.scale(1.5, 1, 5), material(0.9, 0.9, 0.9, 0.2)),
-                  polygons_transform(cylinder(6), identity.scale(4, 1, 5), material(0.9, 0.9, 0.9, 0.2)),
-                  polygons_transform(
-                    cylinder(GQuad),
-                    identity.translate(0, -2).scale(2, 3.2, 1.9),
-                    material(0.3, 0.8, 0.5, 0.5),
-                  ),
-                  polygons_transform(
-                    cylinder(16, 1, 0, 4),
-                    identity.scale(1, 1, 1.5).rotate(0, 90),
-                    material(0.9, 0.9, 0.9, 0.2),
-                  ),
-                ),
-                polygons_transform(cylinder(GQuad), identity.scale(1.3, 10, 1.3), material(0.2, 0.7, 0.4, 0.6)),
-              ),
-            ),
-          );
-
-          // SOUL 2 - soul over the central oscillating platform in the second level
-          newSoul(identity.translate(0, 2.8), [0, 0, 4.5]);
-        });
+          ),
+        );
+        // bottom
+        meshAdd(cylinder(GQuad), identity.translate(0, -3, pz).scale(8, 2, 8), material(0.4, 0.4, 0.4, 0.3));
       });
 
-      // ******** LEVEL 3 ********
+    blackPlatform(0.7, 12, 35);
+    blackPlatform(1, 8.2, 55);
 
-      // triangle platform
-
-      newModel((model) => {
-        model._update = () => identity.translate((1 - getOscillationAmount()) * 9.8);
-
-        meshAdd(cylinder(3), identity.translate(-23, -1.7, -19.2).scale(5, 0.7, 8.3), material(0.3, 0.6, 0.6, 0.2));
-        meshAdd(cylinder(8), identity.translate(-23, -2.2, -8.5).scale(1.5, 1.2, 1.5), material(0.8, 0.8, 0.8, 0.2));
-        meshAdd(cylinder(GQuad), identity.translate(-23, -3, -20).scale(5.2, 1.7, 3), material(0.5, 0.5, 0.5, 0.3));
-        meshAdd(cylinder(GQuad), identity.translate(-23, -2.2, -13).scale(3, 1, 4), material(0.5, 0.5, 0.5, 0.3));
-
-        newLever(identity.translate(-23, -0.5, -8.5));
-      });
-
-      const level3Oscillation = () =>
-        clamp01(1 - getOscillationAmount() * 5) * lerpneg(levers[4]!.$lerpValue, levers[5]!.$lerpValue);
-
-      // vertically oscillating mini platforms
-
+    // central oscillating platform
+    centralOscillatingPlatformModel = newModel((model) => {
+      model._update = () => identity.translate(getOscillationAmount() * Math.sin(gameTime / 1.5 + 2) * 12);
       meshAdd(
-        cylinder(GQuad),
-        identity.translate(-21.1 + 2.45, -3, -20).scale(2.45, 1.4, 2.7),
-        material(0.9, 0.9, 0.9, 0.2),
-      );
-
-      newModel((model) => {
-        model._update = () => identity.translate(0, level3Oscillation() * Math.sin(gameTime * (1.5 * 0.9)) * 4);
-
-        meshAdd(
-          cylinder(GQuad),
-          identity.translate(-21.1 - 1.45, -3, -20).scale(1.45, 1.4, 2.7),
-          material(0.7, 0.7, 0.7, 0.2),
-        );
-
-        meshAdd(
-          csg_polygons(
-            csg_subtract(
-              polygons_transform(cylinder(GQuad), identity.scale(3, 1.4, 2.7)),
-              polygons_transform(cylinder(GQuad), identity.scale(1.2, 8, 1.2)),
-            ),
-          ),
-          identity.translate(-33, -3, -20),
-          material(0.7, 0.7, 0.7, 0.2),
-        );
-      });
-
-      // horizontaly oscillating mini platforms
-
-      newModel((model) => {
-        model._update = () => identity.translate(0, 0, level3Oscillation() * Math.sin(gameTime * 0.9) * 8);
-        meshAdd(
-          csg_polygons(
-            csg_subtract(
-              polygons_transform(
-                cylinder(GQuad),
-                identity.translate(-27, -3, -20).scale(3, 1.4, 2.7),
-                material(0.9, 0.9, 0.9, 0.2),
-              ),
-              polygons_transform(
-                cylinder(GQuad),
-                identity.translate(-27, -3, -20).scale(1, 3),
-                material(0.9, 0.9, 0.9, 0.2),
-              ),
-            ),
-          ),
-        );
-
-        meshAdd(cylinder(GQuad), identity.translate(-39, -3, -20).scale(3, 1.4, 2.7), material(0.9, 0.9, 0.9, 0.2));
-      });
-
-      // hex corridor door
-
-      newModel((model) => {
-        model._update = () => identity.translate(0, levers[4]!.$lerpValue2 * -6.5);
-        meshAdd(
-          cylinder(6),
-          identity.translate(-44.5, 0, -20).rotate(90, 90).rotate(0, 90).scale(5.9, 0.5, 5.9),
-          material(0.7, 0.7, 0.7, 0.4),
-        );
-      });
-
-      // hex corridor
-
-      const hexCorridorPolygons = [
-        ...polygons_transform(
-          csg_polygons(
+        csg_polygons(
+          csg_subtract(
             csg_union(
+              polygons_transform(cylinder(GQuad), identity.scale(1.5, 1, 5), material(0.9, 0.9, 0.9, 0.2)),
+              polygons_transform(cylinder(6), identity.scale(4, 1, 5), material(0.9, 0.9, 0.9, 0.2)),
               polygons_transform(
                 cylinder(GQuad),
-                identity.translate(0, -3).scale(11, 1.4, 3),
+                identity.translate(0, -2).scale(2, 3.2, 1.9),
+                material(0.3, 0.8, 0.5, 0.5),
+              ),
+              polygons_transform(
+                cylinder(16, 1, 0, 4),
+                identity.scale(1, 1, 1.5).rotate(0, 90),
                 material(0.9, 0.9, 0.9, 0.2),
               ),
-              csg_subtract(
-                polygons_transform(cylinder(6), identity.rotate(0, 0, 90).scale(6, 8, 6), material(0.3, 0.6, 0.6, 0.3)),
-                polygons_transform(
-                  cylinder(4, 0, 0.01),
-                  identity.translate(0, 6).scale(12, 2, 0.75).rotate(0, 45),
-                  material(0.3, 0.6, 0.6, 0.3),
-                ),
-                polygons_transform(
-                  cylinder(6),
-                  identity.rotate(0, 0, 90).scale(5, 12, 5),
-                  material(0.3, 0.6, 0.6, 0.3),
-                ),
-                ...[5, 0, -5].map((x) =>
-                  polygons_transform(
-                    cylinder(5),
-                    identity.translate(x, 2.5).rotate(90, 0, 36).scale(1.8, 10, 1.8),
-                    material(0.3, 0.6, 0.6, 0.3),
-                  ),
-                ),
-              ),
             ),
+            polygons_transform(cylinder(GQuad), identity.scale(1.3, 10, 1.3), material(0.2, 0.7, 0.4, 0.6)),
           ),
-          identity,
         ),
-      ];
-
-      meshAdd(hexCorridorPolygons, identity.translate(-53, 0, -20));
-
-      meshAdd(cylinder(6), identity.translate(-61.3, -2.4, -26).scale(3, 1, 5), material(0.4, 0.6, 0.6, 0.3));
-
-      meshAdd(cylinder(7), identity.translate(-57, -2.6, -29).scale(4, 1, 4), material(0.8, 0.8, 0.8, 0.3));
-
-      newLever(identity.translate(-55, -1.1, -29).rotate(0, 90));
-
-      // rotating hex corridor
-
-      withEditMatrix(identity.translate(-75, 0, -20), () =>
-        newModel((model) => {
-          if (DEBUG) {
-            console.log("rotatingHexCorridor modelId:" + model.$modelId);
-          }
-
-          model.$attachPlayer = 0;
-          model._update = () => {
-            return identity
-              .translate(0, (1 - levers[5]!.$lerpValue2) * (1 - levers[6]!.$lerpValue) * 3)
-              .rotate(180 * (1 - levers[5]!.$lerpValue2) + rotatingHexCorridorRotation, 0);
-          };
-          meshAdd(hexCorridorPolygons);
-        }),
+        identity.translate(0, 0, 45),
       );
+    });
 
-      // connection from rotating hex corridor to platforms
+    const level3Oscillation = () =>
+      clamp01(1 - getOscillationAmount() * 5) * lerpneg(levers[4]!.$lerpValue, levers[5]!.$lerpValue);
+
+    // ******** LEVEL 3 ********
+
+    // triangle platform
+
+    newModel((model) => {
+      model._update = () => identity.translate((1 - getOscillationAmount()) * 9.8);
+
+      meshAdd(cylinder(3), identity.translate(-23, -1.7, 55.8).scale(5, 0.7, 8.3), material(0.3, 0.6, 0.6, 0.2));
+      meshAdd(cylinder(8), identity.translate(-23, -2.2, 66.5).scale(1.5, 1.2, 1.5), material(0.8, 0.8, 0.8, 0.2));
+      meshAdd(cylinder(GQuad), identity.translate(-23, -3, 55).scale(5.2, 1.7, 3), material(0.5, 0.5, 0.5, 0.3));
+      meshAdd(cylinder(GQuad), identity.translate(-23, -2.2, 62).scale(3, 1, 4), material(0.5, 0.5, 0.5, 0.3));
+
+      newLever(identity.translate(-23, -0.5, 66.5));
+    });
+
+    meshAdd(
+      cylinder(GQuad),
+      identity.translate(-21.1 + 2.45, -3, 55).scale(2.45, 1.4, 2.7),
+      material(0.9, 0.9, 0.9, 0.2),
+    );
+
+    // vertically oscillating mini platforms
+
+    newModel((model) => {
+      model._update = () => identity.translate(0, level3Oscillation() * Math.sin(gameTime * (1.5 * 0.9)) * 4);
 
       meshAdd(
         cylinder(GQuad),
-        identity.translate(-88.3, -5.1, -20).rotate(0, 0, -30).scale(5, 1.25, 4.5),
+        identity.translate(-21.1 - 1.45, -3, 55).scale(1.45, 1.4, 2.7),
         material(0.7, 0.7, 0.7, 0.2),
       );
 
       meshAdd(
-        cylinder(3, 0, -0.5),
-        identity.translate(-88.4, -3.9, -20).rotate(0, -90, 17).scale(3, 1.45, 5.9),
-        material(0.8, 0.8, 0.8, 0.2),
+        csg_polygons(
+          csg_subtract(
+            polygons_transform(cylinder(GQuad), identity.scale(3, 1.4, 2.7)),
+            polygons_transform(cylinder(GQuad), identity.scale(1.2, 8, 1.2)),
+          ),
+        ),
+        identity.translate(-33, -3, 55),
+        material(0.7, 0.7, 0.7, 0.2),
+      );
+    });
+
+    // horizontaly oscillating mini platforms
+
+    newModel((model) => {
+      model._update = () => identity.translate(0, 0, level3Oscillation() * Math.sin(gameTime * 0.9) * 8);
+      meshAdd(
+        csg_polygons(
+          csg_subtract(
+            polygons_transform(
+              cylinder(GQuad),
+              identity.translate(-27, -3, 55).scale(3, 1.4, 2.7),
+              material(0.9, 0.9, 0.9, 0.2),
+            ),
+            polygons_transform(
+              cylinder(GQuad),
+              identity.translate(-27, -3, 55).scale(1, 3),
+              material(0.9, 0.9, 0.9, 0.2),
+            ),
+          ),
+        ),
       );
 
-      // platform after the rotating hex corridor
+      meshAdd(cylinder(GQuad), identity.translate(-39, -3, 55).scale(3, 1.4, 2.7), material(0.9, 0.9, 0.9, 0.2));
+    });
+
+    // hex corridor door
+
+    newModel((model) => {
+      model._update = () => identity.translate(0, levers[4]!.$lerpValue2 * -6.5);
+      meshAdd(
+        cylinder(6),
+        identity.translate(-44.5, 0, 55).rotate(90, 90).rotate(0, 90).scale(5.9, 0.5, 5.9),
+        material(0.7, 0.7, 0.7, 0.4),
+      );
+    });
+
+    // hex corridor
+
+    const hexCorridorPolygons = [
+      ...polygons_transform(
+        csg_polygons(
+          csg_union(
+            polygons_transform(
+              cylinder(GQuad),
+              identity.translate(0, -3).scale(11, 1.4, 3),
+              material(0.9, 0.9, 0.9, 0.2),
+            ),
+            csg_subtract(
+              polygons_transform(cylinder(6), identity.rotate(0, 0, 90).scale(6, 8, 6), material(0.3, 0.6, 0.6, 0.3)),
+              polygons_transform(
+                cylinder(4, 0, 0.01),
+                identity.translate(0, 6).scale(12, 2, 0.75).rotate(0, 45),
+                material(0.3, 0.6, 0.6, 0.3),
+              ),
+              polygons_transform(cylinder(6), identity.rotate(0, 0, 90).scale(5, 12, 5), material(0.3, 0.6, 0.6, 0.3)),
+              ...[5, 0, -5].map((x) =>
+                polygons_transform(
+                  cylinder(5),
+                  identity.translate(x, 2.5).rotate(90, 0, 36).scale(1.8, 10, 1.8),
+                  material(0.3, 0.6, 0.6, 0.3),
+                ),
+              ),
+            ),
+          ),
+        ),
+        identity,
+      ),
+    ];
+
+    meshAdd(hexCorridorPolygons, identity.translate(-53, 0, 55));
+
+    meshAdd(cylinder(6), identity.translate(-61.3, -2.4, 49).scale(3, 1, 5), material(0.4, 0.6, 0.6, 0.3));
+
+    meshAdd(cylinder(7), identity.translate(-57, -2.6, 46).scale(4, 1, 4), material(0.8, 0.8, 0.8, 0.3));
+
+    newLever(identity.translate(-55, -1.1, 46).rotate(0, 90));
+
+    // rotating hex corridor
+
+    withEditMatrix(identity.translate(-75, 0, 55), () =>
+      newModel((model) => {
+        if (DEBUG) {
+          console.log("rotatingHexCorridor modelId:" + model.$modelId);
+        }
+
+        model.$attachPlayer = 0;
+        model._update = () => {
+          return identity
+            .translate(0, (1 - levers[5]!.$lerpValue2) * (1 - levers[6]!.$lerpValue) * 3)
+            .rotate(180 * (1 - levers[5]!.$lerpValue2) + rotatingHexCorridorRotation, 0);
+        };
+        meshAdd(hexCorridorPolygons);
+      }),
+    );
+
+    // connection from rotating hex corridor to platforms
+
+    meshAdd(
+      cylinder(GQuad),
+      identity.translate(-88.3, -5.1, 55).rotate(0, 0, -30).scale(5, 1.25, 4.5),
+      material(0.7, 0.7, 0.7, 0.2),
+    );
+
+    meshAdd(
+      cylinder(3, 0, -0.5),
+      identity.translate(-88.4, -3.9, 55).rotate(0, -90, 17).scale(3, 1.45, 5.9),
+      material(0.8, 0.8, 0.8, 0.2),
+    );
+
+    // platform after the rotating hex corridor
+
+    meshAdd(
+      csg_polygons(
+        csg_subtract(
+          csg_union(
+            // base
+            polygons_transform(
+              cylinder(GQuad),
+              identity.translate(-100, -2.5, 55).scale(8, 1, 8),
+              material(0.8, 0.8, 0.8, 0.2),
+            ),
+            // right path to the boat
+            polygons_transform(
+              cylinder(GQuad),
+              identity.translate(-113, -2.6, 55).scale(6.2, 1.1, 3).skewX(3),
+              material(0.8, 0.8, 0.8, 0.2),
+            ),
+            // straiht line
+            polygons_transform(
+              cylinder(GQuad),
+              identity.translate(-100, -2.6, 70).scale(3, 1.1, 7),
+              material(0.8, 0.8, 0.8, 0.2),
+            ),
+            // 45 degrees detour
+            polygons_transform(
+              cylinder(GQuad),
+              identity.translate(-96, -2.6, 73).rotate(0, 45).scale(3, 1.1, 5),
+              material(0.8, 0.8, 0.8, 0.2),
+            ),
+            // 45 degrees detour hexagon
+            polygons_transform(
+              cylinder(6),
+              identity.translate(-88.79, -2.6, 80.21).scale(6, 1.1, 6).rotate(0, 15),
+              material(0.6, 0.6, 0.6, 0.3),
+            ),
+
+            // ascension
+            polygons_transform(
+              cylinder(GQuad),
+              identity.translate(-100, -1.1, 82.39).rotate(-15, 0).scale(3, 1.1, 6),
+              material(0.8, 0.8, 0.8, 0.2),
+            ),
+            // ascension continuation
+            polygons_transform(
+              cylinder(GQuad),
+              identity.translate(-100, 0.42, 92).scale(3, 1.1, 4.1),
+              material(0.8, 0.8, 0.8, 0.2),
+            ),
+          ),
+
+          // decorative octagon
+          polygons_transform(
+            cylinder(8),
+            identity.translate(-100, -1, 55).scale(7, 0.9, 7),
+            material(0.3, 0.3, 0.3, 0.4),
+          ),
+          polygons_transform(
+            cylinder(8),
+            identity.translate(-100, -2, 55).scale(4, 0.3, 4),
+            material(0.4, 0.4, 0.4, 0.5),
+          ),
+          polygons_transform(
+            cylinder(8),
+            identity.translate(-100, -3, 55).scale(0.6, 1, 0.6),
+            material(0.4, 0.4, 0.4, 0.5),
+          ),
+        ),
+      ),
+      identity,
+    );
+
+    // first arc door
+
+    meshAdd(
+      csg_polygons(
+        csg_subtract(
+          polygons_transform(
+            cylinder(GQuad),
+            identity.translate(-100, 1, 63).scale(7.5, 4),
+            material(0.5, 0.5, 0.5, 0.4),
+          ),
+          polygons_transform(
+            cylinder(GQuad),
+            identity.translate(-100, 0, 70).scale(2, 2, 10),
+            material(0.5, 0.5, 0.5, 0.4),
+          ),
+          polygons_transform(
+            cylinder(20, 1),
+            identity.translate(-100, 2, 70).scale(2, 2, 10).rotate(90, 0),
+            material(0.5, 0.5, 0.5, 0.4),
+          ),
+        ),
+      ),
+    );
+
+    // gate bars
+
+    withEditMatrix(identity.translate(-99.7, -2, 63.5), () =>
+      newModel((model) => {
+        model._update = () => identity.translate(0, -levers[6]!.$lerpValue * 5.3);
+        return entranceBarsMesh;
+      }),
+    );
+
+    // hex columns
+
+    GQuad.map(({ x, z }) => {
+      meshAdd(
+        cylinder(6),
+        identity.translate(-100 + x * 7, -3, z * 7 + 55).scale(1, 8.1),
+        material(0.6, 0.15, 0.15, 0.8),
+      );
+      [4, -0.4].map((i) =>
+        meshAdd(
+          cylinder(6),
+          identity.translate(-100 + x * 7, i, z * 7 + 55).scale(1.3, 0.5, 1.3),
+          material(0.4, 0.2, 0.2, 0.8),
+        ),
+      );
+    });
+
+    // crystals
+
+    integers_map(7, (i) => {
+      meshAdd(
+        cylinder(((i * 23 + 1) % 5) + 5, 0, 0.55),
+        identity
+          .translate(-101 + Math.sin(i) * 5 + i, -2.3 - i, 44.9 - i * 2.8)
+          .scaleSelf(5 + i / 2, 1 + i / 6, 5 + i / 3),
+        material(0.5 - i / 17, 0.5 - (i & 1) / 9, 0.6, 0.3),
+      );
+    });
+
+    // crystals continuation pad
+
+    meshAdd(cylinder(GQuad), identity.translate(-87, -9.5, 24).scale(7, 1, 3), material(0.4, 0.5, 0.6, 0.4));
+
+    // lever pad
+
+    meshAdd(cylinder(4), identity.translate(-86, -9.2, 27).scale(5, 1, 5), material(0.5, 0.6, 0.7, 0.3));
+
+    meshAdd(cylinder(18, 1), identity.translate(-86, -9, 31).scale(1.5, 1, 1.5), material(0.3, 0.3, 0.4, 0.1));
+
+    newLever(identity.translate(-86, -7.5, 31));
+
+    // elevators
+
+    withEditMatrix(identity.translate(-76.9, -10, 24), () => {
+      const shouldOscillate = () => lerpneg(levers[7]!.$lerpValue2, levers[6]!.$lerpValue2);
+
+      newModel((model) => {
+        model._update = () => {
+          const osc = shouldOscillate();
+          return identity.translate(
+            0,
+            (1 - max(levers[6]!.$lerpValue, levers[7]!.$lerpValue)) * 3.5 + osc * Math.sin(gameTime) * 5,
+          );
+        };
+        [0, 12, 24].map((x) =>
+          meshAdd(cylinder(GQuad), identity.translate(x, x / -13).scale(2.8, 1.5, 3), material(0.2, 0.5, 0.6, 0.2)),
+        );
+      });
+
+      newModel((model) => {
+        model._update = () => {
+          const osc = shouldOscillate();
+          return identity.translate(0, osc * Math.sin(gameTime + 3) * 6, Math.sin(gameTime * 0.6 + osc) * 6 * osc);
+        };
+        [6, 18].map((x) =>
+          meshAdd(cylinder(GQuad), identity.translate(x, x / -13).scale(2.8, 1.5, 3), material(0.1, 0.4, 0.5, 0.2)),
+        );
+      });
+    });
+
+    // pad after elevators
+
+    withEditMatrix(identity.translate(-38.9, -11.3, 17), () => {
+      meshAdd(
+        csg_polygons(
+          csg_subtract(
+            csg_union(
+              polygons_transform(cylinder(GQuad), identity.scale(11, 1, 13), material(0.3, 0.4, 0.6, 0.3)),
+              // lever pad
+              polygons_transform(
+                cylinder(5),
+                identity.translate(0, 0, -7).scale(2, 1.2, 2),
+                material(0.2, 0.4, 0.7, 0.3),
+              ),
+              // blue pentagon
+              polygons_transform(cylinder(5), identity.scale(9, 1.2, 9), material(0, 0.2, 0.3, 0.5)),
+            ),
+            polygons_transform(cylinder(5), identity.scale(5.4, 5, 5.4), material(0, 0.2, 0.3, 0.5)),
+          ),
+        ),
+      );
+
+      newLever(identity.translate(0, 1.7, -7));
+
+      // central sculpture/monument
+
+      centralSculptureMonumentModel = newModel((model) => {
+        model._update = () => identity.translate(0, levers[7]!.$lerpValue2 * -7.3);
+
+        meshAdd(
+          csg_polygons(
+            csg_subtract(
+              csg_union(
+                polygons_transform(
+                  cylinder(5),
+                  identity.translate(0, 2).scale(5, 7, 5).skewY(8),
+                  material(0.2, 0.4, 0.5, 0.5),
+                ),
+                polygons_transform(
+                  cylinder(5),
+                  identity.translate(0, 6).scale(1.1, 7, 1.1).skewY(-8),
+                  material(0.25, 0.35, 0.5, 0.5),
+                ),
+                polygons_transform(
+                  cylinder(5),
+                  identity.translate(0, 9).scale(0.6, 7, 0.6).skewY(8),
+                  material(0.35, 0.3, 0.5, 0.5),
+                ),
+              ),
+              polygons_transform(
+                cylinder(5),
+                identity.translate(0, 5).scale(1.5, 1.5, 8).rotate(90, 0, 35),
+                material(0.2, 0.4, 0.5, 0.5),
+              ),
+            ),
+          ),
+        );
+      });
+
+      // columns
+
+      GQuad.map(({ x, z }) => {
+        meshAdd(cylinder(18, 1), identity.translate(x * 9, 4, z * 11).scale(1, 4), material(0.25, 0.25, 0.25, 1));
+        [1.5, 8].map((y) =>
+          meshAdd(
+            cylinder(18, 1),
+            identity.translate(x * 9, y, z * 11).scale(1.5, 0.5, 1.5),
+            material(0.6, 0.6, 0.6, 0.3),
+          ),
+        );
+      });
 
       meshAdd(
         csg_polygons(
           csg_subtract(
             csg_union(
-              // base
-              polygons_transform(
-                cylinder(GQuad),
-                identity.translate(-100, -2.5, -20).scale(8, 1, 8),
-                material(0.8, 0.8, 0.8, 0.2),
-              ),
-              // right path to the boat
-              polygons_transform(
-                cylinder(GQuad),
-                identity.translate(-113, -2.6, -20).scale(6.2, 1.1, 3).skewX(3),
-                material(0.8, 0.8, 0.8, 0.2),
-              ),
-              // straiht line
-              polygons_transform(
-                cylinder(GQuad),
-                identity.translate(-100, -2.6, -5).scale(3, 1.1, 7),
-                material(0.8, 0.8, 0.8, 0.2),
-              ),
-              // 45 degrees detour
-              polygons_transform(
-                cylinder(GQuad),
-                identity.translate(-96, -2.6, -2).rotate(0, 45).scale(3, 1.1, 5),
-                material(0.8, 0.8, 0.8, 0.2),
-              ),
-              // 45 degrees detour hexagon
+              // holed base
               polygons_transform(
                 cylinder(6),
-                identity.translate(-88.79, -2.6, 5.21).scale(6, 1.1, 6).rotate(0, 15),
-                material(0.6, 0.6, 0.6, 0.3),
+                identity.translate(0, 0, -36).scale(15, 1.2, 15),
+                material(0.7, 0.7, 0.7, 0.3),
               ),
-
-              // ascension
+              // after monument continuation
               polygons_transform(
                 cylinder(GQuad),
-                identity.translate(-100, -1.1, 7.39).rotate(-15, 0).scale(3, 1.1, 6),
-                material(0.8, 0.8, 0.8, 0.2),
-              ),
-              // ascension continuation
-              polygons_transform(
-                cylinder(GQuad),
-                identity.translate(-100, 0.42, 17).scale(3, 1.1, 4.1),
-                material(0.8, 0.8, 0.8, 0.2),
+                identity.translate(0, 0, -18).scale(4, 1.2, 6),
+                material(0.45, 0.4, 0.6, 0.3),
               ),
             ),
-
-            // decorative octagon
-            polygons_transform(
-              cylinder(8),
-              identity.translate(-100, -1, -20).scale(7, 0.9, 7),
-              material(0.3, 0.3, 0.3, 0.4),
-            ),
-            polygons_transform(
-              cylinder(8),
-              identity.translate(-100, -2, -20).scale(4, 0.3, 4),
-              material(0.4, 0.4, 0.4, 0.5),
-            ),
-            polygons_transform(
-              cylinder(8),
-              identity.translate(-100, -3, -20).scale(0.6, 1, 0.6),
-              material(0.4, 0.4, 0.4, 0.5),
-            ),
-          ),
-        ),
-        identity,
-      );
-
-      // first arc door
-
-      meshAdd(
-        csg_polygons(
-          csg_subtract(
-            polygons_transform(
-              cylinder(GQuad),
-              identity.translate(-100, 1, -12).scale(7.5, 4),
-              material(0.5, 0.5, 0.5, 0.4),
-            ),
-            polygons_transform(
-              cylinder(GQuad),
-              identity.translate(-100, 0, -5).scale(2, 2, 10),
-              material(0.5, 0.5, 0.5, 0.4),
-            ),
-            polygons_transform(
-              cylinder(20, 1),
-              identity.translate(-100, 2, -5).scale(2, 2, 10).rotate(90, 0),
-              material(0.5, 0.5, 0.5, 0.4),
-            ),
-          ),
-        ),
-      );
-
-      // gate bars
-
-      withEditMatrix(identity.translate(-99.7, -2, -11.5), () =>
-        newModel((model) => {
-          model._update = () => identity.translate(0, -levers[6]!.$lerpValue * 5.3);
-          return entranceBarsMesh;
-        }),
-      );
-
-      // hex columns
-
-      GQuad.map(({ x, z }) => {
-        meshAdd(
-          cylinder(6),
-          identity.translate(-100 + x * 7, -3, z * 7 - 20).scale(1, 8.1),
-          material(0.6, 0.15, 0.15, 0.8),
-        );
-        [4, -0.4].map((i) =>
-          meshAdd(
-            cylinder(6),
-            identity.translate(-100 + x * 7, i, z * 7 - 20).scale(1.3, 0.5, 1.3),
-            material(0.4, 0.2, 0.2, 0.8),
-          ),
-        );
-      });
-
-      // crystals
-
-      integers_map(7, (i) => {
-        meshAdd(
-          cylinder(((i * 23 + 1) % 5) + 5, 0, 0.55),
-          identity
-            .translate(-101 + Math.sin(i) * 5 + i, -2.3 - i, -30.1 - i * 2.8)
-            .scaleSelf(5 + i / 2, 1 + i / 6, 5 + i / 3),
-          material(0.5 - i / 17, 0.5 - (i & 1) / 9, 0.6, 0.3),
-        );
-      });
-
-      // crystals continuation pad
-
-      meshAdd(cylinder(GQuad), identity.translate(-87, -9.5, -51).scale(7, 1, 3), material(0.4, 0.5, 0.6, 0.4));
-
-      // lever pad
-
-      meshAdd(cylinder(4), identity.translate(-86, -9.2, -48).scale(5, 1, 5), material(0.5, 0.6, 0.7, 0.3));
-
-      meshAdd(cylinder(18, 1), identity.translate(-86, -9, -44).scale(1.5, 1, 1.5), material(0.3, 0.3, 0.4, 0.1));
-
-      newLever(identity.translate(-86, -7.5, -44));
-
-      // elevators
-
-      withEditMatrix(identity.translate(-76.9, -10, -51), () => {
-        const shouldOscillate = () => lerpneg(levers[7]!.$lerpValue2, levers[6]!.$lerpValue2);
-
-        newModel((model) => {
-          model._update = () => {
-            const osc = shouldOscillate();
-            return identity.translate(
-              0,
-              (1 - max(levers[6]!.$lerpValue, levers[7]!.$lerpValue)) * 3.5 + osc * Math.sin(gameTime) * 5,
-            );
-          };
-          [0, 12, 24].map((x) =>
-            meshAdd(cylinder(GQuad), identity.translate(x, x / -13).scale(2.8, 1.5, 3), material(0.2, 0.5, 0.6, 0.2)),
-          );
-        });
-
-        newModel((model) => {
-          model._update = () => {
-            const osc = shouldOscillate();
-            return identity.translate(0, osc * Math.sin(gameTime + 3) * 6, Math.sin(gameTime * 0.6 + osc) * 6 * osc);
-          };
-          [6, 18].map((x) =>
-            meshAdd(cylinder(GQuad), identity.translate(x, x / -13).scale(2.8, 1.5, 3), material(0.1, 0.4, 0.5, 0.2)),
-          );
-        });
-      });
-
-      // pad after elevators
-
-      withEditMatrix(identity.translate(-38.9, -11.3, -58), () => {
-        meshAdd(
-          csg_polygons(
-            csg_subtract(
-              csg_union(
-                polygons_transform(cylinder(GQuad), identity.scale(11, 1, 13), material(0.3, 0.4, 0.6, 0.3)),
-                // lever pad
-                polygons_transform(
-                  cylinder(5),
-                  identity.translate(0, 0, -7).scale(2, 1.2, 2),
-                  material(0.2, 0.4, 0.7, 0.3),
-                ),
-                // blue pentagon
-                polygons_transform(cylinder(5), identity.scale(9, 1.2, 9), material(0, 0.2, 0.3, 0.5)),
-              ),
-              polygons_transform(cylinder(5), identity.scale(5.4, 5, 5.4), material(0, 0.2, 0.3, 0.5)),
-            ),
-          ),
-        );
-
-        newLever(identity.translate(0, 1.7, -7));
-
-        // central sculpture/monument
-
-        newModel((model) => {
-          model._update = () => identity.translate(0, levers[7]!.$lerpValue2 * -7.3);
-
-          // SOUL 5 - soul over the central sculpture/monument
-          newSoul(
-            identity.translate(0, 11).rotate(0, 0, 10),
-            ...polygon_regular(15).map(({ x, z }) => [x * 3, z * 3, 1.5]),
-          );
-
-          meshAdd(
-            csg_polygons(
-              csg_subtract(
-                csg_union(
-                  polygons_transform(
-                    cylinder(5),
-                    identity.translate(0, 2).scale(5, 7, 5).skewY(8),
-                    material(0.2, 0.4, 0.5, 0.5),
-                  ),
-                  polygons_transform(
-                    cylinder(5),
-                    identity.translate(0, 6).scale(1.1, 7, 1.1).skewY(-8),
-                    material(0.25, 0.35, 0.5, 0.5),
-                  ),
-                  polygons_transform(
-                    cylinder(5),
-                    identity.translate(0, 9).scale(0.6, 7, 0.6).skewY(8),
-                    material(0.35, 0.3, 0.5, 0.5),
-                  ),
-                ),
-                polygons_transform(
-                  cylinder(5),
-                  identity.translate(0, 5).scale(1.5, 1.5, 8).rotate(90, 0, 35),
-                  material(0.2, 0.4, 0.5, 0.5),
-                ),
-              ),
-            ),
-          );
-        });
-
-        // columns
-
-        GQuad.map(({ x, z }) => {
-          meshAdd(cylinder(18, 1), identity.translate(x * 9, 4, z * 11).scale(1, 4), material(0.25, 0.25, 0.25, 1));
-          [1.5, 8].map((y) =>
-            meshAdd(
-              cylinder(18, 1),
-              identity.translate(x * 9, y, z * 11).scale(1.5, 0.5, 1.5),
-              material(0.6, 0.6, 0.6, 0.3),
-            ),
-          );
-        });
-
-        meshAdd(
-          csg_polygons(
-            csg_subtract(
-              csg_union(
-                // holed base
+            ...integers_map(6, (z) =>
+              integers_map(6, (x) =>
                 polygons_transform(
                   cylinder(6),
-                  identity.translate(0, 0, -36).scale(15, 1.2, 15),
+                  identity.translate(x * 4.6 - 12 + 2 * (z & 1), 0, z * 4.6 - 50 + Math.sin(x * 4) * 2).scale(2, 5, 2),
                   material(0.7, 0.7, 0.7, 0.3),
                 ),
-                // after monument continuation
-                polygons_transform(
-                  cylinder(GQuad),
-                  identity.translate(0, 0, -18).scale(4, 1.2, 6),
-                  material(0.45, 0.4, 0.6, 0.3),
-                ),
               ),
-              ...integers_map(6, (z) =>
-                integers_map(6, (x) =>
-                  polygons_transform(
-                    cylinder(6),
-                    identity
-                      .translate(x * 4.6 - 12 + 2 * (z & 1), 0, z * 4.6 - 50 + Math.sin(x * 4) * 2)
-                      .scale(2, 5, 2),
-                    material(0.7, 0.7, 0.7, 0.3),
-                  ),
-                ),
-              ).flat(),
-            ),
+            ).flat(),
           ),
-        );
-      });
-
-      // Detour lever pad
-      meshAdd(
-        cylinder(5),
-        identity.translate(-84, -2, 10).scale(4, 0.8, 4).rotate(0, 10),
-        material(0.8, 0.1, 0.25, 0.4),
+        ),
       );
-
-      // Detour lever
-      newLever(identity.translate(-84, -0.5, 10).rotate(0, 45));
     });
+
+    // Detour lever pad
+    meshAdd(cylinder(5), identity.translate(-84, -2, 85).scale(4, 0.8, 4).rotate(0, 10), material(0.8, 0.1, 0.25, 0.4));
+
+    // Detour lever
+    newLever(identity.translate(-84, -0.5, 85).rotate(0, 45));
 
     // ******** SECOND BOAT ********
 
@@ -920,7 +906,7 @@ export const buildWorld = () => {
 
       withEditMatrix(identity.translate(-39.7, -2.5, -21.5), () => {
         // pad with hole
-        newModel((model) => {
+        donutWithHornsModel = newModel((model) => {
           model._update = () => {
             const osc = hexPadShouldOscillate();
             return identity
@@ -944,9 +930,6 @@ export const buildWorld = () => {
 
             newLever(identity.translate(0, 3.4).rotate(0, 180));
           });
-
-          // SOUL 9 - soul after the hex pads, in the hex donut with horns
-          newSoul(identity.translate(-5, 4), [0, -1.2, 1.7], [0, 1.2, 1.7]);
 
           // lateral horns
           [-1, 1].map((i) =>
@@ -1051,7 +1034,7 @@ export const buildWorld = () => {
       };
 
       withEditMatrix(identity.translate(20, 0.3, -9), () => {
-        newModel((model) => {
+        firstRotatingPlatformModel = newModel((model) => {
           model._update = () => identity.rotate(0, 40 + rotatingPlatform1Rotation);
           meshAdd(
             csg_polygons(
@@ -1067,9 +1050,6 @@ export const buildWorld = () => {
           );
           meshAdd(cylinder(8), identity.translate(0, 2).scale(3, 1.5, 3), material(0.7, 0.7, 0.7, 0.1));
           meshAdd(cylinder(5), identity.translate(0, 2).scale(1, 2), material(0.3, 0.3, 0.3, 0.2));
-
-          // SOUL 10 - soul over the first rotating platform
-          newSoul(identity.translate(0, 3), ...polygon_regular(10).map(({ x, z }) => [x * 5.6, z * 5.6, 2.5]));
         });
       });
 
@@ -1282,9 +1262,9 @@ export const buildWorld = () => {
         newLever(identity.translate(0, 1.5, -1).rotate(0, 180));
       });
     });
-
-    initSouls();
   });
+
+  initSouls();
 
   if (DEBUG) {
     console.log(levers.length + " levers");
