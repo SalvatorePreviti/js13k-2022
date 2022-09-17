@@ -13,7 +13,7 @@ import { startMainLoop } from "./main-loop";
 import { song_numChannels } from "./music/song";
 import { soundbox_generate } from "./music/music-player";
 import { loadSong } from "./music/audio-context";
-import { initPlayerModel } from "./game/objects";
+import { initFirstBoatModel, initPlayerModel } from "./game/objects";
 
 setTimeout(() => {
   let songLoad = 0;

@@ -296,6 +296,8 @@ const GHorn = (() => {
     return integers_map(10, (i => cylinder_sides(polygon_transform(p, matrices[i]).reverse(), polygon_transform(p, matrices[i + 1]), 1))).flat();
 })();
 
+const boatPolygons = csg_polygons(csg_subtract(polygons_transform(cylinder(20, 1, 1.15, 1), identity.translate(0, -3).scale(3.5, 1, 3.5), material(.7, .4, .25, .7)), polygons_transform(cylinder(20, 1, 1.3, 1), identity.translate(0, -2.5).scale(2.6, 1, 3), material(.7, .4, .25, .2)), polygons_transform(cylinder(GQuad), identity.translate(4, -1.2).scale3d(2), material(.7, .4, .25, .3))));
+
 let _meshFirstIndex = 0;
 
 let currentEditModel;
@@ -652,6 +654,8 @@ let playerLegsModels;
 
 let playerModel;
 
+let firstBoatModel;
+
 const newLever = transform => {
     withEditMatrix(transform, (() => {
         newModel(($model => {
@@ -689,6 +693,8 @@ const newLever = transform => {
     }));
 };
 
+const getBoatAnimationMatrix = z => identity.translate(/* @__PURE__ */ Math.sin(gameTime + 2) / 5, /* @__PURE__ */ Math.sin(.8 * gameTime) / 3, z).rotateSelf(/* @__PURE__ */ 2 * Math.sin(gameTime), /* @__PURE__ */ Math.sin(.7 * gameTime), /* @__PURE__ */ Math.sin(.9 * gameTime));
+
 const newSoul = (transform, ...walkingPath) => {
     withEditMatrix(transform, (() => {
         let dirX = -1;
@@ -711,61 +717,69 @@ const newSoul = (transform, ...walkingPath) => {
         let {x: targetX, z: targetZ} = circle;
         let soulX = targetX;
         let soulZ = targetZ;
-        souls.push(soul);
+        const index2 = souls.push(soul) - 1;
         newModel((model => {
             model._update = () => {
-                let contextualVelocity = 1;
-                let isInside;
-                let mindist = Infinity;
-                for (const c of circles) {
-                    const {x, z, w} = c;
-                    const distance = /* @__PURE__ */ Math.hypot(targetX - x, targetZ - z);
-                    const circleSDF = distance - w;
-                    isInside ||= w > distance;
-                    if (circleSDF > 0 && mindist > circleSDF) {
-                        mindist = circleSDF;
-                        circle = c;
+                let animationMatrix;
+                if (!soul.$value) {
+                    let contextualVelocity = 1;
+                    let isInside;
+                    let mindist = Infinity;
+                    for (const c of circles) {
+                        const {x, z, w} = c;
+                        const distance = /* @__PURE__ */ Math.hypot(targetX - x, targetZ - z);
+                        const circleSDF = distance - w;
+                        isInside ||= w > distance;
+                        if (circleSDF > 0 && mindist > circleSDF) {
+                            mindist = circleSDF;
+                            circle = c;
+                        }
+                        contextualVelocity = min(contextualVelocity, distance / w);
                     }
-                    contextualVelocity = min(contextualVelocity, distance / w);
+                    if (!isInside) {
+                        const {x: x1, z: z1, w: w1} = circle;
+                        const ax = targetX - x1;
+                        const az = targetZ - z1;
+                        let magnitude = /* @__PURE__ */ Math.hypot(ax, az);
+                        let angle = /* @__PURE__ */ Math.atan2(-az, ax);
+                        if (wasInside) {
+                            randAngle = /* @__PURE__ */ (Math.random() - .5) * Math.PI / 2;
+                            velocity = max(1, velocity / (1 + /* @__PURE__ */ Math.random()));
+                        }
+                        angle += randAngle;
+                        dirX = -/* @__PURE__ */ Math.cos(angle);
+                        dirZ = /* @__PURE__ */ Math.sin(angle);
+                        if (magnitude > .1) {
+                            magnitude = min(magnitude, w1) / (magnitude || 1);
+                            targetX = ax * magnitude + x1;
+                            targetZ = az * magnitude + z1;
+                        }
+                    }
+                    wasInside = isInside;
+                    velocity = lerpDamp(velocity, 3 + 6 * (1 - contextualVelocity), 3 + contextualVelocity);
+                    targetX = lerpDamp(targetX, targetX + dirX, velocity);
+                    targetZ = lerpDamp(targetZ, targetZ + dirZ, velocity);
+                    soulX = lerpDamp(soulX, targetX, velocity);
+                    soulZ = lerpDamp(soulZ, targetZ, velocity);
+                    lookAngle = angle_lerp_degrees(lookAngle, /* @__PURE__ */ Math.atan2(soulX - prevX, soulZ - prevZ) / DEG_TO_RAD - 180, 3 * gameTimeDelta);
+                    prevX = soulX;
+                    prevZ = soulZ;
+                    animationMatrix = identity.translate(soulX, 0, soulZ).rotateSelf(0, lookAngle).skewXSelf(/* @__PURE__ */ 7 * Math.sin(2 * gameTime)).skewYSelf(/* @__PURE__ */ 7 * Math.sin(1.4 * gameTime));
+                    const soulPos = model.$finalMatrix.multiply(animationMatrix).transformPoint();
+                    model.$skipShadow = vec3_distance(soulPos, camera_position) > 100;
+                    if (1.5 > vec3_distance(soulPos, player_position_final)) {
+                        soul.$value = 1;
+                        (() => {
+                            showMessage([ , "Mark Zuckemberg<br>made the world worse", , "Andrzej Mazur<br>for the js13k competition", "Donald Trump<br>lies", "Kim Jong-un<br>Dictator, liked pineapple on pizza", "Maxime Euziere<br>forced me to finish this game", "She traded NFTs apes", , "Vladimir Putin<br>evil war", "He was not a good person", , "Salvatore Previti<br>made this evil game<br><br>Done. Go back to the boat" ][souls_collected_count] || 'Catched a "crypto bro".<br>"Web3" is all scam, lies and grift', souls_collected_count && 12 > souls_collected_count ? 5 : 7);
+                            saveGame();
+                        })();
+                    }
                 }
-                if (!isInside) {
-                    const {x: x1, z: z1, w: w1} = circle;
-                    const ax = targetX - x1;
-                    const az = targetZ - z1;
-                    let magnitude = /* @__PURE__ */ Math.hypot(ax, az);
-                    let angle = /* @__PURE__ */ Math.atan2(-az, ax);
-                    if (wasInside) {
-                        randAngle = /* @__PURE__ */ (Math.random() - .5) * Math.PI / 2;
-                        velocity = max(1, velocity / (1 + /* @__PURE__ */ Math.random()));
-                    }
-                    angle += randAngle;
-                    dirX = -/* @__PURE__ */ Math.cos(angle);
-                    dirZ = /* @__PURE__ */ Math.sin(angle);
-                    if (magnitude > .1) {
-                        magnitude = min(magnitude, w1) / (magnitude || 1);
-                        targetX = ax * magnitude + x1;
-                        targetZ = az * magnitude + z1;
-                    }
-                }
-                wasInside = isInside;
-                velocity = lerpDamp(velocity, 3 + 6 * (1 - contextualVelocity), 3 + contextualVelocity);
-                targetX = lerpDamp(targetX, targetX + dirX, velocity);
-                targetZ = lerpDamp(targetZ, targetZ + dirZ, velocity);
-                soulX = lerpDamp(soulX, targetX, velocity);
-                soulZ = lerpDamp(soulZ, targetZ, velocity);
-                lookAngle = angle_lerp_degrees(lookAngle, /* @__PURE__ */ Math.atan2(soulX - prevX, soulZ - prevZ) / DEG_TO_RAD - 180, 3 * gameTimeDelta);
-                prevX = soulX;
-                prevZ = soulZ;
-                const animationMatrix = identity.translate(soulX, 0, soulZ).rotateSelf(0, lookAngle).skewXSelf(/* @__PURE__ */ 7 * Math.sin(2 * gameTime)).skewYSelf(/* @__PURE__ */ 7 * Math.sin(1.4 * gameTime));
-                const soulPos = model.$finalMatrix.multiply(animationMatrix).transformPoint();
-                model.$visible = 1 - soul.$value;
-                model.$skipShadow = vec3_distance(soulPos, camera_position) > 100;
-                if (!soul.$value && 1.5 > vec3_distance(soulPos, player_position_final)) {
-                    soul.$value = 1;
-                    (() => {
-                        showMessage([ , "Mark Zuckemberg<br>made the world worse", , "Andrzej Mazur<br>for the js13k competition", "Donald Trump<br>lies", "Kim Jong-un<br>Dictator, liked pineapple on pizza", "Maxime Euziere<br>forced me to finish this game", "She traded NFTs apes", , "Vladimir Putin<br>evil war", "He was not a good person", , "Salvatore Previti<br>made this evil game<br><br>Done. Go back to the boat" ][souls_collected_count] || 'Catched a "crypto bro".<br>"Web3" is all scam, lies and grift', souls_collected_count && 12 > souls_collected_count ? 5 : 7);
-                        saveGame();
-                    })();
+                if (soul.$value) {
+                    model.$parent = firstBoatModel;
+                    model.$initialMatrix = identity;
+                    model.$skipShadow = !1;
+                    animationMatrix = identity.translate(index2 % 4 * 1.2 - 1.7 + /* @__PURE__ */ Math.sin(gameTime + index2) / 6, -2, 1.7 * (index2 / 4 | 0) - 5.5 + abs(index2 % 4 - 2) + /* @__PURE__ */ Math.cos(gameTime / 1.5 + index2) / 6);
                 }
                 return animationMatrix;
             };
@@ -811,26 +825,14 @@ const soulMesh = meshEnd();
 
 const buildWorld = () => {
     newModel((() => {
-        const getBoatAnimationMatrix = z => identity.translate(/* @__PURE__ */ Math.sin(gameTime + 2) / 5, /* @__PURE__ */ Math.sin(.8 * gameTime) / 3, z).rotateSelf(/* @__PURE__ */ 2 * Math.sin(gameTime), /* @__PURE__ */ Math.sin(.7 * gameTime), /* @__PURE__ */ Math.sin(.9 * gameTime));
+        firstBoatModel = withEditMatrix(identity.translate(-12, 4.2, -66), (() => newModel((model => {
+            model._update = () => getBoatAnimationMatrix(40 * firstBoatLerp);
+            newLever(identity.translate(0, -3, 4));
+            meshAdd(boatPolygons);
+        }))));
         const bigArc = csg_polygons(csg_subtract(polygons_transform(cylinder(GQuad), identity.translate(0, -8).scale(6, 15, 2.2)), polygons_transform(cylinder(GQuad), identity.translate(0, -14.1).scale(4, 13, 4)), polygons_transform(cylinder(20, 1), identity.translate(0, -1).rotate(90, 0, 90).scale3d(4))));
-        const boatPolygons = csg_polygons(csg_subtract(polygons_transform(cylinder(20, 1, 1.15, 1), identity.translate(0, -3).scale(3.5, 1, 3.5), material(.7, .4, .25, .7)), polygons_transform(cylinder(20, 1, 1.3, 1), identity.translate(0, -2.5).scale(2.6, 1, 3), material(.7, .4, .25, .2)), polygons_transform(cylinder(GQuad), identity.translate(4, -1.2).scale3d(2), material(.7, .4, .25, .3))));
         integers_map(7, (i => meshAdd(cylinder(6, 1), identity.translate(4 * (i / 6 - .5), 3).scale(.2, 3, .2), material(.3, .3, .38))));
         const entranceBarsMesh = meshEnd();
-        withEditMatrix(identity.translate(-12, 4.2, -66), (() => {
-            newModel((model => {
-                model._update = () => getBoatAnimationMatrix(40 * firstBoatLerp);
-                newLever(identity.translate(0, -3, 4));
-                meshAdd(boatPolygons);
-                integers_map(13, (i => {
-                    withEditMatrix(identity.translate(i % 4 * 1.2 - 1.7, -2, 1.7 * (i / 4 | 0) - 5.5 + abs(i % 4 - 2)), (() => newModel((capturedSoulModel => {
-                        capturedSoulModel._update = () => {
-                            if (capturedSoulModel.$visible = souls_collected_count > 12 - i) return identity.translate(/* @__PURE__ */ Math.sin(gameTime + i) / 6, 0, /* @__PURE__ */ Math.cos(gameTime / 1.5 + i) / 6);
-                        };
-                        return soulMesh;
-                    }))));
-                }));
-            }));
-        }));
         meshAdd(cylinder(GQuad), identity.translate(-5, -.2, -26).scale(3.2, 1, 2.5).skewX(3), material(.8, .8, .8, .2));
         newSoul(identity.translate(-.5, 2.8, -20), [ 0, 0, 2.5 ], [ 0, -3, 2.5 ]);
         newSoul(identity.translate(0, 2.8), [ 5, 10, 3 ], [ -5, 10, 3 ], ...polygon_regular(18).map((({x, z}) => [ 7 * x, 10 * z, 4.5 - 2 * abs(x) ])));

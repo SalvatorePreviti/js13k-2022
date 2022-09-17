@@ -25,6 +25,7 @@ let _globalTime;
 
 let playerLegsModels;
 let playerModel;
+let firstBoatModel;
 const DEG_TO_RAD = Math.PI / 180;
 const identity = new DOMMatrix();
 
@@ -753,6 +754,13 @@ const newLever = transform => {
   });
 };
 
+const getBoatAnimationMatrix = z =>
+  identity.translate(Math.sin(gameTime + 2) / 5, Math.sin(.8 * gameTime) / 3, z).rotateSelf(
+    2 * Math.sin(gameTime),
+    Math.sin(.7 * gameTime),
+    Math.sin(.9 * gameTime),
+  );
+
 const newSoul = (transform, ...walkingPath) => {
   withEditMatrix(transform, () => {
     let dirX = -1;
@@ -778,8 +786,11 @@ const newSoul = (transform, ...walkingPath) => {
     } = circle;
     let soulX = targetX;
     let soulZ = targetZ;
-    souls.push(soul),
-      newModel(model => (model._update = () => {
+    const index2 = souls.push(soul) - 1;
+    newModel(model => (model._update = () => {
+      let animationMatrix;
+
+      if (!soul.$value) {
         let contextualVelocity = 1;
         let mindist = 1 / 0;
         let isInside;
@@ -830,14 +841,13 @@ const newSoul = (transform, ...walkingPath) => {
             3 * gameTimeDelta,
           ),
           prevX = soulX,
-          prevZ = soulZ;
-        const animationMatrix = identity.translate(soulX, 0, soulZ).rotateSelf(0, lookAngle).skewXSelf(
-          7 * Math.sin(2 * gameTime),
-        ).skewYSelf(7 * Math.sin(1.4 * gameTime));
+          prevZ = soulZ,
+          animationMatrix = identity.translate(soulX, 0, soulZ).rotateSelf(0, lookAngle).skewXSelf(
+            7 * Math.sin(2 * gameTime),
+          ).skewYSelf(7 * Math.sin(1.4 * gameTime));
         const soulPos = model.$finalMatrix.multiply(animationMatrix).transformPoint();
-        return model.$visible = 1 - soul.$value,
-          model.$skipShadow = 100 < vec3_distance(soulPos, camera_position),
-          !soul.$value && vec3_distance(soulPos, player_position_final) < 1.5
+        model.$skipShadow = 100 < vec3_distance(soulPos, camera_position),
+          vec3_distance(soulPos, player_position_final) < 1.5
           && (soul.$value = 1,
             showMessage(
               [
@@ -857,23 +867,33 @@ const newSoul = (transform, ...walkingPath) => {
               ][souls_collected_count] || "Catched a \"crypto bro\".<br>\"Web3\" is all scam, lies and grift",
               souls_collected_count && souls_collected_count < 12 ? 5 : 7,
             ),
-            saveGame()),
-          animationMatrix;
-      },
-        soulMesh)
-      );
+            saveGame());
+      }
+
+      return soul.$value
+        && (model.$parent = firstBoatModel,
+          model.$initialMatrix = identity,
+          model.$skipShadow = !1,
+          animationMatrix = identity.translate(
+            index2 % 4 * 1.2 - 1.7 + Math.sin(gameTime + index2) / 6,
+            -2,
+            1.7 * (index2 / 4 | 0) - 5.5 + abs(index2 % 4 - 2) + Math.cos(gameTime / 1.5 + index2) / 6,
+          )),
+        animationMatrix;
+    },
+      soulMesh)
+    );
   });
 };
 
 const buildWorld = () => {
   newModel(() => {
-    const getBoatAnimationMatrix = z =>
-      identity.translate(Math.sin(gameTime + 2) / 5, Math.sin(.8 * gameTime) / 3, z).rotateSelf(
-        2 * Math.sin(gameTime),
-        Math.sin(.7 * gameTime),
-        Math.sin(.9 * gameTime),
-      );
-
+    firstBoatModel = withEditMatrix(identity.translate(-12, 4.2, -66), () =>
+      newModel(model => {
+        model._update = () => getBoatAnimationMatrix(40 * firstBoatLerp),
+          newLever(identity.translate(0, -3, 4)),
+          meshAdd(boatPolygons);
+      }));
     const bigArc = csg_polygons(
       csg_subtract(
         polygons_transform(cylinder(GQuad), identity.translate(0, -8).scale(6, 15, 2.2)),
@@ -881,43 +901,10 @@ const buildWorld = () => {
         polygons_transform(cylinder(20, 1), identity.translate(0, -1).rotate(90, 0, 90).scale3d(4)),
       ),
     );
-    const boatPolygons = csg_polygons(
-      csg_subtract(
-        polygons_transform(
-          cylinder(20, 1, 1.15, 1),
-          identity.translate(0, -3).scale(3.5, 1, 3.5),
-          material(.7, .4, .25, .7),
-        ),
-        polygons_transform(
-          cylinder(20, 1, 1.3, 1),
-          identity.translate(0, -2.5).scale(2.6, 1, 3),
-          material(.7, .4, .25, .2),
-        ),
-        polygons_transform(cylinder(GQuad), identity.translate(4, -1.2).scale3d(2), material(.7, .4, .25, .3)),
-      ),
-    );
     const entranceBarsMesh = (integers_map(7, i =>
       meshAdd(cylinder(6, 1), identity.translate(4 * (i / 6 - .5), 3).scale(.2, 3, .2), material(.3, .3, .38))),
       meshEnd());
-    withEditMatrix(identity.translate(-12, 4.2, -66), () => {
-      newModel(model => {
-        model._update = () =>
-          getBoatAnimationMatrix(40 * firstBoatLerp),
-          newLever(identity.translate(0, -3, 4)),
-          meshAdd(boatPolygons),
-          integers_map(13, i => {
-            withEditMatrix(identity.translate(i % 4 * 1.2 - 1.7, -2, 1.7 * (i / 4 | 0) - 5.5 + abs(i % 4 - 2)), () =>
-              newModel(capturedSoulModel => (capturedSoulModel._update = () => {
-                if (capturedSoulModel.$visible = souls_collected_count > 12 - i) {
-                  return identity.translate(Math.sin(gameTime + i) / 6, 0, Math.cos(gameTime / 1.5 + i) / 6);
-                }
-              },
-                soulMesh)
-              ));
-          });
-      });
-    }),
-      meshAdd(cylinder(GQuad), identity.translate(-5, -0.2, -26).scale(3.2, 1, 2.5).skewX(3), material(.8, .8, .8, .2)),
+    meshAdd(cylinder(GQuad), identity.translate(-5, -0.2, -26).scale(3.2, 1, 2.5).skewX(3), material(.8, .8, .8, .2)),
       newSoul(identity.translate(-0.5, 2.8, -20), [0, 0, 2.5], [0, -3, 2.5]),
       newSoul(
         identity.translate(0, 2.8),
@@ -2073,6 +2060,21 @@ const GHorn = (() => {
   ).flat();
 })();
 
+const boatPolygons = csg_polygons(
+  csg_subtract(
+    polygons_transform(
+      cylinder(20, 1, 1.15, 1),
+      identity.translate(0, -3).scale(3.5, 1, 3.5),
+      material(.7, .4, .25, .7),
+    ),
+    polygons_transform(
+      cylinder(20, 1, 1.3, 1),
+      identity.translate(0, -2.5).scale(2.6, 1, 3),
+      material(.7, .4, .25, .2),
+    ),
+    polygons_transform(cylinder(GQuad), identity.translate(4, -1.2).scale3d(2), material(.7, .4, .25, .3)),
+  ),
+);
 const editMatrixStack = [identity];
 
 const _vertexIntsSmooth = new Int32Array(_vertexInts.buffer, 0, 4);

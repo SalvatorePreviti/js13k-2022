@@ -1,5 +1,14 @@
 import { identity, integers_map } from "../math";
-import { cylinder_sides, polygon_regular, polygon_transform, type Polygon } from "./geometry";
+import { csg_polygons, csg_subtract } from "./csg";
+import {
+  cylinder,
+  cylinder_sides,
+  material,
+  polygons_transform,
+  polygon_regular,
+  polygon_transform,
+  type Polygon,
+} from "./geometry";
 
 export const GQuad = /* @__PURE__ */ [
   { x: -1, z: 1 },
@@ -10,7 +19,7 @@ export const GQuad = /* @__PURE__ */ [
 
 const HORN_STACKS = 10;
 
-export const GHorn = /* @__PURE__ */ ((): Polygon[] => {
+export const GHorn = ((): Polygon[] => {
   const matrices = integers_map(HORN_STACKS + 1, (i: number) =>
     identity
       .translate(Math.sin((i / HORN_STACKS) * Math.PI), i / HORN_STACKS)
@@ -23,3 +32,19 @@ export const GHorn = /* @__PURE__ */ ((): Polygon[] => {
     cylinder_sides(polygon_transform(p, matrices[i]!).reverse(), polygon_transform(p, matrices[i + 1]!), 1),
   ).flat();
 })();
+
+export const boatPolygons = csg_polygons(
+  csg_subtract(
+    polygons_transform(
+      cylinder(20, 1, 1.15, 1),
+      identity.translate(0, -3).scale(3.5, 1, 3.5),
+      material(0.7, 0.4, 0.25, 0.7),
+    ),
+    polygons_transform(
+      cylinder(20, 1, 1.3, 1),
+      identity.translate(0, -2.5).scale(2.6, 1, 3),
+      material(0.7, 0.4, 0.25, 0.2),
+    ),
+    polygons_transform(cylinder(GQuad), identity.translate(4, -1.2).scale3d(2), material(0.7, 0.4, 0.25, 0.3)),
+  ),
+);

@@ -1,10 +1,10 @@
-$attachPlayer:H
+$attachPlayer:I
 $back:m
 $color:v
-$finalMatrix:u
+$finalMatrix:s
 $flipped:A
 $front:o
-$initialMatrix:I
+$initialMatrix:H
 $lerpValue:g
 $lerpValue2:i
 $matrix:K
@@ -18,5 +18,5 @@ $smooth:C
 $value:j
 $vertexCount:L
 $vertexOffset:M
-$visible:s
+$visible:u
 _update:h

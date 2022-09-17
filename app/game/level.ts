@@ -1,7 +1,7 @@
 import { abs, clamp01, integers_map, lerpneg, max, min, identity } from "../math";
 import { material, cylinder, polygons_transform, polygon_regular } from "../geometry/geometry";
 import { csg_subtract, csg_polygons, csg_union } from "../geometry/csg";
-import { GQuad, GHorn } from "../geometry/solids";
+import { GQuad, GHorn, boatPolygons } from "../geometry/solids";
 import { meshAdd, meshEnd, withEditMatrix, newModel } from "./scene";
 import {
   secondBoatLerp,
@@ -10,41 +10,18 @@ import {
   rotatingHexCorridorRotation,
   rotatingPlatform1Rotation,
   rotatingPlatform2Rotation,
-  firstBoatLerp,
-  souls_collected_count,
 } from "./world-state";
-import { newLever, newSoul, soulMesh } from "./objects";
+import { getBoatAnimationMatrix, initFirstBoatModel, newLever, newSoul } from "./objects";
 
 export const buildWorld = () => {
   newModel(() => {
+    initFirstBoatModel();
+
     const bigArc = csg_polygons(
       csg_subtract(
         polygons_transform(cylinder(GQuad), identity.translate(0, -8).scale(6, 15, 2.2)),
         polygons_transform(cylinder(GQuad), identity.translate(0, -14.1).scale(4, 13, 4)),
         polygons_transform(cylinder(20, 1), identity.translate(0, -1).rotate(90, 0, 90).scale3d(4)),
-      ),
-    );
-
-    // ========= boat mesh ========= //
-
-    const getBoatAnimationMatrix = (z: number) =>
-      identity
-        .translate(Math.sin(gameTime + 2) / 5, Math.sin(gameTime * 0.8) / 3, z)
-        .rotateSelf(Math.sin(gameTime) * 2, Math.sin(gameTime * 0.7), Math.sin(gameTime * 0.9));
-
-    const boatPolygons = csg_polygons(
-      csg_subtract(
-        polygons_transform(
-          cylinder(20, 1, 1.15, 1),
-          identity.translate(0, -3).scale(3.5, 1, 3.5),
-          material(0.7, 0.4, 0.25, 0.7),
-        ),
-        polygons_transform(
-          cylinder(20, 1, 1.3, 1),
-          identity.translate(0, -2.5).scale(2.6, 1, 3),
-          material(0.7, 0.4, 0.25, 0.2),
-        ),
-        polygons_transform(cylinder(GQuad), identity.translate(4, -1.2).scale3d(2), material(0.7, 0.4, 0.25, 0.3)),
       ),
     );
 
@@ -56,34 +33,6 @@ export const buildWorld = () => {
     const entranceBarsMesh = meshEnd();
 
     // ========= WORLD! ========= //
-
-    // ========= FIRST BOAT! ========= //
-
-    withEditMatrix(identity.translate(-12, 4.2, -26 - 40), () => {
-      newModel((model) => {
-        model._update = () => getBoatAnimationMatrix(firstBoatLerp * 40);
-
-        newLever(identity.translate(0, -3, 4));
-
-        meshAdd(boatPolygons);
-
-        integers_map(13, (i) => {
-          withEditMatrix(
-            identity.translate((i % 4) * 1.2 - 1.7, -2, -5.5 + ((i / 4) | 0) * 1.7 + abs((i % 4) - 2)),
-            () =>
-              newModel((capturedSoulModel) => {
-                capturedSoulModel._update = () => {
-                  if ((capturedSoulModel.$visible = 12 - i < souls_collected_count)) {
-                    return identity.translate(Math.sin(gameTime + i) / 6, 0, Math.cos(gameTime / 1.5 + i) / 6);
-                  }
-                  return undefined;
-                };
-                return soulMesh;
-              }),
-          );
-        });
-      });
-    });
 
     // first boat attachment
 
@@ -450,6 +399,10 @@ export const buildWorld = () => {
 
       withEditMatrix(identity.translate(-75, 0, -20), () =>
         newModel((model) => {
+          if (DEBUG) {
+            console.log("rotatingHexCorridor modelId:" + model.$modelId);
+          }
+
           model.$attachPlayer = 0;
           model._update = () => {
             return identity

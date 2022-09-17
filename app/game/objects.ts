@@ -1,8 +1,8 @@
-import { angle_lerp_degrees, DEG_TO_RAD, identity, max, min, vec3_distance } from "../math";
+import { abs, angle_lerp_degrees, DEG_TO_RAD, identity, max, min, vec3_distance } from "../math";
 import type { Polygon } from "../geometry/geometry";
 import { cylinder, material, polygons_transform, sphere } from "../geometry/geometry";
 import { csg_polygons, csg_subtract } from "../geometry/csg";
-import { GQuad, GHorn } from "../geometry/solids";
+import { GQuad, GHorn, boatPolygons } from "../geometry/solids";
 import { meshAdd, meshEnd, newModel, withEditMatrix, type Model } from "./scene";
 import {
   levers,
@@ -14,6 +14,7 @@ import {
   type Soul,
   gameTimeDelta,
   gameTime,
+  firstBoatLerp,
 } from "./world-state";
 import { player_position_final } from "./player-position";
 import { keyboard_downKeys, KEY_INTERACT } from "../page";
@@ -122,6 +123,30 @@ export const initPlayerModel = () => {
   });
 };
 
+// ========= BOAT ========= //
+
+export const getBoatAnimationMatrix = (z: number) =>
+  identity
+    .translate(Math.sin(gameTime + 2) / 5, Math.sin(gameTime * 0.8) / 3, z)
+    .rotateSelf(Math.sin(gameTime) * 2, Math.sin(gameTime * 0.7), Math.sin(gameTime * 0.9));
+
+// ========= FIRST BOAT! ========= //
+
+export let firstBoatModel: Model;
+
+export const initFirstBoatModel = () => {
+  firstBoatModel = withEditMatrix(identity.translate(-12, 4.2, -26 - 40), () =>
+    newModel((model) => {
+      if (DEBUG) {
+        console.log("firstBoat modelId:" + model.$modelId);
+      }
+      model._update = () => getBoatAnimationMatrix(firstBoatLerp * 40);
+      newLever(identity.translate(0, -3, 4));
+      meshAdd(boatPolygons);
+    }),
+  );
+};
+
 // ========= Soul mesh ========= //
 
 // meshAdd(cylinder(6), identity, material(1, 0.3, 0.5));
@@ -180,81 +205,97 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]
       }
     }
 
-    souls.push(soul);
+    const index = souls.push(soul) - 1;
 
     newModel((model) => {
       model._update = () => {
-        let contextualVelocity = 1;
-        let mindist = Infinity;
-        let isInside: boolean | undefined;
-        for (const c of circles) {
-          const { x, z, w } = c;
-          const distance = Math.hypot(targetX - x, targetZ - z);
-          const circleSDF = distance - w;
-          isInside ||= distance < w;
-          if (circleSDF > 0 && circleSDF < mindist) {
-            mindist = circleSDF;
-            circle = c;
+        let animationMatrix: DOMMatrixReadOnly;
+
+        if (!soul.$value) {
+          let contextualVelocity = 1;
+          let mindist = Infinity;
+          let isInside: boolean | undefined;
+          for (const c of circles) {
+            const { x, z, w } = c;
+            const distance = Math.hypot(targetX - x, targetZ - z);
+            const circleSDF = distance - w;
+            isInside ||= distance < w;
+            if (circleSDF > 0 && circleSDF < mindist) {
+              mindist = circleSDF;
+              circle = c;
+            }
+            contextualVelocity = min(contextualVelocity, distance / w);
           }
-          contextualVelocity = min(contextualVelocity, distance / w);
+
+          if (!isInside) {
+            const { x, z, w } = circle;
+            const ax = targetX - x;
+            const az = targetZ - z;
+            let magnitude = Math.hypot(ax, az);
+            let angle = Math.atan2(-az, ax);
+            if (wasInside) {
+              randAngle = ((Math.random() - 0.5) * Math.PI) / 2;
+              velocity = max(1, velocity / (1 + Math.random()));
+            }
+            angle += randAngle;
+            dirX = -Math.cos(angle);
+            dirZ = Math.sin(angle);
+            if (magnitude > 0.1) {
+              // limit the vector length to the circle radius, as a security measure
+              magnitude = min(magnitude, w) / (magnitude || 1);
+              targetX = ax * magnitude + x;
+              targetZ = az * magnitude + z;
+            }
+          }
+
+          wasInside = isInside;
+
+          velocity = lerpDamp(velocity, 3 + (1 - contextualVelocity) * 6, 3 + contextualVelocity);
+
+          targetX = lerpDamp(targetX, targetX + dirX, velocity);
+          targetZ = lerpDamp(targetZ, targetZ + dirZ, velocity);
+
+          soulX = lerpDamp(soulX, targetX, velocity);
+          soulZ = lerpDamp(soulZ, targetZ, velocity);
+
+          lookAngle = angle_lerp_degrees(
+            lookAngle,
+            Math.atan2(soulX - prevX, soulZ - prevZ) / DEG_TO_RAD - 180,
+            3 * gameTimeDelta,
+          );
+
+          prevX = soulX;
+          prevZ = soulZ;
+
+          animationMatrix = identity
+            .translate(soulX, 0, soulZ)
+            .rotateSelf(0, lookAngle)
+            .skewXSelf(Math.sin(gameTime * 2) * 7)
+            .skewYSelf(Math.sin(gameTime * 1.4) * 7);
+
+          const soulPos = model.$finalMatrix.multiply(animationMatrix).transformPoint();
+
+          model.$skipShadow = vec3_distance(soulPos, camera_position) > 100;
+          if (vec3_distance(soulPos, player_position_final) < SOUL_SENSITIVITY_RADIUS) {
+            soul.$value = 1;
+            onSoulCollected();
+          }
         }
 
-        if (!isInside) {
-          const { x, z, w } = circle;
-          const ax = targetX - x;
-          const az = targetZ - z;
-          let magnitude = Math.hypot(ax, az);
-          let angle = Math.atan2(-az, ax);
-          if (wasInside) {
-            randAngle = ((Math.random() - 0.5) * Math.PI) / 2;
-            velocity = max(1, velocity / (1 + Math.random()));
-          }
-          angle += randAngle;
-          dirX = -Math.cos(angle);
-          dirZ = Math.sin(angle);
-          if (magnitude > 0.1) {
-            // limit the vector length to the circle radius, as a security measure
-            magnitude = min(magnitude, w) / (magnitude || 1);
-            targetX = ax * magnitude + x;
-            targetZ = az * magnitude + z;
-          }
+        if (soul.$value) {
+          // Captured.
+          model.$parent = firstBoatModel;
+          model.$initialMatrix = identity;
+          model.$skipShadow = false;
+
+          animationMatrix = identity.translate(
+            (index % 4) * 1.2 - 1.7 + Math.sin(gameTime + index) / 6,
+            -2,
+            -5.5 + ((index / 4) | 0) * 1.7 + abs((index % 4) - 2) + Math.cos(gameTime / 1.5 + index) / 6,
+          );
         }
 
-        wasInside = isInside;
-
-        velocity = lerpDamp(velocity, 3 + (1 - contextualVelocity) * 6, 3 + contextualVelocity);
-
-        targetX = lerpDamp(targetX, targetX + dirX, velocity);
-        targetZ = lerpDamp(targetZ, targetZ + dirZ, velocity);
-
-        soulX = lerpDamp(soulX, targetX, velocity);
-        soulZ = lerpDamp(soulZ, targetZ, velocity);
-
-        lookAngle = angle_lerp_degrees(
-          lookAngle,
-          Math.atan2(soulX - prevX, soulZ - prevZ) / DEG_TO_RAD - 180,
-          3 * gameTimeDelta,
-        );
-
-        prevX = soulX;
-        prevZ = soulZ;
-
-        const animationMatrix = identity
-          .translate(soulX, 0, soulZ)
-          .rotateSelf(0, lookAngle)
-          .skewXSelf(Math.sin(gameTime * 2) * 7)
-          .skewYSelf(Math.sin(gameTime * 1.4) * 7);
-
-        const soulPos = model.$finalMatrix.multiply(animationMatrix).transformPoint();
-
-        model.$visible = (1 - soul.$value) as 0 | 1;
-        model.$skipShadow = vec3_distance(soulPos, camera_position) > 100;
-        if (!soul.$value && vec3_distance(soulPos, player_position_final) < SOUL_SENSITIVITY_RADIUS) {
-          soul.$value = 1;
-          onSoulCollected();
-        }
-
-        return animationMatrix;
+        return animationMatrix!;
       };
       return soulMesh;
     });
