@@ -166,7 +166,7 @@ let a = 0,
   },
   c = [{ x: -1, z: 1 }, { x: 1, z: 1 }, { x: 1, z: -1 }, { x: -1, z: -1 }],
   x1 = [],
-  h = (t, a) => (K1.push(K1.at(-1).multiply(t)), t = a(), K1.pop(), t),
+  h = (t, a) => (E1.push(E1.at(-1).multiply(t)), t = a(), E1.pop(), t),
   p1 = [],
   g1 = [],
   N = [],
@@ -175,13 +175,13 @@ let a = 0,
   H = new Map(),
   f = new Int32Array(7),
   v1 = t => {
-    let { x: a, y: e, z: l } = B1[t], r = (U1[0] = a, U1[1] = e, U1[2] = l, H.get(t = "" + (B1.B ? E1 : f)));
+    let { x: a, y: e, z: l } = B1[t], r = (J1[0] = a, J1[1] = e, J1[2] = l, H.get(t = "" + (B1.B ? U1 : f)));
     return void 0 !== r
       ? (a = 3 * r, N[a] = (N[a++] + f[4]) / 2, N[a] = (N[a++] + f[5]) / 2, N[a] = (N[a] + f[6]) / 2)
       : (H.set(t, r = H.size), g1.push(a, e, l), N.push(f[4], f[5], f[6]), z1.push(f[3])),
       r;
   },
-  u = (t, a = R, e) => C.at(-1).push(...r(t, K1.at(-1).multiply(a), e)),
+  u = (t, a = R, e) => C.at(-1).push(...r(t, E1.at(-1).multiply(a), e)),
   d1 = () => {
     let t = C.at(-1);
     for (B1 of t) {
@@ -192,8 +192,8 @@ let a = 0,
     return t.length = 0, { K: t = a, J: (a = p1.length) - t };
   },
   A = t => {
-    let a = Q1, e = { F: K1.at(-1), s: R, H: x1.length + 1, G: 1, j: a === x1[0] ? void 0 : a };
-    return Q1 = e, x1.push(e), K1.push(R), C.push([]), t = t(e) || d1(), e.D = t, K1.pop(), C.pop(), Q1 = a, e;
+    let a = Q1, e = { F: E1.at(-1), s: R, H: x1.length + 1, G: 1, j: a === x1[0] ? void 0 : a };
+    return Q1 = e, x1.push(e), E1.push(R), C.push([]), t = t(e) || d1(), e.D = t, E1.pop(), C.pop(), Q1 = a, e;
   },
   w1 = () => {
     for (let a of x1) {
@@ -209,13 +209,13 @@ let a = 0,
   I1 = t => Math.sin(t * Math.PI * 2),
   G = [],
   A1 = () => {
-    t1 || !l1 ? V1.disconnect() : V1.connect(J1.destination), b4.innerHTML = "Music: " + l1;
+    t1 || !l1 ? G1.disconnect() : G1.connect(V1.destination), b4.innerHTML = "Music: " + l1;
   },
   P1 = (t = !1) => {
     if (t1 !== t) {
       t1 = t, a1 = 0;
       try {
-        t ? document.exitPointerLock() : V1.start();
+        t ? document.exitPointerLock() : G1.start();
       } catch {}
       document.body.className = t ? "l m" : "l", A1();
     }
@@ -242,7 +242,7 @@ let a = 0,
             && (s.l = t ? 0 : 1, n && !c1 && (h4.innerHTML = "* click *", y = B + 1), n1 = n, Y1()),
             s.g = _(a, t, 4),
             s.i = _(e, t, 1),
-            r.D = G1[.5 < a ? 1 : 0],
+            r.D = _1[.5 < a ? 1 : 0],
             R.rotate(60 * s.g - 30, 0).translateSelf(0, 1);
         };
       }),
@@ -334,7 +334,7 @@ let a = 0,
             )),
           t;
       },
-        _1)
+        Z1)
       );
     });
   },
@@ -416,12 +416,19 @@ let a = 0,
       r(s(c), R.translate(4, -1.2).scale3d(2), 1279223474),
     ),
   ),
-  K1 = [R],
-  E1 = new Int32Array(f.buffer, 0, 4),
-  U1 = new Float32Array(f.buffer),
-  J1 = new AudioContext(),
-  V1 = J1.createBufferSource(),
-  G1 = (u([c.slice(1)], R.translate(-2).scale3d(3).rotate(90, 0)),
+  K1 = i(
+    o(
+      r(s(c), R.translate(0, -8).scale(6, 15, 2.2)),
+      r(s(c), R.translate(0, -14.1).scale(4, 13, 4)),
+      r(s(20, 1), R.translate(0, -1).rotate(90, 0, 90).scale3d(4)),
+    ),
+  ),
+  E1 = [R],
+  U1 = new Int32Array(f.buffer, 0, 4),
+  J1 = new Float32Array(f.buffer),
+  V1 = new AudioContext(),
+  G1 = V1.createBufferSource(),
+  _1 = (u([c.slice(1)], R.translate(-2).scale3d(3).rotate(90, 0)),
     d1(),
     [3375103, 3407794].map(
       t => (u(s(6, 1), R.scale(.13, 1.4, .13), 8342604),
@@ -429,7 +436,7 @@ let a = 0,
         u(s(3), R.translate(0, -1).rotate(90, 90).scale(.3, .4, .3), 3355443),
         d1()),
     )),
-  _1 = (u(
+  Z1 = (u(
     j(40, 30, (t, a, e) => {
       let l = a / 30, r = .05 * t * Math.PI, s = l ** .6 * Math.PI / 2;
       return t = l * l * Math.sin(t * Math.PI * .35) / 4,
@@ -970,12 +977,12 @@ setTimeout(() => {
         }
         setTimeout(l);
       } else {
-        for (B = J1.createBuffer(2, 5362944, 44100), O = 0; O < 2; O++) {
+        for (B = V1.createBuffer(2, 5362944, 44100), O = 0; O < 2; O++) {
           for (let t = O, a = B.getChannelData(O); t < 10725888; t += 2) {
             a[t >> 1] = D1[t] / 65536;
           }
         }
-        V1.buffer = B, V1.loop = !0;
+        G1.buffer = B, G1.loop = !0;
       }
       e();
     },
@@ -990,23 +997,9 @@ setTimeout(() => {
         X1 = h(R.translate(-12, 4.2, -66), () =>
           A(t => {
             t.h = () => k1(40 * h1), m(R.translate(0, -3, 4)), u(N1);
-          }));
-        let l = i(
-            o(
-              r(s(c), R.translate(0, -8).scale(6, 15, 2.2)),
-              r(s(c), R.translate(0, -14.1).scale(4, 13, 4)),
-              r(s(20, 1), R.translate(0, -1).rotate(90, 0, 90).scale3d(4)),
-            ),
-          ),
-          e = (W(7, t => u(s(6, 1), R.translate(4 * (t / 6 - .5), 3).scale(.2, 3, .2), 6310988)), d1());
+          })), W(7, t => u(s(6, 1), R.translate(4 * (t / 6 - .5), 3).scale(.2, 3, .2), 6310988));
+        let e = d1();
         u(s(c), R.translate(-5, -.2, -26).scale(3.2, 1, 2.5).skewX(3), 869059788),
-          M(R.translate(-.5, 2.8, -20), [0, 0, 2.5], [0, -3, 2.5]),
-          M(
-            R.translate(0, 2.8),
-            [5, 10, 3],
-            [-5, 10, 3],
-            ...I(18).map(({ x: t, z: a }) => [7 * t, 10 * a, 4.5 - 2 * (t < 0 ? -t : t)]),
-          ),
           c.map(({ x: t, z: a }) => u(s(6), R.translate(3 * t, 3, 15 * a).scale(.7, 4, .7), 1716276377)),
           [-23, 22].map(t => u(s(c), R.translate(0, 0, t).scale(3, 1, 8), 870704613)),
           [-15, 15].map((t, a) => {
@@ -1117,11 +1110,10 @@ setTimeout(() => {
                     )),
                     u(s(c), R.translate(-39, -3, -20).scale(3, 1.4, 2.7), 870704613);
                 }),
-                h(R.translate(-44.5, 0, -20), () =>
-                  A(t => {
-                    t.h = () => R.translate(0, -6.5 * Z[4].i),
-                      u(s(6), R.rotate(90, 90).rotate(0, 90).scale(5.9, .5, 5.9), 1722987186);
-                  })),
+                A(t => {
+                  t.h = () => R.translate(0, -6.5 * Z[4].i),
+                    u(s(6), R.translate(-44.5, 0, -20).rotate(90, 90).rotate(0, 90).scale(5.9, .5, 5.9), 1722987186);
+                }),
                 [...r(
                   i(n(
                     r(s(c), R.translate(0, -3).scale(11, 1.4, 3), 870704613),
@@ -1148,7 +1140,6 @@ setTimeout(() => {
                 })),
               u(s(c), R.translate(-88.3, -5.1, -20).rotate(0, 0, -30).scale(5, 1.25, 4.5), 867349170),
               u(s(3, 0, -.5), R.translate(-88.4, -3.9, -20).rotate(0, -90, 17).scale(3, 1.45, 5.9), 869059788),
-              M(R.translate(-100, .2, -20), [0, 0, 7.5], [-8, 0, 3.5], [-12, 0, 3.5], [-15, 0, 3.5]),
               u(
                 i(o(
                   n(
@@ -1173,7 +1164,6 @@ setTimeout(() => {
                   r(s(20, 1), R.translate(-100, 2, -5).scale(2, 2, 10).rotate(90, 0), 1719631743),
                 ),
               )),
-              M(R.translate(-89, .2, 5), [0, 0, 6]),
               h(R.translate(-99.7, -2, -11.5), () => A(t => (t.h = () => R.translate(0, 5.3 * -Z[6].g), e))),
               c.map(({ x: a, z: e }) => {
                 u(s(6), R.translate(7 * a - 100, -3, 7 * e - 20).scale(1, 8.1), -869914983),
@@ -1254,8 +1244,7 @@ setTimeout(() => {
                             1286779570,
                           ))).flat(),
                     ),
-                  )),
-                  M(R.translate(0, 2.9, -38), [0, 0, 12]);
+                  ));
               }),
               u(s(5), R.translate(-84, -2, 10).scale(4, .8, 4).rotate(0, 10), 1715411404),
               m(R.translate(-84, -.5, 10).rotate(0, 45));
@@ -1276,9 +1265,10 @@ setTimeout(() => {
             u(s(c), R.translate(7, -2.6).scale(3.2, 1.1, 4).skewX(3), 869059788),
               u(s(6), R.translate(7, -2.6, -4.5).scale(3.2, .8, 3), 867336089),
               m(R.translate(7, -1.4, -6).rotate(0, 180)),
-              M(R.translate(8, .2), [0, 0, 3.5]),
-              W(3, t => u(l, R.translate(12 * t + 14, -9), 1285134745)),
-              W(3, t => u(l, R.translate(46, -9, -12 * t - 8).rotate(0, 90), 1285134745)),
+              W(3, t => {
+                u(K1, R.translate(12 * t + 14, -9), 1285134745),
+                  u(K1, R.translate(46, -9, -12 * t - 8).rotate(0, 90), 1285134745);
+              }),
               u(i(
                 o(
                   r(s(12), R.translate(46, -13.9).scale(4, 18.2, 4), 867349170),
@@ -1332,7 +1322,6 @@ setTimeout(() => {
                   r(s(9), R.translate(25, -5.8, -28).scale(3, 8, 3), 867349170),
                 ),
               )),
-              M(R.translate(30, -3, -28).rotate(0, 0, 4), [0, -2, 3.5], [0, 2, 3.5]),
               u(s(9), R.translate(25, -5.8, -28).scale(2.5, .9, 2.5), 1283424127),
               m(R.translate(25, -4.4, -28).rotate(0, 90));
           }),
@@ -1484,67 +1473,73 @@ setTimeout(() => {
                       a,
                     );
                 })
+              );
+          }),
+          h(R.translate(0, .9, 95), () => {
+            u(s(c), R.translate(-9.7, -.2, 8.9).scale(10, 1, 2.5), 865704345),
+              u(i(
+                o(
+                  r(s(6, 0, 0, .3), R.translate(0, -.92).scale(14, 2, 14), 869059788),
+                  r(s(5), R.scale3d(6), 2135706700),
+                ),
+              )),
+              [8, -6.1].map((a, e) =>
+                W(
+                  3,
+                  t =>
+                    u(K1, R.translate(6 * t - 6, a - (1 & t), 16 - .2 * (1 & t) - e), 1 & t ? 1283424127 : 2136562009),
+                )
               ),
-              h(R.translate(100, .2, -20), () => {
-                u(s(c), R.translate(-9.7, -.2, 8.9).scale(10, 1, 2.5), 865704345),
-                  u(i(
-                    o(
-                      r(s(6, 0, 0, .3), R.translate(0, -.92).scale(14, 2, 14), 869059788),
-                      r(s(5), R.scale3d(6), 2135706700),
-                    ),
-                  )),
-                  [8, -6.1].map((a, e) =>
-                    W(
-                      3,
-                      t =>
-                        u(
-                          l,
-                          R.translate(6 * t - 6, a - (1 & t), 16 - .2 * (1 & t) - e),
-                          1 & t ? 1283424127 : 2136562009,
-                        ),
-                    )
+              [-1, 1].map(t => u(W1, R.translate(-8 * t, 1, -10).scale(1.2, 10, 1.2).rotate(0, 90 * t + 90), 13434879)),
+              u(s(5), R.translate(0, -15.7, -13).scale(2.5, 17, 2.5).rotate(0, 35), 1716276351),
+              m(R.translate(0, 1.7, -13).rotate(0, 180)),
+              u(i(
+                o(
+                  n(
+                    r(s(c), R.translate(0, 16, 15.5).scale(12, 1, 3), 1716276351),
+                    r(s(c), R.translate(0, 16, 16).scale(3, 1, 3.8), 1716276351),
                   ),
-                  [-1, 1].map(t =>
-                    u(W1, R.translate(-8 * t, 1, -10).scale(1.2, 10, 1.2).rotate(0, 90 * t + 90), 13434879)
-                  ),
-                  u(s(5), R.translate(0, -15.7, -13).scale(2.5, 17, 2.5).rotate(0, 35), 1716276351),
-                  m(R.translate(0, 1.7, -13).rotate(0, 180)),
-                  M(R.translate(0, 3), ...I(9).map(({ x: t, z: a }) => [9 * t, 9 * a, 4])),
-                  u(i(
-                    o(
-                      n(
-                        r(s(c), R.translate(0, 16, 15.5).scale(12, 1, 3), 1716276351),
-                        r(s(c), R.translate(0, 16, 16).scale(3, 1, 3.8), 1716276351),
-                      ),
-                      r(s(5), R.translate(0, 16, 8.5).scale(5.5, 5, 5.5), 1716276351),
-                    ),
-                  )),
-                  A(t => {
-                    t.h = () => {
-                      let t = Math.sin(B);
-                      return R.translate(-2 * t).rotate(0, 0, 25 * t);
-                    },
-                      u(s(3), R.translate(0, -3, 23.8).scale(.8, .8, 18).rotate(90, 0, 60), 1716276351),
-                      [22, 30].map(t => {
-                        u(s(6), R.translate(0, 16, t).scale(3, 1, 2.3).rotate(0, 90), 1722987186),
-                          u(s(c), R.translate(0, 6.2, t).scale(.5, 11, .5), 1716276351);
-                      });
-                  }),
-                  u(s(6), R.translate(0, 16, 26).scale(2.5, 1, 2.1).rotate(0, 90), 1286773119),
-                  u(s(c), R.translate(0, 16, 34).scale(1.5, 1, 2), 1286773119),
-                  u(s(7), R.translate(0, 16.2, 38).scale(5, 1, 5), 1721335654),
-                  A(t => {
-                    t.h = () => {
-                      let t = q((Z[14].g + Z[14].i) / 2, Z[13].i);
-                      return t = q(t, (Z[15].g + Z[15].i) / 2), R.translate(0, 16 * t, 8.5 * X(2 * t - 1));
-                    },
-                      u(s(5), R.scale(5, 1.1, 5), 1716276351),
-                      u(s(5), R.scale(5.5, .9, 5.5), 1715420991),
-                      m(R.translate(0, 1.5, -1).rotate(0, 180));
-                  }),
-                  M(R.translate(0, 19, 39), [0, 0, 3.5]);
+                  r(s(5), R.translate(0, 16, 8.5).scale(5.5, 5, 5.5), 1716276351),
+                ),
+              )),
+              A(t => {
+                t.h = () => {
+                  let t = Math.sin(B);
+                  return R.translate(-2 * t).rotate(0, 0, 25 * t);
+                },
+                  u(s(3), R.translate(0, -3, 23.8).scale(.8, .8, 18).rotate(90, 0, 60), 1716276351),
+                  [22, 30].map(t => {
+                    u(s(6), R.translate(0, 16, t).scale(3, 1, 2.3).rotate(0, 90), 1722987186),
+                      u(s(c), R.translate(0, 6.2, t).scale(.5, 11, .5), 1716276351);
+                  });
+              }),
+              u(s(6), R.translate(0, 16, 26).scale(2.5, 1, 2.1).rotate(0, 90), 1286773119),
+              u(s(c), R.translate(0, 16, 34).scale(1.5, 1, 2), 1286773119),
+              u(s(7), R.translate(0, 16.2, 38).scale(5, 1, 5), 1721335654),
+              A(t => {
+                t.h = () => {
+                  let t = q((Z[14].g + Z[14].i) / 2, Z[13].i);
+                  return t = q(t, (Z[15].g + Z[15].i) / 2), R.translate(0, 16 * t, 8.5 * X(2 * t - 1));
+                },
+                  u(s(5), R.scale(5, 1.1, 5), 1716276351),
+                  u(s(5), R.scale(5.5, .9, 5.5), 1715420991),
+                  m(R.translate(0, 1.5, -1).rotate(0, 180));
               });
-          });
+          }),
+          M(R.translate(-.5, 2.8, -20), [0, 0, 2.5], [0, -3, 2.5]),
+          M(
+            R.translate(0, 2.8),
+            [5, 10, 3],
+            [-5, 10, 3],
+            ...I(18).map(({ x: t, z: a }) => [7 * t, 10 * a, 4.5 - 2 * (t < 0 ? -t : t)]),
+          ),
+          M(R.translate(-100, .2, 55), [0, 0, 7.5], [-8, 0, 3.5], [-12, 0, 3.5], [-15, 0, 3.5]),
+          M(R.translate(-89, .2, 80), [0, 0, 6]),
+          M(R.translate(-38.9, -8.4, -21), [0, 0, 12]),
+          M(R.translate(-115, .2, -12), [0, 0, 3.5]),
+          M(R.translate(-93, -3, -40).rotate(0, 0, 4), [0, -2, 3.5], [0, 2, 3.5]),
+          M(R.translate(0, 3.9, 95), ...I(9).map(({ x: t, z: a }) => [9 * t, 9 * a, 4])),
+          M(R.translate(0, 19.9, 134), [0, 0, 3.5]);
       });
     })(),
     L1 = A(() => {
