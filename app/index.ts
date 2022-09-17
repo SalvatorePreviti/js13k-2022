@@ -9,7 +9,6 @@ if (DEBUG) {
 import groundTextureSvg from "./groundTexture.svg";
 
 import { buildWorld } from "./game/level";
-import { newModel } from "./game/scene";
 import { startMainLoop } from "./main-loop";
 import { song_numChannels } from "./music/song";
 import { soundbox_generate } from "./music/music-player";
@@ -66,7 +65,7 @@ setTimeout(() => {
     setTimeout(asyncLoadSongChannels, 50);
   }
 
-  newModel(NO_INLINE(buildWorld));
+  NO_INLINE(buildWorld)();
 
   initPlayerModel();
 
