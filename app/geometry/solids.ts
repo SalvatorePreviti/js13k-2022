@@ -48,3 +48,11 @@ export const boatPolygons = csg_polygons(
     polygons_transform(cylinder(GQuad), identity.translate(4, -1.2).scale3d(2), material(0.7, 0.4, 0.25, 0.3)),
   ),
 );
+
+export const bigArc = csg_polygons(
+  csg_subtract(
+    polygons_transform(cylinder(GQuad), identity.translate(0, -8).scale(6, 15, 2.2)),
+    polygons_transform(cylinder(GQuad), identity.translate(0, -14.1).scale(4, 13, 4)),
+    polygons_transform(cylinder(20, 1), identity.translate(0, -1).rotate(90, 0, 90).scale3d(4)),
+  ),
+);

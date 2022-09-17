@@ -1,7 +1,7 @@
 import { abs, clamp01, integers_map, lerpneg, max, min, identity } from "../math";
 import { material, cylinder, polygons_transform, polygon_regular } from "../geometry/geometry";
 import { csg_subtract, csg_polygons, csg_union } from "../geometry/csg";
-import { GQuad, GHorn, boatPolygons } from "../geometry/solids";
+import { GQuad, GHorn, boatPolygons, bigArc } from "../geometry/solids";
 import { meshAdd, meshEnd, withEditMatrix, newModel } from "./scene";
 import {
   secondBoatLerp,
@@ -16,14 +16,6 @@ import { getBoatAnimationMatrix, initFirstBoatModel, newLever, newSoul } from ".
 export const buildWorld = () => {
   newModel(() => {
     initFirstBoatModel();
-
-    const bigArc = csg_polygons(
-      csg_subtract(
-        polygons_transform(cylinder(GQuad), identity.translate(0, -8).scale(6, 15, 2.2)),
-        polygons_transform(cylinder(GQuad), identity.translate(0, -14.1).scale(4, 13, 4)),
-        polygons_transform(cylinder(20, 1), identity.translate(0, -1).rotate(90, 0, 90).scale3d(4)),
-      ),
-    );
 
     // ========= entranceBarsMesh ========= //
 
@@ -770,11 +762,10 @@ export const buildWorld = () => {
 
       // arcs
 
-      integers_map(3, (i) => meshAdd(bigArc, identity.translate(i * 12 + 14, -9), material(0.6, 0.6, 0.6, 0.3)));
-
-      integers_map(3, (i) =>
-        meshAdd(bigArc, identity.translate(46, -9, i * -12 - 8).rotate(0, 90), material(0.6, 0.6, 0.6, 0.3)),
-      );
+      integers_map(3, (i) => {
+        meshAdd(bigArc, identity.translate(i * 12 + 14, -9), material(0.6, 0.6, 0.6, 0.3));
+        meshAdd(bigArc, identity.translate(46, -9, i * -12 - 8).rotate(0, 90), material(0.6, 0.6, 0.6, 0.3));
+      });
 
       meshAdd(
         csg_polygons(
