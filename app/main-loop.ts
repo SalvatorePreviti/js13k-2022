@@ -36,7 +36,7 @@ import {
 } from "./math";
 import { mat_perspective, zFar, zNear, camera_position, camera_rotation } from "./camera";
 import { csm_buildMatrix } from "./csm";
-import { updateModels, rootModel, allModels } from "./game/scene";
+import { updateModels, allModels } from "./game/scene";
 import { playerModel, playerLegsModels } from "./game/objects";
 import { gl, initShaderProgram, loadShader } from "./gl";
 import {
@@ -239,7 +239,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     player_has_ground = 0;
 
     player_respawned = 1;
-    currentModelIdTMinus1 = currentModelId = $parent.$modelId || 1;
+    currentModelIdTMinus1 = currentModelId = $parent?.$modelId || 1;
   };
 
   const updatePlayer = () => {
@@ -436,7 +436,9 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     player_collision_x -= strafe * c - forward * s;
     player_collision_z -= strafe * s + forward * c;
 
-    const referenceMatrix = (currentModelId && allModels[currentModelId - 1]!.$finalMatrix) || identity;
+    const referenceMatrix =
+      (currentModelId && allModels[currentModelId - 1]!.$attachPlayer && allModels[currentModelId - 1]!.$finalMatrix) ||
+      identity;
     const inverseReferenceRotationMatrix = referenceMatrix.inverse();
     inverseReferenceRotationMatrix.m41 = 0;
     inverseReferenceRotationMatrix.m42 = 0;
@@ -504,7 +506,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
       NO_INLINE(updatePlayer)();
 
-      updateModels(rootModel);
+      updateModels();
 
       // if (DEBUG) {
       //   const debugCanvas = document.getElementById("debug-canvas") as HTMLCanvasElement;
@@ -715,7 +717,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
   loadGame();
 
-  updateModels(rootModel);
+  updateModels();
 
   NO_INLINE(initPage)();
 

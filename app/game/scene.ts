@@ -1,16 +1,7 @@
 import { identity, plane_fromPolygon, type Vec3Optional } from "../math";
 import { polygons_transform, type Polygon } from "../geometry/geometry";
 
-export const rootModel: Model = {
-  $children: [],
-  $initialMatrix: identity,
-  $finalMatrix: identity,
-  $modelId: 1,
-  $visible: 1,
-  $skipShadow: 0,
-};
-
-export let currentEditModel = rootModel;
+export let currentEditModel: Model;
 
 export const allModels: Model[] = [];
 
@@ -50,13 +41,13 @@ export type ModelUpdateCallback = (model: Model) => void | DOMMatrixReadOnly;
 
 export interface Model {
   $parent?: Model | undefined;
-  $children: Model[];
   $initialMatrix: DOMMatrixReadOnly;
   $finalMatrix: DOMMatrixReadOnly;
   $mesh?: Mesh;
   $modelId: number;
   $visible: boolean | 0 | 1;
   $skipShadow: boolean | 0 | 1;
+  $attachPlayer: 0 | 1;
   _update?: ModelUpdateCallback | undefined;
 }
 
@@ -111,37 +102,40 @@ export const meshEnd = (): Mesh => {
 };
 
 export const newModel = (fn: (model: Model) => void | Mesh | undefined) => {
+  const previousModel = currentEditModel;
   const model: Model = {
-    ...rootModel,
-    $parent: currentEditModel,
-    $children: [],
     $initialMatrix: editMatrixStack.at(-1)!,
+    $finalMatrix: identity,
     $modelId: allModels.length + 1,
+    $visible: 1,
+    $skipShadow: 0,
+    $attachPlayer: 1,
+    $parent: previousModel === allModels[0] ? undefined : previousModel,
   };
+  currentEditModel = model;
   allModels.push(model);
   editMatrixStack.push(identity);
   _pendingPolygonsStack.push([]);
-  currentEditModel.$children.push(model);
-  currentEditModel = model;
 
   const modelMesh = fn(model) || meshEnd();
   model.$mesh = modelMesh;
-  currentEditModel = model.$parent!;
   editMatrixStack.pop();
   _pendingPolygonsStack.pop();
+  currentEditModel = previousModel;
   return model;
 };
 
-export const updateModels = (model: Model, parentMatrix = identity) => {
-  const update = model._update;
-  model.$finalMatrix = parentMatrix.multiply(model.$initialMatrix);
-  if (update) {
-    const updateResult = update(model);
-    if (updateResult) {
-      model.$finalMatrix = model.$finalMatrix.multiply(updateResult);
+export const updateModels = () => {
+  for (const model of allModels) {
+    const update = model._update;
+    model.$finalMatrix = model.$parent
+      ? model.$parent.$finalMatrix.multiply(model.$initialMatrix)
+      : model.$initialMatrix;
+    if (update) {
+      const updateResult = update(model);
+      if (updateResult) {
+        model.$finalMatrix = model.$finalMatrix.multiply(updateResult);
+      }
     }
-  }
-  for (const child of model.$children) {
-    updateModels(child, model.$finalMatrix);
   }
 };

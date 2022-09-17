@@ -450,6 +450,7 @@ export const buildWorld = () => {
 
       withEditMatrix(identity.translate(-75, 0, -20), () =>
         newModel((model) => {
+          model.$attachPlayer = 0;
           model._update = () => {
             return identity
               .translate(0, (1 - levers[5]!.$lerpValue2) * (1 - levers[6]!.$lerpValue) * 3)
