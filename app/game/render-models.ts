@@ -1,8 +1,8 @@
 import { allModels, type Mesh } from "./scene";
 import { identity } from "../math";
 import { mainMenuVisible } from "../page";
-import { playerModel, playerLegsModels } from "./objects";
-import { absoluteTime } from "./world-state";
+import { playerModel, playerLegsModels, soulMesh } from "./objects";
+import { absoluteTime, souls } from "./world-state";
 import { gl } from "../gl";
 
 export const renderModels = (
@@ -30,6 +30,12 @@ export const renderModels = (
         gl.uniformMatrix4fv(worldMatrixLoc, false, model.$matrix.toFloat32Array());
         drawMesh($mesh);
       }
+    }
+
+    // TODO: render simplified soul for collision with a cylinder
+    for (const soul of souls) {
+      gl.uniformMatrix4fv(worldMatrixLoc, false, soul.$matrix.toFloat32Array());
+      drawMesh(soulMesh);
     }
     // recursion(allModels[0]!);
   }

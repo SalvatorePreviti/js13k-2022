@@ -1,8 +1,7 @@
 import { abs, clamp01, integers_map, lerpneg, max, min, identity } from "../math";
-import { material, cylinder, polygons_transform } from "../geometry/geometry";
+import { material, cylinder, polygons_transform, polygon_regular } from "../geometry/geometry";
 import { csg_subtract, csg_polygons, csg_union } from "../geometry/csg";
 import { GQuad, GHorn, boatPolygons, bigArc } from "../geometry/solids";
-import type { Model } from "./scene";
 import { meshAdd, meshEnd, newModel } from "./scene";
 import {
   secondBoatLerp,
@@ -12,16 +11,7 @@ import {
   rotatingPlatform1Rotation,
   rotatingPlatform2Rotation,
 } from "./world-state";
-import { getBoatAnimationMatrix, initFirstBoatModel, newLever } from "./objects";
-import { initSouls } from "./init-souls";
-
-export let centralOscillatingPlatformModel: Model;
-
-export let centralSculptureMonumentModel: Model;
-
-export let donutWithHornsModel: Model;
-
-export let firstRotatingPlatformModel: Model;
+import { getBoatAnimationMatrix, initFirstBoatModel, newLever, newSoul } from "./objects";
 
 export const buildWorld = () => {
   let tmpMatrix: DOMMatrixReadOnly;
@@ -37,6 +27,17 @@ export const buildWorld = () => {
     const entranceBarsMesh = meshEnd();
 
     // ========= WORLD! ========= //
+
+    // SOUL 0 - soul after first boat
+    newSoul(identity.translate(-0.5, 2.8, -20), [0, 0, 2.5], [0, -3, 2.5]);
+
+    // SOUL 1 - soul after first gate
+    newSoul(
+      identity.translate(0, 2.8),
+      [5, 10, 3],
+      [-5, 10, 3],
+      ...polygon_regular(18).map(({ x, z }) => [x * 7, z * 10, 4.5 - abs(x) * 2]),
+    );
 
     // first boat attachment
 
@@ -228,7 +229,7 @@ export const buildWorld = () => {
     blackPlatform(1, 8.2, 55);
 
     // central oscillating platform
-    centralOscillatingPlatformModel = newModel((model) => {
+    newModel((model) => {
       model._update = () => identity.translate(getOscillationAmount() * Math.sin(gameTime / 1.5 + 2) * 12);
       meshAdd(
         csg_polygons(
@@ -252,6 +253,9 @@ export const buildWorld = () => {
         ),
         identity.translate(0, 0, 45),
       );
+
+      // SOUL 2 - soul over the central oscillating platform in the second level
+      newSoul(identity.translate(0, 2.8, 45), [0, 0, 4.5]);
     });
 
     const level3Oscillation = () =>
@@ -479,6 +483,12 @@ export const buildWorld = () => {
       identity,
     );
 
+    // SOUL 3 - soul in the central area, after the rotating hex corridor
+    newSoul(identity.translate(-100, 0.2, 55), [0, 0, 7.5], [-8, 0, 3.5], [-12, 0, 3.5], [-15, 0, 3.5]);
+
+    // SOUL 4 - soul after the central gate
+    newSoul(identity.translate(-89, 0.2, 80), [0, 0, 6]);
+
     // first arc door
 
     meshAdd(
@@ -612,7 +622,7 @@ export const buildWorld = () => {
 
     // central sculpture/monument
 
-    centralSculptureMonumentModel = newModel((model) => {
+    newModel((model) => {
       model._update = () => identity.translate(0, levers[7]!.$lerpValue2 * -7.3);
 
       meshAdd(
@@ -644,6 +654,12 @@ export const buildWorld = () => {
         ),
         identity.translate(-38.9, -11.3, 17),
       );
+
+      // SOUL 5 - soul over the central sculpture/monument
+      newSoul(
+        identity.translate(-38.9, -0.3, 17).rotate(0, 0, 10),
+        ...polygon_regular(15).map(({ x, z }) => [x * 3, z * 3, 1.5]),
+      );
     });
 
     // columns
@@ -656,6 +672,7 @@ export const buildWorld = () => {
       );
     });
 
+    // Grid with holes
     meshAdd(
       csg_polygons(
         csg_subtract(
@@ -687,6 +704,9 @@ export const buildWorld = () => {
       identity.translate(-38.9, -11.3, 17),
     );
 
+    // SOUL 6 - soul over the grid with hex holes
+    newSoul(identity.translate(-38.9, 2.9 - 11.3, 75 - 38 - 58), [0, 0, 12]);
+
     // Detour lever pad
     meshAdd(cylinder(5), identity.translate(-84, -2, 85).scale(4, 0.8, 4).rotate(0, 10), material(0.8, 0.1, 0.25, 0.4));
 
@@ -701,7 +721,10 @@ export const buildWorld = () => {
       meshAdd(boatPolygons);
     });
 
-    // ******** LEVEL AFTER BOAT ********
+    // ******** LEVEL AFTER SECOND BOAT ********
+
+    // SOUL 7 - soul after the second boat
+    newSoul(identity.translate(8 - 123, 0.2, -12), [0, 0, 3.5]);
 
     const pushingRod = csg_polygons(
       csg_subtract(
@@ -848,6 +871,9 @@ export const buildWorld = () => {
 
     newLever(identity.translate(-98, -4.4, -40).rotate(0, 90));
 
+    // SOUL 8 - soul in the internal pad after the pushing rods
+    newSoul(identity.translate(30 - 123, -3, -28 - 12).rotate(0, 0, 4), [0, -2, 3.5], [0, 2, 3.5]);
+
     // ******** LEVEL AFTER CENTRAL GATE ********
 
     // base
@@ -907,8 +933,8 @@ export const buildWorld = () => {
 
     // after the hex pads
 
-    // pad with hole
-    donutWithHornsModel = newModel((model) => {
+    // donut pad
+    newModel((model) => {
       model._update = () => {
         const osc = hexPadShouldOscillate();
         return identity
@@ -947,6 +973,9 @@ export const buildWorld = () => {
           material(1, 1, 0.8, 0.2),
         ),
       );
+
+      // SOUL 9 - soul after the hex pads, in the hex donut with horns
+      newSoul(identity.translate(-5, 4), [0, -1.2, 1.7], [0, 1.2, 1.7]);
     });
 
     // far arc gate
@@ -1036,7 +1065,7 @@ export const buildWorld = () => {
       meshAdd(rotPlatformBase);
     };
 
-    firstRotatingPlatformModel = newModel((model) => {
+    newModel((model) => {
       model._update = () => identity.translate(-80, 1, 106).rotate(0, 40 + rotatingPlatform1Rotation);
       meshAdd(
         csg_polygons(
@@ -1052,6 +1081,9 @@ export const buildWorld = () => {
       );
       meshAdd(cylinder(8), identity.translate(0, 2).scale(3, 1.5, 3), material(0.7, 0.7, 0.7, 0.1));
       meshAdd(cylinder(5), identity.translate(0, 2).scale(1, 2), material(0.3, 0.3, 0.3, 0.2));
+
+      // SOUL 10 - soul over the first rotating platform
+      newSoul(identity.translate(0, 3), ...polygon_regular(10).map(({ x, z }) => [x * 5.6, z * 5.6, 2.5]));
     });
 
     newModel((model) => {
@@ -1246,7 +1278,7 @@ export const buildWorld = () => {
     meshAdd(cylinder(GQuad), identity.translate(0, 16, 129).scale(1.5, 1, 2), material(0.5, 0.6, 0.7, 0.3));
     meshAdd(cylinder(7), identity.translate(0, 16.2, 133).scale(5, 1, 5), material(0.4, 0.5, 0.6, 0.4));
 
-    // floating pad
+    // floating elevator pad
     newModel((model) => {
       model._update = () => {
         const v = lerpneg(
@@ -1260,9 +1292,13 @@ export const buildWorld = () => {
 
       newLever(identity.translate(0, 1.5, -1).rotate(0, 180));
     });
-  });
 
-  initSouls();
+    // SOUL 11 - soul in the last platform
+    newSoul(identity.translate(0, 3, 95), ...polygon_regular(9).map(({ x, z }) => [x * 9, z * 9, 4]));
+
+    // SOUL 12 - soul after the pendulums
+    newSoul(identity.translate(0, 19, 134), [0, 0, 3.5]);
+  });
 
   if (DEBUG) {
     console.log(levers.length + " levers");

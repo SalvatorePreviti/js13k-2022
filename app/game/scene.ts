@@ -104,16 +104,3 @@ export const newModel = (fn: (model: Model) => void | Mesh | undefined) => {
   currentEditModel = previousModel;
   return model;
 };
-
-export const updateModels = () => {
-  for (const model of allModels) {
-    const update = model._update;
-    model.$matrix = model.$parent ? model.$parent.$matrix : identity;
-    if (update) {
-      const updateResult = update(model);
-      if (updateResult) {
-        model.$matrix = model.$matrix.multiply(updateResult);
-      }
-    }
-  }
-};

@@ -36,8 +36,8 @@ import {
 } from "./math";
 import { mat_perspective, zFar, zNear, camera_position, camera_rotation } from "./camera";
 import { csm_buildMatrix } from "./csm";
-import { updateModels, allModels } from "./game/scene";
-import { playerModel, playerLegsModels } from "./game/objects";
+import { allModels } from "./game/scene";
+import { playerModel, playerLegsModels, updateModels } from "./game/objects";
 import { gl, initShaderProgram, loadShader } from "./gl";
 import {
   absoluteTime,

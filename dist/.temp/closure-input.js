@@ -26,10 +26,6 @@ let _globalTime;
 let playerLegsModels;
 let playerModel;
 let firstBoatModel;
-let centralOscillatingPlatformModel;
-let centralSculptureMonumentModel;
-let donutWithHornsModel;
-let firstRotatingPlatformModel;
 const DEG_TO_RAD = Math.PI / 180;
 const identity = new DOMMatrix();
 
@@ -453,17 +449,6 @@ const newModel = fn => {
   return model.$mesh = modelMesh, _pendingPolygonsStack.pop(), currentEditModel = previousModel, model;
 };
 
-const updateModels = () => {
-  for (const model of allModels) {
-    const update = model._update;
-
-    if (model.$matrix = model.$parent ? model.$parent.$matrix : identity, update) {
-      const updateResult = update(model);
-      updateResult && (model.$matrix = model.$matrix.multiply(updateResult));
-    }
-  }
-};
-
 const camera_position = {
   x: -11,
   y: 17,
@@ -696,41 +681,6 @@ const player_position_final = {
   z: 0,
 };
 
-const newLever = transform => {
-  newModel($model => {
-    const lever = {
-      $value: 0,
-      $lerpValue: 0,
-      $lerpValue2: 0,
-      $parent: $model.$parent,
-    };
-    const index2 = levers.push(lever) - 1;
-
-    $model._update = () => {
-      let leverIndex;
-      const {
-        $value,
-        $lerpValue,
-        $lerpValue2,
-      } = lever;
-      const point = (lever.$matrix = $model.$matrix).transformPoint();
-      return vec3_distance(point, player_position_final) < 2.9 && keyboard_downKeys[5]
-        && ($lerpValue < .3 || .7 < $lerpValue)
-        && (lever.$value = $value ? 0 : 1,
-          (leverIndex = index2) && showMessage("* click *", 1),
-          player_last_pulled_lever = leverIndex,
-          saveGame()),
-        lever.$lerpValue = lerpDamp($lerpValue, $value, 4),
-        lever.$lerpValue2 = lerpDamp($lerpValue2, $value, 1),
-        $model.$mesh = leverMeshes[.5 < $lerpValue ? 1 : 0],
-        transform.rotate(60 * lever.$lerpValue - 30, 0).translateSelf(0, 1);
-    };
-  }),
-    meshAdd(cylinder(5), transform.translate(-0.2).rotate(90, 90).scale(.4, .1, .5), material(.4, .5, .5)),
-    meshAdd(cylinder(5), transform.translate(.2).rotate(90, 90).scale(.4, .1, .5), material(.4, .5, .5)),
-    meshAdd(cylinder(GQuad), transform.translate(0, -0.4).scale(.5, .1, .5), material(.5, .5, .4));
-};
-
 const getBoatAnimationMatrix = (x, y, z) =>
   identity.translate(x + Math.sin(gameTime + 2) / 5, y + Math.sin(.8 * gameTime) / 3, z).rotateSelf(
     2 * Math.sin(gameTime),
@@ -738,18 +688,52 @@ const getBoatAnimationMatrix = (x, y, z) =>
     Math.sin(.9 * gameTime),
   );
 
+const newLever = transform => {
+  meshAdd(cylinder(5), transform.translate(-0.2).rotate(90, 90).scale(.4, .1, .5), material(.4, .5, .5)),
+    meshAdd(cylinder(5), transform.translate(.2).rotate(90, 90).scale(.4, .1, .5), material(.4, .5, .5)),
+    meshAdd(cylinder(GQuad), transform.translate(0, -0.4).scale(.5, .1, .5), material(.5, .5, .4)),
+    newModel(model => {
+      const lever = {
+        $value: 0,
+        $lerpValue: 0,
+        $lerpValue2: 0,
+        $parent: model.$parent,
+      };
+      const index2 = levers.push(lever) - 1;
+
+      model._update = () => {
+        let leverIndex;
+        const {
+          $value,
+          $lerpValue,
+          $lerpValue2,
+        } = lever;
+        const point = (lever.$matrix = transform.multiply(model.$matrix)).transformPoint();
+        return vec3_distance(point, player_position_final) < 2.9 && keyboard_downKeys[5]
+          && ($lerpValue < .3 || .7 < $lerpValue)
+          && (lever.$value = $value ? 0 : 1,
+            (leverIndex = index2) && showMessage("* click *", 1),
+            player_last_pulled_lever = leverIndex,
+            saveGame()),
+          lever.$lerpValue = lerpDamp($lerpValue, $value, 4),
+          lever.$lerpValue2 = lerpDamp($lerpValue2, $value, 1),
+          model.$mesh = leverMeshes[.5 < $lerpValue ? 1 : 0],
+          transform.rotate(60 * lever.$lerpValue - 30, 0).translateSelf(0, 1);
+      };
+    });
+};
+
 const newSoul = (transform, ...walkingPath) => {
   let dirX = -1;
   let dirZ = 0;
-  let wasInside = 1;
   let randAngle = 0;
   let lookAngle = 0;
-  let velocity = 3;
   let prevX = 0;
   let prevZ = 0;
-  const soul = {
-    $value: 0,
-  };
+  let velocity = 3;
+  let wasInside = 1;
+  const parentModel = currentEditModel;
+  const index2 = souls.length;
   const circles = walkingPath.map(([x, z, w]) => ({
     x: x,
     z: z,
@@ -762,100 +746,111 @@ const newSoul = (transform, ...walkingPath) => {
   } = circle;
   let soulX = targetX;
   let soulZ = targetZ;
-  const index2 = souls.push(soul) - 1;
-  return newModel(model => (model._update = () => {
-    let animationMatrix;
+  const soul = {
+    $value: 0,
+    $matrix: identity,
 
-    if (!soul.$value) {
-      let contextualVelocity = 1;
-      let mindist = 1 / 0;
-      let isInside;
+    _update() {
+      if (!soul.$value) {
+        let contextualVelocity = 1;
+        let mindist = 1 / 0;
+        let isInside;
 
-      for (const c of circles) {
-        const {
-          x,
-          z,
-          w,
-        } = c;
-        const distance = Math.hypot(targetX - x, targetZ - z);
-        const circleSDF = distance - w;
-        isInside ||= distance < w,
-          0 < circleSDF && mindist > circleSDF && (mindist = circleSDF, circle = c),
-          contextualVelocity = min(contextualVelocity, distance / w);
-      }
+        for (const c of circles) {
+          const {
+            x,
+            z,
+            w,
+          } = c;
+          const distance = Math.hypot(targetX - x, targetZ - z);
+          const circleSDF = distance - w;
+          isInside ||= distance < w,
+            0 < circleSDF && mindist > circleSDF && (mindist = circleSDF, circle = c),
+            contextualVelocity = min(contextualVelocity, distance / w);
+        }
 
-      if (!isInside) {
-        const {
-          x: x1,
-          z: z1,
-          w: w1,
-        } = circle;
-        const ax = targetX - x1;
-        const az = targetZ - z1;
-        let magnitude = Math.hypot(ax, az);
-        let angle = Math.atan2(-az, ax);
-        wasInside
-        && (randAngle = (Math.random() - .5) * Math.PI / 2, velocity = max(1, velocity / (1 + Math.random()))),
-          angle += randAngle,
-          dirX = -Math.cos(angle),
-          dirZ = Math.sin(angle),
-          .1 < magnitude
-          && (magnitude = min(magnitude, w1) / (magnitude || 1),
-            targetX = ax * magnitude + x1,
-            targetZ = az * magnitude + z1);
-      }
+        if (!isInside) {
+          const {
+            x: x1,
+            z: z1,
+            w: w1,
+          } = circle;
+          const ax = targetX - x1;
+          const az = targetZ - z1;
+          let magnitude = Math.hypot(ax, az);
+          let angle = Math.atan2(-az, ax);
+          wasInside
+          && (randAngle = (Math.random() - .5) * Math.PI / 2, velocity = max(1, velocity / (1 + Math.random()))),
+            angle += randAngle,
+            dirX = -Math.cos(angle),
+            dirZ = Math.sin(angle),
+            .1 < magnitude
+            && (magnitude = min(magnitude, w1) / (magnitude || 1),
+              targetX = ax * magnitude + x1,
+              targetZ = az * magnitude + z1);
+        }
 
-      wasInside = isInside,
-        velocity = lerpDamp(velocity, 3 + 6 * (1 - contextualVelocity), 3 + contextualVelocity),
-        targetX = lerpDamp(targetX, targetX + dirX, velocity),
-        targetZ = lerpDamp(targetZ, targetZ + dirZ, velocity),
-        soulX = lerpDamp(soulX, targetX, velocity),
-        soulZ = lerpDamp(soulZ, targetZ, velocity),
-        lookAngle = angle_lerp_degrees(
-          lookAngle,
-          Math.atan2(soulX - prevX, soulZ - prevZ) / DEG_TO_RAD - 180,
-          3 * gameTimeDelta,
-        ),
-        prevX = soulX,
-        prevZ = soulZ,
-        animationMatrix = transform.translate(soulX, 0, soulZ).rotateSelf(0, lookAngle).skewXSelf(
-          7 * Math.sin(2 * gameTime),
-        ).skewYSelf(7 * Math.sin(1.4 * gameTime));
-      const soulPos = model.$matrix.multiply(animationMatrix).transformPoint();
-      vec3_distance(soulPos, player_position_final) < 1.5
-        && (soul.$value = 1,
-          showMessage(
-            [
-              ,
-              "Mark Zuckemberg<br>made the world worse",
-              ,
-              "Andrzej Mazur<br>for the js13k competition",
-              "Donald Trump<br>lies",
-              "Kim Jong-un<br>Dictator, liked pineapple on pizza",
-              "Maxime Euziere<br>forced me to finish this game",
-              "She traded NFTs apes",
-              ,
-              "Vladimir Putin<br>evil war",
-              "He was not a good person",
-              ,
-              "Salvatore Previti<br>made this evil game<br><br>Done. Go back to the boat",
-            ][souls_collected_count] || "Catched a \"crypto bro\".<br>\"Web3\" is all scam, lies and grift",
-            souls_collected_count && souls_collected_count < 12 ? 5 : 7,
+        wasInside = isInside,
+          velocity = lerpDamp(velocity, 3 + 6 * (1 - contextualVelocity), 3 + contextualVelocity),
+          soulX = lerpDamp(soulX, targetX = lerpDamp(targetX, targetX + dirX, velocity), velocity),
+          soulZ = lerpDamp(soulZ, targetZ = lerpDamp(targetZ, targetZ + dirZ, velocity), velocity),
+          lookAngle = angle_lerp_degrees(
+            lookAngle,
+            Math.atan2(soulX - prevX, soulZ - prevZ) / DEG_TO_RAD - 180,
+            3 * gameTimeDelta,
           ),
-          saveGame());
-    }
+          prevX = soulX,
+          prevZ = soulZ;
+        const soulPos = (soul.$matrix = transform.multiply(
+          parentModel.$matrix.translate(soulX, 0, soulZ).rotateSelf(0, lookAngle).skewXSelf(
+            7 * Math.sin(2 * gameTime),
+          ).skewYSelf(7 * Math.sin(1.4 * gameTime)),
+        )).transformPoint();
+        vec3_distance(soulPos, player_position_final) < 1.5
+          && (soul.$value = 1,
+            showMessage(
+              [
+                ,
+                "Mark Zuckemberg<br>made the world worse",
+                ,
+                "Andrzej Mazur<br>for the js13k competition",
+                "Donald Trump<br>lies",
+                "Kim Jong-un<br>Dictator, liked pineapple on pizza",
+                "Maxime Euziere<br>forced me to finish this game",
+                "She traded NFTs apes",
+                ,
+                "Vladimir Putin<br>evil war",
+                "He was not a good person",
+                ,
+                "Salvatore Previti<br>made this evil game<br><br>Done. Go back to the boat",
+              ][souls_collected_count] || "Catched a \"crypto bro\".<br>\"Web3\" is all scam, lies and grift",
+              souls_collected_count && souls_collected_count < 12 ? 5 : 7,
+            ),
+            saveGame());
+      }
 
-    return soul.$value
-      && (model.$parent = firstBoatModel,
-        animationMatrix = identity.translate(
+      soul.$value
+        && (soul.$matrix = firstBoatModel.$matrix.translate(
           index2 % 4 * 1.2 - 1.7 + Math.sin(gameTime + index2) / 6,
           -2,
           1.7 * (index2 / 4 | 0) - 5.5 + abs(index2 % 4 - 2) + Math.cos(gameTime / 1.5 + index2) / 6,
-        )),
-      animationMatrix;
-  },
-    soulMesh)
-  );
+        ));
+    },
+  };
+  souls.push(soul);
+};
+
+const updateModels = () => {
+  for (const model of allModels) {
+    const update = model._update;
+
+    if (model.$matrix = model.$parent ? model.$parent.$matrix : identity, update) {
+      const updateResult = update(model);
+      updateResult && (model.$matrix = model.$matrix.multiply(updateResult));
+    }
+  }
+
+  for (const soul of souls) soul._update();
 };
 
 const buildWorld = () => {
@@ -918,11 +913,21 @@ const buildWorld = () => {
         i => meshAdd(cylinder(6, 1), identity.translate(4 * (i / 6 - .5), 3).scale(.2, 3, .2), material(.3, .3, .38)),
       ),
       meshEnd());
-    const hexCorridorPolygons = (meshAdd(
-      cylinder(GQuad),
-      identity.translate(-5, -0.2, -26).scale(3.2, 1, 2.5).skewX(3),
-      material(.8, .8, .8, .2),
-    ),
+    const hexCorridorPolygons = (newSoul(identity.translate(-0.5, 2.8, -20), [0, 0, 2.5], [0, -3, 2.5]),
+      newSoul(
+        identity.translate(0, 2.8),
+        [5, 10, 3],
+        [-5, 10, 3],
+        ...polygon_regular(18).map(({
+          x,
+          z,
+        }) => [7 * x, 10 * z, 4.5 - 2 * abs(x)]),
+      ),
+      meshAdd(
+        cylinder(GQuad),
+        identity.translate(-5, -0.2, -26).scale(3.2, 1, 2.5).skewX(3),
+        material(.8, .8, .8, .2),
+      ),
       GQuad.map(({
         x,
         z,
@@ -1009,7 +1014,7 @@ const buildWorld = () => {
       newLever(identity.translate(15, -2, 4)),
       blackPlatform(.7, 12, 35),
       blackPlatform(1, 8.2, 55),
-      centralOscillatingPlatformModel = newModel(model => {
+      newModel(model => {
         model._update = () => identity.translate(getOscillationAmount() * Math.sin(gameTime / 1.5 + 2) * 12),
           meshAdd(
             csg_polygons(
@@ -1032,7 +1037,8 @@ const buildWorld = () => {
               ),
             ),
             identity.translate(0, 0, 45),
-          );
+          ),
+          newSoul(identity.translate(0, 2.8, 45), [0, 0, 4.5]);
       }),
       newModel(model => {
         model._update = () => identity.translate(9.8 * (1 - getOscillationAmount())),
@@ -1200,6 +1206,8 @@ const buildWorld = () => {
           ),
           identity,
         ),
+        newSoul(identity.translate(-100, .2, 55), [0, 0, 7.5], [-8, 0, 3.5], [-12, 0, 3.5], [-15, 0, 3.5]),
+        newSoul(identity.translate(-89, .2, 80), [0, 0, 6]),
         meshAdd(
           csg_polygons(
             csg_subtract(
@@ -1304,7 +1312,7 @@ const buildWorld = () => {
           identity.translate(-38.9, -11.3, 17),
         ),
         newLever(identity.translate(-38.9, -9.6, 10)),
-        centralSculptureMonumentModel = newModel(model => {
+        newModel(model => {
           model._update = () => identity.translate(0, -7.3 * levers[7].$lerpValue2),
             meshAdd(
               csg_polygons(
@@ -1334,6 +1342,13 @@ const buildWorld = () => {
                 ),
               ),
               identity.translate(-38.9, -11.3, 17),
+            ),
+            newSoul(
+              identity.translate(-38.9, -0.3, 17).rotate(0, 0, 10),
+              ...polygon_regular(15).map(({
+                x,
+                z,
+              }) => [3 * x, 3 * z, 1.5]),
             );
         }),
         GQuad.map(({
@@ -1376,6 +1391,7 @@ const buildWorld = () => {
           ),
           identity.translate(-38.9, -11.3, 17),
         ),
+        newSoul(identity.translate(-38.9, -8.4, -21), [0, 0, 12]),
         meshAdd(cylinder(5), identity.translate(-84, -2, 85).scale(4, .8, 4).rotate(0, 10), material(.8, .1, .25, .4)),
         newLever(identity.translate(-84, -0.5, 85).rotate(0, 45)),
         newModel(model => {
@@ -1383,6 +1399,7 @@ const buildWorld = () => {
             newLever(identity.translate(0, -3, -4).rotate(0, 180)),
             meshAdd(boatPolygons);
         }),
+        newSoul(identity.translate(-115, .2, -12), [0, 0, 3.5]),
         csg_polygons(
           csg_subtract(
             polygons_transform(
@@ -1506,6 +1523,7 @@ const buildWorld = () => {
       ),
       meshAdd(cylinder(9), identity.translate(-98, -5.8, -40).scale(2.5, .9, 2.5), material(.5, .5, .5, .3)),
       newLever(identity.translate(-98, -4.4, -40).rotate(0, 90)),
+      newSoul(identity.translate(-93, -3, -40).rotate(0, 0, 4), [0, -2, 3.5], [0, 2, 3.5]),
       meshAdd(
         csg_polygons(
           csg_subtract(
@@ -1547,7 +1565,7 @@ const buildWorld = () => {
               material(.5 - i / 8, i / 12 + .5, .7, .3),
             );
         })),
-      donutWithHornsModel = newModel(model => {
+      newModel(model => {
         model._update = () => {
           const osc = hexPadShouldOscillate();
           return identity.translate(
@@ -1575,7 +1593,8 @@ const buildWorld = () => {
               identity.rotate(90 * -i, 180, 90).translate(0, 5).rotate(0, 0, 40).scale(1.3, 10, 1.3),
               material(1, 1, .8, .2),
             )
-          );
+          ),
+          newSoul(identity.translate(-5, 4), [0, -1.2, 1.7], [0, 1.2, 1.7]);
       }),
       [-1, 1].map(x => {
         meshAdd(
@@ -1632,7 +1651,7 @@ const buildWorld = () => {
         ...polygons_transform(cylinder(28, 1), identity.scale(8, 1, 8), material(.45, .45, .45, .2)),
         ...polygons_transform(cylinder(5), identity.translate(0, 1).scale(1, .2), material(.3, .3, .3, .2)),
       ]);
-    firstRotatingPlatformModel = newModel(model => {
+    newModel(model => {
       model._update = () => identity.translate(-80, 1, 106).rotate(0, 40 + rotatingPlatform1Rotation),
         meshAdd(
           csg_polygons(
@@ -1647,7 +1666,14 @@ const buildWorld = () => {
           ),
         ),
         meshAdd(cylinder(8), identity.translate(0, 2).scale(3, 1.5, 3), material(.7, .7, .7, .1)),
-        meshAdd(cylinder(5), identity.translate(0, 2).scale(1, 2), material(.3, .3, .3, .2));
+        meshAdd(cylinder(5), identity.translate(0, 2).scale(1, 2), material(.3, .3, .3, .2)),
+        newSoul(
+          identity.translate(0, 3),
+          ...polygon_regular(10).map(({
+            x,
+            z,
+          }) => [5.6 * x, 5.6 * z, 2.5]),
+        );
     }),
       newModel(model => {
         model._update = () => identity.translate(-64, 1, 106).rotate(0, rotatingPlatform2Rotation),
@@ -1816,47 +1842,16 @@ const buildWorld = () => {
           meshAdd(cylinder(5), identity.scale(5, 1.1, 5), material(.5, .3, .3, .4)),
           meshAdd(cylinder(5), identity.scale(5.5, .9, 5.5), material(.25, .25, .25, .4)),
           newLever(identity.translate(0, 1.5, -1).rotate(0, 180));
-      });
-  }),
-    newSoul(identity.translate(-0.5, 2.8, -20), [0, 0, 2.5], [0, -3, 2.5]),
-    newSoul(
-      identity.translate(0, 2.8),
-      [5, 10, 3],
-      [-5, 10, 3],
-      ...polygon_regular(18).map(({
-        x,
-        z,
-      }) => [7 * x, 10 * z, 4.5 - 2 * abs(x)]),
-    ),
-    newSoul(identity.translate(0, 2.8, 45), [0, 0, 4.5]).$parent = centralOscillatingPlatformModel,
-    newSoul(identity.translate(-100, .2, 55), [0, 0, 7.5], [-8, 0, 3.5], [-12, 0, 3.5], [-15, 0, 3.5]),
-    newSoul(identity.translate(-89, .2, 80), [0, 0, 6]),
-    newSoul(
-      identity.translate(-38.9, -0.3, 17).rotate(0, 0, 10),
-      ...polygon_regular(15).map(({
-        x,
-        z,
-      }) => [3 * x, 3 * z, 1.5]),
-    ).$parent = centralSculptureMonumentModel,
-    newSoul(identity.translate(-38.9, -8.4, -21), [0, 0, 12]),
-    newSoul(identity.translate(-115, .2, -12), [0, 0, 3.5]),
-    newSoul(identity.translate(-93, -3, -40).rotate(0, 0, 4), [0, -2, 3.5], [0, 2, 3.5]),
-    newSoul(identity.translate(-5, 4), [0, -1.2, 1.7], [0, 1.2, 1.7]).$parent = donutWithHornsModel,
-    newSoul(
-      identity.translate(0, 3),
-      ...polygon_regular(10).map(({
-        x,
-        z,
-      }) => [5.6 * x, 5.6 * z, 2.5]),
-    ).$parent = firstRotatingPlatformModel,
-    newSoul(
-      identity.translate(0, 3, 95),
-      ...polygon_regular(9).map(({
-        x,
-        z,
-      }) => [9 * x, 9 * z, 4]),
-    ),
-    newSoul(identity.translate(0, 19, 134), [0, 0, 3.5]);
+      }),
+      newSoul(
+        identity.translate(0, 3, 95),
+        ...polygon_regular(9).map(({
+          x,
+          z,
+        }) => [9 * x, 9 * z, 4]),
+      ),
+      newSoul(identity.translate(0, 19, 134), [0, 0, 3.5]);
+  });
 };
 
 const csm_buildMatrix = (camera_view, nearPlane, farPlane, zMultiplier) => {
@@ -1936,6 +1931,8 @@ const renderModels = (worldMatrixLoc, renderPlayer, collisionModelIdUniformLocat
           gl["uae"](worldMatrixLoc, !1, model.$matrix.toFloat32Array()),
           drawMesh($mesh));
     }
+
+    for (const soul of souls) gl["uae"](worldMatrixLoc, !1, soul.$matrix.toFloat32Array()), drawMesh(soulMesh);
   }
 };
 

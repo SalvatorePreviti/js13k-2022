@@ -63,6 +63,8 @@ export interface Lever {
 
 export interface Soul {
   $value: 0 | 1;
+  $matrix: DOMMatrixReadOnly;
+  _update: () => void;
 }
 
 const getItemValue = <T>({ $value }: { readonly $value: T }) => $value;
