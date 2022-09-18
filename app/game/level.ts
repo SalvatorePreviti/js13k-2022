@@ -10,14 +10,21 @@ import {
   rotatingHexCorridorRotation,
   rotatingPlatform1Rotation,
   rotatingPlatform2Rotation,
+  firstBoatLerp,
 } from "./world-state";
-import { getBoatAnimationMatrix, initFirstBoatModel, newLever, newSoul } from "./objects";
+import { getBoatAnimationMatrix, newLever, newSoul } from "./objects";
 
 export const buildWorld = () => {
   let tmpMatrix: DOMMatrixReadOnly;
 
   newModel(() => {
-    initFirstBoatModel();
+    // ========= FIRST BOAT (modelId:2) ========= //
+
+    newModel((model) => {
+      model._update = () => getBoatAnimationMatrix(-12, 4.2, -66 + firstBoatLerp * 40);
+      meshAdd(boatPolygons);
+      newLever(identity.translate(0, -3, 4));
+    });
 
     // ========= entranceBarsMesh ========= //
 

@@ -2,12 +2,11 @@ import { identity, plane_fromPolygon, type Vec3Optional } from "../math";
 import { polygons_transform, type Polygon } from "../geometry/geometry";
 
 export interface Model {
-  $parent?: Model | undefined;
   $matrix: DOMMatrixReadOnly;
   $mesh?: Mesh;
   $modelId: number;
   $attachPlayer: 0 | 1;
-  _update?: ModelUpdateCallback | undefined;
+  _update?: (model: Model) => DOMMatrixReadOnly;
 }
 
 export let currentEditModel: Model;
@@ -36,8 +35,6 @@ export interface Mesh {
   $vertexOffset: number;
   $vertexCount: number;
 }
-
-export type ModelUpdateCallback = (model: Model) => void | DOMMatrixReadOnly;
 
 const getVertex = (i: number): number => {
   let { x, y, z } = _polygon![i]! as any;
@@ -92,7 +89,6 @@ export const newModel = (fn: (model: Model) => void | Mesh | undefined) => {
     $matrix: identity,
     $modelId: allModels.length + 1,
     $attachPlayer: 1,
-    $parent: previousModel === allModels[0] ? undefined : previousModel,
   };
   currentEditModel = model;
   allModels.push(model);

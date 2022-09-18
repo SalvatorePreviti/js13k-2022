@@ -57,14 +57,16 @@ export interface Lever {
   $value: 0 | 1;
   $lerpValue: number;
   $lerpValue2: number;
-  $parent: Model | undefined;
+  $parent: Model;
+  _update: () => void;
   $matrix?: DOMMatrixReadOnly;
+  $stickMatrix?: DOMMatrixReadOnly;
 }
 
 export interface Soul {
   $value: 0 | 1;
-  $matrix: DOMMatrixReadOnly;
   _update: () => void;
+  $matrix?: DOMMatrixReadOnly;
 }
 
 const getItemValue = <T>({ $value }: { readonly $value: T }) => $value;

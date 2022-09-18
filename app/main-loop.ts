@@ -706,7 +706,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
   playerLegsModels.map((model, i) => {
     model._update = () =>
-      identity
+      playerModel.$matrix
         .translate(
           0,
           player_legs_speed * clamp01(Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI * i - Math.PI / 2) * 0.45),

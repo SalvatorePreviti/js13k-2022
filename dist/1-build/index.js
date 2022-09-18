@@ -368,8 +368,7 @@ const newModel = fn => {
     const model = {
         $matrix: identity,
         $modelId: allModels.length + 1,
-        $attachPlayer: 1,
-        $parent: previousModel === allModels[0] ? void 0 : previousModel
+        $attachPlayer: 1
     };
     currentEditModel = model;
     allModels.push(model);
@@ -631,27 +630,21 @@ let playerLegsModels;
 
 let playerModel;
 
-let firstBoatModel;
-
 const getBoatAnimationMatrix = (x, y, z) => identity.translate(x + /* @__PURE__ */ Math.sin(gameTime + 2) / 5, y + /* @__PURE__ */ Math.sin(.8 * gameTime) / 3, z).rotateSelf(/* @__PURE__ */ 2 * Math.sin(gameTime), /* @__PURE__ */ Math.sin(.7 * gameTime), /* @__PURE__ */ Math.sin(.9 * gameTime));
 
 const newLever = transform => {
-    meshAdd(cylinder(5), transform.translate(-.2).rotate(90, 90).scale(.4, .1, .5), material(.4, .5, .5));
-    meshAdd(cylinder(5), transform.translate(.2).rotate(90, 90).scale(.4, .1, .5), material(.4, .5, .5));
-    meshAdd(cylinder(GQuad), transform.translate(0, -.4).scale(.5, .1, .5), material(.5, .5, .4));
-    newModel((model => {
-        const $parent = model.$parent;
-        const lever = {
-            $value: 0,
-            $lerpValue: 0,
-            $lerpValue2: 0,
-            $parent
-        };
-        const index2 = levers.push(lever) - 1;
-        model._update = () => {
+    const $parent = currentEditModel;
+    const index2 = levers.length;
+    const lever = {
+        $value: 0,
+        $lerpValue: 0,
+        $lerpValue2: 0,
+        $parent,
+        _update: () => {
             const {$value, $lerpValue, $lerpValue2} = lever;
-            const point = (lever.$matrix = transform.multiply(model.$matrix)).transformPoint();
-            if (2.9 > vec3_distance(point, player_position_final) && keyboard_downKeys[5] && (.3 > $lerpValue || $lerpValue > .7)) {
+            const matrix = $parent.$matrix.multiply(transform);
+            lever.$matrix = matrix;
+            if (2.9 > vec3_distance(matrix.transformPoint(), player_position_final) && keyboard_downKeys[5] && (.3 > $lerpValue || $lerpValue > .7)) {
                 lever.$value = $value ? 0 : 1;
                 (leverIndex => {
                     leverIndex && showMessage("* click *", 1);
@@ -661,10 +654,13 @@ const newLever = transform => {
             }
             lever.$lerpValue = lerpDamp($lerpValue, $value, 4);
             lever.$lerpValue2 = lerpDamp($lerpValue2, $value, 1);
-            model.$mesh = leverMeshes[$lerpValue > .5 ? 1 : 0];
-            return transform.rotate(60 * lever.$lerpValue - 30, 0).translateSelf(0, 1);
-        };
-    }));
+            lever.$stickMatrix = matrix.rotate(60 * lever.$lerpValue - 30, 0).translateSelf(0, 1);
+        }
+    };
+    levers.push(lever);
+    meshAdd(cylinder(5), transform.translate(-.2).rotate(90, 90).scale(.4, .1, .5), material(.4, .5, .5));
+    meshAdd(cylinder(5), transform.translate(.2).rotate(90, 90).scale(.4, .1, .5), material(.4, .5, .5));
+    meshAdd(cylinder(GQuad), transform.translate(0, -.4).scale(.5, .1, .5), material(.5, .5, .4));
 };
 
 const newSoul = (transform, ...walkingPath) => {
@@ -676,20 +672,8 @@ const newSoul = (transform, ...walkingPath) => {
     let prevZ = 0;
     let velocity = 3;
     let wasInside = 1;
-    const parentModel = currentEditModel;
-    const index2 = souls.length;
-    const circles = walkingPath.map((([x, z, w]) => ({
-        x,
-        z,
-        w
-    })));
-    let circle = circles[0];
-    let {x: targetX, z: targetZ} = circle;
-    let soulX = targetX;
-    let soulZ = targetZ;
     const soul = {
         $value: 0,
-        $matrix: identity,
         _update: () => {
             if (!soul.$value) {
                 let contextualVelocity = 1;
@@ -741,21 +725,26 @@ const newSoul = (transform, ...walkingPath) => {
                     })();
                 }
             }
-            soul.$value && (soul.$matrix = firstBoatModel.$matrix.translate(index2 % 4 * 1.2 - 1.7 + /* @__PURE__ */ Math.sin(gameTime + index2) / 6, -2, 1.7 * (index2 / 4 | 0) - 5.5 + abs(index2 % 4 - 2) + /* @__PURE__ */ Math.cos(gameTime / 1.5 + index2) / 6));
+            soul.$value && (soul.$matrix = allModels[1].$matrix.translate(index2 % 4 * 1.2 - 1.7 + /* @__PURE__ */ Math.sin(gameTime + index2) / 6, -2, 1.7 * (index2 / 4 | 0) - 5.5 + abs(index2 % 4 - 2) + /* @__PURE__ */ Math.cos(gameTime / 1.5 + index2) / 6));
         }
     };
+    const parentModel = currentEditModel;
+    const index2 = souls.length;
+    const circles = walkingPath.map((([x, z, w]) => ({
+        x,
+        z,
+        w
+    })));
+    let circle = circles[0];
+    let {x: targetX, z: targetZ} = circle;
+    let soulX = targetX;
+    let soulZ = targetZ;
     souls.push(soul);
 };
 
 const updateModels = () => {
-    for (const model of allModels) {
-        const update = model._update;
-        model.$matrix = model.$parent ? model.$parent.$matrix : identity;
-        if (update) {
-            const updateResult = update(model);
-            updateResult && (model.$matrix = model.$matrix.multiply(updateResult));
-        }
-    }
+    for (const model of allModels) model._update && (model.$matrix = model._update(model));
+    for (const lever of levers) lever._update();
     for (const soul of souls) soul._update();
 };
 
@@ -811,10 +800,10 @@ const buildWorld = () => {
         const shouldOscillate = () => lerpneg(levers[7].$lerpValue2, levers[6].$lerpValue2);
         const shouldPushRods = () => lerpneg(levers[10].$lerpValue, levers[11].$lerpValue);
         const hexPadShouldOscillate = () => lerpneg(levers[8].$lerpValue2, levers[12].$lerpValue2);
-        firstBoatModel = newModel((model => {
+        newModel((model => {
             model._update = () => getBoatAnimationMatrix(-12, 4.2, 40 * firstBoatLerp - 66);
-            newLever(identity.translate(0, -3, 4));
             meshAdd(boatPolygons);
+            newLever(identity.translate(0, -3, 4));
         }));
         integers_map(7, (i => meshAdd(cylinder(6, 1), identity.translate(4 * (i / 6 - .5), 3).scale(.2, 3, .2), material(.3, .3, .38))));
         const entranceBarsMesh = meshEnd();
@@ -1149,6 +1138,10 @@ const renderModels = (worldMatrixLoc, renderPlayer, collisionModelIdUniformLocat
                 gl["uae"](worldMatrixLoc, !1, model.$matrix.toFloat32Array());
                 drawMesh($mesh);
             }
+        }
+        for (const lever of levers) {
+            gl["uae"](worldMatrixLoc, !1, lever.$stickMatrix.toFloat32Array());
+            drawMesh(leverMeshes[lever.$lerpValue > .5 ? 1 : 0]);
         }
         for (const soul of souls) {
             gl["uae"](worldMatrixLoc, !1, soul.$matrix.toFloat32Array());
@@ -1530,7 +1523,7 @@ const startMainLoop = groundTextureImage => {
     gl["t2z"](3553, 10240, 9729);
     playerModel._update = () => identity.translate(player_position_final.x, player_model_y, player_position_final.z).rotateSelf(0, player_look_angle);
     playerLegsModels.map(((model, i) => {
-        model._update = () => identity.translate(0, player_legs_speed * clamp01(/* @__PURE__ */ .45 * Math.sin(9.1 * gameTime + Math.PI * i - Math.PI / 2))).rotateSelf(player_legs_speed * /* @__PURE__ */ Math.sin(9.1 * gameTime + Math.PI * i) * (.25 / DEG_TO_RAD), 0);
+        model._update = () => playerModel.$matrix.translate(0, player_legs_speed * clamp01(/* @__PURE__ */ .45 * Math.sin(9.1 * gameTime + Math.PI * i - Math.PI / 2))).rotateSelf(player_legs_speed * /* @__PURE__ */ Math.sin(9.1 * gameTime + Math.PI * i) * (.25 / DEG_TO_RAD), 0);
     }));
     (() => {
         try {
