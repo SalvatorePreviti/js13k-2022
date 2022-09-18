@@ -3,18 +3,18 @@ import type { Polygon } from "../geometry/geometry";
 import { cylinder, material, polygons_transform, sphere } from "../geometry/geometry";
 import { csg_polygons, csg_subtract } from "../geometry/csg";
 import { GQuad, GHorn, boatPolygons } from "../geometry/solids";
-import { meshAdd, meshEnd, newModel, withEditMatrix, type Model } from "./scene";
+import { meshAdd, meshEnd, newModel, type Model } from "./scene";
 import {
   levers,
   souls,
   onPlayerPullLever,
   onSoulCollected,
   lerpDamp,
-  type Lever,
-  type Soul,
   gameTimeDelta,
   gameTime,
   firstBoatLerp,
+  type Lever,
+  type Soul,
 } from "./world-state";
 import { player_position_final } from "./player-position";
 import { keyboard_downKeys, KEY_INTERACT } from "../page";
@@ -39,33 +39,31 @@ const leverMeshes = [material(1, 0.5, 0.2), material(0.7, 1, 0.2)].map((handleMa
 });
 
 export const newLever = (transform: DOMMatrixReadOnly): void => {
-  withEditMatrix(transform, () => {
-    newModel(($model) => {
-      const $parent = $model.$parent!;
-      const lever: Lever = { $value: 0, $lerpValue: 0, $lerpValue2: 0, $parent };
-      const index = levers.push(lever) - 1;
-      $model._update = () => {
-        const { $value, $lerpValue, $lerpValue2 } = lever;
-        const point = (lever.$matrix = $model.$finalMatrix).transformPoint();
+  newModel(($model) => {
+    const $parent = $model.$parent!;
+    const lever: Lever = { $value: 0, $lerpValue: 0, $lerpValue2: 0, $parent };
+    const index = levers.push(lever) - 1;
+    $model._update = () => {
+      const { $value, $lerpValue, $lerpValue2 } = lever;
+      const point = (lever.$matrix = transform.multiply($model.$matrix)).transformPoint();
 
-        if (vec3_distance(point, player_position_final) < LEVER_SENSITIVITY_RADIUS && keyboard_downKeys[KEY_INTERACT]) {
-          if ($lerpValue < 0.3 || $lerpValue > 0.7) {
-            lever.$value = $value ? 0 : 1;
-            onPlayerPullLever(index);
-          }
+      if (vec3_distance(point, player_position_final) < LEVER_SENSITIVITY_RADIUS && keyboard_downKeys[KEY_INTERACT]) {
+        if ($lerpValue < 0.3 || $lerpValue > 0.7) {
+          lever.$value = $value ? 0 : 1;
+          onPlayerPullLever(index);
         }
+      }
 
-        lever.$lerpValue = lerpDamp($lerpValue, $value, 4);
-        lever.$lerpValue2 = lerpDamp($lerpValue2, $value, 1);
-        $model.$mesh = leverMeshes[$lerpValue > 0.5 ? 1 : 0]!;
-        return identity.rotate(lever.$lerpValue * 60 - 30, 0).translateSelf(0, 1);
-      };
-    });
-
-    meshAdd(cylinder(5), identity.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
-    meshAdd(cylinder(5), identity.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
-    meshAdd(cylinder(GQuad), identity.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
+      lever.$lerpValue = lerpDamp($lerpValue, $value, 4);
+      lever.$lerpValue2 = lerpDamp($lerpValue2, $value, 1);
+      $model.$mesh = leverMeshes[$lerpValue > 0.5 ? 1 : 0]!;
+      return transform.rotate(lever.$lerpValue * 60 - 30, 0).translateSelf(0, 1);
+    };
   });
+
+  meshAdd(cylinder(5), transform.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
+  meshAdd(cylinder(5), transform.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
+  meshAdd(cylinder(GQuad), transform.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
 };
 
 // ========= Player ========= //
@@ -121,9 +119,9 @@ export const initPlayerModel = () => {
 
 // ========= BOAT ========= //
 
-export const getBoatAnimationMatrix = (z: number) =>
+export const getBoatAnimationMatrix = (x: number, y: number, z: number) =>
   identity
-    .translate(Math.sin(gameTime + 2) / 5, Math.sin(gameTime * 0.8) / 3, z)
+    .translate(x + Math.sin(gameTime + 2) / 5, y + Math.sin(gameTime * 0.8) / 3, z)
     .rotateSelf(Math.sin(gameTime) * 2, Math.sin(gameTime * 0.7), Math.sin(gameTime * 0.9));
 
 // ========= FIRST BOAT! ========= //
@@ -131,16 +129,14 @@ export const getBoatAnimationMatrix = (z: number) =>
 export let firstBoatModel: Model;
 
 export const initFirstBoatModel = () => {
-  firstBoatModel = withEditMatrix(identity.translate(-12, 4.2, -26 - 40), () =>
-    newModel((model) => {
-      if (DEBUG) {
-        console.log("firstBoat modelId:" + model.$modelId);
-      }
-      model._update = () => getBoatAnimationMatrix(firstBoatLerp * 40);
-      newLever(identity.translate(0, -3, 4));
-      meshAdd(boatPolygons);
-    }),
-  );
+  firstBoatModel = newModel((model) => {
+    if (DEBUG) {
+      console.log("firstBoat modelId:" + model.$modelId);
+    }
+    model._update = () => getBoatAnimationMatrix(-12, 4.2, -66 + firstBoatLerp * 40);
+    newLever(identity.translate(0, -3, 4));
+    meshAdd(boatPolygons);
+  });
 };
 
 // ========= Soul mesh ========= //
@@ -176,121 +172,119 @@ export const soulMesh = meshEnd();
 
 export type Circle = [number, number, number];
 
-export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]) =>
-  withEditMatrix(transform, () => {
-    const soul: Soul = { $value: 0 };
+export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]) => {
+  const soul: Soul = { $value: 0 };
 
-    const circles = (walkingPath as Circle[]).map(([x, z, w]) => ({ x, z, w }));
+  const circles = (walkingPath as Circle[]).map(([x, z, w]) => ({ x, z, w }));
 
-    let circle = circles[0]!;
-    let { x: targetX, z: targetZ } = circle;
-    let dirX = -1;
-    let dirZ = 0;
-    let wasInside: boolean | undefined | 1 = 1;
-    let randAngle = 0;
-    let lookAngle = 0;
-    let soulX = targetX;
-    let soulZ = targetZ;
-    let velocity = 3;
-    let prevX = 0;
-    let prevZ = 0;
+  let circle = circles[0]!;
+  let { x: targetX, z: targetZ } = circle;
+  let dirX = -1;
+  let dirZ = 0;
+  let wasInside: boolean | undefined | 1 = 1;
+  let randAngle = 0;
+  let lookAngle = 0;
+  let soulX = targetX;
+  let soulZ = targetZ;
+  let velocity = 3;
+  let prevX = 0;
+  let prevZ = 0;
 
-    if (DEBUG_FLAG0) {
-      for (const c of circles) {
-        meshAdd(cylinder(12), identity.translate(c.x, -1.7, c.z).scale(c.w, 0.01, c.w), material(0.3, 0.3, 0.38));
-      }
+  if (DEBUG_FLAG0) {
+    for (const c of circles) {
+      meshAdd(cylinder(12), identity.translate(c.x, -1.7, c.z).scale(c.w, 0.01, c.w), material(0.3, 0.3, 0.38));
     }
+  }
 
-    const index = souls.push(soul) - 1;
+  const index = souls.push(soul) - 1;
 
-    return newModel((model) => {
-      model._update = () => {
-        let animationMatrix: DOMMatrixReadOnly;
+  return newModel((model) => {
+    model._update = () => {
+      let animationMatrix: DOMMatrixReadOnly;
 
-        if (!soul.$value) {
-          let contextualVelocity = 1;
-          let mindist = Infinity;
-          let isInside: boolean | undefined;
-          for (const c of circles) {
-            const { x, z, w } = c;
-            const distance = Math.hypot(targetX - x, targetZ - z);
-            const circleSDF = distance - w;
-            isInside ||= distance < w;
-            if (circleSDF > 0 && circleSDF < mindist) {
-              mindist = circleSDF;
-              circle = c;
-            }
-            contextualVelocity = min(contextualVelocity, distance / w);
+      if (!soul.$value) {
+        let contextualVelocity = 1;
+        let mindist = Infinity;
+        let isInside: boolean | undefined;
+        for (const c of circles) {
+          const { x, z, w } = c;
+          const distance = Math.hypot(targetX - x, targetZ - z);
+          const circleSDF = distance - w;
+          isInside ||= distance < w;
+          if (circleSDF > 0 && circleSDF < mindist) {
+            mindist = circleSDF;
+            circle = c;
           }
+          contextualVelocity = min(contextualVelocity, distance / w);
+        }
 
-          if (!isInside) {
-            const { x, z, w } = circle;
-            const ax = targetX - x;
-            const az = targetZ - z;
-            let magnitude = Math.hypot(ax, az);
-            let angle = Math.atan2(-az, ax);
-            if (wasInside) {
-              randAngle = ((Math.random() - 0.5) * Math.PI) / 2;
-              velocity = max(1, velocity / (1 + Math.random()));
-            }
-            angle += randAngle;
-            dirX = -Math.cos(angle);
-            dirZ = Math.sin(angle);
-            if (magnitude > 0.1) {
-              // limit the vector length to the circle radius, as a security measure
-              magnitude = min(magnitude, w) / (magnitude || 1);
-              targetX = ax * magnitude + x;
-              targetZ = az * magnitude + z;
-            }
+        if (!isInside) {
+          const { x, z, w } = circle;
+          const ax = targetX - x;
+          const az = targetZ - z;
+          let magnitude = Math.hypot(ax, az);
+          let angle = Math.atan2(-az, ax);
+          if (wasInside) {
+            randAngle = ((Math.random() - 0.5) * Math.PI) / 2;
+            velocity = max(1, velocity / (1 + Math.random()));
           }
-
-          wasInside = isInside;
-
-          velocity = lerpDamp(velocity, 3 + (1 - contextualVelocity) * 6, 3 + contextualVelocity);
-
-          targetX = lerpDamp(targetX, targetX + dirX, velocity);
-          targetZ = lerpDamp(targetZ, targetZ + dirZ, velocity);
-
-          soulX = lerpDamp(soulX, targetX, velocity);
-          soulZ = lerpDamp(soulZ, targetZ, velocity);
-
-          lookAngle = angle_lerp_degrees(
-            lookAngle,
-            Math.atan2(soulX - prevX, soulZ - prevZ) / DEG_TO_RAD - 180,
-            3 * gameTimeDelta,
-          );
-
-          prevX = soulX;
-          prevZ = soulZ;
-
-          animationMatrix = identity
-            .translate(soulX, 0, soulZ)
-            .rotateSelf(0, lookAngle)
-            .skewXSelf(Math.sin(gameTime * 2) * 7)
-            .skewYSelf(Math.sin(gameTime * 1.4) * 7);
-
-          const soulPos = model.$finalMatrix.multiply(animationMatrix).transformPoint();
-
-          if (vec3_distance(soulPos, player_position_final) < SOUL_SENSITIVITY_RADIUS) {
-            soul.$value = 1;
-            onSoulCollected();
+          angle += randAngle;
+          dirX = -Math.cos(angle);
+          dirZ = Math.sin(angle);
+          if (magnitude > 0.1) {
+            // limit the vector length to the circle radius, as a security measure
+            magnitude = min(magnitude, w) / (magnitude || 1);
+            targetX = ax * magnitude + x;
+            targetZ = az * magnitude + z;
           }
         }
 
-        if (soul.$value) {
-          // Captured.
-          model.$parent = firstBoatModel;
-          model.$initialMatrix = identity;
+        wasInside = isInside;
 
-          animationMatrix = identity.translate(
-            (index % 4) * 1.2 - 1.7 + Math.sin(gameTime + index) / 6,
-            -2,
-            -5.5 + ((index / 4) | 0) * 1.7 + abs((index % 4) - 2) + Math.cos(gameTime / 1.5 + index) / 6,
-          );
+        velocity = lerpDamp(velocity, 3 + (1 - contextualVelocity) * 6, 3 + contextualVelocity);
+
+        targetX = lerpDamp(targetX, targetX + dirX, velocity);
+        targetZ = lerpDamp(targetZ, targetZ + dirZ, velocity);
+
+        soulX = lerpDamp(soulX, targetX, velocity);
+        soulZ = lerpDamp(soulZ, targetZ, velocity);
+
+        lookAngle = angle_lerp_degrees(
+          lookAngle,
+          Math.atan2(soulX - prevX, soulZ - prevZ) / DEG_TO_RAD - 180,
+          3 * gameTimeDelta,
+        );
+
+        prevX = soulX;
+        prevZ = soulZ;
+
+        animationMatrix = transform
+          .translate(soulX, 0, soulZ)
+          .rotateSelf(0, lookAngle)
+          .skewXSelf(Math.sin(gameTime * 2) * 7)
+          .skewYSelf(Math.sin(gameTime * 1.4) * 7);
+
+        const soulPos = model.$matrix.multiply(animationMatrix).transformPoint();
+
+        if (vec3_distance(soulPos, player_position_final) < SOUL_SENSITIVITY_RADIUS) {
+          soul.$value = 1;
+          onSoulCollected();
         }
+      }
 
-        return animationMatrix!;
-      };
-      return soulMesh;
-    });
+      if (soul.$value) {
+        // Captured.
+        model.$parent = firstBoatModel;
+
+        animationMatrix = identity.translate(
+          (index % 4) * 1.2 - 1.7 + Math.sin(gameTime + index) / 6,
+          -2,
+          -5.5 + ((index / 4) | 0) * 1.7 + abs((index % 4) - 2) + Math.cos(gameTime / 1.5 + index) / 6,
+        );
+      }
+
+      return animationMatrix!;
+    };
+    return soulMesh;
   });
+};

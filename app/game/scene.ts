@@ -3,8 +3,7 @@ import { polygons_transform, type Polygon } from "../geometry/geometry";
 
 export interface Model {
   $parent?: Model | undefined;
-  $initialMatrix: DOMMatrixReadOnly;
-  $finalMatrix: DOMMatrixReadOnly;
+  $matrix: DOMMatrixReadOnly;
   $mesh?: Mesh;
   $modelId: number;
   $attachPlayer: 0 | 1;
@@ -14,15 +13,6 @@ export interface Model {
 export let currentEditModel: Model;
 
 export const allModels: Model[] = [];
-
-export const editMatrixStack: DOMMatrixReadOnly[] = [identity];
-
-export const withEditMatrix = <T>(matrix: DOMMatrixReadOnly, fn: () => T) => {
-  editMatrixStack.push(editMatrixStack.at(-1)!.multiply(matrix));
-  const result = fn();
-  editMatrixStack.pop();
-  return result;
-};
 
 export const _triangleIndices: number[] = [];
 
@@ -74,10 +64,7 @@ export const meshAdd = (
   polygons: Polygon<Readonly<Vec3Optional>>[],
   transform: DOMMatrixReadOnly = identity,
   color?: number | undefined,
-) =>
-  _pendingPolygonsStack
-    .at(-1)!
-    .push(...polygons_transform(polygons, editMatrixStack.at(-1)!.multiply(transform), color));
+) => _pendingPolygonsStack.at(-1)!.push(...polygons_transform(polygons, transform, color));
 
 export const meshEnd = (): Mesh => {
   const pendingPolygons = _pendingPolygonsStack.at(-1)!;
@@ -102,20 +89,17 @@ export const meshEnd = (): Mesh => {
 export const newModel = (fn: (model: Model) => void | Mesh | undefined) => {
   const previousModel = currentEditModel;
   const model: Model = {
-    $initialMatrix: editMatrixStack.at(-1)!,
-    $finalMatrix: identity,
+    $matrix: identity,
     $modelId: allModels.length + 1,
     $attachPlayer: 1,
     $parent: previousModel === allModels[0] ? undefined : previousModel,
   };
   currentEditModel = model;
   allModels.push(model);
-  editMatrixStack.push(identity);
   _pendingPolygonsStack.push([]);
 
   const modelMesh = fn(model) || meshEnd();
   model.$mesh = modelMesh;
-  editMatrixStack.pop();
   _pendingPolygonsStack.pop();
   currentEditModel = previousModel;
   return model;
@@ -124,13 +108,11 @@ export const newModel = (fn: (model: Model) => void | Mesh | undefined) => {
 export const updateModels = () => {
   for (const model of allModels) {
     const update = model._update;
-    model.$finalMatrix = model.$parent
-      ? model.$parent.$finalMatrix.multiply(model.$initialMatrix)
-      : model.$initialMatrix;
+    model.$matrix = model.$parent ? model.$parent.$matrix : identity;
     if (update) {
       const updateResult = update(model);
       if (updateResult) {
-        model.$finalMatrix = model.$finalMatrix.multiply(updateResult);
+        model.$matrix = model.$matrix.multiply(updateResult);
       }
     }
   }

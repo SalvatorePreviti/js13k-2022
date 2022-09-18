@@ -224,6 +224,8 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
   const player_respawn = () => {
+    // TODO: player_respawn player position calculation must be done per frame and after models are updated!
+    // if we don't do this we might risk to be stuck on moving objects
     const { $parent, $matrix } = levers[player_last_pulled_lever]!;
 
     const { x, y, z } = $matrix!.transformPoint({ x: 0, y: 8, z: -3 });
@@ -437,7 +439,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     player_collision_z -= strafe * s + forward * c;
 
     const referenceMatrix =
-      (currentModelId && allModels[currentModelId - 1]!.$attachPlayer && allModels[currentModelId - 1]!.$finalMatrix) ||
+      (currentModelId && allModels[currentModelId - 1]!.$attachPlayer && allModels[currentModelId - 1]!.$matrix) ||
       identity;
     const inverseReferenceRotationMatrix = referenceMatrix.inverse();
     inverseReferenceRotationMatrix.m41 = 0;

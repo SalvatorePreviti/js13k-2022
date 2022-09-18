@@ -31,7 +31,7 @@ export const initSouls = () => {
 
   // SOUL 5 - soul over the central sculpture/monument
   newSoul(
-    identity.translate(0, 11).rotate(0, 0, 10),
+    identity.translate(-38.9, -0.3, 17).rotate(0, 0, 10),
     ...polygon_regular(15).map(({ x, z }) => [x * 3, z * 3, 1.5]),
   ).$parent = centralSculptureMonumentModel;
 
@@ -52,8 +52,8 @@ export const initSouls = () => {
     firstRotatingPlatformModel;
 
   // SOUL 11 - soul in the last platform
-  newSoul(identity.translate(0, 3.9, 95), ...polygon_regular(9).map(({ x, z }) => [x * 9, z * 9, 4]));
+  newSoul(identity.translate(0, 3, 95), ...polygon_regular(9).map(({ x, z }) => [x * 9, z * 9, 4]));
 
   // SOUL 12 - soul after the pendulums
-  newSoul(identity.translate(0, 19.9, 115 + 39 - 20), [0, 0, 3.5]);
+  newSoul(identity.translate(0, 19, 134), [0, 0, 3.5]);
 };

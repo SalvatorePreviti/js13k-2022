@@ -27,7 +27,7 @@ export const renderModels = (
         if (collisionModelIdUniformLocation) {
           gl.uniform1f(collisionModelIdUniformLocation, $modelId / 255);
         }
-        gl.uniformMatrix4fv(worldMatrixLoc, false, model.$finalMatrix.toFloat32Array());
+        gl.uniformMatrix4fv(worldMatrixLoc, false, model.$matrix.toFloat32Array());
         drawMesh($mesh);
       }
     }
