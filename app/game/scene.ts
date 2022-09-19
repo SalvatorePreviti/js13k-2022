@@ -15,8 +15,8 @@ export interface Model {
   $kind: MODEL_KIND;
   $polygons: Polygon[] | null;
   _update?: (model: Model) => DOMMatrixReadOnly;
-  $vertexOffset?: number;
-  $vertexCount?: number;
+  $vertexBegin?: number;
+  $vertexEnd?: number;
 }
 
 export let currentEditModel: Model;

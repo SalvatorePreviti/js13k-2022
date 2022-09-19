@@ -41,7 +41,7 @@ export const initTriangleBuffers = () => {
   };
 
   for (model of allModels) {
-    _vertexFloats[3] = model.$kind ? model.$modelId : 1;
+    _vertexFloats[3] = model.$kind ? model.$modelId : 0;
     for (polygon of model.$polygons!) {
       const { x, y, z } = plane_fromPolygon(polygon);
       _vertexInts[4] = polygon.$color! | 0;
@@ -57,9 +57,8 @@ export const initTriangleBuffers = () => {
     model.$polygons = null;
 
     // write the indices offset and count
-    const $vertexOffset = meshFirstIndex;
-    model.$vertexOffset = meshFirstIndex;
-    model.$vertexCount = (meshFirstIndex = _triangleIndices.length) - $vertexOffset;
+    model.$vertexBegin = meshFirstIndex;
+    model.$vertexEnd = meshFirstIndex = _triangleIndices.length;
   }
 
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.createBuffer());
@@ -83,7 +82,9 @@ export const initTriangleBuffers = () => {
 
   if (DEBUG) {
     console.log(
-      "models: " +
+      "game models:" +
+        allModels.filter((m) => !!m.$kind).length +
+        " models: " +
         allModels.length +
         " vertices: " +
         _vertexPositions.length / 3 +

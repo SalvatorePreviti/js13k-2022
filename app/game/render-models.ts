@@ -1,43 +1,71 @@
-import type { Model } from "./scene";
 import { allModels } from "./scene";
-import { identity } from "../math";
+import { identity, writeMatrixToArray } from "../math";
 import { mainMenuVisible } from "../page";
 import { absoluteTime, levers, souls } from "./world-state";
+import { leverModel, playerLegsModels, playerModel, soulCollisionModel, soulModel } from "./level";
 import { gl } from "../gl";
-import { leverModels, playerLegsModels, playerModel, soulCollisionModel, soulModel } from "./level";
+
+const worldMatricesBuffer = new Float32Array(41 * 16);
 
 export const renderModels = (
   worldMatrixLoc: WebGLUniformLocation,
   renderPlayer: 0 | 1 | boolean,
-  isCollider?: 0 | 1,
+  isCollider: 0 | 1,
 ) => {
-  const drawMesh = (model: Model) =>
-    gl.drawElements(gl.TRIANGLES, model.$vertexCount!, gl.UNSIGNED_SHORT, model.$vertexOffset! * 2);
-
   if (mainMenuVisible) {
-    gl.uniformMatrix4fv(worldMatrixLoc, false, identity.rotate(0, Math.sin(absoluteTime) * 40 - 70).toFloat32Array());
-    drawMesh(playerModel);
-    playerLegsModels.map(drawMesh);
+    const matrix = identity.rotate(0, Math.sin(absoluteTime) * 40 - 70);
+    for (const { $modelId } of [playerModel, ...playerLegsModels]) {
+      writeMatrixToArray(worldMatricesBuffer, $modelId - 1, matrix);
+    }
+    gl.uniformMatrix4fv(worldMatrixLoc, false, worldMatricesBuffer);
+    gl.drawElements(
+      gl.TRIANGLES,
+      playerLegsModels[1]!.$vertexEnd! - playerModel.$vertexBegin!,
+      gl.UNSIGNED_SHORT,
+      playerModel.$vertexBegin! * 2,
+    );
   } else {
-    for (const model of allModels) {
-      if (!renderPlayer && (model === playerModel || model === playerLegsModels[0] || model === playerLegsModels[1])) {
-        continue;
+    for (const { $kind, $modelId, $matrix } of allModels) {
+      if ($kind) {
+        writeMatrixToArray(worldMatricesBuffer, $modelId - 1, $matrix);
       }
-      if (!model.$kind) {
-        continue;
-      }
-      gl.uniformMatrix4fv(worldMatrixLoc, false, model.$matrix.toFloat32Array());
-      drawMesh(model);
     }
 
-    for (const lever of levers) {
-      gl.uniformMatrix4fv(worldMatrixLoc, false, lever.$matrix!.toFloat32Array());
-      drawMesh(leverModels[lever.$lerpValue > 0.5 ? 1 : 0]!);
+    gl.uniformMatrix4fv(worldMatrixLoc, false, worldMatricesBuffer);
+    gl.drawElements(
+      gl.TRIANGLES,
+      (renderPlayer ? playerLegsModels[1]!.$vertexEnd! : playerModel.$vertexBegin!) - 3,
+      gl.UNSIGNED_SHORT,
+      3 * 2,
+    );
+
+    for (let i = 0; i < levers.length; ++i) {
+      writeMatrixToArray(worldMatricesBuffer, i, levers[i]!.$matrix!);
+      worldMatricesBuffer[i * 16 + 15] = 1 - levers[i]!.$lerpValue;
     }
 
-    for (const soul of souls) {
-      gl.uniformMatrix4fv(worldMatrixLoc, false, soul.$matrix!.toFloat32Array());
-      drawMesh(isCollider ? soulCollisionModel : soulModel);
+    gl.uniformMatrix4fv(worldMatrixLoc, false, worldMatricesBuffer);
+    gl.drawElementsInstanced(
+      gl.TRIANGLES,
+      leverModel.$vertexEnd! - leverModel.$vertexBegin!,
+      gl.UNSIGNED_SHORT,
+      leverModel.$vertexBegin! * 2,
+      levers.length,
+    );
+
+    for (let i = 0; i < 13; ++i) {
+      writeMatrixToArray(worldMatricesBuffer, i, souls[i]!.$matrix!);
     }
+
+    const soulModelToRender = isCollider ? soulCollisionModel : soulModel;
+
+    gl.uniformMatrix4fv(worldMatrixLoc, false, worldMatricesBuffer);
+    gl.drawElementsInstanced(
+      gl.TRIANGLES,
+      soulModelToRender.$vertexEnd! - soulModelToRender.$vertexBegin!,
+      gl.UNSIGNED_SHORT,
+      soulModelToRender.$vertexBegin! * 2,
+      13,
+    );
   }
 };

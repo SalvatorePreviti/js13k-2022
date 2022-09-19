@@ -140,3 +140,23 @@ export const plane_fromPolygon = /* @__PURE__ */ (polygon: readonly Vec3In[]): P
   z /= b;
   return { x, y, z, w: x * a.x + y * a.y + z * a.z };
 };
+
+export const writeMatrixToArray = (output: Float32Array | number[], index: number, $matrix: DOMMatrixReadOnly) => {
+  index *= 16;
+  output[index++] = $matrix.m11;
+  output[index++] = $matrix.m12;
+  output[index++] = $matrix.m13;
+  output[index++] = $matrix.m14;
+  output[index++] = $matrix.m21;
+  output[index++] = $matrix.m22;
+  output[index++] = $matrix.m23;
+  output[index++] = $matrix.m24;
+  output[index++] = $matrix.m31;
+  output[index++] = $matrix.m32;
+  output[index++] = $matrix.m33;
+  output[index++] = $matrix.m34;
+  output[index++] = $matrix.m41;
+  output[index++] = $matrix.m42;
+  output[index++] = $matrix.m43;
+  output[index] = $matrix.m44;
+};

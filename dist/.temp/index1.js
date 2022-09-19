@@ -82,6 +82,26 @@ const plane_fromPolygon = polygon => {
   };
 };
 
+const writeMatrixToArray = (output, index2, $matrix) => {
+  index2 *= 16;
+  output[index2++] = $matrix.m11;
+  output[index2++] = $matrix.m12;
+  output[index2++] = $matrix.m13;
+  output[index2++] = $matrix.m14;
+  output[index2++] = $matrix.m21;
+  output[index2++] = $matrix.m22;
+  output[index2++] = $matrix.m23;
+  output[index2++] = $matrix.m24;
+  output[index2++] = $matrix.m31;
+  output[index2++] = $matrix.m32;
+  output[index2++] = $matrix.m33;
+  output[index2++] = $matrix.m34;
+  output[index2++] = $matrix.m41;
+  output[index2++] = $matrix.m42;
+  output[index2++] = $matrix.m43;
+  output[index2] = $matrix.m44;
+};
+
 const material = (r, g, b, a = 0) => 255 * a << 24 | 255 * b << 16 | 255 * g << 8 | 255 * r;
 
 const polygon_color = (polygon, color, smooth) => {
@@ -694,10 +714,10 @@ const newLever = transform => {
     $parent,
     _update: () => {
       const { $value, $lerpValue, $lerpValue2 } = lever;
-      const matrix = $parent.$matrix.multiply(transform);
-      lever.$locMatrix = matrix;
+      const locMatrix = $parent.$matrix.multiply(transform);
+      lever.$locMatrix = locMatrix;
       if (
-        2.9 > vec3_distance(matrix.transformPoint(), player_position_final) && keyboard_downKeys[5]
+        2.9 > vec3_distance(locMatrix.transformPoint(), player_position_final) && keyboard_downKeys[5]
         && (.3 > $lerpValue || $lerpValue > .7)
       ) {
         lever.$value = $value ? 0 : 1;
@@ -709,7 +729,7 @@ const newLever = transform => {
       }
       lever.$lerpValue = lerpDamp($lerpValue, $value, 4);
       lever.$lerpValue2 = lerpDamp($lerpValue2, $value, 1);
-      lever.$matrix = matrix.rotate(60 * lever.$lerpValue - 30, 0).translateSelf(0, 1);
+      lever.$matrix = locMatrix.rotate(60 * lever.$lerpValue - 30, 0).translateSelf(0, 1);
     },
   };
   levers.push(lever);
@@ -833,7 +853,7 @@ const updateModels = () => {
   for (const soul of souls) soul._update();
 };
 
-let leverModels;
+let leverModel;
 
 let soulModel;
 
@@ -1788,14 +1808,13 @@ const buildWorld = () => {
     meshAdd(cylinder(GQuad), identity.translate(0, .9, .45).scale(.15, .02, .06), material(.3, .3, .3));
     meshAdd(sphere(20), identity.scale(.7, .8, .55), material(1, .3, .4));
   });
-  leverModels = [material(1, .5, .2), material(.7, 1, .2)].map(handleMaterial =>
-    newModel(() => {
-      meshAdd(cylinder(6, 1), identity.scale(.13, 1.4, .13), material(.3, .3, .5));
-      meshAdd(cylinder(8), identity.translate(0, 1).scale(.21, .3, .21), handleMaterial);
-      meshAdd(cylinder(3), identity.translate(0, -1).rotate(90, 90).scale(.3, .4, .3), material(.2, .2, .2));
-    }), 0);
+  leverModel = newModel(() => {
+    meshAdd(cylinder(6, 1), identity.scale(.13, 1.4, .13), material(.3, .3, .5, .1));
+    meshAdd(cylinder(8), identity.translate(0, 1).scale(.21, .3, .21), material(1, .5, .2));
+    meshAdd(cylinder(3), identity.translate(0, -1).rotate(90, 90).scale(.3, .4, .3), material(.2, .2, .2, .1));
+  }, 0);
   soulCollisionModel = newModel(() => {
-    meshAdd(cylinder(6), identity.scale(.85, 1, .85), material(1, .3, .5));
+    meshAdd(cylinder(6), identity.scale(.8, 1, .8), material(1, .3, .5));
   }, 0);
   soulModel = newModel(() => {
     meshAdd(
@@ -1887,34 +1906,38 @@ const gl = hC.getContext("webgl2");
 
 for (const s in gl) gl[s[0] + [...s].reduce((p, c, i) => (p * i + c.charCodeAt(0)) % 434, 0).toString(36)] = gl[s];
 
+const worldMatricesBuffer = new Float32Array(656);
+
 const renderModels = (worldMatrixLoc, renderPlayer, isCollider) => {
-  const drawMesh = model => gl["d97"](4, model.$vertexCount, 5123, 2 * model.$vertexOffset);
   if (mainMenuVisible) {
-    gl["uae"](
-      worldMatrixLoc,
-      !1,
-      identity.rotate(0, /* @__PURE__ */ 40 * Math.sin(absoluteTime) - 70).toFloat32Array(),
-    );
-    drawMesh(playerModel);
-    playerLegsModels.map(drawMesh);
+    const matrix = identity.rotate(0, /* @__PURE__ */ 40 * Math.sin(absoluteTime) - 70);
+    for (const { $modelId } of [playerModel, ...playerLegsModels]) {
+      writeMatrixToArray(worldMatricesBuffer, $modelId - 1, matrix);
+    }
+    gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer);
+    gl["d97"](4, playerLegsModels[1].$vertexEnd - playerModel.$vertexBegin, 5123, 2 * playerModel.$vertexBegin);
   } else {
-    for (const model of allModels) {
-      if (
-        (renderPlayer || model !== playerModel && model !== playerLegsModels[0] && model !== playerLegsModels[1])
-        && model.$kind
-      ) {
-        gl["uae"](worldMatrixLoc, !1, model.$matrix.toFloat32Array());
-        drawMesh(model);
-      }
+    for (const { $kind, $modelId: $modelId1, $matrix } of allModels) {
+      $kind && writeMatrixToArray(worldMatricesBuffer, $modelId1 - 1, $matrix);
     }
-    for (const lever of levers) {
-      gl["uae"](worldMatrixLoc, !1, lever.$matrix.toFloat32Array());
-      drawMesh(leverModels[lever.$lerpValue > .5 ? 1 : 0]);
+    gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer);
+    gl["d97"](4, (renderPlayer ? playerLegsModels[1].$vertexEnd : playerModel.$vertexBegin) - 3, 5123, 6);
+    for (let i = 0; levers.length > i; ++i) {
+      writeMatrixToArray(worldMatricesBuffer, i, levers[i].$matrix);
+      worldMatricesBuffer[16 * i + 15] = 1 - levers[i].$lerpValue;
     }
-    for (const soul of souls) {
-      gl["uae"](worldMatrixLoc, !1, soul.$matrix.toFloat32Array());
-      drawMesh(isCollider ? soulCollisionModel : soulModel);
-    }
+    gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer);
+    gl["das"](4, leverModel.$vertexEnd - leverModel.$vertexBegin, 5123, 2 * leverModel.$vertexBegin, levers.length);
+    for (let i1 = 0; 13 > i1; ++i1) writeMatrixToArray(worldMatricesBuffer, i1, souls[i1].$matrix);
+    const soulModelToRender = isCollider ? soulCollisionModel : soulModel;
+    gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer);
+    gl["das"](
+      4,
+      soulModelToRender.$vertexEnd - soulModelToRender.$vertexBegin,
+      5123,
+      2 * soulModelToRender.$vertexBegin,
+      13,
+    );
   }
 };
 
@@ -2273,7 +2296,7 @@ const startMainLoop = groundTextureImage => {
     gl["ubu"](mainShader("k"), camera_position.x, camera_position.y, camera_position.z);
     csm_render[0]();
     csm_render[1]();
-    renderModels(mainShader("c"), !player_first_person);
+    renderModels(mainShader("c"), !player_first_person, 0);
     skyShader();
     gl["ubu"](skyShader("j"), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime);
     mainMenuVisible
@@ -2284,10 +2307,12 @@ const startMainLoop = groundTextureImage => {
   };
   const collision_buffer = new Uint8Array(65536);
   const mainVertexShader = loadShader(
-    "#version 300 es\nlayout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 a,b,c;void main(){l=d,n=f,m=c*vec4(f.xyz,1),gl_Position=a*b*m,m.w=f.w,o=c*vec4(e,0);}",
+    "#version 300 es\nlayout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 a,b,c[40];void main(){mat4 i=c[f.w>0.?int(f.w)-1:gl_InstanceID];l=mix(d,vec4(.7,1,.2,0),d.w>0.?0.:1.-i[3][3]),i[3][3]=1.,n=f,m=i*vec4(f.xyz,1),gl_Position=a*b*m,m.w=f.w,o=i*vec4(e,0);}",
   );
   const csmShader = initShaderProgram(
-    loadShader("#version 300 es\nin vec4 f;uniform mat4 b,c;void main(){gl_Position=b*c*vec4(f.xyz,1);}"),
+    loadShader(
+      "#version 300 es\nin vec4 f;uniform mat4 b,c[40];void main(){mat4 i=c[f.w>0.?int(f.w)-1:gl_InstanceID];i[3][3]=1.,gl_Position=b*i*vec4(f.xyz,1);}",
+    ),
     "#version 300 es\nvoid main(){}",
   );
   const skyShader = initShaderProgram(
@@ -2296,7 +2321,7 @@ const startMainLoop = groundTextureImage => {
   );
   const collisionShader = initShaderProgram(
     mainVertexShader,
-    "#version 300 es\nprecision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(m.xyz,1);float r=m.w>0.?1.-min(abs(a.z/a.w),1.):0.;O=vec4(vec2(r*(gl_FragCoord.y>31.?1.:abs(o.y))),r>0.?m.w/255.:0.,1);}",
+    "#version 300 es\nprecision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(m.xyz,1);float r=1.-min(abs(a.z/a.w),1.);O=vec4(vec2(r*(gl_FragCoord.y>31.?1.:abs(o.y))),r>0.?m.w/255.:0.,1);}",
   );
   const mainShader = initShaderProgram(
     mainVertexShader,
@@ -2338,7 +2363,7 @@ const startMainLoop = groundTextureImage => {
         gl["iay"](36160, [36096]);
         gl["c4s"](256);
         gl["uae"](csmShader("b"), !1, lightSpaceMatrix);
-        renderModels(csmShader("c"), !player_first_person);
+        renderModels(csmShader("c"), !player_first_person, 0);
       } else gl["uae"](lightSpaceMatrixLoc, !1, lightSpaceMatrix);
     };
   });
@@ -2375,7 +2400,7 @@ const startMainLoop = groundTextureImage => {
     const _vertexIntsSmooth = new Int32Array(_vertexInts.buffer, 0, 5);
     const _vertexFloats = new Float32Array(_vertexInts.buffer);
     for (model of allModels) {
-      _vertexFloats[3] = model.$modelId;
+      _vertexFloats[3] = model.$kind ? model.$modelId : 0;
       for (polygon of model.$polygons) {
         const { x, y, z } = plane_fromPolygon(polygon);
         _vertexInts[4] = 0 | polygon.$color;
@@ -2387,9 +2412,8 @@ const startMainLoop = groundTextureImage => {
         }
       }
       model.$polygons = null;
-      const $vertexOffset = meshFirstIndex;
-      model.$vertexOffset = meshFirstIndex;
-      model.$vertexCount = (meshFirstIndex = _triangleIndices.length) - $vertexOffset;
+      model.$vertexBegin = meshFirstIndex;
+      model.$vertexEnd = meshFirstIndex = _triangleIndices.length;
     }
     gl["b11"](34963, gl["c1b"]());
     gl["b2v"](34963, new Uint16Array(_triangleIndices), 35044);

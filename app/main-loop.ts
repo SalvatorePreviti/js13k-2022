@@ -3,7 +3,7 @@ import csm_vsSource from "./shaders/csm-vertex.vert";
 import main_vsSource, {
   uniformName_projectionMatrix,
   uniformName_viewMatrix,
-  uniformName_worldMatrix,
+  uniformName_worldMatrices,
 } from "./shaders/main-vertex.vert";
 import main_fsSource, {
   uniformName_viewPos,
@@ -176,7 +176,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
         gl.invalidateFramebuffer(gl.FRAMEBUFFER, [gl.DEPTH_ATTACHMENT]);
         gl.clear(gl.DEPTH_BUFFER_BIT);
         gl.uniformMatrix4fv(csmShader(uniformName_viewMatrix), false, lightSpaceMatrix);
-        renderModels(csmShader(uniformName_worldMatrix), !player_first_person);
+        renderModels(csmShader(uniformName_worldMatrices), !player_first_person, 0);
       } else {
         gl.uniformMatrix4fv(lightSpaceMatrixLoc, false, lightSpaceMatrix);
       }
@@ -634,7 +634,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
           .translateSelf(-player_position_final.x, -player_position_final.y, 0.3 - player_position_final.z)
           .toFloat32Array(),
       );
-      renderModels(collisionShader(uniformName_worldMatrix), 0, 1);
+      renderModels(collisionShader(uniformName_worldMatrices), 0, 1);
 
       // second collision render
 
@@ -648,7 +648,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
           .translate(-player_position_final.x, -player_position_final.y, -player_position_final.z - 0.3)
           .toFloat32Array(),
       );
-      renderModels(collisionShader(uniformName_worldMatrix), 0, 1);
+      renderModels(collisionShader(uniformName_worldMatrices), 0, 1);
       gl.colorMask(true, true, true, true);
 
       // Special handling for the second boat (lever 7) - the boat must be on the side of the map the player is
@@ -682,7 +682,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     csm_render[0]!();
     csm_render[1]!();
 
-    renderModels(mainShader(uniformName_worldMatrix), !player_first_person);
+    renderModels(mainShader(uniformName_worldMatrices), !player_first_person, 0);
 
     // *** SKY RENDER ***
 

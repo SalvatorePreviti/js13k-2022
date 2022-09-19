@@ -3,6 +3,7 @@ export default {
   projectionMatrix: "a",
   viewMatrix: "b",
   worldMatrix: "c",
+  worldMatrices: "c",
   aColor: "d",
   aNormal: "e",
   aPosition: "f",

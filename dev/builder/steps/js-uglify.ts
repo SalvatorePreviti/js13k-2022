@@ -115,7 +115,7 @@ export function getUglifyOptions(settings: JsUglifySettings, nameCache?: Record<
       drop_debugger: true,
 
       // attempt to evaluate constant expressions
-      evaluate: settings.computed_props,
+      evaluate: settings.inline && settings.computed_props,
 
       // Pass true to preserve completion values from terminal statements without return, e.g. in bookmarklets.
       expression: false,

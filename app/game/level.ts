@@ -16,7 +16,7 @@ import {
 } from "./world-state";
 import { getBoatAnimationMatrix, newLever, newSoul } from "./objects";
 
-export let leverModels: Model[];
+export let leverModel: Model;
 
 export let soulModel: Model;
 
@@ -1372,16 +1372,14 @@ export const buildWorld = () => {
     meshAdd(sphere(20), identity.scale(0.7, 0.8, 0.55), material(1, 0.3, 0.4));
   });
 
-  leverModels = [material(1, 0.5, 0.2), material(0.7, 1, 0.2)].map((handleMaterial) => {
-    return newModel(() => {
-      meshAdd(cylinder(6, 1), identity.scale(0.13, 1.4, 0.13), material(0.3, 0.3, 0.5));
-      meshAdd(cylinder(8), identity.translate(0, 1).scale(0.21, 0.3, 0.21), handleMaterial);
-      meshAdd(cylinder(3), identity.translate(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3), material(0.2, 0.2, 0.2));
-    });
+  leverModel = newModel(() => {
+    meshAdd(cylinder(6, 1), identity.scale(0.13, 1.4, 0.13), material(0.3, 0.3, 0.5, 0.1));
+    meshAdd(cylinder(8), identity.translate(0, 1).scale(0.21, 0.3, 0.21), material(1, 0.5, 0.2));
+    meshAdd(cylinder(3), identity.translate(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3), material(0.2, 0.2, 0.2, 0.1));
   }, MODEL_KIND_MESH);
 
   soulCollisionModel = newModel(() => {
-    meshAdd(cylinder(6), identity.scale(0.85, 1, 0.85), material(1, 0.3, 0.5));
+    meshAdd(cylinder(6), identity.scale(0.8, 1, 0.8), material(1, 0.3, 0.5));
   }, MODEL_KIND_MESH);
 
   soulModel = newModel(() => {

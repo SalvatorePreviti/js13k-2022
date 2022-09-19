@@ -40,11 +40,11 @@ export const newLever = (transform: DOMMatrixReadOnly): void => {
     $parent,
     _update: () => {
       const { $value, $lerpValue, $lerpValue2 } = lever;
-      const matrix = $parent.$matrix.multiply(transform);
-      lever.$locMatrix = matrix;
+      const locMatrix = $parent.$matrix.multiply(transform);
+      lever.$locMatrix = locMatrix;
 
       if (
-        vec3_distance(matrix.transformPoint(), player_position_final) < LEVER_SENSITIVITY_RADIUS &&
+        vec3_distance(locMatrix.transformPoint(), player_position_final) < LEVER_SENSITIVITY_RADIUS &&
         keyboard_downKeys[KEY_INTERACT]
       ) {
         if ($lerpValue < 0.3 || $lerpValue > 0.7) {
@@ -55,7 +55,7 @@ export const newLever = (transform: DOMMatrixReadOnly): void => {
 
       lever.$lerpValue = lerpDamp($lerpValue, $value, 4);
       lever.$lerpValue2 = lerpDamp($lerpValue2, $value, 1);
-      lever.$matrix = matrix.rotate(lever.$lerpValue * 60 - 30, 0).translateSelf(0, 1);
+      lever.$matrix = locMatrix.rotate(lever.$lerpValue * 60 - 30, 0).translateSelf(0, 1);
     },
   };
   levers.push(lever);
