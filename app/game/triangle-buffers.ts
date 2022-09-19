@@ -1,4 +1,3 @@
-import type { Model } from "./scene";
 import type { Polygon } from "../geometry/geometry";
 import { plane_fromPolygon } from "../math";
 import { allModels } from "./scene";
@@ -15,7 +14,6 @@ export const initTriangleBuffers = () => {
   const _vertexIntsSmooth = new Int32Array(_vertexInts.buffer, 0, 5);
   const _vertexFloats = new Float32Array(_vertexInts.buffer);
 
-  let model: Model;
   let polygon: Polygon | undefined;
   let meshFirstIndex: number = 0;
 
@@ -40,7 +38,7 @@ export const initTriangleBuffers = () => {
     return index;
   };
 
-  for (model of allModels) {
+  for (const model of allModels) {
     _vertexFloats[3] = model.$kind ? model.$modelId : 0;
     for (polygon of model.$polygons!) {
       const { x, y, z } = plane_fromPolygon(polygon);
@@ -81,17 +79,12 @@ export const initTriangleBuffers = () => {
   gl.enableVertexAttribArray(2);
 
   if (DEBUG) {
-    console.log(
-      "game models:" +
-        allModels.filter((m) => !!m.$kind).length +
-        " models: " +
-        allModels.length +
-        " vertices: " +
-        _vertexPositions.length / 3 +
-        " indices:" +
-        _triangleIndices.length +
-        " triangles:" +
-        _triangleIndices.length / 3,
-    );
+    console.table({
+      "game models": allModels.filter((m) => !!m.$kind).length,
+      "all models": allModels.length,
+      "vertices": _vertexMap.size,
+      "triangles": _triangleIndices.length / 3,
+      "indices": _triangleIndices.length,
+    });
   }
 };

@@ -1433,7 +1433,7 @@ export const buildWorld = () => {
   }, MODEL_KIND_MESH);
 
   soulCollisionModel = newModel(() => {
-    meshAdd(cylinder(6), identity.scale(0.8, 1, 0.8), material(1, 0.3, 0.5));
+    meshAdd(cylinder(6), identity.scale(0.77, 1, 0.77), material(1, 0.3, 0.5));
   }, MODEL_KIND_MESH);
 
   soulModel = newModel(() => {

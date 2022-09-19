@@ -3,7 +3,7 @@
 in vec4 aPosition;
 
 uniform mat4 viewMatrix;
-uniform mat4 worldMatrices[40];
+uniform mat4 worldMatrices[39];
 
 #define modelId aPosition.w
 

@@ -11,7 +11,7 @@ out lowp vec4 Color;
 
 uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
-uniform mat4 worldMatrices[40];
+uniform mat4 worldMatrices[39];
 
 #define modelId aPosition.w
 
