@@ -1,7 +1,9 @@
 import { abs, integers_map, identity, type Vec3, type Vec3Optional } from "../math";
 
-export const material = (r: number, g: number, b: number, a: number = 0): number =>
-  ((a * 255) << 24) | ((b * 255) << 16) | ((g * 255) << 8) | (r * 255);
+export const material = NO_INLINE(
+  (r: number, g: number, b: number, a: number = 0): number =>
+    ((a * 255) << 24) | ((b * 255) << 16) | ((g * 255) << 8) | (r * 255),
+);
 
 export interface Polygon<TVec3 = Vec3> extends Array<TVec3> {
   /** Polygon material */
@@ -11,11 +13,7 @@ export interface Polygon<TVec3 = Vec3> extends Array<TVec3> {
   $smooth?: 0 | 1 | undefined;
 }
 
-export const polygon_color = /* @__PURE__ */ (
-  polygon: Polygon,
-  color: number | undefined,
-  smooth?: 0 | 1 | undefined,
-): Polygon => {
+export const polygon_color = (polygon: Polygon, color: number | undefined, smooth?: 0 | 1 | undefined): Polygon => {
   polygon.$smooth = smooth;
   polygon.$color = color;
   return polygon;

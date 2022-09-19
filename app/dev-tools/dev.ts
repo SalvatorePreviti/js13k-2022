@@ -1,3 +1,6 @@
+window.NO_INLINE = (fn) => fn;
+window.DEBUG_CAMERA = false;
+
 import { camera_position, camera_rotation } from "../camera";
 import { angle_wrap_degrees, DEG_TO_RAD, type Vec3 } from "../math";
 import type { KEY_CODE } from "../utils/keycodes";

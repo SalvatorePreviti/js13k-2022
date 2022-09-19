@@ -1,8 +1,8 @@
 import type { Model } from "./scene";
-import { allModels } from "./scene";
-import { gl } from "../gl";
 import type { Polygon } from "../geometry/geometry";
 import { plane_fromPolygon } from "../math";
+import { allModels } from "./scene";
+import { gl } from "../gl";
 
 export const initTriangleBuffers = () => {
   const _triangleIndices: number[] = [];

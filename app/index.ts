@@ -8,11 +8,11 @@ if (DEBUG) {
 
 import groundTextureSvg from "./groundTexture.svg";
 
-import { buildWorld } from "./game/level";
 import { startMainLoop } from "./main-loop";
 import { song_numChannels } from "./music/song";
 import { soundbox_generate } from "./music/music-player";
 import { loadSong } from "./music/audio-context";
+import { buildWorld } from "./game/level";
 
 setTimeout(() => {
   let songLoad = 0;
@@ -31,6 +31,7 @@ setTimeout(() => {
       if (DEBUG) {
         console.timeEnd("load");
       }
+
       startMainLoop(image);
     }
   };
@@ -61,10 +62,18 @@ setTimeout(() => {
       onThingLoaded();
     }
   } else {
-    setTimeout(asyncLoadSongChannels, 50);
+    setTimeout(asyncLoadSongChannels, 9);
   }
 
-  NO_INLINE(buildWorld)();
+  if (DEBUG) {
+    console.time("buildWorld");
+  }
+
+  buildWorld();
+
+  if (DEBUG) {
+    console.timeEnd("buildWorld");
+  }
 
   if (DEBUG) {
     console.timeEnd("boot");

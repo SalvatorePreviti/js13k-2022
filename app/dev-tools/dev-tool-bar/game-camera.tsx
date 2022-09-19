@@ -84,9 +84,11 @@ export const GameCameraComponent: FC = () => {
 };
 
 function formatNumber(value: number, digits: number) {
-  return value.toLocaleString("en", {
-    useGrouping: false,
-    minimumFractionDigits: digits,
-    maximumFractionDigits: digits,
-  });
+  return (
+    value?.toLocaleString("en", {
+      useGrouping: false,
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits,
+    }) || ""
+  );
 }

@@ -1,10 +1,16 @@
 import { abs, clamp01, integers_map, lerpneg, max, min, identity } from "../math";
-import type { Polygon } from "../geometry/geometry";
-import { material, cylinder, polygons_transform, polygon_regular, sphere } from "../geometry/geometry";
+import {
+  material,
+  cylinder,
+  polygons_transform,
+  polygon_regular,
+  sphere,
+  cylinder_sides,
+  polygon_transform,
+  type Polygon,
+} from "../geometry/geometry";
 import { csg_subtract, csg_polygons, csg_union } from "../geometry/csg";
-import { GQuad, GHorn, boatPolygons, bigArc } from "../geometry/solids";
-import type { Model } from "./scene";
-import { meshAdd, newModel, MODEL_KIND_MESH, MODEL_KIND_GAME_NO_ATTACH_PLAYER } from "./scene";
+import { meshAdd, newModel, MODEL_KIND_MESH, MODEL_KIND_GAME_NO_ATTACH_PLAYER, type Model } from "./scene";
 import {
   secondBoatLerp,
   gameTime,
@@ -14,7 +20,7 @@ import {
   rotatingPlatform2Rotation,
   firstBoatLerp,
 } from "./world-state";
-import { newLever, newSoul } from "./objects";
+import { GQuad, newLever, newSoul } from "./objects";
 
 export let leverModel: Model;
 
@@ -25,6 +31,46 @@ export let soulCollisionModel: Model;
 export let playerModels: [Model, Model, Model];
 
 export const buildWorld = () => {
+  const HORN_STACKS = 10;
+
+  const hornPolygons = ((): Polygon[] => {
+    const matrices = integers_map(HORN_STACKS + 1, (i: number) =>
+      identity
+        .translate(Math.sin((i / HORN_STACKS) * Math.PI), i / HORN_STACKS)
+        .rotate(10 * (i / HORN_STACKS))
+        .scale(1.0001 - i / HORN_STACKS, 0, 1 - i / HORN_STACKS),
+    );
+
+    const p = polygon_regular(18);
+    return integers_map(HORN_STACKS, (i) =>
+      cylinder_sides(polygon_transform(p, matrices[i]!).reverse(), polygon_transform(p, matrices[i + 1]!), 1),
+    ).flat();
+  })();
+
+  const boatPolygons = csg_polygons(
+    csg_subtract(
+      polygons_transform(
+        cylinder(20, 1, 1.15, 1),
+        identity.translate(0, -3).scale(3.5, 1, 3.5),
+        material(0.7, 0.4, 0.25, 0.7),
+      ),
+      polygons_transform(
+        cylinder(20, 1, 1.3, 1),
+        identity.translate(0, -2.5).scale(2.6, 1, 3),
+        material(0.7, 0.4, 0.25, 0.2),
+      ),
+      polygons_transform(cylinder(GQuad), identity.translate(4, -1.2).scale3d(2), material(0.7, 0.4, 0.25, 0.3)),
+    ),
+  );
+
+  const bigArcPolygons = csg_polygons(
+    csg_subtract(
+      polygons_transform(cylinder(GQuad), identity.translate(0, -8).scale(6, 15, 2.2)),
+      polygons_transform(cylinder(GQuad), identity.translate(0, -14.1).scale(4, 13, 4)),
+      polygons_transform(cylinder(20, 1), identity.translate(0, -1).rotate(90, 0, 90).scale3d(4)),
+    ),
+  );
+
   let tmpMatrix: DOMMatrixReadOnly;
 
   const getBoatAnimationMatrix = (x: number, y: number, z: number) =>
@@ -106,7 +152,7 @@ export const buildWorld = () => {
     integers_map(5, (i) =>
       integers_map(2, (j) =>
         meshAdd(
-          GHorn,
+          hornPolygons,
           identity
             .translate((j - 0.5) * 18.5, 0, i * 4.8 - 9.5)
             .rotate(0, 180 - j * 180)
@@ -837,8 +883,12 @@ export const buildWorld = () => {
     // arcs
 
     integers_map(3, (i) => {
-      meshAdd(bigArc, identity.translate(i * 12 - 109, -9, -12), material(0.6, 0.6, 0.6, 0.3));
-      meshAdd(bigArc, identity.translate(-77, -9, i * -12 - 8 - 12).rotate(0, 90), material(0.6, 0.6, 0.6, 0.3));
+      meshAdd(bigArcPolygons, identity.translate(i * 12 - 109, -9, -12), material(0.6, 0.6, 0.6, 0.3));
+      meshAdd(
+        bigArcPolygons,
+        identity.translate(-77, -9, i * -12 - 8 - 12).rotate(0, 90),
+        material(0.6, 0.6, 0.6, 0.3),
+      );
     });
 
     meshAdd(
@@ -994,7 +1044,7 @@ export const buildWorld = () => {
       // lateral horns
       [-1, 1].map((i) =>
         meshAdd(
-          GHorn,
+          hornPolygons,
           identity
             .rotate(-i * 90, 180, 90) //
             .translate(0, 5)
@@ -1025,7 +1075,7 @@ export const buildWorld = () => {
       );
 
       meshAdd(
-        GHorn,
+        hornPolygons,
         identity
           .translate(x * -5 - 100, 1.7, 114.5)
           .scale(1.2, 10, 1.2)
@@ -1121,7 +1171,7 @@ export const buildWorld = () => {
       rotPlatform();
       [-1, 1].map((x) =>
         meshAdd(
-          GHorn,
+          hornPolygons,
           identity
             .rotate(0, 90)
             .translate(x * -5, 1, -0.5)
@@ -1227,7 +1277,7 @@ export const buildWorld = () => {
     [8, -6.1].map((y, p) =>
       integers_map(3, (i) =>
         meshAdd(
-          bigArc,
+          bigArcPolygons,
           identity.translate(i * 6 - 6, y - (i & 1), 111 - 0.2 * (i & 1) - p),
           i & 1 ? material(0.5, 0.5, 0.5, 0.3) : material(0.35, 0.35, 0.35, 0.5),
         ),
@@ -1237,7 +1287,7 @@ export const buildWorld = () => {
     // horns
     [-1, 1].map((x) =>
       meshAdd(
-        GHorn,
+        hornPolygons,
         identity
           .translate(x * -8, 1, 85)
           .scale(1.2, 10, 1.2)
@@ -1341,7 +1391,7 @@ export const buildWorld = () => {
       // horns
       [0, 180].map((r) =>
         meshAdd(
-          GHorn,
+          hornPolygons,
           identity.rotate(0, r).translate(0.2, 1.32).rotate(0, 0, -30).scale(0.2, 0.6, 0.2),
           material(1, 1, 0.8),
         ),

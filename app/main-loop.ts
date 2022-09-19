@@ -37,7 +37,6 @@ import {
 import { mat_perspective, zFar, zNear, camera_position, camera_rotation } from "./camera";
 import { csm_buildMatrix } from "./csm";
 import { allModels, MODEL_KIND_GAME } from "./game/scene";
-import { updateModels } from "./game/objects";
 import { gl, initShaderProgram, loadShader } from "./gl";
 import {
   absoluteTime,
@@ -182,8 +181,6 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       }
     };
   });
-
-  initTriangleBuffers();
 
   gl.enable(gl.DEPTH_TEST); // Enable depth testing
   gl.enable(gl.CULL_FACE); // Don't render triangle backs
@@ -508,8 +505,6 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
       NO_INLINE(updatePlayer)();
 
-      updateModels();
-
       // if (DEBUG) {
       //   const debugCanvas = document.getElementById("debug-canvas") as HTMLCanvasElement;
 
@@ -538,9 +533,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       //     debug2dctx.putImageData(imgdata, 0, 0, 0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
       //   }
       // }
-    }
 
-    if (gameTimeDelta > 0) {
       if (!DEBUG_CAMERA) {
         camera_player_dir_x = interpolate_with_hysteresis(
           camera_player_dir_x,
@@ -593,14 +586,12 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       }
       camera_rotation.y = angle_wrap_degrees(camera_rotation.y);
 
-      if (gameTimeDelta > 0) {
-        worldStateUpdate();
-        keyboard_downKeys[KEY_INTERACT] = 0;
+      worldStateUpdate();
+      keyboard_downKeys[KEY_INTERACT] = 0;
 
-        if (player_position_final.y < (player_position_final.x < -25 || player_position_final.z < 109 ? -25 : -9)) {
-          // Player fell in lava
-          player_respawn();
-        }
+      if (player_position_final.y < (player_position_final.x < -25 || player_position_final.z < 109 ? -25 : -9)) {
+        // Player fell in lava
+        player_respawn();
       }
     }
 
@@ -722,7 +713,17 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
   loadGame();
 
-  updateModels();
+  worldStateUpdate();
+
+  if (DEBUG) {
+    console.time("initTriangleBuffers");
+  }
+
+  NO_INLINE(initTriangleBuffers)();
+
+  if (DEBUG) {
+    console.timeEnd("initTriangleBuffers");
+  }
 
   NO_INLINE(initPage)();
 

@@ -1,4 +1,5 @@
 import type { Model } from "./scene";
+import { allModels } from "./scene";
 import { lerp, min, angle_wrap_degrees, lerpneg, abs, clamp01 } from "../math";
 import { keyboard_downKeys, KEY_INTERACT, mainMenuVisible } from "../page";
 
@@ -142,6 +143,20 @@ export const worldStateUpdate = () => {
       showMessage("Well done. They will be punished.<br>Thanks for playing", Infinity);
       game_completed = 1;
     }
+  }
+
+  for (const model of allModels) {
+    if (model._update) {
+      model.$matrix = model._update(model);
+    }
+  }
+
+  for (const lever of levers) {
+    lever._update();
+  }
+
+  for (const soul of souls) {
+    soul._update();
   }
 };
 

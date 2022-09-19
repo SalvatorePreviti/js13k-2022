@@ -1,6 +1,5 @@
 import { abs, angle_lerp_degrees, DEG_TO_RAD, max, min, vec3_distance } from "../math";
 import { cylinder, material } from "../geometry/geometry";
-import { GQuad } from "../geometry/solids";
 import { allModels, currentEditModel, meshAdd } from "./scene";
 import {
   levers,
@@ -18,6 +17,13 @@ import { keyboard_downKeys, KEY_INTERACT } from "../page";
 
 const LEVER_SENSITIVITY_RADIUS = 2.9;
 const SOUL_SENSITIVITY_RADIUS = 1.5;
+
+export const GQuad = /* @__PURE__ */ [
+  { x: -1, z: 1 },
+  { x: 1, z: 1 },
+  { x: 1, z: -1 },
+  { x: -1, z: -1 },
+];
 
 export const MODEL_ID_FIRST_BOAT = 2;
 
@@ -155,27 +161,11 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]
     },
   };
 
-  // if (DEBUG_FLAG0) {
-  //   for (const c of circles) {
-  //     meshAdd(cylinder(12), transform.translate(c.x, -1.7, c.z).scale(c.w, 0.01, c.w), material(0.3, 0.3, 0.38));
-  //   }
-  // }
-
-  souls.push(soul);
-};
-
-export const updateModels = () => {
-  for (const model of allModels) {
-    if (model._update) {
-      model.$matrix = model._update(model);
+  if (DEBUG_FLAG0) {
+    for (const c of circles) {
+      meshAdd(cylinder(12), transform.translate(c.x, -1.7, c.z).scale(c.w, 0.01, c.w), material(0.3, 0.3, 0.38));
     }
   }
 
-  for (const lever of levers) {
-    lever._update();
-  }
-
-  for (const soul of souls) {
-    soul._update();
-  }
+  souls.push(soul);
 };
