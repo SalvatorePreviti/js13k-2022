@@ -1,4 +1,5 @@
-import { allModels, type Mesh } from "./scene";
+import type { Model } from "./scene";
+import { allModels } from "./scene";
 import { identity } from "../math";
 import { mainMenuVisible } from "../page";
 import { playerModel, playerLegsModels } from "./objects";
@@ -9,39 +10,33 @@ import { leverModels, soulCollisionModel, soulModel } from "./level";
 export const renderModels = (
   worldMatrixLoc: WebGLUniformLocation,
   renderPlayer: 0 | 1 | boolean,
-  collisionModelIdUniformLocation?: WebGLUniformLocation,
+  isCollider?: 0 | 1,
 ) => {
-  const drawMesh = ($mesh: Mesh) =>
-    gl.drawElements(gl.TRIANGLES, $mesh.$vertexCount, gl.UNSIGNED_SHORT, $mesh.$vertexOffset * 2);
+  const drawMesh = (model: Model) =>
+    gl.drawElements(gl.TRIANGLES, model.$vertexCount!, gl.UNSIGNED_SHORT, model.$vertexOffset! * 2);
 
   if (mainMenuVisible) {
     gl.uniformMatrix4fv(worldMatrixLoc, false, identity.rotate(0, Math.sin(absoluteTime) * 40 - 70).toFloat32Array());
-    drawMesh(playerModel.$mesh!);
-    playerLegsModels.map((legModel) => legModel.$mesh!).map(drawMesh);
+    drawMesh(playerModel);
+    playerLegsModels.map(drawMesh);
   } else {
     for (const model of allModels) {
-      const { $modelId, $mesh } = model;
       if (!renderPlayer && (model === playerModel || model === playerLegsModels[0] || model === playerLegsModels[1])) {
         continue;
       }
-      if ($mesh) {
-        if (collisionModelIdUniformLocation) {
-          gl.uniform1f(collisionModelIdUniformLocation, $modelId / 255);
-        }
-        gl.uniformMatrix4fv(worldMatrixLoc, false, model.$matrix.toFloat32Array());
-        drawMesh($mesh);
-      }
+      gl.uniformMatrix4fv(worldMatrixLoc, false, model.$matrix.toFloat32Array());
+      drawMesh(model);
     }
 
     for (const lever of levers) {
       gl.uniformMatrix4fv(worldMatrixLoc, false, lever.$matrix!.toFloat32Array());
-      drawMesh(leverModels[lever.$lerpValue > 0.5 ? 1 : 0]!.$mesh!);
+      drawMesh(leverModels[lever.$lerpValue > 0.5 ? 1 : 0]!);
     }
 
     // TODO: render simplified soul for collision with a cylinder
     for (const soul of souls) {
       gl.uniformMatrix4fv(worldMatrixLoc, false, soul.$matrix!.toFloat32Array());
-      drawMesh((!collisionModelIdUniformLocation ? soulCollisionModel : soulModel).$mesh!);
+      drawMesh(isCollider ? soulCollisionModel : soulModel);
     }
   }
 };

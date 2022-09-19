@@ -5,4 +5,4 @@ in vec4 aPosition;
 uniform mat4 viewMatrix;
 uniform mat4 worldMatrix;
 
-void main() { gl_Position = viewMatrix * (worldMatrix * aPosition); }
+void main() { gl_Position = viewMatrix * (worldMatrix * vec4(aPosition.xyz, 1)); }

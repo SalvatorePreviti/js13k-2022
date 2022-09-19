@@ -15,7 +15,7 @@ import main_fsSource, {
   constDef_CSM_TEXTURE_SIZE as CSM_TEXTURE_SIZE,
   constDef_CSM_PLANE_DISTANCE as CSM_PLANE_DISTANCE,
 } from "./shaders/main-fragment.frag";
-import collider_fsSource, { uniformName_modelId } from "./shaders/collider-fragment.frag";
+import collider_fsSource from "./shaders/collider-fragment.frag";
 import void_fsSource from "./shaders/void-fragment.frag";
 import sky_vsSource from "./shaders/sky-vertex.vert";
 import sky_fsSource, { uniformName_iResolution } from "./shaders/sky-fragment.frag";
@@ -633,7 +633,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
           .translateSelf(-player_position_final.x, -player_position_final.y, 0.3 - player_position_final.z)
           .toFloat32Array(),
       );
-      renderModels(collisionShader(uniformName_worldMatrix), 0, collisionShader(uniformName_modelId));
+      renderModels(collisionShader(uniformName_worldMatrix), 0, 1);
 
       // second collision render
 
@@ -647,7 +647,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
           .translate(-player_position_final.x, -player_position_final.y, -player_position_final.z - 0.3)
           .toFloat32Array(),
       );
-      renderModels(collisionShader(uniformName_worldMatrix), 0, collisionShader(uniformName_modelId));
+      renderModels(collisionShader(uniformName_worldMatrix), 0, 1);
       gl.colorMask(true, true, true, true);
 
       // Special handling for the second boat (lever 7) - the boat must be on the side of the map the player is

@@ -27,6 +27,7 @@ uniform highp sampler2D groundTexture;
 out vec4 O;
 
 void main() {
+  vec4 fragPosVec4 = vec4(FragPos.xyz, 1);
   vec3 normal = normalize(VNormal.xyz);
 
   vec3 tex = Color.w *
@@ -40,10 +41,10 @@ void main() {
 
   float lambert = dot(normal, lightDir);
   float shadow = 1.;
-  float depthValue = abs((viewMatrix * FragPos).z);
+  float depthValue = abs((viewMatrix * fragPosVec4).z);
 
   // Gets the fragment position in light space
-  vec4 csmCoords = (depthValue < CSM_PLANE_DISTANCE ? csm_matrix0 : csm_matrix1) * FragPos;
+  vec4 csmCoords = (depthValue < CSM_PLANE_DISTANCE ? csm_matrix0 : csm_matrix1) * fragPosVec4;
 
   // perform perspective divide and transform to [0,1] range
   csmCoords = (csmCoords / csmCoords.w) * .5 + .5;

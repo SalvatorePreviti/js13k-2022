@@ -16,7 +16,8 @@ uniform mat4 worldMatrix;
 void main() {
   Color = aColor;
   UntransformedFragPos = aPosition;
-  FragPos = worldMatrix * aPosition;
+  FragPos = worldMatrix * vec4(aPosition.xyz, 1);
   gl_Position = projectionMatrix * (viewMatrix * FragPos);
+  FragPos.w = aPosition.w;
   VNormal = (worldMatrix * vec4(aNormal, 0));
 }

@@ -15,7 +15,6 @@ export default {
   FragPos: "m",
   UntransformedFragPos: "n",
   VNormal: "o",
-  modelId: "j",
   groundTexture: "q",
   iResolution: "j",
 };

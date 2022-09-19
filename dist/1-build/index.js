@@ -300,87 +300,25 @@ const boatPolygons = csg_polygons(csg_subtract(polygons_transform(cylinder(20, 1
 
 const bigArc = csg_polygons(csg_subtract(polygons_transform(cylinder(GQuad), identity.translate(0, -8).scale(6, 15, 2.2)), polygons_transform(cylinder(GQuad), identity.translate(0, -14.1).scale(4, 13, 4)), polygons_transform(cylinder(20, 1), identity.translate(0, -1).rotate(90, 0, 90).scale3d(4))));
 
-let _meshFirstIndex = 0;
-
 let currentEditModel;
-
-let _polygon;
 
 const allModels = [];
 
-const _triangleIndices = [];
-
-const _vertexPositions = [];
-
-const _vertexNormals = [];
-
-const _vertexColors = [];
-
-const _pendingPolygonsStack = [ [] ];
-
-const _vertexMap = /* @__PURE__ */ new Map;
-
-const _vertexInts = new Int32Array(7);
-
-const getVertex = i => {
-    let {x, y, z} = _polygon[i];
-    _vertexFloats[0] = x;
-    _vertexFloats[1] = y;
-    _vertexFloats[2] = z;
-    const key = "" + (_polygon.$smooth ? _vertexIntsSmooth : _vertexInts);
-    let index2 = _vertexMap.get(key);
-    if (void 0 !== index2) {
-        x = 3 * index2;
-        _vertexNormals[x] = (_vertexNormals[x++] + _vertexInts[4]) / 2;
-        _vertexNormals[x] = (_vertexNormals[x++] + _vertexInts[5]) / 2;
-        _vertexNormals[x] = (_vertexNormals[x] + _vertexInts[6]) / 2;
-    } else {
-        _vertexMap.set(key, index2 = _vertexMap.size);
-        _vertexPositions.push(x, y, z);
-        _vertexNormals.push(_vertexInts[4], _vertexInts[5], _vertexInts[6]);
-        _vertexColors.push(_vertexInts[3]);
-    }
-    return index2;
-};
-
-const meshAdd = (polygons, transform = identity, color) => _pendingPolygonsStack.at(-1).push(...polygons_transform(polygons, transform, color));
+const meshAdd = (polygons, transform = identity, color) => currentEditModel.$polygons.push(...polygons_transform(polygons, transform, color));
 
 const newModel = fn => {
     const previousModel = currentEditModel;
     const model = {
         $matrix: identity,
         $modelId: allModels.length,
-        $attachPlayer: 1
+        $attachPlayer: 1,
+        $polygons: []
     };
-    currentEditModel = model;
-    allModels.push(model);
-    _pendingPolygonsStack.push([]);
-    const modelMesh = fn(model) || (() => {
-        const pendingPolygons = _pendingPolygonsStack.at(-1);
-        for (_polygon of pendingPolygons) {
-            const {x, y, z} = plane_fromPolygon(_polygon);
-            _vertexInts[3] = 0 | _polygon.$color;
-            _vertexInts[4] = 32767 * x;
-            _vertexInts[5] = 32767 * y;
-            _vertexInts[6] = 32767 * z;
-            for (let i = 2, a = getVertex(0), b = getVertex(1); _polygon.length > i; ++i) _triangleIndices.push(a, b, b = getVertex(i));
-        }
-        pendingPolygons.length = 0;
-        const $vertexOffset = _meshFirstIndex;
-        return {
-            $vertexOffset,
-            $vertexCount: (_meshFirstIndex = _triangleIndices.length) - $vertexOffset
-        };
-    })();
-    model.$mesh = modelMesh;
-    _pendingPolygonsStack.pop();
+    allModels.push(currentEditModel = model);
+    fn(model);
     currentEditModel = previousModel;
     return model;
 };
-
-const _vertexIntsSmooth = new Int32Array(_vertexInts.buffer, 0, 4);
-
-const _vertexFloats = new Float32Array(_vertexInts.buffer);
 
 const camera_position = {
     x: -11,
@@ -1136,28 +1074,24 @@ const gl = hC.getContext("webgl2");
 
 for (const s in gl) gl[s[0] + [ ...s ].reduce(((p, c, i) => (p * i + c.charCodeAt(0)) % 434), 0).toString(36)] = gl[s];
 
-const renderModels = (worldMatrixLoc, renderPlayer, collisionModelIdUniformLocation) => {
-    const drawMesh = $mesh => gl["d97"](4, $mesh.$vertexCount, 5123, 2 * $mesh.$vertexOffset);
+const renderModels = (worldMatrixLoc, renderPlayer, isCollider) => {
+    const drawMesh = model => gl["d97"](4, model.$vertexCount, 5123, 2 * model.$vertexOffset);
     if (mainMenuVisible) {
         gl["uae"](worldMatrixLoc, !1, identity.rotate(0, /* @__PURE__ */ 40 * Math.sin(absoluteTime) - 70).toFloat32Array());
-        drawMesh(playerModel.$mesh);
-        playerLegsModels.map((legModel => legModel.$mesh)).map(drawMesh);
+        drawMesh(playerModel);
+        playerLegsModels.map(drawMesh);
     } else {
-        for (const model of allModels) {
-            const {$modelId, $mesh} = model;
-            if ((renderPlayer || model !== playerModel && model !== playerLegsModels[0] && model !== playerLegsModels[1]) && $mesh) {
-                collisionModelIdUniformLocation && gl["ube"](collisionModelIdUniformLocation, $modelId / 255);
-                gl["uae"](worldMatrixLoc, !1, model.$matrix.toFloat32Array());
-                drawMesh($mesh);
-            }
+        for (const model of allModels) if (renderPlayer || model !== playerModel && model !== playerLegsModels[0] && model !== playerLegsModels[1]) {
+            gl["uae"](worldMatrixLoc, !1, model.$matrix.toFloat32Array());
+            drawMesh(model);
         }
         for (const lever of levers) {
             gl["uae"](worldMatrixLoc, !1, lever.$matrix.toFloat32Array());
-            drawMesh(leverModels[lever.$lerpValue > .5 ? 1 : 0].$mesh);
+            drawMesh(leverModels[lever.$lerpValue > .5 ? 1 : 0]);
         }
         for (const soul of souls) {
             gl["uae"](worldMatrixLoc, !1, soul.$matrix.toFloat32Array());
-            drawMesh((collisionModelIdUniformLocation ? soulModel : soulCollisionModel).$mesh);
+            drawMesh(isCollider ? soulCollisionModel : soulModel);
         }
     }
 };
@@ -1423,12 +1357,12 @@ const startMainLoop = groundTextureImage => {
             gl["cbf"](!0, !1, !0, !1);
             gl["c4s"](16640);
             gl["uae"](collisionShader("b"), !1, identity.rotate(0, 180).invertSelf().translateSelf(-player_position_final.x, -player_position_final.y, .3 - player_position_final.z).toFloat32Array());
-            renderModels(collisionShader("c"), 0, collisionShader("j"));
+            renderModels(collisionShader("c"), 0, 1);
             gl["cbf"](!1, !0, !1, !1);
             gl["c4s"](16640);
             gl["cbf"](!1, !0, !0, !1);
             gl["uae"](collisionShader("b"), !1, identity.translate(-player_position_final.x, -player_position_final.y, -player_position_final.z - .3).toFloat32Array());
-            renderModels(collisionShader("c"), 0, collisionShader("j"));
+            renderModels(collisionShader("c"), 0, 1);
             gl["cbf"](!0, !0, !0, !0);
             1 === currentModelId && (levers[9].$value = -15 > player_position_final.x && 0 > player_position_final.z ? 1 : 0);
         }
@@ -1453,11 +1387,11 @@ const startMainLoop = groundTextureImage => {
         gl["d97"](4, 3, 5123, 0);
     };
     const collision_buffer = new Uint8Array(65536);
-    const mainVertexShader = loadShader("#version 300 es\nlayout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 a,b,c;void main(){l=d,n=f,m=c*f,gl_Position=a*b*m,o=c*vec4(e,0);}");
-    const csmShader = initShaderProgram(loadShader("#version 300 es\nin vec4 f;uniform mat4 b,c;void main(){gl_Position=b*c*f;}"), "#version 300 es\nvoid main(){}");
+    const mainVertexShader = loadShader("#version 300 es\nlayout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 a,b,c;void main(){l=d,n=f,m=c*vec4(f.xyz,1),gl_Position=a*b*m,m.w=f.w,o=c*vec4(e,0);}");
+    const csmShader = initShaderProgram(loadShader("#version 300 es\nin vec4 f;uniform mat4 b,c;void main(){gl_Position=b*c*vec4(f.xyz,1);}"), "#version 300 es\nvoid main(){}");
     const skyShader = initShaderProgram(loadShader("#version 300 es\nin vec4 f;void main(){gl_Position=vec4(f.xy,1,1);}"), "#version 300 es\nprecision highp float;uniform vec3 j,k;uniform mat4 b;uniform highp sampler2D q;out vec4 O;void main(){vec2 t=gl_FragCoord.xy/j.xy*2.-1.;vec3 e=(normalize(b*vec4(t.x*-(j.x/j.y),-t.y,1.73205,0.))).xyz;float i=(-32.-k.y)/e.y,o=1.-clamp(abs(i/9999.),0.,1.);if(O=vec4(0,0,0,1),o>.01){if(i>0.){float o=cos(j.z/30.),i=sin(j.z/30.);e.xz*=mat2(o,i,-i,o);vec3 t=abs(e);O.xyz=vec3(dot(vec2(texture(q,e.xy).z,texture(q,e.yz*2.).z),t.zx)*t.y);}else e=k+e*i,O.x=(o*=.9-texture(q,e.xz/150.+vec2(sin(e.z/35.+j.z),cos(e.x/25.+j.z))/80.).y),O.y=o*o*o;}}");
-    const collisionShader = initShaderProgram(mainVertexShader, "#version 300 es\nprecision highp float;in vec4 o,m;uniform mat4 b;uniform float j;out vec4 O;void main(){vec4 a=b*m;float e=j>0.?1.-min(abs(a.z/a.w),1.):0.;O=vec4(vec2(e*(gl_FragCoord.y>31.?1.:abs(o.y))),e>0.?j:0.,1);}");
-    const mainShader = initShaderProgram(mainVertexShader, "#version 300 es\nprecision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform highp sampler2DShadow g,h;uniform highp sampler2D q;out vec4 O;void main(){vec3 e=normalize(o.xyz),c=l.w*(texture(q,n.yz*.035)*e.x+texture(q,n.xz*.035)*e.y+texture(q,n.xy*.035)*e.z).xyz;e=normalize(e+c*.5);float x=dot(e,vec3(-.656059,.666369,-.35431468)),t=1.,s=abs((b*m).z);vec4 r=(s<55.?i:j)*m;if(r=r/r.w*.5+.5,r.z<1.){t=0.;for(float e=-1.;e<=1.;++e)for(float a=-1.;a<=1.;++a){vec3 x=vec3(r.xy+vec2(e,a)/2048.,r.z-.00017439);t+=s<55.?texture(g,x):texture(h,x);}t/=9.;}vec3 a=l.xyz*(1.-c.x);O=vec4(vec3(.09,.05,.1)*a+a*(max(0.,x)*.5+a*x*x*vec3(.5,.45,.3))*(t*.7+.3)+a*max(dot(e,vec3(.09901475,-.99014753,-.09901475)),0.)*max(0.,2.-m.y)*vec3(.04285714,.00714286,0)+vec3(.6,.6,.5)*pow(max(0.,dot(normalize(m.xyz-k),reflect(vec3(-.656059,.666369,-.35431468),e))),35.)*t,1);}");
+    const collisionShader = initShaderProgram(mainVertexShader, "#version 300 es\nprecision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(m.xyz,1);float r=m.w>0.?1.-min(abs(a.z/a.w),1.):0.;O=vec4(vec2(r*(gl_FragCoord.y>31.?1.:abs(o.y))),r>0.?m.w/255.:0.,1);}");
+    const mainShader = initShaderProgram(mainVertexShader, "#version 300 es\nprecision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform highp sampler2DShadow g,h;uniform highp sampler2D q;out vec4 O;void main(){vec4 c=vec4(m.xyz,1);vec3 e=normalize(o.xyz),s=l.w*(texture(q,n.yz*.035)*e.x+texture(q,n.xz*.035)*e.y+texture(q,n.xy*.035)*e.z).xyz;e=normalize(e+s*.5);float x=dot(e,vec3(-.656059,.666369,-.35431468)),t=1.,v=abs((b*c).z);vec4 r=(v<55.?i:j)*c;if(r=r/r.w*.5+.5,r.z<1.){t=0.;for(float e=-1.;e<=1.;++e)for(float a=-1.;a<=1.;++a){vec3 x=vec3(r.xy+vec2(e,a)/2048.,r.z-.00017439);t+=v<55.?texture(g,x):texture(h,x);}t/=9.;}vec3 a=l.xyz*(1.-s.x);O=vec4(vec3(.09,.05,.1)*a+a*(max(0.,x)*.5+a*x*x*vec3(.5,.45,.3))*(t*.7+.3)+a*max(dot(e,vec3(.09901475,-.99014753,-.09901475)),0.)*max(0.,2.-m.y)*vec3(.04285714,.00714286,0)+vec3(.6,.6,.5)*pow(max(0.,dot(normalize(m.xyz-k),reflect(vec3(-.656059,.666369,-.35431468),e))),35.)*t,1);}");
     skyShader();
     gl["ubh"](skyShader("q"), 3);
     collisionShader();
@@ -1499,11 +1433,57 @@ const startMainLoop = groundTextureImage => {
         };
     }));
     (() => {
+        let meshFirstIndex = 0;
+        let model;
+        let polygon;
+        const _triangleIndices = [];
+        const _vertexPositions = [];
+        const _vertexColors = [];
+        const _vertexNormals = [];
+        const _vertexMap = /* @__PURE__ */ new Map;
+        const _vertexInts = new Int32Array(8);
+        const getVertex = i => {
+            let {x, y, z} = polygon[i];
+            _vertexFloats[0] = x;
+            _vertexFloats[1] = y;
+            _vertexFloats[2] = z;
+            const key = "" + (polygon.$smooth ? _vertexIntsSmooth : _vertexInts);
+            let index2 = _vertexMap.get(key);
+            if (void 0 !== index2) {
+                x = 3 * index2;
+                _vertexNormals[x] = (_vertexNormals[x++] + _vertexInts[5]) / 2;
+                _vertexNormals[x] = (_vertexNormals[x++] + _vertexInts[6]) / 2;
+                _vertexNormals[x] = (_vertexNormals[x] + _vertexInts[7]) / 2;
+            } else {
+                _vertexMap.set(key, index2 = _vertexMap.size);
+                _vertexPositions.push(x, y, z, _vertexFloats[3]);
+                _vertexColors.push(_vertexInts[4]);
+                _vertexNormals.push(_vertexInts[5], _vertexInts[6], _vertexInts[7]);
+            }
+            return index2;
+        };
+        const _vertexIntsSmooth = new Int32Array(_vertexInts.buffer, 0, 5);
+        const _vertexFloats = new Float32Array(_vertexInts.buffer);
+        for (model of allModels) {
+            _vertexFloats[3] = model.$modelId;
+            for (polygon of model.$polygons) {
+                const {x, y, z} = plane_fromPolygon(polygon);
+                _vertexInts[4] = 0 | polygon.$color;
+                _vertexInts[5] = 32767 * x;
+                _vertexInts[6] = 32767 * y;
+                _vertexInts[7] = 32767 * z;
+                for (let i = 2, a = getVertex(0), b = getVertex(1); polygon.length > i; ++i) _triangleIndices.push(a, b, b = getVertex(i));
+            }
+            model.$polygons = null;
+            const $vertexOffset = meshFirstIndex;
+            model.$vertexOffset = meshFirstIndex;
+            model.$vertexCount = (meshFirstIndex = _triangleIndices.length) - $vertexOffset;
+        }
         gl["b11"](34963, gl["c1b"]());
         gl["b2v"](34963, new Uint16Array(_triangleIndices), 35044);
         gl["b11"](34962, gl["c1b"]());
         gl["b2v"](34962, new Float32Array(_vertexPositions), 35044);
-        gl["v7s"](0, 3, 5126, !1, 0, 0);
+        gl["v7s"](0, 4, 5126, !1, 0, 0);
         gl["b11"](34962, gl["c1b"]());
         gl["b2v"](34962, new Int16Array(_vertexNormals), 35044);
         gl["v7s"](1, 3, 5122, !0, 0, 0);
