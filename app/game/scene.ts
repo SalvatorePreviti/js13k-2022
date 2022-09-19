@@ -63,7 +63,7 @@ export const meshAdd = (
   color?: number | undefined,
 ) => _pendingPolygonsStack.at(-1)!.push(...polygons_transform(polygons, transform, color));
 
-export const meshEnd = (): Mesh => {
+const meshEnd = (): Mesh => {
   const pendingPolygons = _pendingPolygonsStack.at(-1)!;
   for (_polygon of pendingPolygons) {
     const { x, y, z } = plane_fromPolygon(_polygon);
@@ -87,7 +87,7 @@ export const newModel = (fn: (model: Model) => void | Mesh | undefined) => {
   const previousModel = currentEditModel;
   const model: Model = {
     $matrix: identity,
-    $modelId: allModels.length + 1,
+    $modelId: allModels.length,
     $attachPlayer: 1,
   };
   currentEditModel = model;

@@ -1,8 +1,10 @@
 import { abs, clamp01, integers_map, lerpneg, max, min, identity } from "../math";
-import { material, cylinder, polygons_transform, polygon_regular } from "../geometry/geometry";
+import type { Polygon } from "../geometry/geometry";
+import { material, cylinder, polygons_transform, polygon_regular, sphere } from "../geometry/geometry";
 import { csg_subtract, csg_polygons, csg_union } from "../geometry/csg";
 import { GQuad, GHorn, boatPolygons, bigArc } from "../geometry/solids";
-import { meshAdd, meshEnd, newModel } from "./scene";
+import type { Model } from "./scene";
+import { meshAdd, newModel } from "./scene";
 import {
   secondBoatLerp,
   gameTime,
@@ -12,10 +14,22 @@ import {
   rotatingPlatform2Rotation,
   firstBoatLerp,
 } from "./world-state";
-import { getBoatAnimationMatrix, newLever, newSoul } from "./objects";
+import { getBoatAnimationMatrix, initPlayerModel, newLever, newSoul } from "./objects";
+
+export let leverModels: Model[];
+
+export let soulModel: Model;
+
+export let soulCollisionModel: Model;
 
 export const buildWorld = () => {
   let tmpMatrix: DOMMatrixReadOnly;
+
+  // Initialize the full screen triangle for the sky. Must be the first model.
+
+  newModel(() => {
+    meshAdd([GQuad.slice(1)], identity.translate(-2).scale3d(3).rotate(90, 0));
+  });
 
   newModel(() => {
     // ========= FIRST BOAT (modelId:2) ========= //
@@ -28,10 +42,13 @@ export const buildWorld = () => {
 
     // ========= entranceBarsMesh ========= //
 
-    integers_map(7, (i) =>
-      meshAdd(cylinder(6, 1), identity.translate(4 * (i / 6 - 0.5), 3).scale(0.2, 3, 0.2), material(0.3, 0.3, 0.38)),
-    );
-    const entranceBarsMesh = meshEnd();
+    const entranceBarsPolygons = integers_map(7, (i) =>
+      polygons_transform(
+        cylinder(6, 1),
+        identity.translate(4 * (i / 6 - 0.5), 3).scale(0.2, 3, 0.2),
+        material(0.3, 0.3, 0.38),
+      ),
+    ).flat();
 
     // ========= WORLD! ========= //
 
@@ -73,7 +90,7 @@ export const buildWorld = () => {
       // in and out gate bars
       newModel((model) => {
         model._update = () => identity.translate(0, -levers[i + 1]!.$lerpValue * 4.7, z);
-        return entranceBarsMesh;
+        meshAdd(entranceBarsPolygons);
       });
     });
 
@@ -524,7 +541,7 @@ export const buildWorld = () => {
 
     newModel((model) => {
       model._update = () => identity.translate(-99.7, -levers[6]!.$lerpValue * 5.3 - 2, 63.5);
-      return entranceBarsMesh;
+      meshAdd(entranceBarsPolygons);
     });
 
     // hex columns
@@ -1050,7 +1067,7 @@ export const buildWorld = () => {
 
     newModel((model) => {
       model._update = () => identity.translate(-100, 0.6 - levers[12]!.$lerpValue * 6, 96.5).scale(0.88, 1.2);
-      return entranceBarsMesh;
+      meshAdd(entranceBarsPolygons);
     });
 
     // rotating platforms
@@ -1305,6 +1322,51 @@ export const buildWorld = () => {
 
     // SOUL 12 - soul after the pendulums
     newSoul(identity.translate(0, 19, 134), [0, 0, 3.5]);
+  });
+
+  // ------ End of game models ------
+
+  initPlayerModel();
+
+  leverModels = [material(1, 0.5, 0.2), material(0.7, 1, 0.2)].map((handleMaterial) => {
+    return newModel(() => {
+      meshAdd(cylinder(6, 1), identity.scale(0.13, 1.4, 0.13), material(0.3, 0.3, 0.5));
+      meshAdd(cylinder(8), identity.translate(0, 1).scale(0.21, 0.3, 0.21), handleMaterial);
+      meshAdd(cylinder(3), identity.translate(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3), material(0.2, 0.2, 0.2));
+    });
+  });
+
+  soulCollisionModel = newModel(() => {
+    meshAdd(cylinder(6), identity.scale(0.85, 1, 0.85), material(1, 0.3, 0.5));
+  });
+
+  soulModel = newModel(() => {
+    const GHOST_SLICES = 40;
+    const GHOST_STACKS = 30;
+
+    // body
+    meshAdd(
+      sphere(GHOST_SLICES, GHOST_STACKS, (a: number, b: number, polygon: Polygon) => {
+        const bm = b / GHOST_STACKS;
+        const theta = a * (Math.PI * (2 / GHOST_SLICES));
+        const phixz = (bm ** 0.6 * Math.PI) / 2;
+        const osc = (bm * bm * Math.sin(a * Math.PI * (14 / GHOST_SLICES))) / 4;
+        if (b === GHOST_STACKS - 1) {
+          polygon.$smooth = 0;
+          return { x: 0, y: -0.5, z: 0 };
+        }
+        return {
+          x: Math.cos(theta) * Math.sin(phixz),
+          y: Math.cos(bm * Math.PI) - bm - osc,
+          z: Math.sin(theta) * Math.sin(phixz) + Math.sin(osc * Math.PI * 2) / 4,
+        };
+      }),
+      identity.scale3d(0.7),
+      material(1, 1, 1),
+    );
+
+    // eyes
+    [-1, 1].map((x) => meshAdd(sphere(15), identity.translate(x * 0.16, 0.4, -0.36).scale3d(0.09)));
   });
 
   if (DEBUG) {

@@ -1,9 +1,8 @@
 import { abs, angle_lerp_degrees, DEG_TO_RAD, identity, max, min, vec3_distance } from "../math";
-import type { Polygon } from "../geometry/geometry";
 import { cylinder, material, polygons_transform, sphere } from "../geometry/geometry";
 import { csg_polygons, csg_subtract } from "../geometry/csg";
 import { GQuad, GHorn } from "../geometry/solids";
-import { allModels, currentEditModel, meshAdd, meshEnd, newModel, type Model } from "./scene";
+import { allModels, currentEditModel, meshAdd, newModel, type Model } from "./scene";
 import {
   levers,
   souls,
@@ -22,22 +21,6 @@ const LEVER_SENSITIVITY_RADIUS = 2.9;
 const SOUL_SENSITIVITY_RADIUS = 1.5;
 
 export const MODEL_ID_FIRST_BOAT = 2;
-
-// ========= Sky mesh ========= //
-
-// Initialize the full screen triangle for the sky. Must be the first mesh!
-
-meshAdd([GQuad.slice(1)], identity.translate(-2).scale3d(3).rotate(90, 0));
-meshEnd();
-
-// ========= Lever mesh ========= //
-
-export const leverMeshes = [material(1, 0.5, 0.2), material(0.7, 1, 0.2)].map((handleMaterial) => {
-  meshAdd(cylinder(6, 1), identity.scale(0.13, 1.4, 0.13), material(0.3, 0.3, 0.5));
-  meshAdd(cylinder(8), identity.translate(0, 1).scale(0.21, 0.3, 0.21), handleMaterial);
-  meshAdd(cylinder(3), identity.translate(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3), material(0.2, 0.2, 0.2));
-  return meshEnd();
-});
 
 // ========= Player ========= //
 
@@ -97,37 +80,6 @@ export const getBoatAnimationMatrix = (x: number, y: number, z: number) =>
     .translate(x + Math.sin(gameTime + 2) / 5, y + Math.sin(gameTime * 0.8) / 3, z)
     .rotateSelf(Math.sin(gameTime) * 2, Math.sin(gameTime * 0.7), Math.sin(gameTime * 0.9));
 
-// ========= Soul mesh ========= //
-
-// meshAdd(cylinder(6), identity, material(1, 0.3, 0.5));
-
-const GHOST_SLICES = 40;
-const GHOST_STACKS = 30;
-
-meshAdd(
-  sphere(GHOST_SLICES, GHOST_STACKS, (a: number, b: number, polygon: Polygon) => {
-    const bm = b / GHOST_STACKS;
-    const theta = a * (Math.PI * (2 / GHOST_SLICES));
-    const phixz = (bm ** 0.6 * Math.PI) / 2;
-    const osc = (bm * bm * Math.sin(a * Math.PI * (14 / GHOST_SLICES))) / 4;
-    if (b === GHOST_STACKS - 1) {
-      polygon.$smooth = 0;
-      return { x: 0, y: -0.5, z: 0 };
-    }
-    return {
-      x: Math.cos(theta) * Math.sin(phixz),
-      y: Math.cos(bm * Math.PI) - bm - osc,
-      z: Math.sin(theta) * Math.sin(phixz) + Math.sin(osc * Math.PI * 2) / 4,
-    };
-  }),
-  identity.scale3d(0.7),
-  material(1, 1, 1),
-);
-
-[-1, 1].map((x) => meshAdd(sphere(15), identity.translate(x * 0.16, 0.4, -0.36).scale3d(0.09)));
-
-export const soulMesh = meshEnd();
-
 export type Circle = [number, number, number];
 
 export const newLever = (transform: DOMMatrixReadOnly): void => {
@@ -141,7 +93,7 @@ export const newLever = (transform: DOMMatrixReadOnly): void => {
     _update: () => {
       const { $value, $lerpValue, $lerpValue2 } = lever;
       const matrix = $parent.$matrix.multiply(transform);
-      lever.$matrix = matrix;
+      lever.$locMatrix = matrix;
 
       if (
         vec3_distance(matrix.transformPoint(), player_position_final) < LEVER_SENSITIVITY_RADIUS &&
@@ -155,7 +107,7 @@ export const newLever = (transform: DOMMatrixReadOnly): void => {
 
       lever.$lerpValue = lerpDamp($lerpValue, $value, 4);
       lever.$lerpValue2 = lerpDamp($lerpValue2, $value, 1);
-      lever.$stickMatrix = matrix.rotate(lever.$lerpValue * 60 - 30, 0).translateSelf(0, 1);
+      lever.$matrix = matrix.rotate(lever.$lerpValue * 60 - 30, 0).translateSelf(0, 1);
     },
   };
   levers.push(lever);
@@ -253,7 +205,7 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]
       }
 
       if (soul.$value) {
-        soul.$matrix = allModels[MODEL_ID_FIRST_BOAT - 1]!.$matrix.translate(
+        soul.$matrix = allModels[MODEL_ID_FIRST_BOAT]!.$matrix.translate(
           (index % 4) * 1.2 - 1.7 + Math.sin(gameTime + index) / 7,
           -2,
           -5.5 + ((index / 4) | 0) * 1.7 + abs((index % 4) - 2) + Math.cos(gameTime / 1.5 + index) / 6,

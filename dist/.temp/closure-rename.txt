@@ -5,14 +5,14 @@ $flipped:v
 $front:o
 $lerpValue:h
 $lerpValue2:i
+$locMatrix:H
 $matrix:l
-$mesh:D
+$mesh:C
 $modelId:G
 $parent:s
 $polygon:A
-$polygons:C
+$polygons:D
 $smooth:B
-$stickMatrix:H
 $value:j
 $vertexCount:I
 $vertexOffset:J
