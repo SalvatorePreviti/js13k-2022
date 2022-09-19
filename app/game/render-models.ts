@@ -35,7 +35,6 @@ export const renderModels = (
       drawMesh(leverModels[lever.$lerpValue > 0.5 ? 1 : 0]!);
     }
 
-    // TODO: render simplified soul for collision with a cylinder
     for (const soul of souls) {
       gl.uniformMatrix4fv(worldMatrixLoc, false, soul.$matrix!.toFloat32Array());
       drawMesh(isCollider ? soulCollisionModel : soulModel);

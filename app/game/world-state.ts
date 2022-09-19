@@ -59,8 +59,8 @@ export interface Lever {
   $lerpValue2: number;
   $parent: Model;
   _update: () => void;
-  $locMatrix?: DOMMatrixReadOnly;
   $matrix?: DOMMatrixReadOnly;
+  $locMatrix?: DOMMatrixReadOnly;
 }
 
 export interface Soul {
