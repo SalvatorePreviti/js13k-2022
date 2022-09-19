@@ -41,7 +41,7 @@ export const initTriangleBuffers = () => {
   };
 
   for (model of allModels) {
-    _vertexFloats[3] = model.$modelId;
+    _vertexFloats[3] = model.$kind ? model.$modelId : 1;
     for (polygon of model.$polygons!) {
       const { x, y, z } = plane_fromPolygon(polygon);
       _vertexInts[4] = polygon.$color! | 0;

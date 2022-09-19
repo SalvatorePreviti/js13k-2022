@@ -34,126 +34,126 @@ const $a = Math.PI / 180,
     g = (g * $a - c) % (2 * Math.PI);
     return (c + (2 * g % (2 * Math.PI) - g) * (0 > h ? 0 : 1 < h ? 1 : h)) / $a;
   },
-  gb = (c, g, h, l) => {
-    var m = g - c;
-    c += Math.sign(g - c) * ab(0, (0 > m ? -m : m) ** .9 - h) * l * 2;
-    return c + (g - c) * cb(l / 7);
+  gb = (c, g, h, m) => {
+    var k = g - c;
+    c += Math.sign(g - c) * ab(0, (0 > k ? -k : k) ** .9 - h) * m * 2;
+    return c + (g - c) * cb(m / 7);
   },
-  k = (c, g) => Array.from(Array(c), (h, l) => g(l)),
-  hb = (c, g, h, l) => [c, 0, 0, 0, 0, g, 0, 0, 0, 0, (l + h) / (h - l), -1, 0, 0, 2 * l * h / (h - l), 0],
-  ib = ({ x: c, y: g, z: h }, l) => c * l.x + g * l.y + h * l.z,
+  l = (c, g) => Array.from(Array(c), (h, m) => g(m)),
+  hb = (c, g, h, m) => [c, 0, 0, 0, 0, g, 0, 0, 0, 0, (m + h) / (h - m), -1, 0, 0, 2 * m * h / (h - m), 0],
+  ib = ({ x: c, y: g, z: h }, m) => c * m.x + g * m.y + h * m.z,
   jb = ({ x: c, y: g, z: h }) => {
-    var l = n;
-    return Math.hypot(c - l.x, g - l.y, h - l.z) || 0;
+    var m = n;
+    return Math.hypot(c - m.x, g - m.y, h - m.z) || 0;
   },
   nb = c => {
-    let g = 0, h = 0, l = 0, m, q = c.at(-1);
-    for (m of c) {
-      g += (q.y - m.y) * (q.z + m.z), h += (q.z - m.z) * (q.x + m.x), l += (q.x - m.x) * (q.y + m.y), q = m;
+    let g = 0, h = 0, m = 0, k, q = c.at(-1);
+    for (k of c) {
+      g += (q.y - k.y) * (q.z + k.z), h += (q.z - k.z) * (q.x + k.x), m += (q.x - k.x) * (q.y + k.y), q = k;
     }
-    return m = Math.hypot(g, h, l), g /= m, h /= m, l /= m, { x: g, y: h, z: l, w: g * q.x + h * q.y + l * q.z };
+    return k = Math.hypot(g, h, m), g /= k, h /= k, m /= k, { x: g, y: h, z: m, w: g * q.x + h * q.y + m * q.z };
   },
-  p = (c, g, h, l = 0) => 255 * l << 24 | 255 * h << 16 | 255 * g << 8 | 255 * c,
+  p = (c, g, h, m = 0) => 255 * m << 24 | 255 * h << 16 | 255 * g << 8 | 255 * c,
   ob = (c, g, h) => (c.C = h, c.v = g, c),
   pb = (c, g, h = c.v) =>
     ob(
-      c.map(l =>
+      c.map(m =>
         ((
-          { x: m, y: q, z: u },
+          { x: k, y: q, z: u },
           b,
-        ) => ({ x: m, y: q, z: u } = b.transformPoint({ x: m, y: q, z: u }), { x: m, y: q, z: u }))(l, g)
+        ) => ({ x: k, y: q, z: u } = b.transformPoint({ x: k, y: q, z: u }), { x: k, y: q, z: u }))(m, g)
       ),
       h,
       c.C,
     ),
-  r = (c, g, h) => c.map(l => pb(l, g, h)),
+  r = (c, g, h) => c.map(m => pb(m, g, h)),
   qb = (c, g = 0) =>
-    k(c, h => {
-      const l = Math.cos(2 * Math.PI * h / c);
-      return { x: Math.sin(2 * Math.PI * h / c), y: 0, z: .01 > (0 > l ? -l : l) ? l : 0 > l ? l - g : l + g };
+    l(c, h => {
+      const m = Math.cos(2 * Math.PI * h / c);
+      return { x: Math.sin(2 * Math.PI * h / c), y: 0, z: .01 > (0 > m ? -m : m) ? m : 0 > m ? m - g : m + g };
     }),
   rb = (c, g, h) =>
-    c.map((l, m, { length: q }) => ob([l, g[q - m - 1], g[q - (m + 1) % q - 1], c[(m + 1) % q]], c.v, h)),
-  v = (c, g, h = 0, l) => {
-    l = c.length ? c : qb(c, l);
-    c = pb(l, e.translate(0, 1).scale3d(0 < h ? h : 1));
-    h = pb(l, e.translate(0, -1).scale3d(0 > h ? -h : 1)).reverse();
+    c.map((m, k, { length: q }) => ob([m, g[q - k - 1], g[q - (k + 1) % q - 1], c[(k + 1) % q]], c.v, h)),
+  v = (c, g, h = 0, m) => {
+    m = c.length ? c : qb(c, m);
+    c = pb(m, e.translate(0, 1).scale3d(0 < h ? h : 1));
+    h = pb(m, e.translate(0, -1).scale3d(0 > h ? -h : 1)).reverse();
     return [...rb(h, c, g), h, c];
   },
   sb = (
     c,
     g = c,
     h = (
-      l,
       m,
-    ) => (m *= Math.PI / g,
-      { x: Math.cos(l *= 2 * Math.PI / c) * Math.sin(m), y: Math.cos(m), z: Math.sin(l) * Math.sin(m) }),
+      k,
+    ) => (k *= Math.PI / g,
+      { x: Math.cos(m *= 2 * Math.PI / c) * Math.sin(k), y: Math.cos(k), z: Math.sin(m) * Math.sin(k) }),
   ) => {
-    const l = [];
-    for (let m = 0; c > m; m++) {
+    const m = [];
+    for (let k = 0; c > k; k++) {
       for (let q = 0; g > q; q++) {
         const u = ob([], 0, 1);
-        l.push(u);
-        u.push(h(m, q, u));
-        q && u.push(h((m + 1) % c, q, u));
-        g - 1 > q && u.push(h((m + 1) % c, q + 1 % g, u));
-        u.push(h(m, q + 1 % g, u));
+        m.push(u);
+        u.push(h(k, q, u));
+        q && u.push(h((k + 1) % c, q, u));
+        g - 1 > q && u.push(h((k + 1) % c, q + 1 % g, u));
+        u.push(h(k, q + 1 % g, u));
       }
     }
-    return l;
+    return m;
   },
   tb = (c, g) => {
-    var h, l, m, q = g.B;
+    var h, m, k, q = g.B;
     for (var u = 0; q.length > u; ++u) {
-      if (-0.00008 > (m = ib(c, q[u]) - c.w) ? l = g : 8e-5 < m && (h = g), l && h) {
-        l = [];
+      if (-0.00008 > (k = ib(c, q[u]) - c.w) ? m = g : 8e-5 < k && (h = g), m && h) {
         m = [];
+        k = [];
         q = g.B;
         u = g.A;
         let b = q.at(-1), f = ib(c, b) - c.w;
         for (const w of q) {
           h = ib(c, w) - c.w,
-            8e-5 > f && m.push(b),
-            -0.00008 < f && l.push(b),
+            8e-5 > f && k.push(b),
+            -0.00008 < f && m.push(b),
             (8e-5 < f && -0.00008 > h || -0.00008 > f && 8e-5 < h)
             && (f /= h - f,
               b = { x: b.x + (b.x - w.x) * f, y: b.y + (b.y - w.y) * f, z: b.z + (b.z - w.z) * f },
-              l.push(b),
-              m.push(b)),
+              m.push(b),
+              k.push(b)),
             b = w,
             f = h;
         }
         return {
-          o: 2 < l.length && { B: ob(l, q.v, q.C), A: u, u: g },
-          m: 2 < m.length && { B: ob(m, q.v, q.C), A: u, u: g },
+          o: 2 < m.length && { B: ob(m, q.v, q.C), A: u, u: g },
+          m: 2 < k.length && { B: ob(k, q.v, q.C), A: u, u: g },
         };
       }
     }
-    return { o: h, m: l };
+    return { o: h, m };
   },
   vb = (c, g, h = nb(g.B)) => {
     if (c) {
-      const { o: l, m } = tb(c, g);
-      l || m || c.s.push(g);
-      l && (c.o = vb(c.o, l, h));
-      m && (c.m = vb(c.m, m, h));
+      const { o: m, m: k } = tb(c, g);
+      m || k || c.s.push(g);
+      m && (c.o = vb(c.o, m, h));
+      k && (c.m = vb(c.m, k, h));
     } else {
       c = { x: h.x, y: h.y, z: h.z, w: h.w, s: [g], o: 0, m: 0 };
     }
     return c;
   },
   wb = (c, g, h) => {
-    const l = [],
-      m = (q, u) => {
+    const m = [],
+      k = (q, u) => {
         let { o: b, m: f } = tb(q, u);
         b || f || (0 < h * ib(q, g) ? b = u : f = u);
-        b && (q.o ? m(q.o, b) : l.push(b));
-        f && q.m && m(q.m, f);
+        b && (q.o ? k(q.o, b) : m.push(b));
+        f && q.m && k(q.m, f);
       };
     for (const q of g.s) {
-      m(c, q);
+      k(c, q);
     }
-    return l;
+    return m;
   },
   xb = (c, g) => c && (g(c), xb(c.o, g), xb(c.m, g)),
   yb = c => c.length ? c.reduce((g, h) => vb(g, { B: h, A: 0, u: 0 }), 0) : c,
@@ -165,21 +165,21 @@ const $a = Math.PI / 180,
     g.y *= -1;
     g.z *= -1;
     g.w *= -1;
-    for (const l of g.s) {
-      l.A = !l.A;
+    for (const m of g.s) {
+      m.A = !m.A;
     }
   }),
     c),
   Ab = (...c) =>
     c.reduce((g, h) => {
-      const l = [];
+      const m = [];
       if (g = yb(g), h) {
         h = yb(h);
-        xb(g, m => m.s = wb(h, m, 1));
-        xb(h, m => l.push([m, wb(g, m, -1)]));
-        for (const [m, q] of l) {
+        xb(g, k => k.s = wb(h, k, 1));
+        xb(h, k => m.push([k, wb(g, k, -1)]));
+        for (const [k, q] of m) {
           for (const u of q) {
-            vb(g, u, m);
+            vb(g, u, k);
           }
         }
       }
@@ -189,29 +189,30 @@ const $a = Math.PI / 180,
   z = c => {
     const g = new Map(),
       h = new Map(),
-      l = m => {
-        if (m.u) {
-          const q = g.get(m.u);
-          q ? (h.delete(q), m = l(m.u)) : g.set(m.u, m);
+      m = k => {
+        if (k.u) {
+          const q = g.get(k.u);
+          q ? (h.delete(q), k = m(k.u)) : g.set(k.u, k);
         }
-        return m;
+        return k;
       };
-    return xb(c, m => {
-      for (const q of m.s) {
-        h.set(l(q), q.A);
+    return xb(c, k => {
+      for (const q of k.s) {
+        h.set(m(q), q.A);
       }
     }),
-      Array.from(h, ([{ B: m }, q]) => {
-        const u = m.map(({ x: b, y: f, z: w }) => ({ x: b, y: f, z: w }));
-        return ob(q ? u.reverse() : u, m.v, m.C);
+      Array.from(h, ([{ B: k }, q]) => {
+        const u = k.map(({ x: b, y: f, z: w }) => ({ x: b, y: f, z: w }));
+        return ob(q ? u.reverse() : u, k.v, k.C);
       });
   },
   B = [{ x: -1, z: 1 }, { x: 1, z: 1 }, { x: 1, z: -1 }, { x: -1, z: -1 }],
   Bb = [],
   E = (c, g = e, h) => Ka.s.push(...r(c, g, h)),
-  I = c => {
-    const g = Ka, h = { l: e, F: Bb.length, D: 1, s: [] };
-    return Bb.push(Ka = h), c(h), Ka = g, h;
+  I = (c, g = 1) => {
+    const h = Ka;
+    g = { l: e, F: Bb.length, D: g, s: [] };
+    return Bb.push(Ka = g), c(g), Ka = h, g;
   };
 var Cb = -11, Db = 17, Eb = -90, Jb = 0, Kb = 0;
 const Lb = [[
@@ -295,12 +296,12 @@ const Lb = [[
     }
   },
   Xb = () => {
-    let c = 0, g = 0, h = 0, l, m, q;
+    let c = 0, g = 0, h = 0, m, k, q;
     const u = () => {
       hC.width = innerWidth;
       hC.height = innerHeight;
       Sb.length = ha = ja = 0;
-      l = m = void 0;
+      m = k = void 0;
       document.hidden && Wb(!0);
     };
     b1.onclick = () => Wb();
@@ -345,7 +346,7 @@ const Lb = [[
     hC.ontouchstart = b => {
       if (!La) {
         for (const f of b.changedTouches) {
-          Ma && f.pageX > hC.clientWidth / 2 ? l || (l = f, c = Kb, g = Jb) : m = m || f;
+          Ma && f.pageX > hC.clientWidth / 2 ? m || (m = f, c = Kb, g = Jb) : k = k || f;
         }
         h = ka;
       }
@@ -353,10 +354,10 @@ const Lb = [[
     hC.ontouchmove = ({ changedTouches: b }) => {
       if (!La) {
         for (const { pageX: f, pageY: w, identifier: D } of b) {
-          l?.identifier === D && (Kb = c + (f - l.pageX) / 3, Jb = g + (w - l.pageY) / 3),
-            m?.identifier === D
-            && (ha = -(f - m.pageX) / 18,
-              ja = -(w - m.pageY) / 18,
+          m?.identifier === D && (Kb = c + (f - m.pageX) / 3, Jb = g + (w - m.pageY) / 3),
+            k?.identifier === D
+            && (ha = -(f - k.pageX) / 18,
+              ja = -(w - k.pageY) / 18,
               ha = .35 > (0 > ha ? -ha : ha) ? 0 : .8 * ha,
               ja = .35 > (0 > ja ? -ja : ja) ? 0 : .8 * ja);
         }
@@ -364,7 +365,7 @@ const Lb = [[
     };
     hC.ontouchend = b => {
       for (const f of b.changedTouches) {
-        f.identifier === l?.identifier && (l = void 0), f.identifier === m?.identifier && (m = void 0, ja = ha = 0);
+        f.identifier === m?.identifier && (m = void 0), f.identifier === k?.identifier && (k = void 0, ja = ha = 0);
       }
       b.preventDefault();
       b = ka - h;
@@ -396,28 +397,28 @@ const Lb = [[
   cc = c => {
     const g = Ka,
       h = S.length,
-      l = {
+      m = {
         j: 0,
         h: 0,
         i: 0,
         u: g,
         g() {
-          const m = l.j, q = l.h, u = l.i, b = g.l.multiply(c);
-          l.G = b;
+          const k = m.j, q = m.h, u = m.i, b = g.l.multiply(c);
+          m.G = b;
           2.9 > jb(b.transformPoint()) && Sb[5] && (.3 > q || .7 < q)
-            && (l.j = m ? 0 : 1, h && (Ha || (h4.innerHTML = "* click *", na = a + 1)), va = h, ac());
-          l.h = J(q, m, 4);
-          l.i = J(u, m, 1);
-          l.l = b.rotate(60 * l.h - 30, 0).translateSelf(0, 1);
+            && (m.j = k ? 0 : 1, h && (Ha || (h4.innerHTML = "* click *", na = a + 1)), va = h, ac());
+          m.h = J(q, k, 4);
+          m.i = J(u, k, 1);
+          m.l = b.rotate(60 * m.h - 30, 0).translateSelf(0, 1);
         },
       };
-    S.push(l);
+    S.push(m);
     E(v(5), c.translate(-0.2).rotate(90, 90).scale(.4, .1, .5), p(.4, .5, .5));
     E(v(5), c.translate(.2).rotate(90, 90).scale(.4, .1, .5), p(.4, .5, .5));
     E(v(B), c.translate(0, -0.4).scale(.5, .1, .5), p(.5, .5, .4));
   },
   dc = (c, ...g) => {
-    let h = -1, l = 0, m = 0, q = 0, u = 0, b = 0, f = 3, w = 1;
+    let h = -1, m = 0, k = 0, q = 0, u = 0, b = 0, f = 3, w = 1;
     const D = {
         j: 0,
         g() {
@@ -437,16 +438,16 @@ const Lb = [[
               O = A - da;
               ma = Q - X;
               let xa = Math.hypot(O, ma), Pa = Math.atan2(-ma, O);
-              w && (m = (Math.random() - .5) * Math.PI / 2, f = ab(1, f / (1 + Math.random())));
-              Pa += m;
+              w && (k = (Math.random() - .5) * Math.PI / 2, f = ab(1, f / (1 + Math.random())));
+              Pa += k;
               h = -Math.cos(Pa);
-              l = Math.sin(Pa);
+              m = Math.sin(Pa);
               .1 < xa && (xa = (xa < Y ? xa : Y) / (xa || 1), A = O * xa + da, Q = ma * xa + X);
             }
             w = Oa;
             f = J(f, 3 + 6 * (1 - G), 3 + G);
             P = J(P, A = J(A, A + h, f), f);
-            ba = J(ba, Q = J(Q, Q + l, f), f);
+            ba = J(ba, Q = J(Q, Q + m, f), f);
             q = fb(q, Math.atan2(P - u, ba - b) / $a - 180, 3 * d);
             u = P;
             b = ba;
@@ -507,7 +508,7 @@ const Lb = [[
     let c;
     I(() => {
       E([B.slice(1)], e.translate(-2).scale3d(3).rotate(90, 0));
-    });
+    }, 0);
     I(() => {
       const g = () => {
           var b = S[2].i, f = 1 - S[4].i;
@@ -528,13 +529,13 @@ const Lb = [[
             )));
             E(v(B), e.translate(0, -3, w).scale(8, 2, 8), p(.4, .4, .4, .3));
           }),
-        l = (I(b => {
+        m = (I(b => {
           b.g = () => bc(-12, 4.2, 40 * Ia - 66);
           E(fc);
           cc(e.translate(0, -3, 4));
         }),
-          k(7, b => r(v(6, 1), e.translate(4 * (b / 6 - .5), 3).scale(.2, 3, .2), p(.3, .3, .38))).flat()),
-        m = (dc(e.translate(-0.5, 2.8, -20), [0, 0, 2.5], [0, -3, 2.5]),
+          l(7, b => r(v(6, 1), e.translate(4 * (b / 6 - .5), 3).scale(.2, 3, .2), p(.3, .3, .38))).flat()),
+        k = (dc(e.translate(-0.5, 2.8, -20), [0, 0, 2.5], [0, -3, 2.5]),
           dc(
             e.translate(0, 2.8),
             [5, 10, 3],
@@ -549,11 +550,11 @@ const Lb = [[
             E(v(B), e.translate(0, 1, b).scale(3, .2, .35), p(.5, .5, .5, .3));
             I(w => {
               w.g = () => e.translate(0, 4.7 * -S[f + 1].h, b);
-              E(l);
+              E(m);
             });
           }),
-          k(5, b =>
-            k(2, f =>
+          l(5, b =>
+            l(2, f =>
               E(
                 gc,
                 e.translate(18.5 * (f - .5), 0, 4.8 * b - 9.5).rotate(0, 180 - 180 * f).scale(1.2, 10, 1.2),
@@ -653,15 +654,14 @@ const Lb = [[
             e,
           )]),
         q =
-          (E(m, e.translate(-53, 0, 55)),
+          (E(k, e.translate(-53, 0, 55)),
             E(v(6), e.translate(-61.3, -2.4, 49).scale(3, 1, 5), p(.4, .6, .6, .3)),
             E(v(7), e.translate(-57, -2.6, 46).scale(4, 1, 4), p(.8, .8, .8, .3)),
             cc(e.translate(-55, -1.1, 46).rotate(0, 90)),
             I(b => {
-              b.D = 0;
               b.g = () => e.translate(-75, (1 - S[5].i) * (1 - S[6].h) * 3, 55).rotate(180 * (1 - S[5].i) + Ca, 0);
-              E(m);
-            }),
+              E(k);
+            }, 2),
             E(v(B), e.translate(-88.3, -5.1, 55).rotate(0, 0, -30).scale(5, 1.25, 4.5), p(.7, .7, .7, .2)),
             E(v(3, 0, -0.5), e.translate(-88.4, -3.9, 55).rotate(0, -90, 17).scale(3, 1.45, 5.9), p(.8, .8, .8, .2)),
             E(
@@ -692,7 +692,7 @@ const Lb = [[
             )),
             I(b => {
               b.g = () => e.translate(-99.7, 5.3 * -S[6].h - 2, 63.5);
-              E(l);
+              E(m);
             }),
             B.map(({ x: b, z: f }) => {
               E(v(6), e.translate(7 * b - 100, -3, 7 * f + 55).scale(1, 8.1), p(.6, .15, .15, .8));
@@ -700,7 +700,7 @@ const Lb = [[
                 E(v(6), e.translate(7 * b - 100, w, 7 * f + 55).scale(1.3, .5, 1.3), p(.4, .2, .2, .8))
               );
             }),
-            k(7, b => {
+            l(7, b => {
               E(
                 v((23 * b + 1) % 5 + 5, 0, .55),
                 e.translate(5 * Math.sin(b) - 101 + b, -2.3 - b, 44.9 - 2.8 * b).scaleSelf(
@@ -766,8 +766,8 @@ const Lb = [[
                   r(v(6), e.translate(0, 0, -36).scale(15, 1.2, 15), p(.7, .7, .7, .3)),
                   r(v(B), e.translate(0, 0, -18).scale(4, 1.2, 6), p(.45, .4, .6, .3)),
                 ),
-                ...k(6, b =>
-                  k(6, f =>
+                ...l(6, b =>
+                  l(6, f =>
                     r(
                       v(6),
                       e.translate(4.6 * f - 12 + 2 * (1 & b), 0, 4.6 * b - 50 + 2 * Math.sin(4 * f)).scale(2, 5, 2),
@@ -795,14 +795,14 @@ const Lb = [[
             var f = Math.sin(1.1 * a);
             return e.translate.call(e, 0, -2, db(S[10].h, S[11].h) * (0 > f ? -f : f) * -8.5 + 10);
           };
-          k(2, f => E(q, e.translate(9 * f - 110 + (1 & f), 1.7, -12)));
+          l(2, f => E(q, e.translate(9 * f - 110 + (1 & f), 1.7, -12)));
         }),
           I(b => {
             b.g = () => {
               var f = Math.sin(2.1 * a);
               return e.translate.call(e, 0, -2, db(S[10].h, S[11].h) * (0 > f ? -f : f) * -8.5 + 10);
             };
-            k(2, f => E(q, e.translate(9 * (f + 2) - 110 + (1 & f), 1.7, -12)));
+            l(2, f => E(q, e.translate(9 * (f + 2) - 110 + (1 & f), 1.7, -12)));
           }),
           I(b => {
             b.g = () => {
@@ -814,7 +814,7 @@ const Lb = [[
                 -8.5 * ab((1 - S[10].h) * (1 - db(S[10].h, S[11].h)), db(S[10].h, S[11].h) * (0 > f ? -f : f)) + 10,
               );
             };
-            k(3, f => E(q, e.translate(9 * f - 106, 1.7, -12)));
+            l(3, f => E(q, e.translate(9 * f - 106, 1.7, -12)));
           }),
           E(
             z(y(
@@ -822,8 +822,8 @@ const Lb = [[
                 r(v(B), e.translate(26.5, -1.6, 10).scale(17, 2.08, 3)),
                 r(v(B), e.translate(26.5, -0.6, 10).scale(17, 2, .5)),
               ),
-              ...k(4, b => r(v(B), e.translate(13 + 9 * b + (1 & b), -0.8, 9).scale(1.35, 1.35, 9))),
-              ...k(3, b => r(v(B), e.translate(17 + 9 * b, -0.8, 9).scale(1.35, 1.35, 9))),
+              ...l(4, b => r(v(B), e.translate(13 + 9 * b + (1 & b), -0.8, 9).scale(1.35, 1.35, 9))),
+              ...l(3, b => r(v(B), e.translate(17 + 9 * b, -0.8, 9).scale(1.35, 1.35, 9))),
             )),
             e.translate(-123, 0, -12),
             p(.5, .5, .6, .2),
@@ -832,7 +832,7 @@ const Lb = [[
           E(v(B), e.translate(-116, -2.6, -12).scale(3.2, 1.1, 4).skewX(3), p(.8, .8, .8, .2)),
           E(v(6), e.translate(-116, -2.6, -16.5).scale(3.2, .8, 3), p(.6, .5, .7, .2)),
           cc(e.translate(-116, -1.4, -18).rotate(0, 180)),
-          k(3, b => {
+          l(3, b => {
             E(hc, e.translate(12 * b - 109, -9, -12), p(.6, .6, .6, .3));
             E(hc, e.translate(-77, -9, -12 * b - 20).rotate(0, 90), p(.6, .6, .6, .3));
           }),
@@ -866,7 +866,7 @@ const Lb = [[
               r(v(5), e.translate(-100, .7, 113).scale(4, 3, 4), p(.7, .7, .7, .2)),
             ),
           )),
-          k(4, b =>
+          l(4, b =>
             I(f => {
               f.g = () => {
                 const w = db(S[8].i, S[12].i);
@@ -919,7 +919,7 @@ const Lb = [[
           }),
           I(b => {
             b.g = () => e.translate(-100, .6 - 6 * S[12].h, 96.5).scale(.88, 1.2);
-            E(l);
+            E(m);
           }),
           [
             ...r(v(28, 1), e.scale(8, 1, 8), p(.45, .45, .45, .2)),
@@ -998,7 +998,7 @@ const Lb = [[
         ),
       ));
       [8, -6.1].map((b, f) =>
-        k(3, w =>
+        l(3, w =>
           E(
             hc,
             e.translate(6 * w - 6, b - (1 & w), 111 - .2 * (1 & w) - f),
@@ -1043,8 +1043,8 @@ const Lb = [[
       dc(e.translate(0, 3, 95), ...qb(9).map(({ x: b, z: f }) => [9 * b, 9 * f, 4]));
       dc(e.translate(0, 19, 134), [0, 0, 3.5]);
     });
-    Va = I(() => {
-      Sa = [-1, 1].map(h =>
+    Ya = I(() => {
+      Xa = [-1, 1].map(h =>
         I(() => {
           E(v(10, 1), e.translate(.3 * h, -0.8).scale(.2, .7, .24), p(1, .3, .4));
         })
@@ -1060,26 +1060,25 @@ const Lb = [[
       E(v(B), e.translate(0, .9, .45).scale(.15, .02, .06), p(.3, .3, .3));
       E(sb(20), e.scale(.7, .8, .55), p(1, .3, .4));
     });
-    Wa = [p(1, .5, .2), p(.7, 1, .2)].map(g =>
+    Sa = [p(1, .5, .2), p(.7, 1, .2)].map(g =>
       I(() => {
         E(v(6, 1), e.scale(.13, 1.4, .13), p(.3, .3, .5));
         E(v(8), e.translate(0, 1).scale(.21, .3, .21), g);
         E(v(3), e.translate(0, -1).rotate(90, 90).scale(.3, .4, .3), p(.2, .2, .2));
-      })
-    );
-    Ya = I(() => {
+      }), 0);
+    Wa = I(() => {
       E(v(6), e.scale(.85, 1, .85), p(1, .3, .5));
-    });
-    Xa = I(() => {
+    }, 0);
+    Va = I(() => {
       E(
-        sb(40, 30, (g, h, l) => {
-          const m = h / 30, q = .05 * g * Math.PI, u = m ** .6 * Math.PI / 2;
-          g = m * m * Math.sin(g * Math.PI * .35) / 4;
+        sb(40, 30, (g, h, m) => {
+          const k = h / 30, q = .05 * g * Math.PI, u = k ** .6 * Math.PI / 2;
+          g = k * k * Math.sin(g * Math.PI * .35) / 4;
           return 29 === h
-            ? { x: l.C = 0, y: -0.5, z: 0 }
+            ? { x: m.C = 0, y: -0.5, z: 0 }
             : {
               x: Math.cos(q) * Math.sin(u),
-              y: Math.cos(m * Math.PI) - m - g,
+              y: Math.cos(k * Math.PI) - k - g,
               z: Math.sin(q) * Math.sin(u) + Math.sin(g * Math.PI * 2) / 4,
             };
         }),
@@ -1087,20 +1086,20 @@ const Lb = [[
         p(1, 1, 1),
       );
       [-1, 1].map(g => E(sb(15), e.translate(.16 * g, .4, -0.36).scale3d(.09)));
-    });
+    }, 0);
   },
-  jc = (c, g, h, l) => {
-    let m = 0, q = 0, u = 0, b = 1 / 0, f = -1 / 0, w = 1 / 0, D = -1 / 0, N = 1 / 0, R = -1 / 0;
+  jc = (c, g, h, m) => {
+    let k = 0, q = 0, u = 0, b = 1 / 0, f = -1 / 0, w = 1 / 0, D = -1 / 0, N = 1 / 0, R = -1 / 0;
     const ia = 1.1 * (h - g),
       Z = (new DOMMatrix(hb(hC.clientHeight / hC.clientWidth * 1.732051, 1.732051, g, h))).multiplySelf(c).invertSelf();
-    c = k(8, A => {
+    c = l(8, A => {
       A = Z.transformPoint({ x: 4 & A ? 1 : -1, y: 2 & A ? 1 : -1, z: 1 & A ? 1 : -1 });
-      return m -= A.x = (ia * A.x | 0) / (ia * A.w),
+      return k -= A.x = (ia * A.x | 0) / (ia * A.w),
         q -= A.y = (ia * A.y | 0) / (ia * A.w),
         u -= A.z = (ia * A.z | 0) / (ia * A.w),
         A;
     });
-    g = e.rotate(298, 139).translateSelf(m / 8, q / 8, u / 8);
+    g = e.rotate(298, 139).translateSelf(k / 8, q / 8, u / 8);
     return pb(c, g).map(({ x: A, y: Q, z: P }) => {
       b = b < A ? b : A;
       f = A < f ? f : A;
@@ -1109,8 +1108,8 @@ const Lb = [[
       N = N < P ? N : P;
       R = P < R ? R : P;
     }),
-      N *= 0 > N ? l : 1 / l,
-      R *= 0 < R ? l : 1 / l,
+      N *= 0 > N ? m : 1 / m,
+      R *= 0 < R ? m : 1 / m,
       e.scale(2 / (f - b), 2 / (D - w), 2 / (N - R)).translateSelf((f + b) / -2, (D + w) / -2, (N + R) / 2)
         .multiplySelf(g).toFloat32Array();
   },
@@ -1119,22 +1118,22 @@ const Lb = [[
     return U.s3c(g, c), U.c6a(g), g;
   },
   lc = (c, g) => {
-    const h = {}, l = U.c1h();
-    return U.abz(l, c), U.abz(l, kc(g, 35632)), U.l8l(l), m => m ? h[m] || (h[m] = U.gan(l, m)) : U.u7y(l);
+    const h = {}, m = U.c1h();
+    return U.abz(m, c), U.abz(m, kc(g, 35632)), U.l8l(m), k => k ? h[k] || (h[k] = U.gan(m, k)) : U.u7y(m);
   },
   mc = (c, g, h) => {
-    const l = m => U.d97(4, m.H, 5123, 2 * m.I);
+    const m = k => U.d97(4, k.H, 5123, 2 * k.I);
     if (La) {
-      U.uae(c, !1, e.rotate(0, 40 * Math.sin(ka) - 70).toFloat32Array()), l(Va), Sa.map(l);
+      U.uae(c, !1, e.rotate(0, 40 * Math.sin(ka) - 70).toFloat32Array()), m(Ya), Xa.map(m);
     } else {
-      for (const m of Bb) {
-        (g || m !== Va && m !== Sa[0] && m !== Sa[1]) && (U.uae(c, !1, m.l.toFloat32Array()), l(m));
+      for (const k of Bb) {
+        (g || k !== Ya && k !== Xa[0] && k !== Xa[1]) && k.D && (U.uae(c, !1, k.l.toFloat32Array()), m(k));
       }
-      for (const m of S) {
-        U.uae(c, !1, m.l.toFloat32Array()), l(Wa[.5 < m.h ? 1 : 0]);
+      for (const k of S) {
+        U.uae(c, !1, k.l.toFloat32Array()), m(Sa[.5 < k.h ? 1 : 0]);
       }
-      for (const m of Zb) {
-        U.uae(c, !1, m.l.toFloat32Array()), l(h ? Ya : Xa);
+      for (const k of Zb) {
+        U.uae(c, !1, k.l.toFloat32Array()), m(h ? Wa : Va);
       }
     }
   },
@@ -1147,12 +1146,12 @@ const Lb = [[
       "<svg color-interpolation-filters=\"sRGB\" height=\"1024\" width=\"1024\" xmlns=\"http://www.w3.org/2000/svg\"><filter filterUnits=\"userSpaceOnUse\" height=\"1026\" id=\"a\" width=\"1026\" x=\"0\" y=\"0\"><feTurbulence baseFrequency=\".007\" height=\"1025\" numOctaves=\"6\" stitchTiles=\"stitch\" width=\"1025\" result=\"z\" type=\"fractalNoise\" x=\"1\" y=\"1\"/><feTile height=\"1024\" width=\"1024\" x=\"-1\" y=\"-1\"/><feTile/><feDiffuseLighting diffuseConstant=\"4\" lighting-color=\"red\" surfaceScale=\"5\"><feDistantLight azimuth=\"270\" elevation=\"5\"/></feDiffuseLighting><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"x\"/><feColorMatrix values=\"0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 1\" in=\"z\"/><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"z\"/><feTurbulence baseFrequency=\".01\" height=\"1024\" numOctaves=\"5\" stitchTiles=\"stitch\" width=\"1024\"/><feColorMatrix values=\"0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1\"/><feBlend in2=\"x\" mode=\"screen\"/><feBlend in2=\"z\" mode=\"screen\"/></filter><rect filter=\"url(#a)\" height=\"100%\" width=\"100%\"/></svg>",
     )),
   gc = (() => {
-    const c = k(
+    const c = l(
         11,
         h => e.translate(Math.sin(h / 10 * Math.PI), h / 10).rotate(+h).scale(1.0001 - h / 10, 0, 1 - h / 10),
       ),
       g = qb(18);
-    return k(10, h => rb(pb(g, c[h]).reverse(), pb(g, c[h + 1]), 1)).flat();
+    return l(10, h => rb(pb(g, c[h]).reverse(), pb(g, c[h + 1]), 1)).flat();
   })(),
   fc = z(
     y(
@@ -1172,7 +1171,7 @@ const Lb = [[
   Tb = Ub.createBufferSource(),
   U = hC.getContext("webgl2");
 for (const c in U) {
-  U[c[0] + [...c].reduce((g, h, l) => (g * l + h.charCodeAt(0)) % 434, 0).toString(36)] = U[c];
+  U[c[0] + [...c].reduce((g, h, m) => (g * m + h.charCodeAt(0)) % 434, 0).toString(36)] = U[c];
 }
 setTimeout(() => {
   let c = 0, g = 6;
@@ -1274,7 +1273,7 @@ setTimeout(() => {
                 Ma ? Kb * $a : Math.PI);
             W = Math.sin(L) * Q * d;
             var ra = Math.cos(L) * Q * d;
-            L = (t -= F * ra - K * W, x -= F * W + K * ra, b && Bb[b].D && Bb[b].l || e);
+            L = (t -= F * ra - K * W, x -= F * W + K * ra, 1 === Bb[b].D && Bb[b].l || e);
             W = L.inverse();
             if (
               W.m41 = 0,
@@ -1397,7 +1396,7 @@ setTimeout(() => {
             U.d97(4, 3, 5123, 0);
           },
           Fa = new Uint8Array(65536),
-          Ob = m;
+          Ob = k;
         var q = kc(
           "#version 300 es\nlayout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 a,b,c;void main(){l=d,n=f,m=c*vec4(f.xyz,1),gl_Position=a*b*m,m.w=f.w,o=c*vec4(e,0);}",
         );
@@ -1427,7 +1426,7 @@ setTimeout(() => {
               U.c5w());
         q = U.c3z();
         const lb = U.c25(),
-          Aa = k(2, t => {
+          Aa = l(2, t => {
             let x;
             const F = U.c25(), K = U.c5w(), C = ea(t ? "j" : "i");
             return ea(),
@@ -1521,10 +1520,10 @@ setTimeout(() => {
         U.gbn(3553);
         U.t2z(3553, 10241, 9987);
         U.t2z(3553, 10240, 9729);
-        Va.g = () => e.translate(n.x, G, n.z).rotateSelf(0, D);
-        Sa.map((t, x) => {
+        Ya.g = () => e.translate(n.x, G, n.z).rotateSelf(0, D);
+        Xa.map((t, x) => {
           t.g = () =>
-            Va.l.translate(0, N * cb(.45 * Math.sin(9.1 * a + Math.PI * x - Math.PI / 2))).rotateSelf(
+            Ya.l.translate(0, N * cb(.45 * Math.sin(9.1 * a + Math.PI * x - Math.PI / 2))).rotateSelf(
               N * Math.sin(9.1 * a + Math.PI * x) * .25 / $a,
               0,
             );
@@ -1551,7 +1550,7 @@ setTimeout(() => {
         requestAnimationFrame(Pa);
       }
     },
-    l = () => {
+    m = () => {
       if (5 > c) {
         var q = 0, u = c++;
         let [D, N, R, ia, Z, A, Q, P, ba, G, da, X, Y, O, ma, Oa, xa, Pa, Fa, Ob, ub] = Lb[u];
@@ -1628,7 +1627,7 @@ setTimeout(() => {
           }
           q += ta.length;
         }
-        setTimeout(l);
+        setTimeout(m);
       } else {
         q = Ub.createBuffer(2, 5362944, 44100);
         for (u = 0; 2 > u; u++) {
@@ -1641,11 +1640,11 @@ setTimeout(() => {
       }
       h();
     },
-    m = new Image();
-  m.onload = m.onerror = () => {
+    k = new Image();
+  k.onload = k.onerror = () => {
     h();
   };
-  m.src = oc;
-  setTimeout(l, 50);
+  k.src = oc;
+  setTimeout(m, 50);
   NO_INLINE(ic)();
 });

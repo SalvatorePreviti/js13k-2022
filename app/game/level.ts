@@ -4,7 +4,7 @@ import { material, cylinder, polygons_transform, polygon_regular, sphere } from 
 import { csg_subtract, csg_polygons, csg_union } from "../geometry/csg";
 import { GQuad, GHorn, boatPolygons, bigArc } from "../geometry/solids";
 import type { Model } from "./scene";
-import { meshAdd, newModel } from "./scene";
+import { meshAdd, newModel, MODEL_KIND_MESH, MODEL_KIND_GAME_NO_ATTACH_PLAYER } from "./scene";
 import {
   secondBoatLerp,
   gameTime,
@@ -14,13 +14,17 @@ import {
   rotatingPlatform2Rotation,
   firstBoatLerp,
 } from "./world-state";
-import { getBoatAnimationMatrix, initPlayerModel, newLever, newSoul } from "./objects";
+import { getBoatAnimationMatrix, newLever, newSoul } from "./objects";
 
 export let leverModels: Model[];
 
 export let soulModel: Model;
 
 export let soulCollisionModel: Model;
+
+export let playerLegsModels: [Model, Model];
+
+export let playerModel: Model;
 
 export const buildWorld = () => {
   let tmpMatrix: DOMMatrixReadOnly;
@@ -29,7 +33,7 @@ export const buildWorld = () => {
 
   newModel(() => {
     meshAdd([GQuad.slice(1)], identity.translate(-2).scale3d(3).rotate(90, 0));
-  });
+  }, MODEL_KIND_MESH);
 
   newModel(() => {
     // ========= FIRST BOAT (modelId:2) ========= //
@@ -412,14 +416,13 @@ export const buildWorld = () => {
         console.log("rotatingHexCorridor modelId:" + model.$modelId);
       }
 
-      model.$attachPlayer = 0;
       model._update = () => {
         return identity
           .translate(-75, (1 - levers[5]!.$lerpValue2) * (1 - levers[6]!.$lerpValue) * 3, 55)
           .rotate(180 * (1 - levers[5]!.$lerpValue2) + rotatingHexCorridorRotation, 0);
       };
       meshAdd(hexCorridorPolygons);
-    });
+    }, MODEL_KIND_GAME_NO_ATTACH_PLAYER);
 
     // connection from rotating hex corridor to platforms
 
@@ -1326,7 +1329,48 @@ export const buildWorld = () => {
 
   // ------ End of game models ------
 
-  initPlayerModel();
+  playerModel = newModel(() => {
+    // Player legs
+
+    playerLegsModels = [-1, 1].map((x) =>
+      newModel(() => {
+        meshAdd(cylinder(10, 1), identity.translate(x * 0.3, -0.8).scale(0.2, 0.7, 0.24), material(1, 0.3, 0.4));
+      }),
+    ) as [Model, Model];
+
+    // Player body
+
+    // horns
+    [0, 180].map((r) =>
+      meshAdd(
+        GHorn,
+        identity.rotate(0, r).translate(0.2, 1.32).rotate(0, 0, -30).scale(0.2, 0.6, 0.2),
+        material(1, 1, 0.8),
+      ),
+    );
+
+    // head
+    meshAdd(sphere(20), identity.translate(0, 1).scale(0.5, 0.5, 0.5), material(1, 0.3, 0.4));
+
+    const eye = polygons_transform(
+      csg_polygons(
+        csg_subtract(
+          cylinder(15, 1),
+          polygons_transform(cylinder(GQuad), identity.translate(0, 0, 1).scale(2, 2, 0.5)),
+        ),
+      ),
+      identity.rotate(-90, 0).scale(0.1, 0.05, 0.1),
+      material(0.3, 0.3, 0.3),
+    );
+
+    [-1, 1].map((i) => meshAdd(eye, identity.translate(i * 0.2, 1.2, 0.4).rotate(0, i * 20, i * 20)));
+
+    // mouth
+    meshAdd(cylinder(GQuad), identity.translate(0, 0.9, 0.45).scale(0.15, 0.02, 0.06), material(0.3, 0.3, 0.3));
+
+    // body
+    meshAdd(sphere(20), identity.scale(0.7, 0.8, 0.55), material(1, 0.3, 0.4));
+  });
 
   leverModels = [material(1, 0.5, 0.2), material(0.7, 1, 0.2)].map((handleMaterial) => {
     return newModel(() => {
@@ -1334,11 +1378,11 @@ export const buildWorld = () => {
       meshAdd(cylinder(8), identity.translate(0, 1).scale(0.21, 0.3, 0.21), handleMaterial);
       meshAdd(cylinder(3), identity.translate(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3), material(0.2, 0.2, 0.2));
     });
-  });
+  }, MODEL_KIND_MESH);
 
   soulCollisionModel = newModel(() => {
     meshAdd(cylinder(6), identity.scale(0.85, 1, 0.85), material(1, 0.3, 0.5));
-  });
+  }, MODEL_KIND_MESH);
 
   soulModel = newModel(() => {
     const GHOST_SLICES = 40;
@@ -1367,7 +1411,7 @@ export const buildWorld = () => {
 
     // eyes
     [-1, 1].map((x) => meshAdd(sphere(15), identity.translate(x * 0.16, 0.4, -0.36).scale3d(0.09)));
-  });
+  }, MODEL_KIND_MESH);
 
   if (DEBUG) {
     console.log(levers.length + " levers");

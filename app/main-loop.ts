@@ -36,8 +36,8 @@ import {
 } from "./math";
 import { mat_perspective, zFar, zNear, camera_position, camera_rotation } from "./camera";
 import { csm_buildMatrix } from "./csm";
-import { allModels } from "./game/scene";
-import { playerModel, playerLegsModels, updateModels } from "./game/objects";
+import { allModels, MODEL_KIND_GAME } from "./game/scene";
+import { updateModels } from "./game/objects";
 import { gl, initShaderProgram, loadShader } from "./gl";
 import {
   absoluteTime,
@@ -76,6 +76,7 @@ import {
   GAMEPAD_BUTTON_B,
   GAMEPAD_BUTTON_Y,
 } from "./utils/keycodes";
+import { playerModel, playerLegsModels } from "./game/level";
 
 const CAMERA_PLAYER_Y_DIST = 13;
 const CAMERA_PLAYER_Z_DIST = -18;
@@ -439,7 +440,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     player_collision_z -= strafe * s + forward * c;
 
     const referenceMatrix =
-      (currentModelId && allModels[currentModelId]!.$attachPlayer && allModels[currentModelId]!.$matrix) || identity;
+      (allModels[currentModelId]!.$kind === MODEL_KIND_GAME && allModels[currentModelId]!.$matrix) || identity;
     const inverseReferenceRotationMatrix = referenceMatrix.inverse();
     inverseReferenceRotationMatrix.m41 = 0;
     inverseReferenceRotationMatrix.m42 = 0;

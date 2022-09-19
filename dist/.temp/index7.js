@@ -172,9 +172,9 @@
     u = [{ x: -1, z: 1 }, { x: 1, z: 1 }, { x: 1, z: -1 }, { x: -1, z: -1 }],
     r1 = [],
     m = (t, a = $, e) => j.s.push(...o(t, a, e)),
-    M = t => {
-      let a = j, e = { l: $, F: r1.length, D: 1, s: [] };
-      return r1.push(j = e), t(e), j = a, e;
+    M = (t, a = 1) => {
+      let e = j;
+      return r1.push(j = a = { l: $, F: r1.length, D: a, s: [] }), t(a), j = e, a;
     },
     s1 = -11,
     n1 = 17,
@@ -362,7 +362,10 @@
       let r = t => M1.d97(4, t.H, 5123, 2 * t.I);
       if (y1) M1.uae(a, !1, $.rotate(0, 40 * Math.sin(z1) - 70).toFloat32Array()), r(L1), X1.map(r);
       else {
-        for (let t of r1) (e || t !== L1 && t !== X1[0] && t !== X1[1]) && (M1.uae(a, !1, t.l.toFloat32Array()), r(t));
+        for (let t of r1) {
+          (e || t !== L1 && t !== X1[0] && t !== X1[1]) && t.D
+            && (M1.uae(a, !1, t.l.toFloat32Array()), r(t));
+        }
         for (let t of u1) M1.uae(a, !1, t.l.toFloat32Array()), r(C[.5 < t.h ? 1 : 0]);
         for (let t of j1) M1.uae(a, !1, t.l.toFloat32Array()), r(l ? Q : H);
       }
@@ -372,11 +375,11 @@
     y1,
     x1,
     R1,
-    X1,
-    L1,
     C,
     H,
     Q,
+    X1,
+    L1,
     B = "data:image/svg+xml;base64,"
       + btoa(
         "<svg color-interpolation-filters=\"sRGB\" height=\"1024\" width=\"1024\" xmlns=\"http://www.w3.org/2000/svg\"><filter filterUnits=\"userSpaceOnUse\" height=\"1026\" id=\"a\" width=\"1026\" x=\"0\" y=\"0\"><feTurbulence baseFrequency=\".007\" height=\"1025\" numOctaves=\"6\" stitchTiles=\"stitch\" width=\"1025\" result=\"z\" type=\"fractalNoise\" x=\"1\" y=\"1\"/><feTile height=\"1024\" width=\"1024\" x=\"-1\" y=\"-1\"/><feTile/><feDiffuseLighting diffuseConstant=\"4\" lighting-color=\"red\" surfaceScale=\"5\"><feDistantLight azimuth=\"270\" elevation=\"5\"/></feDiffuseLighting><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"x\"/><feColorMatrix values=\"0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 1\" in=\"z\"/><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"z\"/><feTurbulence baseFrequency=\".01\" height=\"1024\" numOctaves=\"5\" stitchTiles=\"stitch\" width=\"1024\"/><feColorMatrix values=\"0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1\"/><feBlend in2=\"x\" mode=\"screen\"/><feBlend in2=\"z\" mode=\"screen\"/></filter><rect filter=\"url(#a)\" height=\"100%\" width=\"100%\"/></svg>",
@@ -519,7 +522,7 @@
                     if (
                       a -= t * x - l * y,
                         e -= t * y + l * x,
-                        (y = (n = f && r1[f].D && r1[f].l || $).inverse()).m41 = 0,
+                        (y = (n = 1 === r1[f].D && r1[f].l || $).inverse()).m41 = 0,
                         y.m42 = 0,
                         y.m43 = 0,
                         { x: a, z: e } = y.transformPoint({ x: a, z: e, w: 0 }),
@@ -997,7 +1000,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
         let n;
         M(() => {
           m([u.slice(1)], $.translate(-2).scale3d(3).rotate(90, 0));
-        }),
+        }, 0),
           M(() => {
             let r = () => {
                 let t = u1[2].i, a = 1 - u1[4].i;
@@ -1147,11 +1150,9 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   m(c(7), $.translate(-57, -2.6, 46).scale(4, 1, 4), 1288490188),
                   g($.translate(-55, -1.1, 46).rotate(0, 90)),
                   M(t => {
-                    t.D = 0,
-                      t.g = () =>
-                        $.translate(-75, (1 - u1[5].i) * (1 - u1[6].h) * 3, 55).rotate(180 * (1 - u1[5].i) + d1, 0),
-                      m(a);
-                  }),
+                    t.g = () =>
+                      $.translate(-75, (1 - u1[5].i) * (1 - u1[6].h) * 3, 55).rotate(180 * (1 - u1[5].i) + d1, 0), m(a);
+                  }, 2),
                   m(c(u), $.translate(-88.3, -5.1, 55).rotate(0, 0, -30).scale(5, 1.25, 4.5), 867349170),
                   m(c(3, 0, -.5), $.translate(-88.4, -3.9, 55).rotate(0, -90, 17).scale(3, 1.45, 5.9), 869059788),
                   m(
@@ -1561,11 +1562,10 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               m(c(6, 1), $.scale(.13, 1.4, .13), 8342604),
                 m(c(8), $.translate(0, 1).scale(.21, .3, .21), t),
                 m(c(3), $.translate(0, -1).rotate(90, 90).scale(.3, .4, .3), 3355443);
-            })
-          ),
+            }), 0),
           Q = M(() => {
             m(c(6), $.scale(.85, 1, .85), 8342783);
-          }),
+          }, 0),
           H = M(() => {
             m(
               e(40, 30, (t, a, e) => {
@@ -1582,7 +1582,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               $.scale3d(.7),
               16777215,
             ), [-1, 1].map(t => m(e(15), $.translate(.16 * t, .4, -.36).scale3d(.09)));
-          });
+          }, 0);
       })();
   });
 })();

@@ -19,11 +19,11 @@ let player_first_person;
 
 let _globalTime;
 
-let playerLegsModels;
-let playerModel;
 let leverModels;
 let soulModel;
 let soulCollisionModel;
+let playerLegsModels;
+let playerModel;
 const DEG_TO_RAD = Math.PI / 180;
 const identity = new DOMMatrix();
 
@@ -375,12 +375,12 @@ const allModels = [];
 const meshAdd = (polygons, transform = identity, color) =>
   currentEditModel.$polygons.push(...polygons_transform(polygons, transform, color));
 
-const newModel = fn => {
+const newModel = (fn, $kind = 1) => {
   const previousModel = currentEditModel;
   const model = {
     $matrix: identity,
     $modelId: allModels.length,
-    $attachPlayer: 1,
+    $kind: $kind,
     $polygons: [],
   };
   return allModels.push(currentEditModel = model), fn(model), currentEditModel = previousModel, model;
@@ -788,7 +788,7 @@ const buildWorld = () => {
   let tmpMatrix;
   newModel(() => {
     meshAdd([GQuad.slice(1)], identity.translate(-2).scale3d(3).rotate(90, 0));
-  }),
+  }, 0),
     newModel(() => {
       const getOscillationAmount = () => min(levers[2].$lerpValue2, 1 - levers[4].$lerpValue2);
 
@@ -1072,14 +1072,12 @@ const buildWorld = () => {
           meshAdd(cylinder(7), identity.translate(-57, -2.6, 46).scale(4, 1, 4), material(.8, .8, .8, .3)),
           newLever(identity.translate(-55, -1.1, 46).rotate(0, 90)),
           newModel(model => {
-            model.$attachPlayer = 0,
-              model._update = () =>
-                identity.translate(-75, (1 - levers[5].$lerpValue2) * (1 - levers[6].$lerpValue) * 3, 55).rotate(
-                  180 * (1 - levers[5].$lerpValue2) + rotatingHexCorridorRotation,
-                  0,
-                ),
-              meshAdd(hexCorridorPolygons);
-          }),
+            model._update = () =>
+              identity.translate(-75, (1 - levers[5].$lerpValue2) * (1 - levers[6].$lerpValue) * 3, 55).rotate(
+                180 * (1 - levers[5].$lerpValue2) + rotatingHexCorridorRotation,
+                0,
+              ), meshAdd(hexCorridorPolygons);
+          }, 2),
           meshAdd(
             cylinder(GQuad),
             identity.translate(-88.3, -5.1, 55).rotate(0, 0, -30).scale(5, 1.25, 4.5),
@@ -1849,11 +1847,10 @@ const buildWorld = () => {
         meshAdd(cylinder(6, 1), identity.scale(.13, 1.4, .13), material(.3, .3, .5)),
           meshAdd(cylinder(8), identity.translate(0, 1).scale(.21, .3, .21), handleMaterial),
           meshAdd(cylinder(3), identity.translate(0, -1).rotate(90, 90).scale(.3, .4, .3), material(.2, .2, .2));
-      })
-    ),
+      }), 0),
     soulCollisionModel = newModel(() => {
       meshAdd(cylinder(6), identity.scale(.85, 1, .85), material(1, .3, .5));
-    }),
+    }, 0),
     soulModel = newModel(() => {
       meshAdd(
         sphere(40, 30, (a, b, polygon) => {
@@ -1876,7 +1873,7 @@ const buildWorld = () => {
         identity.scale3d(.7),
         material(1, 1, 1),
       ), [-1, 1].map(x => meshAdd(sphere(15), identity.translate(.16 * x, .4, -0.36).scale3d(.09)));
-    });
+    }, 0);
 };
 
 const csm_buildMatrix = (camera_view, nearPlane, farPlane, zMultiplier) => {
@@ -1948,7 +1945,7 @@ const renderModels = (worldMatrixLoc, renderPlayer, isCollider) => {
   } else {
     for (const model of allModels) {
       (renderPlayer || model !== playerModel && model !== playerLegsModels[0] && model !== playerLegsModels[1])
-        && (gl["uae"](worldMatrixLoc, !1, model.$matrix.toFloat32Array()), drawMesh(model));
+        && model.$kind && (gl["uae"](worldMatrixLoc, !1, model.$matrix.toFloat32Array()), drawMesh(model));
     }
 
     for (const lever of levers) {
@@ -2188,7 +2185,7 @@ setTimeout(() => {
         const referenceMatrix =
           (player_collision_x -= strafe * c - forward * s,
             player_collision_z -= strafe * s + forward * c,
-            currentModelId && allModels[currentModelId].$attachPlayer && allModels[currentModelId].$matrix || identity);
+            1 === allModels[currentModelId].$kind && allModels[currentModelId].$matrix || identity);
         const inverseReferenceRotationMatrix = referenceMatrix.inverse();
 
         if (

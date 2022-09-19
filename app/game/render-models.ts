@@ -2,10 +2,9 @@ import type { Model } from "./scene";
 import { allModels } from "./scene";
 import { identity } from "../math";
 import { mainMenuVisible } from "../page";
-import { playerModel, playerLegsModels } from "./objects";
 import { absoluteTime, levers, souls } from "./world-state";
 import { gl } from "../gl";
-import { leverModels, soulCollisionModel, soulModel } from "./level";
+import { leverModels, playerLegsModels, playerModel, soulCollisionModel, soulModel } from "./level";
 
 export const renderModels = (
   worldMatrixLoc: WebGLUniformLocation,
@@ -22,6 +21,9 @@ export const renderModels = (
   } else {
     for (const model of allModels) {
       if (!renderPlayer && (model === playerModel || model === playerLegsModels[0] || model === playerLegsModels[1])) {
+        continue;
+      }
+      if (!model.$kind) {
         continue;
       }
       gl.uniformMatrix4fv(worldMatrixLoc, false, model.$matrix.toFloat32Array());

@@ -1,8 +1,8 @@
-$attachPlayer:D
 $back:m
 $color:v
 $flipped:A
 $front:o
+$kind:D
 $lerpValue:h
 $lerpValue2:i
 $locMatrix:G
