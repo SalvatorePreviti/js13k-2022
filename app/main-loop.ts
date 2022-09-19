@@ -76,7 +76,7 @@ import {
   GAMEPAD_BUTTON_B,
   GAMEPAD_BUTTON_Y,
 } from "./utils/keycodes";
-import { playerModel, playerLegsModels } from "./game/level";
+import { playerModels } from "./game/level";
 
 const CAMERA_PLAYER_Y_DIST = 13;
 const CAMERA_PLAYER_Z_DIST = -18;
@@ -699,22 +699,25 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     gl.drawElements(gl.TRIANGLES, 3, gl.UNSIGNED_SHORT, 0);
   };
 
-  playerModel._update = () =>
-    identity
-      .translate(player_position_final.x, player_model_y, player_position_final.z)
-      .rotateSelf(0, player_look_angle);
-
-  playerLegsModels.map((model, i) => {
-    model._update = () =>
-      playerModel.$matrix
-        .translate(
-          0,
-          player_legs_speed * clamp01(Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI * i - Math.PI / 2) * 0.45),
-        )
-        .rotateSelf(
-          player_legs_speed * Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI * i) * (0.25 / DEG_TO_RAD),
-          0,
-        );
+  playerModels.map((model, i) => {
+    model._update = i
+      ? // Legs matrices
+        () =>
+          playerModels[0].$matrix
+            .translate(
+              0,
+              player_legs_speed *
+                clamp01(Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI * (i - 1) - Math.PI / 2) * 0.45),
+            )
+            .rotateSelf(
+              player_legs_speed * Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI * (i - 1)) * (0.25 / DEG_TO_RAD),
+              0,
+            )
+      : // Body matrix
+        () =>
+          identity
+            .translate(player_position_final.x, player_model_y, player_position_final.z)
+            .rotateSelf(0, player_look_angle);
   });
 
   loadGame();

@@ -3,7 +3,7 @@ $color:A
 $flipped:B
 $front:o
 $kind:H
-$lerpValue:h
+$lerpValue:g
 $lerpValue2:i
 $locMatrix:I
 $matrix:l
@@ -15,4 +15,4 @@ $smooth:D
 $value:j
 $vertexBegin:v
 $vertexEnd:G
-_update:g
+_update:h

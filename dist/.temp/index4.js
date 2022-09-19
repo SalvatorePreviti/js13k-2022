@@ -1,1611 +1,2611 @@
-let gt = !0,
-  K = 0,
-  G = 0,
-  Mt = 0,
-  V = 0,
-  y = 0,
-  x = 0,
-  J = 0,
-  zt = 0,
-  z = 0,
-  vt = 0,
-  pt = 0,
-  dt = 0,
-  bt = 0,
-  w = .066,
-  _ = Math.PI / 180,
-  Z = new DOMMatrix(),
-  $ = (t, a) => a < t ? t : a,
-  wt = t => t < 0 ? -t : t,
-  tt = t => t < 0 ? 0 : 1 < t ? 1 : t,
-  at = (t, a) => (t = t < 0 ? 0 : 1 < t ? 1 : t) + (1 - t - t) * (a < 0 ? 0 : 1 < a ? 1 : a),
-  It = t => Math.atan2(Math.sin(t *= _), Math.cos(t)) / _,
-  At = (t, a, e) =>
-    ((t *= _) + (2 * (a = (a * _ - t) % (2 * Math.PI)) % (2 * Math.PI) - a) * (e < 0 ? 0 : 1 < e ? 1 : e)) / _,
-  Pt = (t, a, e, l) => {
-    let r = a - t;
-    return (t += Math.sign(a - t) * $(0, (r < 0 ? -r : r) ** .9 - e) * l * 2) + (a - t) * tt(l / 7);
-  },
-  et = (t, e) => Array.from(Array(t), (t, a) => e(a)),
-  St = (t, a, e, l) => [t, 0, 0, 0, 0, a, 0, 0, 0, 0, (l + e) / (e - l), -1, 0, 0, 2 * l * e / (e - l), 0],
-  d = ({ x: t, y: a, z: e }, l) => t * l.x + a * l.y + e * l.z,
-  S = ({ x: t, y: a, z: e }) => Math.hypot(t - mt.x, a - mt.y, e - mt.z) || 0,
-  Yt = t => {
-    let a = 0, e = 0, l = 0, r, s = t.at(-1);
-    for (r of t) a += (s.y - r.y) * (s.z + r.z), e += (s.z - r.z) * (s.x + r.x), l += (s.x - r.x) * (s.y + r.y), s = r;
-    return r = Math.hypot(a, e, l), a /= r, e /= r, l /= r, { x: a, y: e, z: l, w: a * s.x + e * s.y + l * s.z };
-  },
-  r = (t, a) => {
-    let e = C;
-    t *= 16,
-      e[t++] = a.m11,
-      e[t++] = a.m12,
-      e[t++] = a.m13,
-      e[t++] = a.m14,
-      e[t++] = a.m21,
-      e[t++] = a.m22,
-      e[t++] = a.m23,
-      e[t++] = a.m24,
-      e[t++] = a.m31,
-      e[t++] = a.m32,
-      e[t++] = a.m33,
-      e[t++] = a.m34,
-      e[t++] = a.m41,
-      e[t++] = a.m42,
-      e[t++] = a.m43,
-      e[t] = a.m44;
-  },
-  c = (t, a, e, l = 0) => 255 * l << 24 | 255 * e << 16 | 255 * a << 8 | 255 * t,
-  b = (t, a, e) => (t.D = e, t.A = a, t),
-  I = (t, l, a = t.A) =>
-    b(
-      t.map(t =>
-        ((
-          { x: t, y: a, z: e },
-        ) => ({ x: t, y: a, z: e } = l.transformPoint({ x: t, y: a, z: e }), { x: t, y: a, z: e }))(t)
-      ),
-      a,
-      t.D,
-    ),
-  o = (t, a, e) => t.map(t => I(t, a, e)),
-  A = (e, l = 0) =>
-    et(e, t => {
-      let a = Math.cos(2 * Math.PI * t / e);
-      return { x: Math.sin(2 * Math.PI * t / e), y: 0, z: (a < 0 ? -a : a) < .01 ? a : a < 0 ? a - l : a + l };
-    }),
-  s = (l, r, s) => l.map((t, a, { length: e }) => b([t, r[e - a - 1], r[e - (a + 1) % e - 1], l[(a + 1) % e]], l.A, s)),
-  i = (
-    t,
-    a,
-    e = 0,
-    l,
-  ) => (l = t.length ? t : A(t, l),
-    t = I(l, Z.translate(0, 1).scale3d(0 < e ? e : 1)),
-    e = I(l, Z.translate(0, -1).scale3d(e < 0 ? -e : 1)).reverse(),
-    [...s(e, t, a), e, t]),
-  P = (
-    l,
-    r = l,
-    s = (
-      t,
-      a,
-    ) => (a *= Math.PI / r,
-      { x: Math.cos(t *= 2 * Math.PI / l) * Math.sin(a), y: Math.cos(a), z: Math.sin(t) * Math.sin(a) }),
-  ) => {
-    let n = [];
-    for (let e = 0; l > e; e++) {
-      for (let a = 0; r > a; a++) {
-        let t = b([], 0, 1);
-        n.push(t),
-          t.push(s(e, a, t)),
-          a && t.push(s((e + 1) % l, a, t)),
-          r - 1 > a && t.push(s((e + 1) % l, a + 1 % r, t)),
-          t.push(s(e, a + 1 % r, t));
-      }
-    }
-    return n;
-  },
-  Y = (l, r) => {
-    let s, n, o, c = r.C;
-    for (let t = 0; c.length > t; ++t) {
-      if ((o = d(l, c[t]) - l.w) < -8e-5 ? n = r : 8e-5 < o && (s = r), n && s) {
-        n = [], o = [], c = r.C, t = r.B;
-        let a = c.at(-1), e = d(l, a) - l.w;
-        for (let t of c) {
-          s = d(l, t) - l.w,
-            e < 8e-5 && o.push(a),
-            -8e-5 < e && n.push(a),
-            (8e-5 < e && s < -8e-5 || e < -8e-5 && 8e-5 < s)
-            && (e /= s - e,
-              a = { x: a.x + (a.x - t.x) * e, y: a.y + (a.y - t.y) * e, z: a.z + (a.z - t.z) * e },
-              n.push(a),
-              o.push(a)),
-            a = t,
-            e = s;
-        }
+const groundTextureSvg = "data:image/svg+xml;base64,"
+  + /* @__PURE__ */ btoa(
+    "<svg color-interpolation-filters=\"sRGB\" height=\"1024\" width=\"1024\" xmlns=\"http://www.w3.org/2000/svg\"><filter filterUnits=\"userSpaceOnUse\" height=\"1026\" id=\"a\" width=\"1026\" x=\"0\" y=\"0\"><feTurbulence baseFrequency=\".007\" height=\"1025\" numOctaves=\"6\" stitchTiles=\"stitch\" width=\"1025\" result=\"z\" type=\"fractalNoise\" x=\"1\" y=\"1\"/><feTile height=\"1024\" width=\"1024\" x=\"-1\" y=\"-1\"/><feTile/><feDiffuseLighting diffuseConstant=\"4\" lighting-color=\"red\" surfaceScale=\"5\"><feDistantLight azimuth=\"270\" elevation=\"5\"/></feDiffuseLighting><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"x\"/><feColorMatrix values=\"0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 1\" in=\"z\"/><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"z\"/><feTurbulence baseFrequency=\".01\" height=\"1024\" numOctaves=\"5\" stitchTiles=\"stitch\" width=\"1024\"/><feColorMatrix values=\"0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1\"/><feBlend in2=\"x\" mode=\"screen\"/><feBlend in2=\"z\" mode=\"screen\"/></filter><rect filter=\"url(#a)\" height=\"100%\" width=\"100%\"/></svg>",
+  );
+
+const DEG_TO_RAD = Math.PI / 180;
+
+const identity = new DOMMatrix();
+
+const min = (a, b) => b > a ? a : b;
+
+const max = (a, b) => a > b ? a : b;
+
+const abs = n => 0 > n ? -n : n;
+
+const clamp01 = t => 0 > t ? 0 : t > 1 ? 1 : t;
+
+const lerp = (from, to, t) => from + (to - from) * clamp01(t);
+
+const lerpneg = (v, t) => {
+  v = clamp01(v);
+  return lerp(v, 1 - v, t);
+};
+
+const angle_wrap_degrees = degrees => {
+  return (radians = degrees * DEG_TO_RAD,
+    /* @__PURE__ */ Math.atan2(/* @__PURE__ */ Math.sin(radians), /* @__PURE__ */ Math.cos(radians))) / DEG_TO_RAD;
+  var radians;
+};
+
+const angle_lerp_degrees = (a0, a1, t) =>
+  ((a0, a1, t) => {
+    const da = (a1 - a0) % (2 * Math.PI);
+    return a0 + (2 * da % (2 * Math.PI) - da) * clamp01(t);
+  })(a0 * DEG_TO_RAD, a1 * DEG_TO_RAD, t) / DEG_TO_RAD;
+
+const interpolate_with_hysteresis = (previous, desired, hysteresis, t) =>
+  lerp(
+    previous
+      + /* @__PURE__ */ Math.sign(desired - previous) * max(0, abs(desired - previous) ** .9 - hysteresis) * t * 2,
+    desired,
+    t / 7,
+  );
+
+const integers_map = (n, fn) => Array.from(/* @__PURE__ */ Array(n), (_, i) => fn(i));
+
+const mat_perspectiveXY = (
+  mx,
+  my,
+  near,
+  far,
+) => [mx, 0, 0, 0, 0, my, 0, 0, 0, 0, (far + near) / (near - far), -1, 0, 0, 2 * far * near / (near - far), 0];
+
+const vec3_dot = ({ x, y, z }, v) => x * v.x + y * v.y + z * v.z;
+
+const vec3_distance = ({ x, y, z }, b) => /* @__PURE__ */ Math.hypot(x - b.x, y - b.y, z - b.z) || 0;
+
+const plane_fromPolygon = polygon => {
+  let x = 0;
+  let y = 0;
+  let z = 0;
+  let b;
+  let a = polygon.at(-1);
+  for (b of polygon) {
+    x += (a.y - b.y) * (a.z + b.z);
+    y += (a.z - b.z) * (a.x + b.x);
+    z += (a.x - b.x) * (a.y + b.y);
+    a = b;
+  }
+  b = /* @__PURE__ */ Math.hypot(x, y, z);
+  x /= b;
+  y /= b;
+  z /= b;
+  return {
+    x,
+    y,
+    z,
+    w: x * a.x + y * a.y + z * a.z,
+  };
+};
+
+const writeMatrixToArray = (output, index2, $matrix) => {
+  index2 *= 16;
+  output[index2++] = $matrix.m11;
+  output[index2++] = $matrix.m12;
+  output[index2++] = $matrix.m13;
+  output[index2++] = $matrix.m14;
+  output[index2++] = $matrix.m21;
+  output[index2++] = $matrix.m22;
+  output[index2++] = $matrix.m23;
+  output[index2++] = $matrix.m24;
+  output[index2++] = $matrix.m31;
+  output[index2++] = $matrix.m32;
+  output[index2++] = $matrix.m33;
+  output[index2++] = $matrix.m34;
+  output[index2++] = $matrix.m41;
+  output[index2++] = $matrix.m42;
+  output[index2++] = $matrix.m43;
+  output[index2] = $matrix.m44;
+};
+
+const material = (r, g, b, a = 0) => 255 * a << 24 | 255 * b << 16 | 255 * g << 8 | 255 * r;
+
+const polygon_color = (polygon, color, smooth) => {
+  polygon.$smooth = smooth;
+  polygon.$color = color;
+  return polygon;
+};
+
+const polygon_transform = (polygon, m, color = polygon.$color) =>
+  polygon_color(
+    polygon.map(p =>
+      (({ x, y, z }, m) => {
+        ({ x, y, z } = m.transformPoint({
+          x,
+          y,
+          z,
+        }));
         return {
-          o: 2 < n.length && { C: b(n, c.A, c.D), B: t, u: r },
-          m: 2 < o.length && { C: b(o, c.A, c.D), B: t, u: r },
+          x,
+          y,
+          z,
         };
-      }
-    }
-    return { o: s, m: n };
-  },
-  n = (e, l, r = Yt(l.C)) => {
-    if (e) {
-      let { o: t, m: a } = Y(e, l);
-      t || a || e.s.push(l), t && (e.o = n(e.o, t, r)), a && (e.m = n(e.m, a, r));
-    } else e = { x: r.x, y: r.y, z: r.z, w: r.w, s: [l], o: 0, m: 0 };
-    return e;
-  },
-  e = (a, r, s) => {
-    let n = [],
-      o = (t, a) => {
-        let { o: e, m: l } = Y(t, a);
-        e || l || (0 < s * d(t, r) ? e = a : l = a), e && (t.o ? o(t.o, e) : n.push(e)), l && t.m && o(t.m, l);
-      };
-    for (let t of r.s) o(a, t);
-    return n;
-  },
-  k = (t, a) => t && (a(t), k(t.o, a), k(t.m, a)),
-  F = t => t.length ? t.reduce((t, a) => n(t, { C: a, B: 0, u: 0 }), 0) : t,
-  l = t => (k(t, a => {
-    let t = a.m;
-    a.m = a.o, a.o = t, a.x *= -1, a.y *= -1, a.z *= -1, a.w *= -1;
-    for (let t of a.s) t.B = !t.B;
-  }),
-    t),
-  h = (...t) =>
-    t.reduce((l, a) => {
-      let r = [];
-      if (l = F(l), a) {
-        a = F(a), k(l, t => t.s = e(a, t, 1)), k(a, t => r.push([t, e(l, t, -1)]));
-        for (let [a, e] of r) for (let t of e) n(l, t, a);
-      }
-      return l;
-    }),
-  f = (t, ...a) => l(h(l(F(t)), ...a)),
-  m = t => {
-    let e = new Map(),
-      l = new Map(),
-      r = a => {
-        if (a.u) {
-          let t = e.get(a.u);
-          t ? (l.delete(t), a = r(a.u)) : e.set(a.u, a);
-        }
-        return a;
-      };
-    return k(t, a => {
-      for (let t of a.s) l.set(r(t), t.B);
-    }),
-      Array.from(l, ([{ C: t }, a]) => {
-        let e = t.map(({ x: t, y: a, z: e }) => ({ x: t, y: a, z: e }));
-        return b(a ? e.reverse() : e, t.A, t.D);
-      });
-  },
-  u = [{ x: -1, z: 1 }, { x: 1, z: 1 }, { x: 1, z: -1 }, { x: -1, z: -1 }],
-  lt = [],
-  g = (t, a = Z, e) => D.s.push(...o(t, a, e)),
-  M = (t, a = 1) => {
-    let e = D;
-    return lt.push(D = a = { l: Z, F: lt.length, H: a, s: [] }), t(a), D = e, a;
-  },
-  rt = -11,
-  st = 17,
-  nt = -90,
-  ot = 0,
-  ct = 0,
-  O = t => Math.sin(t * Math.PI * 2),
-  it = [],
-  kt = () => {
-    ut || !gt ? E.disconnect() : E.connect(N.destination), b4.innerHTML = "Music: " + gt;
-  },
-  Ft = (t = !1) => {
-    if (ut !== t) {
-      ut = t, yt = 0;
-      try {
-        t ? document.exitPointerLock() : E.start();
-      } catch {}
-      document.body.className = t ? "l m" : "l", kt();
-    }
-  },
-  ht = (t, a, e) => t + (a - t) * tt(1 - Math.exp(-e * w)),
-  t = ({ j: t }) => t,
-  ft = [],
-  Tt = [],
-  jt = () => {
-    y = Tt.reduce((t, a) => t + a.j, 0),
-      h3.innerHTML = " " + ["0", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII"][y];
-  },
-  T = () => {
-    jt(), localStorage.DanteSP22 = JSON.stringify([ft.map(t), Tt.map(t), J, V, bt]);
-  },
-  mt = { x: 0, y: 0, z: 0 },
-  j = (t, a, e) =>
-    Z.translate(t + Math.sin(V + 2) / 5, a + Math.sin(.8 * V) / 3, e).rotateSelf(
-      2 * Math.sin(V),
-      Math.sin(.7 * V),
-      Math.sin(.9 * V),
+      })(p, m)
     ),
-  v = r => {
-    let s = D,
-      n = ft.length,
-      o = {
-        j: 0,
-        h: 0,
-        i: 0,
-        u: s,
-        g() {
-          let t = o.j, a = o.h, e = o.i, l = s.l.multiply(r);
-          o.I = l,
-            S(l.transformPoint()) < 2.9 && it[5] && (a < .3 || .7 < a)
-            && (o.j = t ? 0 : 1, n && !pt && (h4.innerHTML = "* click *", x = V + 1), J = n, T()),
-            o.h = ht(a, t, 4),
-            o.i = ht(e, t, 1),
-            o.l = l.rotate(60 * o.h - 30, 0).translateSelf(0, 1);
-        },
-      };
-    ft.push(o),
-      g(i(5), r.translate(-.2).rotate(90, 90).scale(.4, .1, .5), c(.4, .5, .5)),
-      g(i(5), r.translate(.2).rotate(90, 90).scale(.4, .1, .5), c(.4, .5, .5)),
-      g(i(u), r.translate(0, -.4).scale(.5, .1, .5), c(.5, .5, .4));
-  },
-  p = (o, ...t) => {
-    let c = -1,
-      i = 0,
-      h = 0,
-      f = 0,
-      m = 0,
-      u = 0,
-      g = 3,
-      M = 1,
-      v = {
-        j: 0,
-        g() {
-          if (!v.j) {
-            var a = 1;
-            let e = 1 / 0, l, t;
-            for (l of d) {
-              var r = l.w, s = Math.hypot(b - l.x, I - l.z), n = s - r;
-              t ||= s < r, 0 < n && e > n && (e = n, z = l), a = a < (r = s / r) ? a : r;
-            }
-            if (!t) {
-              r = z.w;
-              let t = Math.hypot(s = b - (e = z.x), n = I - (l = z.z)), a = Math.atan2(-n, s);
-              M && (h = (Math.random() - .5) * Math.PI / 2, g = $(1, g / (1 + Math.random()))),
-                a += h,
-                c = -Math.cos(a),
-                i = Math.sin(a),
-                .1 < t && (t = (r > t ? t : r) / (t || 1), b = s * t + e, I = n * t + l);
-            }
-            M = t,
-              g = ht(g, 3 + 6 * (1 - a), 3 + a),
-              A = ht(A, b = ht(b, b + c, g), g),
-              P = ht(P, I = ht(I, I + i, g), g),
-              f = At(f, Math.atan2(A - m, P - u) / _ - 180, 3 * w),
-              m = A,
-              u = P,
-              a = (v.l = o.multiply(
-                p.l.translate(A, 0, P).rotateSelf(0, f).skewXSelf(7 * Math.sin(2 * V)).skewYSelf(
-                  7 * Math.sin(1.4 * V),
-                ),
-              )).transformPoint(),
-              S(a) < 1.5
-              && (v.j = 1,
-                a = [
-                  ,
-                  "Mark Zuckemberg<br>made the world worse",
-                  ,
-                  "Andrzej Mazur<br>for the js13k competition",
-                  "Donald Trump<br>lies",
-                  "Kim Jong-un<br>Dictator, liked pineapple on pizza",
-                  "Maxime Euziere<br>forced me to finish this game",
-                  "She traded NFTs apes",
-                  ,
-                  "Vladimir Putin<br>evil war",
-                  "He was not a good person",
-                  ,
-                  "Salvatore Previti<br>made this evil game<br><br>Done. Go back to the boat",
-                ][y] || "Catched a \"crypto bro\".<br>\"Web3\" is all scam, lies and grift",
-                t = y && y < 12 ? 5 : 7,
-                pt || (h4.innerHTML = a, x = V + t),
-                T());
-          }
-          v.j
-            && (a = e % 4 - 2,
-              v.l = lt[2].l.translate(
-                e % 4 * 1.2 - 1.7 + Math.sin(V + e) / 7,
-                -2,
-                1.7 * (e / 4 | 0) - 5.5 + (a < 0 ? -a : a) + Math.cos(V / 1.5 + e) / 6,
-              ));
-        },
-      },
-      p = D,
-      e = Tt.length,
-      d = t.map(([t, a, e]) => ({ x: t, z: a, w: e })),
-      z = d[0],
-      { x: b, z: I } = z,
-      A = b,
-      P = I;
-    Tt.push(v);
-  },
-  Ct = () => {
-    for (let t of lt) t.g && (t.l = t.g(t));
-    for (let t of ft) t.g();
-    for (let t of Tt) t.g();
-  },
-  Dt = (t, a, e, l) => {
-    let r = 0,
-      s = 0,
-      n = 0,
-      o = 1 / 0,
-      c = -1 / 0,
-      i = 1 / 0,
-      h = -1 / 0,
-      f = 1 / 0,
-      m = -1 / 0,
-      u = 1.1 * (e - a),
-      y = new DOMMatrix(St(hC.clientHeight / hC.clientWidth * 1.732051, 1.732051, a, e)).multiplySelf(t).invertSelf();
-    return t = et(
-      8,
-      t => (t = y.transformPoint({ x: 4 & t ? 1 : -1, y: 2 & t ? 1 : -1, z: 1 & t ? 1 : -1 }),
-        r -= t.x = (u * t.x | 0) / u / t.w,
-        s -= t.y = (u * t.y | 0) / u / t.w,
-        n -= t.z = (u * t.z | 0) / u / t.w,
-        t),
-    ),
-      a = Z.rotate(298, 139).translateSelf(r / 8, s / 8, n / 8),
-      I(t, a).map(({ x: t, y: a, z: e }) => {
-        o = t > o ? o : t,
-          c = c > t ? c : t,
-          i = a > i ? i : a,
-          h = h > a ? h : a,
-          f = e > f ? f : e,
-          m = m > e ? m : e;
-      }),
-      f *= f < 0 ? l : 1 / l,
-      m *= 0 < m ? l : 1 / l,
-      Z.scale(2 / (c - o), 2 / (h - i), 2 / (f - m)).translateSelf((c + o) / -2, (h + i) / -2, (f + m) / 2)
-        .multiplySelf(a).toFloat32Array();
-  },
-  Ht = (t, a = 35633) => (a = xt.c6x(a), xt.s3c(a, t), xt.c6a(a), a),
-  Qt = (t, a) => {
-    let e = {}, l = xt.c1h();
-    return xt.abz(l, t), xt.abz(l, Ht(a, 35632)), xt.l8l(l), t => t ? e[t] || (e[t] = xt.gan(l, t)) : xt.u7y(l);
-  },
-  C = new Float32Array(656),
-  Bt = (t, a, e) => {
-    if (ut) {
-      for (var { F: l } of (e = Z.rotate(0, 40 * Math.sin(Mt) - 70), [Xt, ...Rt])) r(l - 1, e);
-      xt.uae(t, !1, C), xt.d97(4, Rt[1].G - Xt.v, 5123, 2 * Xt.v);
-    } else {
-      for (let { H: t, F: a, l: e } of lt) t && r(a - 1, e);
-      for (xt.uae(t, !1, C), xt.d97(4, (a ? Rt[1].G : Xt.v) - 3, 5123, 6), l = 0; ft.length > l; ++l) {
-        r(l, ft[l].l), C[16 * l + 15] = 1 - ft[l].h;
-      }
-      for (xt.uae(t, !1, C), xt.das(4, H.G - H.v, 5123, 2 * H.v, ft.length), l = 0; l < 13; ++l) r(l, Tt[l].l);
-      e = e ? B : Q, xt.uae(t, !1, C), xt.das(4, e.G - e.v, 5123, 2 * e.v, 13);
-    }
-  },
-  R = new Int32Array(10725888),
-  D,
-  ut,
-  yt,
-  Ot,
-  H,
-  Q,
-  B,
-  Rt,
-  Xt,
-  X = "data:image/svg+xml;base64,"
-    + btoa(
-      "<svg color-interpolation-filters=\"sRGB\" height=\"1024\" width=\"1024\" xmlns=\"http://www.w3.org/2000/svg\"><filter filterUnits=\"userSpaceOnUse\" height=\"1026\" id=\"a\" width=\"1026\" x=\"0\" y=\"0\"><feTurbulence baseFrequency=\".007\" height=\"1025\" numOctaves=\"6\" stitchTiles=\"stitch\" width=\"1025\" result=\"z\" type=\"fractalNoise\" x=\"1\" y=\"1\"/><feTile height=\"1024\" width=\"1024\" x=\"-1\" y=\"-1\"/><feTile/><feDiffuseLighting diffuseConstant=\"4\" lighting-color=\"red\" surfaceScale=\"5\"><feDistantLight azimuth=\"270\" elevation=\"5\"/></feDiffuseLighting><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"x\"/><feColorMatrix values=\"0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 1\" in=\"z\"/><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"z\"/><feTurbulence baseFrequency=\".01\" height=\"1024\" numOctaves=\"5\" stitchTiles=\"stitch\" width=\"1024\"/><feColorMatrix values=\"0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1\"/><feBlend in2=\"x\" mode=\"screen\"/><feBlend in2=\"z\" mode=\"screen\"/></filter><rect filter=\"url(#a)\" height=\"100%\" width=\"100%\"/></svg>",
-    ),
-  L = (() => {
-    let a = et(
-        11,
-        t => Z.translate(Math.sin(t / 10 * Math.PI), t / 10).rotate(+t).scale(1.0001 - t / 10, 0, 1 - t / 10),
+    color,
+    polygon.$smooth,
+  );
+
+const polygons_transform = (polygons, m, color) => polygons.map(polygon => polygon_transform(polygon, m, color));
+
+const polygon_regular = (segments, elongate = 0) =>
+  integers_map(segments, i => {
+    const z = /* @__PURE__ */ Math.cos(2 * Math.PI * (i / segments));
+    return {
+      x: /* @__PURE__ */ Math.sin(2 * Math.PI * (i / segments)),
+      y: 0,
+      z: .01 > abs(z) ? z : 0 > z ? z - elongate : z + elongate,
+    };
+  });
+
+const cylinder_sides = (btm, top, smooth) =>
+  btm.map(
+    (btmi, i, { length }) =>
+      polygon_color(
+        [btmi, top[length - i - 1], top[length - (i + 1) % length - 1], btm[(i + 1) % length]],
+        btm.$color,
+        smooth,
       ),
-      e = A(18);
-    return et(10, t => s(I(e, a[t]).reverse(), I(e, a[t + 1]), 1)).flat();
-  })(),
-  q = m(
-    f(
-      o(i(20, 1, 1.15, 1), Z.translate(0, -3).scale(3.5, 1, 3.5), c(.7, .4, .25, .7)),
-      o(i(20, 1, 1.3, 1), Z.translate(0, -2.5).scale(2.6, 1, 3), c(.7, .4, .25, .2)),
-      o(i(u), Z.translate(4, -1.2).scale3d(2), c(.7, .4, .25, .3)),
-    ),
-  ),
-  W = m(
-    f(
-      o(i(u), Z.translate(0, -8).scale(6, 15, 2.2)),
-      o(i(u), Z.translate(0, -14.1).scale(4, 13, 4)),
-      o(i(20, 1), Z.translate(0, -1).rotate(90, 0, 90).scale3d(4)),
-    ),
-  ),
-  N = new AudioContext(),
-  E = N.createBufferSource(),
-  xt = hC.getContext("webgl2");
-for (let t in xt) xt[t[0] + [...t].reduce((t, a, e) => (t * e + a.charCodeAt(0)) % 434, 0).toString(36)] = xt[t];
-setTimeout(() => {
-  let e = 0,
-    t = 6,
-    a = () => {
-      if (h4.innerHTML += ".", !--t) {
-        let i = 0,
-          h = 0,
-          f = 1,
-          m = 0,
-          u = 0,
-          g = 0,
-          M = !1,
-          v = { x: 0, y: 0, z: 0 },
-          p = new Int32Array(256),
-          e = () => {
-            let { u: t, I: a } = ft[J], { x: e, y: l, z: r } = a.transformPoint({ x: 0, y: 8, z: -3 });
-            mt.x = v.x = e,
-              mt.y = v.y = Y = l,
-              mt.z = v.z = r,
-              b =
-                S =
-                P =
-                I =
-                A =
-                  0,
-              f = 1,
-              i = h = t?.F || 1;
-          },
-          l = t => {
-            requestAnimationFrame(l);
-            let a = (t - (Ot || t)) / 1e3;
-            w = ut ? it[5] = 0 : .066 < a ? .066 : a,
-              V += w,
-              Mt += a,
-              Ot = t,
-              0 < w && (xt.b6o(36160, B),
-                xt.r9r(0, 0, 128, 128, 6408, 5121, d),
-                xt.iay(36160, [36064]),
-                (() => {
-                  let a = 0,
-                    e = 0,
-                    t = ((() => {
-                      let s = 0, n = 0, a = 0, e = 0, o = 0;
-                      p.fill(0);
-                      for (let t = 0; t < 31; ++t) {
-                        let l = 0, r = 512 * t;
-                        for (let e = 0; e < 128; e++) {
-                          let t = r + 4 * e, a = (d[t] + d[1 + t]) / 255;
-                          t = d[2 + t],
-                            14 < e && e < 114 && (l += a),
-                            t && a && (a = p[t] + 1, p[t] = a, s > a || (s = a, n = t));
-                        }
-                        l < 3 && 5 < t && (e += t / 32), 3 < l && (7 < t && (a += t / 15), o = 1);
-                      }
-                      n && (o = 1),
-                        f ? n && (f = 0, h = n) : h = n || i,
-                        i = n,
-                        b = o,
-                        I = ht(I, o ? 6.5 : 8, 4),
-                        v.y += a / 41 - (o ? 1 : I) * e / 41 * I * w;
-                    })(),
-                      (() => {
-                        for (let t = 32; t < 128; t += 2) {
-                          let n = 0, o = 0, c = 0, i = 0, h = 512 * t;
-                          for (let s = t >> 1 & 1; s < 128; s += 2) {
-                            let t = h + 4 * s,
-                              a = h + 4 * (127 - s),
-                              e = d[t] / 255,
-                              l = d[1 + a] / 255,
-                              r = s / 63.5 - 1;
-                            r = 1 - (r < 0 ? -r : r),
-                              10 < s && s < 118
-                              && (n = $(n, $(e * r, e * d[a] / 127.5)), o = $(o, $(l * r, l * d[1 + t] / 255))),
-                              (s < 54 || 74 < s) && .001 < (t = (1 - r) * (l < e ? e : l) / 3)
-                              && (s < 64 && t > c ? c = t : 64 < s && t > i && (i = t));
-                          }
-                          c = i - c,
-                            n = o - n,
-                            (c < 0 ? -c : c) > (a < 0 ? -a : a) && (a = c),
-                            (n < 0 ? -n : n) > (e < 0 ? -e : e) && (e = n);
-                        }
-                      })(),
-                      (it[0] ? 1 : 0) + (it[2] ? -1 : 0) + K),
-                    l = (it[1] ? 1 : 0) + (it[3] ? -1 : 0) + G,
-                    r = navigator.getGamepads()[0];
-                  if (r) {
-                    var s = t => a[t]?.pressed || 0 < a[t]?.value;
-                    let a = r.buttons;
-                    r = r.axes;
-                    var n = s(1) || s(3) || s(2) || s(0);
-                    n !== M && (M = n) && (it[5] = 1),
-                      t += (.2 < wt(-r[0]) ? -r[0] : 0) + (s(14) ? 1 : 0) + (s(15) ? -1 : 0),
-                      l += (.2 < wt(-r[1]) ? -r[1] : 0) + (s(12) ? 1 : 0) + (s(13) ? -1 : 0),
-                      yt && (.3 < wt(r[2]) && (ct += 80 * r[2] * w), .3 < wt(r[3]) && (ot += 80 * r[3] * w));
-                  }
-                  (l < 0 ? -l : l) < .05 && (l = 0),
-                    (t < 0 ? -t : t) < .05 && (t = 0),
-                    s = Math.atan2(l, t),
-                    r = tt(Math.hypot(l, t)),
-                    t = r * Math.cos(s),
-                    l = r * Math.sin(s);
-                  let y = tt(1 - 5 * $(a < 0 ? -a : a, e < 0 ? -e : e)),
-                    x =
-                      (h || (a += P * y * w, e += S * y * w),
-                        P = ht(P, 0, b ? 8 : 4),
-                        S = ht(S, 0, b ? 8 : 4),
-                        A = ht(A, b ? (t || l ? b ? 7 : 4 : 0) * y : 0, b ? .1 < y ? 10 : t || l ? 5 : 7 : 1),
-                        y = Math.sin(n = yt ? ct * _ : Math.PI) * A * w,
-                        Math.cos(n) * A * w);
-                  if (
-                    a -= t * x - l * y,
-                      e -= t * y + l * x,
-                      (y = (n = 1 === lt[h].H && lt[h].l || Z).inverse()).m41 = 0,
-                      y.m42 = 0,
-                      y.m43 = 0,
-                      { x: a, z: e } = y.transformPoint({ x: a, z: e, w: 0 }),
-                      v.x += a,
-                      v.z += e,
-                      h !== W
-                  ) {
-                    W = h;
-                    let { x: t, y: a, z: e } = n.inverse().transformPoint(mt);
-                    v.x = t, v.y = a, v.z = e;
-                  }
-                  y = mt.x, x = mt.z;
-                  let { x: o, y: c, z } = n.transformPoint(v);
-                  mt.x = o,
-                    mt.y = c,
-                    mt.z = z,
-                    n = wt(Y - c),
-                    Y = ht(Y, c + .1, 50 * n + 5),
-                    h && (P = (mt.x - y) / w, S = (mt.z - x) / w),
-                    (t || l) && (m = 90 - s / _),
-                    u = At(u, m, 8 * w),
-                    g += (r - g) * tt(10 * w);
-                })(),
-                Ct()),
-              0 < w && (k = Pt(k, mt.x, .5, w),
-                F = Pt(F, mt.y, 2, w),
-                T = Pt(T, mt.z, .5, w),
-                yt
-                  ? (rt = ht(rt, mt.x, 18 + (t = 200 * f)),
-                    st = ht(st, mt.y + 1.5, 15 + t),
-                    nt = ht(nt, mt.z, 18 + t),
-                    ot = $(ot < 87 ? ot : 87, -87))
-                  : (rt = Pt(rt, k, 1, 2 * w),
-                    st = Pt(st, F + 13 + 15 * f, 4, 2 * w),
-                    1 < ((t = (nt = Pt(nt, T + -18, 1, 2 * w)) - T) < 0 ? -t : t)
-                    && (a = rt - k,
-                      ct = 270 + Math.atan2(t, a) / _,
-                      ot = 90 - Math.atan2(Math.hypot(t, a), st - F) / _)),
-                ct = It(ct),
-                0 < w
-                && (t = at(ft[12].h, ft[13].h),
-                  V > x && (h4.innerHTML = "", x = 0),
-                  a = ht(vt, 0, 1),
-                  vt = a + (It(vt + 60 * w) - a) * tt(ft[5].h - ft[6].i),
-                  a = ht(zt, 0, 5),
-                  zt = a + (It(zt + 56 * w) - a) * (t < 0 ? 0 : 1 < t ? 1 : t),
-                  a = ht(z, 0, 4),
-                  z = a + (It(z + 48 * w) - a) * (t < 0 ? 0 : 1 < t ? 1 : t),
-                  bt = ht(bt, ft[9].i, .2 + .3 * ((t = 2 * ft[9].i - 1) < 0 ? -t : t)),
-                  dt = ht(dt, pt ? dt + (-9 - dt) * tt(1.5 * w) : tt(V / 3), 1),
-                  1 === ft[0].j && .8 < ft[0].h && (y < 13
-                    ? (ft[0].j = 0, pt || (h4.innerHTML = "Not leaving now, there are souls to catch!", x = V + 3))
-                    : pt
-                      || (pt
-                        || (h4.innerHTML = "Well done. They will be punished.<br>Thanks for playing", x = V + 1 / 0),
-                        pt = 1)),
-                  it[5] = 0,
-                  (mt.x < -25 || mt.z < 109 ? -25 : -9) > mt.y && e())),
-              t = ut
-                ? Z.rotate(-20, -90).invertSelf().translateSelf(4.5, -2, -3.2 + tt(hC.clientWidth / 1e3))
-                : Z.rotate(-ot, -ct, -0).invertSelf().translateSelf(-rt, -st, -nt),
-              0 < w
-              && (H(),
-                xt.b6o(36160, B),
-                xt.v5y(0, 0, 128, 128),
-                xt.cbf(!0, !1, !0, !1),
-                xt.c4s(16640),
-                xt.uae(
-                  H("b"),
-                  !1,
-                  Z.rotate(0, 180).invertSelf().translateSelf(-mt.x, -mt.y, .3 - mt.z).toFloat32Array(),
-                ),
-                Bt(H("c"), 0, 1),
-                xt.cbf(!1, !0, !1, !1),
-                xt.c4s(16640),
-                xt.cbf(!1, !0, !0, !1),
-                xt.uae(H("b"), !1, Z.translate(-mt.x, -mt.y, -mt.z - .3).toFloat32Array()),
-                Bt(H("c"), 0, 1),
-                xt.cbf(!0, !0, !0, !0),
-                1 === h && (ft[9].j = mt.x < -15 && mt.z < 0 ? 1 : 0)),
-              C(),
-              xt.v5y(0, 0, 2048, 2048),
-              O[0](Dt(t, .3, 55, 10)),
-              O[1](Dt(t, 55, 177, 11)),
-              xt.b6o(36160, null),
-              Q(),
-              xt.v5y(0, 0, xt.drawingBufferWidth, xt.drawingBufferHeight),
-              xt.c4s(16640),
-              xt.uae(Q("a"), !1, St(hC.clientHeight / hC.clientWidth * 1.732051, 1.732051, .3, 177)),
-              xt.uae(Q("b"), !1, t.toFloat32Array()),
-              xt.ubu(Q("k"), rt, st, nt),
-              O[0](),
-              O[1](),
-              Bt(Q("c"), !yt, 0),
-              D(),
-              xt.ubu(D("j"), xt.drawingBufferWidth, xt.drawingBufferHeight, Mt),
-              ut ? xt.ubu(D("k"), 0, 0, 0) : xt.ubu(D("k"), rt, st, nt),
-              xt.uae(D("b"), !1, t.inverse().toFloat32Array()),
-              xt.d97(4, 3, 5123, 0);
-          },
-          d = new Uint8Array(65536),
-          X = 0,
-          r = [],
-          L = [],
-          q = [],
-          s = [],
-          n = new Map(),
-          o = new Int32Array(8),
-          c = t => {
-            let { x: a, y: e, z: l } = j[t], r = (R[0] = a, R[1] = e, R[2] = l, n.get(t = "" + (j.D ? E : o)));
-            return void 0 !== r
-              ? (a = 3 * r, s[a] = (s[a++] + o[5]) / 2, s[a] = (s[a++] + o[6]) / 2, s[a] = (s[a] + o[7]) / 2)
-              : (n.set(t, r = n.size), L.push(a, e, l, R[3]), q.push(o[4]), s.push(o[5], o[6], o[7])),
-              r;
-          },
-          W,
-          b,
-          I,
-          A,
-          P,
-          S,
-          Y,
-          k,
-          F,
-          T,
-          t,
-          j,
-          a = Ht(
-            "#version 300 es\nlayout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 a,b,c[40];void main(){mat4 i=c[f.w>0.?int(f.w)-1:gl_InstanceID];l=mix(d,vec4(.7,1,.2,0),d.w>0.?0.:1.-i[3][3]),i[3][3]=1.,n=f,m=i*vec4(f.xyz,1),gl_Position=a*b*m,m.w=f.w,o=i*vec4(e,0);}",
-          ),
-          C = Qt(
-            Ht(
-              "#version 300 es\nin vec4 f;uniform mat4 b,c[40];void main(){mat4 i=c[f.w>0.?int(f.w)-1:gl_InstanceID];i[3][3]=1.,gl_Position=b*i*vec4(f.xyz,1);}",
-            ),
-            "#version 300 es\nvoid main(){}",
-          ),
-          D = Qt(
-            Ht("#version 300 es\nin vec4 f;void main(){gl_Position=vec4(f.xy,1,1);}"),
-            "#version 300 es\nprecision highp float;uniform vec3 j,k;uniform mat4 b;uniform highp sampler2D q;out vec4 O;void main(){vec2 t=gl_FragCoord.xy/j.xy*2.-1.;vec3 e=(normalize(b*vec4(t.x*-(j.x/j.y),-t.y,1.73205,0.))).xyz;float i=(-32.-k.y)/e.y,o=1.-clamp(abs(i/9999.),0.,1.);if(O=vec4(0,0,0,1),o>.01){if(i>0.){float o=cos(j.z/30.),i=sin(j.z/30.);e.xz*=mat2(o,i,-i,o);vec3 t=abs(e);O.xyz=vec3(dot(vec2(texture(q,e.xy).z,texture(q,e.yz*2.).z),t.zx)*t.y);}else e=k+e*i,O.x=(o*=.9-texture(q,e.xz/150.+vec2(sin(e.z/35.+j.z),cos(e.x/25.+j.z))/80.).y),O.y=o*o*o;}}",
-          ),
-          H = Qt(
-            a,
-            "#version 300 es\nprecision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(m.xyz,1);float r=1.-min(abs(a.z/a.w),1.);O=vec4(vec2(r*(gl_FragCoord.y>31.?1.:abs(o.y))),r>0.?m.w/255.:0.,1);}",
-          ),
-          Q = Qt(
-            a,
-            "#version 300 es\nprecision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform highp sampler2DShadow g,h;uniform highp sampler2D q;out vec4 O;void main(){vec4 c=vec4(m.xyz,1);vec3 e=normalize(o.xyz),s=l.w*(texture(q,n.yz*.035)*e.x+texture(q,n.xz*.035)*e.y+texture(q,n.xy*.035)*e.z).xyz;e=normalize(e+s*.5);float x=dot(e,vec3(-.656059,.666369,-.35431468)),t=1.,v=abs((b*c).z);vec4 r=(v<55.?i:j)*c;if(r=r/r.w*.5+.5,r.z<1.){t=0.;for(float e=-1.;e<=1.;++e)for(float a=-1.;a<=1.;++a){vec3 x=vec3(r.xy+vec2(e,a)/2048.,r.z-.00017439);t+=v<55.?texture(g,x):texture(h,x);}t/=9.;}vec3 a=l.xyz*(1.-s.x);O=vec4(vec3(.09,.05,.1)*a+a*(max(0.,x)*.5+a*x*x*vec3(.5,.45,.3))*(t*.7+.3)+a*max(dot(e,vec3(.09901475,-.99014753,-.09901475)),0.)*max(0.,2.-m.y)*vec3(.04285714,.00714286,0)+vec3(.6,.6,.5)*pow(max(0.,dot(normalize(m.xyz-k),reflect(vec3(-.656059,.666369,-.35431468),e))),35.)*t,1);}",
-          ),
-          B =
-            (D(), xt.ubh(D("q"), 3), H(), xt.uae(H("a"), !1, St(1.4, .59, 1e-4, 1)), Q(), xt.ubh(Q("q"), 3), xt.c5w()),
-          N = (a = xt.c3z(), xt.c25()),
-          O = et(2, t => {
-            let a, e = xt.c25(), l = xt.c5w(), r = Q(t ? "j" : "i");
-            return Q(),
-              xt.ubh(Q(t ? "h" : "g"), t),
-              xt.b6o(36160, l),
-              xt.d45([0]),
-              xt.r9l(0),
-              xt.a4v(33984 + t),
-              xt.b9j(3553, e),
-              xt.fas(36160, 36096, 3553, e, 0),
-              xt.t60(3553, 0, 33190, 2048, 2048, 0, 6402, 5125, null),
-              xt.t2z(3553, 10241, 9729),
-              xt.t2z(3553, 10240, 9729),
-              xt.t2z(3553, 34893, 515),
-              xt.t2z(3553, 34892, 34894),
-              xt.t2z(3553, 10243, 33071),
-              xt.t2z(3553, 10242, 33071),
-              t => {
-                t
-                  ? (a = t,
-                    xt.b6o(36160, l),
-                    xt.iay(36160, [36096]),
-                    xt.c4s(256),
-                    xt.uae(C("b"), !1, a),
-                    Bt(C("c"), !yt, 0))
-                  : xt.uae(r, !1, a);
-              };
-          }),
-          E = new Int32Array(o.buffer, 0, 5),
-          R = new Float32Array(o.buffer);
-        for (t of lt) {
-          for (j of (R[3] = t.H ? t.F : 0, t.s)) {
-            let { x: t, y: a, z: e } = Yt(j);
-            o[4] = 0 | j.A, o[5] = 32767 * t, o[6] = 32767 * a, o[7] = 32767 * e;
-            for (let t = 2, a = c(0), e = c(1); j.length > t; ++t) r.push(a, e, e = c(t));
-          }
-          t.s = null, t.v = X, t.G = X = r.length;
-        }
-        xt.b11(34963, xt.c1b()),
-          xt.b2v(34963, new Uint16Array(r), 35044),
-          xt.b11(34962, xt.c1b()),
-          xt.b2v(34962, new Float32Array(L), 35044),
-          xt.v7s(0, 4, 5126, !1, 0, 0),
-          xt.b11(34962, xt.c1b()),
-          xt.b2v(34962, new Int16Array(s), 35044),
-          xt.v7s(1, 3, 5122, !0, 0, 0),
-          xt.b11(34962, xt.c1b()),
-          xt.b2v(34962, new Uint32Array(q), 35044),
-          xt.v7s(2, 4, 5121, !0, 0, 0),
-          xt.e3x(0),
-          xt.e3x(1),
-          xt.e3x(2),
-          xt.e8z(2929),
-          xt.e8z(2884),
-          xt.c70(1),
-          xt.c7a(1029),
-          xt.d4n(515),
-          xt.c5t(0, 0, 0, 1),
-          xt.b6o(36160, B),
-          xt.bb1(36161, a),
-          xt.r4v(36161, 33189, 128, 128),
-          xt.f8w(36160, 36096, 36161, a),
-          xt.a4v(33987),
-          xt.b9j(3553, N),
-          xt.fas(36160, 36064, 3553, N, 0),
-          xt.t60(3553, 0, 6407, 128, 128, 0, 6407, 5121, null),
-          xt.b9j(3553, xt.c25()),
-          xt.t60(3553, 0, 6408, 1024, 1024, 0, 6408, 5121, U),
-          xt.gbn(3553),
-          xt.t2z(3553, 10241, 9987),
-          xt.t2z(3553, 10240, 9729),
-          Xt.g = () => Z.translate(mt.x, Y, mt.z).rotateSelf(0, u),
-          Rt.map((t, a) => {
-            t.g = () =>
-              Xt.l.translate(0, g * tt(.45 * Math.sin(9.1 * V + Math.PI * a - Math.PI / 2))).rotateSelf(
-                g * Math.sin(9.1 * V + Math.PI * a) * .25 / _,
-                0,
-              );
-          });
-        try {
-          let [e, l, t, a, r] = JSON.parse(localStorage.DanteSP22);
-          ft.map((t, a) => t.h = t.i = t.j = a ? 0 | e[a] : 0), Tt.map((t, a) => t.j = 0 | l[a]), J = t, V = a, bt = r;
-        } catch (t) {}
-        dt = J < 0 ? 0 : 1 < J ? 1 : J,
-          h4.innerHTML = "",
-          x = 0,
-          jt(),
-          Ct(),
-          (() => {
-            let r = 0,
-              s = 0,
-              t = 0,
-              a = () => {
-                hC.width = innerWidth,
-                  hC.height = innerHeight,
-                  it.length = K = G = 0,
-                  n = o = void 0,
-                  document.hidden && Ft(!0);
-              },
-              n,
-              o,
-              c;
-            b1.onclick = () => Ft(),
-              b2.onclick = () => {
-                Ft(), yt = 1;
-              },
-              b3.onclick = () => {
-                confirm("Restart game?") && (localStorage.DanteSP22 = "", location.reload());
-              },
-              b4.onclick = () => {
-                gt = !gt, kt();
-              },
-              b5.onclick = () => Ft(!0),
-              onclick = () => {
-                c = 1, ut || (it[5] = !0, yt && hC.requestPointerLock());
-              },
-              document.onvisibilitychange = onresize = onblur = a,
-              onkeydown = onkeyup = ({ code: t, target: a, type: e, repeat: l }) => {
-                l || ((a = !!e[5] && a === document.body) && ("Escape" === t || "Enter" === t && ut)
-                  ? ut && !c || Ft(!ut)
-                  : 5
-                      === (t = {
-                        KeyA: 0,
-                        ArrowLeft: 0,
-                        KeyW: 1,
-                        ArrowUp: 1,
-                        KeyD: 2,
-                        ArrowRight: 2,
-                        KeyS: 3,
-                        ArrowDown: 3,
-                        KeyE: 5,
-                        Space: 5,
-                        Enter: 5,
-                      }[t])
-                  ? a && (it[t] = 1)
-                  : it[t] = a);
-              },
-              onmousemove = ({ movementX: t, movementY: a }) => {
-                yt && (t || a) && (ct += .1 * t, ot += .1 * a);
-              },
-              hC.ontouchstart = a => {
-                if (!ut) {
-                  for (let t of a.changedTouches) {
-                    yt && t.pageX > hC.clientWidth / 2
-                      ? n || (n = t, r = ct, s = ot)
-                      : o = o || t;
-                  }
-                  t = Mt;
-                }
-              },
-              hC.ontouchmove = ({ changedTouches: l }) => {
-                if (!ut) {
-                  for (
-                    let { pageX: t, pageY: a, identifier: e } of l
-                  ) {
-                    n?.identifier === e && (ct = r + (t - n.pageX) / 3, ot = s + (a - n.pageY) / 3),
-                      o?.identifier === e
-                      && (K = -(t - o.pageX) / 18,
-                        G = -(a - o.pageY) / 18,
-                        K = (K < 0 ? -K : K) < .35 ? 0 : .8 * K,
-                        G = (G < 0 ? -G : G) < .35 ? 0 : .8 * G);
-                  }
-                }
-              },
-              hC.ontouchend = a => {
-                for (let t of a.changedTouches) {
-                  t.identifier === n?.identifier && (n = void 0),
-                    t.identifier === o?.identifier && (o = void 0, G = K = 0);
-                }
-                a.preventDefault(), a = Mt - t, (!t || .02 < a && a < .4) && (it[5] = !0);
-              },
-              oncontextmenu = () => !1,
-              a(),
-              Ft(!0);
-          })(),
-          e(),
-          rt = k = mt.x,
-          st = (F = mt.y) + 13,
-          nt = (T = mt.z) + -18,
-          requestAnimationFrame(l);
-      }
+  );
+
+const cylinder = (segments, smooth, topSize = 0, elongate) => {
+  const points = segments.length ? segments : polygon_regular(segments, elongate);
+  const top = polygon_transform(points, identity.translate(0, 1).scale3d(topSize > 0 ? topSize : 1));
+  const bottom = polygon_transform(points, identity.translate(0, -1).scale3d(0 > topSize ? -topSize : 1)).reverse();
+  return [...cylinder_sides(bottom, top, smooth), bottom, top];
+};
+
+const sphere = (
+  slices,
+  stacks = slices,
+  vertexFunc = ((x, y) => {
+    y *= Math.PI / stacks;
+    x *= 2 * Math.PI / slices;
+    return {
+      x: /* @__PURE__ */ Math.cos(x) * /* @__PURE__ */ Math.sin(y),
+      y: /* @__PURE__ */ Math.cos(y),
+      z: /* @__PURE__ */ Math.sin(x) * /* @__PURE__ */ Math.sin(y),
+    };
+  }),
+) => {
+  const polygons = [];
+  for (let i = 0; slices > i; i++) {
+    for (let j = 0; stacks > j; j++) {
+      const vertex = (x, y) => polygon.push(vertexFunc(x, y, polygon));
+      const polygon = polygon_color([], 0, 1);
+      polygons.push(polygon);
+      vertex(i, j);
+      j && vertex((i + 1) % slices, j);
+      stacks - 1 > j && vertex((i + 1) % slices, j + 1 % stacks);
+      vertex(i, j + 1 % stacks);
+    }
+  }
+  return polygons;
+};
+
+const CSGPolygon_splitSpanning = (plane, polygon) => {
+  let jd;
+  const fpoints = [];
+  const bpoints = [];
+  const { $polygon, $flipped } = polygon;
+  let iv = $polygon.at(-1);
+  let id = vec3_dot(plane, iv) - plane.w;
+  for (const jv of $polygon) {
+    jd = vec3_dot(plane, jv) - plane.w;
+    8e-5 > id && bpoints.push(iv);
+    id > -8e-5 && fpoints.push(iv);
+    if (id > 8e-5 && -8e-5 > jd || -8e-5 > id && jd > 8e-5) {
+      id /= jd - id;
+      iv = {
+        x: iv.x + (iv.x - jv.x) * id,
+        y: iv.y + (iv.y - jv.y) * id,
+        z: iv.z + (iv.z - jv.z) * id,
+      };
+      fpoints.push(iv);
+      bpoints.push(iv);
+    }
+    iv = jv;
+    id = jd;
+  }
+  return {
+    $front: fpoints.length > 2 && {
+      $polygon: polygon_color(fpoints, $polygon.$color, $polygon.$smooth),
+      $flipped,
+      $parent: polygon,
     },
-    l = () => {
-      if (e < 5) {
-        var D = 0, H = e++;
-        let [v, p, d, b, I, A, P, S, y, x, Y, , z, k, F, T, t, w, a, j, C] =
-          [[69, 128, 0, 143, 128, 0, 0, 196, 100, 36, 0, 0, 149, 110, 31, 47, 3, 56, 2, 0, [
-            "(.15:15:=5:=A:=AF=AFIFIMRMRUY(Y(((((((((((((((((((((((((((((M(M(((((((((((((((((((((((((((((R(R(((((((((((((((((((((((((((((U(U",
-            "(059<59<A9<AE<AEHAEHMEHMQMQTY(Y",
-            "(5:>A:>AF>AFJAFJMFJMRJMRVMRVY(Y",
-            "(:?BFFKNRRWZ^(^((:=@FFILRRUX^(^",
-            "Q(M(M(O(Q(R(T(Q(T(R(W(U(T(R(Q(N(W((Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(X]",
-            "QN(M(N(M(N(M(N(M((((((((((((((((W(Y(Y(Y(Y(Y(Y(Y(Y(((((((((((((((]",
-          ]], [100, 128, 0, 201, 128, 0, 0, 100, 144, 35, 0, 6, 135, 0, 32, 147, 6, 0, 6, 195, [
-            ".(5(.(5(.(5(.(5(.(5(.(5(.(5(.(5",
-            "-(5(-(5(-(5(-(5(-(5(-(5(-(5(-(5",
-            ",(5(,(5(,(5(,(5(,(5(,(5(,(5(,(5",
-            "*(6(*(6(*(6(*(6(*(6(*(6(*(6(*(6",
-            "5(E(E(F(H(I(K(H(K(I(N(M(K(I(H(F(A(((((((((((((((((((((((((((((((5(((5(((5(((5(((5(((5(((5(((5",
-            "5(6(5(6(5(6(5(6(5((()(((((((((((A(B(A(B(A(B(A(B(A(((5",
-          ]], [255, 116, 85, 255, 116, 37, 14, 64, 144, 73, 99, 0, 136, 15, 32, 0, 0, 66, 6, 0, [
-            "9(((9(((9(((9(((9(((9(((9(((9",
-            "9(((Q(((Q(((Q",
-          ]], [0, 140, 0, 0, 140, 0, 81, 64, 400, 47, 55, 5, 239, 135, 13, 176, 5, 16, 4, 187, [
-            "9(9(9(9(9(9(9(999(9(9(9(999(9(9",
-            "9(9(9(9(9(999(9(((((Q",
-          ]], [221, 128, 64, 210, 128, 64, 255, 64, 144, 73, 79, 7, 195, 15, 21, 20, 0, 9, 3, 64, [
-            "((((Q(((((((Q(((((((Q(((((((Q",
-            "Q((Q((Q((Q((Q((Q((((Q",
-          ]]][H];
-        x = x * x * 4;
-        for (let M of [5513, 4562, 3891]) {
-          let r = 0,
-            s = 0,
-            f = [],
-            m,
-            n,
-            o,
-            c,
-            i,
-            h = new Int32Array(768 * M),
-            u = Math.PI * 2 ** (t - 8) / M,
-            g = a * M & -2;
-          for (let l = 0; l <= 11; ++l) {
-            for (
-              let t = 0, a = +"000001234556112341234556011111111112011111111112000001111112"[12 * H + l];
-              t < 32;
-              ++t
-            ) {
-              let e = (32 * l + t) * M;
-              for (var Q, B = 0; B < 4; ++B) {
-                if (m = 0, a && (m = C[a - 1].charCodeAt(t + 32 * B) - 40, m += 0 < m ? 106 : 0), m) {
-                  if (!(Q = f[m])) {
-                    let l = 0,
-                      r = 0,
-                      s,
-                      n,
-                      o = Q = m,
-                      c = H < 2
-                        ? t => t % 1 * 2 - 1
-                        : O,
-                      i = H < 2
-                        ? H < 1
-                          ? t => t % 1 < .5 ? 1 : -1
-                          : t => (t = t % 1 * 4) < 2 ? t - 1 : 3 - t
-                        : O,
-                      h = new Int32Array(S + y + x);
-                    for (let a = 0, e = 0; S + y + x > a; ++a, ++e) {
-                      let t = 1;
-                      S > a ? t = a / S : S + y > a || (t = (1 - (t = (a - S - y) / x)) * 3 ** (-Y / 16 * t)),
-                        e < 0
-                        || (e -= 4 * M,
-                          n = .00396 * 2 ** ((o + p - 256) / 12),
-                          s = .00396 * 2 ** ((o + I - 256) / 12) * (1 + (H ? 0 : 8e-4 * 9))),
-                        h[a] = 80
-                            * (c(l += n * t ** (d / 32)) * v + i(r += s * t ** (A / 32)) * b
-                              + (P ? (2 * Math.random() - 1) * P : 0))
-                            * t | 0;
-                    }
-                    Q = f[Q] = h;
-                  }
-                  for (let t = 0, a = 2 * e; Q.length > t; ++t, a += 2) h[a] += Q[t];
-                }
-              }
-              for (let t, a = 0; M > a; ++a) {
-                B = 0,
-                  ((t = h[Q = 2 * (e + a)]) || i)
-                  && (o = .00308 * z,
-                    1 != H && 4 != H || (o *= Math.sin(2 ** (t - 9) / M * Q * Math.PI * 2) * j / 512 + .5),
-                    o = 1.5 * Math.sin(o),
-                    r += o * s,
-                    c = (1 - k / 255) * (t - s) - r,
-                    s += o * c,
-                    t = 4 == H ? s : 3 == H ? c : r,
-                    H || (t = (t *= 22e-5) < 1 ? -1 < t ? Math.sin(t / 4 * Math.PI * 2) : -1 : 1, t /= 22e-5),
-                    t *= F / 32,
-                    i = 1e-5 < t * t,
-                    n = Math.sin(u * Q) * T / 512 + .5,
-                    B = t * (1 - n),
-                    t *= n),
-                  Q < g || (B += h[Q - g + 1] * w / 255, t += h[Q - g] * w / 255),
-                  R[D + Q] += h[Q] = B,
-                  ++Q,
-                  R[D + Q] += h[Q] = t;
-              }
-            }
-          }
-          D += h.length;
-        }
-        setTimeout(l);
+    $back: bpoints.length > 2 && {
+      $polygon: polygon_color(bpoints, $polygon.$color, $polygon.$smooth),
+      $flipped,
+      $parent: polygon,
+    },
+  };
+};
+
+const CSGPolygon_split = (plane, polygon) => {
+  let $front;
+  let $back;
+  let d;
+  const { $polygon } = polygon;
+  for (let i = 0; $polygon.length > i; ++i) {
+    d = vec3_dot(plane, $polygon[i]) - plane.w;
+    -8e-5 > d ? $back = polygon : d > 8e-5 && ($front = polygon);
+    if ($back && $front) return CSGPolygon_splitSpanning(plane, polygon);
+  }
+  return {
+    $front,
+    $back,
+  };
+};
+
+const csg_tree_addPolygon = (node, polygon, plane = plane_fromPolygon(polygon.$polygon)) => {
+  if (node) {
+    const { $front, $back } = CSGPolygon_split(node, polygon);
+    $front || $back || node.$polygons.push(polygon);
+    $front && (node.$front = csg_tree_addPolygon(node.$front, $front, plane));
+    $back && (node.$back = csg_tree_addPolygon(node.$back, $back, plane));
+  } else {
+    const { x, y, z, w } = plane;
+    node = {
+      x,
+      y,
+      z,
+      w,
+      $polygons: [polygon],
+      $front: 0,
+      $back: 0,
+    };
+  }
+  return node;
+};
+
+const csg_tree_clipNode = (anode, bnode, polygonPlaneFlipped) => {
+  const result = [];
+  const recursion = (node, polygon) => {
+    let { $front, $back } = CSGPolygon_split(node, polygon);
+    $front || $back || (polygonPlaneFlipped * vec3_dot(node, bnode) > 0 ? $front = polygon : $back = polygon);
+    $front && (node.$front ? recursion(node.$front, $front) : result.push($front));
+    $back && node.$back && recursion(node.$back, $back);
+  };
+  for (const polygon of bnode.$polygons) recursion(anode, polygon);
+  return result;
+};
+
+const csg_tree_each = (node, fn) => node && (fn(node), csg_tree_each(node.$front, fn), csg_tree_each(node.$back, fn));
+
+const csg_tree = n =>
+  n.length
+    ? n.reduce((prev, $polygon) =>
+      csg_tree_addPolygon(prev, {
+        $polygon,
+        $flipped: 0,
+        $parent: 0,
+      }), 0)
+    : n;
+
+const csg_tree_flip = root => {
+  csg_tree_each(root, node => {
+    const { $front, $back } = node;
+    node.$back = $front;
+    node.$front = $back;
+    node.x *= -1;
+    node.y *= -1;
+    node.z *= -1;
+    node.w *= -1;
+    for (const polygon of node.$polygons) polygon.$flipped = !polygon.$flipped;
+  });
+  return root;
+};
+
+const csg_union = (...inputs) =>
+  inputs.reduce((a, b) => {
+    const polygonsToAdd = [];
+    a = csg_tree(a);
+    if (b) {
+      b = csg_tree(b);
+      csg_tree_each(a, node => node.$polygons = csg_tree_clipNode(b, node, 1));
+      csg_tree_each(b, node => polygonsToAdd.push([node, csg_tree_clipNode(a, node, -1)]));
+      for (const [plane, polygons] of polygonsToAdd) for (const pp of polygons) csg_tree_addPolygon(a, pp, plane);
+    }
+    return a;
+  });
+
+const csg_subtract = (a, ...b) => csg_tree_flip(csg_union(csg_tree_flip(csg_tree(a)), ...b));
+
+const csg_polygons = tree => {
+  const byParent = /* @__PURE__ */ new Map();
+  const allPolygons = /* @__PURE__ */ new Map();
+  const add = polygon => {
+    if (polygon.$parent) {
+      const found = byParent.get(polygon.$parent);
+      if (found) {
+        allPolygons.delete(found);
+        polygon = add(polygon.$parent);
+      } else byParent.set(polygon.$parent, polygon);
+    }
+    return polygon;
+  };
+  csg_tree_each(tree, node => {
+    for (const polygon of node.$polygons) allPolygons.set(add(polygon), polygon.$flipped);
+  });
+  return Array.from(allPolygons, ([{ $polygon }, flipped]) => {
+    const polygon = $polygon.map(({ x, y, z }) => ({
+      x,
+      y,
+      z,
+    }));
+    return polygon_color(flipped ? polygon.reverse() : polygon, $polygon.$color, $polygon.$smooth);
+  });
+};
+
+const GQuad = [{
+  x: -1,
+  z: 1,
+}, {
+  x: 1,
+  z: 1,
+}, {
+  x: 1,
+  z: -1,
+}, {
+  x: -1,
+  z: -1,
+}];
+
+const GHorn = (() => {
+  const matrices = integers_map(
+    11,
+    i =>
+      identity.translate(/* @__PURE__ */ Math.sin(i / 10 * Math.PI), i / 10).rotate(i / 10 * 10).scale(
+        1.0001 - i / 10,
+        0,
+        1 - i / 10,
+      ),
+  );
+  const p = polygon_regular(18);
+  return integers_map(
+    10,
+    i => cylinder_sides(polygon_transform(p, matrices[i]).reverse(), polygon_transform(p, matrices[i + 1]), 1),
+  ).flat();
+})();
+
+const boatPolygons = csg_polygons(
+  csg_subtract(
+    polygons_transform(
+      cylinder(20, 1, 1.15, 1),
+      identity.translate(0, -3).scale(3.5, 1, 3.5),
+      material(.7, .4, .25, .7),
+    ),
+    polygons_transform(
+      cylinder(20, 1, 1.3, 1),
+      identity.translate(0, -2.5).scale(2.6, 1, 3),
+      material(.7, .4, .25, .2),
+    ),
+    polygons_transform(cylinder(GQuad), identity.translate(4, -1.2).scale3d(2), material(.7, .4, .25, .3)),
+  ),
+);
+
+const bigArc = csg_polygons(
+  csg_subtract(
+    polygons_transform(cylinder(GQuad), identity.translate(0, -8).scale(6, 15, 2.2)),
+    polygons_transform(cylinder(GQuad), identity.translate(0, -14.1).scale(4, 13, 4)),
+    polygons_transform(cylinder(20, 1), identity.translate(0, -1).rotate(90, 0, 90).scale3d(4)),
+  ),
+);
+
+let currentEditModel;
+
+const allModels = [];
+
+const meshAdd = (polygons, transform = identity, color) =>
+  currentEditModel.$polygons.push(...polygons_transform(polygons, transform, color));
+
+const newModel = (fn, $kind = 1) => {
+  const previousModel = currentEditModel;
+  const model = {
+    $matrix: identity,
+    $modelId: allModels.length,
+    $kind,
+    $polygons: [],
+  };
+  allModels.push(currentEditModel = model);
+  fn(model);
+  currentEditModel = previousModel;
+  return model;
+};
+
+const camera_position = {
+  x: -11,
+  y: 17,
+  z: -90,
+};
+
+const camera_rotation = {
+  x: 0,
+  y: 0,
+  z: 0,
+};
+
+const mat_perspective = (near, far) =>
+  mat_perspectiveXY(hC.clientHeight / hC.clientWidth * fieldOfViewAmount, fieldOfViewAmount, near, far);
+
+const fieldOfViewAmount = 1.7320508075688774;
+
+const song_instruments = [[69, 128, 0, 143, 128, 0, 0, 196, 100, 36, 0, 0, 149, 110, 31, 47, 3, 56, 2, 0, [
+  "(.15:15:=5:=A:=AF=AFIFIMRMRUY(Y(((((((((((((((((((((((((((((M(M(((((((((((((((((((((((((((((R(R(((((((((((((((((((((((((((((U(U",
+  "(059<59<A9<AE<AEHAEHMEHMQMQTY(Y",
+  "(5:>A:>AF>AFJAFJMFJMRJMRVMRVY(Y",
+  "(:?BFFKNRRWZ^(^((:=@FFILRRUX^(^",
+  "Q(M(M(O(Q(R(T(Q(T(R(W(U(T(R(Q(N(W((Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(X]",
+  "QN(M(N(M(N(M(N(M((((((((((((((((W(Y(Y(Y(Y(Y(Y(Y(Y(((((((((((((((]",
+]], [100, 128, 0, 201, 128, 0, 0, 100, 144, 35, 0, 6, 135, 0, 32, 147, 6, 0, 6, 195, [
+  ".(5(.(5(.(5(.(5(.(5(.(5(.(5(.(5",
+  "-(5(-(5(-(5(-(5(-(5(-(5(-(5(-(5",
+  ",(5(,(5(,(5(,(5(,(5(,(5(,(5(,(5",
+  "*(6(*(6(*(6(*(6(*(6(*(6(*(6(*(6",
+  "5(E(E(F(H(I(K(H(K(I(N(M(K(I(H(F(A(((((((((((((((((((((((((((((((5(((5(((5(((5(((5(((5(((5(((5",
+  "5(6(5(6(5(6(5(6(5((()(((((((((((A(B(A(B(A(B(A(B(A(((5",
+]], [255, 116, 85, 255, 116, 37, 14, 64, 144, 73, 99, 0, 136, 15, 32, 0, 0, 66, 6, 0, [
+  "9(((9(((9(((9(((9(((9(((9(((9",
+  "9(((Q(((Q(((Q",
+]], [0, 140, 0, 0, 140, 0, 81, 64, 400, 47, 55, 5, 239, 135, 13, 176, 5, 16, 4, 187, [
+  "9(9(9(9(9(9(9(999(9(9(9(999(9(9",
+  "9(9(9(9(9(999(9(((((Q",
+]], [221, 128, 64, 210, 128, 64, 255, 64, 144, 73, 79, 7, 195, 15, 21, 20, 0, 9, 3, 64, [
+  "((((Q(((((((Q(((((((Q(((((((Q",
+  "Q((Q((Q((Q((Q((Q((((Q",
+]]];
+
+const getSegmentNumWords = song_rowLen => 768 * song_rowLen;
+
+const song_numWords = getSegmentNumWords(5513) + getSegmentNumWords(4562) + getSegmentNumWords(3891);
+
+const getnotefreq = n => .003959503758 * 2 ** ((n - 256) / 12);
+
+const osc_sin = value => /* @__PURE__ */ Math.sin(value * Math.PI * 2);
+
+const osc_square = value => .5 > value % 1 ? 1 : -1;
+
+const osc_saw = value => value % 1 * 2 - 1;
+
+const osc_tri = value => {
+  const v2 = value % 1 * 4;
+  return 2 > v2 ? v2 - 1 : 3 - v2;
+};
+
+const soundbox_mixbuffer = new Int32Array(song_numWords);
+
+const audioContext = new AudioContext();
+
+const songAudioSource = audioContext.createBufferSource();
+
+let music_on = !0;
+
+let touch_movementX = 0;
+
+let touch_movementY = 0;
+
+let mainMenuVisible;
+
+let player_first_person;
+
+const keyboard_downKeys = [];
+
+const updateMusicOnState = () => {
+  mainMenuVisible || !music_on ? songAudioSource.disconnect() : songAudioSource.connect(audioContext.destination);
+  b4.innerHTML = "Music: " + music_on;
+};
+
+const setMainMenuVisible = (value = !1) => {
+  if (mainMenuVisible !== value) {
+    mainMenuVisible = value;
+    player_first_person = 0;
+    try {
+      value ? document.exitPointerLock() : songAudioSource.start();
+    } catch {}
+    document.body.className = value ? "l m" : "l";
+    updateMusicOnState();
+  }
+};
+
+const initPage = () => {
+  let touchStartCameraRotX = 0;
+  let touchStartCameraRotY = 0;
+  let touchStartTime = 0;
+  let cameraRotTouch;
+  let cameraPosTouch;
+  let pageClicked;
+  const handleResize = () => {
+    hC.width = innerWidth;
+    hC.height = innerHeight;
+    keyboard_downKeys.length = touch_movementX = touch_movementY = 0;
+    cameraRotTouch = cameraPosTouch = void 0;
+    document.hidden && setMainMenuVisible(!0);
+  };
+  b1.onclick = () => setMainMenuVisible();
+  b2.onclick = () => {
+    setMainMenuVisible();
+    player_first_person = 1;
+  };
+  b3.onclick = () => {
+    if (confirm("Restart game?")) {
+      localStorage[LOCAL_STORAGE_SAVED_GAME_KEY] = "";
+      location.reload();
+    }
+  };
+  b4.onclick = () => {
+    music_on = !music_on;
+    updateMusicOnState();
+  };
+  b5.onclick = () => setMainMenuVisible(!0);
+  onclick = () => {
+    pageClicked = 1;
+    if (!mainMenuVisible) {
+      keyboard_downKeys[5] = !0;
+      player_first_person && hC.requestPointerLock();
+    }
+  };
+  document.onvisibilitychange = onresize = onblur = handleResize;
+  onkeydown = onkeyup = ({ code: code2, target, type, repeat }) => {
+    if (!repeat) {
+      const pressed = !!type[5] && target === document.body;
+      if (pressed && ("Escape" === code2 || "Enter" === code2 && mainMenuVisible)) {
+        mainMenuVisible && !pageClicked || setMainMenuVisible(!mainMenuVisible);
       } else {
-        for (D = N.createBuffer(2, 5362944, 44100), H = 0; H < 2; H++) {
-          for (let t = H, a = D.getChannelData(H); t < 10725888; t += 2) {
-            a[t >> 1] = R[t] / 65536;
+        const mapped = {
+          ["KeyA"]: 0,
+          ["ArrowLeft"]: 0,
+          ["KeyW"]: 1,
+          ["ArrowUp"]: 1,
+          ["KeyD"]: 2,
+          ["ArrowRight"]: 2,
+          ["KeyS"]: 3,
+          ["ArrowDown"]: 3,
+          ["KeyE"]: 5,
+          ["Space"]: 5,
+          ["Enter"]: 5,
+        }[code2];
+        5 === mapped ? pressed && (keyboard_downKeys[mapped] = 1) : keyboard_downKeys[mapped] = pressed;
+      }
+    }
+  };
+  onmousemove = ({ movementX, movementY }) => {
+    if (player_first_person && (movementX || movementY)) {
+      camera_rotation.y += .1 * movementX;
+      camera_rotation.x += .1 * movementY;
+    }
+  };
+  hC.ontouchstart = e => {
+    if (!mainMenuVisible) {
+      for (const touch of e.changedTouches) {
+        if (player_first_person && touch.pageX > hC.clientWidth / 2) {
+          if (!cameraRotTouch) {
+            cameraRotTouch = touch;
+            touchStartCameraRotX = camera_rotation.y;
+            touchStartCameraRotY = camera_rotation.x;
+          }
+        } else cameraPosTouch || (cameraPosTouch = touch);
+      }
+      touchStartTime = absoluteTime;
+    }
+  };
+  hC.ontouchmove = ({ changedTouches }) => {
+    if (!mainMenuVisible) {
+      for (const { pageX, pageY, identifier } of changedTouches) {
+        if (cameraRotTouch?.identifier === identifier) {
+          camera_rotation.y = touchStartCameraRotX + (pageX - cameraRotTouch.pageX) / 3;
+          camera_rotation.x = touchStartCameraRotY + (pageY - cameraRotTouch.pageY) / 3;
+        }
+        if (cameraPosTouch?.identifier === identifier) {
+          touch_movementX = -(pageX - cameraPosTouch.pageX) / 18;
+          touch_movementY = -(pageY - cameraPosTouch.pageY) / 18;
+          touch_movementX = .35 > abs(touch_movementX) ? 0 : .8 * touch_movementX;
+          touch_movementY = .35 > abs(touch_movementY) ? 0 : .8 * touch_movementY;
+        }
+      }
+    }
+  };
+  hC.ontouchend = e => {
+    for (const touch of e.changedTouches) {
+      touch.identifier === cameraRotTouch?.identifier && (cameraRotTouch = void 0);
+      if (touch.identifier === cameraPosTouch?.identifier) {
+        cameraPosTouch = void 0;
+        touch_movementY = touch_movementX = 0;
+      }
+    }
+    e.preventDefault();
+    const diff = absoluteTime - touchStartTime;
+    (!touchStartTime || diff > .02 && .4 > diff) && (keyboard_downKeys[5] = !0);
+  };
+  oncontextmenu = () => !1;
+  handleResize();
+  setMainMenuVisible(!0);
+};
+
+let absoluteTime = 0;
+
+let gameTime = 0;
+
+let souls_collected_count = 0;
+
+let _messageEndTime = 0;
+
+let player_last_pulled_lever = 0;
+
+let rotatingPlatform1Rotation = 0;
+
+let rotatingPlatform2Rotation = 0;
+
+let rotatingHexCorridorRotation = 0;
+
+let game_completed = 0;
+
+let firstBoatLerp = 0;
+
+let secondBoatLerp = 0;
+
+let _globalTime;
+
+const lerpDamp = (from, to, speed) => lerp(from, to, 1 - /* @__PURE__ */ Math.exp(-speed * gameTimeDelta));
+
+const LOCAL_STORAGE_SAVED_GAME_KEY = "DanteSP22";
+
+const getItemValue = ({ $value }) => $value;
+
+const levers = [];
+
+const souls = [];
+
+const showMessage = (message, duration) => {
+  if (!game_completed) {
+    h4.innerHTML = message;
+    _messageEndTime = gameTime + duration;
+  }
+};
+
+const clearMessage = () => {
+  h4.innerHTML = "";
+  _messageEndTime = 0;
+};
+
+const updateCollectedSoulsCounter = () => {
+  souls_collected_count = souls.reduce((acc, cur) => acc + cur.$value, 0);
+  h3.innerHTML = " "
+    + ["0", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII"][souls_collected_count];
+};
+
+const saveGame = () => {
+  updateCollectedSoulsCounter();
+  localStorage[LOCAL_STORAGE_SAVED_GAME_KEY] = JSON.stringify([
+    levers.map(getItemValue),
+    souls.map(getItemValue),
+    player_last_pulled_lever,
+    gameTime,
+    secondBoatLerp,
+  ]);
+};
+
+let gameTimeDelta = .066;
+
+const player_position_final = {
+  x: 0,
+  y: 0,
+  z: 0,
+};
+
+const newLever = transform => {
+  const $parent = currentEditModel;
+  const index2 = levers.length;
+  const lever = {
+    $value: 0,
+    $lerpValue: 0,
+    $lerpValue2: 0,
+    $parent,
+    _update: () => {
+      const { $value, $lerpValue, $lerpValue2 } = lever;
+      const locMatrix = $parent.$matrix.multiply(transform);
+      lever.$locMatrix = locMatrix;
+      if (
+        2.9 > vec3_distance(locMatrix.transformPoint(), player_position_final) && keyboard_downKeys[5]
+        && (.3 > $lerpValue || $lerpValue > .7)
+      ) {
+        lever.$value = $value ? 0 : 1;
+        (leverIndex => {
+          leverIndex && showMessage("* click *", 1);
+          player_last_pulled_lever = leverIndex;
+          saveGame();
+        })(index2);
+      }
+      lever.$lerpValue = lerpDamp($lerpValue, $value, 4);
+      lever.$lerpValue2 = lerpDamp($lerpValue2, $value, 1);
+      lever.$matrix = locMatrix.rotate(60 * lever.$lerpValue - 30, 0).translateSelf(0, 1);
+    },
+  };
+  levers.push(lever);
+  meshAdd(cylinder(5), transform.translate(-.2).rotate(90, 90).scale(.4, .1, .5), material(.4, .5, .5));
+  meshAdd(cylinder(5), transform.translate(.2).rotate(90, 90).scale(.4, .1, .5), material(.4, .5, .5));
+  meshAdd(cylinder(GQuad), transform.translate(0, -.4).scale(.5, .1, .5), material(.5, .5, .4));
+};
+
+const newSoul = (transform, ...walkingPath) => {
+  let dirX = -1;
+  let dirZ = 0;
+  let randAngle = 0;
+  let lookAngle = 0;
+  let prevX = 0;
+  let prevZ = 0;
+  let velocity = 3;
+  let wasInside = 1;
+  const soul = {
+    $value: 0,
+    _update: () => {
+      if (!soul.$value) {
+        let contextualVelocity = 1;
+        let isInside;
+        let mindist = Infinity;
+        for (const c of circles) {
+          const { x, z, w } = c;
+          const distance = /* @__PURE__ */ Math.hypot(targetX - x, targetZ - z);
+          const circleSDF = distance - w;
+          isInside ||= w > distance;
+          if (circleSDF > 0 && mindist > circleSDF) {
+            mindist = circleSDF;
+            circle = c;
+          }
+          contextualVelocity = min(contextualVelocity, distance / w);
+        }
+        if (!isInside) {
+          const { x: x1, z: z1, w: w1 } = circle;
+          const ax = targetX - x1;
+          const az = targetZ - z1;
+          let magnitude = /* @__PURE__ */ Math.hypot(ax, az);
+          let angle = /* @__PURE__ */ Math.atan2(-az, ax);
+          if (wasInside) {
+            randAngle = /* @__PURE__ */ (Math.random() - .5) * Math.PI / 2;
+            velocity = max(1, velocity / (1 + /* @__PURE__ */ Math.random()));
+          }
+          angle += randAngle;
+          dirX = -/* @__PURE__ */ Math.cos(angle);
+          dirZ = /* @__PURE__ */ Math.sin(angle);
+          if (magnitude > .1) {
+            magnitude = min(magnitude, w1) / (magnitude || 1);
+            targetX = ax * magnitude + x1;
+            targetZ = az * magnitude + z1;
           }
         }
-        E.buffer = D, E.loop = !0;
-      }
-      a();
-    },
-    U = new Image();
-  U.onload = U.onerror = () => {
-    a();
-  },
-    U.src = X,
-    setTimeout(l, 50),
-    (() => {
-      let n;
-      M(() => {
-        g([u.slice(1)], Z.translate(-2).scale3d(3).rotate(90, 0));
-      }, 0),
-        M(() => {
-          let r = () => {
-              let t = ft[2].i, a = 1 - ft[4].i;
-              return t < a ? t : a;
-            },
-            t = (a, e, l) =>
-              M(t => {
-                t.g = () => Z.translate(r() * Math.sin(3 * a + V * a) * e),
-                  u.map(({ x: t, z: a }) => {
-                    g(i(11, 1), Z.translate(4 * t, 4, l + 4 * a).scale(.8, 3, .8), c(.5, .3, .7, .6)),
-                      g(i(u), Z.translate(4 * t, 7, l + 4 * a).scale(1, .3), c(.5, .5, .5, .3));
-                  }),
-                  g(m(f(
-                    o(i(u), Z.translate(0, 0, l).scale(5, 1, 5), c(.8, .8, .8, .3)),
-                    ...[-1, 1].map(t =>
-                      o(i(u), Z.translate(5 * t, .2, l).rotate(0, 0, -30 * t).scale(4, 1, 2), c(.8, .8, .8, .3))
-                    ),
-                  ))),
-                  g(i(u), Z.translate(0, -3, l).scale(8, 2, 8), c(.4, .4, .4, .3));
-              }),
-            l = (M(t => {
-              t.g = () => j(-12, 4.2, 40 * dt - 66), g(q), v(Z.translate(0, -3, 4));
-            }),
-              et(7, t => o(i(6, 1), Z.translate(4 * (t / 6 - .5), 3).scale(.2, 3, .2), c(.3, .3, .38))).flat()),
-            a = (p(Z.translate(-.5, 2.8, -20), [0, 0, 2.5], [0, -3, 2.5]),
-              p(
-                Z.translate(0, 2.8),
-                [5, 10, 3],
-                [-5, 10, 3],
-                ...A(18).map(({ x: t, z: a }) => [7 * t, 10 * a, 4.5 - 2 * (t < 0 ? -t : t)]),
-              ),
-              g(i(u), Z.translate(-5, -.2, -26).scale(3.2, 1, 2.5).skewX(3), c(.8, .8, .8, .2)),
-              u.map(({ x: t, z: a }) => g(i(6), Z.translate(3 * t, 3, 15 * a).scale(.7, 4, .7), c(.6, .3, .3, .4))),
-              [-23, 22].map(t => g(i(u), Z.translate(0, 0, t).scale(3, 1, 8), c(.9, .9, .9, .2))),
-              [-15, 15].map((a, e) => {
-                g(i(u), Z.translate(0, 6.3, a).scale(4, .3, 1), c(.3, .3, .3, .4)),
-                  g(i(u), Z.translate(0, 1, a).scale(3, .2, .35), c(.5, .5, .5, .3)),
-                  M(t => {
-                    t.g = () => Z.translate(0, 4.7 * -ft[e + 1].h, a), g(l);
-                  });
-              }),
-              et(5, a =>
-                et(2, t =>
-                  g(
-                    L,
-                    Z.translate(18.5 * (t - .5), 0, 4.8 * a - 9.5).rotate(0, 180 - 180 * t).scale(1.2, 10, 1.2),
-                    c(1, 1, .8, .2),
-                  ))),
-              g(i(u), Z.translate(3, 1.5, -20).scale(.5, 2, 5), c(.7, .7, .7, .2)),
-              g(i(u), Z.translate(-3.4, -.2, -19).scale(2, 1, 1.5).rotate(0, -90), c(.75, .75, .75, .2)),
-              g(i(5), Z.translate(-5.4, 0, -19).scale(2, 1, 2).rotate(0, -90), c(.6, .3, .3, .4)),
-              v(Z.translate(-5.4, 1.5, -19).rotate(0, -90)),
-              g(
-                i(u),
-                Z.rotate(0, 60).translate(14.8, -1.46, -1).rotate(0, 0, -30).scale(4, .6, 4.5),
-                c(.8, .2, .2, .5),
-              ),
-              g(m(
-                f(
-                  h(
-                    o(i(6, 0, 0, .3), Z.translate(8, -3, -4).scale(13, 1, 13), c(.7, .7, .7, .2)),
-                    o(i(6), Z.translate(0, -8).scale(9, 8, 8), c(.4, .2, .5, .5)),
-                    o(i(6, 0, 0, .3), Z.translate(0, -.92).scale(13, 2, 13), c(.8, .8, .8, .2)),
-                  ),
-                  o(i(5), Z.scale(5, 30, 5), c(.4, .2, .6, .5)),
-                  o(i(5, 0, 1.5), Z.translate(0, 1).scale(4.5, .3, 4.5), c(.7, .5, .9, .2)),
-                  o(i(u), Z.rotate(0, 60).translate(14, .7, -1).rotate(0, 0, -35).scale(2, 2, 2), c(.5, .5, .5, .5)),
-                  o(i(6), Z.translate(15, -1.5, 4).scale(3.5, 1, 3.5), c(.5, .5, .5, .5)),
-                ),
-              )),
-              M(t => {
-                t.g = () =>
-                  Z.translate(
-                    0,
-                    .01 < ft[3].h
-                      ? (5 * Math.cos(1.5 * V) + 2) * ft[3].i * (1 - ft[2].h) + -15 * (1 - ft[3].h)
-                      : -500,
-                    0,
-                  ),
-                  v(Z.translate(0, 1.2)),
-                  g(i(5), Z.translate(0, -.2).scale(5, 1, 5), c(.6, .65, .7, .3));
-              }),
-              v(Z.translate(15, -2, 4)),
-              t(.7, 12, 35),
-              t(1, 8.2, 55),
-              M(t => {
-                t.g = () => Z.translate(r() * Math.sin(V / 1.5 + 2) * 12),
-                  g(
-                    m(f(
-                      h(
-                        o(i(u), Z.scale(1.5, 1, 5), c(.9, .9, .9, .2)),
-                        o(i(6), Z.scale(4, 1, 5), c(.9, .9, .9, .2)),
-                        o(i(u), Z.translate(0, -2).scale(2, 3.2, 1.9), c(.3, .8, .5, .5)),
-                        o(i(16, 1, 0, 4), Z.scale(1, 1, 1.5).rotate(0, 90), c(.9, .9, .9, .2)),
-                      ),
-                      o(i(u), Z.scale(1.3, 10, 1.3), c(.2, .7, .4, .6)),
-                    )),
-                    Z.translate(0, 0, 45),
-                  ),
-                  p(Z.translate(0, 2.8, 45), [0, 0, 4.5]);
-              }),
-              M(t => {
-                t.g = () => Z.translate(9.8 * (1 - r())),
-                  g(i(3), Z.translate(-23, -1.7, 55.8).scale(5, .7, 8.3), c(.3, .6, .6, .2)),
-                  g(i(8), Z.translate(-23, -2.2, 66.5).scale(1.5, 1.2, 1.5), c(.8, .8, .8, .2)),
-                  g(i(u), Z.translate(-23, -3, 55).scale(5.2, 1.7, 3), c(.5, .5, .5, .3)),
-                  g(i(u), Z.translate(-23, -2.2, 62).scale(3, 1, 4), c(.5, .5, .5, .3)),
-                  v(Z.translate(-23, -.5, 66.5));
-              }),
-              g(i(u), Z.translate(-18.65, -3, 55).scale(2.45, 1.4, 2.7), c(.9, .9, .9, .2)),
-              M(t => {
-                t.g = () => Z.translate(0, tt(1 - 5 * r()) * at(ft[4].h, ft[5].h) * Math.sin(1.35 * V) * 4),
-                  g(i(u), Z.translate(-22.55, -3, 55).scale(1.45, 1.4, 2.7), c(.7, .7, .7, .2)),
-                  g(
-                    m(f(o(i(u), Z.scale(3, 1.4, 2.7)), o(i(u), Z.scale(1.2, 8, 1.2)))),
-                    Z.translate(-33, -3, 55),
-                    c(.7, .7, .7, .2),
-                  );
-              }),
-              M(t => {
-                t.g = () => Z.translate(0, 0, tt(1 - 5 * r()) * at(ft[4].h, ft[5].h) * Math.sin(.9 * V) * 8),
-                  g(m(
-                    f(
-                      o(i(u), Z.translate(-27, -3, 55).scale(3, 1.4, 2.7), c(.9, .9, .9, .2)),
-                      o(i(u), Z.translate(-27, -3, 55).scale(1, 3), c(.9, .9, .9, .2)),
-                    ),
-                  )),
-                  g(i(u), Z.translate(-39, -3, 55).scale(3, 1.4, 2.7), c(.9, .9, .9, .2));
-              }),
-              M(t => {
-                t.g = () => Z.translate(0, -6.5 * ft[4].i),
-                  g(
-                    i(6),
-                    Z.translate(-44.5, 0, 55).rotate(90, 90).rotate(0, 90).scale(5.9, .5, 5.9),
-                    c(.7, .7, .7, .4),
-                  );
-              }),
-              [...o(
-                m(h(
-                  o(i(u), Z.translate(0, -3).scale(11, 1.4, 3), c(.9, .9, .9, .2)),
-                  f(
-                    o(i(6), Z.rotate(0, 0, 90).scale(6, 8, 6), c(.3, .6, .6, .3)),
-                    o(i(4, 0, .01), Z.translate(0, 6).scale(12, 2, .75).rotate(0, 45), c(.3, .6, .6, .3)),
-                    o(i(6), Z.rotate(0, 0, 90).scale(5, 12, 5), c(.3, .6, .6, .3)),
-                    ...[5, 0, -5].map(t =>
-                      o(i(5), Z.translate(t, 2.5).rotate(90, 0, 36).scale(1.8, 10, 1.8), c(.3, .6, .6, .3))
-                    ),
-                  ),
-                )),
-                Z,
-              )]),
-            e =
-              (g(a, Z.translate(-53, 0, 55)),
-                g(i(6), Z.translate(-61.3, -2.4, 49).scale(3, 1, 5), c(.4, .6, .6, .3)),
-                g(i(7), Z.translate(-57, -2.6, 46).scale(4, 1, 4), c(.8, .8, .8, .3)),
-                v(Z.translate(-55, -1.1, 46).rotate(0, 90)),
-                M(t => {
-                  t.g = () =>
-                    Z.translate(-75, (1 - ft[5].i) * (1 - ft[6].h) * 3, 55).rotate(180 * (1 - ft[5].i) + vt, 0), g(a);
-                }, 2),
-                g(i(u), Z.translate(-88.3, -5.1, 55).rotate(0, 0, -30).scale(5, 1.25, 4.5), c(.7, .7, .7, .2)),
-                g(i(3, 0, -.5), Z.translate(-88.4, -3.9, 55).rotate(0, -90, 17).scale(3, 1.45, 5.9), c(.8, .8, .8, .2)),
-                g(
-                  m(f(
-                    h(
-                      o(i(u), Z.translate(-100, -2.5, 55).scale(8, 1, 8), c(.8, .8, .8, .2)),
-                      o(i(u), Z.translate(-113, -2.6, 55).scale(6.2, 1.1, 3).skewX(3), c(.8, .8, .8, .2)),
-                      o(i(u), Z.translate(-100, -2.6, 70).scale(3, 1.1, 7), c(.8, .8, .8, .2)),
-                      o(i(u), Z.translate(-96, -2.6, 73).rotate(0, 45).scale(3, 1.1, 5), c(.8, .8, .8, .2)),
-                      o(i(6), Z.translate(-88.79, -2.6, 80.21).scale(6, 1.1, 6).rotate(0, 15), c(.6, .6, .6, .3)),
-                      o(i(u), Z.translate(-100, -1.1, 82.39).rotate(-15, 0).scale(3, 1.1, 6), c(.8, .8, .8, .2)),
-                      o(i(u), Z.translate(-100, .42, 92).scale(3, 1.1, 4.1), c(.8, .8, .8, .2)),
-                    ),
-                    o(i(8), Z.translate(-100, -1, 55).scale(7, .9, 7), c(.3, .3, .3, .4)),
-                    o(i(8), Z.translate(-100, -2, 55).scale(4, .3, 4), c(.4, .4, .4, .5)),
-                    o(i(8), Z.translate(-100, -3, 55).scale(.6, 1, .6), c(.4, .4, .4, .5)),
-                  )),
-                  Z,
-                ),
-                p(Z.translate(-100, .2, 55), [0, 0, 7.5], [-8, 0, 3.5], [-12, 0, 3.5], [-15, 0, 3.5]),
-                p(Z.translate(-89, .2, 80), [0, 0, 6]),
-                g(m(
-                  f(
-                    o(i(u), Z.translate(-100, 1, 63).scale(7.5, 4), c(.5, .5, .5, .4)),
-                    o(i(u), Z.translate(-100, 0, 70).scale(2, 2, 10), c(.5, .5, .5, .4)),
-                    o(i(20, 1), Z.translate(-100, 2, 70).scale(2, 2, 10).rotate(90, 0), c(.5, .5, .5, .4)),
-                  ),
-                )),
-                M(t => {
-                  t.g = () => Z.translate(-99.7, 5.3 * -ft[6].h - 2, 63.5), g(l);
-                }),
-                u.map(({ x: a, z: e }) => {
-                  g(i(6), Z.translate(7 * a - 100, -3, 7 * e + 55).scale(1, 8.1), c(.6, .15, .15, .8)),
-                    [4, -.4].map(t =>
-                      g(i(6), Z.translate(7 * a - 100, t, 7 * e + 55).scale(1.3, .5, 1.3), c(.4, .2, .2, .8))
-                    );
-                }),
-                et(7, t => {
-                  g(
-                    i((23 * t + 1) % 5 + 5, 0, .55),
-                    Z.translate(5 * Math.sin(t) - 101 + t, -2.3 - t, 44.9 - 2.8 * t).scaleSelf(
-                      5 + t / 2,
-                      1 + t / 6,
-                      5 + t / 3,
-                    ),
-                    c(.5 - t / 17, .5 - (1 & t) / 9, .6, .3),
-                  );
-                }),
-                g(i(u), Z.translate(-87, -9.5, 24).scale(7, 1, 3), c(.4, .5, .6, .4)),
-                g(i(4), Z.translate(-86, -9.2, 27).scale(5, 1, 5), c(.5, .6, .7, .3)),
-                g(i(18, 1), Z.translate(-86, -9, 31).scale(1.5, 1, 1.5), c(.3, .3, .4, .1)),
-                v(Z.translate(-86, -7.5, 31)),
-                M(t => {
-                  t.g = () => Z.translate(0, 3.5 * (1 - $(ft[6].h, ft[7].h)) + at(ft[7].i, ft[6].i) * Math.sin(V) * 5),
-                    [0, 12, 24].map(t =>
-                      g(i(u), Z.translate(t - 76.9, t / -13 - 10, 24).scale(2.8, 1.5, 3), c(.2, .5, .6, .2))
-                    );
-                }),
-                M(t => {
-                  t.g = () => {
-                    let t = at(ft[7].i, ft[6].i);
-                    return Z.translate(0, t * Math.sin(V + 3) * 6, 6 * Math.sin(.6 * V + t) * t);
-                  },
-                    [6, 18].map(t =>
-                      g(i(u), Z.translate(t - 76.9, t / -13 - 10, 24).scale(2.8, 1.5, 3), c(.1, .4, .5, .2))
-                    );
-                }),
-                g(
-                  m(f(
-                    h(
-                      o(i(u), Z.scale(11, 1, 13), c(.3, .4, .6, .3)),
-                      o(i(5), Z.translate(0, 0, -7).scale(2, 1.2, 2), c(.2, .4, .7, .3)),
-                      o(i(5), Z.scale(9, 1.2, 9), c(0, .2, .3, .5)),
-                    ),
-                    o(i(5), Z.scale(5.4, 5, 5.4), c(0, .2, .3, .5)),
-                  )),
-                  Z.translate(-38.9, -11.3, 17),
-                ),
-                v(Z.translate(-38.9, -9.6, 10)),
-                M(t => {
-                  t.g = () => Z.translate(0, -7.3 * ft[7].i),
-                    g(
-                      m(f(
-                        h(
-                          o(i(5), Z.translate(0, 2).scale(5, 7, 5).skewY(8), c(.2, .4, .5, .5)),
-                          o(i(5), Z.translate(0, 6).scale(1.1, 7, 1.1).skewY(-8), c(.25, .35, .5, .5)),
-                          o(i(5), Z.translate(0, 9).scale(.6, 7, .6).skewY(8), c(.35, .3, .5, .5)),
-                        ),
-                        o(i(5), Z.translate(0, 5).scale(1.5, 1.5, 8).rotate(90, 0, 35), c(.2, .4, .5, .5)),
-                      )),
-                      Z.translate(-38.9, -11.3, 17),
-                    ),
-                    p(
-                      Z.translate(-38.9, -.3, 17).rotate(0, 0, 10),
-                      ...A(15).map(({ x: t, z: a }) => [3 * t, 3 * a, 1.5]),
-                    );
-                }),
-                u.map(({ x: t, z: a }) => {
-                  n = Z.translate(9 * t - 38.9, -7.3, 11 * a + 17),
-                    g(i(18, 1), n.scale(1, 4), c(.25, .25, .25, 1)),
-                    [1.5, 8].map(t => g(i(18, 1), n.translate(0, t - 4).scale(1.5, .5, 1.5), c(.6, .6, .6, .3)));
-                }),
-                g(
-                  m(f(
-                    h(
-                      o(i(6), Z.translate(0, 0, -36).scale(15, 1.2, 15), c(.7, .7, .7, .3)),
-                      o(i(u), Z.translate(0, 0, -18).scale(4, 1.2, 6), c(.45, .4, .6, .3)),
-                    ),
-                    ...et(6, a =>
-                      et(6, t =>
-                        o(
-                          i(6),
-                          Z.translate(4.6 * t - 12 + 2 * (1 & a), 0, 4.6 * a - 50 + 2 * Math.sin(4 * t)).scale(2, 5, 2),
-                          c(.7, .7, .7, .3),
-                        ))).flat(),
-                  )),
-                  Z.translate(-38.9, -11.3, 17),
-                ),
-                p(Z.translate(-38.9, -8.4, -21), [0, 0, 12]),
-                g(i(5), Z.translate(-84, -2, 85).scale(4, .8, 4).rotate(0, 10), c(.8, .1, .25, .4)),
-                v(Z.translate(-84, -.5, 85).rotate(0, 45)),
-                M(t => {
-                  t.g = () => j(-123, 1.4, 55 + -65 * bt), v(Z.translate(0, -3, -4).rotate(0, 180)), g(q);
-                }),
-                p(Z.translate(-115, .2, -12), [0, 0, 3.5]),
-                m(f(
-                  o(i(u), Z.translate(0, -.5, 1).scale(1.15, 1.2, 6.5), c(.25, .25, .35, .3)),
-                  o(i(3), Z.translate(0, 0, -5.5).scale(3, 2), c(.6, .3, .4, .3)),
-                  ...[-1.2, 1.2].map(t => o(i(u), Z.translate(t, -.5, 1).scale(.14, .3, 6.5), c(.7, .2, 0, .3))),
-                ))),
-            s = (M(t => {
-              t.g = () => {
-                let t = Math.sin(1.1 * V);
-                return Z.translate.call(Z, 0, -2, at(ft[10].h, ft[11].h) * (t < 0 ? -t : t) * -8.5 + 10);
-              }, et(2, t => g(e, Z.translate(9 * t - 110 + (1 & t), 1.7, -12)));
-            }),
-              M(t => {
-                t.g = () => {
-                  let t = Math.sin(2.1 * V);
-                  return Z.translate.call(Z, 0, -2, at(ft[10].h, ft[11].h) * (t < 0 ? -t : t) * -8.5 + 10);
-                }, et(2, t => g(e, Z.translate(9 * (t + 2) - 110 + (1 & t), 1.7, -12)));
-              }),
-              M(t => {
-                t.g = () => {
-                  let t = Math.sin(1.5 * V);
-                  return Z.translate.call(
-                    Z,
-                    0,
-                    -2,
-                    -8.5 * $((1 - ft[10].h) * (1 - at(ft[10].h, ft[11].h)), at(ft[10].h, ft[11].h) * (t < 0 ? -t : t))
-                      + 10,
-                  );
-                }, et(3, t => g(e, Z.translate(9 * t - 106, 1.7, -12)));
-              }),
-              g(
-                m(f(
-                  h(
-                    o(i(u), Z.translate(26.5, -1.6, 10).scale(17, 2.08, 3)),
-                    o(i(u), Z.translate(26.5, -.6, 10).scale(17, 2, .5)),
-                  ),
-                  ...et(4, t => o(i(u), Z.translate(13 + 9 * t + (1 & t), -.8, 9).scale(1.35, 1.35, 9))),
-                  ...et(3, t => o(i(u), Z.translate(17 + 9 * t, -.8, 9).scale(1.35, 1.35, 9))),
-                )),
-                Z.translate(-123, 0, -12),
-                c(.5, .5, .6, .2),
-              ),
-              g(i(5), Z.translate(-113.6, -1.6, -2).rotate(0, 90, 90).scale(1.5, .2, 1.5), c(.25, .25, .35, 1)),
-              g(i(u), Z.translate(-116, -2.6, -12).scale(3.2, 1.1, 4).skewX(3), c(.8, .8, .8, .2)),
-              g(i(6), Z.translate(-116, -2.6, -16.5).scale(3.2, .8, 3), c(.6, .5, .7, .2)),
-              v(Z.translate(-116, -1.4, -18).rotate(0, 180)),
-              et(3, t => {
-                g(W, Z.translate(12 * t - 109, -9, -12), c(.6, .6, .6, .3)),
-                  g(W, Z.translate(-77, -9, -12 * t - 20).rotate(0, 90), c(.6, .6, .6, .3));
-              }),
-              g(m(
-                f(
-                  o(i(12), Z.translate(-77, -13.9, -12).scale(4, 18.2, 4), c(.7, .7, .7, .2)),
-                  o(i(u), Z.translate(-79, 0, -12).scale(3.5, 2.2, 1.3), c(.4, .5, .6, .2)),
-                  o(i(u), Z.translate(-77, 0, -14).scale(1.5, 2.2, 2), c(.4, .5, .6, .2)),
-                  o(i(12), Z.translate(-77, 2.8, -12).scale(3, 5, 3), c(.4, .5, .6, .2)),
-                ),
-              )),
-              g(i(u), Z.translate(-115.5, -17, -12).scale(.5, 15, 2.2), c(.6, .6, .6, .3)),
-              g(i(u), Z.translate(-77, -17, -50.5).scale(2.2, 15, .5), c(.6, .6, .6, .3)),
-              g(i(u), Z.translate(-84.9, -4.3, -40).rotate(0, 0, 12).scale(6, 1, 3), c(.6, .6, .6, .3)),
-              g(m(
-                f(
-                  o(i(u), Z.translate(-93, -5.8, -40).scale(9, 1, 5), c(.8, .8, .8, .1)),
-                  o(i(9), Z.translate(-98, -5.8, -40).scale(3, 8, 3), c(.7, .7, .7, .2)),
-                ),
-              )),
-              g(i(9), Z.translate(-98, -5.8, -40).scale(2.5, .9, 2.5), c(.5, .5, .5, .3)),
-              v(Z.translate(-98, -4.4, -40).rotate(0, 90)),
-              p(Z.translate(-93, -3, -40).rotate(0, 0, 4), [0, -2, 3.5], [0, 2, 3.5]),
-              g(m(
-                f(
-                  h(
-                    o(i(6, 0, 0, .6), Z.translate(-100, .7, 105.5).scale(8, 1, 11), c(.7, .7, .7, .2)),
-                    o(i(u), Z.translate(-101.5, .7, 93.5).scale(10.5, 1, 2), c(.7, .7, .7, .2)),
-                    o(i(u), Z.translate(-91.2, .7, 107).scale(3, 1, 3.3), c(.7, .7, .7, .2)),
-                  ),
-                  o(i(5), Z.translate(-100, .7, 113).scale(4, 3, 4), c(.7, .7, .7, .2)),
-                ),
-              )),
-              et(4, a =>
-                M(t => {
-                  t.g = () => {
-                    let t = at(ft[8].i, ft[12].i);
-                    return Z.translate(
-                      (2 < a ? 2 * (1 - t) + t : 0) - 100,
-                      t * Math.sin(1.3 * V + 1.7 * a) * (3 + a / 3) + .7,
-                      115 + (1 & a ? -1 : 1) * (1 - ft[8].i) * (1 - ft[12].i) * -7
-                        + (t < .05 ? .05 : t) * Math.cos(1.3 * V + 7 * a) * (4 - 2 * (1 - a / 3)),
-                    );
-                  },
-                    g(
-                      i(6),
-                      Z.translate(-14.6 - 4.8 * a - (2 < a ? 2 : 0), -a / 2.3, -21.5).scale(2.6, 1, 2.5),
-                      c(.5 - a / 8, a / 12 + .5, .7, .3),
-                    );
-                })),
-              M(t => {
-                t.g = () => {
-                  let t = at(ft[8].i, ft[12].i);
-                  return Z.translate(2.5 * (1 - t) - 139.7, -3 * (1 - ft[8].h) + t * Math.sin(.8 * V) * -1 - 1.8, 93.5)
-                    .rotateSelf(Math.cos(1.3 * V) * (3 * t + 3), 0);
-                },
-                  g(m(
-                    f(o(i(10), Z.scale(6, 2, 6), c(.1, .6, .5, .3)), o(i(10), Z.scale(3.3, 6, 3.3), c(.1, .6, .5, .5))),
-                  )),
-                  n = Z.translate(-7.5).rotate(0, 90),
-                  g(i(15), n.scale(3, 2.3, 3), c(.4, .4, .4, .3)),
-                  g(i(10), n.scale(2, 2.5, 2), c(.3, .8, .7, .3)),
-                  g(i(5), n.scale(1, 3), c(.5, .5, .5, .5)),
-                  v(n.translate(0, 3.4).rotate(0, 180)),
-                  [-1, 1].map(t =>
-                    g(
-                      L,
-                      Z.rotate(90 * -t, 180, 90).translate(0, 5).rotate(0, 0, 40).scale(1.3, 10, 1.3),
-                      c(1, 1, .8, .2),
-                    )
-                  ),
-                  p(Z.translate(-5, 4), [0, -1.2, 1.7], [0, 1.2, 1.7]);
-              }),
-              [-1, 1].map(a => {
-                g(i(15, 1), Z.translate(-7.5 * a - 100, 3.7, 96).scale(.8, 4, .8), c(.6, .24, .2, .5)),
-                  [7.2, 1.5].map(t =>
-                    g(i(15, 1), Z.translate(-7.5 * a - 100, t + .7, 96).scale(1.1, .5, 1.1), c(.5, .24, .2, .4))
-                  ),
-                  g(L, Z.translate(-5 * a - 100, 1.7, 114.5).scale(1.2, 10, 1.2).rotate(0, 90 * a - 90), c(1, 1, .8)),
-                  g(
-                    m(f(
-                      o(i(u), Z.translate(-4 * a, 3.5, -.5).scale(4, 4, .7), c(.5, .5, .5, .4)),
-                      o(i(u), Z.scale(3, 3, 10), c(.6, .24, .2, .5)),
-                      o(i(30, 1), Z.translate(0, 3, -5).scale(3, 4, 10).rotate(90, 0), c(.6, .24, .2, .5)),
-                      o(i(5), Z.translate(-5.3 * a, 7).rotate(90, 0).scale(1.7, 5, 1.7), c(.6, .24, .2, .5)),
-                      o(i(5), Z.translate(-5.3 * a, 3.8).rotate(90, 0, 35).scale(.75, 5, .75), c(.6, .24, .2, .5)),
-                    )),
-                    Z.translate(a - 100, .7, 97),
-                  );
-              }),
-              M(t => {
-                t.g = () => Z.translate(-100, .6 - 6 * ft[12].h, 96.5).scale(.88, 1.2), g(l);
-              }),
+        wasInside = isInside;
+        velocity = lerpDamp(velocity, 3 + 6 * (1 - contextualVelocity), 3 + contextualVelocity);
+        soulX = lerpDamp(soulX, targetX = lerpDamp(targetX, targetX + dirX, velocity), velocity);
+        soulZ = lerpDamp(soulZ, targetZ = lerpDamp(targetZ, targetZ + dirZ, velocity), velocity);
+        lookAngle = angle_lerp_degrees(
+          lookAngle,
+          /* @__PURE__ */ Math.atan2(soulX - prevX, soulZ - prevZ) / DEG_TO_RAD - 180,
+          3 * gameTimeDelta,
+        );
+        prevX = soulX;
+        prevZ = soulZ;
+        const soulPos = (soul.$matrix = transform.multiply(
+          parentModel.$matrix.translate(soulX, 0, soulZ).rotateSelf(0, lookAngle).skewXSelf(
+            /* @__PURE__ */ 7 * Math.sin(2 * gameTime),
+          ).skewYSelf(/* @__PURE__ */ 7 * Math.sin(1.4 * gameTime)),
+        )).transformPoint();
+        if (1.5 > vec3_distance(soulPos, player_position_final)) {
+          soul.$value = 1;
+          (() => {
+            showMessage(
               [
-                ...o(i(28, 1), Z.scale(8, 1, 8), c(.45, .45, .45, .2)),
-                ...o(i(5), Z.translate(0, 1).scale(1, .2), c(.3, .3, .3, .2)),
-              ]);
-          M(t => {
-            t.g = () => Z.translate(-80, 1, 106).rotate(0, 40 + zt),
-              g(m(
-                f(
-                  o(i(28, 1), Z.scale(8, 1, 8), c(.45, .45, .45, .2)),
-                  o(i(u), Z.translate(0, 0, -5.5).scale(1.5, 3, 2.5), c(.45, .45, .45, .2)),
-                ),
-              )),
-              g(i(8), Z.translate(0, 2).scale(3, 1.5, 3), c(.7, .7, .7, .1)),
-              g(i(5), Z.translate(0, 2).scale(1, 2), c(.3, .3, .3, .2)),
-              p(Z.translate(0, 3), ...A(10).map(({ x: t, z: a }) => [5.6 * t, 5.6 * a, 2.5]));
-          }),
-            M(t => {
-              t.g = () => Z.translate(-64, 1, 106).rotate(0, z),
-                g(m(
-                  f(
-                    o(i(28, 1), Z.translate(0, 2).scale(8, 1, 8), c(.35, 0, 0, .3)),
-                    o(i(u), Z.scale(9, 5, 2), c(.3, 0, 0, .3)),
-                  ),
-                )),
-                g(s),
-                [-1, 1].map(t =>
-                  g(
-                    L,
-                    Z.rotate(0, 90).translate(-5 * t, 1, -.5).scale(1.2, 10, 1.2).rotate(0, 90 * t + 90),
-                    c(1, 1, .8),
-                  )
-                );
-            }),
-            M(t => {
-              t.g = () => Z.translate(-48, 1, 106).rotate(0, 180 - z),
-                g(m(
-                  f(
-                    o(i(30, 1), Z.translate(0, 2).scale(8, 1, 8), c(.35, 0, 0, .3)),
-                    o(i(u), Z.translate(7).scale(9, 5, 2), c(.3, 0, 0, .3)),
-                    o(i(u), Z.translate(0, 0, 7).scale(2, 5, 9), c(.3, 0, 0, .3)),
-                  ),
-                )),
-                g(s);
-            }),
-            M(t => {
-              t.g = () => Z.translate(-48, 1, 90).rotate(0, 270 + z),
-                g(m(
-                  f(
-                    o(i(30, 1), Z.translate(0, 2).scale(8, 1, 8), c(.35, 0, 0, .3)),
-                    o(i(u), Z.translate(7).scale(9, 5, 2), c(.3, 0, 0, .3)),
-                    o(i(u), Z.translate(0, 0, -7).scale(2, 5, 9), c(.3, 0, 0, .3)),
-                  ),
-                )),
-                g(s);
-            }),
-            g(i(u), Z.translate(-56, 1, 106).scale(.7, .8, 2.5), c(.7, .7, .7, .2)),
-            g(i(u), Z.translate(-48, 1, 98).scale(2.5, .8, .7), c(.7, .7, .7, .2)),
-            g(i(u), Z.translate(-39, .4, 90).scale(2, 1, 2), c(.7, .7, .7, .3)),
-            g(i(u), Z.translate(-34.2, .4, 90).scale(3, 1, 3), c(.7, .7, .7, .3)),
-            v(Z.translate(-34, 2.7, 96).rotate(-12, 0)),
-            g(i(5), Z.translate(-34, .2, 96).scale(3, 2, 4).rotate(-20, 0), c(.2, .5, .5, .6)),
-            [c(.1, .55, .45, .2), c(.2, .5, .5, .3), c(.3, .45, .55, .4)].map((a, e) =>
-              M(t => {
-                t.g = () =>
-                  Z.translate(
-                    0,
-                    (1 - ft[13].i) * (1 - ft[14].i) * 3 + at(ft[13].i, ft[14].i) * Math.sin(1.5 * V + 1.5 * e) * 4.7,
-                  ),
-                  g(
-                    i(8),
-                    Z.translate(-23.5, e / 1.5 - .4, 90 + 6.8 * e).scale(3.6, 2 - e / 1.5, 3.6).rotate(0, 22.5),
-                    a,
-                  ),
-                  2 === e && g(i(6), Z.translate(-29, .4, 90).scale(2.4, 1, 2.8), c(.6, .7, .6, .3)),
-                  1 === e
-                  && g(
-                    i(u),
-                    Z.translate(-16.1, .5, 103.5).rotate(0, 0, -3.5).scale(3.9, .8, 2).skewX(-1),
-                    c(.6, .6, .7, .3),
-                  );
-              })
-            ),
-            g(m(
-              f(
-                o(i(6, 0, 0, .3), Z.translate(0, -.92, 95).scale(14, 2, 14), c(.8, .8, .8, .2)),
-                o(i(5), Z.translate(0, 0, 95).scale3d(6), c(.3, .3, .3, .5)),
-              ),
-            )),
-            [8, -6.1].map((a, e) =>
-              et(
-                3,
-                t =>
-                  g(
-                    W,
-                    Z.translate(6 * t - 6, a - (1 & t), 111 - .2 * (1 & t) - e),
-                    1 & t ? c(.5, .5, .5, .3) : c(.35, .35, .35, .5),
-                  ),
+                ,
+                "Mark Zuckemberg<br>made the world worse",
+                ,
+                "Andrzej Mazur<br>for the js13k competition",
+                "Donald Trump<br>lies",
+                "Kim Jong-un<br>Dictator, liked pineapple on pizza",
+                "Maxime Euziere<br>forced me to finish this game",
+                "She traded NFTs apes",
+                ,
+                "Vladimir Putin<br>evil war",
+                "He was not a good person",
+                ,
+                "Salvatore Previti<br>made this evil game<br><br>Done. Go back to the boat",
+              ][souls_collected_count] || "Catched a \"crypto bro\".<br>\"Web3\" is all scam, lies and grift",
+              souls_collected_count && 12 > souls_collected_count ? 5 : 7,
+            );
+            saveGame();
+          })();
+        }
+      }
+      soul.$value
+        && (soul.$matrix = allModels[2].$matrix.translate(
+          index2 % 4 * 1.2 - 1.7 + /* @__PURE__ */ Math.sin(gameTime + index2) / 7,
+          -2,
+          1.7 * (index2 / 4 | 0) - 5.5 + abs(index2 % 4 - 2) + /* @__PURE__ */ Math.cos(gameTime / 1.5 + index2) / 6,
+        ));
+    },
+  };
+  const parentModel = currentEditModel;
+  const index2 = souls.length;
+  const circles = walkingPath.map(([x, z, w]) => ({
+    x,
+    z,
+    w,
+  }));
+  let circle = circles[0];
+  let { x: targetX, z: targetZ } = circle;
+  let soulX = targetX;
+  let soulZ = targetZ;
+  souls.push(soul);
+};
+
+const updateModels = () => {
+  for (const model of allModels) model._update && (model.$matrix = model._update(model));
+  for (const lever of levers) lever._update();
+  for (const soul of souls) soul._update();
+};
+
+let leverModel;
+
+let soulModel;
+
+let soulCollisionModel;
+
+let playerModels;
+
+let tmpMatrix;
+
+const buildWorld = () => {};
+
+const getBoatAnimationMatrix = (x, y, z) =>
+  identity.translate(x + /* @__PURE__ */ Math.sin(gameTime + 2) / 5, y + /* @__PURE__ */ Math.sin(.8 * gameTime) / 3, z)
+    .rotateSelf(
+      /* @__PURE__ */ 2 * Math.sin(gameTime),
+      /* @__PURE__ */ Math.sin(.7 * gameTime),
+      /* @__PURE__ */ Math.sin(.9 * gameTime),
+    );
+
+newModel(() => {
+  meshAdd([GQuad.slice(1)], identity.translate(-2).scale3d(3).rotate(90, 0));
+}, 0);
+
+newModel(() => {
+  const getOscillationAmount = () => min(levers[2].$lerpValue2, 1 - levers[4].$lerpValue2);
+  const blackPlatform = (freq, amplitude, pz) =>
+    newModel(model => {
+      model._update = () =>
+        identity.translate(getOscillationAmount() * /* @__PURE__ */ Math.sin(3 * freq + gameTime * freq) * amplitude);
+      GQuad.map(({ x, z }) => {
+        meshAdd(cylinder(11, 1), identity.translate(4 * x, 4, pz + 4 * z).scale(.8, 3, .8), material(.5, .3, .7, .6));
+        meshAdd(cylinder(GQuad), identity.translate(4 * x, 7, pz + 4 * z).scale(1, .3), material(.5, .5, .5, .3));
+      });
+      meshAdd(
+        csg_polygons(
+          csg_subtract(
+            polygons_transform(cylinder(GQuad), identity.translate(0, 0, pz).scale(5, 1, 5), material(.8, .8, .8, .3)),
+            ...[-1, 1].map(i =>
+              polygons_transform(
+                cylinder(GQuad),
+                identity.translate(5 * i, .2, pz).rotate(0, 0, -30 * i).scale(4, 1, 2),
+                material(.8, .8, .8, .3),
               )
             ),
-            [-1, 1].map(t => g(L, Z.translate(-8 * t, 1, 85).scale(1.2, 10, 1.2).rotate(0, 90 * t + 90), c(1, 1, .8))),
-            v(Z.translate(0, 1.7, 82).rotate(0, 180)),
-            g(i(5), Z.translate(0, -15.7, 82).scale(2.5, 17, 2.5).rotate(0, 35), c(.5, .3, .3, .4)),
-            g(m(
-              f(
-                h(
-                  o(i(u), Z.translate(0, 16, 110.5).scale(12, 1, 3), c(.5, .3, .3, .4)),
-                  o(i(u), Z.translate(0, 16, 111).scale(3, 1, 3.8), c(.5, .3, .3, .4)),
-                ),
-                o(i(5), Z.translate(0, 16, 103.5).scale(5.5, 5, 5.5), c(.5, .3, .3, .4)),
-              ),
-            )),
-            M(t => {
-              t.g = () => {
-                let t = Math.sin(V);
-                return Z.translate(-2 * t).rotate(0, 0, 25 * t);
-              },
-                g(i(3), Z.translate(0, -3, 118.8).scale(.8, .8, 18).rotate(90, 0, 60), c(.5, .3, .3, .4)),
-                [22, 30].map(t => {
-                  g(i(6), Z.translate(0, 16, t + 95).scale(3, 1, 2.3).rotate(0, 90), c(.7, .7, .7, .4)),
-                    g(i(u), Z.translate(0, 6.2, t + 95).scale(.5, 11, .5), c(.5, .3, .3, .4));
-                });
-            }),
-            g(i(6), Z.translate(0, 16, 121).scale(2.5, 1, 2.1).rotate(0, 90), c(.5, .6, .7, .3)),
-            g(i(u), Z.translate(0, 16, 129).scale(1.5, 1, 2), c(.5, .6, .7, .3)),
-            g(i(7), Z.translate(0, 16.2, 133).scale(5, 1, 5), c(.4, .5, .6, .4)),
-            M(t => {
-              t.g = () => {
-                let t = at(at((ft[14].h + ft[14].i) / 2, ft[13].i), (ft[15].h + ft[15].i) / 2);
-                return Z.translate(0, 16 * t, 8.5 * tt(2 * t - 1) + 95);
-              },
-                g(i(5), Z.scale(5, 1.1, 5), c(.5, .3, .3, .4)),
-                g(i(5), Z.scale(5.5, .9, 5.5), c(.25, .25, .25, .4)),
-                v(Z.translate(0, 1.5, -1).rotate(0, 180));
-            }),
-            p(Z.translate(0, 3, 95), ...A(9).map(({ x: t, z: a }) => [9 * t, 9 * a, 4])),
-            p(Z.translate(0, 19, 134), [0, 0, 3.5]);
-        }),
-        Xt = M(() => {
-          Rt = [-1, 1].map(t =>
-            M(() => {
-              g(i(10, 1), Z.translate(.3 * t, -.8).scale(.2, .7, .24), c(1, .3, .4));
-            })
           ),
-            [0, 180].map(t =>
-              g(L, Z.rotate(0, t).translate(.2, 1.32).rotate(0, 0, -30).scale(.2, .6, .2), c(1, 1, .8))
+        ),
+      );
+      meshAdd(cylinder(GQuad), identity.translate(0, -3, pz).scale(8, 2, 8), material(.4, .4, .4, .3));
+    });
+  const level3Oscillation = () =>
+    clamp01(1 - 5 * getOscillationAmount()) * lerpneg(levers[4].$lerpValue, levers[5].$lerpValue);
+  const shouldOscillate = () => lerpneg(levers[7].$lerpValue2, levers[6].$lerpValue2);
+  const shouldPushRods = () => lerpneg(levers[10].$lerpValue, levers[11].$lerpValue);
+  const hexPadShouldOscillate = () => lerpneg(levers[8].$lerpValue2, levers[12].$lerpValue2);
+  newModel(model => {
+    model._update = () => getBoatAnimationMatrix(-12, 4.2, 40 * firstBoatLerp - 66);
+    meshAdd(boatPolygons);
+    newLever(identity.translate(0, -3, 4));
+  });
+  const entranceBarsPolygons = integers_map(
+    7,
+    i =>
+      polygons_transform(
+        cylinder(6, 1),
+        identity.translate(4 * (i / 6 - .5), 3).scale(.2, 3, .2),
+        material(.3, .3, .38),
+      ),
+  ).flat();
+  newSoul(identity.translate(-.5, 2.8, -20), [0, 0, 2.5], [0, -3, 2.5]);
+  newSoul(
+    identity.translate(0, 2.8),
+    [5, 10, 3],
+    [-5, 10, 3],
+    ...polygon_regular(18).map(({ x, z }) => [7 * x, 10 * z, 4.5 - 2 * abs(x)]),
+  );
+  meshAdd(cylinder(GQuad), identity.translate(-5, -.2, -26).scale(3.2, 1, 2.5).skewX(3), material(.8, .8, .8, .2));
+  GQuad.map(
+    ({ x, z }) => meshAdd(cylinder(6), identity.translate(3 * x, 3, 15 * z).scale(.7, 4, .7), material(.6, .3, .3, .4)),
+  );
+  [-23, 22].map(z => meshAdd(cylinder(GQuad), identity.translate(0, 0, z).scale(3, 1, 8), material(.9, .9, .9, .2)));
+  [-15, 15].map((z, i) => {
+    meshAdd(cylinder(GQuad), identity.translate(0, 6.3, z).scale(4, .3, 1), material(.3, .3, .3, .4));
+    meshAdd(cylinder(GQuad), identity.translate(0, 1, z).scale(3, .2, .35), material(.5, .5, .5, .3));
+    newModel(model => {
+      model._update = () => identity.translate(0, 4.7 * -levers[i + 1].$lerpValue, z);
+      meshAdd(entranceBarsPolygons);
+    });
+  });
+  integers_map(
+    5,
+    i =>
+      integers_map(2, j =>
+        meshAdd(
+          GHorn,
+          identity.translate(18.5 * (j - .5), 0, 4.8 * i - 9.5).rotate(0, 180 - 180 * j).scale(1.2, 10, 1.2),
+          material(1, 1, .8, .2),
+        )),
+  );
+  meshAdd(cylinder(GQuad), identity.translate(3, 1.5, -20).scale(.5, 2, 5), material(.7, .7, .7, .2));
+  meshAdd(
+    cylinder(GQuad),
+    identity.translate(-3.4, -.2, -19).scale(2, 1, 1.5).rotate(0, -90),
+    material(.75, .75, .75, .2),
+  );
+  meshAdd(cylinder(5), identity.translate(-5.4, 0, -19).scale(2, 1, 2).rotate(0, -90), material(.6, .3, .3, .4));
+  newLever(identity.translate(-5.4, 1.5, -19).rotate(0, -90));
+  meshAdd(
+    cylinder(GQuad),
+    identity.rotate(0, 60).translate(14.8, -1.46, -1).rotate(0, 0, -30).scale(4, .6, 4.5),
+    material(.8, .2, .2, .5),
+  );
+  meshAdd(
+    csg_polygons(
+      csg_subtract(
+        csg_union(
+          polygons_transform(
+            cylinder(6, 0, 0, .3),
+            identity.translate(8, -3, -4).scale(13, 1, 13),
+            material(.7, .7, .7, .2),
+          ),
+          polygons_transform(cylinder(6), identity.translate(0, -8).scale(9, 8, 8), material(.4, .2, .5, .5)),
+          polygons_transform(
+            cylinder(6, 0, 0, .3),
+            identity.translate(0, -.92).scale(13, 2, 13),
+            material(.8, .8, .8, .2),
+          ),
+        ),
+        polygons_transform(cylinder(5), identity.scale(5, 30, 5), material(.4, .2, .6, .5)),
+        polygons_transform(cylinder(5, 0, 1.5), identity.translate(0, 1).scale(4.5, .3, 4.5), material(.7, .5, .9, .2)),
+        polygons_transform(
+          cylinder(GQuad),
+          identity.rotate(0, 60).translate(14, .7, -1).rotate(0, 0, -35).scale(2, 2, 2),
+          material(.5, .5, .5, .5),
+        ),
+        polygons_transform(cylinder(6), identity.translate(15, -1.5, 4).scale(3.5, 1, 3.5), material(.5, .5, .5, .5)),
+      ),
+    ),
+  );
+  newModel(model => {
+    model._update = () =>
+      identity.translate(
+        0,
+        levers[3].$lerpValue > .01
+          ? /* @__PURE__ */ (5 * Math.cos(1.5 * gameTime) + 2) * levers[3].$lerpValue2 * (1 - levers[2].$lerpValue)
+            + -15 * (1 - levers[3].$lerpValue)
+          : -500,
+        0,
+      );
+    newLever(identity.translate(0, 1.2));
+    meshAdd(cylinder(5), identity.translate(0, -.2).scale(5, 1, 5), material(.6, .65, .7, .3));
+  });
+  newLever(identity.translate(15, -2, 4));
+  blackPlatform(.7, 12, 35);
+  blackPlatform(1, 8.2, 55);
+  newModel(model => {
+    model._update = () =>
+      identity.translate(getOscillationAmount() * /* @__PURE__ */ Math.sin(gameTime / 1.5 + 2) * 12);
+    meshAdd(
+      csg_polygons(
+        csg_subtract(
+          csg_union(
+            polygons_transform(cylinder(GQuad), identity.scale(1.5, 1, 5), material(.9, .9, .9, .2)),
+            polygons_transform(cylinder(6), identity.scale(4, 1, 5), material(.9, .9, .9, .2)),
+            polygons_transform(cylinder(GQuad), identity.translate(0, -2).scale(2, 3.2, 1.9), material(.3, .8, .5, .5)),
+            polygons_transform(
+              cylinder(16, 1, 0, 4),
+              identity.scale(1, 1, 1.5).rotate(0, 90),
+              material(.9, .9, .9, .2),
             ),
-            g(P(20), Z.translate(0, 1).scale(.5, .5, .5), c(1, .3, .4));
-          let a = o(
-            m(f(i(15, 1), o(i(u), Z.translate(0, 0, 1).scale(2, 2, .5)))),
-            Z.rotate(-90, 0).scale(.1, .05, .1),
-            c(.3, .3, .3),
-          );
-          [-1, 1].map(t => g(a, Z.translate(.2 * t, 1.2, .4).rotate(0, 20 * t, 20 * t))),
-            g(i(u), Z.translate(0, .9, .45).scale(.15, .02, .06), c(.3, .3, .3)),
-            g(P(20), Z.scale(.7, .8, .55), c(1, .3, .4));
-        }),
-        H = M(() => {
-          g(i(6, 1), Z.scale(.13, 1.4, .13), c(.3, .3, .5, .1)),
-            g(i(8), Z.translate(0, 1).scale(.21, .3, .21), c(1, .5, .2)),
-            g(i(3), Z.translate(0, -1).rotate(90, 90).scale(.3, .4, .3), c(.2, .2, .2, .1));
-        }, 0),
-        B = M(() => {
-          g(i(6), Z.scale(.8, 1, .8), c(1, .3, .5));
-        }, 0),
-        Q = M(() => {
-          g(
-            P(40, 30, (t, a, e) => {
-              let l = a / 30, r = .05 * t * Math.PI, s = l ** .6 * Math.PI / 2;
-              return t = l * l * Math.sin(t * Math.PI * .35) / 4,
-                29 === a
-                  ? { x: e.D = 0, y: -.5, z: 0 }
-                  : {
-                    x: Math.cos(r) * Math.sin(s),
-                    y: Math.cos(l * Math.PI) - l - t,
-                    z: Math.sin(r) * Math.sin(s) + Math.sin(t * Math.PI * 2) / 4,
-                  };
-            }),
-            Z.scale3d(.7),
-            c(1, 1, 1),
-          ), [-1, 1].map(t => g(P(15), Z.translate(.16 * t, .4, -.36).scale3d(.09)));
-        }, 0);
+          ),
+          polygons_transform(cylinder(GQuad), identity.scale(1.3, 10, 1.3), material(.2, .7, .4, .6)),
+        ),
+      ),
+      identity.translate(0, 0, 45),
+    );
+    newSoul(identity.translate(0, 2.8, 45), [0, 0, 4.5]);
+  });
+  newModel(model => {
+    model._update = () => identity.translate(9.8 * (1 - getOscillationAmount()));
+    meshAdd(cylinder(3), identity.translate(-23, -1.7, 55.8).scale(5, .7, 8.3), material(.3, .6, .6, .2));
+    meshAdd(cylinder(8), identity.translate(-23, -2.2, 66.5).scale(1.5, 1.2, 1.5), material(.8, .8, .8, .2));
+    meshAdd(cylinder(GQuad), identity.translate(-23, -3, 55).scale(5.2, 1.7, 3), material(.5, .5, .5, .3));
+    meshAdd(cylinder(GQuad), identity.translate(-23, -2.2, 62).scale(3, 1, 4), material(.5, .5, .5, .3));
+    newLever(identity.translate(-23, -.5, 66.5));
+  });
+  meshAdd(cylinder(GQuad), identity.translate(2.45 - 21.1, -3, 55).scale(2.45, 1.4, 2.7), material(.9, .9, .9, .2));
+  newModel(model => {
+    model._update = () => identity.translate(0, level3Oscillation() * /* @__PURE__ */ Math.sin(1.35 * gameTime) * 4);
+    meshAdd(cylinder(GQuad), identity.translate(-22.55, -3, 55).scale(1.45, 1.4, 2.7), material(.7, .7, .7, .2));
+    meshAdd(
+      csg_polygons(
+        csg_subtract(
+          polygons_transform(cylinder(GQuad), identity.scale(3, 1.4, 2.7)),
+          polygons_transform(cylinder(GQuad), identity.scale(1.2, 8, 1.2)),
+        ),
+      ),
+      identity.translate(-33, -3, 55),
+      material(.7, .7, .7, .2),
+    );
+  });
+  newModel(model => {
+    model._update = () => identity.translate(0, 0, level3Oscillation() * /* @__PURE__ */ Math.sin(.9 * gameTime) * 8);
+    meshAdd(
+      csg_polygons(
+        csg_subtract(
+          polygons_transform(
+            cylinder(GQuad),
+            identity.translate(-27, -3, 55).scale(3, 1.4, 2.7),
+            material(.9, .9, .9, .2),
+          ),
+          polygons_transform(cylinder(GQuad), identity.translate(-27, -3, 55).scale(1, 3), material(.9, .9, .9, .2)),
+        ),
+      ),
+    );
+    meshAdd(cylinder(GQuad), identity.translate(-39, -3, 55).scale(3, 1.4, 2.7), material(.9, .9, .9, .2));
+  });
+  newModel(model => {
+    model._update = () => identity.translate(0, -6.5 * levers[4].$lerpValue2);
+    meshAdd(
+      cylinder(6),
+      identity.translate(-44.5, 0, 55).rotate(90, 90).rotate(0, 90).scale(5.9, .5, 5.9),
+      material(.7, .7, .7, .4),
+    );
+  });
+  const hexCorridorPolygons = [
+    ...polygons_transform(
+      csg_polygons(
+        csg_union(
+          polygons_transform(cylinder(GQuad), identity.translate(0, -3).scale(11, 1.4, 3), material(.9, .9, .9, .2)),
+          csg_subtract(
+            polygons_transform(cylinder(6), identity.rotate(0, 0, 90).scale(6, 8, 6), material(.3, .6, .6, .3)),
+            polygons_transform(
+              cylinder(4, 0, .01),
+              identity.translate(0, 6).scale(12, 2, .75).rotate(0, 45),
+              material(.3, .6, .6, .3),
+            ),
+            polygons_transform(cylinder(6), identity.rotate(0, 0, 90).scale(5, 12, 5), material(.3, .6, .6, .3)),
+            ...[5, 0, -5].map(x =>
+              polygons_transform(
+                cylinder(5),
+                identity.translate(x, 2.5).rotate(90, 0, 36).scale(1.8, 10, 1.8),
+                material(.3, .6, .6, .3),
+              )
+            ),
+          ),
+        ),
+      ),
+      identity,
+    ),
+  ];
+  meshAdd(hexCorridorPolygons, identity.translate(-53, 0, 55));
+  meshAdd(cylinder(6), identity.translate(-61.3, -2.4, 49).scale(3, 1, 5), material(.4, .6, .6, .3));
+  meshAdd(cylinder(7), identity.translate(-57, -2.6, 46).scale(4, 1, 4), material(.8, .8, .8, .3));
+  newLever(identity.translate(-55, -1.1, 46).rotate(0, 90));
+  newModel(model => {
+    model._update = () =>
+      identity.translate(-75, (1 - levers[5].$lerpValue2) * (1 - levers[6].$lerpValue) * 3, 55).rotate(
+        180 * (1 - levers[5].$lerpValue2) + rotatingHexCorridorRotation,
+        0,
+      );
+    meshAdd(hexCorridorPolygons);
+  }, 2);
+  meshAdd(
+    cylinder(GQuad),
+    identity.translate(-88.3, -5.1, 55).rotate(0, 0, -30).scale(5, 1.25, 4.5),
+    material(.7, .7, .7, .2),
+  );
+  meshAdd(
+    cylinder(3, 0, -.5),
+    identity.translate(-88.4, -3.9, 55).rotate(0, -90, 17).scale(3, 1.45, 5.9),
+    material(.8, .8, .8, .2),
+  );
+  meshAdd(
+    csg_polygons(
+      csg_subtract(
+        csg_union(
+          polygons_transform(
+            cylinder(GQuad),
+            identity.translate(-100, -2.5, 55).scale(8, 1, 8),
+            material(.8, .8, .8, .2),
+          ),
+          polygons_transform(
+            cylinder(GQuad),
+            identity.translate(-113, -2.6, 55).scale(6.2, 1.1, 3).skewX(3),
+            material(.8, .8, .8, .2),
+          ),
+          polygons_transform(
+            cylinder(GQuad),
+            identity.translate(-100, -2.6, 70).scale(3, 1.1, 7),
+            material(.8, .8, .8, .2),
+          ),
+          polygons_transform(
+            cylinder(GQuad),
+            identity.translate(-96, -2.6, 73).rotate(0, 45).scale(3, 1.1, 5),
+            material(.8, .8, .8, .2),
+          ),
+          polygons_transform(
+            cylinder(6),
+            identity.translate(-88.79, -2.6, 80.21).scale(6, 1.1, 6).rotate(0, 15),
+            material(.6, .6, .6, .3),
+          ),
+          polygons_transform(
+            cylinder(GQuad),
+            identity.translate(-100, -1.1, 82.39).rotate(-15, 0).scale(3, 1.1, 6),
+            material(.8, .8, .8, .2),
+          ),
+          polygons_transform(
+            cylinder(GQuad),
+            identity.translate(-100, .42, 92).scale(3, 1.1, 4.1),
+            material(.8, .8, .8, .2),
+          ),
+        ),
+        polygons_transform(cylinder(8), identity.translate(-100, -1, 55).scale(7, .9, 7), material(.3, .3, .3, .4)),
+        polygons_transform(cylinder(8), identity.translate(-100, -2, 55).scale(4, .3, 4), material(.4, .4, .4, .5)),
+        polygons_transform(cylinder(8), identity.translate(-100, -3, 55).scale(.6, 1, .6), material(.4, .4, .4, .5)),
+      ),
+    ),
+    identity,
+  );
+  newSoul(identity.translate(-100, .2, 55), [0, 0, 7.5], [-8, 0, 3.5], [-12, 0, 3.5], [-15, 0, 3.5]);
+  newSoul(identity.translate(-89, .2, 80), [0, 0, 6]);
+  meshAdd(
+    csg_polygons(
+      csg_subtract(
+        polygons_transform(cylinder(GQuad), identity.translate(-100, 1, 63).scale(7.5, 4), material(.5, .5, .5, .4)),
+        polygons_transform(cylinder(GQuad), identity.translate(-100, 0, 70).scale(2, 2, 10), material(.5, .5, .5, .4)),
+        polygons_transform(
+          cylinder(20, 1),
+          identity.translate(-100, 2, 70).scale(2, 2, 10).rotate(90, 0),
+          material(.5, .5, .5, .4),
+        ),
+      ),
+    ),
+  );
+  newModel(model => {
+    model._update = () => identity.translate(-99.7, 5.3 * -levers[6].$lerpValue - 2, 63.5);
+    meshAdd(entranceBarsPolygons);
+  });
+  GQuad.map(({ x, z }) => {
+    meshAdd(cylinder(6), identity.translate(7 * x - 100, -3, 7 * z + 55).scale(1, 8.1), material(.6, .15, .15, .8));
+    [4, -.4].map(
+      i =>
+        meshAdd(
+          cylinder(6),
+          identity.translate(7 * x - 100, i, 7 * z + 55).scale(1.3, .5, 1.3),
+          material(.4, .2, .2, .8),
+        ),
+    );
+  });
+  integers_map(7, i => {
+    meshAdd(
+      cylinder((23 * i + 1) % 5 + 5, 0, .55),
+      identity.translate(/* @__PURE__ */ 5 * Math.sin(i) - 101 + i, -2.3 - i, 44.9 - 2.8 * i).scaleSelf(
+        5 + i / 2,
+        1 + i / 6,
+        5 + i / 3,
+      ),
+      material(.5 - i / 17, .5 - (1 & i) / 9, .6, .3),
+    );
+  });
+  meshAdd(cylinder(GQuad), identity.translate(-87, -9.5, 24).scale(7, 1, 3), material(.4, .5, .6, .4));
+  meshAdd(cylinder(4), identity.translate(-86, -9.2, 27).scale(5, 1, 5), material(.5, .6, .7, .3));
+  meshAdd(cylinder(18, 1), identity.translate(-86, -9, 31).scale(1.5, 1, 1.5), material(.3, .3, .4, .1));
+  newLever(identity.translate(-86, -7.5, 31));
+  newModel(model => {
+    model._update = () => {
+      const osc = shouldOscillate();
+      return identity.translate(
+        0,
+        3.5 * (1 - max(levers[6].$lerpValue, levers[7].$lerpValue)) + osc * /* @__PURE__ */ Math.sin(gameTime) * 5,
+      );
+    };
+    [0, 12, 24].map(
+      x =>
+        meshAdd(
+          cylinder(GQuad),
+          identity.translate(x - 76.9, x / -13 - 10, 24).scale(2.8, 1.5, 3),
+          material(.2, .5, .6, .2),
+        ),
+    );
+  });
+  newModel(model => {
+    model._update = () => {
+      const osc = shouldOscillate();
+      return identity.translate(
+        0,
+        osc * /* @__PURE__ */ Math.sin(gameTime + 3) * 6,
+        /* @__PURE__ */ 6 * Math.sin(.6 * gameTime + osc) * osc,
+      );
+    };
+    [6, 18].map(
+      x =>
+        meshAdd(
+          cylinder(GQuad),
+          identity.translate(x - 76.9, x / -13 - 10, 24).scale(2.8, 1.5, 3),
+          material(.1, .4, .5, .2),
+        ),
+    );
+  });
+  meshAdd(
+    csg_polygons(
+      csg_subtract(
+        csg_union(
+          polygons_transform(cylinder(GQuad), identity.scale(11, 1, 13), material(.3, .4, .6, .3)),
+          polygons_transform(cylinder(5), identity.translate(0, 0, -7).scale(2, 1.2, 2), material(.2, .4, .7, .3)),
+          polygons_transform(cylinder(5), identity.scale(9, 1.2, 9), material(0, .2, .3, .5)),
+        ),
+        polygons_transform(cylinder(5), identity.scale(5.4, 5, 5.4), material(0, .2, .3, .5)),
+      ),
+    ),
+    identity.translate(-38.9, -11.3, 17),
+  );
+  newLever(identity.translate(-38.9, -9.6, 10));
+  newModel(model => {
+    model._update = () => identity.translate(0, -7.3 * levers[7].$lerpValue2);
+    meshAdd(
+      csg_polygons(
+        csg_subtract(
+          csg_union(
+            polygons_transform(cylinder(5), identity.translate(0, 2).scale(5, 7, 5).skewY(8), material(.2, .4, .5, .5)),
+            polygons_transform(
+              cylinder(5),
+              identity.translate(0, 6).scale(1.1, 7, 1.1).skewY(-8),
+              material(.25, .35, .5, .5),
+            ),
+            polygons_transform(
+              cylinder(5),
+              identity.translate(0, 9).scale(.6, 7, .6).skewY(8),
+              material(.35, .3, .5, .5),
+            ),
+          ),
+          polygons_transform(
+            cylinder(5),
+            identity.translate(0, 5).scale(1.5, 1.5, 8).rotate(90, 0, 35),
+            material(.2, .4, .5, .5),
+          ),
+        ),
+      ),
+      identity.translate(-38.9, -11.3, 17),
+    );
+    newSoul(
+      identity.translate(-38.9, -.3, 17).rotate(0, 0, 10),
+      ...polygon_regular(15).map(({ x, z }) => [3 * x, 3 * z, 1.5]),
+    );
+  });
+  GQuad.map(({ x, z }) => {
+    tmpMatrix = identity.translate(9 * x - 38.9, -7.3, 11 * z + 17);
+    meshAdd(cylinder(18, 1), tmpMatrix.scale(1, 4), material(.25, .25, .25, 1));
+    [1.5, 8].map(
+      y => meshAdd(cylinder(18, 1), tmpMatrix.translate(0, y - 4).scale(1.5, .5, 1.5), material(.6, .6, .6, .3)),
+    );
+  });
+  meshAdd(
+    csg_polygons(
+      csg_subtract(
+        csg_union(
+          polygons_transform(cylinder(6), identity.translate(0, 0, -36).scale(15, 1.2, 15), material(.7, .7, .7, .3)),
+          polygons_transform(
+            cylinder(GQuad),
+            identity.translate(0, 0, -18).scale(4, 1.2, 6),
+            material(.45, .4, .6, .3),
+          ),
+        ),
+        ...integers_map(6, z =>
+          integers_map(6, x =>
+            polygons_transform(
+              cylinder(6),
+              identity.translate(4.6 * x - 12 + 2 * (1 & z), 0, 4.6 * z - 50 + /* @__PURE__ */ 2 * Math.sin(4 * x))
+                .scale(2, 5, 2),
+              material(.7, .7, .7, .3),
+            ))).flat(),
+      ),
+    ),
+    identity.translate(-38.9, -11.3, 17),
+  );
+  newSoul(identity.translate(-38.9, -8.4, -21), [0, 0, 12]);
+  meshAdd(cylinder(5), identity.translate(-84, -2, 85).scale(4, .8, 4).rotate(0, 10), material(.8, .1, .25, .4));
+  newLever(identity.translate(-84, -.5, 85).rotate(0, 45));
+  newModel(model => {
+    model._update = () => getBoatAnimationMatrix(-123, 1.4, 55 + -65 * secondBoatLerp);
+    newLever(identity.translate(0, -3, -4).rotate(0, 180));
+    meshAdd(boatPolygons);
+  });
+  newSoul(identity.translate(-115, .2, -12), [0, 0, 3.5]);
+  const pushingRod = csg_polygons(
+    csg_subtract(
+      polygons_transform(
+        cylinder(GQuad),
+        identity.translate(0, -.5, 1).scale(1.15, 1.2, 6.5),
+        material(.25, .25, .35, .3),
+      ),
+      polygons_transform(cylinder(3), identity.translate(0, 0, -5.5).scale(3, 2), material(.6, .3, .4, .3)),
+      ...[-1.2, 1.2].map(
+        i =>
+          polygons_transform(
+            cylinder(GQuad),
+            identity.translate(i, -.5, 1).scale(.14, .3, 6.5),
+            material(.7, .2, 0, .3),
+          ),
+      ),
+    ),
+  );
+  newModel(model => {
+    model._update = () =>
+      identity.translate(0, -2, shouldPushRods() * abs(/* @__PURE__ */ Math.sin(1.1 * gameTime)) * -8.5 + 10);
+    integers_map(2, x => meshAdd(pushingRod, identity.translate(9 * x - 110 + (1 & x), 1.7, -12)));
+  });
+  newModel(model => {
+    model._update = () =>
+      identity.translate(0, -2, shouldPushRods() * abs(/* @__PURE__ */ Math.sin(2.1 * gameTime)) * -8.5 + 10);
+    integers_map(2, x => meshAdd(pushingRod, identity.translate(9 * (x + 2) - 110 + (1 & x), 1.7, -12)));
+  });
+  newModel(model => {
+    model._update = () =>
+      identity.translate(
+        0,
+        -2,
+        -8.5
+            * max(
+              (1 - levers[10].$lerpValue) * (1 - shouldPushRods()),
+              shouldPushRods() * abs(/* @__PURE__ */ Math.sin(1.5 * gameTime)),
+            ) + 10,
+      );
+    integers_map(3, x => meshAdd(pushingRod, identity.translate(9 * x - 106, 1.7, -12)));
+  });
+  meshAdd(
+    csg_polygons(
+      csg_subtract(
+        csg_union(
+          polygons_transform(cylinder(GQuad), identity.translate(26.5, -1.6, 10).scale(17, 2.08, 3)),
+          polygons_transform(cylinder(GQuad), identity.translate(26.5, -.6, 10).scale(17, 2, .5)),
+        ),
+        ...integers_map(
+          4,
+          x =>
+            polygons_transform(cylinder(GQuad), identity.translate(13 + 9 * x + (1 & x), -.8, 9).scale(1.35, 1.35, 9)),
+        ),
+        ...integers_map(
+          3,
+          x => polygons_transform(cylinder(GQuad), identity.translate(17 + 9 * x, -.8, 9).scale(1.35, 1.35, 9)),
+        ),
+      ),
+    ),
+    identity.translate(-123, 0, -12),
+    material(.5, .5, .6, .2),
+  );
+  meshAdd(
+    cylinder(5),
+    identity.translate(-113.6, -1.6, -2).rotate(0, 90, 90).scale(1.5, .2, 1.5),
+    material(.25, .25, .35, 1),
+  );
+  meshAdd(cylinder(GQuad), identity.translate(-116, -2.6, -12).scale(3.2, 1.1, 4).skewX(3), material(.8, .8, .8, .2));
+  meshAdd(cylinder(6), identity.translate(-116, -2.6, -16.5).scale(3.2, .8, 3), material(.6, .5, .7, .2));
+  newLever(identity.translate(-116, -1.4, -18).rotate(0, 180));
+  integers_map(3, i => {
+    meshAdd(bigArc, identity.translate(12 * i - 109, -9, -12), material(.6, .6, .6, .3));
+    meshAdd(bigArc, identity.translate(-77, -9, -12 * i - 8 - 12).rotate(0, 90), material(.6, .6, .6, .3));
+  });
+  meshAdd(
+    csg_polygons(
+      csg_subtract(
+        polygons_transform(
+          cylinder(12),
+          identity.translate(-77, -13.9, -12).scale(4, 18.2, 4),
+          material(.7, .7, .7, .2),
+        ),
+        polygons_transform(
+          cylinder(GQuad),
+          identity.translate(-79, 0, -12).scale(3.5, 2.2, 1.3),
+          material(.4, .5, .6, .2),
+        ),
+        polygons_transform(
+          cylinder(GQuad),
+          identity.translate(-77, 0, -14).scale(1.5, 2.2, 2),
+          material(.4, .5, .6, .2),
+        ),
+        polygons_transform(cylinder(12), identity.translate(-77, 2.8, -12).scale(3, 5, 3), material(.4, .5, .6, .2)),
+      ),
+    ),
+  );
+  meshAdd(cylinder(GQuad), identity.translate(-115.5, -17, -12).scale(.5, 15, 2.2), material(.6, .6, .6, .3));
+  meshAdd(cylinder(GQuad), identity.translate(-77, -17, -50.5).scale(2.2, 15, .5), material(.6, .6, .6, .3));
+  meshAdd(
+    cylinder(GQuad),
+    identity.translate(-84.9, -4.3, -40).rotate(0, 0, 12).scale(6, 1, 3),
+    material(.6, .6, .6, .3),
+  );
+  meshAdd(
+    csg_polygons(
+      csg_subtract(
+        polygons_transform(
+          cylinder(GQuad),
+          identity.translate(-93, -5.8, -40).scale(9, 1, 5),
+          material(.8, .8, .8, .1),
+        ),
+        polygons_transform(cylinder(9), identity.translate(-98, -5.8, -40).scale(3, 8, 3), material(.7, .7, .7, .2)),
+      ),
+    ),
+  );
+  meshAdd(cylinder(9), identity.translate(-98, -5.8, -40).scale(2.5, .9, 2.5), material(.5, .5, .5, .3));
+  newLever(identity.translate(-98, -4.4, -40).rotate(0, 90));
+  newSoul(identity.translate(-93, -3, -40).rotate(0, 0, 4), [0, -2, 3.5], [0, 2, 3.5]);
+  meshAdd(
+    csg_polygons(
+      csg_subtract(
+        csg_union(
+          polygons_transform(
+            cylinder(6, 0, 0, .6),
+            identity.translate(-100, .7, 105.5).scale(8, 1, 11),
+            material(.7, .7, .7, .2),
+          ),
+          polygons_transform(
+            cylinder(GQuad),
+            identity.translate(-101.5, .7, 93.5).scale(10.5, 1, 2),
+            material(.7, .7, .7, .2),
+          ),
+          polygons_transform(
+            cylinder(GQuad),
+            identity.translate(-91.2, .7, 107).scale(3, 1, 3.3),
+            material(.7, .7, .7, .2),
+          ),
+        ),
+        polygons_transform(cylinder(5), identity.translate(-100, .7, 113).scale(4, 3, 4), material(.7, .7, .7, .2)),
+      ),
+    ),
+  );
+  integers_map(4, i =>
+    newModel(model => {
+      model._update = () => {
+        const osc = hexPadShouldOscillate();
+        return identity.translate(
+          (i > 2 ? 2 * (1 - osc) + osc : 0) - 100,
+          osc * /* @__PURE__ */ Math.sin(1.3 * gameTime + 1.7 * i) * (3 + i / 3) + .7,
+          (1 & i ? -1 : 1) * (1 - levers[8].$lerpValue2) * (1 - levers[12].$lerpValue2) * -7
+            + max(.05, osc) * /* @__PURE__ */ Math.cos(1.3 * gameTime + 7 * i) * (4 - 2 * (1 - i / 3)) + 115,
+        );
+      };
+      meshAdd(
+        cylinder(6),
+        identity.translate(-14.6 - 4.8 * i - (i > 2 ? 2 : 0), -i / 2.3, -21.5).scale(2.6, 1, 2.5),
+        material(.5 - i / 8, i / 12 + .5, .7, .3),
+      );
+    }));
+  newModel(model => {
+    model._update = () => {
+      const osc = hexPadShouldOscillate();
+      return identity.translate(
+        2.5 * (1 - osc) - 139.7,
+        -3 * (1 - levers[8].$lerpValue) + osc * /* @__PURE__ */ Math.sin(.8 * gameTime) * -1 - 1.8,
+        93.5,
+      ).rotateSelf(/* @__PURE__ */ Math.cos(1.3 * gameTime) * (3 * osc + 3), 0);
+    };
+    meshAdd(
+      csg_polygons(
+        csg_subtract(
+          polygons_transform(cylinder(10), identity.scale(6, 2, 6), material(.1, .6, .5, .3)),
+          polygons_transform(cylinder(10), identity.scale(3.3, 6, 3.3), material(.1, .6, .5, .5)),
+        ),
+      ),
+    );
+    tmpMatrix = identity.translate(-7.5).rotate(0, 90);
+    meshAdd(cylinder(15), tmpMatrix.scale(3, 2.3, 3), material(.4, .4, .4, .3));
+    meshAdd(cylinder(10), tmpMatrix.scale(2, 2.5, 2), material(.3, .8, .7, .3));
+    meshAdd(cylinder(5), tmpMatrix.scale(1, 3), material(.5, .5, .5, .5));
+    newLever(tmpMatrix.translate(0, 3.4).rotate(0, 180));
+    [-1, 1].map(
+      i =>
+        meshAdd(
+          GHorn,
+          identity.rotate(90 * -i, 180, 90).translate(0, 5).rotate(0, 0, 40).scale(1.3, 10, 1.3),
+          material(1, 1, .8, .2),
+        ),
+    );
+    newSoul(identity.translate(-5, 4), [0, -1.2, 1.7], [0, 1.2, 1.7]);
+  });
+  [-1, 1].map(x => {
+    meshAdd(cylinder(15, 1), identity.translate(-7.5 * x - 100, 3.7, 96).scale(.8, 4, .8), material(.6, .24, .2, .5));
+    [7.2, 1.5].map(
+      y =>
+        meshAdd(
+          cylinder(15, 1),
+          identity.translate(-7.5 * x - 100, y + .7, 96).scale(1.1, .5, 1.1),
+          material(.5, .24, .2, .4),
+        ),
+    );
+    meshAdd(
+      GHorn,
+      identity.translate(-5 * x - 100, 1.7, 114.5).scale(1.2, 10, 1.2).rotate(0, 90 * x - 90),
+      material(1, 1, .8),
+    );
+    meshAdd(
+      csg_polygons(
+        csg_subtract(
+          polygons_transform(
+            cylinder(GQuad),
+            identity.translate(-4 * x, 3.5, -.5).scale(4, 4, .7),
+            material(.5, .5, .5, .4),
+          ),
+          polygons_transform(cylinder(GQuad), identity.scale(3, 3, 10), material(.6, .24, .2, .5)),
+          polygons_transform(
+            cylinder(30, 1),
+            identity.translate(0, 3, -5).scale(3, 4, 10).rotate(90, 0),
+            material(.6, .24, .2, .5),
+          ),
+          polygons_transform(
+            cylinder(5),
+            identity.translate(-5.3 * x, 7).rotate(90, 0).scale(1.7, 5, 1.7),
+            material(.6, .24, .2, .5),
+          ),
+          polygons_transform(
+            cylinder(5),
+            identity.translate(-5.3 * x, 3.8).rotate(90, 0, 35).scale(.75, 5, .75),
+            material(.6, .24, .2, .5),
+          ),
+        ),
+      ),
+      identity.translate(x - 100, .7, 97),
+    );
+  });
+  newModel(model => {
+    model._update = () => identity.translate(-100, .6 - 6 * levers[12].$lerpValue, 96.5).scale(.88, 1.2);
+    meshAdd(entranceBarsPolygons);
+  });
+  const rotPlatformBase = [
+    ...polygons_transform(cylinder(28, 1), identity.scale(8, 1, 8), material(.45, .45, .45, .2)),
+    ...polygons_transform(cylinder(5), identity.translate(0, 1).scale(1, .2), material(.3, .3, .3, .2)),
+  ];
+  newModel(model => {
+    model._update = () => identity.translate(-80, 1, 106).rotate(0, 40 + rotatingPlatform1Rotation);
+    meshAdd(
+      csg_polygons(
+        csg_subtract(
+          polygons_transform(cylinder(28, 1), identity.scale(8, 1, 8), material(.45, .45, .45, .2)),
+          polygons_transform(
+            cylinder(GQuad),
+            identity.translate(0, 0, -5.5).scale(1.5, 3, 2.5),
+            material(.45, .45, .45, .2),
+          ),
+        ),
+      ),
+    );
+    meshAdd(cylinder(8), identity.translate(0, 2).scale(3, 1.5, 3), material(.7, .7, .7, .1));
+    meshAdd(cylinder(5), identity.translate(0, 2).scale(1, 2), material(.3, .3, .3, .2));
+    newSoul(identity.translate(0, 3), ...polygon_regular(10).map(({ x, z }) => [5.6 * x, 5.6 * z, 2.5]));
+  });
+  newModel(model => {
+    model._update = () => identity.translate(-64, 1, 106).rotate(0, rotatingPlatform2Rotation);
+    (() => {
+      meshAdd(
+        csg_polygons(
+          csg_subtract(
+            polygons_transform(cylinder(28, 1), identity.translate(0, 2).scale(8, 1, 8), material(.35, 0, 0, .3)),
+            polygons_transform(cylinder(GQuad), identity.scale(9, 5, 2), material(.3, 0, 0, .3)),
+          ),
+        ),
+      );
+      meshAdd(rotPlatformBase);
     })();
+    [-1, 1].map(
+      x =>
+        meshAdd(
+          GHorn,
+          identity.rotate(0, 90).translate(-5 * x, 1, -.5).scale(1.2, 10, 1.2).rotate(0, 90 * x + 90),
+          material(1, 1, .8),
+        ),
+    );
+  });
+  newModel(model => {
+    model._update = () => identity.translate(-48, 1, 106).rotate(0, 180 - rotatingPlatform2Rotation);
+    meshAdd(
+      csg_polygons(
+        csg_subtract(
+          polygons_transform(cylinder(30, 1), identity.translate(0, 2).scale(8, 1, 8), material(.35, 0, 0, .3)),
+          polygons_transform(cylinder(GQuad), identity.translate(7).scale(9, 5, 2), material(.3, 0, 0, .3)),
+          polygons_transform(cylinder(GQuad), identity.translate(0, 0, 7).scale(2, 5, 9), material(.3, 0, 0, .3)),
+        ),
+      ),
+    );
+    meshAdd(rotPlatformBase);
+  });
+  newModel(model => {
+    model._update = () => identity.translate(-48, 1, 90).rotate(0, 270 + rotatingPlatform2Rotation);
+    meshAdd(
+      csg_polygons(
+        csg_subtract(
+          polygons_transform(cylinder(30, 1), identity.translate(0, 2).scale(8, 1, 8), material(.35, 0, 0, .3)),
+          polygons_transform(cylinder(GQuad), identity.translate(7).scale(9, 5, 2), material(.3, 0, 0, .3)),
+          polygons_transform(cylinder(GQuad), identity.translate(0, 0, -7).scale(2, 5, 9), material(.3, 0, 0, .3)),
+        ),
+      ),
+    );
+    meshAdd(rotPlatformBase);
+  });
+  meshAdd(cylinder(GQuad), identity.translate(-56, 1, 106).scale(.7, .8, 2.5), material(.7, .7, .7, .2));
+  meshAdd(cylinder(GQuad), identity.translate(-48, 1, 98).scale(2.5, .8, .7), material(.7, .7, .7, .2));
+  meshAdd(cylinder(GQuad), identity.translate(-39, .4, 90).scale(2, 1, 2), material(.7, .7, .7, .3));
+  meshAdd(cylinder(GQuad), identity.translate(-34.2, .4, 90).scale(3, 1, 3), material(.7, .7, .7, .3));
+  newLever(identity.translate(-34, 2.7, 96).rotate(-12, 0));
+  meshAdd(cylinder(5), identity.translate(-34, .2, 96).scale(3, 2, 4).rotate(-20, 0), material(.2, .5, .5, .6));
+  [material(.1, .55, .45, .2), material(.2, .5, .5, .3), material(.3, .45, .55, .4)].map((m, i) =>
+    newModel(model => {
+      model._update = () => {
+        const v = lerpneg(levers[13].$lerpValue2, levers[14].$lerpValue2);
+        return identity.translate(
+          0,
+          (1 - levers[13].$lerpValue2) * (1 - levers[14].$lerpValue2) * 3
+            + v * /* @__PURE__ */ Math.sin(1.5 * gameTime + 1.5 * i) * 4.7,
+        );
+      };
+      meshAdd(
+        cylinder(8),
+        identity.translate(-23.5, i / 1.5 - .4, 90 + 6.8 * i).scale(3.6, 2 - i / 1.5, 3.6).rotate(0, 22.5),
+        m,
+      );
+      2 === i && meshAdd(cylinder(6), identity.translate(-29, .4, 90).scale(2.4, 1, 2.8), material(.6, .7, .6, .3));
+      1 === i
+        && meshAdd(
+          cylinder(GQuad),
+          identity.translate(-16.1, .5, 103.5).rotate(0, 0, -3.5).scale(3.9, .8, 2).skewX(-1),
+          material(.6, .6, .7, .3),
+        );
+    })
+  );
+  meshAdd(
+    csg_polygons(
+      csg_subtract(
+        polygons_transform(
+          cylinder(6, 0, 0, .3),
+          identity.translate(0, -.92, 95).scale(14, 2, 14),
+          material(.8, .8, .8, .2),
+        ),
+        polygons_transform(cylinder(5), identity.translate(0, 0, 95).scale3d(6), material(.3, .3, .3, .5)),
+      ),
+    ),
+  );
+  [8, -6.1].map(
+    (y, p) =>
+      integers_map(3, i =>
+        meshAdd(
+          bigArc,
+          identity.translate(6 * i - 6, y - (1 & i), 111 - .2 * (1 & i) - p),
+          1 & i ? material(.5, .5, .5, .3) : material(.35, .35, .35, .5),
+        )),
+  );
+  [-1, 1].map(
+    x =>
+      meshAdd(GHorn, identity.translate(-8 * x, 1, 85).scale(1.2, 10, 1.2).rotate(0, 90 * x + 90), material(1, 1, .8)),
+  );
+  newLever(identity.translate(0, 1.7, 82).rotate(0, 180));
+  meshAdd(cylinder(5), identity.translate(0, -15.7, 82).scale(2.5, 17, 2.5).rotate(0, 35), material(.5, .3, .3, .4));
+  meshAdd(
+    csg_polygons(
+      csg_subtract(
+        csg_union(
+          polygons_transform(
+            cylinder(GQuad),
+            identity.translate(0, 16, 110.5).scale(12, 1, 3),
+            material(.5, .3, .3, .4),
+          ),
+          polygons_transform(
+            cylinder(GQuad),
+            identity.translate(0, 16, 111).scale(3, 1, 3.8),
+            material(.5, .3, .3, .4),
+          ),
+        ),
+        polygons_transform(cylinder(5), identity.translate(0, 16, 103.5).scale(5.5, 5, 5.5), material(.5, .3, .3, .4)),
+      ),
+    ),
+  );
+  newModel(model => {
+    model._update = () => {
+      const k = /* @__PURE__ */ Math.sin(gameTime);
+      return identity.translate(-2 * k).rotate(0, 0, 25 * k);
+    };
+    meshAdd(
+      cylinder(3),
+      identity.translate(0, -3, 118.8).scale(.8, .8, 18).rotate(90, 0, 60),
+      material(.5, .3, .3, .4),
+    );
+    [22, 30].map(z => {
+      meshAdd(cylinder(6), identity.translate(0, 16, z + 95).scale(3, 1, 2.3).rotate(0, 90), material(.7, .7, .7, .4));
+      meshAdd(cylinder(GQuad), identity.translate(0, 6.2, z + 95).scale(.5, 11, .5), material(.5, .3, .3, .4));
+    });
+  });
+  meshAdd(cylinder(6), identity.translate(0, 16, 121).scale(2.5, 1, 2.1).rotate(0, 90), material(.5, .6, .7, .3));
+  meshAdd(cylinder(GQuad), identity.translate(0, 16, 129).scale(1.5, 1, 2), material(.5, .6, .7, .3));
+  meshAdd(cylinder(7), identity.translate(0, 16.2, 133).scale(5, 1, 5), material(.4, .5, .6, .4));
+  newModel(model => {
+    model._update = () => {
+      const v = lerpneg(
+        lerpneg((levers[14].$lerpValue + levers[14].$lerpValue2) / 2, levers[13].$lerpValue2),
+        (levers[15].$lerpValue + levers[15].$lerpValue2) / 2,
+      );
+      return identity.translate(0, 16 * v, 8.5 * clamp01(2 * v - 1) + 95);
+    };
+    meshAdd(cylinder(5), identity.scale(5, 1.1, 5), material(.5, .3, .3, .4));
+    meshAdd(cylinder(5), identity.scale(5.5, .9, 5.5), material(.25, .25, .25, .4));
+    newLever(identity.translate(0, 1.5, -1).rotate(0, 180));
+  });
+  newSoul(identity.translate(0, 3, 95), ...polygon_regular(9).map(({ x, z }) => [9 * x, 9 * z, 4]));
+  newSoul(identity.translate(0, 19, 134), [0, 0, 3.5]);
+});
+
+playerModels = [
+  newModel(() => {
+    [0, 180].map(r =>
+      meshAdd(
+        GHorn,
+        identity.rotate(0, r).translate(.2, 1.32).rotate(0, 0, -30).scale(.2, .6, .2),
+        material(1, 1, .8),
+      )
+    );
+    meshAdd(sphere(20), identity.translate(0, 1).scale(.5, .5, .5), material(1, .3, .4));
+    const eye = polygons_transform(
+      csg_polygons(
+        csg_subtract(cylinder(15, 1), polygons_transform(cylinder(GQuad), identity.translate(0, 0, 1).scale(2, 2, .5))),
+      ),
+      identity.rotate(-90, 0).scale(.1, .05, .1),
+      material(.3, .3, .3),
+    );
+    [-1, 1].map(i => meshAdd(eye, identity.translate(.2 * i, 1.2, .4).rotate(0, 20 * i, 20 * i)));
+    meshAdd(cylinder(GQuad), identity.translate(0, .9, .45).scale(.15, .02, .06), material(.3, .3, .3));
+    meshAdd(sphere(20), identity.scale(.7, .8, .55), material(1, .3, .4));
+  }),
+  ...[-1, 1].map(x =>
+    newModel(() => {
+      meshAdd(cylinder(10, 1), identity.translate(.3 * x, -.8).scale(.2, .7, .24), material(1, .3, .4));
+    })
+  ),
+];
+
+leverModel = newModel(() => {
+  meshAdd(cylinder(6, 1), identity.scale(.13, 1.4, .13), material(.3, .3, .5, .1));
+  meshAdd(cylinder(8), identity.translate(0, 1).scale(.21, .3, .21), material(1, .5, .2));
+  meshAdd(cylinder(3), identity.translate(0, -1).rotate(90, 90).scale(.3, .4, .3), material(.2, .2, .2, .1));
+}, 0);
+
+soulCollisionModel = newModel(() => {
+  meshAdd(cylinder(6), identity.scale(.8, 1, .8), material(1, .3, .5));
+}, 0);
+
+soulModel = newModel(() => {
+  meshAdd(
+    sphere(40, 30, (a, b, polygon) => {
+      const bm = b / 30;
+      const theta = .05 * a * Math.PI;
+      const phixz = bm ** .6 * Math.PI / 2;
+      const osc = bm * bm * /* @__PURE__ */ Math.sin(a * Math.PI * .35) / 4;
+      if (29 === b) {
+        polygon.$smooth = 0;
+        return {
+          x: 0,
+          y: -.5,
+          z: 0,
+        };
+      }
+      return {
+        x: /* @__PURE__ */ Math.cos(theta) * /* @__PURE__ */ Math.sin(phixz),
+        y: /* @__PURE__ */ Math.cos(bm * Math.PI) - bm - osc,
+        z: /* @__PURE__ */ Math.sin(theta) * /* @__PURE__ */ Math.sin(phixz)
+          + /* @__PURE__ */ Math.sin(osc * Math.PI * 2) / 4,
+      };
+    }),
+    identity.scale3d(.7),
+    material(1, 1, 1),
+  );
+  [-1, 1].map(x => meshAdd(sphere(15), identity.translate(.16 * x, .4, -.36).scale3d(.09)));
+}, 0);
+
+const csm_buildMatrix = (camera_view, nearPlane, farPlane, zMultiplier) => {
+  let tx = 0;
+  let ty = 0;
+  let tz = 0;
+  const roundingRadius = 1.1 * (farPlane - nearPlane);
+  const projViewInverse = new DOMMatrix(mat_perspective(nearPlane, farPlane)).multiplySelf(camera_view).invertSelf();
+  const frustumCorners = integers_map(8, i => {
+    const v = projViewInverse.transformPoint({
+      x: 4 & i ? 1 : -1,
+      y: 2 & i ? 1 : -1,
+      z: 1 & i ? 1 : -1,
+    });
+    tx -= v.x = (roundingRadius * v.x | 0) / (roundingRadius * v.w);
+    ty -= v.y = (roundingRadius * v.y | 0) / (roundingRadius * v.w);
+    tz -= v.z = (roundingRadius * v.z | 0) / (roundingRadius * v.w);
+    return v;
+  });
+  const lightViewTranslated = identity.rotate(298, 139).translateSelf(tx / 8, ty / 8, tz / 8);
+  let left = Infinity;
+  let right = -Infinity;
+  let bottom = Infinity;
+  let top = -Infinity;
+  let near = Infinity;
+  let far = -Infinity;
+  polygon_transform(frustumCorners, lightViewTranslated).map(({ x, y, z }) => {
+    left = min(left, x);
+    right = max(right, x);
+    bottom = min(bottom, y);
+    top = max(top, y);
+    near = min(near, z);
+    far = max(far, z);
+  });
+  near *= 0 > near ? zMultiplier : 1 / zMultiplier;
+  far *= far > 0 ? zMultiplier : 1 / zMultiplier;
+  return identity.scale(2 / (right - left), 2 / (top - bottom), 2 / (near - far)).translateSelf(
+    (right + left) / -2,
+    (top + bottom) / -2,
+    (near + far) / 2,
+  ).multiplySelf(lightViewTranslated).toFloat32Array();
+};
+
+const loadShader = (source, type = 35633) => {
+  const shader = gl["c6x"](type);
+  gl["s3c"](shader, source);
+  gl["c6a"](shader);
+  return shader;
+};
+
+const initShaderProgram = (vertexShader, sfsSource) => {
+  const uniforms = {};
+  const program = gl["c1h"]();
+  gl["abz"](program, vertexShader);
+  gl["abz"](program, loadShader(sfsSource, 35632));
+  gl["l8l"](program);
+  return name => name ? uniforms[name] || (uniforms[name] = gl["gan"](program, name)) : gl["u7y"](program);
+};
+
+const gl = hC.getContext("webgl2");
+
+for (const s in gl) gl[s[0] + [...s].reduce((p, c, i) => (p * i + c.charCodeAt(0)) % 434, 0).toString(36)] = gl[s];
+
+const worldMatricesBuffer = new Float32Array(656);
+
+const renderModels = (worldMatrixLoc, renderPlayer, isCollider) => {
+  if (mainMenuVisible) {
+    const matrix = identity.rotate(0, /* @__PURE__ */ 40 * Math.sin(absoluteTime) - 70);
+    for (const { $modelId } of playerModels) writeMatrixToArray(worldMatricesBuffer, $modelId - 1, matrix);
+    gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer);
+    gl["d97"](4, playerModels[2].$vertexEnd - playerModels[0].$vertexBegin, 5123, 2 * playerModels[0].$vertexBegin);
+  } else {
+    for (const { $kind, $modelId: $modelId1, $matrix } of allModels) {
+      $kind && writeMatrixToArray(worldMatricesBuffer, $modelId1 - 1, $matrix);
+    }
+    gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer);
+    gl["d97"](4, (renderPlayer ? playerModels[2].$vertexEnd : playerModels[0].$vertexBegin) - 3, 5123, 6);
+    for (let i = 0; levers.length > i; ++i) {
+      writeMatrixToArray(worldMatricesBuffer, i, levers[i].$matrix);
+      worldMatricesBuffer[16 * i + 15] = 1 - levers[i].$lerpValue;
+    }
+    gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer);
+    gl["das"](4, leverModel.$vertexEnd - leverModel.$vertexBegin, 5123, 2 * leverModel.$vertexBegin, levers.length);
+    for (let i1 = 0; 13 > i1; ++i1) writeMatrixToArray(worldMatricesBuffer, i1, souls[i1].$matrix);
+    const soulModelToRender = isCollider ? soulCollisionModel : soulModel;
+    gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer);
+    gl["das"](
+      4,
+      soulModelToRender.$vertexEnd - soulModelToRender.$vertexBegin,
+      5123,
+      2 * soulModelToRender.$vertexBegin,
+      13,
+    );
+  }
+};
+
+const startMainLoop = groundTextureImage => {
+  let currentModelIdTMinus1 = 0;
+  let currentModelId = 0;
+  let player_respawned = 1;
+  let player_look_angle_target = 0;
+  let player_look_angle = 0;
+  let player_legs_speed = 0;
+  let _gamepadInteractPressed = !1;
+  let oldModelId;
+  let player_has_ground;
+  let player_gravity;
+  let player_speed;
+  let player_collision_velocity_x;
+  let player_collision_velocity_z;
+  let player_model_y;
+  let camera_player_dir_x;
+  let camera_player_dir_y;
+  let camera_player_dir_z;
+  const player_position_global = {
+    x: 0,
+    y: 0,
+    z: 0,
+  };
+  const player_collision_modelIdCounter = new Int32Array(256);
+  const player_respawn = () => {
+    const { $parent, $locMatrix } = levers[player_last_pulled_lever];
+    const { x, y, z } = $locMatrix.transformPoint({
+      x: 0,
+      y: 8,
+      z: -3,
+    });
+    player_position_final.x = player_position_global.x = x;
+    player_position_final.y = player_position_global.y = player_model_y = y;
+    player_position_final.z = player_position_global.z = z;
+    player_speed = 0;
+    player_gravity = 0;
+    player_collision_velocity_x = 0;
+    player_collision_velocity_z = 0;
+    player_has_ground = 0;
+    player_respawned = 1;
+    currentModelIdTMinus1 = currentModelId = $parent?.$modelId || 1;
+  };
+  const updatePlayer = () => {
+    let player_collision_x = 0;
+    let player_collision_z = 0;
+    NO_INLINE(() => {
+      let maxModelIdCount = 0;
+      let nextModelId = 0;
+      let lines = 0;
+      let grav = 0;
+      let hasGround = 0;
+      player_collision_modelIdCounter.fill(0);
+      for (let y2 = 0; 31 > y2; ++y2) {
+        let up = 0;
+        const yindex = 512 * y2;
+        for (let x2 = 0; 128 > x2; x2++) {
+          let i = yindex + 4 * x2;
+          const a = (collision_buffer[i] + collision_buffer[i + 1]) / 255;
+          i = collision_buffer[i + 2];
+          x2 > 14 && 114 > x2 && (up += a);
+          if (i && a) {
+            const count = player_collision_modelIdCounter[i] + 1;
+            player_collision_modelIdCounter[i] = count;
+            if (count >= maxModelIdCount) {
+              maxModelIdCount = count;
+              nextModelId = i;
+            }
+          }
+        }
+        3 > up && y2 > 5 && (grav += y2 / 32);
+        if (up > 3) {
+          y2 > 7 && (lines += y2 / 15);
+          hasGround = 1;
+        }
+      }
+      nextModelId && (hasGround = 1);
+      if (player_respawned) {
+        if (nextModelId) {
+          player_respawned = 0;
+          currentModelId = nextModelId;
+        }
+      } else currentModelId = nextModelId || currentModelIdTMinus1;
+      currentModelIdTMinus1 = nextModelId;
+      player_has_ground = hasGround;
+      player_gravity = lerpDamp(player_gravity, hasGround ? 6.5 : 8, 4);
+      player_position_global.y += lines / 41
+        - (hasGround ? 1 : player_gravity) * (grav / 41) * player_gravity * gameTimeDelta;
+    })();
+    NO_INLINE(() => {
+      for (let y2 = 32; 128 > y2; y2 += 2) {
+        let front = 0;
+        let back = 0;
+        let left = 0;
+        let right = 0;
+        const yindex = 512 * y2;
+        for (let x2 = y2 >> 1 & 1; 128 > x2; x2 += 2) {
+          const i1 = yindex + 4 * x2;
+          const i2 = yindex + 4 * (127 - x2);
+          const dist1 = collision_buffer[i1] / 255;
+          const dist2 = collision_buffer[i2 + 1] / 255;
+          const t = 1 - abs(x2 / 127 * 2 - 1);
+          if (x2 > 10 && 118 > x2) {
+            const dist1Opposite = collision_buffer[i2] / 255;
+            front = max(front, max(dist1 * t, dist1 * dist1Opposite * 2));
+            const dist2Opposite = collision_buffer[i1 + 1] / 255;
+            back = max(back, max(dist2 * t, dist2 * dist2Opposite));
+          }
+          if (54 > x2 || x2 > 74) {
+            const xdist = (1 - t) * max(dist1, dist2) / 3;
+            xdist > .001 && (64 > x2 && xdist > left ? left = xdist : x2 > 64 && xdist > right && (right = xdist));
+          }
+        }
+        const dx = right - left;
+        const dz = back - front;
+        abs(dx) > abs(player_collision_x) && (player_collision_x = dx);
+        abs(dz) > abs(player_collision_z) && (player_collision_z = dz);
+      }
+    })();
+    let strafe = (keyboard_downKeys[0] ? 1 : 0) + (keyboard_downKeys[2] ? -1 : 0) + touch_movementX;
+    let forward = (keyboard_downKeys[1] ? 1 : 0) + (keyboard_downKeys[3] ? -1 : 0) + touch_movementY;
+    const gamepad = navigator.getGamepads()[0];
+    if (gamepad) {
+      const getGamepadButtonState = index2 => buttons[index2]?.pressed || buttons[index2]?.value > 0;
+      const { buttons, axes } = gamepad;
+      const interactButtonPressed = getGamepadButtonState(1) || getGamepadButtonState(3) || getGamepadButtonState(2)
+        || getGamepadButtonState(0);
+      if (interactButtonPressed !== _gamepadInteractPressed) {
+        _gamepadInteractPressed = interactButtonPressed;
+        _gamepadInteractPressed && (keyboard_downKeys[5] = 1);
+      }
+      strafe += (abs(-axes[0]) > .2 ? -axes[0] : 0) + (getGamepadButtonState(14) ? 1 : 0)
+        + (getGamepadButtonState(15) ? -1 : 0);
+      forward += (abs(-axes[1]) > .2 ? -axes[1] : 0) + (getGamepadButtonState(12) ? 1 : 0)
+        + (getGamepadButtonState(13) ? -1 : 0);
+      if (player_first_person) {
+        abs(axes[2]) > .3 && (camera_rotation.y += 80 * axes[2] * gameTimeDelta);
+        abs(axes[3]) > .3 && (camera_rotation.x += 80 * axes[3] * gameTimeDelta);
+      }
+    }
+    .05 > abs(forward) && (forward = 0);
+    .05 > abs(strafe) && (strafe = 0);
+    const angle = /* @__PURE__ */ Math.atan2(forward, strafe);
+    const amount = clamp01(/* @__PURE__ */ Math.hypot(forward, strafe));
+    strafe = amount * /* @__PURE__ */ Math.cos(angle);
+    forward = amount * /* @__PURE__ */ Math.sin(angle);
+    const playerSpeedCollision = clamp01(1 - 5 * max(abs(player_collision_x), abs(player_collision_z)));
+    if (!currentModelId) {
+      player_collision_x += player_collision_velocity_x * playerSpeedCollision * gameTimeDelta;
+      player_collision_z += player_collision_velocity_z * playerSpeedCollision * gameTimeDelta;
+    }
+    player_collision_velocity_x = lerpDamp(player_collision_velocity_x, 0, player_has_ground ? 8 : 4);
+    player_collision_velocity_z = lerpDamp(player_collision_velocity_z, 0, player_has_ground ? 8 : 4);
+    player_speed = lerpDamp(
+      player_speed,
+      player_has_ground ? (strafe || forward ? player_has_ground ? 7 : 4 : 0) * playerSpeedCollision : 0,
+      player_has_ground ? playerSpeedCollision > .1 ? 10 : strafe || forward ? 5 : 7 : 1,
+    );
+    const movementRadians = player_first_person ? camera_rotation.y * DEG_TO_RAD : Math.PI;
+    const s = /* @__PURE__ */ Math.sin(movementRadians) * player_speed * gameTimeDelta;
+    const c = /* @__PURE__ */ Math.cos(movementRadians) * player_speed * gameTimeDelta;
+    player_collision_x -= strafe * c - forward * s;
+    player_collision_z -= strafe * s + forward * c;
+    const referenceMatrix = 1 === allModels[currentModelId].$kind && allModels[currentModelId].$matrix || identity;
+    const inverseReferenceRotationMatrix = referenceMatrix.inverse();
+    inverseReferenceRotationMatrix.m41 = 0;
+    inverseReferenceRotationMatrix.m42 = 0;
+    inverseReferenceRotationMatrix.m43 = 0;
+    ({ x: player_collision_x, z: player_collision_z } = inverseReferenceRotationMatrix.transformPoint({
+      x: player_collision_x,
+      z: player_collision_z,
+      w: 0,
+    }));
+    player_position_global.x += player_collision_x;
+    player_position_global.z += player_collision_z;
+    if (currentModelId !== oldModelId) {
+      oldModelId = currentModelId;
+      const { x: x2, y: y2, z: z2 } = referenceMatrix.inverse().transformPoint(player_position_final);
+      player_position_global.x = x2;
+      player_position_global.y = y2;
+      player_position_global.z = z2;
+    }
+    const oldx = player_position_final.x;
+    const oldz = player_position_final.z;
+    const { x, y, z } = referenceMatrix.transformPoint(player_position_global);
+    player_position_final.x = x;
+    player_position_final.y = y;
+    player_position_final.z = z;
+    const ydiff = abs(player_model_y - y);
+    player_model_y = lerpDamp(player_model_y, y + .1, 50 * ydiff + 5);
+    if (currentModelId) {
+      player_collision_velocity_x = (player_position_final.x - oldx) / gameTimeDelta;
+      player_collision_velocity_z = (player_position_final.z - oldz) / gameTimeDelta;
+    }
+    (strafe || forward) && (player_look_angle_target = 90 - angle / DEG_TO_RAD);
+    player_look_angle = angle_lerp_degrees(player_look_angle, player_look_angle_target, 8 * gameTimeDelta);
+    player_legs_speed = lerp(player_legs_speed, amount, 10 * gameTimeDelta);
+  };
+  const mainLoop = globalTime => {
+    let camera_view = identity;
+    requestAnimationFrame(mainLoop);
+    (time => {
+      const dt = (time - (_globalTime || time)) / 1e3;
+      if (mainMenuVisible) {
+        keyboard_downKeys[5] = 0;
+        gameTimeDelta = 0;
+      } else gameTimeDelta = min(.066, dt);
+      gameTime += gameTimeDelta;
+      absoluteTime += dt;
+      _globalTime = time;
+    })(globalTime);
+    if (gameTimeDelta > 0) {
+      gl["b6o"](36160, collision_frameBuffer);
+      gl["r9r"](0, 0, 128, 128, 6408, 5121, collision_buffer);
+      gl["iay"](36160, [36064]);
+      NO_INLINE(updatePlayer)();
+      updateModels();
+    }
+    if (gameTimeDelta > 0) {
+      camera_player_dir_x = interpolate_with_hysteresis(
+        camera_player_dir_x,
+        player_position_final.x,
+        .5,
+        gameTimeDelta,
+      );
+      camera_player_dir_y = interpolate_with_hysteresis(camera_player_dir_y, player_position_final.y, 2, gameTimeDelta);
+      camera_player_dir_z = interpolate_with_hysteresis(
+        camera_player_dir_z,
+        player_position_final.z,
+        .5,
+        gameTimeDelta,
+      );
+      if (player_first_person) {
+        const interpolationSpeed = 200 * player_respawned;
+        camera_position.x = lerpDamp(camera_position.x, player_position_final.x, 18 + interpolationSpeed);
+        camera_position.y = lerpDamp(camera_position.y, player_position_final.y + 1.5, 15 + interpolationSpeed);
+        camera_position.z = lerpDamp(camera_position.z, player_position_final.z, 18 + interpolationSpeed);
+        camera_rotation.x = max(min(camera_rotation.x, 87), -87);
+      } else {
+        camera_position.x = interpolate_with_hysteresis(camera_position.x, camera_player_dir_x, 1, 2 * gameTimeDelta);
+        camera_position.y = interpolate_with_hysteresis(
+          camera_position.y,
+          camera_player_dir_y + 13 + 15 * player_respawned,
+          4,
+          2 * gameTimeDelta,
+        );
+        camera_position.z = interpolate_with_hysteresis(
+          camera_position.z,
+          camera_player_dir_z + -18,
+          1,
+          2 * gameTimeDelta,
+        );
+        const viewDirDiffz = camera_position.z - camera_player_dir_z;
+        if (abs(viewDirDiffz) > 1) {
+          const viewDirDiffx = camera_position.x - camera_player_dir_x;
+          const viewDirDiffy = camera_position.y - camera_player_dir_y;
+          camera_rotation.y = 270 + /* @__PURE__ */ Math.atan2(viewDirDiffz, viewDirDiffx) / DEG_TO_RAD;
+          camera_rotation.x = 90
+            - /* @__PURE__ */ Math.atan2(/* @__PURE__ */ Math.hypot(viewDirDiffz, viewDirDiffx), viewDirDiffy)
+              / DEG_TO_RAD;
+        }
+      }
+      camera_rotation.y = angle_wrap_degrees(camera_rotation.y);
+      if (gameTimeDelta > 0) {
+        (() => {
+          const shouldRotatePlatforms = lerpneg(levers[12].$lerpValue, levers[13].$lerpValue);
+          gameTime > _messageEndTime && clearMessage();
+          rotatingHexCorridorRotation = lerp(
+            lerpDamp(rotatingHexCorridorRotation, 0, 1),
+            angle_wrap_degrees(rotatingHexCorridorRotation + 60 * gameTimeDelta),
+            levers[5].$lerpValue - levers[6].$lerpValue2,
+          );
+          rotatingPlatform1Rotation = lerp(
+            lerpDamp(rotatingPlatform1Rotation, 0, 5),
+            angle_wrap_degrees(rotatingPlatform1Rotation + 56 * gameTimeDelta),
+            shouldRotatePlatforms,
+          );
+          rotatingPlatform2Rotation = lerp(
+            lerpDamp(rotatingPlatform2Rotation, 0, 4),
+            angle_wrap_degrees(rotatingPlatform2Rotation + 48 * gameTimeDelta),
+            shouldRotatePlatforms,
+          );
+          secondBoatLerp = lerpDamp(
+            secondBoatLerp,
+            levers[9].$lerpValue2,
+            .2 + .3 * abs(2 * levers[9].$lerpValue2 - 1),
+          );
+          firstBoatLerp = lerpDamp(
+            firstBoatLerp,
+            game_completed ? lerp(firstBoatLerp, -9, 1.5 * gameTimeDelta) : clamp01(gameTime / 3),
+            1,
+          );
+          if (1 === levers[0].$value && levers[0].$lerpValue > .8) {
+            if (13 > souls_collected_count) {
+              levers[0].$value = 0;
+              showMessage("Not leaving now, there are souls to catch!", 3);
+            } else if (!game_completed) {
+              showMessage("Well done. They will be punished.<br>Thanks for playing", Infinity);
+              game_completed = 1;
+            }
+          }
+        })();
+        keyboard_downKeys[5] = 0;
+        (-25 > player_position_final.x || 109 > player_position_final.z ? -25 : -9) > player_position_final.y
+          && player_respawn();
+      }
+    }
+    camera_view = mainMenuVisible
+      ? identity.rotate(-20, -90).invertSelf().translateSelf(4.5, -2, -3.2 + clamp01(hC.clientWidth / 1e3))
+      : identity.rotate(-camera_rotation.x, -camera_rotation.y, -camera_rotation.z).invertSelf().translateSelf(
+        -camera_position.x,
+        -camera_position.y,
+        -camera_position.z,
+      );
+    if (gameTimeDelta > 0) {
+      collisionShader();
+      gl["b6o"](36160, collision_frameBuffer);
+      gl["v5y"](0, 0, 128, 128);
+      gl["cbf"](!0, !1, !0, !1);
+      gl["c4s"](16640);
+      gl["uae"](
+        collisionShader("b"),
+        !1,
+        identity.rotate(0, 180).invertSelf().translateSelf(
+          -player_position_final.x,
+          -player_position_final.y,
+          .3 - player_position_final.z,
+        ).toFloat32Array(),
+      );
+      renderModels(collisionShader("c"), 0, 1);
+      gl["cbf"](!1, !0, !1, !1);
+      gl["c4s"](16640);
+      gl["cbf"](!1, !0, !0, !1);
+      gl["uae"](
+        collisionShader("b"),
+        !1,
+        identity.translate(-player_position_final.x, -player_position_final.y, -player_position_final.z - .3)
+          .toFloat32Array(),
+      );
+      renderModels(collisionShader("c"), 0, 1);
+      gl["cbf"](!0, !0, !0, !0);
+      1 === currentModelId && (levers[9].$value = -15 > player_position_final.x && 0 > player_position_final.z ? 1 : 0);
+    }
+    csmShader();
+    gl["v5y"](0, 0, 2048, 2048);
+    csm_render[0](csm_buildMatrix(camera_view, .3, 55, 10));
+    csm_render[1](csm_buildMatrix(camera_view, 55, 177, 11));
+    gl["b6o"](36160, null);
+    mainShader();
+    gl["v5y"](0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+    gl["c4s"](16640);
+    gl["uae"](mainShader("a"), !1, mat_perspective(.3, 177));
+    gl["uae"](mainShader("b"), !1, camera_view.toFloat32Array());
+    gl["ubu"](mainShader("k"), camera_position.x, camera_position.y, camera_position.z);
+    csm_render[0]();
+    csm_render[1]();
+    renderModels(mainShader("c"), !player_first_person, 0);
+    skyShader();
+    gl["ubu"](skyShader("j"), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime);
+    mainMenuVisible
+      ? gl["ubu"](skyShader("k"), 0, 0, 0)
+      : gl["ubu"](skyShader("k"), camera_position.x, camera_position.y, camera_position.z);
+    gl["uae"](skyShader("b"), !1, camera_view.inverse().toFloat32Array());
+    gl["d97"](4, 3, 5123, 0);
+  };
+  const collision_buffer = new Uint8Array(65536);
+  const mainVertexShader = loadShader(
+    "#version 300 es\nlayout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 a,b,c[40];void main(){mat4 i=c[f.w>0.?int(f.w)-1:gl_InstanceID];l=mix(d,vec4(.7,1,.2,0),d.w>0.?0.:1.-i[3][3]),i[3][3]=1.,n=f,m=i*vec4(f.xyz,1),gl_Position=a*b*m,m.w=f.w,o=i*vec4(e,0);}",
+  );
+  const csmShader = initShaderProgram(
+    loadShader(
+      "#version 300 es\nin vec4 f;uniform mat4 b,c[40];void main(){mat4 i=c[f.w>0.?int(f.w)-1:gl_InstanceID];i[3][3]=1.,gl_Position=b*i*vec4(f.xyz,1);}",
+    ),
+    "#version 300 es\nvoid main(){}",
+  );
+  const skyShader = initShaderProgram(
+    loadShader("#version 300 es\nin vec4 f;void main(){gl_Position=vec4(f.xy,1,1);}"),
+    "#version 300 es\nprecision highp float;uniform vec3 j,k;uniform mat4 b;uniform highp sampler2D q;out vec4 O;void main(){vec2 t=gl_FragCoord.xy/j.xy*2.-1.;vec3 e=(normalize(b*vec4(t.x*-(j.x/j.y),-t.y,1.73205,0.))).xyz;float i=(-32.-k.y)/e.y,o=1.-clamp(abs(i/9999.),0.,1.);if(O=vec4(0,0,0,1),o>.01){if(i>0.){float o=cos(j.z/30.),i=sin(j.z/30.);e.xz*=mat2(o,i,-i,o);vec3 t=abs(e);O.xyz=vec3(dot(vec2(texture(q,e.xy).z,texture(q,e.yz*2.).z),t.zx)*t.y);}else e=k+e*i,O.x=(o*=.9-texture(q,e.xz/150.+vec2(sin(e.z/35.+j.z),cos(e.x/25.+j.z))/80.).y),O.y=o*o*o;}}",
+  );
+  const collisionShader = initShaderProgram(
+    mainVertexShader,
+    "#version 300 es\nprecision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(m.xyz,1);float r=1.-min(abs(a.z/a.w),1.);O=vec4(vec2(r*(gl_FragCoord.y>31.?1.:abs(o.y))),r>0.?m.w/255.:0.,1);}",
+  );
+  const mainShader = initShaderProgram(
+    mainVertexShader,
+    "#version 300 es\nprecision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform highp sampler2DShadow g,h;uniform highp sampler2D q;out vec4 O;void main(){vec4 c=vec4(m.xyz,1);vec3 e=normalize(o.xyz),s=l.w*(texture(q,n.yz*.035)*e.x+texture(q,n.xz*.035)*e.y+texture(q,n.xy*.035)*e.z).xyz;e=normalize(e+s*.5);float x=dot(e,vec3(-.656059,.666369,-.35431468)),t=1.,v=abs((b*c).z);vec4 r=(v<55.?i:j)*c;if(r=r/r.w*.5+.5,r.z<1.){t=0.;for(float e=-1.;e<=1.;++e)for(float a=-1.;a<=1.;++a){vec3 x=vec3(r.xy+vec2(e,a)/2048.,r.z-.00017439);t+=v<55.?texture(g,x):texture(h,x);}t/=9.;}vec3 a=l.xyz*(1.-s.x);O=vec4(vec3(.09,.05,.1)*a+a*(max(0.,x)*.5+a*x*x*vec3(.5,.45,.3))*(t*.7+.3)+a*max(dot(e,vec3(.09901475,-.99014753,-.09901475)),0.)*max(0.,2.-m.y)*vec3(.04285714,.00714286,0)+vec3(.6,.6,.5)*pow(max(0.,dot(normalize(m.xyz-k),reflect(vec3(-.656059,.666369,-.35431468),e))),35.)*t,1);}",
+  );
+  skyShader();
+  gl["ubh"](skyShader("q"), 3);
+  collisionShader();
+  gl["uae"](collisionShader("a"), !1, mat_perspectiveXY(1.4, .59, 1e-4, 1));
+  mainShader();
+  gl["ubh"](mainShader("q"), 3);
+  const collision_frameBuffer = gl["c5w"]();
+  const collision_renderBuffer = gl["c3z"]();
+  const collision_texture = gl["c25"]();
+  const csm_render = integers_map(2, csmSplit => {
+    let lightSpaceMatrix;
+    const texture = gl["c25"]();
+    const frameBuffer = gl["c5w"]();
+    const lightSpaceMatrixLoc = mainShader(csmSplit ? "j" : "i");
+    mainShader();
+    gl["ubh"](mainShader(csmSplit ? "h" : "g"), csmSplit);
+    gl["b6o"](36160, frameBuffer);
+    gl["d45"]([0]);
+    gl["r9l"](0);
+    gl["a4v"](33984 + csmSplit);
+    gl["b9j"](3553, texture);
+    gl["fas"](36160, 36096, 3553, texture, 0);
+    gl["t60"](3553, 0, 33190, 2048, 2048, 0, 6402, 5125, null);
+    gl["t2z"](3553, 10241, 9729);
+    gl["t2z"](3553, 10240, 9729);
+    gl["t2z"](3553, 34893, 515);
+    gl["t2z"](3553, 34892, 34894);
+    gl["t2z"](3553, 10243, 33071);
+    gl["t2z"](3553, 10242, 33071);
+    return matrix => {
+      if (matrix) {
+        lightSpaceMatrix = matrix;
+        gl["b6o"](36160, frameBuffer);
+        gl["iay"](36160, [36096]);
+        gl["c4s"](256);
+        gl["uae"](csmShader("b"), !1, lightSpaceMatrix);
+        renderModels(csmShader("c"), !player_first_person, 0);
+      } else gl["uae"](lightSpaceMatrixLoc, !1, lightSpaceMatrix);
+    };
+  });
+  (() => {
+    let meshFirstIndex = 0;
+    let model;
+    let polygon;
+    const _triangleIndices = [];
+    const _vertexPositions = [];
+    const _vertexColors = [];
+    const _vertexNormals = [];
+    const _vertexMap = /* @__PURE__ */ new Map();
+    const _vertexInts = new Int32Array(8);
+    const getVertex = i => {
+      let { x, y, z } = polygon[i];
+      _vertexFloats[0] = x;
+      _vertexFloats[1] = y;
+      _vertexFloats[2] = z;
+      const key = "" + (polygon.$smooth ? _vertexIntsSmooth : _vertexInts);
+      let index2 = _vertexMap.get(key);
+      if (void 0 !== index2) {
+        x = 3 * index2;
+        _vertexNormals[x] = (_vertexNormals[x++] + _vertexInts[5]) / 2;
+        _vertexNormals[x] = (_vertexNormals[x++] + _vertexInts[6]) / 2;
+        _vertexNormals[x] = (_vertexNormals[x] + _vertexInts[7]) / 2;
+      } else {
+        _vertexMap.set(key, index2 = _vertexMap.size);
+        _vertexPositions.push(x, y, z, _vertexFloats[3]);
+        _vertexColors.push(_vertexInts[4]);
+        _vertexNormals.push(_vertexInts[5], _vertexInts[6], _vertexInts[7]);
+      }
+      return index2;
+    };
+    const _vertexIntsSmooth = new Int32Array(_vertexInts.buffer, 0, 5);
+    const _vertexFloats = new Float32Array(_vertexInts.buffer);
+    for (model of allModels) {
+      _vertexFloats[3] = model.$kind ? model.$modelId : 0;
+      for (polygon of model.$polygons) {
+        const { x, y, z } = plane_fromPolygon(polygon);
+        _vertexInts[4] = 0 | polygon.$color;
+        _vertexInts[5] = 32767 * x;
+        _vertexInts[6] = 32767 * y;
+        _vertexInts[7] = 32767 * z;
+        for (let i = 2, a = getVertex(0), b = getVertex(1); polygon.length > i; ++i) {
+          _triangleIndices.push(a, b, b = getVertex(i));
+        }
+      }
+      model.$polygons = null;
+      model.$vertexBegin = meshFirstIndex;
+      model.$vertexEnd = meshFirstIndex = _triangleIndices.length;
+    }
+    gl["b11"](34963, gl["c1b"]());
+    gl["b2v"](34963, new Uint16Array(_triangleIndices), 35044);
+    gl["b11"](34962, gl["c1b"]());
+    gl["b2v"](34962, new Float32Array(_vertexPositions), 35044);
+    gl["v7s"](0, 4, 5126, !1, 0, 0);
+    gl["b11"](34962, gl["c1b"]());
+    gl["b2v"](34962, new Int16Array(_vertexNormals), 35044);
+    gl["v7s"](1, 3, 5122, !0, 0, 0);
+    gl["b11"](34962, gl["c1b"]());
+    gl["b2v"](34962, new Uint32Array(_vertexColors), 35044);
+    gl["v7s"](2, 4, 5121, !0, 0, 0);
+    gl["e3x"](0);
+    gl["e3x"](1);
+    gl["e3x"](2);
+  })();
+  gl["e8z"](2929);
+  gl["e8z"](2884);
+  gl["c70"](1);
+  gl["c7a"](1029);
+  gl["d4n"](515);
+  gl["c5t"](0, 0, 0, 1);
+  gl["b6o"](36160, collision_frameBuffer);
+  gl["bb1"](36161, collision_renderBuffer);
+  gl["r4v"](36161, 33189, 128, 128);
+  gl["f8w"](36160, 36096, 36161, collision_renderBuffer);
+  gl["a4v"](33987);
+  gl["b9j"](3553, collision_texture);
+  gl["fas"](36160, 36064, 3553, collision_texture, 0);
+  gl["t60"](3553, 0, 6407, 128, 128, 0, 6407, 5121, null);
+  gl["b9j"](3553, gl["c25"]());
+  gl["t60"](3553, 0, 6408, 1024, 1024, 0, 6408, 5121, groundTextureImage);
+  gl["gbn"](3553);
+  gl["t2z"](3553, 10241, 9987);
+  gl["t2z"](3553, 10240, 9729);
+  playerModels.map((model, i) => {
+    model._update = i
+      ? () =>
+        playerModels[0].$matrix.translate(
+          0,
+          player_legs_speed * clamp01(/* @__PURE__ */ .45 * Math.sin(9.1 * gameTime + Math.PI * (i - 1) - Math.PI / 2)),
+        ).rotateSelf(
+          player_legs_speed * /* @__PURE__ */ Math.sin(9.1 * gameTime + Math.PI * (i - 1)) * (.25 / DEG_TO_RAD),
+          0,
+        )
+      : () =>
+        identity.translate(player_position_final.x, player_model_y, player_position_final.z).rotateSelf(
+          0,
+          player_look_angle,
+        );
+  });
+  (() => {
+    try {
+      const [savedLevers, savedSouls, savedLastPulledLever, savedGameTime, savedSecondBoatLerp] = JSON.parse(
+        localStorage[LOCAL_STORAGE_SAVED_GAME_KEY],
+      );
+      levers.map(
+        (lever, index2) => lever.$lerpValue = lever.$lerpValue2 = lever.$value = index2 ? 0 | savedLevers[index2] : 0,
+      );
+      souls.map((soul, index2) => soul.$value = 0 | savedSouls[index2]);
+      player_last_pulled_lever = savedLastPulledLever;
+      gameTime = savedGameTime;
+      secondBoatLerp = savedSecondBoatLerp;
+    } catch (e) {}
+    firstBoatLerp = clamp01(player_last_pulled_lever);
+    clearMessage();
+    updateCollectedSoulsCounter();
+  })();
+  updateModels();
+  NO_INLINE(initPage)();
+  player_respawn();
+  camera_position.x = camera_player_dir_x = player_position_final.x;
+  camera_position.y = (camera_player_dir_y = player_position_final.y) + 13;
+  camera_position.z = (camera_player_dir_z = player_position_final.z) + -18;
+  requestAnimationFrame(mainLoop);
+};
+
+setTimeout(() => {
+  let songLoad = 0;
+  const onThingLoaded = () => {
+    h4.innerHTML += ".";
+    --thingsToLoad || startMainLoop(image);
+  };
+  const asyncLoadSongChannels = () => {
+    if (5 > songLoad) {
+      (channelIndex => {
+        let mixIndex = 0;
+        let [
+          OSC1_VOL,
+          OSC1_SEMI,
+          OSC1_XENV,
+          OSC2_VOL,
+          OSC2_SEMI,
+          OSC2_XENV,
+          NOISE_VOL,
+          ENV_ATTACK,
+          ENV_SUSTAIN,
+          ENV_RELEASE,
+          ENV_EXP_DECAY,
+          LFO_FREQ,
+          FX_FREQ,
+          FX_RESONANCE,
+          FX_DRIVE,
+          FX_PAN_AMT,
+          FX_PAN_FREQ,
+          FX_DELAY_AMT,
+          FX_DELAY_TIME,
+          LFO_AMT,
+          COLUMNS,
+        ] = song_instruments[channelIndex];
+        ENV_RELEASE = ENV_RELEASE * ENV_RELEASE * 4;
+        for (const song_rowLen of [5513, 4562, 3891]) {
+          let low = 0;
+          let band = 0;
+          let n;
+          let t;
+          let f;
+          let high;
+          let filterActive;
+          const noteCache = [];
+          const createNote = note => {
+            let c1 = 0;
+            let c2 = 0;
+            let o1t;
+            let o2t;
+            const OSC1_WAVEFORM = 2 > channelIndex ? osc_saw : osc_sin;
+            const OSC2_WAVEFORM = 2 > channelIndex ? 1 > channelIndex ? osc_square : osc_tri : osc_sin;
+            const noteBuf = new Int32Array(ENV_ATTACK + ENV_SUSTAIN + ENV_RELEASE);
+            for (let j1 = 0, j2 = 0; ENV_ATTACK + ENV_SUSTAIN + ENV_RELEASE > j1; ++j1, ++j2) {
+              let e = 1;
+              if (ENV_ATTACK > j1) e = j1 / ENV_ATTACK;
+              else if (j1 >= ENV_ATTACK + ENV_SUSTAIN) {
+                e = (j1 - ENV_ATTACK - ENV_SUSTAIN) / ENV_RELEASE;
+                e = (1 - e) * 3 ** (-ENV_EXP_DECAY / 16 * e);
+              }
+              if (j2 >= 0) {
+                j2 -= 4 * song_rowLen;
+                o1t = getnotefreq(note + OSC1_SEMI);
+                o2t = getnotefreq(note + OSC2_SEMI) * (1 + (channelIndex ? 0 : 8e-4 * 9));
+              }
+              noteBuf[j1] = 80
+                  * (OSC1_WAVEFORM(c1 += o1t * e ** (OSC1_XENV / 32)) * OSC1_VOL
+                    + OSC2_WAVEFORM(c2 += o2t * e ** (OSC2_XENV / 32)) * OSC2_VOL
+                    + (NOISE_VOL ? /* @__PURE__ */ (2 * Math.random() - 1) * NOISE_VOL : 0))
+                  * e | 0;
+            }
+            return noteBuf;
+          };
+          const chnBuf = new Int32Array(getSegmentNumWords(song_rowLen));
+          const lfoFreq = 2 ** (LFO_FREQ - 9) / song_rowLen;
+          const panFreq = Math.PI * 2 ** (FX_PAN_FREQ - 8) / song_rowLen;
+          const dly = FX_DELAY_TIME * song_rowLen & -2;
+          for (let p = 0; 11 >= p; ++p) {
+            for (
+              let row = 0, cp = +"000001234556112341234556011111111112011111111112000001111112"[12 * channelIndex + p];
+              32 > row;
+              ++row
+            ) {
+              const rowStartSample = (32 * p + row) * song_rowLen;
+              for (let col = 0; 4 > col; ++col) {
+                n = 0;
+                if (cp) {
+                  n = COLUMNS[cp - 1].charCodeAt(row + 32 * col) - 40;
+                  n += n > 0 ? 106 : 0;
+                }
+                if (n) {
+                  const noteBuf = noteCache[n] || (noteCache[n] = createNote(n));
+                  for (let j = 0, i = 2 * rowStartSample; noteBuf.length > j; ++j, i += 2) chnBuf[i] += noteBuf[j];
+                }
+              }
+              for (let rsample, j1 = 0; song_rowLen > j1; ++j1) {
+                let lsample = 0;
+                let k = 2 * (rowStartSample + j1);
+                rsample = chnBuf[k];
+                if (rsample || filterActive) {
+                  f = .003079991863530159 * FX_FREQ;
+                  1 !== channelIndex && 4 !== channelIndex || (f *= osc_sin(lfoFreq * k) * LFO_AMT / 512 + .5);
+                  f = 1.5 * /* @__PURE__ */ Math.sin(f);
+                  low += f * band;
+                  high = (1 - FX_RESONANCE / 255) * (rsample - band) - low;
+                  band += f * high;
+                  rsample = 4 === channelIndex ? band : 3 === channelIndex ? high : low;
+                  if (!channelIndex) {
+                    rsample *= 22e-5;
+                    rsample = 1 > rsample ? rsample > -1 ? osc_sin(rsample / 4) : -1 : 1;
+                    rsample /= 22e-5;
+                  }
+                  rsample *= FX_DRIVE / 32;
+                  filterActive = rsample * rsample > 1e-5;
+                  t = /* @__PURE__ */ Math.sin(panFreq * k) * FX_PAN_AMT / 512 + .5;
+                  lsample = rsample * (1 - t);
+                  rsample *= t;
+                }
+                if (k >= dly) {
+                  lsample += chnBuf[k - dly + 1] * FX_DELAY_AMT / 255;
+                  rsample += chnBuf[k - dly] * FX_DELAY_AMT / 255;
+                }
+                soundbox_mixbuffer[mixIndex + k] += chnBuf[k] = lsample;
+                ++k;
+                soundbox_mixbuffer[mixIndex + k] += chnBuf[k] = rsample;
+              }
+            }
+          }
+          mixIndex += chnBuf.length;
+        }
+      })(songLoad++);
+      setTimeout(asyncLoadSongChannels);
+    } else {
+      (() => {
+        const buffer = audioContext.createBuffer(2, song_numWords / 2, 44100);
+        for (let i = 0; 2 > i; i++) {
+          for (let j = i, data = buffer.getChannelData(i); song_numWords > j; j += 2) {
+            data[j >> 1] = soundbox_mixbuffer[j] / 65536;
+          }
+        }
+        songAudioSource.buffer = buffer;
+        songAudioSource.loop = !0;
+      })();
+    }
+    onThingLoaded();
+  };
+  let thingsToLoad = 6;
+  const image = new Image();
+  image.onload = image.onerror = () => {
+    onThingLoaded();
+  };
+  image.src = groundTextureSvg;
+  setTimeout(asyncLoadSongChannels, 50);
+  NO_INLINE(buildWorld)();
 });

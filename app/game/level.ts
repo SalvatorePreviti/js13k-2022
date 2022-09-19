@@ -14,7 +14,7 @@ import {
   rotatingPlatform2Rotation,
   firstBoatLerp,
 } from "./world-state";
-import { getBoatAnimationMatrix, newLever, newSoul } from "./objects";
+import { newLever, newSoul } from "./objects";
 
 export let leverModel: Model;
 
@@ -22,12 +22,15 @@ export let soulModel: Model;
 
 export let soulCollisionModel: Model;
 
-export let playerLegsModels: [Model, Model];
-
-export let playerModel: Model;
+export let playerModels: [Model, Model, Model];
 
 export const buildWorld = () => {
   let tmpMatrix: DOMMatrixReadOnly;
+
+  const getBoatAnimationMatrix = (x: number, y: number, z: number) =>
+    identity
+      .translate(x + Math.sin(gameTime + 2) / 5, y + Math.sin(gameTime * 0.8) / 3, z)
+      .rotateSelf(Math.sin(gameTime) * 2, Math.sin(gameTime * 0.7), Math.sin(gameTime * 0.9));
 
   // Initialize the full screen triangle for the sky. Must be the first model.
 
@@ -1329,48 +1332,49 @@ export const buildWorld = () => {
 
   // ------ End of game models ------
 
-  playerModel = newModel(() => {
-    // Player legs
+  playerModels = [
+    newModel(() => {
+      // Player legs
 
-    playerLegsModels = [-1, 1].map((x) =>
+      // Player body
+
+      // horns
+      [0, 180].map((r) =>
+        meshAdd(
+          GHorn,
+          identity.rotate(0, r).translate(0.2, 1.32).rotate(0, 0, -30).scale(0.2, 0.6, 0.2),
+          material(1, 1, 0.8),
+        ),
+      );
+
+      // head
+      meshAdd(sphere(20), identity.translate(0, 1).scale(0.5, 0.5, 0.5), material(1, 0.3, 0.4));
+
+      const eye = polygons_transform(
+        csg_polygons(
+          csg_subtract(
+            cylinder(15, 1),
+            polygons_transform(cylinder(GQuad), identity.translate(0, 0, 1).scale(2, 2, 0.5)),
+          ),
+        ),
+        identity.rotate(-90, 0).scale(0.1, 0.05, 0.1),
+        material(0.3, 0.3, 0.3),
+      );
+
+      [-1, 1].map((i) => meshAdd(eye, identity.translate(i * 0.2, 1.2, 0.4).rotate(0, i * 20, i * 20)));
+
+      // mouth
+      meshAdd(cylinder(GQuad), identity.translate(0, 0.9, 0.45).scale(0.15, 0.02, 0.06), material(0.3, 0.3, 0.3));
+
+      // body
+      meshAdd(sphere(20), identity.scale(0.7, 0.8, 0.55), material(1, 0.3, 0.4));
+    }),
+    ...[-1, 1].map((x) =>
       newModel(() => {
         meshAdd(cylinder(10, 1), identity.translate(x * 0.3, -0.8).scale(0.2, 0.7, 0.24), material(1, 0.3, 0.4));
       }),
-    ) as [Model, Model];
-
-    // Player body
-
-    // horns
-    [0, 180].map((r) =>
-      meshAdd(
-        GHorn,
-        identity.rotate(0, r).translate(0.2, 1.32).rotate(0, 0, -30).scale(0.2, 0.6, 0.2),
-        material(1, 1, 0.8),
-      ),
-    );
-
-    // head
-    meshAdd(sphere(20), identity.translate(0, 1).scale(0.5, 0.5, 0.5), material(1, 0.3, 0.4));
-
-    const eye = polygons_transform(
-      csg_polygons(
-        csg_subtract(
-          cylinder(15, 1),
-          polygons_transform(cylinder(GQuad), identity.translate(0, 0, 1).scale(2, 2, 0.5)),
-        ),
-      ),
-      identity.rotate(-90, 0).scale(0.1, 0.05, 0.1),
-      material(0.3, 0.3, 0.3),
-    );
-
-    [-1, 1].map((i) => meshAdd(eye, identity.translate(i * 0.2, 1.2, 0.4).rotate(0, i * 20, i * 20)));
-
-    // mouth
-    meshAdd(cylinder(GQuad), identity.translate(0, 0.9, 0.45).scale(0.15, 0.02, 0.06), material(0.3, 0.3, 0.3));
-
-    // body
-    meshAdd(sphere(20), identity.scale(0.7, 0.8, 0.55), material(1, 0.3, 0.4));
-  });
+    ),
+  ] as [Model, Model, Model];
 
   leverModel = newModel(() => {
     meshAdd(cylinder(6, 1), identity.scale(0.13, 1.4, 0.13), material(0.3, 0.3, 0.5, 0.1));

@@ -1,4 +1,4 @@
-import { abs, angle_lerp_degrees, DEG_TO_RAD, identity, max, min, vec3_distance } from "../math";
+import { abs, angle_lerp_degrees, DEG_TO_RAD, max, min, vec3_distance } from "../math";
 import { cylinder, material } from "../geometry/geometry";
 import { GQuad } from "../geometry/solids";
 import { allModels, currentEditModel, meshAdd } from "./scene";
@@ -20,13 +20,6 @@ const LEVER_SENSITIVITY_RADIUS = 2.9;
 const SOUL_SENSITIVITY_RADIUS = 1.5;
 
 export const MODEL_ID_FIRST_BOAT = 2;
-
-// ========= BOAT ========= //
-
-export const getBoatAnimationMatrix = (x: number, y: number, z: number) =>
-  identity
-    .translate(x + Math.sin(gameTime + 2) / 5, y + Math.sin(gameTime * 0.8) / 3, z)
-    .rotateSelf(Math.sin(gameTime) * 2, Math.sin(gameTime * 0.7), Math.sin(gameTime * 0.9));
 
 export type Circle = [number, number, number];
 
