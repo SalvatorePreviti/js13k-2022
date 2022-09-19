@@ -534,7 +534,6 @@ const saveGame = () => {
 
 const initTriangleBuffers = () => {
   let meshFirstIndex = 0;
-  let model;
   let polygon;
   const _triangleIndices = [];
   const _vertexPositions = [];
@@ -572,7 +571,7 @@ const initTriangleBuffers = () => {
 
   const _vertexFloats = new Float32Array(_vertexInts.buffer);
 
-  for (model of allModels) {
+  for (const model of allModels) {
     for (polygon of (_vertexFloats[3] = model.$kind ? model.$modelId : 0, model.$polygons)) {
       const {
         x,
@@ -960,7 +959,7 @@ const newSoul = (transform, ...walkingPath) => {
   souls.push(soul);
 };
 
-const worldMatricesBuffer = new Float32Array(656);
+const worldMatricesBuffer = new Float32Array(624);
 
 const renderModels = (worldMatrixLoc, renderPlayer, isCollider) => {
   if (mainMenuVisible) {
@@ -1392,11 +1391,11 @@ setTimeout(() => {
       const collision_buffer = new Uint8Array(65536);
       const groundTextureImage = image;
       const mainVertexShader = loadShader(
-        "#version 300 es\nlayout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 a,b,c[40];void main(){mat4 i=c[f.w>0.?int(f.w)-1:gl_InstanceID];l=mix(d,vec4(.7,1,.2,0),d.w>0.?0.:1.-i[3][3]),i[3][3]=1.,n=f,m=i*vec4(f.xyz,1),gl_Position=a*b*m,m.w=f.w,o=i*vec4(e,0);}",
+        "#version 300 es\nlayout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 a,b,c[39];void main(){mat4 i=c[f.w>0.?int(f.w)-1:gl_InstanceID];l=mix(d,vec4(.7,1,.2,0),d.w>0.?0.:1.-i[3][3]),i[3][3]=1.,n=f,m=i*vec4(f.xyz,1),gl_Position=a*b*m,m.w=f.w,o=i*vec4(e,0);}",
       );
       const csmShader = initShaderProgram(
         loadShader(
-          "#version 300 es\nin vec4 f;uniform mat4 b,c[40];void main(){mat4 i=c[f.w>0.?int(f.w)-1:gl_InstanceID];i[3][3]=1.,gl_Position=b*i*vec4(f.xyz,1);}",
+          "#version 300 es\nin vec4 f;uniform mat4 b,c[39];void main(){mat4 i=c[f.w>0.?int(f.w)-1:gl_InstanceID];i[3][3]=1.,gl_Position=b*i*vec4(f.xyz,1);}",
         ),
         "#version 300 es\nvoid main(){}",
       );
@@ -2257,7 +2256,7 @@ setTimeout(() => {
               ),
               identity.translate(-38.9, -11.3, 17),
             ),
-            newSoul(identity.translate(-38.9, -8.4, -21), [0, 0, 12]),
+            newSoul(identity.translate(-38.9, -8.4, -21), [-5, -2, 8], [5, -2, 8], [0, -5, 7], [1, 4, 2.6]),
             meshAdd(
               cylinder(5),
               identity.translate(-84, -2, 85).scale(4, .8, 4).rotate(0, 10),
@@ -2632,17 +2631,21 @@ setTimeout(() => {
                 const v = lerpneg(levers[13].$lerpValue2, levers[14].$lerpValue2);
                 return identity.translate(
                   0,
-                  (1 - levers[13].$lerpValue2) * (1 - levers[14].$lerpValue2) * 3
-                    + v * Math.sin(1.5 * gameTime + 1.5 * i) * 4.7,
+                  (1 - levers[13].$lerpValue2) * (1 - levers[14].$lerpValue2) * (i ? 0 : 3)
+                    + v * Math.sin(1.5 * gameTime + 1.5 * i) * 4,
                 );
               },
                 meshAdd(
-                  cylinder(8),
-                  identity.translate(-23.5, i / 1.5 - .4, 90 + 6.8 * i).scale(3.6, 2 - i / 1.5, 3.6).rotate(0, 22.5),
+                  cylinder(GQuad),
+                  identity.translate(-23.5, .5, 90 + 6.8 * i).scale(1 === i ? 2 : 3.3, 1, 3.3),
                   m,
                 ),
                 2 === i
-                && meshAdd(cylinder(6), identity.translate(-29, .4, 90).scale(2.4, 1, 2.8), material(.6, .7, .6, .3)),
+                && meshAdd(
+                  cylinder(GQuad),
+                  identity.translate(-29.1, .4, 90).scale(2.1, 1, 3),
+                  material(.7, .7, .7, .3),
+                ),
                 1 === i
                 && meshAdd(
                   cylinder(GQuad),
@@ -2796,7 +2799,7 @@ setTimeout(() => {
           meshAdd(cylinder(3), identity.translate(0, -1).rotate(90, 90).scale(.3, .4, .3), material(.2, .2, .2, .1));
       }, 0),
       soulCollisionModel = newModel(() => {
-        meshAdd(cylinder(6), identity.scale(.8, 1, .8), material(1, .3, .5));
+        meshAdd(cylinder(6), identity.scale(.77, 1, .77), material(1, .3, .5));
       }, 0),
       soulModel = newModel(() => {
         meshAdd(

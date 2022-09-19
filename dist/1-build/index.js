@@ -481,7 +481,6 @@ let gameTimeDelta = .066;
 
 const initTriangleBuffers = () => {
     let meshFirstIndex = 0;
-    let model;
     let polygon;
     const _triangleIndices = [];
     const _vertexPositions = [];
@@ -511,7 +510,7 @@ const initTriangleBuffers = () => {
     };
     const _vertexIntsSmooth = new Int32Array(_vertexInts.buffer, 0, 5);
     const _vertexFloats = new Float32Array(_vertexInts.buffer);
-    for (model of allModels) {
+    for (const model of allModels) {
         _vertexFloats[3] = model.$kind ? model.$modelId : 0;
         for (polygon of model.$polygons) {
             const {x, y, z} = plane_fromPolygon(polygon);
@@ -976,7 +975,7 @@ const buildWorld = () => {
             [ 1.5, 8 ].map((y => meshAdd(cylinder(18, 1), tmpMatrix.translate(0, y - 4).scale(1.5, .5, 1.5), material(.6, .6, .6, .3))));
         }));
         meshAdd(csg_polygons(csg_subtract(csg_union(polygons_transform(cylinder(6), identity.translate(0, 0, -36).scale(15, 1.2, 15), material(.7, .7, .7, .3)), polygons_transform(cylinder(GQuad), identity.translate(0, 0, -18).scale(4, 1.2, 6), material(.45, .4, .6, .3))), ...integers_map(6, (z => integers_map(6, (x => polygons_transform(cylinder(6), identity.translate(4.6 * x - 12 + 2 * (1 & z), 0, 4.6 * z - 50 + /* @__PURE__ */ 2 * Math.sin(4 * x)).scale(2, 5, 2), material(.7, .7, .7, .3)))))).flat())), identity.translate(-38.9, -11.3, 17));
-        newSoul(identity.translate(-38.9, -8.4, -21), [ 0, 0, 12 ]);
+        newSoul(identity.translate(-38.9, -8.4, -21), [ -5, -2, 8 ], [ 5, -2, 8 ], [ 0, -5, 7 ], [ 1, 4, 2.6 ]);
         meshAdd(cylinder(5), identity.translate(-84, -2, 85).scale(4, .8, 4).rotate(0, 10), material(.8, .1, .25, .4));
         newLever(identity.translate(-84, -.5, 85).rotate(0, 45));
         newModel((model => {
@@ -1082,10 +1081,10 @@ const buildWorld = () => {
         [ material(.1, .55, .45, .2), material(.2, .5, .5, .3), material(.3, .45, .55, .4) ].map(((m, i) => newModel((model => {
             model._update = () => {
                 const v = lerpneg(levers[13].$lerpValue2, levers[14].$lerpValue2);
-                return identity.translate(0, (1 - levers[13].$lerpValue2) * (1 - levers[14].$lerpValue2) * 3 + v * /* @__PURE__ */ Math.sin(1.5 * gameTime + 1.5 * i) * 4.7);
+                return identity.translate(0, (1 - levers[13].$lerpValue2) * (1 - levers[14].$lerpValue2) * (i ? 0 : 3) + v * /* @__PURE__ */ Math.sin(1.5 * gameTime + 1.5 * i) * 4);
             };
-            meshAdd(cylinder(8), identity.translate(-23.5, i / 1.5 - .4, 90 + 6.8 * i).scale(3.6, 2 - i / 1.5, 3.6).rotate(0, 22.5), m);
-            2 === i && meshAdd(cylinder(6), identity.translate(-29, .4, 90).scale(2.4, 1, 2.8), material(.6, .7, .6, .3));
+            meshAdd(cylinder(GQuad), identity.translate(-23.5, .5, 90 + 6.8 * i).scale(1 === i ? 2 : 3.3, 1, 3.3), m);
+            2 === i && meshAdd(cylinder(GQuad), identity.translate(-29.1, .4, 90).scale(2.1, 1, 3), material(.7, .7, .7, .3));
             1 === i && meshAdd(cylinder(GQuad), identity.translate(-16.1, .5, 103.5).rotate(0, 0, -3.5).scale(3.9, .8, 2).skewX(-1), material(.6, .6, .7, .3));
         }))));
         meshAdd(csg_polygons(csg_subtract(polygons_transform(cylinder(6, 0, 0, .3), identity.translate(0, -.92, 95).scale(14, 2, 14), material(.8, .8, .8, .2)), polygons_transform(cylinder(5), identity.translate(0, 0, 95).scale3d(6), material(.3, .3, .3, .5)))));
@@ -1136,7 +1135,7 @@ const buildWorld = () => {
         meshAdd(cylinder(3), identity.translate(0, -1).rotate(90, 90).scale(.3, .4, .3), material(.2, .2, .2, .1));
     }), 0);
     soulCollisionModel = newModel((() => {
-        meshAdd(cylinder(6), identity.scale(.8, 1, .8), material(1, .3, .5));
+        meshAdd(cylinder(6), identity.scale(.77, 1, .77), material(1, .3, .5));
     }), 0);
     soulModel = newModel((() => {
         meshAdd(sphere(40, 30, ((a, b, polygon) => {
@@ -1162,7 +1161,7 @@ const buildWorld = () => {
     }), 0);
 };
 
-const worldMatricesBuffer = new Float32Array(656);
+const worldMatricesBuffer = new Float32Array(624);
 
 const renderModels = (worldMatrixLoc, renderPlayer, isCollider) => {
     if (mainMenuVisible) {
@@ -1170,21 +1169,21 @@ const renderModels = (worldMatrixLoc, renderPlayer, isCollider) => {
         for (const {$modelId} of playerModels) writeMatrixToArray(worldMatricesBuffer, $modelId - 1, matrix);
         gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer);
         gl["d97"](4, playerModels[2].$vertexEnd - playerModels[0].$vertexBegin, 5123, 2 * playerModels[0].$vertexBegin);
-    } else {
-        for (const {$kind, $modelId: $modelId1, $matrix} of allModels) $kind && writeMatrixToArray(worldMatricesBuffer, $modelId1 - 1, $matrix);
-        gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer);
-        gl["d97"](4, (renderPlayer ? playerModels[2].$vertexEnd : playerModels[0].$vertexBegin) - 3, 5123, 6);
-        for (let i = 0; levers.length > i; ++i) {
-            writeMatrixToArray(worldMatricesBuffer, i, levers[i].$matrix);
-            worldMatricesBuffer[16 * i + 15] = 1 - levers[i].$lerpValue;
-        }
-        gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer);
-        gl["das"](4, leverModel.$vertexEnd - leverModel.$vertexBegin, 5123, 2 * leverModel.$vertexBegin, levers.length);
-        for (let i1 = 0; 13 > i1; ++i1) writeMatrixToArray(worldMatricesBuffer, i1, souls[i1].$matrix);
-        const soulModelToRender = isCollider ? soulCollisionModel : soulModel;
-        gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer);
-        gl["das"](4, soulModelToRender.$vertexEnd - soulModelToRender.$vertexBegin, 5123, 2 * soulModelToRender.$vertexBegin, 13);
+        return;
     }
+    for (const {$kind, $modelId: $modelId1, $matrix} of allModels) $kind && writeMatrixToArray(worldMatricesBuffer, $modelId1 - 1, $matrix);
+    gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer);
+    gl["d97"](4, (renderPlayer ? playerModels[2].$vertexEnd : playerModels[0].$vertexBegin) - 3, 5123, 6);
+    for (let i = 0; levers.length > i; ++i) {
+        writeMatrixToArray(worldMatricesBuffer, i, levers[i].$matrix);
+        worldMatricesBuffer[16 * i + 15] = 1 - levers[i].$lerpValue;
+    }
+    gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer);
+    gl["das"](4, leverModel.$vertexEnd - leverModel.$vertexBegin, 5123, 2 * leverModel.$vertexBegin, levers.length);
+    for (let i1 = 0; 13 > i1; ++i1) writeMatrixToArray(worldMatricesBuffer, i1, souls[i1].$matrix);
+    const soulModelToRender = isCollider ? soulCollisionModel : soulModel;
+    gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer);
+    gl["das"](4, soulModelToRender.$vertexEnd - soulModelToRender.$vertexBegin, 5123, 2 * soulModelToRender.$vertexBegin, 13);
 };
 
 const startMainLoop = groundTextureImage => {
@@ -1458,8 +1457,8 @@ const startMainLoop = groundTextureImage => {
         gl["d97"](4, 3, 5123, 0);
     };
     const collision_buffer = new Uint8Array(65536);
-    const mainVertexShader = loadShader("#version 300 es\nlayout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 a,b,c[40];void main(){mat4 i=c[f.w>0.?int(f.w)-1:gl_InstanceID];l=mix(d,vec4(.7,1,.2,0),d.w>0.?0.:1.-i[3][3]),i[3][3]=1.,n=f,m=i*vec4(f.xyz,1),gl_Position=a*b*m,m.w=f.w,o=i*vec4(e,0);}");
-    const csmShader = initShaderProgram(loadShader("#version 300 es\nin vec4 f;uniform mat4 b,c[40];void main(){mat4 i=c[f.w>0.?int(f.w)-1:gl_InstanceID];i[3][3]=1.,gl_Position=b*i*vec4(f.xyz,1);}"), "#version 300 es\nvoid main(){}");
+    const mainVertexShader = loadShader("#version 300 es\nlayout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 a,b,c[39];void main(){mat4 i=c[f.w>0.?int(f.w)-1:gl_InstanceID];l=mix(d,vec4(.7,1,.2,0),d.w>0.?0.:1.-i[3][3]),i[3][3]=1.,n=f,m=i*vec4(f.xyz,1),gl_Position=a*b*m,m.w=f.w,o=i*vec4(e,0);}");
+    const csmShader = initShaderProgram(loadShader("#version 300 es\nin vec4 f;uniform mat4 b,c[39];void main(){mat4 i=c[f.w>0.?int(f.w)-1:gl_InstanceID];i[3][3]=1.,gl_Position=b*i*vec4(f.xyz,1);}"), "#version 300 es\nvoid main(){}");
     const skyShader = initShaderProgram(loadShader("#version 300 es\nin vec4 f;void main(){gl_Position=vec4(f.xy,1,1);}"), "#version 300 es\nprecision highp float;uniform vec3 j,k;uniform mat4 b;uniform highp sampler2D q;out vec4 O;void main(){vec2 t=gl_FragCoord.xy/j.xy*2.-1.;vec3 e=(normalize(b*vec4(t.x*-(j.x/j.y),-t.y,1.73205,0.))).xyz;float i=(-32.-k.y)/e.y,o=1.-clamp(abs(i/9999.),0.,1.);if(O=vec4(0,0,0,1),o>.01){if(i>0.){float o=cos(j.z/30.),i=sin(j.z/30.);e.xz*=mat2(o,i,-i,o);vec3 t=abs(e);O.xyz=vec3(dot(vec2(texture(q,e.xy).z,texture(q,e.yz*2.).z),t.zx)*t.y);}else e=k+e*i,O.x=(o*=.9-texture(q,e.xz/150.+vec2(sin(e.z/35.+j.z),cos(e.x/25.+j.z))/80.).y),O.y=o*o*o;}}");
     const collisionShader = initShaderProgram(mainVertexShader, "#version 300 es\nprecision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(m.xyz,1);float r=1.-min(abs(a.z/a.w),1.);O=vec4(vec2(r*(gl_FragCoord.y>31.?1.:abs(o.y))),r>0.?m.w/255.:0.,1);}");
     const mainShader = initShaderProgram(mainVertexShader, "#version 300 es\nprecision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform highp sampler2DShadow g,h;uniform highp sampler2D q;out vec4 O;void main(){vec4 c=vec4(m.xyz,1);vec3 e=normalize(o.xyz),s=l.w*(texture(q,n.yz*.035)*e.x+texture(q,n.xz*.035)*e.y+texture(q,n.xy*.035)*e.z).xyz;e=normalize(e+s*.5);float x=dot(e,vec3(-.656059,.666369,-.35431468)),t=1.,v=abs((b*c).z);vec4 r=(v<55.?i:j)*c;if(r=r/r.w*.5+.5,r.z<1.){t=0.;for(float e=-1.;e<=1.;++e)for(float a=-1.;a<=1.;++a){vec3 x=vec3(r.xy+vec2(e,a)/2048.,r.z-.00017439);t+=v<55.?texture(g,x):texture(h,x);}t/=9.;}vec3 a=l.xyz*(1.-s.x);O=vec4(vec3(.09,.05,.1)*a+a*(max(0.,x)*.5+a*x*x*vec3(.5,.45,.3))*(t*.7+.3)+a*max(dot(e,vec3(.09901475,-.99014753,-.09901475)),0.)*max(0.,2.-m.y)*vec3(.04285714,.00714286,0)+vec3(.6,.6,.5)*pow(max(0.,dot(normalize(m.xyz-k),reflect(vec3(-.656059,.666369,-.35431468),e))),35.)*t,1);}");

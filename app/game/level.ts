@@ -781,7 +781,7 @@ export const buildWorld = () => {
     );
 
     // SOUL 6 - soul over the grid with hex holes
-    newSoul(identity.translate(-38.9, 2.9 - 11.3, 75 - 38 - 58), [0, 0, 12]);
+    newSoul(identity.translate(-38.9, -8.4, -21), [-7, -2.5, 6], [6, -3, 6], [0, -5, 7]);
 
     // Detour lever pad
     meshAdd(cylinder(5), identity.translate(-84, -2, 85).scale(4, 0.8, 4).rotate(0, 10), material(0.8, 0.1, 0.25, 0.4));
@@ -1233,21 +1233,14 @@ export const buildWorld = () => {
           const v = lerpneg(levers[13]!.$lerpValue2, levers[14]!.$lerpValue2);
           return identity.translate(
             0,
-            (1 - levers[13]!.$lerpValue2) * (1 - levers[14]!.$lerpValue2) * 3 +
-              v * Math.sin(gameTime * 1.5 + i * 1.5) * 4.7,
+            (1 - levers[13]!.$lerpValue2) * (1 - levers[14]!.$lerpValue2) * (i ? 0 : 3) +
+              v * Math.sin(gameTime * 1.5 + i * 1.5) * 4,
           );
         };
-        meshAdd(
-          cylinder(8),
-          identity
-            .translate(-23.5, -0.4 + i / 1.5, 90 + 6.8 * i)
-            .scale(3.6, 2 - i / 1.5, 3.6)
-            .rotate(0, 22.5),
-          m,
-        );
+        meshAdd(cylinder(GQuad), identity.translate(-23.5, 0.5, 90 + 6.8 * i).scale(i === 1 ? 2 : 3.3, 1, 3.3), m);
         if (i === 2) {
           // in connection
-          meshAdd(cylinder(6), identity.translate(-29, 0.4, 90).scale(2.4, 1, 2.8), material(0.6, 0.7, 0.6, 0.3));
+          meshAdd(cylinder(GQuad), identity.translate(-29.1, 0.4, 90).scale(2.1, 1, 3), material(0.7, 0.7, 0.7, 0.3));
         }
         if (i === 1) {
           // out connections

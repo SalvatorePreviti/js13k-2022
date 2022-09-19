@@ -386,7 +386,7 @@
         A = b;
       pt.push(v);
     },
-    It = new Float32Array(656),
+    It = new Float32Array(624),
     At = (t, a, e) => {
       if (Z) {
         for (var { F: l } of (e = O.rotate(0, 40 * Math.sin(lt) - 70), tt)) r(l - 1, e);
@@ -627,10 +627,10 @@
             z,
             s,
             t = xt(`#version 300 es
-layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 a,b,c[40];void main(){mat4 i=c[f.w>0.?int(f.w)-1:gl_InstanceID];l=mix(d,vec4(.7,1,.2,0),d.w>0.?0.:1.-i[3][3]),i[3][3]=1.,n=f,m=i*vec4(f.xyz,1),gl_Position=a*b*m,m.w=f.w,o=i*vec4(e,0);}`),
+layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 a,b,c[39];void main(){mat4 i=c[f.w>0.?int(f.w)-1:gl_InstanceID];l=mix(d,vec4(.7,1,.2,0),d.w>0.?0.:1.-i[3][3]),i[3][3]=1.,n=f,m=i*vec4(f.xyz,1),gl_Position=a*b*m,m.w=f.w,o=i*vec4(e,0);}`),
             n = gt(
               xt(`#version 300 es
-in vec4 f;uniform mat4 b,c[40];void main(){mat4 i=c[f.w>0.?int(f.w)-1:gl_InstanceID];i[3][3]=1.,gl_Position=b*i*vec4(f.xyz,1);}`),
+in vec4 f;uniform mat4 b,c[39];void main(){mat4 i=c[f.w>0.?int(f.w)-1:gl_InstanceID];i[3][3]=1.,gl_Position=b*i*vec4(f.xyz,1);}`),
               `#version 300 es
 void main(){}`,
             ),
@@ -725,7 +725,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
             bt(),
             dt(),
             (() => {
-              let t = 0,
+              let a = 0,
                 l = [],
                 s = [],
                 n = [],
@@ -739,17 +739,16 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                     : (c.set(t, r = c.size), s.push(a, e, l, m[3]), n.push(i[4]), o.push(i[5], i[6], i[7])),
                     r;
                 },
-                a,
                 h,
                 f = new Int32Array(i.buffer, 0, 5),
                 m = new Float32Array(i.buffer);
-              for (a of K) {
-                for (h of (m[3] = a.H ? a.F : 0, a.s)) {
+              for (let t of K) {
+                for (h of (m[3] = t.H ? t.F : 0, t.s)) {
                   let { x: t, y: a, z: e } = ft(h);
                   i[4] = 0 | h.A, i[5] = 32767 * t, i[6] = 32767 * a, i[7] = 32767 * e;
                   for (let t = 2, a = r(0), e = r(1); h.length > t; ++t) l.push(a, e, e = r(t));
                 }
-                a.s = null, a.v = t, a.G = t = l.length;
+                t.s = null, t.v = a, t.G = a = l.length;
               }
               at.b11(34963, at.c1b()),
                 at.b2v(34963, new Uint16Array(l), 35044),
@@ -1292,7 +1291,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 )),
                 O.translate(-38.9, -11.3, 17),
               ),
-              A(O.translate(-38.9, -8.4, -21), [0, 0, 12]),
+              A(O.translate(-38.9, -8.4, -21), [-5, -2, 8], [5, -2, 8], [0, -5, 7], [1, 4, 2.6]),
               g(u(5), O.translate(-84, -2, 85).scale(4, .8, 4).rotate(0, 10), P(.8, .1, .25, .4)),
               I(O.translate(-84, -.5, 85).rotate(0, 45)),
               M(t => {
@@ -1495,10 +1494,10 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               t.h = () =>
                 O.translate(
                   0,
-                  (1 - J[13].i) * (1 - J[14].i) * 3 + f(J[13].i, J[14].i) * Math.sin(1.5 * Q + 1.5 * e) * 4.7,
+                  (1 - J[13].i) * (1 - J[14].i) * (e ? 0 : 3) + f(J[13].i, J[14].i) * Math.sin(1.5 * Q + 1.5 * e) * 4,
                 ),
-                g(u(8), O.translate(-23.5, e / 1.5 - .4, 90 + 6.8 * e).scale(3.6, 2 - e / 1.5, 3.6).rotate(0, 22.5), a),
-                2 === e && g(u(6), O.translate(-29, .4, 90).scale(2.4, 1, 2.8), P(.6, .7, .6, .3)),
+                g(u(b), O.translate(-23.5, .5, 90 + 6.8 * e).scale(1 === e ? 2 : 3.3, 1, 3.3), a),
+                2 === e && g(u(b), O.translate(-29.1, .4, 90).scale(2.1, 1, 3), P(.7, .7, .7, .3)),
                 1 === e
                 && g(
                   u(b),
@@ -1584,7 +1583,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
           g(u(3), O.translate(0, -1).rotate(90, 90).scale(.3, .4, .3), P(.2, .2, .2, .1));
       }, 0),
       Tt = M(() => {
-        g(u(6), O.scale(.8, 1, .8), P(1, .3, .5));
+        g(u(6), O.scale(.77, 1, .77), P(1, .3, .5));
       }, 0),
       Ft = M(() => {
         g(
