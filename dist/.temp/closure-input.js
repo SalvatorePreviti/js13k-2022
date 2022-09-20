@@ -14,8 +14,8 @@ let firstBoatLerp = 0;
 let secondBoatLerp = 0;
 let gameTimeDelta = .066;
 let currentEditModel;
-let mainMenuVisible;
 let player_first_person;
+let mainMenuVisible;
 
 let _globalTime;
 
@@ -48,7 +48,7 @@ const angle_lerp_degrees = (a0, a1, t) =>
 
 const interpolate_with_hysteresis = (previous, desired, hysteresis, t) =>
   lerp(
-    previous + Math.sign(desired - previous) * max(0, abs(desired - previous) ** .9 - hysteresis) * t * 2,
+    previous + (desired - previous < 0 ? -1 : 1) * max(0, abs(desired - previous) ** .9 - hysteresis) * t * 2,
     desired,
     t / 7,
   );
@@ -93,46 +93,29 @@ const plane_fromPolygon = polygon => {
   };
 };
 
-const float32Array16Temp0 = new Float32Array(16);
+const float32Array16Temp = new Float32Array(16);
 
-const writeMatrixToArray = (
-  {
-    m11,
-    m12,
-    m13,
-    m14,
-    m21,
-    m22,
-    m23,
-    m24,
-    m31,
-    m32,
-    m33,
-    m34,
-    m41,
-    m42,
-    m43,
-    m44,
-  },
-  output = float32Array16Temp0,
+const matrixToArray = (
+  $matrix,
+  output = float32Array16Temp,
   index2 = 0,
 ) => (index2 *= 16,
-  output[index2++] = m11,
-  output[index2++] = m12,
-  output[index2++] = m13,
-  output[index2++] = m14,
-  output[index2++] = m21,
-  output[index2++] = m22,
-  output[index2++] = m23,
-  output[index2++] = m24,
-  output[index2++] = m31,
-  output[index2++] = m32,
-  output[index2++] = m33,
-  output[index2++] = m34,
-  output[index2++] = m41,
-  output[index2++] = m42,
-  output[index2++] = m43,
-  output[index2] = m44,
+  output[index2++] = $matrix.m11,
+  output[index2++] = $matrix.m12,
+  output[index2++] = $matrix.m13,
+  output[index2++] = $matrix.m14,
+  output[index2++] = $matrix.m21,
+  output[index2++] = $matrix.m22,
+  output[index2++] = $matrix.m23,
+  output[index2++] = $matrix.m24,
+  output[index2++] = $matrix.m31,
+  output[index2++] = $matrix.m32,
+  output[index2++] = $matrix.m33,
+  output[index2++] = $matrix.m34,
+  output[index2++] = $matrix.m41,
+  output[index2++] = $matrix.m42,
+  output[index2++] = $matrix.m43,
+  output[index2] = $matrix.m44,
   output);
 
 const camera_position = {
@@ -365,22 +348,29 @@ const setMainMenuVisible = (value = !1) => {
 };
 
 const initPage = () => {
-  let touchStartCameraRotX = 0;
-  let touchStartCameraRotY = 0;
-  let touchStartTime = 0;
-  let cameraRotTouch;
-  let cameraPosTouch;
+  let touchStartTime;
+  let touchPosX;
+  let touchPosY;
+  let touchPosIdentifier;
+  let touchPosMoved;
+  let touchRotX;
+  let touchRotY;
+  let touchRotIdentifier;
+  let touchRotMoved;
+  let touchStartCameraRotX;
+  let touchStartCameraRotY;
   let pageClicked;
 
   const handleResize = () => {
     hC.width = innerWidth,
       hC.height = innerHeight,
       keyboard_downKeys.length = touch_movementX = touch_movementY = 0,
-      cameraRotTouch = cameraPosTouch = void 0,
+      touchPosIdentifier = touchRotIdentifier = void 0,
       document.hidden && setMainMenuVisible(!0);
   };
 
-  b1.onclick = () => setMainMenuVisible(),
+  document.onvisibilitychange = onresize = onblur = handleResize,
+    b1.onclick = () => setMainMenuVisible(),
     b2.onclick = () => {
       setMainMenuVisible(), player_first_person = 1;
     },
@@ -391,11 +381,12 @@ const initPage = () => {
       music_on = !music_on, updateMusicOnState();
     },
     b5.onclick = () => setMainMenuVisible(!0),
-    onclick = () => {
-      pageClicked = 1, mainMenuVisible || (keyboard_downKeys[5] = !0, player_first_person && hC.requestPointerLock());
+    onclick = e => {
+      pageClicked = 1,
+        mainMenuVisible
+        || (e.target === hC && (keyboard_downKeys[5] = !0), player_first_person && hC.requestPointerLock());
     },
-    document.onvisibilitychange = onresize = onblur = handleResize,
-    onkeydown = onkeyup = ({
+    onkeyup = onkeydown = ({
       code: code2,
       target,
       type,
@@ -430,14 +421,27 @@ const initPage = () => {
       player_first_person && (movementX || movementY)
         && (camera_rotation.y += .1 * movementX, camera_rotation.x += .1 * movementY);
     },
+    oncontextmenu = () => !1,
     hC.ontouchstart = e => {
       if (!mainMenuVisible) {
-        for (const touch of e.changedTouches) {player_first_person && touch.pageX > hC.clientWidth / 2
-            ? cameraRotTouch
-              || (cameraRotTouch = touch,
+        for (
+          const {
+            pageX,
+            pageY,
+            identifier,
+          } of e.changedTouches
+        ) {
+          player_first_person && pageX > hC.clientWidth / 2
+            ? void 0 === touchRotIdentifier
+              && (touchRotIdentifier = identifier,
+                touchRotX = pageX,
+                touchRotY = pageY,
+                touchRotMoved = 0,
                 touchStartCameraRotX = camera_rotation.y,
                 touchStartCameraRotY = camera_rotation.x)
-            : cameraPosTouch = cameraPosTouch || touch;}
+            : void 0 === touchPosIdentifier
+              && (touchPosIdentifier = identifier, touchPosX = pageX, touchPosY = pageY, touchPosMoved = 0);
+        }
 
         touchStartTime = absoluteTime;
       }
@@ -453,31 +457,45 @@ const initPage = () => {
             identifier,
           } of changedTouches
         ) {
-          cameraRotTouch?.identifier === identifier
-          && (camera_rotation.y = touchStartCameraRotX + (pageX - cameraRotTouch.pageX) / 3,
-            camera_rotation.x = touchStartCameraRotY + (pageY - cameraRotTouch.pageY) / 3),
-            cameraPosTouch?.identifier === identifier
-            && (touch_movementX = -(pageX - cameraPosTouch.pageX) / 18,
-              touch_movementY = -(pageY - cameraPosTouch.pageY) / 18,
-              touch_movementX = abs(touch_movementX) < .35 ? 0 : .8 * touch_movementX,
-              touch_movementY = abs(touch_movementY) < .35 ? 0 : .8 * touch_movementY);
+          if (
+            touchRotIdentifier === identifier
+            && (camera_rotation.y = touchStartCameraRotX + (pageX - touchRotX) / 3,
+              camera_rotation.x = touchStartCameraRotY + (pageY - touchRotY) / 3,
+              touchRotMoved = 1), touchPosIdentifier === identifier
+          ) {
+            let delta = (touchPosX - pageX) / 20;
+            let sign = delta < 0 ? -1 : 1;
+            let absDelta = sign * delta;
+            .4 < absDelta
+            && (touchPosMoved = 1,
+              touch_movementX = sign * absDelta ** 1.5,
+              1.5 < absDelta && (touchPosX = pageX + 20 * sign)),
+              .4 < (absDelta = (sign = (delta = (touchPosY - pageY) / 20) < 0 ? -1 : 1) * delta)
+              && (touchPosMoved = 1,
+                touch_movementY = sign * absDelta ** 1.5,
+                1.5 < absDelta && (touchPosY = pageY + 20 * sign));
+          }
         }
       }
     },
     hC.ontouchend = e => {
-      for (
-        const touch of e.changedTouches
-      ) {
-        touch.identifier === cameraRotTouch?.identifier && (cameraRotTouch = void 0),
-          touch.identifier === cameraPosTouch?.identifier
-          && (cameraPosTouch = void 0, touch_movementY = touch_movementX = 0);
-      }
-
+      let click;
       e.preventDefault();
-      const diff = absoluteTime - touchStartTime;
-      (!touchStartTime || .02 < diff && diff < .4) && (keyboard_downKeys[5] = !0);
+
+      for (const touch of e.changedTouches) {touch.identifier === touchRotIdentifier
+          ? (touchRotIdentifier = void 0, touchRotMoved || (click = 1), touchRotMoved = 0)
+          : touch.identifier === touchPosIdentifier
+          ? (touchPosIdentifier = void 0,
+            touch_movementY = touch_movementX = 0,
+            touchPosMoved || (click = 1),
+            touchPosMoved = 0)
+          : click = 1;}
+
+      if (click && e.target === hC && touchStartTime) {
+        const diff = absoluteTime - touchStartTime;
+        .06 < diff && diff < .7 && (keyboard_downKeys[5] = !0);
+      }
     },
-    oncontextmenu = () => !1,
     handleResize(),
     setMainMenuVisible(!0);
 };
@@ -992,7 +1010,7 @@ const renderModels = (worldMatrixLoc, renderPlayer, isCollider) => {
         $modelId,
       } of playerModels
     ) {
-      writeMatrixToArray(matrix, worldMatricesBuffer, $modelId - 1);
+      matrixToArray(matrix, worldMatricesBuffer, $modelId - 1);
     }
 
     gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer),
@@ -1004,7 +1022,7 @@ const renderModels = (worldMatrixLoc, renderPlayer, isCollider) => {
         $modelId: $modelId1,
         $matrix,
       } = allModels[i];
-      $kind && writeMatrixToArray($matrix, worldMatricesBuffer, $modelId1 - 1);
+      $kind && matrixToArray($matrix, worldMatricesBuffer, $modelId1 - 1);
     }
 
     gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer),
@@ -1015,13 +1033,13 @@ const renderModels = (worldMatrixLoc, renderPlayer, isCollider) => {
         $matrix: $matrix1,
         $lerpValue,
       } = levers[i1];
-      writeMatrixToArray($matrix1, worldMatricesBuffer, i1), worldMatricesBuffer[16 * i1 + 15] = 1 - $lerpValue;
+      matrixToArray($matrix1, worldMatricesBuffer, i1), worldMatricesBuffer[16 * i1 + 15] = 1 - $lerpValue;
     }
 
     gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer),
       gl["das"](4, leverModel.$vertexEnd - leverModel.$vertexBegin, 5123, 2 * leverModel.$vertexBegin, levers.length);
 
-    for (let i2 = 0; i2 < 13; ++i2) writeMatrixToArray(souls[i2].$matrix, worldMatricesBuffer, i2);
+    for (let i2 = 0; i2 < 13; ++i2) matrixToArray(souls[i2].$matrix, worldMatricesBuffer, i2);
 
     gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer),
       gl["das"](
@@ -1185,8 +1203,8 @@ setTimeout(() => {
           player_collision_z = 0,
           NO_INLINE(doVerticalCollisions)(),
           NO_INLINE(doHorizontalCollisions)();
-        let strafe = (keyboard_downKeys[0] ? 1 : 0) + (keyboard_downKeys[2] ? -1 : 0) + touch_movementX;
-        let forward = (keyboard_downKeys[1] ? 1 : 0) + (keyboard_downKeys[3] ? -1 : 0) + touch_movementY;
+        let strafe = touch_movementX + (keyboard_downKeys[0] ? 1 : 0) + (keyboard_downKeys[2] ? -1 : 0);
+        let forward = touch_movementY + (keyboard_downKeys[1] ? 1 : 0) + (keyboard_downKeys[3] ? -1 : 0);
         const gamepad = navigator.getGamepads()[0];
 
         if (gamepad) {
@@ -1334,84 +1352,91 @@ setTimeout(() => {
       };
 
       const mainLoop = globalTime => {
-        let camera_view = identity;
-        requestAnimationFrame(mainLoop);
-        {
-          const dt = (globalTime - (_globalTime || globalTime)) / 1e3;
-          gameTimeDelta = mainMenuVisible ? keyboard_downKeys[5] = 0 : min(.066, dt),
-            gameTime += gameTimeDelta,
-            absoluteTime += dt,
-            _globalTime = globalTime;
-        }
-        0 < gameTimeDelta
-        && (NO_INLINE(updatePlayer)(),
-          worldStateUpdate(),
-          1 === currentModelId
-          && (levers[9].$value = player_position_final.x < -15 && player_position_final.z < 0 ? 1 : 0),
-          (player_position_final.x < -25 || player_position_final.z < 109 ? -25 : -9) > player_position_final.y
-          && player_respawn(),
-          keyboard_downKeys[5] = 0),
-          camera_view = mainMenuVisible
+        if (gl["i34"]()) location.reload();
+        else {
+          requestAnimationFrame(mainLoop);
+          {
+            const dt = (globalTime - (_globalTime || globalTime)) / 1e3;
+            gameTimeDelta = mainMenuVisible ? keyboard_downKeys[5] = 0 : min(.066, dt),
+              gameTime += gameTimeDelta,
+              absoluteTime += dt,
+              _globalTime = globalTime;
+          }
+          0 < gameTimeDelta
+            && (gl["b6o"](36160, collision_frameBuffer),
+              gl["fa7"](),
+              gl["r9r"](0, 0, 128, 128, 6408, 5121, collision_buffer),
+              gl["iay"](36009, [36064, 36096]),
+              gl["iay"](36008, [36064, 36096]),
+              NO_INLINE(updatePlayer)(),
+              worldStateUpdate(),
+              1 === currentModelId
+              && (levers[9].$value = player_position_final.x < -15 && player_position_final.z < 0 ? 1 : 0),
+              (player_position_final.x < -25 || player_position_final.z < 109 ? -25 : -9) > player_position_final.y
+              && player_respawn(),
+              keyboard_downKeys[5] = 0);
+          const camera_view = mainMenuVisible
             ? identity.rotate(-20, -90).invertSelf().translateSelf(4.5, -2, -3.2 + clamp01(hC.clientWidth / 1e3))
             : identity.rotate(-camera_rotation.x, -camera_rotation.y, -camera_rotation.z).invertSelf().translateSelf(
               -camera_position.x,
               -camera_position.y,
               -camera_position.z,
             );
-        const csmMatrix0 = csm_buildMatrix(camera_view, .3, 55, 10);
-        const csmMatrix1 = csm_buildMatrix(camera_view, 55, 177, 11);
-        0 < gameTimeDelta
-        && (collisionShader(),
-          gl["b6o"](36160, collision_frameBuffer),
-          gl["v5y"](0, 0, 128, 128),
-          gl["c4s"](16640),
-          gl["cbf"](!0, !1, !0, !1),
-          gl["uae"](
-            collisionShader("b"),
-            !1,
-            writeMatrixToArray(
-              identity.rotate(0, 180).invertSelf().translateSelf(
-                -player_position_final.x,
-                -player_position_final.y,
-                .3 - player_position_final.z,
+          0 < gameTimeDelta
+          && (collisionShader(),
+            gl["b6o"](36160, collision_frameBuffer),
+            gl["v5y"](0, 0, 128, 128),
+            gl["c4s"](16640),
+            gl["cbf"](!0, !1, !0, !1),
+            gl["uae"](
+              collisionShader("b"),
+              !1,
+              matrixToArray(
+                identity.rotate(0, 180).invertSelf().translateSelf(
+                  -player_position_final.x,
+                  -player_position_final.y,
+                  .3 - player_position_final.z,
+                ),
               ),
             ),
-          ),
-          renderModels(collisionShader("c"), 0, 1),
-          gl["c4s"](256),
-          gl["cbf"](!1, !0, !0, !1),
-          gl["uae"](
-            collisionShader("b"),
-            !1,
-            writeMatrixToArray(
-              identity.translate(-player_position_final.x, -player_position_final.y, -player_position_final.z - .3),
+            renderModels(collisionShader("c"), 0, 1),
+            gl["c4s"](256),
+            gl["cbf"](!1, !0, !0, !1),
+            gl["uae"](
+              collisionShader("b"),
+              !1,
+              matrixToArray(
+                identity.translate(-player_position_final.x, -player_position_final.y, -player_position_final.z - .3),
+              ),
             ),
-          ),
-          renderModels(collisionShader("c"), 0, 1),
-          gl["r9r"](0, 0, 128, 128, 6408, 5121, collision_buffer)),
-          csmShader(),
-          gl["b6o"](36160, csm_framebuffer),
-          gl["v5y"](0, 0, 2048, 2048),
-          csm_render[0](csmMatrix0),
-          csm_render[1](csmMatrix1),
-          mainShader(),
-          gl["b6o"](36160, null),
-          gl["v5y"](0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight),
-          gl["cbf"](!0, !0, !0, !0),
-          gl["c4s"](16640),
-          csm_render[0](),
-          csm_render[1](),
-          gl["uae"](mainShader("a"), !1, mat_perspective(.3, 177)),
-          gl["uae"](mainShader("b"), !1, writeMatrixToArray(camera_view)),
-          gl["ubu"](mainShader("k"), camera_position.x, camera_position.y, camera_position.z),
-          renderModels(mainShader("c"), !player_first_person, 0),
-          skyShader(),
-          gl["ubu"](skyShader("j"), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime),
-          mainMenuVisible
-            ? gl["ubu"](skyShader("k"), 0, 0, 0)
-            : gl["ubu"](skyShader("k"), camera_position.x, camera_position.y, camera_position.z),
-          gl["uae"](skyShader("b"), !1, writeMatrixToArray(camera_view.inverse())),
-          gl["d97"](4, 3, 5123, 0);
+            renderModels(collisionShader("c"), 0, 1),
+            gl["f1s"]()),
+            csmShader(),
+            gl["b6o"](36160, csm_framebuffer),
+            gl["v5y"](0, 0, 2048, 2048),
+            csm_render[0](csm_buildMatrix(camera_view, .3, 55, 10)),
+            csm_render[1](csm_buildMatrix(camera_view, 55, 177, 11)),
+            mainShader(),
+            gl["b6o"](36160, null),
+            gl["v5y"](0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight),
+            gl["cbf"](!0, !0, !0, !0),
+            gl["c4s"](16640),
+            csm_render[0](),
+            csm_render[1](),
+            gl["uae"](mainShader("a"), !1, mat_perspective(.3, 177)),
+            gl["uae"](mainShader("b"), !1, matrixToArray(camera_view)),
+            gl["ubu"](mainShader("k"), camera_position.x, camera_position.y, camera_position.z),
+            renderModels(mainShader("c"), !player_first_person, 0),
+            skyShader(),
+            gl["ubu"](skyShader("j"), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime),
+            mainMenuVisible
+              ? gl["ubu"](skyShader("k"), 0, 0, 0)
+              : gl["ubu"](skyShader("k"), camera_position.x, camera_position.y, camera_position.z),
+            gl["uae"](skyShader("b"), !1, matrixToArray(camera_view.inverse())),
+            gl["d97"](4, 3, 5123, 0),
+            gl["b6o"](36160, collision_frameBuffer),
+            gl["f1s"]();
+        }
       };
 
       const collision_buffer = new Uint8Array(65536);
@@ -1462,7 +1487,7 @@ setTimeout(() => {
           gl["t2z"](3553, 10242, 33071),
           matrix => {
             matrix
-              ? (writeMatrixToArray(matrix, lightSpaceMatrix),
+              ? (matrixToArray(matrix, lightSpaceMatrix),
                 gl["uae"](csmShader("b"), !1, lightSpaceMatrix),
                 gl["fas"](36160, 36096, 3553, texture, 0),
                 gl["c4s"](256),

@@ -46,7 +46,7 @@ export const interpolate_with_hysteresis = /* @__PURE__ */ (
   t: number,
 ) =>
   lerp(
-    previous + Math.sign(desired - previous) * max(0, abs(desired - previous) ** 0.9 - hysteresis) * t * 2,
+    previous + (desired - previous < 0 ? -1 : 1) * max(0, abs(desired - previous) ** 0.9 - hysteresis) * t * 2,
     desired,
     t / 7,
   );

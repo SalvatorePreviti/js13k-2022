@@ -359,8 +359,8 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     NO_INLINE(doVerticalCollisions)();
     NO_INLINE(doHorizontalCollisions)();
 
-    let strafe = (keyboard_downKeys[KEY_LEFT] ? 1 : 0) + (keyboard_downKeys[KEY_RIGHT] ? -1 : 0) + touch_movementX;
-    let forward = (keyboard_downKeys[KEY_FRONT] ? 1 : 0) + (keyboard_downKeys[KEY_BACK] ? -1 : 0) + touch_movementY;
+    let strafe = touch_movementX + (keyboard_downKeys[KEY_LEFT] ? 1 : 0) + (keyboard_downKeys[KEY_RIGHT] ? -1 : 0);
+    let forward = touch_movementY + (keyboard_downKeys[KEY_FRONT] ? 1 : 0) + (keyboard_downKeys[KEY_BACK] ? -1 : 0);
 
     const gamepad = navigator.getGamepads()[0];
     if (gamepad) {
@@ -538,13 +538,23 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   };
 
   const mainLoop = (globalTime: number) => {
-    let camera_view: DOMMatrixReadOnly = identity;
-
+    if (gl.isContextLost()) {
+      location.reload();
+      return;
+    }
     requestAnimationFrame(mainLoop);
 
     gameTimeUpdate(globalTime);
 
     if (gameTimeDelta > 0) {
+      // read collision shader output
+
+      gl.bindFramebuffer(gl.FRAMEBUFFER, collision_frameBuffer);
+      gl.finish();
+      gl.readPixels(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE, gl.RGBA, gl.UNSIGNED_BYTE, collision_buffer);
+      gl.invalidateFramebuffer(gl.DRAW_FRAMEBUFFER, [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT]);
+      gl.invalidateFramebuffer(gl.READ_FRAMEBUFFER, [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT]);
+
       NO_INLINE(updatePlayer)();
 
       worldStateUpdate();
@@ -562,7 +572,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       keyboard_downKeys[KEY_INTERACT] = 0;
     }
 
-    camera_view = mainMenuVisible
+    const camera_view = mainMenuVisible
       ? identity
           .rotate(-20, -90)
           .invertSelf()
@@ -571,9 +581,6 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
           .rotate(-camera_rotation.x, -camera_rotation.y, -camera_rotation.z)
           .invertSelf()
           .translateSelf(-camera_position.x, -camera_position.y, -camera_position.z);
-
-    const csmMatrix0 = csm_buildMatrix(camera_view, zNear, CSM_PLANE_DISTANCE, 10);
-    const csmMatrix1 = csm_buildMatrix(camera_view, CSM_PLANE_DISTANCE, zFar, 11);
 
     if (gameTimeDelta > 0) {
       // *** COLLISION RENDERER ***
@@ -612,13 +619,8 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       );
       renderModels(collisionShader(uniformName_worldMatrices), 0, 1);
 
-      // read collision shader output
-
-      gl.readPixels(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE, gl.RGBA, gl.UNSIGNED_BYTE, collision_buffer);
-
-      // gl.invalidateFramebuffer(gl.DRAW_FRAMEBUFFER, [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT]);
-      // gl.invalidateFramebuffer(gl.READ_FRAMEBUFFER, [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT]);
       // gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.flush();
     }
 
     // *** CASCADED SHADOWMAPS ***
@@ -628,8 +630,8 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     gl.bindFramebuffer(gl.FRAMEBUFFER, csm_framebuffer);
     gl.viewport(0, 0, CSM_TEXTURE_SIZE, CSM_TEXTURE_SIZE);
 
-    csm_render[0]!(csmMatrix0);
-    csm_render[1]!(csmMatrix1);
+    csm_render[0]!(csm_buildMatrix(camera_view, zNear, CSM_PLANE_DISTANCE, 10));
+    csm_render[1]!(csm_buildMatrix(camera_view, CSM_PLANE_DISTANCE, zFar, 11));
 
     // *** MAIN RENDER ***
 
@@ -662,6 +664,9 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     gl.uniformMatrix4fv(skyShader(uniformName_viewMatrix), false, matrixToArray(camera_view.inverse()));
 
     gl.drawElements(gl.TRIANGLES, 3, gl.UNSIGNED_SHORT, 0);
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, collision_frameBuffer);
+    gl.flush();
   };
 
   playerModels.map((model, i) => {

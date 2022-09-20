@@ -1,10 +1,7 @@
-export let mainMenuVisible: boolean | undefined;
-
 import type { KEY_CODE } from "./utils/keycodes";
 import { camera_rotation } from "./camera";
 import { absoluteTime, LOCAL_STORAGE_SAVED_GAME_KEY } from "./game/world-state";
 import { audioContext, songAudioSource } from "./music/audio-context";
-import { abs } from "./math";
 
 export const KEY_LEFT = 0;
 
@@ -25,6 +22,8 @@ export let player_first_person: 0 | 1 | undefined;
 export let touch_movementX = 0;
 
 export let touch_movementY = 0;
+
+export let mainMenuVisible: boolean | undefined;
 
 const updateMusicOnState = () => {
   if (mainMenuVisible || !music_on) {
@@ -54,32 +53,44 @@ export const setMainMenuVisible = (value: boolean = false) => {
 };
 
 export const initPage = () => {
-  let cameraRotTouch: Touch | undefined;
-  let cameraPosTouch: Touch | undefined;
+  let touchStartTime: number | undefined;
+
+  let touchPosX: number | undefined;
+  let touchPosY: number | undefined;
+  let touchPosIdentifier: number | undefined;
+  let touchPosMoved: number | undefined;
+
+  let touchRotX: number | undefined;
+  let touchRotY: number | undefined;
+  let touchRotIdentifier: number | undefined;
+  let touchRotMoved: number | undefined;
+  let touchStartCameraRotX: number | undefined;
+  let touchStartCameraRotY: number | undefined;
+
   let pageClicked: undefined | 1;
-  let touchStartCameraRotX = 0;
-  let touchStartCameraRotY = 0;
-  let touchStartTime = 0;
 
   const handleResize = () => {
     hC.width = innerWidth;
     hC.height = innerHeight;
     keyboard_downKeys.length = touch_movementX = touch_movementY = 0;
-    cameraRotTouch = cameraPosTouch = undefined;
+    touchPosIdentifier = touchRotIdentifier = undefined;
     if (document.hidden) {
       setMainMenuVisible(true);
     }
   };
 
+  document.onvisibilitychange = onresize = onblur = handleResize;
+
+  // "Play" button
   b1.onclick = () => setMainMenuVisible();
 
-  // b2.ontouchend = () => (touch_first_person = 1);
-
+  // "Play first person" button
   b2.onclick = () => {
     setMainMenuVisible();
     player_first_person = 1;
   };
 
+  // "Restart" button
   b3.onclick = () => {
     // eslint-disable-next-line no-alert
     if (confirm("Restart game?")) {
@@ -88,28 +99,28 @@ export const initPage = () => {
     }
   };
 
+  // "Music" button
   b4.onclick = () => {
     music_on = !music_on;
     updateMusicOnState();
   };
 
-  // touch controls
-
+  // Menu hamburger button
   b5.onclick = () => setMainMenuVisible(true);
 
-  onclick = () => {
+  onclick = (e) => {
     pageClicked = 1;
     if (!mainMenuVisible) {
-      keyboard_downKeys[KEY_INTERACT] = true;
+      if (e.target === hC) {
+        keyboard_downKeys[KEY_INTERACT] = true;
+      }
       if (player_first_person) {
         hC.requestPointerLock();
       }
     }
   };
 
-  document.onvisibilitychange = onresize = onblur = handleResize;
-
-  onkeydown = onkeyup = ({ code, target, type, repeat }) => {
+  onkeyup = onkeydown = ({ code, target, type, repeat }) => {
     if (!repeat) {
       const pressed = !!type[5] && target === document.body;
 
@@ -155,60 +166,102 @@ export const initPage = () => {
     }
   };
 
+  if (!DEBUG) {
+    oncontextmenu = () => false;
+  }
+
   hC.ontouchstart = (e) => {
     if (!mainMenuVisible) {
-      for (const touch of e.changedTouches) {
-        if (player_first_person && touch.pageX > hC.clientWidth / 2) {
-          if (!cameraRotTouch) {
-            cameraRotTouch = touch;
+      for (const { pageX, pageY, identifier } of e.changedTouches) {
+        if (player_first_person && pageX > hC.clientWidth / 2) {
+          if (touchRotIdentifier === undefined) {
+            touchRotIdentifier = identifier;
+            touchRotX = pageX;
+            touchRotY = pageY;
+            touchRotMoved = 0;
             touchStartCameraRotX = camera_rotation.y;
             touchStartCameraRotY = camera_rotation.x;
           }
-        } else if (!cameraPosTouch) {
-          cameraPosTouch = touch;
+        } else if (touchPosIdentifier === undefined) {
+          touchPosIdentifier = identifier;
+          touchPosX = pageX;
+          touchPosY = pageY;
+          touchPosMoved = 0;
         }
       }
       touchStartTime = absoluteTime;
     }
   };
 
+  const TOUCH_SIZE = 20;
+  const TOUCH_MOVE_THRESHOLD = 0.4;
+
   hC.ontouchmove = ({ changedTouches }) => {
     if (!mainMenuVisible) {
       for (const { pageX, pageY, identifier } of changedTouches) {
-        if (cameraRotTouch?.identifier === identifier) {
-          camera_rotation.y = touchStartCameraRotX + (pageX - cameraRotTouch.pageX) / 3;
-          camera_rotation.x = touchStartCameraRotY + (pageY - cameraRotTouch.pageY) / 3;
+        if (touchRotIdentifier === identifier) {
+          camera_rotation.y = touchStartCameraRotX! + (pageX - touchRotX!) / 3;
+          camera_rotation.x = touchStartCameraRotY! + (pageY - touchRotY!) / 3;
+          touchRotMoved = 1;
         }
-        if (cameraPosTouch?.identifier === identifier) {
-          touch_movementX = -(pageX - cameraPosTouch.pageX) / 18;
-          touch_movementY = -(pageY - cameraPosTouch.pageY) / 18;
-          touch_movementX = abs(touch_movementX) < 0.35 ? 0 : touch_movementX * 0.8;
-          touch_movementY = abs(touch_movementY) < 0.35 ? 0 : touch_movementY * 0.8;
+        if (touchPosIdentifier === identifier) {
+          let delta = (touchPosX! - pageX) / TOUCH_SIZE;
+          let sign = delta < 0 ? -1 : 1;
+          let absDelta = sign * delta;
+
+          if (absDelta > TOUCH_MOVE_THRESHOLD) {
+            touchPosMoved = 1;
+            touch_movementX = sign * absDelta ** 1.5;
+            if (absDelta > 1.5) {
+              touchPosX = pageX + TOUCH_SIZE * sign;
+            }
+          }
+
+          delta = (touchPosY! - pageY) / TOUCH_SIZE;
+          sign = delta < 0 ? -1 : 1;
+          absDelta = sign * delta;
+          if (absDelta > TOUCH_MOVE_THRESHOLD) {
+            touchPosMoved = 1;
+            touch_movementY = sign * absDelta ** 1.5;
+            if (absDelta > 1.5) {
+              touchPosY = pageY + TOUCH_SIZE * sign;
+            }
+          }
         }
       }
     }
   };
 
   hC.ontouchend = (e) => {
+    e.preventDefault();
+
+    let click: 1 | undefined;
     for (const touch of e.changedTouches) {
-      if (touch.identifier === cameraRotTouch?.identifier) {
-        cameraRotTouch = undefined;
-      }
-      if (touch.identifier === cameraPosTouch?.identifier) {
-        cameraPosTouch = undefined;
+      if (touch.identifier === touchRotIdentifier) {
+        touchRotIdentifier = undefined;
+        if (!touchRotMoved) {
+          click = 1;
+        }
+        touchRotMoved = 0;
+      } else if (touch.identifier === touchPosIdentifier) {
+        touchPosIdentifier = undefined;
         touch_movementY = touch_movementX = 0;
+        if (!touchPosMoved) {
+          click = 1;
+        }
+        touchPosMoved = 0;
+      } else {
+        click = 1;
       }
     }
-    e.preventDefault();
-    const diff = absoluteTime - touchStartTime;
-    if (!touchStartTime || (diff > 0.02 && diff < 0.4)) {
-      keyboard_downKeys[KEY_INTERACT] = true;
+
+    if (click && e.target === hC && touchStartTime) {
+      const diff = absoluteTime - touchStartTime;
+      if (diff > 0.06 && diff < 0.7) {
+        keyboard_downKeys[KEY_INTERACT] = true;
+      }
     }
   };
-
-  if (!DEBUG) {
-    oncontextmenu = () => false;
-  }
 
   handleResize();
   setMainMenuVisible(!DEBUG);
