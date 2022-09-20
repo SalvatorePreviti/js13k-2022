@@ -4,6 +4,10 @@ import { allModels } from "./scene";
 import { gl } from "../gl";
 
 export const initTriangleBuffers = () => {
+  if (DEBUG) {
+    console.time("initTriangleBuffers");
+  }
+
   const _triangleIndices: number[] = [];
   const _vertexPositions: number[] = [];
   const _vertexColors: number[] = [];
@@ -79,6 +83,7 @@ export const initTriangleBuffers = () => {
   gl.enableVertexAttribArray(2);
 
   if (DEBUG) {
+    console.timeEnd("initTriangleBuffers");
     console.table({
       "game models": allModels.filter((m) => !!m.$kind).length,
       "all models": allModels.length,

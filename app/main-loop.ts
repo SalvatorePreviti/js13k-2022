@@ -88,6 +88,8 @@ const COLLISION_TEXTURE_SIZE = 128;
 // let debug2dctx: CanvasRenderingContext2D | null | undefined;
 
 export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
+  NO_INLINE(initTriangleBuffers)();
+
   let oldModelId: number | undefined;
   let currentModelIdTMinus1 = 0;
   let currentModelId = 0;
@@ -102,6 +104,8 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   let player_collision_velocity_x: number;
   let player_collision_velocity_z: number;
   let player_model_y: number;
+  let player_collision_x: number;
+  let player_collision_z: number;
   const player_position_global = { x: 0, y: 0, z: 0 };
 
   // let _gamepadStartPressed = false;
@@ -172,11 +176,11 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     return (matrix?: DOMMatrix) => {
       if (matrix) {
         writeMatrixToArray(matrix, lightSpaceMatrix);
-        gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
-        gl.invalidateFramebuffer(gl.FRAMEBUFFER, [gl.DEPTH_ATTACHMENT]);
-        gl.clear(gl.DEPTH_BUFFER_BIT);
         gl.uniformMatrix4fv(csmShader(uniformName_viewMatrix), false, lightSpaceMatrix);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
+        gl.clear(gl.DEPTH_BUFFER_BIT);
         renderModels(csmShader(uniformName_worldMatrices), !player_first_person, 0);
+        // gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       } else {
         gl.uniformMatrix4fv(lightSpaceMatrixLoc, false, lightSpaceMatrix);
       }
@@ -216,6 +220,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
   // Ground texture
 
+  gl.activeTexture(gl.TEXTURE3);
   gl.bindTexture(gl.TEXTURE_2D, gl.createTexture());
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1024, 1024, 0, gl.RGBA, gl.UNSIGNED_BYTE, groundTextureImage);
   gl.generateMipmap(gl.TEXTURE_2D);
@@ -243,116 +248,116 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     currentModelIdTMinus1 = currentModelId = $parent?.$modelId || 1;
   };
 
-  const updatePlayer = () => {
-    let player_collision_x = 0;
-    let player_collision_z = 0;
+  const doVerticalCollisions = () => {
+    let maxModelIdCount = 0;
+    let nextModelId = 0;
+    player_collision_modelIdCounter.fill(0);
 
-    const doVerticalCollisions = () => {
-      let maxModelIdCount = 0;
-      let nextModelId = 0;
-      player_collision_modelIdCounter.fill(0);
-
-      let lines = 0;
-      let grav = 0;
-      let hasGround: 0 | 1 = 0;
-      for (let y = 0; y < 31; ++y) {
-        let up = 0;
-        const yindex = y * (COLLISION_TEXTURE_SIZE * 4);
-        for (let x = 0; x < COLLISION_TEXTURE_SIZE - 0; x++) {
-          let i = yindex + x * 4;
-          const a = (collision_buffer[i]! + collision_buffer[i + 1]!) / 255;
-          i = collision_buffer[i + 2]!;
-          if (x > 14 && x < COLLISION_TEXTURE_SIZE - 14) {
-            up += a;
-          }
-          if (i && a) {
-            const count = player_collision_modelIdCounter[i]! + 1;
-            player_collision_modelIdCounter[i] = count;
-            if (count >= maxModelIdCount) {
-              maxModelIdCount = count;
-              nextModelId = i;
-            }
-          }
+    let lines = 0;
+    let grav = 0;
+    let hasGround: 0 | 1 = 0;
+    for (let y = 0; y < 31; ++y) {
+      let up = 0;
+      const yindex = y * (COLLISION_TEXTURE_SIZE * 4);
+      for (let x = 0; x < COLLISION_TEXTURE_SIZE - 0; x++) {
+        let i = yindex + x * 4;
+        const a = (collision_buffer[i]! + collision_buffer[i + 1]!) / 255;
+        i = collision_buffer[i + 2]!;
+        if (x > 14 && x < COLLISION_TEXTURE_SIZE - 14) {
+          up += a;
         }
-        if (up < 3 && y > 5) {
-          grav += y / 32;
-        }
-        if (up > 3) {
-          if (y > 7) {
-            lines += y / 15;
+        if (i && a) {
+          const count = player_collision_modelIdCounter[i]! + 1;
+          player_collision_modelIdCounter[i] = count;
+          if (count >= maxModelIdCount) {
+            maxModelIdCount = count;
+            nextModelId = i;
           }
-          hasGround = 1;
         }
       }
-
-      if (nextModelId) {
+      if (up < 3 && y > 5) {
+        grav += y / 32;
+      }
+      if (up > 3) {
+        if (y > 7) {
+          lines += y / 15;
+        }
         hasGround = 1;
       }
+    }
 
-      if (player_respawned) {
-        // keep the previous modelId until the player touch ground
-        if (nextModelId) {
-          player_respawned = 0;
-          currentModelId = nextModelId;
-        }
-      } else {
-        currentModelId = nextModelId || currentModelIdTMinus1;
+    if (nextModelId) {
+      hasGround = 1;
+    }
+
+    if (player_respawned) {
+      // keep the previous modelId until the player touch ground
+      if (nextModelId) {
+        player_respawned = 0;
+        currentModelId = nextModelId;
       }
-      currentModelIdTMinus1 = nextModelId;
+    } else {
+      currentModelId = nextModelId || currentModelIdTMinus1;
+    }
+    currentModelIdTMinus1 = nextModelId;
 
-      player_has_ground = hasGround;
-      player_gravity = lerpDamp(player_gravity, hasGround ? 6.5 : 8, 4);
+    player_has_ground = hasGround;
+    player_gravity = lerpDamp(player_gravity, hasGround ? 6.5 : 8, 4);
 
-      // push up and gravity
-      player_position_global.y +=
-        lines / 41 - (hasGround ? 1 : player_gravity) * (grav / 41) * player_gravity * gameTimeDelta;
-    };
+    // push up and gravity
+    player_position_global.y +=
+      lines / 41 - (hasGround ? 1 : player_gravity) * (grav / 41) * player_gravity * gameTimeDelta;
+  };
 
-    const doHorizontalCollisions = () => {
-      for (let y = 32; y < COLLISION_TEXTURE_SIZE; y += 2) {
-        let front = 0;
-        let back = 0;
-        let left = 0;
-        let right = 0;
-        const yindex = y * (COLLISION_TEXTURE_SIZE * 4);
-        for (let x = (y >> 1) & 1; x < COLLISION_TEXTURE_SIZE; x += 2) {
-          const i1 = yindex + x * 4;
-          const i2 = yindex + (COLLISION_TEXTURE_SIZE - 1 - x) * 4;
-          const dist1 = collision_buffer[i1]! / 255;
-          const dist2 = collision_buffer[i2 + 1]! / 255;
+  const doHorizontalCollisions = () => {
+    for (let y = 32; y < COLLISION_TEXTURE_SIZE; y += 2) {
+      let front = 0;
+      let back = 0;
+      let left = 0;
+      let right = 0;
+      const yindex = y * (COLLISION_TEXTURE_SIZE * 4);
+      for (let x = y & 1; x < COLLISION_TEXTURE_SIZE; x += 2) {
+        const i1 = yindex + x * 4;
+        const i2 = yindex + (COLLISION_TEXTURE_SIZE - 1 - x) * 4;
+        const dist1 = collision_buffer[i1]! / 255;
+        const dist2 = collision_buffer[i2 + 1]! / 255;
 
-          const t = 1 - abs(2 * (x / (COLLISION_TEXTURE_SIZE - 1)) - 1);
+        const t = 1 - abs(2 * (x / (COLLISION_TEXTURE_SIZE - 1)) - 1);
 
-          if (x > 10 && x < COLLISION_TEXTURE_SIZE - 10) {
-            const dist1Opposite = collision_buffer[i2]! / 255;
-            front = max(front, max(dist1 * t, dist1 * dist1Opposite * 2));
-            const dist2Opposite = collision_buffer[i1 + 1]! / 255;
-            back = max(back, max(dist2 * t, dist2 * dist2Opposite));
-          }
+        if (x > 10 && x < COLLISION_TEXTURE_SIZE - 10) {
+          const dist1Opposite = collision_buffer[i2]! / 255;
+          front = max(front, max(dist1 * t, dist1 * dist1Opposite * 2));
+          const dist2Opposite = collision_buffer[i1 + 1]! / 255;
+          back = max(back, max(dist2 * t, dist2 * dist2Opposite));
+        }
 
-          if (x < COLLISION_TEXTURE_SIZE / 2 - 10 || x > COLLISION_TEXTURE_SIZE / 2 + 10) {
-            const xdist = ((1 - t) * max(dist1, dist2)) / 3;
-            if (xdist > 0.001) {
-              if (x < COLLISION_TEXTURE_SIZE / 2 && left < xdist) {
-                left = xdist;
-              } else if (x > COLLISION_TEXTURE_SIZE / 2 && right < xdist) {
-                right = xdist;
-              }
+        if (x < COLLISION_TEXTURE_SIZE / 2 - 10 || x > COLLISION_TEXTURE_SIZE / 2 + 10) {
+          const xdist = ((1 - t) * max(dist1, dist2)) / 3;
+          if (xdist > 0.001) {
+            if (x < COLLISION_TEXTURE_SIZE / 2 && left < xdist) {
+              left = xdist;
+            } else if (x > COLLISION_TEXTURE_SIZE / 2 && right < xdist) {
+              right = xdist;
             }
           }
         }
-
-        const dx = right - left;
-        const dz = back - front;
-
-        if (abs(dx) > abs(player_collision_x)) {
-          player_collision_x = dx;
-        }
-        if (abs(dz) > abs(player_collision_z)) {
-          player_collision_z = dz;
-        }
       }
-    };
+
+      const dx = right - left;
+      const dz = back - front;
+
+      if (abs(dx) > abs(player_collision_x)) {
+        player_collision_x = dx;
+      }
+      if (abs(dz) > abs(player_collision_z)) {
+        player_collision_z = dz;
+      }
+    }
+  };
+
+  const updatePlayer = () => {
+    player_collision_x = 0;
+    player_collision_z = 0;
 
     NO_INLINE(doVerticalCollisions)();
     NO_INLINE(doHorizontalCollisions)();
@@ -390,7 +395,6 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       // if (_gamepadStartPressed !== startPressed && startPressed && game_play_clicked_once) {
       //   setMainMenuVisible(!mainMenuVisible);
       // }
-
       // _gamepadStartPressed = startPressed;
 
       if (player_first_person) {
@@ -486,6 +490,54 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     }
     player_look_angle = angle_lerp_degrees(player_look_angle, player_look_angle_target, gameTimeDelta * 8);
     player_legs_speed = lerp(player_legs_speed, amount, gameTimeDelta * 10);
+
+    if (!DEBUG_CAMERA) {
+      camera_player_dir_x = interpolate_with_hysteresis(
+        camera_player_dir_x,
+        player_position_final.x,
+        0.5,
+        gameTimeDelta,
+      );
+      camera_player_dir_y = interpolate_with_hysteresis(camera_player_dir_y, player_position_final.y, 2, gameTimeDelta);
+      camera_player_dir_z = interpolate_with_hysteresis(
+        camera_player_dir_z,
+        player_position_final.z,
+        0.5,
+        gameTimeDelta,
+      );
+
+      if (player_first_person) {
+        const interpolationSpeed = player_respawned * 200;
+        camera_position.x = lerpDamp(camera_position.x, player_position_final.x, 18 + interpolationSpeed);
+        camera_position.y = lerpDamp(camera_position.y, player_position_final.y + 1.5, 15 + interpolationSpeed);
+        camera_position.z = lerpDamp(camera_position.z, player_position_final.z, 18 + interpolationSpeed);
+        camera_rotation.x = max(min(camera_rotation.x, 87), -87);
+      } else {
+        camera_position.x = interpolate_with_hysteresis(camera_position.x, camera_player_dir_x, 1, gameTimeDelta * 2);
+        camera_position.y = interpolate_with_hysteresis(
+          camera_position.y,
+          camera_player_dir_y + CAMERA_PLAYER_Y_DIST + player_respawned * 15,
+          4,
+          gameTimeDelta * 2,
+        );
+        camera_position.z = interpolate_with_hysteresis(
+          camera_position.z,
+          camera_player_dir_z + CAMERA_PLAYER_Z_DIST,
+          1,
+          gameTimeDelta * 2,
+        );
+
+        const viewDirDiffz = camera_position.z - camera_player_dir_z;
+        if (abs(viewDirDiffz) > 1) {
+          const viewDirDiffx = camera_position.x - camera_player_dir_x;
+          const viewDirDiffy = camera_position.y - camera_player_dir_y;
+          camera_rotation.y = 270 + Math.atan2(viewDirDiffz, viewDirDiffx) / DEG_TO_RAD;
+          camera_rotation.x = 90 - Math.atan2(Math.hypot(viewDirDiffz, viewDirDiffx), viewDirDiffy) / DEG_TO_RAD;
+        }
+      }
+    }
+
+    camera_rotation.y = angle_wrap_degrees(camera_rotation.y);
   };
 
   const mainLoop = (globalTime: number) => {
@@ -495,105 +547,17 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
     gameTimeUpdate(globalTime);
 
-    // *** COLLISIONS ***
-
     if (gameTimeDelta > 0) {
-      // *** COLLISION from the previos frame ***
-
-      gl.bindFramebuffer(gl.FRAMEBUFFER, collision_frameBuffer);
-      gl.readPixels(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE, gl.RGBA, gl.UNSIGNED_BYTE, collision_buffer);
-      gl.invalidateFramebuffer(gl.FRAMEBUFFER, [gl.COLOR_ATTACHMENT0]);
-
       NO_INLINE(updatePlayer)();
 
-      // if (DEBUG) {
-      //   const debugCanvas = document.getElementById("debug-canvas") as HTMLCanvasElement;
-
-      //   const buf = new Uint8ClampedArray(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
-
-      //   if (debugCanvas) {
-      //     for (let y = 0; y < COLLISION_TEXTURE_SIZE; ++y) {
-      //       for (let x = 0; x < COLLISION_TEXTURE_SIZE; ++x) {
-      //         const i = ((COLLISION_TEXTURE_SIZE - y) * COLLISION_TEXTURE_SIZE + x) * 4;
-      //         const r = collision_buffer[i]!;
-      //         const g = collision_buffer[i + 1]!;
-      //         const b = collision_buffer[i + 2]!;
-
-      //         buf[(y * COLLISION_TEXTURE_SIZE + x) * 4] = r;
-      //         buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 1] = g;
-      //         buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 2] = b ? 200 : 0;
-      //         buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 3] = 255;
-      //       }
-      //     }
-
-      //     const imgdata = new ImageData(buf, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
-
-      //     if (!debug2dctx) {
-      //       debug2dctx = debugCanvas.getContext("2d")!;
-      //     }
-      //     debug2dctx.putImageData(imgdata, 0, 0, 0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
-      //   }
-      // }
-
-      if (!DEBUG_CAMERA) {
-        camera_player_dir_x = interpolate_with_hysteresis(
-          camera_player_dir_x,
-          player_position_final.x,
-          0.5,
-          gameTimeDelta,
-        );
-        camera_player_dir_y = interpolate_with_hysteresis(
-          camera_player_dir_y,
-          player_position_final.y,
-          2,
-          gameTimeDelta,
-        );
-        camera_player_dir_z = interpolate_with_hysteresis(
-          camera_player_dir_z,
-          player_position_final.z,
-          0.5,
-          gameTimeDelta,
-        );
-
-        if (player_first_person) {
-          const interpolationSpeed = player_respawned * 200;
-          camera_position.x = lerpDamp(camera_position.x, player_position_final.x, 18 + interpolationSpeed);
-          camera_position.y = lerpDamp(camera_position.y, player_position_final.y + 1.5, 15 + interpolationSpeed);
-          camera_position.z = lerpDamp(camera_position.z, player_position_final.z, 18 + interpolationSpeed);
-          camera_rotation.x = max(min(camera_rotation.x, 87), -87);
-        } else {
-          camera_position.x = interpolate_with_hysteresis(camera_position.x, camera_player_dir_x, 1, gameTimeDelta * 2);
-          camera_position.y = interpolate_with_hysteresis(
-            camera_position.y,
-            camera_player_dir_y + CAMERA_PLAYER_Y_DIST + player_respawned * 15,
-            4,
-            gameTimeDelta * 2,
-          );
-          camera_position.z = interpolate_with_hysteresis(
-            camera_position.z,
-            camera_player_dir_z + CAMERA_PLAYER_Z_DIST,
-            1,
-            gameTimeDelta * 2,
-          );
-
-          const viewDirDiffz = camera_position.z - camera_player_dir_z;
-          if (abs(viewDirDiffz) > 1) {
-            const viewDirDiffx = camera_position.x - camera_player_dir_x;
-            const viewDirDiffy = camera_position.y - camera_player_dir_y;
-            camera_rotation.y = 270 + Math.atan2(viewDirDiffz, viewDirDiffx) / DEG_TO_RAD;
-            camera_rotation.x = 90 - Math.atan2(Math.hypot(viewDirDiffz, viewDirDiffx), viewDirDiffy) / DEG_TO_RAD;
-          }
-        }
-      }
-      camera_rotation.y = angle_wrap_degrees(camera_rotation.y);
-
       worldStateUpdate();
-      keyboard_downKeys[KEY_INTERACT] = 0;
 
       if (player_position_final.y < (player_position_final.x < -25 || player_position_final.z < 109 ? -25 : -9)) {
         // Player fell in lava
         player_respawn();
       }
+
+      keyboard_downKeys[KEY_INTERACT] = 0;
     }
 
     camera_view = mainMenuVisible
@@ -606,17 +570,20 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
           .invertSelf()
           .translateSelf(-camera_position.x, -camera_position.y, -camera_position.z);
 
+    const csmMatrix0 = csm_buildMatrix(camera_view, zNear, CSM_PLANE_DISTANCE, 10);
+    const csmMatrix1 = csm_buildMatrix(camera_view, CSM_PLANE_DISTANCE, zFar, 11);
+
     if (gameTimeDelta > 0) {
       // *** COLLISION RENDERER ***
 
       collisionShader();
+      gl.bindFramebuffer(gl.FRAMEBUFFER, collision_frameBuffer);
+      gl.viewport(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
 
       // first collision render
 
-      gl.bindFramebuffer(gl.FRAMEBUFFER, collision_frameBuffer);
-      gl.viewport(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
-      gl.colorMask(true, false, true, false);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      gl.colorMask(true, false, true, false);
       gl.uniformMatrix4fv(
         collisionShader(uniformName_viewMatrix),
         false,
@@ -631,8 +598,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
       // second collision render
 
-      gl.colorMask(false, true, false, false);
-      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      gl.clear(gl.DEPTH_BUFFER_BIT);
       gl.colorMask(false, true, true, false);
       gl.uniformMatrix4fv(
         collisionShader(uniformName_viewMatrix),
@@ -642,12 +608,18 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
         ),
       );
       renderModels(collisionShader(uniformName_worldMatrices), 0, 1);
-      gl.colorMask(true, true, true, true);
 
       // Special handling for the second boat (lever 7) - the boat must be on the side of the map the player is
       if (currentModelId === 1) {
         levers[9]!.$value = player_position_final.x < -15 && player_position_final.z < 0 ? 1 : 0;
       }
+
+      gl.readPixels(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE, gl.RGBA, gl.UNSIGNED_BYTE, collision_buffer);
+
+      gl.colorMask(true, true, true, true);
+      // gl.invalidateFramebuffer(gl.DRAW_FRAMEBUFFER, [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT]);
+      // gl.invalidateFramebuffer(gl.READ_FRAMEBUFFER, [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT]);
+      // gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
 
     // *** CASCADED SHADOWMAPS ***
@@ -656,8 +628,8 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
     gl.viewport(0, 0, CSM_TEXTURE_SIZE, CSM_TEXTURE_SIZE);
 
-    csm_render[0]!(csm_buildMatrix(camera_view, zNear, CSM_PLANE_DISTANCE, 10));
-    csm_render[1]!(csm_buildMatrix(camera_view, CSM_PLANE_DISTANCE, zFar, 11));
+    csm_render[1]!(csmMatrix1);
+    csm_render[0]!(csmMatrix0);
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
@@ -668,8 +640,8 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    csm_render[0]!();
     csm_render[1]!();
+    csm_render[0]!();
 
     gl.uniformMatrix4fv(mainShader(uniformName_projectionMatrix), false, mat_perspective(zNear, zFar));
     gl.uniformMatrix4fv(mainShader(uniformName_viewMatrix), false, writeMatrixToArray(camera_view));
@@ -717,23 +689,13 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
   worldStateUpdate();
 
-  if (DEBUG) {
-    console.time("initTriangleBuffers");
-  }
-
-  NO_INLINE(initTriangleBuffers)();
-
-  if (DEBUG) {
-    console.timeEnd("initTriangleBuffers");
-  }
-
-  NO_INLINE(initPage)();
-
   player_respawn();
 
   camera_position.x = camera_player_dir_x = player_position_final.x;
   camera_position.y = (camera_player_dir_y = player_position_final.y) + CAMERA_PLAYER_Y_DIST;
   camera_position.z = (camera_player_dir_z = player_position_final.z) + CAMERA_PLAYER_Z_DIST;
+
+  NO_INLINE(initPage)();
 
   requestAnimationFrame(mainLoop);
 };

@@ -1421,17 +1421,17 @@ export const buildWorld = () => {
 
   leverModel = newModel(() => {
     meshAdd(cylinder(6, 1), identity.scale(0.13, 1.4, 0.13), material(0.3, 0.3, 0.5, 0.1));
-    meshAdd(cylinder(8), identity.translate(0, 1).scale(0.21, 0.3, 0.21), material(1, 0.5, 0.2));
+    meshAdd(cylinder(8, 1), identity.translate(0, 1).scale(0.21, 0.3, 0.21), material(1, 0.5, 0.2));
     meshAdd(cylinder(3), identity.translate(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3), material(0.2, 0.2, 0.2, 0.1));
   }, MODEL_KIND_MESH);
 
   soulCollisionModel = newModel(() => {
-    meshAdd(cylinder(6), identity.scale(0.77, 1, 0.77), material(1, 0.3, 0.5));
+    meshAdd(cylinder(6).slice(0, -1), identity.scale(0.77, 1, 0.77), material(1, 0.3, 0.5));
   }, MODEL_KIND_MESH);
 
   soulModel = newModel(() => {
     const GHOST_SLICES = 30;
-    const GHOST_STACKS = 25;
+    const GHOST_STACKS = 24;
 
     // body
     meshAdd(
@@ -1455,7 +1455,7 @@ export const buildWorld = () => {
     );
 
     // eyes
-    [-1, 1].map((x) => meshAdd(sphere(15), identity.translate(x * 0.16, 0.4, -0.36).scale3d(0.09)));
+    [-1, 1].map((x) => meshAdd(sphere(12), identity.translate(x * 0.16, 0.4, -0.36).scale3d(0.09)));
   }, MODEL_KIND_MESH);
 
   if (DEBUG) {

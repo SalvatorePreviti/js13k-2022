@@ -135,10 +135,10 @@ export const worldStateUpdate = () => {
     1,
   );
 
-  if (levers[0]!.$value === 1 && levers[0]!.$lerpValue > 0.8) {
+  if (levers[0]!.$value && levers[0]!.$lerpValue > 0.7) {
     if (souls_collected_count < 13) {
-      levers[0]!.$value = 0;
       showMessage("Not leaving now, there are souls to catch!", 3);
+      levers[0]!.$value = 0;
     } else if (!game_completed) {
       showMessage("Well done. They will be punished.<br>Thanks for playing", Infinity);
       game_completed = 1;

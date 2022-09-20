@@ -12,6 +12,7 @@ export const renderModels = (
   renderPlayer: 0 | 1 | boolean,
   isCollider: 0 | 1,
 ) => {
+  const soulModelToRender = isCollider ? soulCollisionModel : soulModel;
   if (mainMenuVisible) {
     const matrix = identity.rotate(0, Math.sin(absoluteTime) * 40 - 70);
     for (const { $modelId } of playerModels) {
@@ -27,12 +28,14 @@ export const renderModels = (
     return;
   }
 
-  for (const { $kind, $modelId, $matrix } of allModels) {
+  // Render world
+
+  for (let i = 0; i < allModels.length; ++i) {
+    const { $kind, $modelId, $matrix } = allModels[i]!;
     if ($kind) {
       writeMatrixToArray($matrix, worldMatricesBuffer, $modelId - 1);
     }
   }
-
   gl.uniformMatrix4fv(worldMatrixLoc, false, worldMatricesBuffer);
   gl.drawElements(
     gl.TRIANGLES,
@@ -41,11 +44,13 @@ export const renderModels = (
     3 * 2,
   );
 
-  for (let i = 0; i < levers.length; ++i) {
-    writeMatrixToArray(levers[i]!.$matrix!, worldMatricesBuffer, i);
-    worldMatricesBuffer[i * 16 + 15] = 1 - levers[i]!.$lerpValue;
-  }
+  // Render souls
 
+  for (let i = 0; i < levers.length; ++i) {
+    const { $matrix, $lerpValue } = levers[i]!;
+    writeMatrixToArray($matrix!, worldMatricesBuffer, i);
+    worldMatricesBuffer[i * 16 + 15] = 1 - $lerpValue;
+  }
   gl.uniformMatrix4fv(worldMatrixLoc, false, worldMatricesBuffer);
   gl.drawElementsInstanced(
     gl.TRIANGLES,
@@ -55,12 +60,11 @@ export const renderModels = (
     levers.length,
   );
 
+  // Render levers
+
   for (let i = 0; i < 13; ++i) {
     writeMatrixToArray(souls[i]!.$matrix!, worldMatricesBuffer, i);
   }
-
-  const soulModelToRender = isCollider ? soulCollisionModel : soulModel;
-
   gl.uniformMatrix4fv(worldMatrixLoc, false, worldMatricesBuffer);
   gl.drawElementsInstanced(
     gl.TRIANGLES,

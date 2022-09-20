@@ -81,7 +81,7 @@ export const cylinder = /* @__PURE__ */ (
     : polygon_regular(segments as number, elongate);
   const top = polygon_transform(points, identity.translate(0, 1).scale3d(topSize > 0 ? topSize : 1));
   const bottom = polygon_transform(points, identity.translate(0, -1).scale3d(topSize < 0 ? -topSize : 1)).reverse();
-  return [...cylinder_sides(bottom as Polygon, top, smooth), bottom, top];
+  return [...cylinder_sides(bottom as Polygon, top, smooth), top, bottom];
 };
 
 export const sphere = /* @__PURE__ */ (

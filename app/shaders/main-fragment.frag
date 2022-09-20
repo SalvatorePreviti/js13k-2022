@@ -52,8 +52,8 @@ void main() {
   if (csmCoords.z < 1.) { // Only if inside far plane
     shadow = 0.;
 
-    // TODO: Shadow bias could be computed based on normal and light, something like 0.0003 * (1. -
-    // clamp(dot(normal, lightDir), 0., 1.))
+    // Shadow bias could be computed based on normal and light, something like
+    // 0.0003 * (1. - clamp(dot(normal, lightDir), 0., 1.))
 
     for (float x = -1.; x <= 1.; ++x) {
       for (float y = -1.; y <= 1.; ++y) {
