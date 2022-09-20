@@ -84,24 +84,28 @@ const plane_fromPolygon = polygon => {
 
 const float32Array16Temp0 = new Float32Array(16);
 
-const writeMatrixToArray = ($matrix, output = float32Array16Temp0, index2 = 0) => {
+const writeMatrixToArray = (
+  { m11, m12, m13, m14, m21, m22, m23, m24, m31, m32, m33, m34, m41, m42, m43, m44 },
+  output = float32Array16Temp0,
+  index2 = 0,
+) => {
   index2 *= 16;
-  output[index2++] = $matrix.m11;
-  output[index2++] = $matrix.m12;
-  output[index2++] = $matrix.m13;
-  output[index2++] = $matrix.m14;
-  output[index2++] = $matrix.m21;
-  output[index2++] = $matrix.m22;
-  output[index2++] = $matrix.m23;
-  output[index2++] = $matrix.m24;
-  output[index2++] = $matrix.m31;
-  output[index2++] = $matrix.m32;
-  output[index2++] = $matrix.m33;
-  output[index2++] = $matrix.m34;
-  output[index2++] = $matrix.m41;
-  output[index2++] = $matrix.m42;
-  output[index2++] = $matrix.m43;
-  output[index2] = $matrix.m44;
+  output[index2++] = m11;
+  output[index2++] = m12;
+  output[index2++] = m13;
+  output[index2++] = m14;
+  output[index2++] = m21;
+  output[index2++] = m22;
+  output[index2++] = m23;
+  output[index2++] = m24;
+  output[index2++] = m31;
+  output[index2++] = m32;
+  output[index2++] = m33;
+  output[index2++] = m34;
+  output[index2++] = m41;
+  output[index2++] = m42;
+  output[index2++] = m43;
+  output[index2] = m44;
   return output;
 };
 
@@ -2288,6 +2292,7 @@ const startMainLoop = groundTextureImage => {
     if (gameTimeDelta > 0) {
       NO_INLINE(updatePlayer)();
       worldStateUpdate();
+      1 === currentModelId && (levers[9].$value = -15 > player_position_final.x && 0 > player_position_final.z ? 1 : 0);
       (-25 > player_position_final.x || 109 > player_position_final.z ? -25 : -9) > player_position_final.y
         && player_respawn();
       keyboard_downKeys[5] = 0;
@@ -2329,20 +2334,20 @@ const startMainLoop = groundTextureImage => {
         ),
       );
       renderModels(collisionShader("c"), 0, 1);
-      1 === currentModelId && (levers[9].$value = -15 > player_position_final.x && 0 > player_position_final.z ? 1 : 0);
       gl["r9r"](0, 0, 128, 128, 6408, 5121, collision_buffer);
-      gl["cbf"](!0, !0, !0, !0);
     }
     csmShader();
+    gl["b6o"](36160, csm_framebuffer);
     gl["v5y"](0, 0, 2048, 2048);
-    csm_render[1](csmMatrix1);
     csm_render[0](csmMatrix0);
-    gl["b6o"](36160, null);
+    csm_render[1](csmMatrix1);
     mainShader();
+    gl["b6o"](36160, null);
     gl["v5y"](0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+    gl["cbf"](!0, !0, !0, !0);
     gl["c4s"](16640);
-    csm_render[1]();
     csm_render[0]();
+    csm_render[1]();
     gl["uae"](mainShader("a"), !1, mat_perspective(.3, 177));
     gl["uae"](mainShader("b"), !1, writeMatrixToArray(camera_view));
     gl["ubu"](mainShader("k"), camera_position.x, camera_position.y, camera_position.z);
@@ -2378,28 +2383,21 @@ const startMainLoop = groundTextureImage => {
     mainVertexShader,
     "#version 300 es\nprecision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform highp sampler2DShadow g,h;uniform highp sampler2D q;out vec4 O;void main(){vec4 c=vec4(m.xyz,1);vec3 e=normalize(o.xyz),s=l.w*(texture(q,n.yz*.035)*e.x+texture(q,n.xz*.035)*e.y+texture(q,n.xy*.035)*e.z).xyz;e=normalize(e+s*.5);float x=dot(e,vec3(-.656059,.666369,-.35431468)),t=1.,v=abs((b*c).z);vec4 r=(v<55.?i:j)*c;if(r=r/r.w*.5+.5,r.z<1.){t=0.;for(float e=-1.;e<=1.;++e)for(float a=-1.;a<=1.;++a){vec3 x=vec3(r.xy+vec2(e,a)/2048.,r.z-.00017439);t+=v<55.?texture(g,x):texture(h,x);}t/=9.;}vec3 a=l.xyz*(1.-s.x);O=vec4(vec3(.09,.05,.1)*a+a*(max(0.,x)*.5+a*x*x*vec3(.5,.45,.3))*(t*.7+.3)+a*max(dot(e,vec3(.09901475,-.99014753,-.09901475)),0.)*max(0.,2.-m.y)*vec3(.04285714,.00714286,0)+vec3(.6,.6,.5)*pow(max(0.,dot(normalize(m.xyz-k),reflect(vec3(-.656059,.666369,-.35431468),e))),35.)*t,1);}",
   );
-  skyShader();
-  gl["ubh"](skyShader("q"), 3);
-  collisionShader();
-  gl["uae"](collisionShader("a"), !1, mat_perspectiveXY(1.4, .59, 1e-4, 1));
-  mainShader();
-  gl["ubh"](mainShader("q"), 3);
+  const csm_framebuffer = gl["c5w"]();
   const collision_frameBuffer = gl["c5w"]();
   const collision_renderBuffer = gl["c3z"]();
   const collision_texture = gl["c25"]();
   const csm_render = integers_map(2, csmSplit => {
     const lightSpaceMatrix = new Float32Array(16);
     const texture = gl["c25"]();
-    const frameBuffer = gl["c5w"]();
     const lightSpaceMatrixLoc = mainShader(csmSplit ? "j" : "i");
-    mainShader();
-    gl["ubh"](mainShader(csmSplit ? "h" : "g"), csmSplit);
-    gl["b6o"](36160, frameBuffer);
+    gl["b6o"](36160, csm_framebuffer);
     gl["d45"]([0]);
     gl["r9l"](0);
+    mainShader();
+    gl["ubh"](mainShader(csmSplit ? "h" : "g"), csmSplit);
     gl["a4v"](33984 + csmSplit);
     gl["b9j"](3553, texture);
-    gl["fas"](36160, 36096, 3553, texture, 0);
     gl["t60"](3553, 0, 33190, 2048, 2048, 0, 6402, 5125, null);
     gl["t2z"](3553, 10241, 9729);
     gl["t2z"](3553, 10240, 9729);
@@ -2411,12 +2409,18 @@ const startMainLoop = groundTextureImage => {
       if (matrix) {
         writeMatrixToArray(matrix, lightSpaceMatrix);
         gl["uae"](csmShader("b"), !1, lightSpaceMatrix);
-        gl["b6o"](36160, frameBuffer);
+        gl["fas"](36160, 36096, 3553, texture, 0);
         gl["c4s"](256);
         renderModels(csmShader("c"), !player_first_person, 0);
       } else gl["uae"](lightSpaceMatrixLoc, !1, lightSpaceMatrix);
     };
   });
+  skyShader();
+  gl["ubh"](skyShader("q"), 3);
+  collisionShader();
+  gl["uae"](collisionShader("a"), !1, mat_perspectiveXY(1.4, .59, 1e-4, 1));
+  mainShader();
+  gl["ubh"](mainShader("q"), 3);
   gl["e8z"](2929);
   gl["e8z"](2884);
   gl["c70"](1);

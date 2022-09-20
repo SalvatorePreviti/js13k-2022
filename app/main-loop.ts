@@ -33,7 +33,7 @@ import {
   identity,
   mat_perspectiveXY,
   angle_lerp_degrees,
-  writeMatrixToArray,
+  matrixToArray,
 } from "./math";
 import { mat_perspective, zFar, zNear, camera_position, camera_rotation } from "./camera";
 import { csm_buildMatrix } from "./csm";
@@ -124,37 +124,26 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   const collisionShader = initShaderProgram(mainVertexShader, collider_fsSource);
   const mainShader = initShaderProgram(mainVertexShader, main_fsSource);
 
-  skyShader();
-  gl.uniform1i(skyShader(uniformName_groundTexture), 3); // TEXTURE3
-
-  collisionShader();
-  gl.uniformMatrix4fv(collisionShader(uniformName_projectionMatrix), false, mat_perspectiveXY(1.4, 0.59, 0.0001, 1));
-
-  mainShader();
-  gl.uniform1i(mainShader(uniformName_groundTexture), 3); // TEXTURE3
-
+  const csm_framebuffer = gl.createFramebuffer();
   const collision_frameBuffer = gl.createFramebuffer()!;
   const collision_renderBuffer = gl.createRenderbuffer();
   const collision_texture = gl.createTexture()!;
 
   const csm_render = integers_map(2, (csmSplit: number) => {
-    const lightSpaceMatrix: Float32Array = new Float32Array(16);
     const texture = gl.createTexture()!;
-    const frameBuffer = gl.createFramebuffer();
+    const lightSpaceMatrix: Float32Array = new Float32Array(16);
     const lightSpaceMatrixLoc = mainShader(csmSplit ? uniformName_csm_matrix1 : uniformName_csm_matrix0);
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, csm_framebuffer);
+    // Disable rendering to the csm color buffer, we just need the depth buffer
+    gl.drawBuffers([gl.NONE]);
+    gl.readBuffer(gl.NONE);
 
     mainShader();
     gl.uniform1i(mainShader(csmSplit ? uniformName_csm_texture1 : uniformName_csm_texture0), csmSplit);
 
-    gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
-
-    // Disable rendering to the color buffer, we just need the depth buffer
-    gl.drawBuffers([gl.NONE]);
-    gl.readBuffer(gl.NONE);
-
     gl.activeTexture(gl.TEXTURE0 + csmSplit);
     gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, texture, 0);
     gl.texImage2D(
       gl.TEXTURE_2D,
       0,
@@ -175,17 +164,25 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
     return (matrix?: DOMMatrix) => {
       if (matrix) {
-        writeMatrixToArray(matrix, lightSpaceMatrix);
+        matrixToArray(matrix, lightSpaceMatrix);
         gl.uniformMatrix4fv(csmShader(uniformName_viewMatrix), false, lightSpaceMatrix);
-        gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, texture, 0);
         gl.clear(gl.DEPTH_BUFFER_BIT);
         renderModels(csmShader(uniformName_worldMatrices), !player_first_person, 0);
-        // gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       } else {
         gl.uniformMatrix4fv(lightSpaceMatrixLoc, false, lightSpaceMatrix);
       }
     };
   });
+
+  skyShader();
+  gl.uniform1i(skyShader(uniformName_groundTexture), 3); // TEXTURE3
+
+  collisionShader();
+  gl.uniformMatrix4fv(collisionShader(uniformName_projectionMatrix), false, mat_perspectiveXY(1.4, 0.59, 0.0001, 1));
+
+  mainShader();
+  gl.uniform1i(mainShader(uniformName_groundTexture), 3); // TEXTURE3
 
   gl.enable(gl.DEPTH_TEST); // Enable depth testing
   gl.enable(gl.CULL_FACE); // Don't render triangle backs
@@ -552,6 +549,11 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
       worldStateUpdate();
 
+      // Special handling for the second boat (lever 7) - the boat must be on the side of the map the player is
+      if (currentModelId === 1) {
+        levers[9]!.$value = player_position_final.x < -15 && player_position_final.z < 0 ? 1 : 0;
+      }
+
       if (player_position_final.y < (player_position_final.x < -25 || player_position_final.z < 109 ? -25 : -9)) {
         // Player fell in lava
         player_respawn();
@@ -577,6 +579,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       // *** COLLISION RENDERER ***
 
       collisionShader();
+
       gl.bindFramebuffer(gl.FRAMEBUFFER, collision_frameBuffer);
       gl.viewport(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
 
@@ -587,7 +590,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       gl.uniformMatrix4fv(
         collisionShader(uniformName_viewMatrix),
         false,
-        writeMatrixToArray(
+        matrixToArray(
           identity
             .rotate(0, 180)
             .invertSelf()
@@ -603,20 +606,16 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       gl.uniformMatrix4fv(
         collisionShader(uniformName_viewMatrix),
         false,
-        writeMatrixToArray(
+        matrixToArray(
           identity.translate(-player_position_final.x, -player_position_final.y, -player_position_final.z - 0.3),
         ),
       );
       renderModels(collisionShader(uniformName_worldMatrices), 0, 1);
 
-      // Special handling for the second boat (lever 7) - the boat must be on the side of the map the player is
-      if (currentModelId === 1) {
-        levers[9]!.$value = player_position_final.x < -15 && player_position_final.z < 0 ? 1 : 0;
-      }
+      // read collision shader output
 
       gl.readPixels(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE, gl.RGBA, gl.UNSIGNED_BYTE, collision_buffer);
 
-      gl.colorMask(true, true, true, true);
       // gl.invalidateFramebuffer(gl.DRAW_FRAMEBUFFER, [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT]);
       // gl.invalidateFramebuffer(gl.READ_FRAMEBUFFER, [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT]);
       // gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -626,25 +625,26 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
     csmShader();
 
+    gl.bindFramebuffer(gl.FRAMEBUFFER, csm_framebuffer);
     gl.viewport(0, 0, CSM_TEXTURE_SIZE, CSM_TEXTURE_SIZE);
 
-    csm_render[1]!(csmMatrix1);
     csm_render[0]!(csmMatrix0);
-
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    csm_render[1]!(csmMatrix1);
 
     // *** MAIN RENDER ***
 
     mainShader();
 
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+    gl.colorMask(true, true, true, true);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    csm_render[1]!();
     csm_render[0]!();
+    csm_render[1]!();
 
     gl.uniformMatrix4fv(mainShader(uniformName_projectionMatrix), false, mat_perspective(zNear, zFar));
-    gl.uniformMatrix4fv(mainShader(uniformName_viewMatrix), false, writeMatrixToArray(camera_view));
+    gl.uniformMatrix4fv(mainShader(uniformName_viewMatrix), false, matrixToArray(camera_view));
     gl.uniform3f(mainShader(uniformName_viewPos), camera_position.x, camera_position.y, camera_position.z);
 
     renderModels(mainShader(uniformName_worldMatrices), !player_first_person, 0);
@@ -659,7 +659,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     } else {
       gl.uniform3f(skyShader(uniformName_viewPos), camera_position.x, camera_position.y, camera_position.z);
     }
-    gl.uniformMatrix4fv(skyShader(uniformName_viewMatrix), false, writeMatrixToArray(camera_view.inverse()));
+    gl.uniformMatrix4fv(skyShader(uniformName_viewMatrix), false, matrixToArray(camera_view.inverse()));
 
     gl.drawElements(gl.TRIANGLES, 3, gl.UNSIGNED_SHORT, 0);
   };

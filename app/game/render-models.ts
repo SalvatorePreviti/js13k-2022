@@ -1,5 +1,5 @@
 import { allModels } from "./scene";
-import { identity, writeMatrixToArray } from "../math";
+import { identity, matrixToArray } from "../math";
 import { mainMenuVisible } from "../page";
 import { absoluteTime, levers, souls } from "./world-state";
 import { leverModel, playerModels, soulCollisionModel, soulModel } from "./level";
@@ -16,7 +16,7 @@ export const renderModels = (
   if (mainMenuVisible) {
     const matrix = identity.rotate(0, Math.sin(absoluteTime) * 40 - 70);
     for (const { $modelId } of playerModels) {
-      writeMatrixToArray(matrix, worldMatricesBuffer, $modelId - 1);
+      matrixToArray(matrix, worldMatricesBuffer, $modelId - 1);
     }
     gl.uniformMatrix4fv(worldMatrixLoc, false, worldMatricesBuffer);
     gl.drawElements(
@@ -33,7 +33,7 @@ export const renderModels = (
   for (let i = 0; i < allModels.length; ++i) {
     const { $kind, $modelId, $matrix } = allModels[i]!;
     if ($kind) {
-      writeMatrixToArray($matrix, worldMatricesBuffer, $modelId - 1);
+      matrixToArray($matrix, worldMatricesBuffer, $modelId - 1);
     }
   }
   gl.uniformMatrix4fv(worldMatrixLoc, false, worldMatricesBuffer);
@@ -48,7 +48,7 @@ export const renderModels = (
 
   for (let i = 0; i < levers.length; ++i) {
     const { $matrix, $lerpValue } = levers[i]!;
-    writeMatrixToArray($matrix!, worldMatricesBuffer, i);
+    matrixToArray($matrix!, worldMatricesBuffer, i);
     worldMatricesBuffer[i * 16 + 15] = 1 - $lerpValue;
   }
   gl.uniformMatrix4fv(worldMatrixLoc, false, worldMatricesBuffer);
@@ -63,7 +63,7 @@ export const renderModels = (
   // Render levers
 
   for (let i = 0; i < 13; ++i) {
-    writeMatrixToArray(souls[i]!.$matrix!, worldMatricesBuffer, i);
+    matrixToArray(souls[i]!.$matrix!, worldMatricesBuffer, i);
   }
   gl.uniformMatrix4fv(worldMatrixLoc, false, worldMatricesBuffer);
   gl.drawElementsInstanced(
