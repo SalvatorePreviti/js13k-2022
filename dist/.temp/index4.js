@@ -1,4 +1,4 @@
-let et = !0,
+let at = !0,
   D = 0,
   H = 0,
   lt = 0,
@@ -15,105 +15,105 @@ let et = !0,
   B = .066,
   w = Math.PI / 180,
   O = new DOMMatrix(),
-  R = (t, a) => a < t ? t : a,
+  R = (t, e) => e < t ? t : e,
   nt = t => t < 0 ? -t : t,
   L = t => t < 0 ? 0 : 1 < t ? 1 : t,
-  f = (t, a) => (t = t < 0 ? 0 : 1 < t ? 1 : t) + (1 - t - t) * (a < 0 ? 0 : 1 < a ? 1 : a),
+  f = (t, e) => (t = t < 0 ? 0 : 1 < t ? 1 : t) + (1 - t - t) * (e < 0 ? 0 : 1 < e ? 1 : e),
   ot = t => Math.atan2(Math.sin(t *= w), Math.cos(t)) / w,
-  ct = (t, a, e) =>
-    ((t *= w) + (2 * (a = (a * w - t) % (2 * Math.PI)) % (2 * Math.PI) - a) * (e < 0 ? 0 : 1 < e ? 1 : e)) / w,
-  it = (t, a, e, l) => {
-    let r = a - t;
-    return (t += Math.sign(a - t) * R(0, (r < 0 ? -r : r) ** .9 - e) * l * 2) + (a - t) * L(l / 7);
+  ct = (t, e, a) =>
+    ((t *= w) + (2 * (e = (e * w - t) % (2 * Math.PI)) % (2 * Math.PI) - e) * (a < 0 ? 0 : 1 < a ? 1 : a)) / w,
+  it = (t, e, a, l) => {
+    let r = e - t;
+    return (t += Math.sign(e - t) * R(0, (r < 0 ? -r : r) ** .9 - a) * l * 2) + (e - t) * L(l / 7);
   },
-  X = (t, e) => Array.from(Array(t), (t, a) => e(a)),
-  ht = (t, a, e, l) => [t, 0, 0, 0, 0, a, 0, 0, 0, 0, (l + e) / (e - l), -1, 0, 0, 2 * l * e / (e - l), 0],
-  i = ({ x: t, y: a, z: e }, l) => t * l.x + a * l.y + e * l.z,
-  j = ({ x: t, y: a, z: e }) => Math.hypot(t - _.x, a - _.y, e - _.z) || 0,
+  X = (t, a) => Array.from(Array(t), (t, e) => a(e)),
+  ht = (t, e, a, l) => [t, 0, 0, 0, 0, e, 0, 0, 0, 0, (l + a) / (a - l), -1, 0, 0, 2 * l * a / (a - l), 0],
+  i = ({ x: t, y: e, z: a }, l) => t * l.x + e * l.y + a * l.z,
+  j = ({ x: t, y: e, z: a }) => Math.hypot(t - _.x, e - _.y, a - _.z) || 0,
   ft = t => {
-    let a = 0, e = 0, l = 0, r, s = t.at(-1);
-    for (r of t) a += (s.y - r.y) * (s.z + r.z), e += (s.z - r.z) * (s.x + r.x), l += (s.x - r.x) * (s.y + r.y), s = r;
-    return r = Math.hypot(a, e, l), a /= r, e /= r, l /= r, { x: a, y: e, z: l, w: a * s.x + e * s.y + l * s.z };
+    let e = 0, a = 0, l = 0, r, s = t.at(-1);
+    for (r of t) e += (s.y - r.y) * (s.z + r.z), a += (s.z - r.z) * (s.x + r.x), l += (s.x - r.x) * (s.y + r.y), s = r;
+    return r = Math.hypot(e, a, l), e /= r, a /= r, l /= r, { x: e, y: a, z: l, w: e * s.x + a * s.y + l * s.z };
   },
   l = new Float32Array(16),
   q = (
     t,
-    a = l,
-    e = 0,
-  ) => (e *= 16,
-    a[e++] = t.m11,
-    a[e++] = t.m12,
-    a[e++] = t.m13,
-    a[e++] = t.m14,
-    a[e++] = t.m21,
-    a[e++] = t.m22,
-    a[e++] = t.m23,
-    a[e++] = t.m24,
-    a[e++] = t.m31,
-    a[e++] = t.m32,
-    a[e++] = t.m33,
-    a[e++] = t.m34,
-    a[e++] = t.m41,
-    a[e++] = t.m42,
-    a[e++] = t.m43,
-    a[e] = t.m44,
-    a),
+    e = l,
+    a = 0,
+  ) => (a *= 16,
+    e[a++] = t.m11,
+    e[a++] = t.m12,
+    e[a++] = t.m13,
+    e[a++] = t.m14,
+    e[a++] = t.m21,
+    e[a++] = t.m22,
+    e[a++] = t.m23,
+    e[a++] = t.m24,
+    e[a++] = t.m31,
+    e[a++] = t.m32,
+    e[a++] = t.m33,
+    e[a++] = t.m34,
+    e[a++] = t.m41,
+    e[a++] = t.m42,
+    e[a++] = t.m43,
+    e[a] = t.m44,
+    e),
   W = -11,
   N = 17,
   E = -90,
   U = 0,
   K = 0,
-  h = (t, a, e) => (t.D = e, t.A = a, t),
-  C = (t, l, a = t.A) =>
+  h = (t, e, a) => (t.D = a, t.A = e, t),
+  C = (t, l, e = t.A) =>
     h(
       t.map(t => {
-        let a, e;
-        return { x: t, y: a, z: e } = t,
-          { x: t, y: a, z: e } = l.transformPoint({ x: t, y: a, z: e }),
-          { x: t, y: a, z: e };
+        let e, a;
+        return { x: t, y: e, z: a } = t,
+          { x: t, y: e, z: a } = l.transformPoint({ x: t, y: e, z: a }),
+          { x: t, y: e, z: a };
       }),
-      a,
+      e,
       t.D,
     ),
-  m = (t, a, e) => t.map(t => C(t, a, e)),
-  mt = (e, l = 0) =>
-    X(e, t => {
-      let a = Math.cos(2 * Math.PI * t / e);
-      return { x: Math.sin(2 * Math.PI * t / e), y: 0, z: (a < 0 ? -a : a) < .01 ? a : a < 0 ? a - l : a + l };
+  m = (t, e, a) => t.map(t => C(t, e, a)),
+  mt = (a, l = 0) =>
+    X(a, t => {
+      let e = Math.cos(2 * Math.PI * t / a);
+      return { x: Math.sin(2 * Math.PI * t / a), y: 0, z: (e < 0 ? -e : e) < .01 ? e : e < 0 ? e - l : e + l };
     }),
-  s = (l, r, s) => l.map((t, a, { length: e }) => h([t, r[e - a - 1], r[e - (a + 1) % e - 1], l[(a + 1) % e]], l.A, s)),
+  s = (l, r, s) => l.map((t, e, { length: a }) => h([t, r[a - e - 1], r[a - (e + 1) % a - 1], l[(e + 1) % a]], l.A, s)),
   u = (
     t,
-    a,
-    e = 0,
+    e,
+    a = 0,
     l,
   ) => (l = t.length ? t : mt(t, l),
-    t = C(l, O.translate(0, 1).scale3d(0 < e ? e : 1)),
-    e = C(l, O.translate(0, -1).scale3d(e < 0 ? -e : 1)).reverse(),
-    [...s(e, t, a), e, t]),
+    t = C(l, O.translate(0, 1).scale3d(0 < a ? a : 1)),
+    a = C(l, O.translate(0, -1).scale3d(a < 0 ? -a : 1)).reverse(),
+    [...s(a, t, e), a, t]),
   ut = (
     l,
     r = l,
     s = (
       t,
-      a,
-    ) => (a *= Math.PI / r,
-      { x: Math.cos(t *= 2 * Math.PI / l) * Math.sin(a), y: Math.cos(a), z: Math.sin(t) * Math.sin(a) }),
+      e,
+    ) => (e *= Math.PI / r,
+      { x: Math.cos(t *= 2 * Math.PI / l) * Math.sin(e), y: Math.cos(e), z: Math.sin(t) * Math.sin(e) }),
   ) => {
     let n = [];
-    for (let e = 0; l > e; e++) {
-      for (let a = 0; r > a; a++) {
+    for (let a = 0; l > a; a++) {
+      for (let e = 0; r > e; e++) {
         let t = h([], 0, 1);
         n.push(t),
-          t.push(s(e, a, t)),
-          a && t.push(s((e + 1) % l, a, t)),
-          r - 1 > a && t.push(s((e + 1) % l, a + 1 % r, t)),
-          t.push(s(e, a + 1 % r, t));
+          t.push(s(a, e, t)),
+          e && t.push(s((a + 1) % l, e, t)),
+          r - 1 > e && t.push(s((a + 1) % l, e + 1 % r, t)),
+          t.push(s(a, e + 1 % r, t));
       }
     }
     return n;
   },
-  xt = (t, a, e, l) => {
+  xt = (t, e, a, l) => {
     let r = 0,
       s = 0,
       n = 0,
@@ -123,8 +123,8 @@ let et = !0,
       h = -1 / 0,
       f = 1 / 0,
       m = -1 / 0,
-      u = 1.1 * (e - a),
-      x = new DOMMatrix(ht(hC.clientHeight / hC.clientWidth * 1.732051, 1.732051, a, e)).multiplySelf(t).invertSelf();
+      u = 1.1 * (a - e),
+      x = new DOMMatrix(ht(hC.clientHeight / hC.clientWidth * 1.732051, 1.732051, e, a)).multiplySelf(t).invertSelf();
     return t = X(
       8,
       t => (t = x.transformPoint({ x: 4 & t ? 1 : -1, y: 2 & t ? 1 : -1, z: 1 & t ? 1 : -1 }),
@@ -133,35 +133,35 @@ let et = !0,
         n -= t.z = (u * t.z | 0) / u / t.w,
         t),
     ),
-      a = O.rotate(298, 139).translateSelf(r / 8, s / 8, n / 8),
-      C(t, a).map(({ x: t, y: a, z: e }) => {
+      e = O.rotate(298, 139).translateSelf(r / 8, s / 8, n / 8),
+      C(t, e).map(({ x: t, y: e, z: a }) => {
         o = t > o ? o : t,
           c = c > t ? c : t,
-          i = a > i ? i : a,
-          h = h > a ? h : a,
-          f = e > f ? f : e,
-          m = m > e ? m : e;
+          i = e > i ? i : e,
+          h = h > e ? h : e,
+          f = a > f ? f : a,
+          m = m > a ? m : a;
       }),
       f *= f < 0 ? l : 1 / l,
       m *= 0 < m ? l : 1 / l,
       O.scale(2 / (c - o), 2 / (h - i), 2 / (f - m)).translateSelf((c + o) / -2, (h + i) / -2, (f + m) / 2)
-        .multiplySelf(a);
+        .multiplySelf(e);
   },
   yt = [],
-  g = (t, a = O, e) => Yt.s.push(...m(t, a, e)),
-  M = (t, a = 1) => {
-    let e = Yt;
-    return yt.push(Yt = a = { l: O, F: yt.length, H: a, s: [] }), t(a), Yt = e, a;
+  g = (t, e = O, a) => Yt.s.push(...m(t, e, a)),
+  M = (t, e = 1) => {
+    let a = Yt;
+    return yt.push(Yt = e = { l: O, F: yt.length, H: e, s: [] }), t(e), Yt = a, e;
   },
-  gt = (t, a = 35633) => (a = at.c6x(a), at.s3c(a, t), at.c6a(a), a),
-  Mt = (t, a) => {
-    let e = {}, l = at.c1h();
-    return at.abz(l, t), at.abz(l, gt(a, 35632)), at.l8l(l), t => t ? e[t] || (e[t] = at.gan(l, t)) : at.u7y(l);
+  gt = (t, e = 35633) => (e = et.c6x(e), et.s3c(e, t), et.c6a(e), e),
+  Mt = (t, e) => {
+    let a = {}, l = et.c1h();
+    return et.abz(l, t), et.abz(l, gt(e, 35632)), et.l8l(l), t => t ? a[t] || (a[t] = et.gan(l, t)) : et.u7y(l);
   },
   zt = t => Math.sin(t * Math.PI * 2),
   G = [],
   vt = () => {
-    Z || !et ? Ht.disconnect() : Ht.connect(Dt.destination), b4.innerHTML = "Music: " + et;
+    Z || !at ? Ht.disconnect() : Ht.connect(Dt.destination), b4.innerHTML = "Music: " + at;
   },
   pt = (t = !1) => {
     if (Z !== t) {
@@ -172,17 +172,17 @@ let et = !0,
       document.body.className = t ? "l m" : "l", vt();
     }
   },
-  V = (t, a, e) => t + (a - t) * L(1 - Math.exp(-e * B)),
+  V = (t, e, a) => t + (e - t) * L(1 - Math.exp(-a * B)),
   t = ({ j: t }) => t,
   J = [],
   dt = [],
   bt = () => {
-    let t = f(J[12].g, J[13].g), a = (Q > x && (h4.innerHTML = "", x = 0), V(z, 0, 1));
-    z = a + (ot(z + 60 * B) - a) * L(J[5].g - J[6].i),
-      a = V(Y, 0, 5),
-      Y = a + (ot(Y + 56 * B) - a) * (t < 0 ? 0 : 1 < t ? 1 : t),
-      a = V(T, 0, 4),
-      T = a + (ot(T + 48 * B) - a) * (t < 0 ? 0 : 1 < t ? 1 : t),
+    let t = f(J[12].g, J[13].g), e = (Q > x && (h4.innerHTML = "", x = 0), V(z, 0, 1));
+    z = e + (ot(z + 60 * B) - e) * L(J[5].g - J[6].i),
+      e = V(Y, 0, 5),
+      Y = e + (ot(Y + 56 * B) - e) * (t < 0 ? 0 : 1 < t ? 1 : t),
+      e = V(T, 0, 4),
+      T = e + (ot(T + 48 * B) - e) * (t < 0 ? 0 : 1 < t ? 1 : t),
       t = 2 * J[9].i - 1,
       st = V(st, J[9].i, .2 + .3 * (t < 0 ? -t : t)),
       rt = V(rt, k ? rt + (-9 - rt) * L(1.5 * B) : L(Q / 3), 1),
@@ -194,7 +194,7 @@ let et = !0,
     for (let t of dt) t.h();
   },
   wt = () => {
-    S = dt.reduce((t, a) => t + a.j, 0),
+    S = dt.reduce((t, e) => t + e.j, 0),
       h3.innerHTML = " " + ["0", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII"][S];
   },
   F = () => {
@@ -205,18 +205,18 @@ let et = !0,
     for (let t = 0; c.length > t; ++t) {
       if ((o = i(l, c[t]) - l.w) < -8e-5 ? n = r : 8e-5 < o && (s = r), n && s) {
         n = [], o = [], c = r.C, t = r.B;
-        let a = c.at(-1), e = i(l, a) - l.w;
+        let e = c.at(-1), a = i(l, e) - l.w;
         for (let t of c) {
           s = i(l, t) - l.w,
-            e < 8e-5 && o.push(a),
-            -8e-5 < e && n.push(a),
-            (8e-5 < e && s < -8e-5 || e < -8e-5 && 8e-5 < s)
-            && (e /= s - e,
-              a = { x: a.x + (a.x - t.x) * e, y: a.y + (a.y - t.y) * e, z: a.z + (a.z - t.z) * e },
-              n.push(a),
-              o.push(a)),
-            a = t,
-            e = s;
+            a < 8e-5 && o.push(e),
+            -8e-5 < a && n.push(e),
+            (8e-5 < a && s < -8e-5 || a < -8e-5 && 8e-5 < s)
+            && (a /= s - a,
+              e = { x: e.x + (e.x - t.x) * a, y: e.y + (e.y - t.y) * a, z: e.z + (e.z - t.z) * a },
+              n.push(e),
+              o.push(e)),
+            e = t,
+            a = s;
         }
         return {
           o: 2 < n.length && { C: h(n, c.A, c.D), B: t, u: r },
@@ -226,56 +226,56 @@ let et = !0,
     }
     return { o: s, m: n };
   },
-  n = (e, l, r = ft(l.C)) => {
-    if (e) {
-      let { o: t, m: a } = c(e, l);
-      t || a || e.s.push(l), t && (e.o = n(e.o, t, r)), a && (e.m = n(e.m, a, r));
-    } else e = { x: r.x, y: r.y, z: r.z, w: r.w, s: [l], o: 0, m: 0 };
-    return e;
+  n = (a, l, r = ft(l.C)) => {
+    if (a) {
+      let { o: t, m: e } = c(a, l);
+      t || e || a.s.push(l), t && (a.o = n(a.o, t, r)), e && (a.m = n(a.m, e, r));
+    } else a = { x: r.x, y: r.y, z: r.z, w: r.w, s: [l], o: 0, m: 0 };
+    return a;
   },
-  e = (a, r, s) => {
+  a = (e, r, s) => {
     let n = [],
-      o = (t, a) => {
-        let { o: e, m: l } = c(t, a);
-        e || l || (0 < s * i(t, r) ? e = a : l = a), e && (t.o ? o(t.o, e) : n.push(e)), l && t.m && o(t.m, l);
+      o = (t, e) => {
+        let { o: a, m: l } = c(t, e);
+        a || l || (0 < s * i(t, r) ? a = e : l = e), a && (t.o ? o(t.o, a) : n.push(a)), l && t.m && o(t.m, l);
       };
-    for (let t of r.s) o(a, t);
+    for (let t of r.s) o(e, t);
     return n;
   },
-  o = (t, a) => t && (a(t), o(t.o, a), o(t.m, a)),
-  It = t => t.length ? t.reduce((t, a) => n(t, { C: a, B: 0, u: 0 }), 0) : t,
-  At = t => (o(t, a => {
-    let t = a.m;
-    a.m = a.o, a.o = t, a.x *= -1, a.y *= -1, a.z *= -1, a.w *= -1;
-    for (let t of a.s) t.B = !t.B;
+  o = (t, e) => t && (e(t), o(t.o, e), o(t.m, e)),
+  It = t => t.length ? t.reduce((t, e) => n(t, { C: e, B: 0, u: 0 }), 0) : t,
+  At = t => (o(t, e => {
+    let t = e.m;
+    e.m = e.o, e.o = t, e.x *= -1, e.y *= -1, e.z *= -1, e.w *= -1;
+    for (let t of e.s) t.B = !t.B;
   }),
     t),
   v = (...t) =>
-    t.reduce((l, a) => {
+    t.reduce((l, e) => {
       let r = [];
-      if (l = It(l), a) {
-        a = It(a), o(l, t => t.s = e(a, t, 1)), o(a, t => r.push([t, e(l, t, -1)]));
-        for (let [a, e] of r) for (let t of e) n(l, t, a);
+      if (l = It(l), e) {
+        e = It(e), o(l, t => t.s = a(e, t, 1)), o(e, t => r.push([t, a(l, t, -1)]));
+        for (let [e, a] of r) for (let t of a) n(l, t, e);
       }
       return l;
     }),
-  p = (t, ...a) => At(v(At(It(t)), ...a)),
+  p = (t, ...e) => At(v(At(It(t)), ...e)),
   d = t => {
-    let e = new Map(),
+    let a = new Map(),
       l = new Map(),
-      r = a => {
-        if (a.u) {
-          let t = e.get(a.u);
-          t ? (l.delete(t), a = r(a.u)) : e.set(a.u, a);
+      r = e => {
+        if (e.u) {
+          let t = a.get(e.u);
+          t ? (l.delete(t), e = r(e.u)) : a.set(e.u, e);
         }
-        return a;
+        return e;
       };
-    return o(t, a => {
-      for (let t of a.s) l.set(r(t), t.B);
+    return o(t, e => {
+      for (let t of e.s) l.set(r(t), t.B);
     }),
-      Array.from(l, ([{ C: t }, a]) => {
-        let e = t.map(({ x: t, y: a, z: e }) => ({ x: t, y: a, z: e }));
-        return h(a ? e.reverse() : e, t.A, t.D);
+      Array.from(l, ([{ C: t }, e]) => {
+        let a = t.map(({ x: t, y: e, z: a }) => ({ x: t, y: e, z: a }));
+        return h(e ? a.reverse() : a, t.A, t.D);
       });
   },
   _ = { x: 0, y: 0, z: 0 },
@@ -289,12 +289,12 @@ let et = !0,
         i: 0,
         u: s,
         h() {
-          let t = o.j, a = o.g, e = o.i, l = s.l.multiply(r);
+          let t = o.j, e = o.g, a = o.i, l = s.l.multiply(r);
           o.I = l,
-            j(l.transformPoint()) < 2.9 && G[5] && (a < .3 || .7 < a)
+            j(l.transformPoint()) < 2.9 && G[5] && (e < .3 || .7 < e)
             && (o.j = t ? 0 : 1, n && !k && (h4.innerHTML = "* click *", x = Q + 1), y = n, F()),
-            o.g = V(a, t, 4),
-            o.i = V(e, t, 1),
+            o.g = V(e, t, 4),
+            o.i = V(a, t, 1),
             o.l = l.rotate(60 * o.g - 30, 0).translateSelf(0, 1);
         },
       };
@@ -316,32 +316,32 @@ let et = !0,
         j: 0,
         h() {
           if (!v.j) {
-            var a = 1;
-            let e = 1 / 0, l, t;
+            var e = 1;
+            let a = 1 / 0, l, t;
             for (l of p) {
               var r = l.w, s = Math.hypot(d - l.x, b - l.z), n = s - r;
-              t ||= s < r, 0 < n && e > n && (e = n, z = l), a = a < (r = s / r) ? a : r;
+              t ||= s < r, 0 < n && a > n && (a = n, z = l), e = e < (r = s / r) ? e : r;
             }
             if (!t) {
               r = z.w;
-              let t = Math.hypot(s = d - (e = z.x), n = b - (l = z.z)), a = Math.atan2(-n, s);
+              let t = Math.hypot(s = d - (a = z.x), n = b - (l = z.z)), e = Math.atan2(-n, s);
               M && (h = (Math.random() - .5) * Math.PI / 2, g = R(1, g / (1 + Math.random()))),
-                a += h,
-                c = -Math.cos(a),
-                i = Math.sin(a),
-                .1 < t && (t = (t < r ? t : r) / (t || 1), d = s * t + e, b = n * t + l);
+                e += h,
+                c = -Math.cos(e),
+                i = Math.sin(e),
+                .1 < t && (t = (t < r ? t : r) / (t || 1), d = s * t + a, b = n * t + l);
             }
             M = t,
-              g = V(g, 3 + 6 * (1 - a), 3 + a),
+              g = V(g, 3 + 6 * (1 - e), 3 + e),
               I = V(I, d = V(d, d + c, g), g),
               A = V(A, b = V(b, b + i, g), g),
               f = ct(f, Math.atan2(I - m, A - u) / w - 180, 3 * B),
               m = I,
               u = A,
-              a = (v.l = y.l.multiply(o.translate(I, 0, A).rotateSelf(0, f, 7 * Math.sin(1.7 * Q)))).transformPoint(),
-              j(a) < 1.5
+              e = (v.l = y.l.multiply(o.translate(I, 0, A).rotateSelf(0, f, 7 * Math.sin(1.7 * Q)))).transformPoint(),
+              j(e) < 1.5
               && (v.j = 1,
-                a = [
+                e = [
                   ,
                   "Mark Zuckemberg<br>made the world worse",
                   ,
@@ -357,21 +357,21 @@ let et = !0,
                   "Salvatore Previti<br>made this evil game<br><br>Done. Go back to the boat",
                 ][S] || "Catched a \"crypto bro\".<br>\"Web3\" is all scam, lies and grift",
                 t = S && S < 12 ? 5 : 7,
-                k || (h4.innerHTML = a, x = Q + t),
+                k || (h4.innerHTML = e, x = Q + t),
                 F());
           }
           v.j
-            && (a = e % 4 - 2,
+            && (e = a % 4 - 2,
               v.l = yt[2].l.translate(
-                e % 4 * 1.2 - 1.7 + Math.sin(Q + e) / 7,
+                a % 4 * 1.2 - 1.7 + Math.sin(Q + a) / 7,
                 -2,
-                1.7 * (e / 4 | 0) - 5.5 + (a < 0 ? -a : a) + Math.cos(Q / 1.5 + e) / 6,
+                1.7 * (a / 4 | 0) - 5.5 + (e < 0 ? -e : e) + Math.cos(Q / 1.5 + a) / 6,
               ));
         },
       },
       y = Yt,
-      e = dt.length,
-      p = t.map(([t, a, e]) => ({ x: t, z: a, w: e })),
+      a = dt.length,
+      p = t.map(([t, e, a]) => ({ x: t, z: e, w: a })),
       z = p[0],
       { x: d, z: b } = z,
       I = d,
@@ -379,25 +379,25 @@ let et = !0,
     dt.push(v);
   },
   r = new Float32Array(624),
-  Pt = (t, a, e) => {
+  Pt = (t, e, a) => {
     if (Z) {
-      for (var { F: l } of (e = O.rotate(0, 40 * Math.sin(lt) - 70), tt)) q(e, r, l - 1);
-      at.uae(t, !1, r), at.d97(4, tt[2].G - tt[0].v, 5123, 2 * tt[0].v);
+      for (var { F: l } of (a = O.rotate(0, 40 * Math.sin(lt) - 70), tt)) q(a, r, l - 1);
+      et.uae(t, !1, r), et.d97(4, tt[2].G - tt[0].v, 5123, 2 * tt[0].v);
     } else {
-      for (let { H: t, F: a, l: e } of yt) t && q(e, r, a - 1);
+      for (let { H: t, F: e, l: a } of yt) t && q(a, r, e - 1);
       for (
-        at.uae(t, !1, r), at.d97(4, (a ? tt[2].G : tt[0].v) - 3, 5123, 6), l = 0;
+        et.uae(t, !1, r), et.d97(4, (e ? tt[2].G : tt[0].v) - 3, 5123, 6), l = 0;
         J.length > l;
         ++l
       ) {
         q(J[l].l, r, l), r[16 * l + 15] = 1 - J[l].g;
       }
-      for (at.uae(t, !1, r), at.das(4, kt.G - kt.v, 5123, 2 * kt.v, J.length), l = 0; l < 13; ++l) q(dt[l].l, r, l);
-      e = e ? Ct : jt, at.uae(t, !1, r), at.das(4, e.G - e.v, 5123, 2 * e.v, 13);
+      for (et.uae(t, !1, r), et.das(4, kt.G - kt.v, 5123, 2 * kt.v, J.length), l = 0; l < 13; ++l) q(dt[l].l, r, l);
+      a = a ? Ct : jt, et.uae(t, !1, r), et.das(4, a.G - a.v, 5123, 2 * a.v, 13);
     }
   },
   St = new Int32Array(10725888),
-  P = (t, a, e, l = 0) => 255 * l << 24 | 255 * e << 16 | 255 * a << 8 | 255 * t,
+  P = (t, e, a, l = 0) => 255 * l << 24 | 255 * a << 16 | 255 * e << 8 | 255 * t,
   Yt,
   Z,
   $,
@@ -410,13 +410,13 @@ let et = !0,
     + btoa(
       "<svg color-interpolation-filters=\"sRGB\" height=\"1024\" width=\"1024\" xmlns=\"http://www.w3.org/2000/svg\"><filter filterUnits=\"userSpaceOnUse\" height=\"1026\" id=\"a\" width=\"1026\" x=\"0\" y=\"0\"><feTurbulence baseFrequency=\".007\" height=\"1025\" numOctaves=\"6\" stitchTiles=\"stitch\" width=\"1025\" result=\"z\" type=\"fractalNoise\" x=\"1\" y=\"1\"/><feTile height=\"1024\" width=\"1024\" x=\"-1\" y=\"-1\"/><feTile/><feDiffuseLighting diffuseConstant=\"4\" lighting-color=\"red\" surfaceScale=\"5\"><feDistantLight azimuth=\"270\" elevation=\"5\"/></feDiffuseLighting><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"x\"/><feColorMatrix values=\"0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 1\" in=\"z\"/><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"z\"/><feTurbulence baseFrequency=\".01\" height=\"1024\" numOctaves=\"5\" stitchTiles=\"stitch\" width=\"1024\"/><feColorMatrix values=\"0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1\"/><feBlend in2=\"x\" mode=\"screen\"/><feBlend in2=\"z\" mode=\"screen\"/></filter><rect filter=\"url(#a)\" height=\"100%\" width=\"100%\"/></svg>",
     ),
-  at = hC.getContext("webgl2");
-for (let t in at) at[t[0] + [...t].reduce((t, a, e) => (t * e + a.charCodeAt(0)) % 434, 0).toString(36)] = at[t];
+  et = hC.getContext("webgl2", { powerPreference: "high-performance" });
+for (let t in et) et[t[0] + [...t].reduce((t, e, a) => (t * a + e.charCodeAt(0)) % 434, 0).toString(36)] = et[t];
 let Dt = new AudioContext(), Ht = Dt.createBufferSource();
 setTimeout(() => {
-  let a = 0,
+  let e = 0,
     t = 6,
-    e = () => {
+    a = () => {
       if (h4.innerHTML += ".", !--t) {
         let i = 0,
           h = 0,
@@ -427,9 +427,9 @@ setTimeout(() => {
           M = !1,
           v = { x: 0, y: 0, z: 0 },
           p = new Int32Array(256),
-          e = () => {
-            let { u: t, I: a } = J[y], { x: e, y: l, z: r } = a.transformPoint({ x: 0, y: 8, z: -3 });
-            _.x = v.x = e,
+          a = () => {
+            let { u: t, I: e } = J[y], { x: a, y: l, z: r } = e.transformPoint({ x: 0, y: 8, z: -3 });
+            _.x = v.x = a,
               _.y = v.y = T = l,
               _.z = v.z = r,
               I =
@@ -443,64 +443,64 @@ setTimeout(() => {
           },
           l = t => {
             requestAnimationFrame(l);
-            let a = (t - (Tt || t)) / 1e3;
-            B = Z ? G[5] = 0 : .066 < a ? .066 : a,
+            let e = (t - (Tt || t)) / 1e3;
+            B = Z ? G[5] = 0 : .066 < e ? .066 : e,
               Q += B,
-              lt += a,
+              lt += e,
               Tt = t,
-              0 < B && (at.b6o(36160, j),
-                at.r9r(0, 0, 128, 128, 6408, 5121, d),
-                at.iay(36160, [36064]),
+              0 < B && (et.b6o(36160, j),
+                et.r9r(0, 0, 128, 128, 6408, 5121, d),
+                et.iay(36160, [36064]),
                 (() => {
-                  let a = 0,
-                    e = 0,
+                  let e = 0,
+                    a = 0,
                     t = ((() => {
-                      let s = 0, n = 0, a = 0, e = 0, o = 0;
+                      let s = 0, n = 0, e = 0, a = 0, o = 0;
                       p.fill(0);
                       for (let t = 0; t < 31; ++t) {
                         let l = 0, r = 512 * t;
-                        for (let e = 0; e < 128; e++) {
-                          let t = r + 4 * e, a = (d[t] + d[1 + t]) / 255;
+                        for (let a = 0; a < 128; a++) {
+                          let t = r + 4 * a, e = (d[t] + d[1 + t]) / 255;
                           t = d[2 + t],
-                            14 < e && e < 114 && (l += a),
-                            t && a && (a = p[t] + 1, p[t] = a, s > a || (s = a, n = t));
+                            14 < a && a < 114 && (l += e),
+                            t && e && (e = p[t] + 1, p[t] = e, s > e || (s = e, n = t));
                         }
-                        l < 3 && 5 < t && (e += t / 32), 3 < l && (7 < t && (a += t / 15), o = 1);
+                        l < 3 && 5 < t && (a += t / 32), 3 < l && (7 < t && (e += t / 15), o = 1);
                       }
                       n && (o = 1),
                         f ? n && (f = 0, h = n) : h = n || i,
                         i = n,
                         I = o,
                         A = V(A, o ? 6.5 : 8, 4),
-                        v.y += a / 41 - (o ? 1 : A) * e / 41 * A * B;
+                        v.y += e / 41 - (o ? 1 : A) * a / 41 * A * B;
                     })(),
                       (() => {
                         for (let t = 32; t < 128; t += 2) {
                           let n = 0, o = 0, c = 0, i = 0, h = 512 * t;
                           for (let s = t >> 1 & 1; s < 128; s += 2) {
                             let t = h + 4 * s,
-                              a = h + 4 * (127 - s),
-                              e = d[t] / 255,
-                              l = d[1 + a] / 255,
+                              e = h + 4 * (127 - s),
+                              a = d[t] / 255,
+                              l = d[1 + e] / 255,
                               r = s / 63.5 - 1;
                             r = 1 - (r < 0 ? -r : r),
                               10 < s && s < 118
-                              && (n = R(n, R(e * r, e * d[a] / 127.5)), o = R(o, R(l * r, l * d[1 + t] / 255))),
-                              (s < 54 || 74 < s) && .001 < (t = (1 - r) * (l < e ? e : l) / 3)
+                              && (n = R(n, R(a * r, a * d[e] / 127.5)), o = R(o, R(l * r, l * d[1 + t] / 255))),
+                              (s < 54 || 74 < s) && .001 < (t = (1 - r) * (l < a ? a : l) / 3)
                               && (s < 64 && t > c ? c = t : 64 < s && t > i && (i = t));
                           }
                           c = i - c,
                             n = o - n,
-                            (c < 0 ? -c : c) > (a < 0 ? -a : a) && (a = c),
-                            (n < 0 ? -n : n) > (e < 0 ? -e : e) && (e = n);
+                            (c < 0 ? -c : c) > (e < 0 ? -e : e) && (e = c),
+                            (n < 0 ? -n : n) > (a < 0 ? -a : a) && (a = n);
                         }
                       })(),
                       (G[0] ? 1 : 0) + (G[2] ? -1 : 0) + D),
                     l = (G[1] ? 1 : 0) + (G[3] ? -1 : 0) + H,
                     r = navigator.getGamepads()[0];
                   if (r) {
-                    var x = t => a[t]?.pressed || 0 < a[t]?.value;
-                    let a = r.buttons;
+                    var x = t => e[t]?.pressed || 0 < e[t]?.value;
+                    let e = r.buttons;
                     r = r.axes;
                     var y = x(1) || x(3) || x(2) || x(0);
                     y !== M && (M = y) && (G[5] = 1),
@@ -514,28 +514,28 @@ setTimeout(() => {
                     r = L(Math.hypot(l, t)),
                     t = r * Math.cos(x),
                     l = r * Math.sin(x);
-                  let s = L(1 - 5 * R(a < 0 ? -a : a, e < 0 ? -e : e)),
+                  let s = L(1 - 5 * R(e < 0 ? -e : e, a < 0 ? -a : a)),
                     z =
-                      (h || (a += S * s * B, e += Y * s * B),
+                      (h || (e += S * s * B, a += Y * s * B),
                         S = V(S, 0, I ? 8 : 4),
                         Y = V(Y, 0, I ? 8 : 4),
                         P = V(P, I ? (t || l ? I ? 7 : 4 : 0) * s : 0, I ? .1 < s ? 10 : t || l ? 5 : 7 : 1),
                         s = Math.sin(y = $ ? K * w : Math.PI) * P * B,
                         Math.cos(y) * P * B);
                   if (
-                    a -= t * z - l * s,
-                      e -= t * s + l * z,
+                    e -= t * z - l * s,
+                      a -= t * s + l * z,
                       (s = (y = 1 === yt[h].H && yt[h].l || O).inverse()).m41 = 0,
                       s.m42 = 0,
                       s.m43 = 0,
-                      { x: a, z: e } = s.transformPoint({ x: a, z: e, w: 0 }),
-                      v.x += a,
-                      v.z += e,
+                      { x: e, z: a } = s.transformPoint({ x: e, z: a, w: 0 }),
+                      v.x += e,
+                      v.z += a,
                       h !== b
                   ) {
                     b = h;
-                    let { x: t, y: a, z: e } = y.inverse().transformPoint(_);
-                    v.x = t, v.y = a, v.z = e;
+                    let { x: t, y: e, z: a } = y.inverse().transformPoint(_);
+                    v.x = t, v.y = e, v.z = a;
                   }
                   s = _.x, z = _.z;
                   let { x: n, y: o, z: c } = y.transformPoint(v);
@@ -560,48 +560,48 @@ setTimeout(() => {
                   : (W = it(W, r, 1, 2 * B),
                     N = it(N, z + 13 + 15 * f, 4, 2 * B),
                     1 < ((t = (E = it(E, s + -18, 1, 2 * B)) - s) < 0 ? -t : t)
-                    && (a = W - r, K = 270 + Math.atan2(t, a) / w, U = 90 - Math.atan2(Math.hypot(t, a), N - z) / w)),
+                    && (e = W - r, K = 270 + Math.atan2(t, e) / w, U = 90 - Math.atan2(Math.hypot(t, e), N - z) / w)),
                 K = ot(K),
                 bt(),
                 G[5] = 0,
-                (_.x < -25 || _.z < 109 ? -25 : -9) > _.y && e()),
+                (_.x < -25 || _.z < 109 ? -25 : -9) > _.y && a()),
               t = Z
                 ? O.rotate(-20, -90).invertSelf().translateSelf(4.5, -2, -3.2 + L(hC.clientWidth / 1e3))
                 : O.rotate(-U, -K, -0).invertSelf().translateSelf(-W, -N, -E),
               0 < B
               && (c(),
-                at.b6o(36160, j),
-                at.v5y(0, 0, 128, 128),
-                at.cbf(!0, !1, !0, !1),
-                at.c4s(16640),
-                at.uae(c("b"), !1, q(O.rotate(0, 180).invertSelf().translateSelf(-_.x, -_.y, .3 - _.z))),
+                et.b6o(36160, j),
+                et.v5y(0, 0, 128, 128),
+                et.cbf(!0, !1, !0, !1),
+                et.c4s(16640),
+                et.uae(c("b"), !1, q(O.rotate(0, 180).invertSelf().translateSelf(-_.x, -_.y, .3 - _.z))),
                 Pt(c("c"), 0, 1),
-                at.cbf(!1, !0, !1, !1),
-                at.c4s(16640),
-                at.cbf(!1, !0, !0, !1),
-                at.uae(c("b"), !1, q(O.translate(-_.x, -_.y, -_.z - .3))),
+                et.cbf(!1, !0, !1, !1),
+                et.c4s(16640),
+                et.cbf(!1, !0, !0, !1),
+                et.uae(c("b"), !1, q(O.translate(-_.x, -_.y, -_.z - .3))),
                 Pt(c("c"), 0, 1),
-                at.cbf(!0, !0, !0, !0),
+                et.cbf(!0, !0, !0, !0),
                 1 === h && (J[9].j = _.x < -15 && _.z < 0 ? 1 : 0)),
               n(),
-              at.v5y(0, 0, 2048, 2048),
+              et.v5y(0, 0, 2048, 2048),
               C[0](xt(t, .3, 55, 10)),
               C[1](xt(t, 55, 177, 11)),
-              at.b6o(36160, null),
+              et.b6o(36160, null),
               k(),
-              at.v5y(0, 0, at.drawingBufferWidth, at.drawingBufferHeight),
-              at.c4s(16640),
+              et.v5y(0, 0, et.drawingBufferWidth, et.drawingBufferHeight),
+              et.c4s(16640),
               C[0](),
               C[1](),
-              at.uae(k("a"), !1, ht(hC.clientHeight / hC.clientWidth * 1.732051, 1.732051, .3, 177)),
-              at.uae(k("b"), !1, q(t)),
-              at.ubu(k("k"), W, N, E),
+              et.uae(k("a"), !1, ht(hC.clientHeight / hC.clientWidth * 1.732051, 1.732051, .3, 177)),
+              et.uae(k("b"), !1, q(t)),
+              et.ubu(k("k"), W, N, E),
               Pt(k("c"), !$, 0),
               o(),
-              at.ubu(o("j"), at.drawingBufferWidth, at.drawingBufferHeight, lt),
-              Z ? at.ubu(o("k"), 0, 0, 0) : at.ubu(o("k"), W, N, E),
-              at.uae(o("b"), !1, q(t.inverse())),
-              at.d97(4, 3, 5123, 0);
+              et.ubu(o("j"), et.drawingBufferWidth, et.drawingBufferHeight, lt),
+              Z ? et.ubu(o("k"), 0, 0, 0) : et.ubu(o("k"), W, N, E),
+              et.uae(o("b"), !1, q(t.inverse())),
+              et.d97(4, 3, 5123, 0);
           },
           d = new Uint8Array(65536),
           b,
@@ -636,67 +636,67 @@ setTimeout(() => {
             "#version 300 es\nprecision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform highp sampler2DShadow g,h;uniform highp sampler2D q;out vec4 O;void main(){vec4 c=vec4(m.xyz,1);vec3 e=normalize(o.xyz),s=l.w*(texture(q,n.yz*.035)*e.x+texture(q,n.xz*.035)*e.y+texture(q,n.xy*.035)*e.z).xyz;e=normalize(e+s*.5);float x=dot(e,vec3(-.656059,.666369,-.35431468)),t=1.,v=abs((b*c).z);vec4 r=(v<55.?i:j)*c;if(r=r/r.w*.5+.5,r.z<1.){t=0.;for(float e=-1.;e<=1.;++e)for(float a=-1.;a<=1.;++a){vec3 x=vec3(r.xy+vec2(e,a)/2048.,r.z-.00017439);t+=v<55.?texture(g,x):texture(h,x);}t/=9.;}vec3 a=l.xyz*(1.-s.x);O=vec4(vec3(.09,.05,.1)*a+a*(max(0.,x)*.5+a*x*x*vec3(.5,.45,.3))*(t*.7+.3)+a*max(dot(e,vec3(.09901475,-.99014753,-.09901475)),0.)*max(0.,2.-m.y)*vec3(.04285714,.00714286,0)+vec3(.6,.6,.5)*pow(max(0.,dot(normalize(m.xyz-k),reflect(vec3(-.656059,.666369,-.35431468),e))),35.)*t,1);}",
           ),
           j =
-            (o(), at.ubh(o("q"), 3), c(), at.uae(c("a"), !1, ht(1.4, .59, 1e-4, 1)), k(), at.ubh(k("q"), 3), at.c5w()),
-          a = (t = at.c3z(), at.c25()),
+            (o(), et.ubh(o("q"), 3), c(), et.uae(c("a"), !1, ht(1.4, .59, 1e-4, 1)), k(), et.ubh(k("q"), 3), et.c5w()),
+          e = (t = et.c3z(), et.c25()),
           C = X(2, t => {
-            let a = new Float32Array(16), e = at.c25(), l = at.c5w(), r = k(t ? "j" : "i");
+            let e = new Float32Array(16), a = et.c25(), l = et.c5w(), r = k(t ? "j" : "i");
             return k(),
-              at.ubh(k(t ? "h" : "g"), t),
-              at.b6o(36160, l),
-              at.d45([0]),
-              at.r9l(0),
-              at.a4v(33984 + t),
-              at.b9j(3553, e),
-              at.fas(36160, 36096, 3553, e, 0),
-              at.t60(3553, 0, 33190, 2048, 2048, 0, 6402, 5125, null),
-              at.t2z(3553, 10241, 9729),
-              at.t2z(3553, 10240, 9729),
-              at.t2z(3553, 34893, 515),
-              at.t2z(3553, 34892, 34894),
-              at.t2z(3553, 10243, 33071),
-              at.t2z(3553, 10242, 33071),
+              et.ubh(k(t ? "h" : "g"), t),
+              et.b6o(36160, l),
+              et.d45([0]),
+              et.r9l(0),
+              et.a4v(33984 + t),
+              et.b9j(3553, a),
+              et.fas(36160, 36096, 3553, a, 0),
+              et.t60(3553, 0, 33190, 2048, 2048, 0, 6402, 5125, null),
+              et.t2z(3553, 10241, 9729),
+              et.t2z(3553, 10240, 9729),
+              et.t2z(3553, 34893, 515),
+              et.t2z(3553, 34892, 34894),
+              et.t2z(3553, 10243, 33071),
+              et.t2z(3553, 10242, 33071),
               t => {
                 t
-                  ? (q(t, a),
-                    at.b6o(36160, l),
-                    at.iay(36160, [36096]),
-                    at.c4s(256),
-                    at.uae(n("b"), !1, a),
+                  ? (q(t, e),
+                    et.b6o(36160, l),
+                    et.iay(36160, [36096]),
+                    et.c4s(256),
+                    et.uae(n("b"), !1, e),
                     Pt(n("c"), !$, 0))
-                  : at.uae(r, !1, a);
+                  : et.uae(r, !1, e);
               };
           });
-        at.e8z(2929),
-          at.e8z(2884),
-          at.c70(1),
-          at.c7a(1029),
-          at.d4n(515),
-          at.c5t(0, 0, 0, 1),
-          at.b6o(36160, j),
-          at.bb1(36161, t),
-          at.r4v(36161, 33189, 128, 128),
-          at.f8w(36160, 36096, 36161, t),
-          at.a4v(33987),
-          at.b9j(3553, a),
-          at.fas(36160, 36064, 3553, a, 0),
-          at.t60(3553, 0, 6407, 128, 128, 0, 6407, 5121, null),
-          at.b9j(3553, at.c25()),
-          at.t60(3553, 0, 6408, 1024, 1024, 0, 6408, 5121, F),
-          at.gbn(3553),
-          at.t2z(3553, 10241, 9987),
-          at.t2z(3553, 10240, 9729),
-          tt.map((t, a) => {
-            t.h = a
+        et.e8z(2929),
+          et.e8z(2884),
+          et.c70(1),
+          et.c7a(1029),
+          et.d4n(515),
+          et.c5t(0, 0, 0, 1),
+          et.b6o(36160, j),
+          et.bb1(36161, t),
+          et.r4v(36161, 33189, 128, 128),
+          et.f8w(36160, 36096, 36161, t),
+          et.a4v(33987),
+          et.b9j(3553, e),
+          et.fas(36160, 36064, 3553, e, 0),
+          et.t60(3553, 0, 6407, 128, 128, 0, 6407, 5121, null),
+          et.b9j(3553, et.c25()),
+          et.t60(3553, 0, 6408, 1024, 1024, 0, 6408, 5121, F),
+          et.gbn(3553),
+          et.t2z(3553, 10241, 9987),
+          et.t2z(3553, 10240, 9729),
+          tt.map((t, e) => {
+            t.h = e
               ? () =>
-                tt[0].l.translate(0, g * L(.45 * Math.sin(9.1 * Q + Math.PI * (a - 1) - Math.PI / 2))).rotateSelf(
-                  g * Math.sin(9.1 * Q + Math.PI * (a - 1)) * .25 / w,
+                tt[0].l.translate(0, g * L(.45 * Math.sin(9.1 * Q + Math.PI * (e - 1) - Math.PI / 2))).rotateSelf(
+                  g * Math.sin(9.1 * Q + Math.PI * (e - 1)) * .25 / w,
                   0,
                 )
               : () => O.translate(_.x, T, _.z).rotateSelf(0, u);
           });
         try {
-          let [e, l, t, a, r] = JSON.parse(localStorage.DanteSP22);
-          J.map((t, a) => t.g = t.i = t.j = a ? 0 | e[a] : 0), dt.map((t, a) => t.j = 0 | l[a]), y = t, Q = a, st = r;
+          let [a, l, t, e, r] = JSON.parse(localStorage.DanteSP22);
+          J.map((t, e) => t.g = t.i = t.j = e ? 0 | a[e] : 0), dt.map((t, e) => t.j = 0 | l[e]), y = t, Q = e, st = r;
         } catch (t) {}
         rt = y < 0 ? 0 : 1 < y ? 1 : y,
           h4.innerHTML = "",
@@ -704,7 +704,7 @@ setTimeout(() => {
           wt(),
           bt(),
           (() => {
-            let a = 0,
+            let e = 0,
               l = [],
               s = [],
               n = [],
@@ -712,10 +712,10 @@ setTimeout(() => {
               c = new Map(),
               i = new Int32Array(8),
               r = t => {
-                let { x: a, y: e, z: l } = h[t], r = (m[0] = a, m[1] = e, m[2] = l, c.get(t = "" + (h.D ? f : i)));
+                let { x: e, y: a, z: l } = h[t], r = (m[0] = e, m[1] = a, m[2] = l, c.get(t = "" + (h.D ? f : i)));
                 return void 0 !== r
-                  ? (a = 3 * r, o[a] = (o[a++] + i[5]) / 2, o[a] = (o[a++] + i[6]) / 2, o[a] = (o[a] + i[7]) / 2)
-                  : (c.set(t, r = c.size), s.push(a, e, l, m[3]), n.push(i[4]), o.push(i[5], i[6], i[7])),
+                  ? (e = 3 * r, o[e] = (o[e++] + i[5]) / 2, o[e] = (o[e++] + i[6]) / 2, o[e] = (o[e] + i[7]) / 2)
+                  : (c.set(t, r = c.size), s.push(e, a, l, m[3]), n.push(i[4]), o.push(i[5], i[6], i[7])),
                   r;
               },
               h,
@@ -723,32 +723,32 @@ setTimeout(() => {
               m = new Float32Array(i.buffer);
             for (let t of yt) {
               for (h of (m[3] = t.H ? t.F : 0, t.s)) {
-                let { x: t, y: a, z: e } = ft(h);
-                i[4] = 0 | h.A, i[5] = 32767 * t, i[6] = 32767 * a, i[7] = 32767 * e;
-                for (let t = 2, a = r(0), e = r(1); h.length > t; ++t) l.push(a, e, e = r(t));
+                let { x: t, y: e, z: a } = ft(h);
+                i[4] = 0 | h.A, i[5] = 32767 * t, i[6] = 32767 * e, i[7] = 32767 * a;
+                for (let t = 2, e = r(0), a = r(1); h.length > t; ++t) l.push(e, a, a = r(t));
               }
-              t.s = null, t.v = a, t.G = a = l.length;
+              t.s = null, t.v = e, t.G = e = l.length;
             }
-            at.b11(34963, at.c1b()),
-              at.b2v(34963, new Uint16Array(l), 35044),
-              at.b11(34962, at.c1b()),
-              at.b2v(34962, new Float32Array(s), 35044),
-              at.v7s(0, 4, 5126, !1, 0, 0),
-              at.b11(34962, at.c1b()),
-              at.b2v(34962, new Int16Array(o), 35044),
-              at.v7s(1, 3, 5122, !0, 0, 0),
-              at.b11(34962, at.c1b()),
-              at.b2v(34962, new Uint32Array(n), 35044),
-              at.v7s(2, 4, 5121, !0, 0, 0),
-              at.e3x(0),
-              at.e3x(1),
-              at.e3x(2);
+            et.b11(34963, et.c1b()),
+              et.b2v(34963, new Uint16Array(l), 35044),
+              et.b11(34962, et.c1b()),
+              et.b2v(34962, new Float32Array(s), 35044),
+              et.v7s(0, 4, 5126, !1, 0, 0),
+              et.b11(34962, et.c1b()),
+              et.b2v(34962, new Int16Array(o), 35044),
+              et.v7s(1, 3, 5122, !0, 0, 0),
+              et.b11(34962, et.c1b()),
+              et.b2v(34962, new Uint32Array(n), 35044),
+              et.v7s(2, 4, 5121, !0, 0, 0),
+              et.e3x(0),
+              et.e3x(1),
+              et.e3x(2);
           })(),
           (() => {
             let r = 0,
               s = 0,
               t = 0,
-              a = () => {
+              e = () => {
                 hC.width = innerWidth,
                   hC.height = innerHeight,
                   G.length = D = H = 0,
@@ -766,15 +766,15 @@ setTimeout(() => {
                 confirm("Restart game?") && (localStorage.DanteSP22 = "", location.reload());
               },
               b4.onclick = () => {
-                et = !et, vt();
+                at = !at, vt();
               },
               b5.onclick = () => pt(!0),
               onclick = () => {
                 c = 1, Z || (G[5] = !0, $ && hC.requestPointerLock());
               },
-              document.onvisibilitychange = onresize = onblur = a,
-              onkeydown = onkeyup = ({ code: t, target: a, type: e, repeat: l }) => {
-                l || ((a = !!e[5] && a === document.body) && ("Escape" === t || "Enter" === t && Z)
+              document.onvisibilitychange = onresize = onblur = e,
+              onkeydown = onkeyup = ({ code: t, target: e, type: a, repeat: l }) => {
+                l || ((e = !!a[5] && e === document.body) && ("Escape" === t || "Enter" === t && Z)
                   ? Z && !c || pt(!Z)
                   : 5
                       === (t = {
@@ -790,15 +790,15 @@ setTimeout(() => {
                         Space: 5,
                         Enter: 5,
                       }[t])
-                  ? a && (G[t] = 1)
-                  : G[t] = a);
+                  ? e && (G[t] = 1)
+                  : G[t] = e);
               },
-              onmousemove = ({ movementX: t, movementY: a }) => {
-                $ && (t || a) && (K += .1 * t, U += .1 * a);
+              onmousemove = ({ movementX: t, movementY: e }) => {
+                $ && (t || e) && (K += .1 * t, U += .1 * e);
               },
-              hC.ontouchstart = a => {
+              hC.ontouchstart = e => {
                 if (!Z) {
-                  for (let t of a.changedTouches) {
+                  for (let t of e.changedTouches) {
                     $ && t.pageX > hC.clientWidth / 2
                       ? n || (n = t, r = K, s = U)
                       : o = o || t;
@@ -809,29 +809,29 @@ setTimeout(() => {
               hC.ontouchmove = ({ changedTouches: l }) => {
                 if (!Z) {
                   for (
-                    let { pageX: t, pageY: a, identifier: e } of l
+                    let { pageX: t, pageY: e, identifier: a } of l
                   ) {
-                    n?.identifier === e && (K = r + (t - n.pageX) / 3, U = s + (a - n.pageY) / 3),
-                      o?.identifier === e
+                    n?.identifier === a && (K = r + (t - n.pageX) / 3, U = s + (e - n.pageY) / 3),
+                      o?.identifier === a
                       && (D = -(t - o.pageX) / 18,
-                        H = -(a - o.pageY) / 18,
+                        H = -(e - o.pageY) / 18,
                         D = (D < 0 ? -D : D) < .35 ? 0 : .8 * D,
                         H = (H < 0 ? -H : H) < .35 ? 0 : .8 * H);
                   }
                 }
               },
-              hC.ontouchend = a => {
-                for (let t of a.changedTouches) {
+              hC.ontouchend = e => {
+                for (let t of e.changedTouches) {
                   t.identifier === n?.identifier && (n = void 0),
                     t.identifier === o?.identifier && (o = void 0, H = D = 0);
                 }
-                a.preventDefault(), a = lt - t, (!t || .02 < a && a < .4) && (G[5] = !0);
+                e.preventDefault(), e = lt - t, (!t || .02 < e && e < .4) && (G[5] = !0);
               },
               oncontextmenu = () => !1,
-              a(),
+              e(),
               pt(!0);
           })(),
-          e(),
+          a(),
           W = r = _.x,
           N = (z = _.y) + 13,
           E = (s = _.z) + -18,
@@ -839,8 +839,8 @@ setTimeout(() => {
       }
     },
     l = () => {
-      if (a < 5) {
-        var H = 0, Q = a++;
+      if (e < 5) {
+        var H = 0, Q = e++;
         let [v, p, d, b, I, A, P, S, Y, x, y, , T, z, k, j, t, C, w, F, D] =
           [[69, 128, 0, 143, 128, 0, 0, 196, 100, 36, 0, 0, 149, 110, 31, 47, 3, 56, 2, 0, [
             "(.15:15:=5:=A:=AF=AFIFIMRMRUY(Y(((((((((((((((((((((((((((((M(M(((((((((((((((((((((((((((((R(R(((((((((((((((((((((((((((((U(U",
@@ -881,13 +881,13 @@ setTimeout(() => {
             g = w * M & -2;
           for (let l = 0; l <= 11; ++l) {
             for (
-              let t = 0, a = +"000001234556112341234556011111111112011111111112000001111112"[12 * Q + l];
+              let t = 0, e = +"000001234556112341234556011111111112011111111112000001111112"[12 * Q + l];
               t < 32;
               ++t
             ) {
-              let e = (32 * l + t) * M;
+              let a = (32 * l + t) * M;
               for (var B, O = 0; O < 4; ++O) {
-                if (m = 0, a && (m = D[a - 1].charCodeAt(t + 32 * O) - 40, m += 0 < m ? 106 : 0), m) {
+                if (m = 0, e && (m = D[e - 1].charCodeAt(t + 32 * O) - 40, m += 0 < m ? 106 : 0), m) {
                   if (!(B = f[m])) {
                     let l = 0,
                       r = 0,
@@ -903,26 +903,26 @@ setTimeout(() => {
                           : t => (t = t % 1 * 4) < 2 ? t - 1 : 3 - t
                         : zt,
                       h = new Int32Array(S + Y + x);
-                    for (let a = 0, e = 0; S + Y + x > a; ++a, ++e) {
+                    for (let e = 0, a = 0; S + Y + x > e; ++e, ++a) {
                       let t = 1;
-                      S > a ? t = a / S : S + Y > a || (t = (1 - (t = (a - S - Y) / x)) * 3 ** (-y / 16 * t)),
-                        e < 0
-                        || (e -= 4 * M,
+                      S > e ? t = e / S : S + Y > e || (t = (1 - (t = (e - S - Y) / x)) * 3 ** (-y / 16 * t)),
+                        a < 0
+                        || (a -= 4 * M,
                           n = .00396 * 2 ** ((o + p - 256) / 12),
                           s = .00396 * 2 ** ((o + I - 256) / 12) * (1 + (Q ? 0 : 8e-4 * 9))),
-                        h[a] = 80
+                        h[e] = 80
                             * (c(l += n * t ** (d / 32)) * v + i(r += s * t ** (A / 32)) * b
                               + (P ? (2 * Math.random() - 1) * P : 0))
                             * t | 0;
                     }
                     B = f[B] = h;
                   }
-                  for (let t = 0, a = 2 * e; B.length > t; ++t, a += 2) h[a] += B[t];
+                  for (let t = 0, e = 2 * a; B.length > t; ++t, e += 2) h[e] += B[t];
                 }
               }
-              for (let t, a = 0; M > a; ++a) {
+              for (let t, e = 0; M > e; ++e) {
                 O = 0,
-                  ((t = h[B = 2 * (e + a)]) || i)
+                  ((t = h[B = 2 * (a + e)]) || i)
                   && (o = .00308 * T,
                     1 != Q && 4 != Q || (o *= Math.sin(2 ** (t - 9) / M * B * Math.PI * 2) * F / 512 + .5),
                     o = 1.5 * Math.sin(o),
@@ -949,19 +949,19 @@ setTimeout(() => {
       } else {
         for (H = Dt.createBuffer(2, 5362944, 44100), Q = 0; Q < 2; Q++) {
           for (
-            let t = Q, a = H.getChannelData(Q);
+            let t = Q, e = H.getChannelData(Q);
             t < 10725888;
             t += 2
           ) {
-            a[t >> 1] = St[t] / 65536;
+            e[t >> 1] = St[t] / 65536;
           }
         }
         Ht.buffer = H, Ht.loop = !0;
       }
-      e();
+      a();
     },
-    n = (t, a, e) =>
-      O.translate(t + Math.sin(Q + 2) / 5, a + Math.sin(.8 * Q) / 3, e).rotateSelf(
+    n = (t, e, a) =>
+      O.translate(t + Math.sin(Q + 2) / 5, e + Math.sin(.8 * Q) / 3, a).rotateSelf(
         2 * Math.sin(Q),
         Math.sin(.7 * Q),
         Math.sin(.9 * Q),
@@ -969,17 +969,17 @@ setTimeout(() => {
     o,
     F = new Image(),
     c = (F.onload = F.onerror = () => {
-      e();
+      a();
     },
       F.src = Ft,
       setTimeout(l, 9),
       (() => {
-        let a = X(
+        let e = X(
             11,
             t => O.translate(Math.sin(t / 10 * Math.PI), t / 10).rotate(+t).scale(1.0001 - t / 10, 0, 1 - t / 10),
           ),
-          e = mt(18);
-        return X(10, t => s(C(e, a[t]).reverse(), C(e, a[t + 1]), 1)).flat();
+          a = mt(18);
+        return X(10, t => s(C(a, e[t]).reverse(), C(a, e[t + 1]), 1)).flat();
       })()),
     i = d(
       p(
@@ -1000,15 +1000,15 @@ setTimeout(() => {
   }, 0),
     M(() => {
       let r = () => {
-          let t = J[2].i, a = 1 - J[4].i;
-          return t < a ? t : a;
+          let t = J[2].i, e = 1 - J[4].i;
+          return t < e ? t : e;
         },
-        t = (a, e, l) =>
+        t = (e, a, l) =>
           M(t => {
-            t.h = () => O.translate(r() * Math.sin(3 * a + Q * a) * e),
-              b.map(({ x: t, z: a }) => {
-                g(u(11, 1), O.translate(4 * t, 4, l + 4 * a).scale(.8, 3, .8), P(.5, .3, .7, .6)),
-                  g(u(b), O.translate(4 * t, 7, l + 4 * a).scale(1, .3), P(.5, .5, .5, .3));
+            t.h = () => O.translate(r() * Math.sin(3 * e + Q * e) * a),
+              b.map(({ x: t, z: e }) => {
+                g(u(11, 1), O.translate(4 * t, 4, l + 4 * e).scale(.8, 3, .8), P(.5, .3, .7, .6)),
+                  g(u(b), O.translate(4 * t, 7, l + 4 * e).scale(1, .3), P(.5, .5, .5, .3));
               }),
               g(d(p(
                 m(u(b), O.translate(0, 0, l).scale(5, 1, 5), P(.8, .8, .8, .3)),
@@ -1022,28 +1022,28 @@ setTimeout(() => {
           t.h = () => n(-12, 4.2, 40 * rt - 66), g(i), I(O.translate(0, -3, 4));
         }),
           X(7, t => m(u(6, 1), O.translate(4 * (t / 6 - .5), 3).scale(.2, 3, .2), P(.3, .3, .38))).flat()),
-        a = (A(O.translate(-.5, 2.8, -20), [0, 0, 2.5], [0, -3, 2.5]),
+        e = (A(O.translate(-.5, 2.8, -20), [0, 0, 2.5], [0, -3, 2.5]),
           A(
             O.translate(0, 2.8),
             [5, 10, 3],
             [-5, 10, 3],
-            ...mt(18).map(({ x: t, z: a }) => [7 * t, 10 * a, 4.5 - 2 * (t < 0 ? -t : t)]),
+            ...mt(18).map(({ x: t, z: e }) => [7 * t, 10 * e, 4.5 - 2 * (t < 0 ? -t : t)]),
           ),
           g(u(b), O.translate(-5, -.2, -26).scale(3.2, 1, 2.5).skewX(3), P(.8, .8, .8, .2)),
-          b.map(({ x: t, z: a }) => g(u(6), O.translate(3 * t, 3, 15 * a).scale(.7, 4, .7), P(.6, .3, .3, .4))),
+          b.map(({ x: t, z: e }) => g(u(6), O.translate(3 * t, 3, 15 * e).scale(.7, 4, .7), P(.6, .3, .3, .4))),
           [-23, 22].map(t => g(u(b), O.translate(0, 0, t).scale(3, 1, 8), P(.9, .9, .9, .2))),
-          [-15, 15].map((a, e) => {
-            g(u(b), O.translate(0, 6.3, a).scale(4, .3, 1), P(.3, .3, .3, .4)),
-              g(u(b), O.translate(0, 1, a).scale(3, .2, .35), P(.5, .5, .5, .3)),
+          [-15, 15].map((e, a) => {
+            g(u(b), O.translate(0, 6.3, e).scale(4, .3, 1), P(.3, .3, .3, .4)),
+              g(u(b), O.translate(0, 1, e).scale(3, .2, .35), P(.5, .5, .5, .3)),
               M(t => {
-                t.h = () => O.translate(0, 4.7 * -J[e + 1].g, a), g(l);
+                t.h = () => O.translate(0, 4.7 * -J[a + 1].g, e), g(l);
               });
           }),
-          X(5, a =>
+          X(5, e =>
             X(2, t =>
               g(
                 c,
-                O.translate(18.5 * (t - .5), 0, 4.8 * a - 9.5).rotate(0, 180 - 180 * t).scale(1.2, 10, 1.2),
+                O.translate(18.5 * (t - .5), 0, 4.8 * e - 9.5).rotate(0, 180 - 180 * t).scale(1.2, 10, 1.2),
                 P(1, 1, .8, .2),
               ))),
           g(u(b), O.translate(3, 1.5, -20).scale(.5, 2, 5), P(.7, .7, .7, .2)),
@@ -1139,13 +1139,13 @@ setTimeout(() => {
             )),
             O,
           )]),
-        e =
-          (g(a, O.translate(-53, 0, 55)),
+        a =
+          (g(e, O.translate(-53, 0, 55)),
             g(u(6), O.translate(-61.3, -2.4, 49).scale(3, 1, 5), P(.4, .6, .6, .3)),
             g(u(7), O.translate(-57, -2.6, 46).scale(4, 1, 4), P(.8, .8, .8, .3)),
             I(O.translate(-55, -1.1, 46).rotate(0, 90)),
             M(t => {
-              t.h = () => O.translate(-75, (1 - J[5].i) * (1 - J[6].g) * 3, 55).rotate(180 * (1 - J[5].i) + z, 0), g(a);
+              t.h = () => O.translate(-75, (1 - J[5].i) * (1 - J[6].g) * 3, 55).rotate(180 * (1 - J[5].i) + z, 0), g(e);
             }, 2),
             g(u(b), O.translate(-88.3, -5.1, 55).rotate(0, 0, -30).scale(5, 1.25, 4.5), P(.7, .7, .7, .2)),
             g(u(3, 0, -.5), O.translate(-88.4, -3.9, 55).rotate(0, -90, 17).scale(3, 1.45, 5.9), P(.8, .8, .8, .2)),
@@ -1178,10 +1178,10 @@ setTimeout(() => {
             M(t => {
               t.h = () => O.translate(-99.7, 5.3 * -J[6].g - 2, 63.5), g(l);
             }),
-            b.map(({ x: a, z: e }) => {
-              g(u(6), O.translate(7 * a - 100, -3, 7 * e + 55).scale(1, 8.1), P(.6, .15, .15, .8)),
+            b.map(({ x: e, z: a }) => {
+              g(u(6), O.translate(7 * e - 100, -3, 7 * a + 55).scale(1, 8.1), P(.6, .15, .15, .8)),
                 [4, -.4].map(t =>
-                  g(u(6), O.translate(7 * a - 100, t, 7 * e + 55).scale(1.3, .5, 1.3), P(.4, .2, .2, .8))
+                  g(u(6), O.translate(7 * e - 100, t, 7 * a + 55).scale(1.3, .5, 1.3), P(.4, .2, .2, .8))
                 );
             }),
             X(7, t => {
@@ -1197,7 +1197,7 @@ setTimeout(() => {
             }),
             g(u(b), O.translate(-87, -9.5, 24).scale(7, 1, 3), P(.4, .5, .6, .4)),
             g(u(4), O.translate(-86, -9.2, 27).scale(5, 1, 5), P(.5, .6, .7, .3)),
-            g(u(18, 1), O.translate(-86, -9, 31).scale(1.5, 1, 1.5), P(.3, .3, .4, .1)),
+            g(u(12, 1), O.translate(-86, -9, 31).scale(1.5, 1, 1.5), P(.3, .3, .4, .1)),
             I(O.translate(-86, -7.5, 31)),
             M(t => {
               t.h = () => O.translate(0, 3.5 * (1 - R(J[6].g, J[7].g)) + f(J[7].i, J[6].i) * Math.sin(Q) * 5),
@@ -1239,12 +1239,12 @@ setTimeout(() => {
                   )),
                   O.translate(-38.9, -11.3, 17),
                 ),
-                A(O.translate(-39.1, -.3, 17).rotate(0, 0, 10), ...mt(15).map(({ x: t, z: a }) => [3 * t, 3 * a, 1.2]));
+                A(O.translate(-39.1, -.3, 17).rotate(0, 0, 10), ...mt(15).map(({ x: t, z: e }) => [3 * t, 3 * e, 1.2]));
             }),
-            b.map(({ x: t, z: a }) => {
-              o = O.translate(9 * t - 38.9, -7.3, 11 * a + 17),
-                g(u(18, 1), o.scale(1, 4), P(.25, .25, .25, 1)),
-                [1.5, 8].map(t => g(u(18, 1), o.translate(0, t - 4).scale(1.5, .5, 1.5), P(.6, .6, .6, .3)));
+            b.map(({ x: t, z: e }) => {
+              o = O.translate(9 * t - 38.9, -7.3, 11 * e + 17),
+                g(u(14, 1), o.scale(1, 4), P(.25, .25, .25, 1)),
+                [1.5, 8].map(t => g(u(17, 1), o.translate(0, t - 4).scale(1.5, .5, 1.5), P(.6, .6, .6, .3)));
             }),
             g(
               d(p(
@@ -1252,11 +1252,11 @@ setTimeout(() => {
                   m(u(6), O.translate(0, 0, -36).scale(15, 1.2, 15), P(.7, .7, .7, .3)),
                   m(u(b), O.translate(0, 0, -18).scale(4, 1.2, 6), P(.45, .4, .6, .3)),
                 ),
-                ...X(6, a =>
+                ...X(6, e =>
                   X(6, t =>
                     m(
                       u(6),
-                      O.translate(4.6 * t - 12 + 2 * (1 & a), 0, 4.6 * a - 50 + 2 * Math.sin(4 * t)).scale(2, 5, 2),
+                      O.translate(4.6 * t - 12 + 2 * (1 & e), 0, 4.6 * e - 50 + 2 * Math.sin(4 * t)).scale(2, 5, 2),
                       P(.7, .7, .7, .3),
                     ))).flat(),
               )),
@@ -1278,13 +1278,13 @@ setTimeout(() => {
           t.h = () => {
             let t = Math.sin(1.1 * Q);
             return O.translate.call(O, 0, -2, f(J[10].g, J[11].g) * (t < 0 ? -t : t) * -8.5 + 10);
-          }, X(2, t => g(e, O.translate(9 * t - 110 + (1 & t), 1.7, -12)));
+          }, X(2, t => g(a, O.translate(9 * t - 110 + (1 & t), 1.7, -12)));
         }),
           M(t => {
             t.h = () => {
               let t = Math.sin(2.1 * Q);
               return O.translate.call(O, 0, -2, f(J[10].g, J[11].g) * (t < 0 ? -t : t) * -8.5 + 10);
-            }, X(2, t => g(e, O.translate(9 * (t + 2) - 110 + (1 & t), 1.7, -12)));
+            }, X(2, t => g(a, O.translate(9 * (t + 2) - 110 + (1 & t), 1.7, -12)));
           }),
           M(t => {
             t.h = () => {
@@ -1295,7 +1295,7 @@ setTimeout(() => {
                 -2,
                 -8.5 * R((1 - J[10].g) * (1 - f(J[10].g, J[11].g)), f(J[10].g, J[11].g) * (t < 0 ? -t : t)) + 10,
               );
-            }, X(3, t => g(e, O.translate(9 * t - 106, 1.7, -12)));
+            }, X(3, t => g(a, O.translate(9 * t - 106, 1.7, -12)));
           }),
           g(
             d(p(
@@ -1347,21 +1347,21 @@ setTimeout(() => {
               m(u(5), O.translate(-100, .7, 113).scale(4, 3, 4), P(.7, .7, .7, .2)),
             ),
           )),
-          X(4, a =>
+          X(4, e =>
             M(t => {
               t.h = () => {
                 let t = f(J[8].i, J[12].i);
                 return O.translate(
-                  (2 < a ? 2 * (1 - t) + t : 0) - 100,
-                  t * Math.sin(1.3 * Q + 1.7 * a) * (3 + a / 3) + .7,
-                  115 + (1 & a ? -1 : 1) * (1 - J[8].i) * (1 - J[12].i) * -7
-                    + (t < .05 ? .05 : t) * Math.cos(1.3 * Q + 7 * a) * (4 - 2 * (1 - a / 3)),
+                  (2 < e ? 2 * (1 - t) + t : 0) - 100,
+                  t * Math.sin(1.3 * Q + 1.7 * e) * (3 + e / 3) + .7,
+                  115 + (1 & e ? -1 : 1) * (1 - J[8].i) * (1 - J[12].i) * -7
+                    + (t < .05 ? .05 : t) * Math.cos(1.3 * Q + 7 * e) * (4 - 2 * (1 - e / 3)),
                 );
               },
                 g(
                   u(6),
-                  O.translate(-14.6 - 4.8 * a - (2 < a ? 2 : 0), -a / 2.3, -21.5).scale(2.6, 1, 2.5),
-                  P(.5 - a / 8, a / 12 + .5, .7, .3),
+                  O.translate(-14.6 - 4.8 * e - (2 < e ? 2 : 0), -e / 2.3, -21.5).scale(2.6, 1, 2.5),
+                  P(.5 - e / 8, e / 12 + .5, .7, .3),
                 );
             })),
           M(t => {
@@ -1372,7 +1372,7 @@ setTimeout(() => {
             },
               g(d(p(m(u(10), O.scale(6, 2, 6), P(.1, .6, .5, .3)), m(u(10), O.scale(3.3, 6, 3.3), P(.1, .6, .5, .5))))),
               o = O.translate(-7.5).rotate(0, 90),
-              g(u(15), o.scale(3, 2.3, 3), P(.4, .4, .4, .3)),
+              g(u(15, 1), o.scale(3, 2.3, 3), P(.4, .4, .4, .3)),
               g(u(10), o.scale(2, 2.5, 2), P(.3, .8, .7, .3)),
               g(u(5), o.scale(1, 3), P(.5, .5, .5, .5)),
               I(o.translate(0, 3.4).rotate(0, 180)),
@@ -1381,47 +1381,47 @@ setTimeout(() => {
               ),
               A(O.translate(-5, 4), [0, -1.2, 1.7], [0, 1.2, 1.7]);
           }),
-          [-1, 1].map(a => {
-            g(u(15, 1), O.translate(-7.5 * a - 100, 3.7, 96).scale(.8, 4, .8), P(.6, .24, .2, .5)),
+          [-1, 1].map(e => {
+            g(u(12, 1), O.translate(-7.5 * e - 100, 3.7, 96).scale(.8, 4, .8), P(.6, .24, .2, .5)),
               [7.2, 1.5].map(t =>
-                g(u(15, 1), O.translate(-7.5 * a - 100, t + .7, 96).scale(1.1, .5, 1.1), P(.5, .24, .2, .4))
+                g(u(15, 1), O.translate(-7.5 * e - 100, t + .7, 96).scale(1.1, .5, 1.1), P(.5, .24, .2, .4))
               ),
-              g(c, O.translate(-5 * a - 100, 1.7, 114.5).scale(1.2, 10, 1.2).rotate(0, 90 * a - 90), P(1, 1, .8)),
+              g(c, O.translate(-5 * e - 100, 1.7, 114.5).scale(1.2, 10, 1.2).rotate(0, 90 * e - 90), P(1, 1, .8)),
               g(
                 d(p(
-                  m(u(b), O.translate(-4 * a, 3.5, -.5).scale(4, 4, .7), P(.5, .5, .5, .4)),
+                  m(u(b), O.translate(-4 * e, 3.5, -.5).scale(4, 4, .7), P(.5, .5, .5, .4)),
                   m(u(b), O.scale(3, 3, 10), P(.6, .24, .2, .5)),
-                  m(u(30, 1), O.translate(0, 3, -5).scale(3, 4, 10).rotate(90, 0), P(.6, .24, .2, .5)),
-                  m(u(5), O.translate(-5.3 * a, 7).rotate(90, 0).scale(1.7, 5, 1.7), P(.6, .24, .2, .5)),
-                  m(u(5), O.translate(-5.3 * a, 3.8).rotate(90, 0, 35).scale(.75, 5, .75), P(.6, .24, .2, .5)),
+                  m(u(28, 1), O.translate(0, 3, -5).scale(3, 4, 10).rotate(90, 0), P(.6, .24, .2, .5)),
+                  m(u(5), O.translate(-5.3 * e, 7).rotate(90, 0).scale(1.7, 5, 1.7), P(.6, .24, .2, .5)),
+                  m(u(5), O.translate(-5.3 * e, 3.8).rotate(90, 0, 35).scale(.75, 5, .75), P(.6, .24, .2, .5)),
                 )),
-                O.translate(a - 100, .7, 97),
+                O.translate(e - 100, .7, 97),
               );
           }),
           M(t => {
             t.h = () => O.translate(-100, .6 - 6 * J[12].g, 96.5).scale(.88, 1.2), g(l);
           }),
           [
-            ...m(u(28, 1), O.scale(8, 1, 8), P(.45, .45, .45, .2)),
+            ...m(u(25, 1), O.scale(8, 1, 8), P(.45, .45, .45, .2)),
             ...m(u(5), O.translate(0, 1).scale(1, .2), P(.3, .3, .3, .2)),
           ]);
       M(t => {
         t.h = () => O.translate(-80, 1, 106).rotate(0, 40 + Y),
           g(d(
             p(
-              m(u(28, 1), O.scale(8, 1, 8), P(.45, .45, .45, .2)),
+              m(u(25, 1), O.scale(8, 1, 8), P(.45, .45, .45, .2)),
               m(u(b), O.translate(0, 0, -5.5).scale(1.5, 3, 2.5), P(.45, .45, .45, .2)),
             ),
           )),
           g(u(8), O.translate(0, 2).scale(3, 1.5, 3), P(.7, .7, .7, .1)),
           g(u(5), O.translate(0, 2).scale(1, 2), P(.3, .3, .3, .2)),
-          A(O.translate(0, 3), ...mt(10).map(({ x: t, z: a }) => [5.6 * t, 5.6 * a, 2.5]));
+          A(O.translate(0, 3), ...mt(10).map(({ x: t, z: e }) => [5.6 * t, 5.6 * e, 2.5]));
       }),
         M(t => {
           t.h = () => O.translate(-64, 1, 106).rotate(0, T),
             g(d(
               p(
-                m(u(28, 1), O.translate(0, 2).scale(8, 1, 8), P(.35, 0, 0, .3)),
+                m(u(25, 1), O.translate(0, 2).scale(8, 1, 8), P(.35, 0, 0, .3)),
                 m(u(b), O.scale(9, 5, 2), P(.3, 0, 0, .3)),
               ),
             )),
@@ -1434,7 +1434,7 @@ setTimeout(() => {
           t.h = () => O.translate(-48, 1, 106).rotate(0, 180 - T),
             g(d(
               p(
-                m(u(30, 1), O.translate(0, 2).scale(8, 1, 8), P(.35, 0, 0, .3)),
+                m(u(25, 1), O.translate(0, 2).scale(8, 1, 8), P(.35, 0, 0, .3)),
                 m(u(b), O.translate(7).scale(9, 5, 2), P(.3, 0, 0, .3)),
                 m(u(b), O.translate(0, 0, 7).scale(2, 5, 9), P(.3, 0, 0, .3)),
               ),
@@ -1445,7 +1445,7 @@ setTimeout(() => {
           t.h = () => O.translate(-48, 1, 90).rotate(0, 270 + T),
             g(d(
               p(
-                m(u(30, 1), O.translate(0, 2).scale(8, 1, 8), P(.35, 0, 0, .3)),
+                m(u(25, 1), O.translate(0, 2).scale(8, 1, 8), P(.35, 0, 0, .3)),
                 m(u(b), O.translate(7).scale(9, 5, 2), P(.3, 0, 0, .3)),
                 m(u(b), O.translate(0, 0, -7).scale(2, 5, 9), P(.3, 0, 0, .3)),
               ),
@@ -1458,16 +1458,16 @@ setTimeout(() => {
         g(u(b), O.translate(-34.2, .4, 90).scale(3, 1, 3), P(.7, .7, .7, .3)),
         I(O.translate(-34, 2.7, 96).rotate(-12, 0)),
         g(u(5), O.translate(-34, .2, 96).scale(3, 2, 4).rotate(-20, 0), P(.2, .5, .5, .6)),
-        [P(.1, .55, .45, .2), P(.2, .5, .5, .3), P(.3, .45, .55, .4)].map((a, e) =>
+        [P(.1, .55, .45, .2), P(.2, .5, .5, .3), P(.3, .45, .55, .4)].map((e, a) =>
           M(t => {
             t.h = () =>
               O.translate(
                 0,
-                (1 - J[13].i) * (1 - J[14].i) * (e ? 0 : 3) + f(J[13].i, J[14].i) * Math.sin(1.5 * Q + 1.5 * e) * 4,
+                (1 - J[13].i) * (1 - J[14].i) * (a ? 0 : 3) + f(J[13].i, J[14].i) * Math.sin(1.5 * Q + 1.5 * a) * 4,
               ),
-              g(u(b), O.translate(-23.5, .5, 90 + 6.8 * e).scale(1 === e ? 2 : 3.3, 1, 3.3), a),
-              2 === e && g(u(b), O.translate(-29.1, .4, 90).scale(2.1, 1, 3), P(.7, .7, .7, .3)),
-              1 === e
+              g(u(b), O.translate(-23.5, .5, 90 + 6.8 * a).scale(1 === a ? 2 : 3.3, 1, 3.3), e),
+              2 === a && g(u(b), O.translate(-29.1, .4, 90).scale(2.1, 1, 3), P(.7, .7, .7, .3)),
+              1 === a
               && g(
                 u(b),
                 O.translate(-16.1, .5, 103.5).rotate(0, 0, -3.5).scale(3.9, .8, 2).skewX(-1),
@@ -1481,13 +1481,13 @@ setTimeout(() => {
             m(u(5), O.translate(0, 0, 95).scale3d(6), P(.3, .3, .3, .5)),
           ),
         )),
-        [8, -6.1].map((a, e) =>
+        [8, -6.1].map((e, a) =>
           X(
             3,
             t =>
               g(
                 h,
-                O.translate(6 * t - 6, a - (1 & t), 111 - .2 * (1 & t) - e),
+                O.translate(6 * t - 6, e - (1 & t), 111 - .2 * (1 & t) - a),
                 1 & t ? P(.5, .5, .5, .3) : P(.35, .35, .35, .5),
               ),
           )
@@ -1527,19 +1527,19 @@ setTimeout(() => {
             g(u(5), O.scale(5.5, .9, 5.5), P(.25, .25, .25, .4)),
             I(O.translate(0, 1.5, -1).rotate(0, 180));
         }),
-        A(O.translate(0, 3, 95), ...mt(9).map(({ x: t, z: a }) => [9 * t, 9 * a, 4])),
+        A(O.translate(0, 3, 95), ...mt(9).map(({ x: t, z: e }) => [9 * t, 9 * e, 4])),
         A(O.translate(0, 19, 134), [0, 0, 3.5]);
     }),
     tt = [
       M(() => {
         [0, 180].map(t => g(c, O.rotate(0, t).translate(.2, 1.32).rotate(0, 0, -30).scale(.2, .6, .2), P(1, 1, .8))),
           g(ut(20), O.translate(0, 1).scale(.5, .5, .5), P(1, .3, .4));
-        let a = m(
+        let e = m(
           d(p(u(15, 1), m(u(b), O.translate(0, 0, 1).scale(2, 2, .5)))),
           O.rotate(-90, 0).scale(.1, .05, .1),
           P(.3, .3, .3),
         );
-        [-1, 1].map(t => g(a, O.translate(.2 * t, 1.2, .4).rotate(0, 20 * t, 20 * t))),
+        [-1, 1].map(t => g(e, O.translate(.2 * t, 1.2, .4).rotate(0, 20 * t, 20 * t))),
           g(u(b), O.translate(0, .9, .45).scale(.15, .02, .06), P(.3, .3, .3)),
           g(ut(20), O.scale(.7, .8, .55), P(1, .3, .4));
       }),
@@ -1559,11 +1559,11 @@ setTimeout(() => {
     }, 0),
     jt = M(() => {
       g(
-        ut(40, 30, (t, a, e) => {
-          let l = a / 30, r = .05 * t * Math.PI, s = l ** .6 * Math.PI / 2;
-          return t = l * l * Math.sin(t * Math.PI * .35) / 4,
-            29 === a
-              ? { x: e.D = 0, y: -.5, z: 0 }
+        ut(30, 25, (t, e, a) => {
+          let l = e / 25, r = t * Math.PI * 2 / 30, s = l ** .6 * Math.PI / 2;
+          return t = l * l * Math.sin(t * Math.PI * 14 / 30) / 4,
+            24 === e
+              ? { x: a.D = 0, y: -.5, z: 0 }
               : {
                 x: Math.cos(r) * Math.sin(s),
                 y: Math.cos(l * Math.PI) - l - t,

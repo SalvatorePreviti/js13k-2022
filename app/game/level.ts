@@ -633,7 +633,7 @@ export const buildWorld = () => {
 
     meshAdd(cylinder(4), identity.translate(-86, -9.2, 27).scale(5, 1, 5), material(0.5, 0.6, 0.7, 0.3));
 
-    meshAdd(cylinder(18, 1), identity.translate(-86, -9, 31).scale(1.5, 1, 1.5), material(0.3, 0.3, 0.4, 0.1));
+    meshAdd(cylinder(12, 1), identity.translate(-86, -9, 31).scale(1.5, 1, 1.5), material(0.3, 0.3, 0.4, 0.1));
 
     newLever(identity.translate(-86, -7.5, 31));
 
@@ -742,9 +742,9 @@ export const buildWorld = () => {
 
     GQuad.map(({ x, z }) => {
       tmpMatrix = identity.translate(x * 9 - 38.9, -7.3, z * 11 + 17);
-      meshAdd(cylinder(18, 1), tmpMatrix.scale(1, 4), material(0.25, 0.25, 0.25, 1));
+      meshAdd(cylinder(14, 1), tmpMatrix.scale(1, 4), material(0.25, 0.25, 0.25, 1));
       [1.5, 8].map((y) =>
-        meshAdd(cylinder(18, 1), tmpMatrix.translate(0, y - 4).scale(1.5, 0.5, 1.5), material(0.6, 0.6, 0.6, 0.3)),
+        meshAdd(cylinder(17, 1), tmpMatrix.translate(0, y - 4).scale(1.5, 0.5, 1.5), material(0.6, 0.6, 0.6, 0.3)),
       );
     });
 
@@ -1036,7 +1036,7 @@ export const buildWorld = () => {
 
       // second pad
       tmpMatrix = identity.translate(-7.5).rotate(0, 90);
-      meshAdd(cylinder(15), tmpMatrix.scale(3, 2.3, 3), material(0.4, 0.4, 0.4, 0.3));
+      meshAdd(cylinder(15, 1), tmpMatrix.scale(3, 2.3, 3), material(0.4, 0.4, 0.4, 0.3));
       meshAdd(cylinder(10), tmpMatrix.scale(2, 2.5, 2), material(0.3, 0.8, 0.7, 0.3));
       meshAdd(cylinder(5), tmpMatrix.scale(1, 3), material(0.5, 0.5, 0.5, 0.5));
       newLever(tmpMatrix.translate(0, 3.4).rotate(0, 180));
@@ -1061,7 +1061,7 @@ export const buildWorld = () => {
     // far arc gate
     [-1, 1].map((x) => {
       meshAdd(
-        cylinder(15, 1),
+        cylinder(12, 1),
         identity.translate(-7.5 * x - 100, 3.7, 96).scale(0.8, 4, 0.8),
         material(0.6, 0.24, 0.2, 0.5),
       );
@@ -1093,7 +1093,7 @@ export const buildWorld = () => {
             ),
             polygons_transform(cylinder(GQuad), identity.scale(3, 3, 10), material(0.6, 0.24, 0.2, 0.5)),
             polygons_transform(
-              cylinder(30, 1),
+              cylinder(28, 1),
               identity.translate(0, 3, -5).scale(3, 4, 10).rotate(90, 0),
               material(0.6, 0.24, 0.2, 0.5),
             ),
@@ -1129,7 +1129,7 @@ export const buildWorld = () => {
     // rotating platforms
 
     const rotPlatformBase = [
-      ...polygons_transform(cylinder(28, 1), identity.scale(8, 1, 8), material(0.45, 0.45, 0.45, 0.2)),
+      ...polygons_transform(cylinder(25, 1), identity.scale(8, 1, 8), material(0.45, 0.45, 0.45, 0.2)),
       ...polygons_transform(cylinder(5), identity.translate(0, 1).scale(1, 0.2), material(0.3, 0.3, 0.3, 0.2)),
     ];
 
@@ -1137,7 +1137,7 @@ export const buildWorld = () => {
       meshAdd(
         csg_polygons(
           csg_subtract(
-            polygons_transform(cylinder(28, 1), identity.translate(0, 2).scale(8, 1, 8), material(0.35, 0, 0, 0.3)),
+            polygons_transform(cylinder(25, 1), identity.translate(0, 2).scale(8, 1, 8), material(0.35, 0, 0, 0.3)),
             polygons_transform(cylinder(GQuad), identity.scale(9, 5, 2), material(0.3, 0, 0, 0.3)),
           ),
         ),
@@ -1150,7 +1150,7 @@ export const buildWorld = () => {
       meshAdd(
         csg_polygons(
           csg_subtract(
-            polygons_transform(cylinder(28, 1), identity.scale(8, 1, 8), material(0.45, 0.45, 0.45, 0.2)),
+            polygons_transform(cylinder(25, 1), identity.scale(8, 1, 8), material(0.45, 0.45, 0.45, 0.2)),
             polygons_transform(
               cylinder(GQuad),
               identity.translate(0, 0, -5.5).scale(1.5, 3, 2.5),
@@ -1187,7 +1187,7 @@ export const buildWorld = () => {
       meshAdd(
         csg_polygons(
           csg_subtract(
-            polygons_transform(cylinder(30, 1), identity.translate(0, 2).scale(8, 1, 8), material(0.35, 0, 0, 0.3)),
+            polygons_transform(cylinder(25, 1), identity.translate(0, 2).scale(8, 1, 8), material(0.35, 0, 0, 0.3)),
             polygons_transform(cylinder(GQuad), identity.translate(7).scale(9, 5, 2), material(0.3, 0, 0, 0.3)),
             polygons_transform(cylinder(GQuad), identity.translate(0, 0, 7).scale(2, 5, 9), material(0.3, 0, 0, 0.3)),
           ),
@@ -1201,7 +1201,7 @@ export const buildWorld = () => {
       meshAdd(
         csg_polygons(
           csg_subtract(
-            polygons_transform(cylinder(30, 1), identity.translate(0, 2).scale(8, 1, 8), material(0.35, 0, 0, 0.3)),
+            polygons_transform(cylinder(25, 1), identity.translate(0, 2).scale(8, 1, 8), material(0.35, 0, 0, 0.3)),
             polygons_transform(cylinder(GQuad), identity.translate(7).scale(9, 5, 2), material(0.3, 0, 0, 0.3)),
             polygons_transform(cylinder(GQuad), identity.translate(0, 0, -7).scale(2, 5, 9), material(0.3, 0, 0, 0.3)),
           ),
@@ -1430,8 +1430,8 @@ export const buildWorld = () => {
   }, MODEL_KIND_MESH);
 
   soulModel = newModel(() => {
-    const GHOST_SLICES = 40;
-    const GHOST_STACKS = 30;
+    const GHOST_SLICES = 30;
+    const GHOST_STACKS = 25;
 
     // body
     meshAdd(

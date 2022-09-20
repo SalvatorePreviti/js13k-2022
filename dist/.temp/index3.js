@@ -652,7 +652,7 @@ const rb = (b, e, g) => (b.D = g, b.A = e, b),
       "<svg color-interpolation-filters=\"sRGB\" height=\"1024\" width=\"1024\" xmlns=\"http://www.w3.org/2000/svg\"><filter filterUnits=\"userSpaceOnUse\" height=\"1026\" id=\"a\" width=\"1026\" x=\"0\" y=\"0\"><feTurbulence baseFrequency=\".007\" height=\"1025\" numOctaves=\"6\" stitchTiles=\"stitch\" width=\"1025\" result=\"z\" type=\"fractalNoise\" x=\"1\" y=\"1\"/><feTile height=\"1024\" width=\"1024\" x=\"-1\" y=\"-1\"/><feTile/><feDiffuseLighting diffuseConstant=\"4\" lighting-color=\"red\" surfaceScale=\"5\"><feDistantLight azimuth=\"270\" elevation=\"5\"/></feDiffuseLighting><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"x\"/><feColorMatrix values=\"0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 1\" in=\"z\"/><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"z\"/><feTurbulence baseFrequency=\".01\" height=\"1024\" numOctaves=\"5\" stitchTiles=\"stitch\" width=\"1024\"/><feColorMatrix values=\"0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1\"/><feBlend in2=\"x\" mode=\"screen\"/><feBlend in2=\"z\" mode=\"screen\"/></filter><rect filter=\"url(#a)\" height=\"100%\" width=\"100%\"/></svg>",
     )),
   Z = NO_INLINE((b, e, g, h = 0) => 255 * h << 24 | 255 * g << 16 | 255 * e << 8 | 255 * b),
-  E = hC.getContext("webgl2");
+  E = hC.getContext("webgl2", { powerPreference: "high-performance" });
 for (const b in E) {
   E[b[0] + [...b].reduce((e, g, h) => (e * h + g.charCodeAt(0)) % 434, 0).toString(36)] = E[b];
 }
@@ -1304,7 +1304,7 @@ setTimeout(() => {
           }),
           r(p(M), d.translate(-87, -9.5, 24).scale(7, 1, 3), Z(.4, .5, .6, .4)),
           r(p(4), d.translate(-86, -9.2, 27).scale(5, 1, 5), Z(.5, .6, .7, .3)),
-          r(p(18, 1), d.translate(-86, -9, 31).scale(1.5, 1, 1.5), Z(.3, .3, .4, .1)),
+          r(p(12, 1), d.translate(-86, -9, 31).scale(1.5, 1, 1.5), Z(.3, .3, .4, .1)),
           cc(d.translate(-86, -7.5, 31)),
           u(f => {
             f.h = () => d.translate(0, 3.5 * (1 - Ua(G[6].g, G[7].g)) + Xa(G[7].i, G[6].i) * Math.sin(a) * 5);
@@ -1348,8 +1348,8 @@ setTimeout(() => {
           }),
           M.map(({ x: f, z: n }) => {
             q = d.translate(9 * f - 38.9, -7.3, 11 * n + 17);
-            r(p(18, 1), q.scale(1, 4), Z(.25, .25, .25, 1));
-            [1.5, 8].map(D => r(p(18, 1), q.translate(0, D - 4).scale(1.5, .5, 1.5), Z(.6, .6, .6, .3)));
+            r(p(14, 1), q.scale(1, 4), Z(.25, .25, .25, 1));
+            [1.5, 8].map(D => r(p(17, 1), q.translate(0, D - 4).scale(1.5, .5, 1.5), Z(.6, .6, .6, .3)));
           }),
           r(
             L(J(
@@ -1482,7 +1482,7 @@ setTimeout(() => {
           };
           r(L(J(l(p(10), d.scale(6, 2, 6), Z(.1, .6, .5, .3)), l(p(10), d.scale(3.3, 6, 3.3), Z(.1, .6, .5, .5)))));
           q = d.translate(-7.5).rotate(0, 90);
-          r(p(15), q.scale(3, 2.3, 3), Z(.4, .4, .4, .3));
+          r(p(15, 1), q.scale(3, 2.3, 3), Z(.4, .4, .4, .3));
           r(p(10), q.scale(2, 2.5, 2), Z(.3, .8, .7, .3));
           r(p(5), q.scale(1, 3), Z(.5, .5, .5, .5));
           cc(q.translate(0, 3.4).rotate(0, 180));
@@ -1492,7 +1492,7 @@ setTimeout(() => {
           dc(d.translate(-5, 4), [0, -1.2, 1.7], [0, 1.2, 1.7]);
         }),
         [-1, 1].map(f => {
-          r(p(15, 1), d.translate(-7.5 * f - 100, 3.7, 96).scale(.8, 4, .8), Z(.6, .24, .2, .5));
+          r(p(12, 1), d.translate(-7.5 * f - 100, 3.7, 96).scale(.8, 4, .8), Z(.6, .24, .2, .5));
           [7.2, 1.5].map(n =>
             r(p(15, 1), d.translate(-7.5 * f - 100, n + .7, 96).scale(1.1, .5, 1.1), Z(.5, .24, .2, .4))
           );
@@ -1501,7 +1501,7 @@ setTimeout(() => {
             L(J(
               l(p(M), d.translate(-4 * f, 3.5, -0.5).scale(4, 4, .7), Z(.5, .5, .5, .4)),
               l(p(M), d.scale(3, 3, 10), Z(.6, .24, .2, .5)),
-              l(p(30, 1), d.translate(0, 3, -5).scale(3, 4, 10).rotate(90, 0), Z(.6, .24, .2, .5)),
+              l(p(28, 1), d.translate(0, 3, -5).scale(3, 4, 10).rotate(90, 0), Z(.6, .24, .2, .5)),
               l(p(5), d.translate(-5.3 * f, 7).rotate(90, 0).scale(1.7, 5, 1.7), Z(.6, .24, .2, .5)),
               l(p(5), d.translate(-5.3 * f, 3.8).rotate(90, 0, 35).scale(.75, 5, .75), Z(.6, .24, .2, .5)),
             )),
@@ -1513,14 +1513,14 @@ setTimeout(() => {
           r(w);
         }),
         [
-          ...l(p(28, 1), d.scale(8, 1, 8), Z(.45, .45, .45, .2)),
+          ...l(p(25, 1), d.scale(8, 1, 8), Z(.45, .45, .45, .2)),
           ...l(p(5), d.translate(0, 1).scale(1, .2), Z(.3, .3, .3, .2)),
         ]);
     u(f => {
       f.h = () => d.translate(-80, 1, 106).rotate(0, 40 + ya);
       r(L(
         J(
-          l(p(28, 1), d.scale(8, 1, 8), Z(.45, .45, .45, .2)),
+          l(p(25, 1), d.scale(8, 1, 8), Z(.45, .45, .45, .2)),
           l(p(M), d.translate(0, 0, -5.5).scale(1.5, 3, 2.5), Z(.45, .45, .45, .2)),
         ),
       ));
@@ -1531,7 +1531,7 @@ setTimeout(() => {
     u(f => {
       f.h = () => d.translate(-64, 1, 106).rotate(0, za);
       r(L(
-        J(l(p(28, 1), d.translate(0, 2).scale(8, 1, 8), Z(.35, 0, 0, .3)), l(p(M), d.scale(9, 5, 2), Z(.3, 0, 0, .3))),
+        J(l(p(25, 1), d.translate(0, 2).scale(8, 1, 8), Z(.35, 0, 0, .3)), l(p(M), d.scale(9, 5, 2), Z(.3, 0, 0, .3))),
       ));
       r(z);
       [-1, 1].map(n =>
@@ -1542,7 +1542,7 @@ setTimeout(() => {
       f.h = () => d.translate(-48, 1, 106).rotate(0, 180 - za);
       r(L(
         J(
-          l(p(30, 1), d.translate(0, 2).scale(8, 1, 8), Z(.35, 0, 0, .3)),
+          l(p(25, 1), d.translate(0, 2).scale(8, 1, 8), Z(.35, 0, 0, .3)),
           l(p(M), d.translate(7).scale(9, 5, 2), Z(.3, 0, 0, .3)),
           l(p(M), d.translate(0, 0, 7).scale(2, 5, 9), Z(.3, 0, 0, .3)),
         ),
@@ -1553,7 +1553,7 @@ setTimeout(() => {
       f.h = () => d.translate(-48, 1, 90).rotate(0, 270 + za);
       r(L(
         J(
-          l(p(30, 1), d.translate(0, 2).scale(8, 1, 8), Z(.35, 0, 0, .3)),
+          l(p(25, 1), d.translate(0, 2).scale(8, 1, 8), Z(.35, 0, 0, .3)),
           l(p(M), d.translate(7).scale(9, 5, 2), Z(.3, 0, 0, .3)),
           l(p(M), d.translate(0, 0, -7).scale(2, 5, 9), Z(.3, 0, 0, .3)),
         ),
@@ -1663,10 +1663,10 @@ setTimeout(() => {
   }, 0);
   Oa = u(() => {
     r(
-      vb(40, 30, (v, x, w) => {
-        const A = x / 30, P = .05 * v * Math.PI, z = A ** .6 * Math.PI / 2;
-        v = A * A * Math.sin(v * Math.PI * .35) / 4;
-        return 29 === x
+      vb(30, 25, (v, x, w) => {
+        const A = x / 25, P = v * Math.PI * 2 / 30, z = A ** .6 * Math.PI / 2;
+        v = A * A * Math.sin(v * Math.PI * 14 / 30) / 4;
+        return 24 === x
           ? { x: w.D = 0, y: -0.5, z: 0 }
           : {
             x: Math.cos(P) * Math.sin(z),

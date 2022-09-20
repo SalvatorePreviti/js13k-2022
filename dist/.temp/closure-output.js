@@ -374,7 +374,7 @@ const rb = (b, e, g) => (b.D = g, b.A = e, b), sb = (b, e, g = b.A) => rb(b.map(
   }
 }, gc = new Int32Array(10725888), hc = (NO_INLINE('<!DOCTYPE html><html><head>\n    <title>666</title>\n    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">\n    \n    \n    \n  <link rel="stylesheet" href="/index.css"></head>\n\n  <body>\n    <canvas id="hC"></canvas>\n    <h3>Souls:<b id="h3"></b> / XIII</h3>\n    <h4 id="h4">loading</h4>\n    <main>\n      <nav>\n        <h2>DANTE</h2>\n        Lucifer:\n        <i>"Damn. Infernal delivery service failed again. A delivery of evil souls fell in an area under construction.\n          Dante, take them where they belong, to the 8th circle."</i>\n        <ul>\n          <li id="b1">Play</li>\n          <li id="b2">Play first person</li>\n          <li id="b3">Restart</li>\n          <li id="b4"></li>\n        </ul>\n        <p>Move: WASD/arrows, Levers: E/click, Menu: Esc</p>\n        <p>\n          <a target="_blank" href="https://github.com/SalvatorePreviti/js13k-2022">© 2022 SalvatorePreviti</a> -\n          <a target="_blank" href="https://twitter.com/ryanmalm">music Ryan Malm</a>\n        </p>\n      </nav>\n    </main>\n    <b id="b5">☰</b>\n    \n  \n\n<script type="module" src="/index.js" crossorigin="">\x3c/script></body></html> html,\nbody {\n  margin: 0;\n  font-family: "Times New Roman", serif;\n  background: #000;\n  font-size: max(min(3.8vw, 3.8vh), 15px);\n  text-shadow: 4px 4px 2px #000, -2px -2px 8px #000;\n}\n* {\n  font-weight: 100;\n  user-select: none;\n  touch-action: none;\n  overscroll-behavior: contain;\n  -webkit-user-select: none;\n  color: #fda;\n}\nbody > * {\n  position: absolute;\n}\n.l h3,\n.l #b5 {\n  display: block;\n  padding: 10px;\n}\n.l h3 {\n  text-align: right;\n  right: 5%;\n  bottom: 0;\n}\nh4 {\n  left: 0;\n  top: 0;\n  right: 0;\n  text-align: center;\n}\n.m main {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  top: 0;\n  right: 0;\n  bottom: 0;\n  min-width: 70%;\n}\nnav {\n  min-width: 50%;\n  max-width: 800px;\n  background: #00000080;\n  border-radius: 1em;\n  padding: 1em;\n}\np {\n  font-size: 0.7em;\n}\nh2 {\n  color: #f61;\n  margin: 0 0 0.7em;\n}\na,\nli {\n  cursor: pointer;\n  margin-bottom: 0.5em;\n  text-decoration: none;\n  border-bottom: 3px solid #00000000;\n}\nh2,\na:hover,\nli:hover {\n  border-bottom: 3px solid;\n}\nmain,\nh3,\n.m h4 {\n  display: none;\n}\n',
 ), "data:image/svg+xml;base64," + btoa('<svg color-interpolation-filters="sRGB" height="1024" width="1024" xmlns="http://www.w3.org/2000/svg"><filter filterUnits="userSpaceOnUse" height="1026" id="a" width="1026" x="0" y="0"><feTurbulence baseFrequency=".007" height="1025" numOctaves="6" stitchTiles="stitch" width="1025" result="z" type="fractalNoise" x="1" y="1"/><feTile height="1024" width="1024" x="-1" y="-1"/><feTile/><feDiffuseLighting diffuseConstant="4" lighting-color="red" surfaceScale="5"><feDistantLight azimuth="270" elevation="5"/></feDiffuseLighting><feTile height="1024" width="1024" x="1" y="1"/><feTile result="x"/><feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 1" in="z"/><feTile height="1024" width="1024" x="1" y="1"/><feTile result="z"/><feTurbulence baseFrequency=".01" height="1024" numOctaves="5" stitchTiles="stitch" width="1024"/><feColorMatrix values="0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1"/><feBlend in2="x" mode="screen"/><feBlend in2="z" mode="screen"/></filter><rect filter="url(#a)" height="100%" width="100%"/></svg>',
-)), Z = NO_INLINE((b, e, g, h = 0) => 255 * h << 24 | 255 * g << 16 | 255 * e << 8 | 255 * b), E = hC.getContext("webgl2");
+)), Z = NO_INLINE((b, e, g, h = 0) => 255 * h << 24 | 255 * g << 16 | 255 * e << 8 | 255 * b), E = hC.getContext("webgl2", {powerPreference:"high-performance",});
 for (const b in E) {
   E[b[0] + [...b].reduce((e, g, h) => (e * h + g.charCodeAt(0)) % 434, 0).toString(36)] = E[b];
 }
@@ -707,7 +707,7 @@ setTimeout(() => {
       [4, -0.4].map(D => r(p(6), d.translate(7 * f - 100, D, 7 * n + 55).scale(1.3, .5, 1.3), Z(.4, .2, .2, .8),));
     }), ab(7, f => {
       r(p((23 * f + 1) % 5 + 5, 0, .55), d.translate(5 * Math.sin(f) - 101 + f, -2.3 - f, 44.9 - 2.8 * f).scaleSelf(5 + f / 2, 1 + f / 6, 5 + f / 3,), Z(.5 - f / 17, .5 - (1 & f) / 9, .6, .3),);
-    }), r(p(M), d.translate(-87, -9.5, 24).scale(7, 1, 3), Z(.4, .5, .6, .4)), r(p(4), d.translate(-86, -9.2, 27).scale(5, 1, 5), Z(.5, .6, .7, .3)), r(p(18, 1), d.translate(-86, -9, 31).scale(1.5, 1, 1.5), Z(.3, .3, .4, .1)), cc(d.translate(-86, -7.5, 31)), u(f => {
+    }), r(p(M), d.translate(-87, -9.5, 24).scale(7, 1, 3), Z(.4, .5, .6, .4)), r(p(4), d.translate(-86, -9.2, 27).scale(5, 1, 5), Z(.5, .6, .7, .3)), r(p(12, 1), d.translate(-86, -9, 31).scale(1.5, 1, 1.5), Z(.3, .3, .4, .1)), cc(d.translate(-86, -7.5, 31)), u(f => {
       f.h = () => d.translate(0, 3.5 * (1 - Ua(G[6].g, G[7].g)) + Xa(G[7].i, G[6].i) * Math.sin(a) * 5,);
       [0, 12, 24].map(n => r(p(M), d.translate(n - 76.9, n / -13 - 10, 24).scale(2.8, 1.5, 3), Z(.2, .5, .6, .2),));
     }), u(f => {
@@ -722,8 +722,8 @@ setTimeout(() => {
       dc(d.translate(-39.1, -0.3, 17).rotate(0, 0, 10), ...tb(15).map(({x:n, z:D}) => [3 * n, 3 * D, 1.2]),);
     }), M.map(({x:f, z:n}) => {
       q = d.translate(9 * f - 38.9, -7.3, 11 * n + 17);
-      r(p(18, 1), q.scale(1, 4), Z(.25, .25, .25, 1));
-      [1.5, 8].map(D => r(p(18, 1), q.translate(0, D - 4).scale(1.5, .5, 1.5), Z(.6, .6, .6, .3)));
+      r(p(14, 1), q.scale(1, 4), Z(.25, .25, .25, 1));
+      [1.5, 8].map(D => r(p(17, 1), q.translate(0, D - 4).scale(1.5, .5, 1.5), Z(.6, .6, .6, .3)));
     }), r(L(J(bc(l(p(6), d.translate(0, 0, -36).scale(15, 1.2, 15), Z(.7, .7, .7, .3),), l(p(M), d.translate(0, 0, -18).scale(4, 1.2, 6), Z(.45, .4, .6, .3),),), ...ab(6, f => ab(6, n => l(p(6), d.translate(4.6 * n - 12 + 2 * (1 & f), 0, 4.6 * f - 50 + 2 * Math.sin(4 * n)).scale(2, 5, 2,), Z(.7, .7, .7, .3),))).flat(),),), d.translate(-38.9, -11.3, 17),), dc(d.translate(-38.9, -8.4, -21), [-7, -2.5, 6], [6, -3, 6], [0, -5, 7]), r(p(5), d.translate(-84, -2, 85).scale(4, .8, 4).rotate(0, 10), Z(.8, 
     .1, .25, .4),), cc(d.translate(-84, -0.5, 85).rotate(0, 45)), u(f => {
       f.h = () => B(-123, 1.4, 55 + -65 * Ia);
@@ -766,42 +766,42 @@ setTimeout(() => {
       };
       r(L(J(l(p(10), d.scale(6, 2, 6), Z(.1, .6, .5, .3)), l(p(10), d.scale(3.3, 6, 3.3), Z(.1, .6, .5, .5)),),),);
       q = d.translate(-7.5).rotate(0, 90);
-      r(p(15), q.scale(3, 2.3, 3), Z(.4, .4, .4, .3));
+      r(p(15, 1), q.scale(3, 2.3, 3), Z(.4, .4, .4, .3));
       r(p(10), q.scale(2, 2.5, 2), Z(.3, .8, .7, .3));
       r(p(5), q.scale(1, 3), Z(.5, .5, .5, .5));
       cc(q.translate(0, 3.4).rotate(0, 180));
       [-1, 1].map(n => r(t, d.rotate(90 * -n, 180, 90).translate(0, 5).rotate(0, 0, 40).scale(1.3, 10, 1.3), Z(1, 1, .8, .2),));
       dc(d.translate(-5, 4), [0, -1.2, 1.7], [0, 1.2, 1.7]);
     }), [-1, 1].map(f => {
-      r(p(15, 1), d.translate(-7.5 * f - 100, 3.7, 96).scale(.8, 4, .8), Z(.6, .24, .2, .5),);
+      r(p(12, 1), d.translate(-7.5 * f - 100, 3.7, 96).scale(.8, 4, .8), Z(.6, .24, .2, .5),);
       [7.2, 1.5].map(n => r(p(15, 1), d.translate(-7.5 * f - 100, n + .7, 96).scale(1.1, .5, 1.1), Z(.5, .24, .2, .4),));
       r(t, d.translate(-5 * f - 100, 1.7, 114.5).scale(1.2, 10, 1.2).rotate(0, 90 * f - 90), Z(1, 1, .8),);
-      r(L(J(l(p(M), d.translate(-4 * f, 3.5, -0.5).scale(4, 4, .7), Z(.5, .5, .5, .4),), l(p(M), d.scale(3, 3, 10), Z(.6, .24, .2, .5)), l(p(30, 1), d.translate(0, 3, -5).scale(3, 4, 10).rotate(90, 0), Z(.6, .24, .2, .5),), l(p(5), d.translate(-5.3 * f, 7).rotate(90, 0).scale(1.7, 5, 1.7), Z(.6, .24, .2, .5),), l(p(5), d.translate(-5.3 * f, 3.8).rotate(90, 0, 35).scale(.75, 5, .75), Z(.6, .24, .2, .5),),),), d.translate(f - 100, .7, 97),);
+      r(L(J(l(p(M), d.translate(-4 * f, 3.5, -0.5).scale(4, 4, .7), Z(.5, .5, .5, .4),), l(p(M), d.scale(3, 3, 10), Z(.6, .24, .2, .5)), l(p(28, 1), d.translate(0, 3, -5).scale(3, 4, 10).rotate(90, 0), Z(.6, .24, .2, .5),), l(p(5), d.translate(-5.3 * f, 7).rotate(90, 0).scale(1.7, 5, 1.7), Z(.6, .24, .2, .5),), l(p(5), d.translate(-5.3 * f, 3.8).rotate(90, 0, 35).scale(.75, 5, .75), Z(.6, .24, .2, .5),),),), d.translate(f - 100, .7, 97),);
     }), u(f => {
       f.h = () => d.translate(-100, .6 - 6 * G[12].g, 96.5).scale(.88, 1.2);
       r(w);
-    }), [...l(p(28, 1), d.scale(8, 1, 8), Z(.45, .45, .45, .2)), ...l(p(5), d.translate(0, 1).scale(1, .2), Z(.3, .3, .3, .2)),]);
+    }), [...l(p(25, 1), d.scale(8, 1, 8), Z(.45, .45, .45, .2)), ...l(p(5), d.translate(0, 1).scale(1, .2), Z(.3, .3, .3, .2)),]);
     u(f => {
       f.h = () => d.translate(-80, 1, 106).rotate(0, 40 + ya);
-      r(L(J(l(p(28, 1), d.scale(8, 1, 8), Z(.45, .45, .45, .2)), l(p(M), d.translate(0, 0, -5.5).scale(1.5, 3, 2.5), Z(.45, .45, .45, .2),),),),);
+      r(L(J(l(p(25, 1), d.scale(8, 1, 8), Z(.45, .45, .45, .2)), l(p(M), d.translate(0, 0, -5.5).scale(1.5, 3, 2.5), Z(.45, .45, .45, .2),),),),);
       r(p(8), d.translate(0, 2).scale(3, 1.5, 3), Z(.7, .7, .7, .1));
       r(p(5), d.translate(0, 2).scale(1, 2), Z(.3, .3, .3, .2));
       dc(d.translate(0, 3), ...tb(10).map(({x:n, z:D}) => [5.6 * n, 5.6 * D, 2.5]),);
     });
     u(f => {
       f.h = () => d.translate(-64, 1, 106).rotate(0, za);
-      r(L(J(l(p(28, 1), d.translate(0, 2).scale(8, 1, 8), Z(.35, 0, 0, .3),), l(p(M), d.scale(9, 5, 2), Z(.3, 0, 0, .3)),),),);
+      r(L(J(l(p(25, 1), d.translate(0, 2).scale(8, 1, 8), Z(.35, 0, 0, .3),), l(p(M), d.scale(9, 5, 2), Z(.3, 0, 0, .3)),),),);
       r(z);
       [-1, 1].map(n => r(t, d.rotate(0, 90).translate(-5 * n, 1, -0.5).scale(1.2, 10, 1.2).rotate(0, 90 * n + 90), Z(1, 1, .8),));
     });
     u(f => {
       f.h = () => d.translate(-48, 1, 106).rotate(0, 180 - za);
-      r(L(J(l(p(30, 1), d.translate(0, 2).scale(8, 1, 8), Z(.35, 0, 0, .3),), l(p(M), d.translate(7).scale(9, 5, 2), Z(.3, 0, 0, .3)), l(p(M), d.translate(0, 0, 7).scale(2, 5, 9), Z(.3, 0, 0, .3),),),),);
+      r(L(J(l(p(25, 1), d.translate(0, 2).scale(8, 1, 8), Z(.35, 0, 0, .3),), l(p(M), d.translate(7).scale(9, 5, 2), Z(.3, 0, 0, .3)), l(p(M), d.translate(0, 0, 7).scale(2, 5, 9), Z(.3, 0, 0, .3),),),),);
       r(z);
     });
     u(f => {
       f.h = () => d.translate(-48, 1, 90).rotate(0, 270 + za);
-      r(L(J(l(p(30, 1), d.translate(0, 2).scale(8, 1, 8), Z(.35, 0, 0, .3),), l(p(M), d.translate(7).scale(9, 5, 2), Z(.3, 0, 0, .3)), l(p(M), d.translate(0, 0, -7).scale(2, 5, 9), Z(.3, 0, 0, .3),),),),);
+      r(L(J(l(p(25, 1), d.translate(0, 2).scale(8, 1, 8), Z(.35, 0, 0, .3),), l(p(M), d.translate(7).scale(9, 5, 2), Z(.3, 0, 0, .3)), l(p(M), d.translate(0, 0, -7).scale(2, 5, 9), Z(.3, 0, 0, .3),),),),);
       r(z);
     });
     r(p(M), d.translate(-56, 1, 106).scale(.7, .8, 2.5), Z(.7, .7, .7, .2));
@@ -867,10 +867,10 @@ setTimeout(() => {
     r(p(6), d.scale(.77, 1, .77), Z(1, .3, .5));
   }, 0);
   Oa = u(() => {
-    r(vb(40, 30, (v, x, w) => {
-      const A = x / 30, P = .05 * v * Math.PI, z = A ** .6 * Math.PI / 2;
-      v = A * A * Math.sin(v * Math.PI * .35) / 4;
-      return 29 === x ? {x:w.D = 0, y:-0.5, z:0,} : {x:Math.cos(P) * Math.sin(z), y:Math.cos(A * Math.PI) - A - v, z:Math.sin(P) * Math.sin(z) + Math.sin(v * Math.PI * 2) / 4,};
+    r(vb(30, 25, (v, x, w) => {
+      const A = x / 25, P = v * Math.PI * 2 / 30, z = A ** .6 * Math.PI / 2;
+      v = A * A * Math.sin(v * Math.PI * 14 / 30) / 4;
+      return 24 === x ? {x:w.D = 0, y:-0.5, z:0,} : {x:Math.cos(P) * Math.sin(z), y:Math.cos(A * Math.PI) - A - v, z:Math.sin(P) * Math.sin(z) + Math.sin(v * Math.PI * 2) / 4,};
     }), d.scale3d(.7), Z(1, 1, 1),);
     [-1, 1].map(v => r(vb(15), d.translate(.16 * v, .4, -0.36).scale3d(.09)));
   }, 0);
