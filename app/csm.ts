@@ -15,7 +15,7 @@ export const csm_buildMatrix = /* @__PURE__ */ (
   nearPlane: number,
   farPlane: number,
   zMultiplier: number,
-): Float32Array => {
+) => {
   const roundingRadius = (farPlane - nearPlane) * 1.1;
 
   const projViewInverse = new DOMMatrix(mat_perspective(nearPlane, farPlane)).multiplySelf(camera_view).invertSelf();
@@ -63,6 +63,5 @@ export const csm_buildMatrix = /* @__PURE__ */ (
   return identity
     .scale(2 / (right - left), 2 / (top - bottom), 2 / (near - far))
     .translateSelf((right + left) / -2, (top + bottom) / -2, (near + far) / 2)
-    .multiplySelf(lightViewTranslated)
-    .toFloat32Array();
+    .multiplySelf(lightViewTranslated);
 };

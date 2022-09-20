@@ -141,7 +141,13 @@ export const plane_fromPolygon = /* @__PURE__ */ (polygon: readonly Vec3In[]): P
   return { x, y, z, w: x * a.x + y * a.y + z * a.z };
 };
 
-export const writeMatrixToArray = (output: Float32Array | number[], index: number, $matrix: DOMMatrixReadOnly) => {
+export const float32Array16Temp0 = new Float32Array(16);
+
+export const writeMatrixToArray = (
+  $matrix: DOMMatrixReadOnly,
+  output: Float32Array | number[] = float32Array16Temp0,
+  index: number = 0,
+) => {
   index *= 16;
   output[index++] = $matrix.m11;
   output[index++] = $matrix.m12;
@@ -159,4 +165,5 @@ export const writeMatrixToArray = (output: Float32Array | number[], index: numbe
   output[index++] = $matrix.m42;
   output[index++] = $matrix.m43;
   output[index] = $matrix.m44;
+  return output;
 };

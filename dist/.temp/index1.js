@@ -82,7 +82,9 @@ const plane_fromPolygon = polygon => {
   };
 };
 
-const writeMatrixToArray = (output, index2, $matrix) => {
+const float32Array16Temp0 = new Float32Array(16);
+
+const writeMatrixToArray = ($matrix, output = float32Array16Temp0, index2 = 0) => {
   index2 *= 16;
   output[index2++] = $matrix.m11;
   output[index2++] = $matrix.m12;
@@ -100,6 +102,7 @@ const writeMatrixToArray = (output, index2, $matrix) => {
   output[index2++] = $matrix.m42;
   output[index2++] = $matrix.m43;
   output[index2] = $matrix.m44;
+  return output;
 };
 
 const camera_position = {
@@ -242,7 +245,7 @@ const csm_buildMatrix = (camera_view, nearPlane, farPlane, zMultiplier) => {
     (right + left) / -2,
     (top + bottom) / -2,
     (near + far) / 2,
-  ).multiplySelf(lightViewTranslated).toFloat32Array();
+  ).multiplySelf(lightViewTranslated);
 };
 
 let currentEditModel;
@@ -908,10 +911,8 @@ const newSoul = (transform, ...walkingPath) => {
         );
         prevX = soulX;
         prevZ = soulZ;
-        const soulPos = (soul.$matrix = transform.multiply(
-          parentModel.$matrix.translate(soulX, 0, soulZ).rotateSelf(0, lookAngle).skewXSelf(
-            /* @__PURE__ */ 7 * Math.sin(2 * gameTime),
-          ).skewYSelf(/* @__PURE__ */ 7 * Math.sin(1.4 * gameTime)),
+        const soulPos = (soul.$matrix = parentModel.$matrix.multiply(
+          transform.translate(soulX, 0, soulZ).rotateSelf(0, lookAngle, /* @__PURE__ */ 7 * Math.sin(1.7 * gameTime)),
         )).transformPoint();
         if (1.5 > vec3_distance(soulPos, player_position_final)) {
           soul.$value = 1;
@@ -1460,8 +1461,8 @@ const buildWorld = () => {
         identity.translate(-38.9, -11.3, 17),
       );
       newSoul(
-        identity.translate(-38.9, -.3, 17).rotate(0, 0, 10),
-        ...polygon_regular(15).map(({ x, z }) => [3 * x, 3 * z, 1.5]),
+        identity.translate(-39.1, -.3, 17).rotate(0, 0, 10),
+        ...polygon_regular(15).map(({ x, z }) => [3 * x, 3 * z, 1.2]),
       );
     });
     GQuad.map(({ x, z }) => {
@@ -1494,7 +1495,7 @@ const buildWorld = () => {
       ),
       identity.translate(-38.9, -11.3, 17),
     );
-    newSoul(identity.translate(-38.9, -8.4, -21), [-5, -2, 8], [5, -2, 8], [0, -5, 7], [1, 4, 2.6]);
+    newSoul(identity.translate(-38.9, -8.4, -21), [-7, -2.5, 6], [6, -3, 6], [0, -5, 7]);
     meshAdd(cylinder(5), identity.translate(-84, -2, 85).scale(4, .8, 4).rotate(0, 10), material(.8, .1, .25, .4));
     newLever(identity.translate(-84, -.5, 85).rotate(0, 45));
     newModel(model => {
@@ -2004,23 +2005,23 @@ const worldMatricesBuffer = new Float32Array(624);
 const renderModels = (worldMatrixLoc, renderPlayer, isCollider) => {
   if (mainMenuVisible) {
     const matrix = identity.rotate(0, /* @__PURE__ */ 40 * Math.sin(absoluteTime) - 70);
-    for (const { $modelId } of playerModels) writeMatrixToArray(worldMatricesBuffer, $modelId - 1, matrix);
+    for (const { $modelId } of playerModels) writeMatrixToArray(matrix, worldMatricesBuffer, $modelId - 1);
     gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer);
     gl["d97"](4, playerModels[2].$vertexEnd - playerModels[0].$vertexBegin, 5123, 2 * playerModels[0].$vertexBegin);
     return;
   }
   for (const { $kind, $modelId: $modelId1, $matrix } of allModels) {
-    $kind && writeMatrixToArray(worldMatricesBuffer, $modelId1 - 1, $matrix);
+    $kind && writeMatrixToArray($matrix, worldMatricesBuffer, $modelId1 - 1);
   }
   gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer);
   gl["d97"](4, (renderPlayer ? playerModels[2].$vertexEnd : playerModels[0].$vertexBegin) - 3, 5123, 6);
   for (let i = 0; levers.length > i; ++i) {
-    writeMatrixToArray(worldMatricesBuffer, i, levers[i].$matrix);
+    writeMatrixToArray(levers[i].$matrix, worldMatricesBuffer, i);
     worldMatricesBuffer[16 * i + 15] = 1 - levers[i].$lerpValue;
   }
   gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer);
   gl["das"](4, leverModel.$vertexEnd - leverModel.$vertexBegin, 5123, 2 * leverModel.$vertexBegin, levers.length);
-  for (let i1 = 0; 13 > i1; ++i1) writeMatrixToArray(worldMatricesBuffer, i1, souls[i1].$matrix);
+  for (let i1 = 0; 13 > i1; ++i1) writeMatrixToArray(souls[i1].$matrix, worldMatricesBuffer, i1);
   const soulModelToRender = isCollider ? soulCollisionModel : soulModel;
   gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer);
   gl["das"](
@@ -2312,11 +2313,13 @@ const startMainLoop = groundTextureImage => {
       gl["uae"](
         collisionShader("b"),
         !1,
-        identity.rotate(0, 180).invertSelf().translateSelf(
-          -player_position_final.x,
-          -player_position_final.y,
-          .3 - player_position_final.z,
-        ).toFloat32Array(),
+        writeMatrixToArray(
+          identity.rotate(0, 180).invertSelf().translateSelf(
+            -player_position_final.x,
+            -player_position_final.y,
+            .3 - player_position_final.z,
+          ),
+        ),
       );
       renderModels(collisionShader("c"), 0, 1);
       gl["cbf"](!1, !0, !1, !1);
@@ -2325,8 +2328,9 @@ const startMainLoop = groundTextureImage => {
       gl["uae"](
         collisionShader("b"),
         !1,
-        identity.translate(-player_position_final.x, -player_position_final.y, -player_position_final.z - .3)
-          .toFloat32Array(),
+        writeMatrixToArray(
+          identity.translate(-player_position_final.x, -player_position_final.y, -player_position_final.z - .3),
+        ),
       );
       renderModels(collisionShader("c"), 0, 1);
       gl["cbf"](!0, !0, !0, !0);
@@ -2340,18 +2344,18 @@ const startMainLoop = groundTextureImage => {
     mainShader();
     gl["v5y"](0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
     gl["c4s"](16640);
-    gl["uae"](mainShader("a"), !1, mat_perspective(.3, 177));
-    gl["uae"](mainShader("b"), !1, camera_view.toFloat32Array());
-    gl["ubu"](mainShader("k"), camera_position.x, camera_position.y, camera_position.z);
     csm_render[0]();
     csm_render[1]();
+    gl["uae"](mainShader("a"), !1, mat_perspective(.3, 177));
+    gl["uae"](mainShader("b"), !1, writeMatrixToArray(camera_view));
+    gl["ubu"](mainShader("k"), camera_position.x, camera_position.y, camera_position.z);
     renderModels(mainShader("c"), !player_first_person, 0);
     skyShader();
     gl["ubu"](skyShader("j"), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime);
     mainMenuVisible
       ? gl["ubu"](skyShader("k"), 0, 0, 0)
       : gl["ubu"](skyShader("k"), camera_position.x, camera_position.y, camera_position.z);
-    gl["uae"](skyShader("b"), !1, camera_view.inverse().toFloat32Array());
+    gl["uae"](skyShader("b"), !1, writeMatrixToArray(camera_view.inverse()));
     gl["d97"](4, 3, 5123, 0);
   };
   const collision_buffer = new Uint8Array(65536);
@@ -2386,7 +2390,7 @@ const startMainLoop = groundTextureImage => {
   const collision_renderBuffer = gl["c3z"]();
   const collision_texture = gl["c25"]();
   const csm_render = integers_map(2, csmSplit => {
-    let lightSpaceMatrix;
+    const lightSpaceMatrix = new Float32Array(16);
     const texture = gl["c25"]();
     const frameBuffer = gl["c5w"]();
     const lightSpaceMatrixLoc = mainShader(csmSplit ? "j" : "i");
@@ -2407,7 +2411,7 @@ const startMainLoop = groundTextureImage => {
     gl["t2z"](3553, 10242, 33071);
     return matrix => {
       if (matrix) {
-        lightSpaceMatrix = matrix;
+        writeMatrixToArray(matrix, lightSpaceMatrix);
         gl["b6o"](36160, frameBuffer);
         gl["iay"](36160, [36096]);
         gl["c4s"](256);

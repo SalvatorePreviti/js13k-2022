@@ -137,12 +137,8 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]
         prevX = soulX;
         prevZ = soulZ;
 
-        const soulPos = (soul.$matrix = transform.multiply(
-          parentModel.$matrix
-            .translate(soulX, 0, soulZ)
-            .rotateSelf(0, lookAngle)
-            .skewXSelf(Math.sin(gameTime * 2) * 7)
-            .skewYSelf(Math.sin(gameTime * 1.4) * 7),
+        const soulPos = (soul.$matrix = parentModel.$matrix.multiply(
+          transform.translate(soulX, 0, soulZ).rotateSelf(0, lookAngle, Math.sin(gameTime * 1.7) * 7),
         )).transformPoint();
 
         if (vec3_distance(soulPos, player_position_final) < SOUL_SENSITIVITY_RADIUS) {

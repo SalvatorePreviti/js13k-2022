@@ -733,8 +733,8 @@ export const buildWorld = () => {
 
       // SOUL 5 - soul over the central sculpture/monument
       newSoul(
-        identity.translate(-38.9, -0.3, 17).rotate(0, 0, 10),
-        ...polygon_regular(15).map(({ x, z }) => [x * 3, z * 3, 1.5]),
+        identity.translate(-39.1, -0.3, 17).rotate(0, 0, 10),
+        ...polygon_regular(15).map(({ x, z }) => [x * 3, z * 3, 1.2]),
       );
     });
 
