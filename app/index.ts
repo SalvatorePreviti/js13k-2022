@@ -20,7 +20,6 @@ setTimeout(() => {
   const image = new Image();
 
   if (DEBUG) {
-    console.time("SVG load");
     console.time("song load");
     console.time("load");
   }
@@ -49,31 +48,19 @@ setTimeout(() => {
     onThingLoaded();
   };
 
-  image.onload = image.onerror = () => {
-    onThingLoaded();
+  setTimeout(() => {
+    buildWorld();
     if (DEBUG) {
-      console.timeEnd("SVG load");
+      for (let i = 0; i < song_numChannels; ++i) {
+        onThingLoaded();
+      }
+    } else {
+      setTimeout(asyncLoadSongChannels);
     }
-  };
+  });
+
+  image.onload = image.onerror = onThingLoaded;
   image.src = groundTextureSvg;
-
-  if (DEBUG) {
-    for (let i = 0; i < song_numChannels; ++i) {
-      onThingLoaded();
-    }
-  } else {
-    setTimeout(asyncLoadSongChannels, 9);
-  }
-
-  if (DEBUG) {
-    console.time("buildWorld");
-  }
-
-  buildWorld();
-
-  if (DEBUG) {
-    console.timeEnd("buildWorld");
-  }
 
   if (DEBUG) {
     console.timeEnd("boot");

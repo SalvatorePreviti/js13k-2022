@@ -4,6 +4,8 @@ const DEG_TO_RAD = Math.PI / 180;
 
 const identity = new DOMMatrix;
 
+const float32Array16Temp = new Float32Array(16);
+
 const min = (a, b) => b > a ? a : b;
 
 const max = (a, b) => a > b ? a : b;
@@ -62,8 +64,6 @@ const plane_fromPolygon = polygon => {
         w: x * a.x + y * a.y + z * a.z
     };
 };
-
-const float32Array16Temp = new Float32Array(16);
 
 const matrixToArray = ($matrix, output = float32Array16Temp, index2 = 0) => {
     index2 *= 16;
@@ -463,15 +463,15 @@ let secondBoatLerp = 0;
 
 let _globalTime;
 
-const lerpDamp = (from, to, speed) => lerp(from, to, 1 - /* @__PURE__ */ Math.exp(-speed * gameTimeDelta));
-
 const LOCAL_STORAGE_SAVED_GAME_KEY = "DanteSP22";
-
-const getItemValue = ({$value}) => $value;
 
 const levers = [];
 
 const souls = [];
+
+const lerpDamp = (from, to, speed) => lerp(from, to, 1 - /* @__PURE__ */ Math.exp(-speed * gameTimeDelta));
+
+const getItemValue = ({$value}) => $value;
 
 const showMessage = (message, duration) => {
     if (!game_completed) {
@@ -786,8 +786,8 @@ const newSoul = (transform, ...walkingPath) => {
     let lookAngle = 0;
     let prevX = 0;
     let prevZ = 0;
-    let velocity = 3;
     let wasInside = 1;
+    let velocity = 3;
     const soul = {
         $value: 0,
         _update: () => {
@@ -1229,13 +1229,13 @@ const renderModels = (worldMatrixLoc, renderPlayer, isCollider) => {
 };
 
 const startMainLoop = groundTextureImage => {
+    let _gamepadInteractPressed = !1;
     let currentModelIdTMinus1 = 0;
     let currentModelId = 0;
-    let player_respawned = 1;
     let player_look_angle_target = 0;
     let player_look_angle = 0;
     let player_legs_speed = 0;
-    let _gamepadInteractPressed = !1;
+    let player_respawned = 1;
     let oldModelId;
     let player_has_ground;
     let player_gravity;
@@ -1707,11 +1707,11 @@ setTimeout((() => {
     };
     let thingsToLoad = 6;
     const image = new Image;
-    image.onload = image.onerror = () => {
-        onThingLoaded();
-    };
+    setTimeout((() => {
+        buildWorld();
+        setTimeout(asyncLoadSongChannels);
+    }));
+    image.onload = image.onerror = onThingLoaded;
     image.src = groundTextureSvg;
-    setTimeout(asyncLoadSongChannels, 9);
-    buildWorld();
 }));
 //# sourceMappingURL=index.js.map

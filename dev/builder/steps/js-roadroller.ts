@@ -12,7 +12,7 @@ import { jsTdeMinify } from "./js-tde-minify";
  * you can try to set LEVEL to 2 if you want to squeeze as much bytes as possible.
  * Is much slower.
  */
-const LEVEL = 2;
+const LEVEL = 1;
 
 export async function jsRoadroller(html: string): Promise<string> {
   return devLog.timed(
@@ -21,17 +21,20 @@ export async function jsRoadroller(html: string): Promise<string> {
       const dom = new JSDOM(stripUtf8BOM(html));
 
       const scriptsTags = Array.from(dom.window.document.querySelectorAll("script"));
-      let js = scriptsTags.map((scriptTag) => `(()=>{${scriptTag.textContent}})()`).join("\n");
+
+      const js = scriptsTags
+        .map((scriptTag) => `(()=>{${jsRemoveEndingSemicolons(scriptTag.textContent)}})()`)
+        .join("\n");
 
       // js = await jsUglify(js, {
-      //   varify: false,
+      //   varify: true,
       //   final: true,
       //   computed_props: true,
-      //   inline: true,
+      //   inline: false,
       //   join_vars: true,
       //   reduce_vars: true,
       //   sequences: true,
-      //   mangle: true,
+      //   mangle: false,
       // });
 
       // js = await jsTerser(js, {
@@ -42,8 +45,7 @@ export async function jsRoadroller(html: string): Promise<string> {
       //   sequences: true,
       // });
 
-      js = await jsTdeMinify(js);
-      js = jsRemoveEndingSemicolons(js);
+      // js = await jsTdeMinify(js);
 
       scriptsTags.forEach((scriptTag) => scriptTag.remove());
 

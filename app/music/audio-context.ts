@@ -1,13 +1,11 @@
-import { soundbox_mixbuffer } from "./music-player";
 import { song_numWords } from "./song";
+import { soundbox_mixbuffer } from "./music-player";
 
 export const audioContext = new AudioContext();
 
 export const songAudioSource = audioContext.createBufferSource();
 
 export const loadSong = () => {
-  // set the buffer in the AudioBufferSourceNode
-  // Create a new AudioBuffer
   const buffer = audioContext.createBuffer(2, song_numWords / 2, 44100);
 
   for (let i = 0; i < 2; i++) {

@@ -31,6 +31,9 @@ export let soulCollisionModel: Model;
 export let playerModels: [Model, Model, Model];
 
 export const buildWorld = () => {
+  if (DEBUG) {
+    console.time("buildWorld");
+  }
   const HORN_STACKS = 10;
 
   const hornPolygons = ((): Polygon[] => {
@@ -1459,6 +1462,7 @@ export const buildWorld = () => {
   }, MODEL_KIND_MESH);
 
   if (DEBUG) {
+    console.timeEnd("buildWorld");
     console.log(levers.length + " levers");
   }
 };

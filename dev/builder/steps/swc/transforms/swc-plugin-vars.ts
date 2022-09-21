@@ -219,47 +219,49 @@ function variableDeclarationSortCompare(
     return c;
   }
 
-  // if (a.init && b.init) {
-  // if (a.init.type === "NumericLiteral" && b.init.type === "NumericLiteral") {
-  //   return a.init.value < b.init.value ? -1 : a.init.value > b.init.value ? 1 : 0;
-  // }
-  // if (a.init.type === "BooleanLiteral" && b.init.type === "BooleanLiteral") {
-  //   return a.init.value < b.init.value ? -1 : a.init.value > b.init.value ? 1 : 0;
-  // }
-  // if (a.init.type === "StringLiteral" && b.init.type === "StringLiteral") {
-  //   return a.init.value.localeCompare(b.init.value);
-  // }
-  // c = constExpressionOrdering(a.init, false) - constExpressionOrdering(b.init, false);
-  // if (c) {
-  //   return c;
-  // }
-  // c = constExpressionOrdering(a.init, true) - constExpressionOrdering(b.init, true);
-  // if (c) {
-  //   return c;
-  // }
-  // if (a.init.type === "ArrayExpression" && b.init.type === "ArrayExpression") {
-  //   c = a.init.elements.length - b.init.elements.length;
-  //   if (c) {
-  //     return c;
-  //   }
-  //   for (let i = 0; i < a.init.elements.length; i++) {
-  //     const aexpr = (a.init.elements[i]! as any).expression;
-  //     const bexpr = (b.init.elements[i]! as any).expression;
-  //     if (aexpr && bexpr) {
-  //       c = constExpressionOrdering(aexpr, false) - constExpressionOrdering(bexpr, false);
-  //       if (c) {
-  //         return c;
-  //       }
-  //     }
-  //     if (aexpr) {
-  //       return 1;
-  //     }
-  //     if (bexpr) {
-  //       return -1;
-  //     }
-  //   }
-  // }
-  // }
+  if (a.init && b.init) {
+    c = constExpressionOrdering(a.init, true) - constExpressionOrdering(b.init, true);
+    if (c) {
+      return c;
+    }
+
+    if (a.init.type === "NumericLiteral" && b.init.type === "NumericLiteral") {
+      return a.init.value < b.init.value ? -1 : a.init.value > b.init.value ? 1 : 0;
+    }
+    if (a.init.type === "BooleanLiteral" && b.init.type === "BooleanLiteral") {
+      return a.init.value < b.init.value ? -1 : a.init.value > b.init.value ? 1 : 0;
+    }
+    if (a.init.type === "StringLiteral" && b.init.type === "StringLiteral") {
+      return a.init.value.localeCompare(b.init.value);
+    }
+
+    // c = constExpressionOrdering(a.init, true) - constExpressionOrdering(b.init, true);
+    // if (c) {
+    //   return c;
+    // }
+    // if (a.init.type === "ArrayExpression" && b.init.type === "ArrayExpression") {
+    //   c = a.init.elements.length - b.init.elements.length;
+    //   if (c) {
+    //     return c;
+    //   }
+    //   for (let i = 0; i < a.init.elements.length; i++) {
+    //     const aexpr = (a.init.elements[i]! as any).expression;
+    //     const bexpr = (b.init.elements[i]! as any).expression;
+    //     if (aexpr && bexpr) {
+    //       c = constExpressionOrdering(aexpr, false) - constExpressionOrdering(bexpr, false);
+    //       if (c) {
+    //         return c;
+    //       }
+    //     }
+    //     if (aexpr) {
+    //       return 1;
+    //     }
+    //     if (bexpr) {
+    //       return -1;
+    //     }
+    //   }
+    // }
+  }
 
   if ("span" in a && "span" in b) {
     return c || a.span.start - b.span.start;
@@ -270,48 +272,48 @@ function variableDeclarationSortCompare(
   return 0;
 }
 
-// function constExpressionOrdering(
-//   expression: Expression | babelTypes.Expression | babelTypes.PrivateName,
-//   recursive: boolean,
-// ): number {
-//   switch (expression.type) {
-//     case "NullLiteral":
-//       return 1;
-//     case "BooleanLiteral":
-//       return 2;
-//     case "NumericLiteral":
-//       return 3;
-//     case "BigIntLiteral":
-//       return 4;
-//     case "StringLiteral":
-//       return 5;
-//     case "ArrayExpression":
-//       return 6;
-//     case "ObjectExpression":
-//       return 7;
-//     case "RegExpLiteral":
-//       return 8;
-//     case "MemberExpression":
-//       return 9;
-//     case "CallExpression":
-//       return 10;
-//     case "Identifier":
-//       return 11;
-//     case "ClassExpression":
-//       return 12;
-//     case "FunctionExpression":
-//       return 13;
-//     case "NewExpression":
-//       return 14;
-//     case "ArrowFunctionExpression":
-//       return 15;
-//     case "UnaryExpression":
-//       return recursive ? constExpressionOrdering(expression.argument, true) : 16;
-//     case "BinaryExpression":
-//       return recursive
-//         ? Math.max(constExpressionOrdering(expression.left, true), constExpressionOrdering(expression.right, true))
-//         : 17;
-//     default:
-//       return 100;
-//   }
-// }
+function constExpressionOrdering(
+  expression: Expression | babelTypes.Expression | babelTypes.PrivateName,
+  recursive: boolean,
+): number {
+  switch (expression.type) {
+    case "NullLiteral":
+      return 1;
+    case "BooleanLiteral":
+      return 2;
+    case "NumericLiteral":
+      return 3;
+    case "BigIntLiteral":
+      return 4;
+    case "StringLiteral":
+      return 5;
+    case "ArrayExpression":
+      return 6;
+    case "ObjectExpression":
+      return 7;
+    case "RegExpLiteral":
+      return 8;
+    case "MemberExpression":
+      return 9;
+    case "CallExpression":
+      return 10;
+    case "Identifier":
+      return 11;
+    case "ClassExpression":
+      return 12;
+    case "FunctionExpression":
+      return 13;
+    case "NewExpression":
+      return 14;
+    case "ArrowFunctionExpression":
+      return 15;
+    case "UnaryExpression":
+      return recursive ? constExpressionOrdering(expression.argument, true) : 16;
+    case "BinaryExpression":
+      return recursive
+        ? Math.max(constExpressionOrdering(expression.left, true), constExpressionOrdering(expression.right, true))
+        : 17;
+    default:
+      return 100;
+  }
+}
