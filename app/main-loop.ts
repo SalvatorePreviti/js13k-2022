@@ -86,8 +86,6 @@ const PLAYER_LEGS_VELOCITY = 7 * 1.3;
 
 const COLLISION_TEXTURE_SIZE = 128;
 
-// let debug2dctx: CanvasRenderingContext2D | null | undefined;
-
 export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   let oldModelId: number | undefined;
   let currentModelIdTMinus1 = 0;
@@ -110,9 +108,9 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   // let _gamepadStartPressed = false;
   let _gamepadInteractPressed = false;
 
-  let camera_player_dir_x: number;
-  let camera_player_dir_y: number;
-  let camera_player_dir_z: number;
+  let camera_lookat_x: number;
+  let camera_lookat_y: number;
+  let camera_lookat_z: number;
 
   const player_respawn = () => {
     const { $parent, $locMatrix } = levers[player_last_pulled_lever]!;
@@ -123,14 +121,13 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     player_position_final.y = player_position_global.y = player_model_y = y;
     player_position_final.z = player_position_global.z = z;
 
+    currentModelIdTMinus1 = currentModelId = $parent.$modelId || 1;
     player_speed = 0;
     player_gravity = 0;
     player_collision_velocity_x = 0;
     player_collision_velocity_z = 0;
     player_has_ground = 0;
-
     player_respawned = 1;
-    currentModelIdTMinus1 = currentModelId = $parent?.$modelId || 1;
   };
 
   const player_collision_modelIdCounter = new Int32Array(256);
@@ -160,13 +157,13 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     const texture = gl.createTexture()!;
     const lightSpaceMatrix: Float32Array = new Float32Array(16);
     const lightSpaceMatrixLoc = mainShader(csmSplit ? uniformName_csm_matrix1 : uniformName_csm_matrix0);
+    gl.uniform1i(mainShader(csmSplit ? uniformName_csm_texture1 : uniformName_csm_texture0), csmSplit);
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, csm_framebuffer);
+
     // Disable rendering to the csm color buffer, we just need the depth buffer
     gl.drawBuffers([gl.NONE]);
     gl.readBuffer(gl.NONE);
-
-    gl.uniform1i(mainShader(csmSplit ? uniformName_csm_texture1 : uniformName_csm_texture0), csmSplit);
 
     gl.activeTexture(gl.TEXTURE0 + csmSplit);
     gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -241,14 +238,52 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
+  const doHorizontalCollisions = () => {
+    for (let y = 32; y < COLLISION_TEXTURE_SIZE; y += 2) {
+      let front = 0;
+      let back = 0;
+      let left = 0;
+      let right = 0;
+      const yindex = y * (COLLISION_TEXTURE_SIZE * 4);
+      for (let x = y & 1; x < COLLISION_TEXTURE_SIZE; x += 2) {
+        const i1 = yindex + x * 4;
+        const i2 = yindex + (COLLISION_TEXTURE_SIZE - 1 - x) * 4;
+        const dist1 = collision_buffer[i1]! / 255;
+        const dist2 = collision_buffer[i2 + 1]! / 255;
+        const t = 1 - abs(2 * (x / (COLLISION_TEXTURE_SIZE - 1)) - 1);
+
+        if (x > 10 && x < COLLISION_TEXTURE_SIZE - 10) {
+          front = max(front, max(dist1 * t, (dist1 * collision_buffer[i2]!) / 255));
+          back = max(back, max(dist2 * t, (dist2 * collision_buffer[i1 + 1]!) / 255));
+        }
+
+        if (x < COLLISION_TEXTURE_SIZE / 2 - 10 || x > COLLISION_TEXTURE_SIZE / 2 + 10) {
+          const xdist = ((1 - t) * max(dist1, dist2)) / 3;
+          if (xdist > 0.001) {
+            if (x < COLLISION_TEXTURE_SIZE / 2 && left < xdist) {
+              left = xdist;
+            } else if (x > COLLISION_TEXTURE_SIZE / 2 && right < xdist) {
+              right = xdist;
+            }
+          }
+        }
+      }
+
+      if (abs(right - left) > abs(player_collision_x)) {
+        player_collision_x = right - left;
+      }
+      if (abs(back - front) > abs(player_collision_z)) {
+        player_collision_z = back - front;
+      }
+    }
+  };
+
   const doVerticalCollisions = () => {
     let maxModelIdCount = 0;
     let nextModelId = 0;
-    player_collision_modelIdCounter.fill(0);
-
     let lines = 0;
     let grav = 0;
-    let hasGround: 0 | 1 = 0;
+    player_collision_modelIdCounter.fill(0);
     for (let y = 0; y < 31; ++y) {
       let up = 0;
       const yindex = y * (COLLISION_TEXTURE_SIZE * 4);
@@ -275,12 +310,12 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
         if (y > 7) {
           lines += y / 15;
         }
-        hasGround = 1;
+        player_has_ground = 1;
       }
     }
 
     if (nextModelId) {
-      hasGround = 1;
+      player_has_ground = 1;
     }
 
     if (player_respawned) {
@@ -294,66 +329,20 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     }
     currentModelIdTMinus1 = nextModelId;
 
-    player_has_ground = hasGround;
-    player_gravity = lerpDamp(player_gravity, hasGround ? 6.5 : 8, 4);
+    player_gravity = lerpDamp(player_gravity, player_has_ground ? 6.5 : 8, 4);
 
     // push up and gravity
     player_position_global.y +=
-      lines / 41 - (hasGround ? 1 : player_gravity) * (grav / 41) * player_gravity * gameTimeDelta;
-  };
-
-  const doHorizontalCollisions = () => {
-    for (let y = 32; y < COLLISION_TEXTURE_SIZE; y += 2) {
-      let front = 0;
-      let back = 0;
-      let left = 0;
-      let right = 0;
-      const yindex = y * (COLLISION_TEXTURE_SIZE * 4);
-      for (let x = y & 1; x < COLLISION_TEXTURE_SIZE; x += 2) {
-        const i1 = yindex + x * 4;
-        const i2 = yindex + (COLLISION_TEXTURE_SIZE - 1 - x) * 4;
-        const dist1 = collision_buffer[i1]! / 255;
-        const dist2 = collision_buffer[i2 + 1]! / 255;
-
-        const t = 1 - abs(2 * (x / (COLLISION_TEXTURE_SIZE - 1)) - 1);
-
-        if (x > 10 && x < COLLISION_TEXTURE_SIZE - 10) {
-          const dist1Opposite = collision_buffer[i2]! / 255;
-          front = max(front, max(dist1 * t, dist1 * dist1Opposite * 2));
-          const dist2Opposite = collision_buffer[i1 + 1]! / 255;
-          back = max(back, max(dist2 * t, dist2 * dist2Opposite));
-        }
-
-        if (x < COLLISION_TEXTURE_SIZE / 2 - 10 || x > COLLISION_TEXTURE_SIZE / 2 + 10) {
-          const xdist = ((1 - t) * max(dist1, dist2)) / 3;
-          if (xdist > 0.001) {
-            if (x < COLLISION_TEXTURE_SIZE / 2 && left < xdist) {
-              left = xdist;
-            } else if (x > COLLISION_TEXTURE_SIZE / 2 && right < xdist) {
-              right = xdist;
-            }
-          }
-        }
-      }
-
-      const dx = right - left;
-      const dz = back - front;
-
-      if (abs(dx) > abs(player_collision_x)) {
-        player_collision_x = dx;
-      }
-      if (abs(dz) > abs(player_collision_z)) {
-        player_collision_z = dz;
-      }
-    }
+      lines / 41 - (player_has_ground ? 1 : player_gravity) * (grav / 41) * player_gravity * gameTimeDelta;
   };
 
   const updatePlayer = () => {
     player_collision_x = 0;
     player_collision_z = 0;
+    player_has_ground = 0;
 
-    NO_INLINE(doVerticalCollisions)();
     NO_INLINE(doHorizontalCollisions)();
+    NO_INLINE(doVerticalCollisions)();
 
     let strafe = touch_movementX + (keyboard_downKeys[KEY_LEFT] ? 1 : 0) + (keyboard_downKeys[KEY_RIGHT] ? -1 : 0);
     let forward = touch_movementY + (keyboard_downKeys[KEY_FRONT] ? 1 : 0) + (keyboard_downKeys[KEY_BACK] ? -1 : 0);
@@ -379,6 +368,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
         (abs(-axes[0]!) > 0.2 ? -axes[0]! : 0) +
         (getGamepadButtonState(GAMEPAD_BUTTON_LEFT) ? 1 : 0) +
         (getGamepadButtonState(GAMEPAD_BUTTON_RIGHT) ? -1 : 0);
+
       forward +=
         (abs(-axes[1]!) > 0.2 ? -axes[1]! : 0) +
         (getGamepadButtonState(GAMEPAD_BUTTON_UP) ? 1 : 0) +
@@ -470,12 +460,9 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     player_position_final.y = y;
     player_position_final.z = z;
 
-    const ydiff = abs(player_model_y - y);
-    player_model_y = lerpDamp(player_model_y, y + 0.1, ydiff * 50 + 5);
-
     if (currentModelId) {
-      player_collision_velocity_x = (player_position_final.x - oldx) / gameTimeDelta;
-      player_collision_velocity_z = (player_position_final.z - oldz) / gameTimeDelta;
+      player_collision_velocity_x = (x - oldx) / gameTimeDelta;
+      player_collision_velocity_z = (z - oldz) / gameTimeDelta;
     }
 
     if (strafe || forward) {
@@ -484,53 +471,44 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     player_look_angle = angle_lerp_degrees(player_look_angle, player_look_angle_target, gameTimeDelta * 8);
     player_legs_speed = lerp(player_legs_speed, amount, gameTimeDelta * 10);
 
+    player_model_y = abs(player_model_y - y) > 0.03 ? y : lerpDamp(player_model_y, y, 2);
+
     if (!DEBUG_CAMERA) {
-      camera_player_dir_x = interpolate_with_hysteresis(
-        camera_player_dir_x,
-        player_position_final.x,
-        0.5,
-        gameTimeDelta,
-      );
-      camera_player_dir_y = interpolate_with_hysteresis(camera_player_dir_y, player_position_final.y, 2, gameTimeDelta);
-      camera_player_dir_z = interpolate_with_hysteresis(
-        camera_player_dir_z,
-        player_position_final.z,
-        0.5,
-        gameTimeDelta,
-      );
+      camera_lookat_x = interpolate_with_hysteresis(camera_lookat_x, x, 0.5, gameTimeDelta);
+      camera_lookat_y = interpolate_with_hysteresis(camera_lookat_y, y, 2, gameTimeDelta);
+      camera_lookat_z = interpolate_with_hysteresis(camera_lookat_z, z, 0.5, gameTimeDelta);
 
       if (player_first_person) {
-        const interpolationSpeed = player_respawned * 200;
-        camera_position.x = lerpDamp(camera_position.x, player_position_final.x, 18 + interpolationSpeed);
-        camera_position.y = lerpDamp(camera_position.y, player_position_final.y + 1.5, 15 + interpolationSpeed);
-        camera_position.z = lerpDamp(camera_position.z, player_position_final.z, 18 + interpolationSpeed);
-        camera_rotation.x = max(min(camera_rotation.x, 87), -87);
+        camera_position.x = lerpDamp(camera_position.x, x, player_respawned * 666 + 18);
+        camera_position.y = lerpDamp(camera_position.y, player_model_y + 1.5, player_respawned * 666 + 18);
+        camera_position.z = lerpDamp(camera_position.z, z, player_respawned * 666 + 18);
       } else {
-        camera_position.x = interpolate_with_hysteresis(camera_position.x, camera_player_dir_x, 1, gameTimeDelta * 2);
+        camera_position.x = interpolate_with_hysteresis(camera_position.x, camera_lookat_x, 1, gameTimeDelta * 2);
         camera_position.y = interpolate_with_hysteresis(
           camera_position.y,
-          camera_player_dir_y + CAMERA_PLAYER_Y_DIST + player_respawned * 15,
+          camera_lookat_y + CAMERA_PLAYER_Y_DIST + player_respawned * 15,
           4,
           gameTimeDelta * 2,
         );
         camera_position.z = interpolate_with_hysteresis(
           camera_position.z,
-          camera_player_dir_z + CAMERA_PLAYER_Z_DIST,
+          camera_lookat_z + CAMERA_PLAYER_Z_DIST,
           1,
           gameTimeDelta * 2,
         );
 
-        const viewDirDiffz = camera_position.z - camera_player_dir_z;
+        const viewDirDiffz = camera_position.z - camera_lookat_z;
         if (abs(viewDirDiffz) > 1) {
-          const viewDirDiffx = camera_position.x - camera_player_dir_x;
-          const viewDirDiffy = camera_position.y - camera_player_dir_y;
+          const viewDirDiffx = camera_position.x - camera_lookat_x;
           camera_rotation.y = 270 + Math.atan2(viewDirDiffz, viewDirDiffx) / DEG_TO_RAD;
-          camera_rotation.x = 90 - Math.atan2(Math.hypot(viewDirDiffz, viewDirDiffx), viewDirDiffy) / DEG_TO_RAD;
+          camera_rotation.x =
+            90 - Math.atan2(Math.hypot(viewDirDiffz, viewDirDiffx), camera_position.y - camera_lookat_y) / DEG_TO_RAD;
         }
       }
-    }
 
-    camera_rotation.y = angle_wrap_degrees(camera_rotation.y);
+      camera_rotation.x = max(min(camera_rotation.x, 87), -87);
+      camera_rotation.y = angle_wrap_degrees(camera_rotation.y);
+    }
   };
 
   const mainLoop = (globalTime: number) => {
@@ -683,9 +661,9 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
   player_respawn();
 
-  camera_position.x = camera_player_dir_x = player_position_final.x;
-  camera_position.y = (camera_player_dir_y = player_position_final.y) + CAMERA_PLAYER_Y_DIST;
-  camera_position.z = (camera_player_dir_z = player_position_final.z) + CAMERA_PLAYER_Z_DIST;
+  camera_position.x = camera_lookat_x = player_position_final.x;
+  camera_position.y = (camera_lookat_y = player_position_final.y) + CAMERA_PLAYER_Y_DIST;
+  camera_position.z = (camera_lookat_z = player_position_final.z) + CAMERA_PLAYER_Z_DIST;
 
   requestAnimationFrame(mainLoop);
 };
