@@ -150,7 +150,7 @@ export const worldStateUpdate = () => {
   }
 };
 
-const updateCollectedSoulsCounter = () =>
+export const updateCollectedSoulsCounter = () =>
   (h3.innerHTML = ["0", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII"][
     (souls_collected_count = souls.reduce((acc, { $value }) => acc + $value, 0))
   ]!);
@@ -174,7 +174,6 @@ export const loadGame = () => {
     }
   }
   firstBoatLerp = clamp01(player_last_pulled_lever);
-  updateCollectedSoulsCounter();
 };
 
 export const saveGame = () => {

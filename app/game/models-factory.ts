@@ -1,4 +1,4 @@
-import { vec3_distance, min, max, angle_lerp_degrees, DEG_TO_RAD, abs, identity, type Vec3Optional } from "../math";
+import { min, max, angle_lerp_degrees, DEG_TO_RAD, abs, identity, type Vec3Optional, vec3_distance } from "../math";
 import { cylinder, polygons_transform, type Polygon } from "../geometry/geometry";
 import {
   levers,

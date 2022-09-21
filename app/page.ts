@@ -11,6 +11,7 @@ import {
   LOCAL_STORAGE_SAVED_GAME_KEY,
   mainMenuVisible,
   setMainMenuVisible,
+  updateCollectedSoulsCounter,
 } from "./game/world-state";
 import { songAudioSource, audioContext } from "./music/audio-context";
 
@@ -67,6 +68,7 @@ export const initPage = () => {
       player_first_person = 0;
       document.body.className = value ? "l m" : "l";
       updateMusicOnState();
+      updateCollectedSoulsCounter();
     }
   };
 

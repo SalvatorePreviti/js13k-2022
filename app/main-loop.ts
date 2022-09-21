@@ -57,6 +57,7 @@ import {
   KEY_LEFT,
   KEY_RIGHT,
   lerpDamp,
+  loadGame,
   mainMenuVisible,
   player_last_pulled_lever,
   worldStateUpdate,
@@ -675,6 +676,8 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
         0,
       );
   });
+
+  loadGame();
 
   worldStateUpdate();
 

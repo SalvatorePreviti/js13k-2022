@@ -12,7 +12,6 @@ import { build_life_the_universe_and_everything } from "./game/level";
 import { startMainLoop } from "./main-loop";
 import { initTriangleBuffers } from "./game/triangle-buffers";
 import { loadStep } from "./load-step";
-import { loadGame } from "./game/world-state";
 import { loadSong } from "./music/music-player";
 import { initPage } from "./page";
 
@@ -26,8 +25,6 @@ loadStep(() => {
 
   const end = () => {
     if (++loadStatus === 2) {
-      loadGame();
-
       if (DEBUG) {
         console.timeEnd("load");
       }

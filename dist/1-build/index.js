@@ -6,6 +6,8 @@ const identity = new DOMMatrix;
 
 const float32Array16Temp = new Float32Array(16);
 
+const integers_map = (n, fn) => Array.from(/* @__PURE__ */ Array(n), ((_, i) => fn(i)));
+
 const min = (a, b) => b > a ? a : b;
 
 const max = (a, b) => a > b ? a : b;
@@ -14,7 +16,7 @@ const abs = n => 0 > n ? -n : n;
 
 const clamp01 = t => 0 > t ? 0 : t > 1 ? 1 : t;
 
-const lerp = (from, to, t) => from + (to - from) * clamp01(t);
+const lerp = (a, b, t) => a + (b - a) * clamp01(t);
 
 const lerpneg = (v, t) => {
     v = clamp01(v);
@@ -33,11 +35,9 @@ const angle_lerp_degrees = (a0, a1, t) => ((a0, a1, t) => {
 
 const interpolate_with_hysteresis = (previous, desired, hysteresis, t) => lerp(previous + (0 > desired - previous ? -1 : 1) * max(0, abs(desired - previous) ** .9 - hysteresis) * t * 2, desired, t / 7);
 
-const integers_map = (n, fn) => Array.from(/* @__PURE__ */ Array(n), ((_, i) => fn(i)));
-
-const vec3_dot = ({x, y, z}, v) => x * v.x + y * v.y + z * v.z;
-
 const vec3_distance = ({x, y, z}, b) => /* @__PURE__ */ Math.hypot(x - b.x, y - b.y, z - b.z);
+
+const vec3_dot = ({x, y, z}, b) => x * b.x + y * b.y + z * b.z;
 
 const plane_fromPolygon = polygon => {
     let x = 0;
@@ -950,6 +950,7 @@ const initPage = () => {
             player_first_person = 0;
             document.body.className = value ? "l m" : "l";
             updateMusicOnState();
+            updateCollectedSoulsCounter();
         }
         var visible;
     };
@@ -1475,6 +1476,17 @@ const startMainLoop = groundTextureImage => {
     [ MODEL_ID_PLAYER_LEG0, MODEL_ID_PLAYER_LEG1 ].map(((modelId, i) => {
         allModels[modelId]._update = () => allModels[37].$matrix.translate(0, player_legs_speed * clamp01(/* @__PURE__ */ .45 * Math.sin(9.1 * gameTime + Math.PI * (i - 1) - Math.PI / 2))).rotateSelf(player_legs_speed * /* @__PURE__ */ Math.sin(9.1 * gameTime + Math.PI * (i - 1)) * (.25 / DEG_TO_RAD), 0);
     }));
+    (() => {
+        try {
+            const [savedLevers, savedSouls, savedLastPulledLever, savedGameTime, savedSecondBoatLerp] = JSON.parse(localStorage["DanteSP22"]);
+            levers.map(((lever, index2) => lever.$lerpValue = lever.$lerpValue2 = lever.$value = index2 ? 0 | savedLevers[index2] : 0));
+            souls.map(((soul, index2) => soul.$value = 0 | savedSouls[index2]));
+            player_last_pulled_lever = savedLastPulledLever;
+            gameTime = savedGameTime;
+            secondBoatLerp = savedSecondBoatLerp;
+        } catch (e) {}
+        firstBoatLerp = clamp01(player_last_pulled_lever);
+    })();
     worldStateUpdate();
     player_respawn();
     camera_position.x = camera_player_dir_x = player_position_final.x;
@@ -1612,18 +1624,6 @@ loadStep((() => {
     let loadStatus = 0;
     const end = () => {
         if (2 == ++loadStatus) {
-            (() => {
-                try {
-                    const [savedLevers, savedSouls, savedLastPulledLever, savedGameTime, savedSecondBoatLerp] = JSON.parse(localStorage["DanteSP22"]);
-                    levers.map(((lever, index2) => lever.$lerpValue = lever.$lerpValue2 = lever.$value = index2 ? 0 | savedLevers[index2] : 0));
-                    souls.map(((soul, index2) => soul.$value = 0 | savedSouls[index2]));
-                    player_last_pulled_lever = savedLastPulledLever;
-                    gameTime = savedGameTime;
-                    secondBoatLerp = savedSecondBoatLerp;
-                } catch (e) {}
-                firstBoatLerp = clamp01(player_last_pulled_lever);
-                updateCollectedSoulsCounter();
-            })();
             startMainLoop(image);
             NO_INLINE(initPage)();
         }

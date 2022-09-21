@@ -3,11 +3,12 @@ const Da = [{x:-1, z:1,}, {x:1, z:1,}, {x:1, z:-1,}, {x:-1, z:-1,}], e = [], l =
 [100, 128, 0, 201, 128, 0, 0, 100, 144, 35, 0, 6, 135, 0, 32, 147, 6, 0, 6, 195, ".(5(.(5(.(5(.(5(.(5(.(5(.(5(.(5 -(5(-(5(-(5(-(5(-(5(-(5(-(5(-(5 ,(5(,(5(,(5(,(5(,(5(,(5(,(5(,(5 *(6(*(6(*(6(*(6(*(6(*(6(*(6(*(6 5(E(E(F(H(I(K(H(K(I(N(M(K(I(H(F(A(((((((((((((((((((((((((((((((5(((5(((5(((5(((5(((5(((5(((5 5(6(5(6(5(6(5(6(5((()(((((((((((A(B(A(B(A(B(A(B(A(((5".split(" ")], [255, 116, 85, 255, 116, 37, 14, 64, 144, 73, 99, 0, 136, 15, 32, 0, 0, 66, 6, 0, ["9(((9(((9(((9(((9(((9(((9(((9", "9(((Q(((Q(((Q",
 ]], [0, 140, 0, 0, 140, 0, 81, 64, 400, 47, 55, 5, 239, 135, 13, 176, 5, 16, 4, 187, ["9(9(9(9(9(9(9(999(9(9(9(999(9(9", "9(9(9(9(9(999(9(((((Q",]], [221, 128, 64, 210, 128, 64, 255, 64, 144, 73, 79, 7, 195, 15, 21, 20, 0, 9, 3, 64, ["((((Q(((((((Q(((((((Q(((((((Q", "Q((Q((Q((Q((Q((Q((((Q",]]], n = {x:0, y:0, z:0,};
 var Pa = 0, Qa = 0, Ra = 0, Sa = 0, Ta = 0;
-const Ua = Math.PI / 180, q = new DOMMatrix(), Va = new Float32Array(16), Wa = new Float32Array(624), Xa = (b, c) => c < b ? b : c, Ya = b => 0 > b ? -b : b, bb = b => 0 > b ? 0 : 1 < b ? 1 : b, cb = (b, c) => (b = 0 > b ? 0 : 1 < b ? 1 : b, b + (1 - b - b) * (0 > c ? 0 : 1 < c ? 1 : c)), db = b => Math.atan2(Math.sin(b *= Ua), Math.cos(b)) / Ua, eb = (b, c, h) => ((b *= Ua) + (2 * (c = (c * Ua - b) % (2 * Math.PI)) % (2 * Math.PI) - c) * (0 > h ? 0 : 1 < h ? 1 : h)) / Ua, fb = (b, c, h, k) => {
+const Ua = Math.PI / 180, q = new DOMMatrix(), Va = new Float32Array(16), Wa = new Float32Array(624), t = (b, c) => Array.from(Array(b), (h, k) => c(k)), Xa = (b, c) => c < b ? b : c, Ya = b => 0 > b ? -b : b, bb = b => 0 > b ? 0 : 1 < b ? 1 : b, cb = (b, c) => (b = 0 > b ? 0 : 1 < b ? 1 : b, b + (1 - b - b) * (0 > c ? 0 : 1 < c ? 1 : c)), db = b => Math.atan2(Math.sin(b *= Ua), Math.cos(b)) / Ua, eb = (b, c, h) => ((b *= Ua) + (2 * (c = (c * Ua - b) % (2 * Math.PI)) % (2 * Math.PI) - c) * (0 > h ? 
+0 : 1 < h ? 1 : h)) / Ua, fb = (b, c, h, k) => {
   var m = c - b;
   b += (0 > c - b ? -1 : 1) * Xa(0, (0 > m ? -m : m) ** 0.9 - h) * k * 2;
   return b + (c - b) * bb(k / 7);
-}, t = (b, c) => Array.from(Array(b), (h, k) => c(k)), gb = ({x:b, y:c, z:h}, k) => b * k.x + c * k.y + h * k.z, hb = ({x:b, y:c, z:h}) => Math.hypot(b - n.x, c - n.y, h - n.z), ib = b => {
+}, gb = ({x:b, y:c, z:h}) => Math.hypot(b - n.x, c - n.y, h - n.z), hb = ({x:b, y:c, z:h}, k) => b * k.x + c * k.y + h * k.z, ib = b => {
   let c = 0, h = 0, k = 0, m, p = b.at(-1);
   for (m of b) {
     c += (p.y - m.y) * (p.z + m.z), h += (p.z - m.z) * (p.x + m.x), k += (p.x - m.x) * (p.y + m.y), p = m;
@@ -35,14 +36,14 @@ const Ua = Math.PI / 180, q = new DOMMatrix(), Va = new Float32Array(16), Wa = n
 }, qb = (b, c) => {
   var h, k, m, p = c.C;
   for (var v = 0; p.length > v; ++v) {
-    if (-0.00008 > (h = gb(b, p[v]) - b.w) ? m = c : 8e-5 < h && (k = c), m && k) {
+    if (-0.00008 > (h = hb(b, p[v]) - b.w) ? m = c : 8e-5 < h && (k = c), m && k) {
       k = [];
       m = [];
       p = c.C;
       v = c.B;
-      let y = p.at(-1), u = gb(b, y) - b.w;
+      let y = p.at(-1), u = hb(b, y) - b.w;
       for (const w of p) {
-        h = gb(b, w) - b.w, 8e-5 > u && m.push(y), -0.00008 < u && k.push(y), (8e-5 < u && -0.00008 > h || -0.00008 > u && 8e-5 < h) && (u /= h - u, y = {x:y.x + (y.x - w.x) * u, y:y.y + (y.y - w.y) * u, z:y.z + (y.z - w.z) * u,}, k.push(y), m.push(y)), y = w, u = h;
+        h = hb(b, w) - b.w, 8e-5 > u && m.push(y), -0.00008 < u && k.push(y), (8e-5 < u && -0.00008 > h || -0.00008 > u && 8e-5 < h) && (u /= h - u, y = {x:y.x + (y.x - w.x) * u, y:y.y + (y.y - w.y) * u, z:y.z + (y.z - w.z) * u,}, k.push(y), m.push(y)), y = w, u = h;
       }
       return {o:2 < k.length && {C:lb(k, p.A, p.D), B:v, u:c,}, m:2 < m.length && {C:lb(m, p.A, p.D), B:v, u:c,},};
     }
@@ -54,7 +55,7 @@ const Ua = Math.PI / 180, q = new DOMMatrix(), Va = new Float32Array(16), Wa = n
 }, sb = (b, c, h) => {
   const k = [], m = (p, v) => {
     let {o:y, m:u} = qb(p, v);
-    y || u || (0 < h * gb(p, c) ? y = v : u = v);
+    y || u || (0 < h * hb(p, c) ? y = v : u = v);
     y && (p.o ? m(p.o, y) : k.push(y));
     u && p.m && m(p.m, u);
   };
@@ -132,7 +133,7 @@ const Ua = Math.PI / 180, q = new DOMMatrix(), Va = new Float32Array(16), Wa = n
   const c = Ba, h = l.length, k = {j:0, h:0, i:0, u:c, g() {
     const m = k.j, p = k.h, v = k.i, y = c.l.multiply(b);
     k.I = y;
-    2.9 > hb(y.transformPoint()) && Ja[5] && (0.3 > p || 0.7 < p) && (k.j = m ? 0 : 1, h && 1 / 0 > ya && (ya = a + 1, h4.innerHTML = "* click *"), la = h, Ab());
+    2.9 > gb(y.transformPoint()) && Ja[5] && (0.3 > p || 0.7 < p) && (k.j = m ? 0 : 1, h && 1 / 0 > ya && (ya = a + 1, h4.innerHTML = "* click *"), la = h, Ab());
     k.h = T(p, m, 4);
     k.i = T(v, m, 1);
     k.l = y.rotate(60 * k.h - 30, 0).translateSelf(0, 1);
@@ -163,7 +164,7 @@ const Ua = Math.PI / 180, q = new DOMMatrix(), Va = new Float32Array(16), Wa = n
       v = A;
       y = B;
       var Y = (E.l = F.l.multiply(b.translate(A, 0, B).rotateSelf(0, p, 7 * Math.sin(1.7 * a)),)).transformPoint();
-      1.5 > hb(Y) && (E.j = 1, Q = [, "Mark Zuckemberg<br>made the world worse", , "Andrzej Mazur<br>for the js13k competition", "Donald Trump<br>lies", "Kim Jong-un<br>Dictator, liked pineapple on pizza", "Maxime Euziere<br>forced me to finish this game", "She traded NFTs apes", , "Vladimir Putin<br>evil war", "He was not a good person", , "Salvatore Previti<br>made this evil game<br><br>Done. Go back to the boat",][ea] || 'Catched a "crypto bro".<br>"Web3" is all scam, lies and grift', 1 / 0 > 
+      1.5 > gb(Y) && (E.j = 1, Q = [, "Mark Zuckemberg<br>made the world worse", , "Andrzej Mazur<br>for the js13k competition", "Donald Trump<br>lies", "Kim Jong-un<br>Dictator, liked pineapple on pizza", "Maxime Euziere<br>forced me to finish this game", "She traded NFTs apes", , "Vladimir Putin<br>evil war", "He was not a good person", , "Salvatore Previti<br>made this evil game<br><br>Done. Go back to the boat",][ea] || 'Catched a "crypto bro".<br>"Web3" is all scam, lies and grift', 1 / 0 > 
       ya && (ya = a + (ea && 12 > ea ? 5 : 7), h4.innerHTML = Q), zb(), Ab());
     }
     E.j && (Q = N % 4 - 2, E.l = e[2].l.translate(N % 4 * 1.2 - 1.7 + Math.sin(a + N) / 7, -2, 1.7 * (N / 4 | 0) - 5.5 + (0 > Q ? -Q : Q) + Math.cos(a / 1.5 + N) / 6,));
@@ -196,6 +197,7 @@ const Ua = Math.PI / 180, q = new DOMMatrix(), Va = new Float32Array(16), Wa = n
       Ca = 0;
       document.body.className = g ? "l m" : "l";
       P();
+      zb();
     }
   };
   b3.onclick = () => {
@@ -352,17 +354,6 @@ Lb(() => {
   let b = 0;
   const c = () => {
     if (2 == ++b) {
-      try {
-        const [C, x, z, V, R] = JSON.parse(localStorage.DanteSP22,);
-        l.map((G, D) => G.h = G.i = G.j = D ? 0 | C[D] : 0);
-        Fa.map((G, D) => G.j = 0 | x[D]);
-        la = z;
-        a = V;
-        ta = R;
-      } catch {
-      }
-      sa = 0 > la ? 0 : 1 < la ? 1 : la;
-      zb();
       let k = 0, m = 0, p = 0, v = 0, y = 0, u = 1, w = !1, E, F, N, P, f, g, r, A, B, L, M, aa;
       const Q = {x:0, y:0, z:0,}, Y = new Int32Array(256), da = new Uint8Array(65536), ua = () => {
         var {u:C, I:x} = l[la], {x, y:z, z:V} = x.transformPoint({x:0, y:8, z:-3,});
@@ -514,6 +505,16 @@ Lb(() => {
       [38, 39].map((C, x) => {
         e[C].g = () => e[37].l.translate(0, y * bb(0.45 * Math.sin(9.1 * a + Math.PI * (x - 1) - Math.PI / 2)),).rotateSelf(y * Math.sin(9.1 * a + Math.PI * (x - 1)) * 0.25 / Ua, 0);
       });
+      try {
+        const [C, x, z, V, R] = JSON.parse(localStorage.DanteSP22,);
+        l.map((G, D) => G.h = G.i = G.j = D ? 0 | C[D] : 0);
+        Fa.map((G, D) => G.j = 0 | x[D]);
+        la = z;
+        a = V;
+        ta = R;
+      } catch {
+      }
+      sa = 0 > la ? 0 : 1 < la ? 1 : la;
       yb();
       ua();
       Pa = L = n.x;
