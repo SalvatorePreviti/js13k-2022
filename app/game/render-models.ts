@@ -1,8 +1,16 @@
-import { allModels } from "./scene";
 import { identity, matrixToArray } from "../math";
-import { mainMenuVisible } from "../page";
-import { absoluteTime, levers, souls } from "./world-state";
-import { leverModel, playerModels, soulCollisionModel, soulModel } from "./level";
+import { absoluteTime, mainMenuVisible } from "./world-state";
+import {
+  allModels,
+  levers,
+  MODEL_ID_LEVER,
+  MODEL_ID_PLAYER_BODY,
+  MODEL_ID_PLAYER_LEG0,
+  MODEL_ID_PLAYER_LEG1,
+  MODEL_ID_SOUL,
+  MODEL_ID_SOUL_COLLISION,
+  souls,
+} from "./models";
 import { gl } from "../gl";
 
 const worldMatricesBuffer = new Float32Array(39 * 16);
@@ -12,18 +20,20 @@ export const renderModels = (
   renderPlayer: 0 | 1 | boolean,
   isCollider: 0 | 1,
 ) => {
-  const soulModelToRender = isCollider ? soulCollisionModel : soulModel;
+  const soulModelToRender = allModels[isCollider ? MODEL_ID_SOUL_COLLISION : MODEL_ID_SOUL]!;
+
   if (mainMenuVisible) {
     const matrix = identity.rotate(0, Math.sin(absoluteTime) * 40 - 70);
-    for (const { $modelId } of playerModels) {
-      matrixToArray(matrix, worldMatricesBuffer, $modelId - 1);
+    for (const modelId of [MODEL_ID_PLAYER_BODY, MODEL_ID_PLAYER_LEG0, MODEL_ID_PLAYER_LEG1]) {
+      matrixToArray(matrix, worldMatricesBuffer, modelId - 1);
     }
+
     gl.uniformMatrix4fv(worldMatrixLoc, false, worldMatricesBuffer);
     gl.drawElements(
       gl.TRIANGLES,
-      playerModels[2].$vertexEnd! - playerModels[0].$vertexBegin!,
+      allModels[MODEL_ID_PLAYER_LEG1]!.$vertexEnd! - allModels[MODEL_ID_PLAYER_BODY]!.$vertexBegin!,
       gl.UNSIGNED_SHORT,
-      playerModels[0].$vertexBegin! * 2,
+      allModels[MODEL_ID_PLAYER_BODY]!.$vertexBegin! * 2,
     );
     return;
   }
@@ -39,7 +49,7 @@ export const renderModels = (
   gl.uniformMatrix4fv(worldMatrixLoc, false, worldMatricesBuffer);
   gl.drawElements(
     gl.TRIANGLES,
-    (renderPlayer ? playerModels[2]!.$vertexEnd! : playerModels[0].$vertexBegin!) - 3,
+    (renderPlayer ? allModels[MODEL_ID_PLAYER_LEG1]!.$vertexEnd! : allModels[MODEL_ID_PLAYER_BODY]!.$vertexBegin!) - 3,
     gl.UNSIGNED_SHORT,
     3 * 2,
   );
@@ -54,9 +64,9 @@ export const renderModels = (
   gl.uniformMatrix4fv(worldMatrixLoc, false, worldMatricesBuffer);
   gl.drawElementsInstanced(
     gl.TRIANGLES,
-    leverModel.$vertexEnd! - leverModel.$vertexBegin!,
+    allModels[MODEL_ID_LEVER]!.$vertexEnd! - allModels[MODEL_ID_LEVER]!.$vertexBegin!,
     gl.UNSIGNED_SHORT,
-    leverModel.$vertexBegin! * 2,
+    allModels[MODEL_ID_LEVER]!.$vertexBegin! * 2,
     levers.length,
   );
 

@@ -1,9 +1,11 @@
 import { abs, integers_map, identity, type Vec3, type Vec3Optional } from "../math";
 
-export const material = NO_INLINE(
-  (r: number, g: number, b: number, a: number = 0): number =>
-    ((a * 255) << 24) | ((b * 255) << 16) | ((g * 255) << 8) | (r * 255),
-);
+export const GQuad = /* @__PURE__ */ [
+  { x: -1, z: 1 },
+  { x: 1, z: 1 },
+  { x: 1, z: -1 },
+  { x: -1, z: -1 },
+];
 
 export interface Polygon<TVec3 = Vec3> extends Array<TVec3> {
   /** Polygon material */
@@ -71,14 +73,12 @@ export const cylinder_sides = /* @__PURE__ */ (btm: Polygon, top: Polygon, smoot
 
 /** Simplest composition of polygon functions. */
 export const cylinder = /* @__PURE__ */ (
-  segments: number | Vec3Optional[],
+  segments?: number,
   smooth?: 0 | 1,
   topSize: number = 0,
   elongate?: number,
 ): Polygon[] => {
-  const points = (segments as Vec3Optional[]).length
-    ? (segments as Vec3Optional[])
-    : polygon_regular(segments as number, elongate);
+  const points = segments ? polygon_regular(segments, elongate) : GQuad;
   const top = polygon_transform(points, identity.translate(0, 1).scale3d(topSize > 0 ? topSize : 1));
   const bottom = polygon_transform(points, identity.translate(0, -1).scale3d(topSize < 0 ? -topSize : 1)).reverse();
   return [...cylinder_sides(bottom as Polygon, top, smooth), top, bottom];
@@ -97,8 +97,8 @@ export const sphere = /* @__PURE__ */ (
   for (let i = 0; i < slices; i++) {
     for (let j = 0; j < stacks; j++) {
       const polygon = polygon_color([], 0, 1);
-      polygons.push(polygon);
       const vertex = (x: number, y: number) => polygon.push(vertexFunc(x, y, polygon));
+      polygons.push(polygon);
       vertex(i, j);
       if (j) {
         vertex((i + 1) % slices, j);

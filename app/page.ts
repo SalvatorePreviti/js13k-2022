@@ -1,56 +1,24 @@
 import type { KEY_CODE } from "./utils/keycodes";
 import { camera_rotation } from "./camera";
-import { absoluteTime, LOCAL_STORAGE_SAVED_GAME_KEY } from "./game/world-state";
-import { audioContext, songAudioSource } from "./music/audio-context";
-
-export const KEY_LEFT = 0;
-
-export const KEY_FRONT = 1;
-
-export const KEY_RIGHT = 2;
-
-export const KEY_BACK = 3;
-
-export const KEY_INTERACT = 5;
-
-export const keyboard_downKeys: (boolean | 0 | 1 | undefined)[] = [];
-
-let music_on = !DEBUG;
+import {
+  absoluteTime,
+  keyboard_downKeys,
+  KEY_BACK,
+  KEY_FRONT,
+  KEY_INTERACT,
+  KEY_LEFT,
+  KEY_RIGHT,
+  LOCAL_STORAGE_SAVED_GAME_KEY,
+  mainMenuVisible,
+  setMainMenuVisible,
+} from "./game/world-state";
+import { songAudioSource, audioContext } from "./music/audio-context";
 
 export let player_first_person: 0 | 1 | undefined;
 
 export let touch_movementX = 0;
 
 export let touch_movementY = 0;
-
-export let mainMenuVisible: boolean | undefined;
-
-const updateMusicOnState = () => {
-  if (mainMenuVisible || !music_on) {
-    songAudioSource.disconnect();
-  } else {
-    // connect the AudioBufferSourceNode to the  destination so we can hear the sound
-    songAudioSource.connect(audioContext.destination);
-  }
-  b4.innerHTML = "Music: " + music_on;
-};
-
-export const setMainMenuVisible = (value: boolean = false) => {
-  if (mainMenuVisible !== value) {
-    mainMenuVisible = value;
-    player_first_person = 0;
-    try {
-      if (value) {
-        document.exitPointerLock();
-      } else {
-        songAudioSource.start();
-      }
-    } catch {}
-
-    document.body.className = value ? "l m" : "l";
-    updateMusicOnState();
-  }
-};
 
 export const initPage = () => {
   let touchStartTime: number | undefined;
@@ -69,25 +37,47 @@ export const initPage = () => {
 
   let pageClicked: undefined | 1;
 
+  let music_on = !DEBUG;
+
+  const updateMusicOnState = () => {
+    if (mainMenuVisible || !music_on) {
+      songAudioSource.disconnect();
+    } else {
+      // connect the AudioBufferSourceNode to the  destination so we can hear the sound
+      songAudioSource.connect(audioContext.destination);
+    }
+    b4.innerHTML = "Music: " + music_on;
+  };
+
+  const toggleMusic = () => {
+    music_on = !music_on;
+    updateMusicOnState();
+  };
+
+  const mainMenu = (value: boolean = false) => {
+    if (mainMenuVisible !== value) {
+      setMainMenuVisible(value);
+      try {
+        if (value) {
+          document.exitPointerLock();
+        } else {
+          songAudioSource.start();
+        }
+      } catch {}
+      player_first_person = 0;
+      document.body.className = value ? "l m" : "l";
+      updateMusicOnState();
+    }
+  };
+
   const handleResize = () => {
     hC.width = innerWidth;
     hC.height = innerHeight;
     keyboard_downKeys.length = touch_movementX = touch_movementY = 0;
     touchPosIdentifier = touchRotIdentifier = undefined;
     if (document.hidden) {
-      setMainMenuVisible(true);
+      mainMenu(true);
     }
-  };
-
-  document.onvisibilitychange = onresize = onblur = handleResize;
-
-  // "Play" button
-  b1.onclick = () => setMainMenuVisible();
-
-  // "Play first person" button
-  b2.onclick = () => {
-    setMainMenuVisible();
-    player_first_person = 1;
   };
 
   // "Restart" button
@@ -99,14 +89,20 @@ export const initPage = () => {
     }
   };
 
-  // "Music" button
-  b4.onclick = () => {
-    music_on = !music_on;
-    updateMusicOnState();
+  // "Play" button
+  b1.onclick = () => mainMenu();
+
+  // "Play first person" button
+  b2.onclick = () => {
+    mainMenu();
+    player_first_person = 1;
   };
 
+  // "Music" button
+  b4.onclick = toggleMusic;
+
   // Menu hamburger button
-  b5.onclick = () => setMainMenuVisible(true);
+  b5.onclick = () => mainMenu(true);
 
   onclick = (e) => {
     pageClicked = 1;
@@ -126,7 +122,7 @@ export const initPage = () => {
 
       if (pressed && (code === "Escape" || (code === "Enter" && mainMenuVisible))) {
         if (!mainMenuVisible || pageClicked) {
-          setMainMenuVisible(!mainMenuVisible);
+          mainMenu(!mainMenuVisible);
         }
       } else {
         const mapped = (
@@ -263,6 +259,8 @@ export const initPage = () => {
     }
   };
 
+  document.onvisibilitychange = onblur = onresize = handleResize;
+
   handleResize();
-  setMainMenuVisible(!DEBUG);
+  mainMenu(!DEBUG);
 };

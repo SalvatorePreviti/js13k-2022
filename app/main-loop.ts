@@ -21,6 +21,16 @@ import sky_vsSource from "./shaders/sky-vertex.vert";
 import sky_fsSource, { uniformName_iResolution } from "./shaders/sky-fragment.frag";
 
 import {
+  GAMEPAD_BUTTON_LEFT,
+  GAMEPAD_BUTTON_RIGHT,
+  GAMEPAD_BUTTON_UP,
+  GAMEPAD_BUTTON_DOWN,
+  GAMEPAD_BUTTON_A,
+  GAMEPAD_BUTTON_X,
+  GAMEPAD_BUTTON_B,
+  GAMEPAD_BUTTON_Y,
+} from "./utils/keycodes";
+import {
   abs,
   angle_wrap_degrees,
   clamp01,
@@ -35,48 +45,37 @@ import {
   angle_lerp_degrees,
   matrixToArray,
 } from "./math";
-import { mat_perspective, zFar, zNear, camera_position, camera_rotation } from "./camera";
-import { csm_buildMatrix } from "./csm";
-import { allModels, MODEL_KIND_GAME } from "./game/scene";
-import { gl, initShaderProgram, loadShader } from "./gl";
 import {
   absoluteTime,
   gameTime,
   gameTimeDelta,
   gameTimeUpdate,
+  keyboard_downKeys,
+  KEY_BACK,
+  KEY_FRONT,
+  KEY_INTERACT,
+  KEY_LEFT,
+  KEY_RIGHT,
   lerpDamp,
-  levers,
-  loadGame,
+  mainMenuVisible,
   player_last_pulled_lever,
   worldStateUpdate,
 } from "./game/world-state";
 import {
-  mainMenuVisible,
-  initPage,
-  player_first_person,
-  keyboard_downKeys,
-  KEY_BACK,
-  KEY_FRONT,
-  KEY_LEFT,
-  KEY_RIGHT,
-  touch_movementX,
-  touch_movementY,
-  KEY_INTERACT,
-} from "./page";
-import { initTriangleBuffers } from "./game/triangle-buffers";
+  allModels,
+  levers,
+  MODEL_ID_PLAYER_BODY,
+  MODEL_ID_PLAYER_LEG0,
+  MODEL_ID_PLAYER_LEG1,
+  MODEL_KIND_GAME,
+  player_position_final,
+} from "./game/models";
+import { mat_perspective, zFar, zNear, camera_position, camera_rotation } from "./camera";
+import { csm_buildMatrix } from "./csm";
+import { touch_movementX, touch_movementY, player_first_person } from "./page";
+import { gl } from "./gl";
+import { loadShader, initShaderProgram } from "./shaders-utils";
 import { renderModels } from "./game/render-models";
-import { player_position_final } from "./game/player-position";
-import {
-  GAMEPAD_BUTTON_LEFT,
-  GAMEPAD_BUTTON_RIGHT,
-  GAMEPAD_BUTTON_UP,
-  GAMEPAD_BUTTON_DOWN,
-  GAMEPAD_BUTTON_A,
-  GAMEPAD_BUTTON_X,
-  GAMEPAD_BUTTON_B,
-  GAMEPAD_BUTTON_Y,
-} from "./utils/keycodes";
-import { playerModels } from "./game/level";
 
 const CAMERA_PLAYER_Y_DIST = 13;
 const CAMERA_PLAYER_Z_DIST = -18;
@@ -88,8 +87,6 @@ const COLLISION_TEXTURE_SIZE = 128;
 // let debug2dctx: CanvasRenderingContext2D | null | undefined;
 
 export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
-  NO_INLINE(initTriangleBuffers)();
-
   let oldModelId: number | undefined;
   let currentModelIdTMinus1 = 0;
   let currentModelId = 0;
@@ -115,8 +112,32 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   let camera_player_dir_y: number;
   let camera_player_dir_z: number;
 
+  const player_respawn = () => {
+    const { $parent, $locMatrix } = levers[player_last_pulled_lever]!;
+
+    const { x, y, z } = $locMatrix!.transformPoint({ x: 0, y: 8, z: -3 });
+
+    player_position_final.x = player_position_global.x = x;
+    player_position_final.y = player_position_global.y = player_model_y = y;
+    player_position_final.z = player_position_global.z = z;
+
+    player_speed = 0;
+    player_gravity = 0;
+    player_collision_velocity_x = 0;
+    player_collision_velocity_z = 0;
+    player_has_ground = 0;
+
+    player_respawned = 1;
+    currentModelIdTMinus1 = currentModelId = $parent?.$modelId || 1;
+  };
+
   const player_collision_modelIdCounter = new Int32Array(256);
   const collision_buffer = new Uint8Array(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
+
+  const csm_framebuffer = gl.createFramebuffer();
+  const collision_frameBuffer = gl.createFramebuffer()!;
+  const collision_renderBuffer = gl.createRenderbuffer();
+  const collision_texture = gl.createTexture()!;
 
   const mainVertexShader = loadShader(main_vsSource);
   const csmShader = initShaderProgram(loadShader(csm_vsSource), void_fsSource);
@@ -124,10 +145,14 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   const collisionShader = initShaderProgram(mainVertexShader, collider_fsSource);
   const mainShader = initShaderProgram(mainVertexShader, main_fsSource);
 
-  const csm_framebuffer = gl.createFramebuffer();
-  const collision_frameBuffer = gl.createFramebuffer()!;
-  const collision_renderBuffer = gl.createRenderbuffer();
-  const collision_texture = gl.createTexture()!;
+  collisionShader();
+  gl.uniformMatrix4fv(collisionShader(uniformName_projectionMatrix), false, mat_perspectiveXY(1.4, 0.59, 0.0001, 1));
+
+  skyShader();
+  gl.uniform1i(skyShader(uniformName_groundTexture), 3); // TEXTURE3
+
+  mainShader();
+  gl.uniform1i(mainShader(uniformName_groundTexture), 3); // TEXTURE3
 
   const csm_render = integers_map(2, (csmSplit: number) => {
     const texture = gl.createTexture()!;
@@ -139,7 +164,6 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     gl.drawBuffers([gl.NONE]);
     gl.readBuffer(gl.NONE);
 
-    mainShader();
     gl.uniform1i(mainShader(csmSplit ? uniformName_csm_texture1 : uniformName_csm_texture0), csmSplit);
 
     gl.activeTexture(gl.TEXTURE0 + csmSplit);
@@ -174,15 +198,6 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       }
     };
   });
-
-  skyShader();
-  gl.uniform1i(skyShader(uniformName_groundTexture), 3); // TEXTURE3
-
-  collisionShader();
-  gl.uniformMatrix4fv(collisionShader(uniformName_projectionMatrix), false, mat_perspectiveXY(1.4, 0.59, 0.0001, 1));
-
-  mainShader();
-  gl.uniform1i(mainShader(uniformName_groundTexture), 3); // TEXTURE3
 
   gl.enable(gl.DEPTH_TEST); // Enable depth testing
   gl.enable(gl.CULL_FACE); // Don't render triangle backs
@@ -223,27 +238,6 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   gl.generateMipmap(gl.TEXTURE_2D);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-
-  const player_respawn = () => {
-    // TODO: player_respawn player position calculation must be done per frame and after models are updated!
-    // if we don't do this we might risk to be stuck on moving objects
-    const { $parent, $locMatrix } = levers[player_last_pulled_lever]!;
-
-    const { x, y, z } = $locMatrix!.transformPoint({ x: 0, y: 8, z: -3 });
-
-    player_position_final.x = player_position_global.x = x;
-    player_position_final.y = player_position_global.y = player_model_y = y;
-    player_position_final.z = player_position_global.z = z;
-
-    player_speed = 0;
-    player_gravity = 0;
-    player_collision_velocity_x = 0;
-    player_collision_velocity_z = 0;
-    player_has_ground = 0;
-
-    player_respawned = 1;
-    currentModelIdTMinus1 = currentModelId = $parent?.$modelId || 1;
-  };
 
   const doVerticalCollisions = () => {
     let maxModelIdCount = 0;
@@ -538,10 +532,6 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   };
 
   const mainLoop = (globalTime: number) => {
-    if (gl.isContextLost()) {
-      location.reload();
-      return;
-    }
     requestAnimationFrame(mainLoop);
 
     gameTimeUpdate(globalTime);
@@ -559,14 +549,14 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
       worldStateUpdate();
 
-      // Special handling for the second boat (lever 7) - the boat must be on the side of the map the player is
-      if (currentModelId === 1) {
-        levers[9]!.$value = player_position_final.x < -15 && player_position_final.z < 0 ? 1 : 0;
-      }
-
       if (player_position_final.y < (player_position_final.x < -25 || player_position_final.z < 109 ? -25 : -9)) {
         // Player fell in lava
         player_respawn();
+      }
+
+      // Special handling for the second boat (lever 7) - the boat must be on the side of the map the player is
+      if (currentModelId === 1) {
+        levers[9]!.$value = player_position_final.x < -15 && player_position_final.z < 0 ? 1 : 0;
       }
 
       keyboard_downKeys[KEY_INTERACT] = 0;
@@ -669,28 +659,21 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     gl.flush();
   };
 
-  playerModels.map((model, i) => {
-    model._update = i
-      ? // Legs matrices
-        () =>
-          playerModels[0].$matrix
-            .translate(
-              0,
-              player_legs_speed *
-                clamp01(Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI * (i - 1) - Math.PI / 2) * 0.45),
-            )
-            .rotateSelf(
-              player_legs_speed * Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI * (i - 1)) * (0.25 / DEG_TO_RAD),
-              0,
-            )
-      : // Body matrix
-        () =>
-          identity
-            .translate(player_position_final.x, player_model_y, player_position_final.z)
-            .rotateSelf(0, player_look_angle);
-  });
+  allModels[MODEL_ID_PLAYER_BODY]!._update = () =>
+    identity
+      .translate(player_position_final.x, player_model_y, player_position_final.z)
+      .rotateSelf(0, player_look_angle);
 
-  loadGame();
+  [MODEL_ID_PLAYER_LEG0, MODEL_ID_PLAYER_LEG1].map((modelId, i) => {
+    allModels[modelId]!._update = () =>
+      allModels[MODEL_ID_PLAYER_BODY]!.$matrix.translate(
+        0,
+        player_legs_speed * clamp01(Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI * (i - 1) - Math.PI / 2) * 0.45),
+      ).rotateSelf(
+        player_legs_speed * Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI * (i - 1)) * (0.25 / DEG_TO_RAD),
+        0,
+      );
+  });
 
   worldStateUpdate();
 
@@ -699,8 +682,6 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   camera_position.x = camera_player_dir_x = player_position_final.x;
   camera_position.y = (camera_player_dir_y = player_position_final.y) + CAMERA_PLAYER_Y_DIST;
   camera_position.z = (camera_player_dir_z = player_position_final.z) + CAMERA_PLAYER_Z_DIST;
-
-  NO_INLINE(initPage)();
 
   requestAnimationFrame(mainLoop);
 };

@@ -1,33 +1,57 @@
-import { abs, angle_lerp_degrees, DEG_TO_RAD, max, min, vec3_distance } from "../math";
-import { cylinder, material } from "../geometry/geometry";
-import { allModels, currentEditModel, meshAdd } from "./scene";
+import { vec3_distance, min, max, angle_lerp_degrees, DEG_TO_RAD, abs, identity, type Vec3Optional } from "../math";
+import { cylinder, polygons_transform, type Polygon } from "../geometry/geometry";
 import {
   levers,
   souls,
+  allModels,
+  MODEL_ID_FIRST_BOAT,
+  MODEL_KIND_GAME,
+  type Circle,
+  type Lever,
+  type Model,
+  type Soul,
+  type MODEL_KIND,
+  player_position_final,
+} from "./models";
+import {
+  keyboard_downKeys,
+  KEY_INTERACT,
   onPlayerPullLever,
-  onSoulCollected,
   lerpDamp,
   gameTimeDelta,
   gameTime,
-  type Lever,
-  type Soul,
+  onSoulCollected,
 } from "./world-state";
-import { player_position_final } from "./player-position";
-import { keyboard_downKeys, KEY_INTERACT } from "../page";
 
 const LEVER_SENSITIVITY_RADIUS = 2.9;
 const SOUL_SENSITIVITY_RADIUS = 1.5;
 
-export const GQuad = /* @__PURE__ */ [
-  { x: -1, z: 1 },
-  { x: 1, z: 1 },
-  { x: 1, z: -1 },
-  { x: -1, z: -1 },
-];
+export const material = NO_INLINE(
+  (r: number, g: number, b: number, a: number = 0): number =>
+    ((a * 255) << 24) | ((b * 255) << 16) | ((g * 255) << 8) | (r * 255),
+);
 
-export const MODEL_ID_FIRST_BOAT = 2;
+export let currentEditModel: Model;
 
-export type Circle = [number, number, number];
+export const newModel = (fn: (model: Model) => void, $kind: MODEL_KIND = MODEL_KIND_GAME) => {
+  const previousModel = currentEditModel;
+  const model: Model = {
+    $matrix: identity,
+    $modelId: allModels.length,
+    $kind,
+    $polygons: [],
+  };
+  allModels.push((currentEditModel = model));
+  fn(model);
+  currentEditModel = previousModel;
+  return model;
+};
+
+export const meshAdd = (
+  polygons: Polygon<Readonly<Vec3Optional>>[],
+  transform: DOMMatrixReadOnly = identity,
+  color?: number | undefined,
+) => currentEditModel.$polygons!.push(...polygons_transform(polygons, transform, color));
 
 export const newLever = (transform: DOMMatrixReadOnly): void => {
   const $parent = currentEditModel;
@@ -61,7 +85,7 @@ export const newLever = (transform: DOMMatrixReadOnly): void => {
 
   meshAdd(cylinder(5), transform.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
   meshAdd(cylinder(5), transform.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
-  meshAdd(cylinder(GQuad), transform.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
+  meshAdd(cylinder(), transform.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
 };
 
 export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]) => {

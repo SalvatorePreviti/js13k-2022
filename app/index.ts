@@ -8,59 +8,54 @@ if (DEBUG) {
 
 import groundTextureSvg from "./groundTexture.svg";
 
+import { build_life_the_universe_and_everything } from "./game/level";
 import { startMainLoop } from "./main-loop";
-import { song_numChannels } from "./music/song";
-import { soundbox_generate } from "./music/music-player";
-import { loadSong } from "./music/audio-context";
-import { buildWorld } from "./game/level";
+import { initTriangleBuffers } from "./game/triangle-buffers";
+import { loadStep } from "./load-step";
+import { loadGame } from "./game/world-state";
+import { loadSong } from "./music/music-player";
+import { initPage } from "./page";
 
-setTimeout(() => {
-  let songLoad = 0;
-  let thingsToLoad = 1 + song_numChannels;
+loadStep(() => {
+  let loadStatus = 0;
   const image = new Image();
 
   if (DEBUG) {
-    console.time("song load");
     console.time("load");
   }
 
-  const onThingLoaded = () => {
-    h4.innerHTML += ".";
-    if (!--thingsToLoad) {
+  const end = () => {
+    if (++loadStatus === 2) {
+      loadGame();
+
       if (DEBUG) {
         console.timeEnd("load");
       }
 
-      startMainLoop(image);
-    }
-  };
-
-  const asyncLoadSongChannels = () => {
-    if (songLoad < song_numChannels) {
-      soundbox_generate(songLoad++);
-      setTimeout(asyncLoadSongChannels);
-    } else {
-      loadSong();
       if (DEBUG) {
-        console.timeEnd("song load");
+        console.time("startMainLoop");
       }
+
+      startMainLoop(image);
+
+      if (DEBUG) {
+        console.timeEnd("startMainLoop");
+      }
+
+      NO_INLINE(initPage)();
     }
-    onThingLoaded();
   };
 
-  setTimeout(() => {
-    buildWorld();
-    if (DEBUG) {
-      for (let i = 0; i < song_numChannels; ++i) {
-        onThingLoaded();
-      }
-    } else {
-      setTimeout(asyncLoadSongChannels);
-    }
-  });
-
-  image.onload = image.onerror = onThingLoaded;
+  image.onload = image.onerror = end;
   image.src = groundTextureSvg;
+
+  NO_INLINE(loadSong)(() => {
+    loadStep(() => {
+      initTriangleBuffers();
+      loadStep(end);
+    });
+    build_life_the_universe_and_everything();
+  });
 
   if (DEBUG) {
     console.timeEnd("boot");

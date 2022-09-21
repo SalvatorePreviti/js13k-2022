@@ -27,17 +27,18 @@
 // This player plays only the game song and is modified.
 // This makes this version not compatible with default soundbox songs.
 
+import { audioContext, songAudioSource } from "./audio-context";
 import {
   song_endPattern,
   song_patternLen,
   song_patterns,
   song_instruments,
-  song_numWords,
-  getSegmentNumWords,
   song_rowLen0,
   song_rowLen1,
   song_rowLen2,
+  song_numChannels,
 } from "./song";
+import { loadStep } from "../load-step";
 
 const getnotefreq = (n: number) => 0.003959503758 * 2 ** ((n - 256) / 12);
 
@@ -56,69 +57,65 @@ const osc_tri = (value: number) => {
   return v2 < 2 ? v2 - 1 : 3 - v2;
 };
 
-// Work buffer
-export const soundbox_mixbuffer = new Int32Array(song_numWords);
+const getSegmentNumWords = (song_rowLen: number) => song_rowLen * song_patternLen * (song_endPattern + 1) * 2;
 
-/**
- * Generate audio data for a single track/channel.
- * Have to be repeated from 0 to song_numChannels-1
- * @returns
- */
-export const soundbox_generate = (channelIndex: number) => {
-  let mixIndex = 0;
-  let [
-    OSC1_VOL,
-    OSC1_SEMI,
-    OSC1_XENV,
-    OSC2_VOL,
-    OSC2_SEMI,
-    OSC2_XENV,
-    NOISE_VOL,
-    ENV_ATTACK,
-    ENV_SUSTAIN,
-    ENV_RELEASE,
-    ENV_EXP_DECAY,
-    LFO_FREQ,
-    FX_FREQ,
-    FX_RESONANCE,
-    FX_DRIVE,
-    FX_PAN_AMT,
-    FX_PAN_FREQ,
-    FX_DELAY_AMT,
-    FX_DELAY_TIME,
-    LFO_AMT,
-    COLUMNS,
-  ] = song_instruments[channelIndex]!;
+export const loadSong = (done: () => void) => {
+  let channelIndex = 0;
 
-  ENV_RELEASE = (ENV_RELEASE * ENV_RELEASE * 4) as any;
+  const song_numWords =
+    getSegmentNumWords(song_rowLen0) + getSegmentNumWords(song_rowLen1) + getSegmentNumWords(song_rowLen2);
 
-  for (const song_rowLen of [song_rowLen0, song_rowLen1, song_rowLen2]) {
-    // Local variables
-    let n;
-    let t;
-    let f;
+  const mixBuffer = new Int32Array(song_numWords);
 
-    const chnBuf = new Int32Array(getSegmentNumWords(song_rowLen));
+  const finish = () => {
+    const audioBuffer = audioContext.createBuffer(2, song_numWords / 2, 44100);
+    for (let i = 0; i < 2; i++) {
+      for (let j = i, data = audioBuffer.getChannelData(i); j < song_numWords; j += 2) {
+        data[j >> 1] = mixBuffer[j]! / 65536;
+      }
+    }
 
-    // Clear effect state
-    let low = 0;
-    let band = 0;
-    let high;
-    let filterActive: boolean | undefined;
+    // Load the buffer into the audio source
+    songAudioSource.buffer = audioBuffer;
 
-    // Clear note cache.
-    const noteCache = [];
+    // Loop forever
+    songAudioSource.loop = true;
 
-    // Put performance critical instrument properties in local variables
-    const lfoFreq = 2 ** (LFO_FREQ - 9) / song_rowLen;
-    const panFreq = (Math.PI * 2 ** (FX_PAN_FREQ - 8)) / song_rowLen;
-    const dly = (FX_DELAY_TIME * song_rowLen) & ~1; // Must be an even number
+    loadStep(done);
+  };
 
-    const createNote = (note: number) => {
-      const OSC1_WAVEFORM = channelIndex < 2 ? osc_saw : osc_sin; // mOscillators[0|2]
+  const next = () => {
+    // Generate audio data for a single track/channel.
+    let mixIndex = 0;
+    let [
+      OSC1_VOL,
+      OSC1_SEMI,
+      OSC1_XENV,
+      OSC2_VOL,
+      OSC2_SEMI,
+      OSC2_XENV,
+      NOISE_VOL,
+      ENV_ATTACK,
+      ENV_SUSTAIN,
+      ENV_RELEASE,
+      ENV_EXP_DECAY,
+      LFO_FREQ,
+      FX_FREQ,
+      FX_RESONANCE,
+      FX_DRIVE,
+      FX_PAN_AMT,
+      FX_PAN_FREQ,
+      FX_DELAY_AMT,
+      FX_DELAY_TIME,
+      LFO_AMT,
+      COLUMNS,
+    ] = song_instruments[channelIndex]!;
+
+    ENV_RELEASE = (ENV_RELEASE * ENV_RELEASE * 4) as any;
+
+    const createNote = (song_rowLen: number, note: number) => {
+      const OSC1_WAVEFORM = channelIndex < 2 ? osc_saw : osc_sin;
       const OSC2_WAVEFORM = channelIndex < 2 ? (channelIndex < 1 ? osc_square : osc_tri) : osc_sin;
-
-      const noteBuf = new Int32Array(ENV_ATTACK + ENV_SUSTAIN + ENV_RELEASE);
 
       // Re-trig oscillators
       let c1 = 0;
@@ -127,6 +124,8 @@ export const soundbox_generate = (channelIndex: number) => {
       // Local variables.
       let o1t: number;
       let o2t: number;
+
+      const noteBuf = new Int32Array(ENV_ATTACK + ENV_SUSTAIN + ENV_RELEASE);
 
       // Generate one note (attack + sustain + release)
       for (let j1 = 0, j2 = 0; j1 < ENV_ATTACK + ENV_SUSTAIN + ENV_RELEASE; ++j1, ++j2) {
@@ -162,83 +161,110 @@ export const soundbox_generate = (channelIndex: number) => {
       return noteBuf;
     };
 
-    // Patterns
-    for (let p = 0; p <= song_endPattern; ++p) {
-      // Pattern rows
-      for (let row = 0, cp = +song_patterns[channelIndex * 12 + p]!; row < song_patternLen; ++row) {
-        // Calculate start sample number for this row in the pattern
-        const rowStartSample = (p * song_patternLen + row) * song_rowLen;
+    for (const song_rowLen of [song_rowLen0, song_rowLen1, song_rowLen2]) {
+      // Local variables
+      let n;
+      let t;
+      let f;
 
-        // Generate notes for this pattern row
-        for (let col = 0; col < 4; ++col) {
-          n = 0;
-          if (cp) {
-            n = COLUMNS[cp - 1]!.charCodeAt(row + col * song_patternLen) - 40;
-            n += n > 0 ? 106 : 0;
-          }
-          if (n) {
-            const noteBuf = noteCache[n] || (noteCache[n] = createNote(n));
-            for (let j = 0, i = rowStartSample * 2; j < noteBuf.length; ++j, i += 2) {
-              chnBuf[i] += noteBuf[j]!;
+      const chnBuf = new Int32Array(getSegmentNumWords(song_rowLen));
+
+      // Clear effect state
+      let low = 0;
+      let band = 0;
+      let high;
+      let filterActive: boolean | undefined;
+
+      // Clear note cache.
+      const noteCache = [];
+
+      // Put performance critical instrument properties in local variables
+      const lfoFreq = 2 ** (LFO_FREQ - 9) / song_rowLen;
+      const panFreq = (Math.PI * 2 ** (FX_PAN_FREQ - 8)) / song_rowLen;
+      const dly = (FX_DELAY_TIME * song_rowLen) & ~1; // Must be an even number
+
+      // Patterns
+      for (let p = 0; p <= song_endPattern; ++p) {
+        // Pattern rows
+        for (let row = 0, cp = +song_patterns[channelIndex * 12 + p]!; row < song_patternLen; ++row) {
+          // Calculate start sample number for this row in the pattern
+          const rowStartSample = (p * song_patternLen + row) * song_rowLen;
+
+          // Generate notes for this pattern row
+          for (let col = 0; col < 4; ++col) {
+            n = 0;
+            if (cp) {
+              n = COLUMNS[cp - 1]!.charCodeAt(row + col * song_patternLen) - 40;
+              n += n > 0 ? 106 : 0;
+            }
+            if (n) {
+              const noteBuf = noteCache[n] || (noteCache[n] = createNote(song_rowLen, n));
+              for (let j = 0, i = rowStartSample * 2; j < noteBuf.length; ++j, i += 2) {
+                chnBuf[i] += noteBuf[j]!;
+              }
             }
           }
-        }
 
-        // Perform effects for this pattern row
-        for (let j = 0, rsample; j < song_rowLen; ++j) {
-          // Dry mono-sample
-          let k = (rowStartSample + j) * 2;
-          let lsample = 0;
-          rsample = chnBuf[k]!;
+          // Perform effects for this pattern row
+          for (let j = 0, rsample; j < song_rowLen; ++j) {
+            // Dry mono-sample
+            let k = (rowStartSample + j) * 2;
+            let lsample = 0;
+            rsample = chnBuf[k]!;
 
-          // We only do effects if we have some sound input
-          if (rsample || filterActive) {
-            // State variable filter
-            f = FX_FREQ * ((43.23529 * 3.141592) / 44100);
-            if (channelIndex === 1 || channelIndex === 4) {
-              f *= (osc_sin(lfoFreq * k) * LFO_AMT) / 512 + 0.5;
+            // We only do effects if we have some sound input
+            if (rsample || filterActive) {
+              // State variable filter
+              f = FX_FREQ * ((43.23529 * 3.141592) / 44100);
+              if (channelIndex === 1 || channelIndex === 4) {
+                f *= (osc_sin(lfoFreq * k) * LFO_AMT) / 512 + 0.5;
+              }
+              f = 1.5 * Math.sin(f);
+              low += f * band;
+              high = (1 - FX_RESONANCE / 255) * (rsample - band) - low;
+              band += f * high;
+              rsample = channelIndex === 4 ? band : channelIndex === 3 ? high : low;
+
+              // Distortion
+              if (!channelIndex) {
+                rsample *= 22 * 1e-5;
+                rsample = rsample < 1 ? (rsample > -1 ? osc_sin(rsample / 4) : -1) : 1;
+                rsample /= 22 * 1e-5;
+              }
+
+              // Drive
+              rsample *= FX_DRIVE / 32;
+
+              // Is the filter active (i.e. still audiable)?
+              filterActive = rsample * rsample > 1e-5;
+
+              // Panning
+              t = (Math.sin(panFreq * k) * FX_PAN_AMT) / 512 + 0.5;
+              lsample = rsample * (1 - t);
+              rsample *= t;
             }
-            f = 1.5 * Math.sin(f);
-            low += f * band;
-            high = (1 - FX_RESONANCE / 255) * (rsample - band) - low;
-            band += f * high;
-            rsample = channelIndex === 4 ? band : channelIndex === 3 ? high : low;
 
-            // Distortion
-            if (!channelIndex) {
-              rsample *= 22 * 1e-5;
-              rsample = rsample < 1 ? (rsample > -1 ? osc_sin(rsample / 4) : -1) : 1;
-              rsample /= 22 * 1e-5;
+            // Delay is always done, since it does not need sound input
+            if (k >= dly) {
+              // Left channel = left + right[-p] * t
+              lsample += (chnBuf[k - dly + 1]! * FX_DELAY_AMT) / 255;
+
+              // Right channel = right + left[-p] * t
+              rsample += (chnBuf[k - dly]! * FX_DELAY_AMT) / 255;
             }
 
-            // Drive
-            rsample *= FX_DRIVE / 32;
-
-            // Is the filter active (i.e. still audiable)?
-            filterActive = rsample * rsample > 1e-5;
-
-            // Panning
-            t = (Math.sin(panFreq * k) * FX_PAN_AMT) / 512 + 0.5;
-            lsample = rsample * (1 - t);
-            rsample *= t;
+            mixBuffer[mixIndex + k] += chnBuf[k] = lsample;
+            ++k;
+            mixBuffer[mixIndex + k] += chnBuf[k] = rsample;
           }
-
-          // Delay is always done, since it does not need sound input
-          if (k >= dly) {
-            // Left channel = left + right[-p] * t
-            lsample += (chnBuf[k - dly + 1]! * FX_DELAY_AMT) / 255;
-
-            // Right channel = right + left[-p] * t
-            rsample += (chnBuf[k - dly]! * FX_DELAY_AMT) / 255;
-          }
-
-          soundbox_mixbuffer[mixIndex + k] += chnBuf[k] = lsample;
-          ++k;
-          soundbox_mixbuffer[mixIndex + k] += chnBuf[k] = rsample;
         }
       }
+
+      mixIndex += chnBuf.length;
     }
 
-    mixIndex += chnBuf.length;
-  }
+    loadStep(++channelIndex < song_numChannels ? next : finish);
+  };
+
+  loadStep(next);
 };

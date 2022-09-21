@@ -1,6 +1,6 @@
-import type { Polygon } from "../geometry/geometry";
 import { plane_fromPolygon } from "../math";
-import { allModels } from "./scene";
+import type { Polygon } from "../geometry/geometry";
+import { allModels } from "./models";
 import { gl } from "../gl";
 
 export const initTriangleBuffers = () => {
@@ -8,15 +8,15 @@ export const initTriangleBuffers = () => {
     console.time("initTriangleBuffers");
   }
 
-  const _triangleIndices: number[] = [];
-  const _vertexPositions: number[] = [];
-  const _vertexColors: number[] = [];
-  const _vertexNormals: number[] = [];
-
   const _vertexMap = new Map<string, number>();
   const _vertexInts = new Int32Array(8);
   const _vertexIntsSmooth = new Int32Array(_vertexInts.buffer, 0, 5);
   const _vertexFloats = new Float32Array(_vertexInts.buffer);
+
+  const _triangleIndices: number[] = [];
+  const _vertexPositions: number[] = [];
+  const _vertexColors: number[] = [];
+  const _vertexNormals: number[] = [];
 
   let polygon: Polygon | undefined;
   let meshFirstIndex: number = 0;
@@ -43,7 +43,7 @@ export const initTriangleBuffers = () => {
   };
 
   for (const model of allModels) {
-    _vertexFloats[3] = model.$kind ? model.$modelId : 0;
+    _vertexFloats[3] = model.$kind && model.$modelId;
     for (polygon of model.$polygons!) {
       const { x, y, z } = plane_fromPolygon(polygon);
       _vertexInts[4] = polygon.$color! | 0;
@@ -63,9 +63,6 @@ export const initTriangleBuffers = () => {
     model.$vertexEnd = meshFirstIndex = _triangleIndices.length;
   }
 
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.createBuffer());
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(_triangleIndices), gl.STATIC_DRAW);
-
   gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(_vertexPositions), gl.STATIC_DRAW);
   gl.vertexAttribPointer(0, 4, gl.FLOAT, false, 0, 0);
@@ -77,6 +74,9 @@ export const initTriangleBuffers = () => {
   gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
   gl.bufferData(gl.ARRAY_BUFFER, new Uint32Array(_vertexColors), gl.STATIC_DRAW);
   gl.vertexAttribPointer(2, 4, gl.UNSIGNED_BYTE, true, 0, 0);
+
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.createBuffer());
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(_triangleIndices), gl.STATIC_DRAW);
 
   gl.enableVertexAttribArray(0);
   gl.enableVertexAttribArray(1);

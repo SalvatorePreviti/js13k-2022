@@ -1,22 +1,38 @@
-import type { Model } from "./scene";
-import { allModels } from "./scene";
-import { lerp, min, angle_wrap_degrees, lerpneg, abs, clamp01 } from "../math";
-import { keyboard_downKeys, KEY_INTERACT, mainMenuVisible } from "../page";
+import { lerp, angle_wrap_degrees, lerpneg, abs, clamp01, min } from "../math";
+import { allModels, levers, souls } from "./models";
 
-export let absoluteTime = 0;
+export const KEY_LEFT = 0;
 
-export let gameTime = 0;
+export const KEY_FRONT = 1;
+
+export const KEY_RIGHT = 2;
+
+export const KEY_BACK = 3;
+
+export const KEY_INTERACT = 5;
+
+export const keyboard_downKeys: (boolean | 0 | 1 | undefined)[] = [];
 
 export let souls_collected_count = 0;
 
 /** Minimum 15.3 frames per second */
 export const GAME_TIME_MAX_DELTA_TIME = 0.066;
 
+export let absoluteTime = 0;
+
+export let gameTime = 0;
+
 export let gameTimeDelta: number = GAME_TIME_MAX_DELTA_TIME;
+
+export let mainMenuVisible: boolean | undefined;
+
+export const setMainMenuVisible = (visible: boolean) => {
+  mainMenuVisible = visible;
+};
 
 let _globalTime: number | undefined;
 
-let _messageEndTime = 0;
+let _messageEndTime = 1;
 
 export const lerpDamp = /* @__PURE__ */ (from: number, to: number, speed: number) =>
   lerp(from, to, 1 - Math.exp(-speed * gameTimeDelta));
@@ -24,8 +40,8 @@ export const lerpDamp = /* @__PURE__ */ (from: number, to: number, speed: number
 export const gameTimeUpdate = (time: number) => {
   const dt = (time - (_globalTime || time)) / 1000;
   if (mainMenuVisible) {
-    keyboard_downKeys[KEY_INTERACT] = 0;
     gameTimeDelta = 0;
+    keyboard_downKeys[KEY_INTERACT] = 0;
   } else {
     gameTimeDelta = min(GAME_TIME_MAX_DELTA_TIME, dt);
   }
@@ -54,28 +70,6 @@ export const gameTimeUpdate = (time: number) => {
 
 export const LOCAL_STORAGE_SAVED_GAME_KEY = "DanteSP22";
 
-export interface Lever {
-  $value: 0 | 1;
-  $lerpValue: number;
-  $lerpValue2: number;
-  $parent: Model;
-  _update: () => void;
-  $matrix?: DOMMatrixReadOnly;
-  $locMatrix?: DOMMatrixReadOnly;
-}
-
-export interface Soul {
-  $value: 0 | 1;
-  _update: () => void;
-  $matrix?: DOMMatrixReadOnly;
-}
-
-const getItemValue = <T>({ $value }: { readonly $value: T }) => $value;
-
-export const levers: Lever[] = [];
-
-export const souls: Soul[] = [];
-
 export let player_last_pulled_lever = 0;
 
 export let rotatingPlatform1Rotation = 0;
@@ -90,24 +84,20 @@ export let firstBoatLerp = 0;
 
 export let secondBoatLerp = 0;
 
-export const showMessage = (message: string, duration: number) => {
-  if (!game_completed) {
-    h4.innerHTML = message;
+const showMessage = (message: string, duration: number) => {
+  if (_messageEndTime < Infinity) {
     _messageEndTime = gameTime + duration;
+    h4.innerHTML = message;
   }
-};
-
-const clearMessage = () => {
-  h4.innerHTML = "";
-  _messageEndTime = 0;
 };
 
 export const worldStateUpdate = () => {
-  const shouldRotatePlatforms = lerpneg(levers[12]!.$lerpValue, levers[13]!.$lerpValue);
-
-  if (gameTime > _messageEndTime) {
-    clearMessage();
+  if (_messageEndTime && gameTime > _messageEndTime) {
+    _messageEndTime = 0;
+    h4.innerHTML = "";
   }
+
+  const shouldRotatePlatforms = lerpneg(levers[12]!.$lerpValue, levers[13]!.$lerpValue);
 
   rotatingHexCorridorRotation = lerp(
     lerpDamp(rotatingHexCorridorRotation, 0, 1),
@@ -135,7 +125,7 @@ export const worldStateUpdate = () => {
     1,
   );
 
-  if (levers[0]!.$value && levers[0]!.$lerpValue > 0.7) {
+  if (levers[0]!.$value && levers[0]!.$lerpValue > 0.8) {
     if (souls_collected_count < 13) {
       showMessage("Not leaving now, there are souls to catch!", 3);
       levers[0]!.$value = 0;
@@ -160,23 +150,10 @@ export const worldStateUpdate = () => {
   }
 };
 
-const updateCollectedSoulsCounter = () => {
-  souls_collected_count = souls.reduce((acc, cur) => acc + cur.$value, 0);
-  h3.innerHTML =
-    " " +
-    ["0", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII"][souls_collected_count]!;
-};
-
-export const saveGame = () => {
-  updateCollectedSoulsCounter();
-  localStorage[LOCAL_STORAGE_SAVED_GAME_KEY] = JSON.stringify([
-    levers.map(getItemValue),
-    souls.map(getItemValue),
-    player_last_pulled_lever,
-    gameTime,
-    secondBoatLerp,
-  ]);
-};
+const updateCollectedSoulsCounter = () =>
+  (h3.innerHTML = ["0", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII"][
+    (souls_collected_count = souls.reduce((acc, { $value }) => acc + $value, 0))
+  ]!);
 
 export const loadGame = () => {
   try {
@@ -197,20 +174,17 @@ export const loadGame = () => {
     }
   }
   firstBoatLerp = clamp01(player_last_pulled_lever);
-  clearMessage();
   updateCollectedSoulsCounter();
 };
 
-export const onPlayerPullLever = (leverIndex: number) => {
-  if (DEBUG) {
-    console.log("switch lever " + leverIndex + " = " + levers[leverIndex]?.$value);
-  }
-
-  if (leverIndex) {
-    showMessage("* click *", 1);
-  }
-  player_last_pulled_lever = leverIndex;
-  saveGame();
+export const saveGame = () => {
+  localStorage[LOCAL_STORAGE_SAVED_GAME_KEY] = JSON.stringify([
+    levers.map(({ $value }) => $value),
+    souls.map(({ $value }) => $value),
+    player_last_pulled_lever,
+    gameTime,
+    secondBoatLerp,
+  ]);
 };
 
 export const onSoulCollected = () => {
@@ -233,5 +207,18 @@ export const onSoulCollected = () => {
     souls_collected_count && souls_collected_count < 12 ? 5 : 7,
   );
 
+  updateCollectedSoulsCounter();
+  saveGame();
+};
+
+export const onPlayerPullLever = (leverIndex: number) => {
+  if (DEBUG) {
+    console.log("switch lever " + leverIndex + " = " + levers[leverIndex]?.$value);
+  }
+
+  if (leverIndex) {
+    showMessage("* click *", 1);
+  }
+  player_last_pulled_lever = leverIndex;
   saveGame();
 };

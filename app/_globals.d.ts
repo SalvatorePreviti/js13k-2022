@@ -36,7 +36,7 @@ declare const b5: HTMLElement;
 /** Souls counter */
 declare const h3: HTMLCanvasElement;
 
-/** Messages */
+/** Messages and loading text */
 declare const h4: HTMLHeadingElement;
 
 declare function NO_INLINE(fn: Function);

@@ -160,7 +160,3 @@ export const song_endPattern = 11
 // Number of channels
 export const song_numChannels = 5
 
-export const getSegmentNumWords = (song_rowLen: number) => song_rowLen * song_patternLen * (song_endPattern + 1) * 2;
-
-export const song_numWords =
-  getSegmentNumWords(song_rowLen0) + getSegmentNumWords(song_rowLen1) + getSegmentNumWords(song_rowLen2);

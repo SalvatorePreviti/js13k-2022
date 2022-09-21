@@ -1,9 +1,6 @@
 /** Amount to be multiplied to an angle in degrees to obtain an angle in radians, approximately 0.017453292519943295 */
 export const DEG_TO_RAD = Math.PI / 180;
 
-/** The identity matrix */
-export const identity: DOMMatrixReadOnly = /* @__PURE__ */ new DOMMatrix();
-
 export const min = /* @__PURE__ */ (a: number, b: number) => (a < b ? a : b);
 
 export const max = /* @__PURE__ */ (a: number, b: number) => (a > b ? a : b);
@@ -53,25 +50,6 @@ export const interpolate_with_hysteresis = /* @__PURE__ */ (
 
 export const integers_map = <T>(n: number, fn: (i: number) => T) => Array.from(Array(n), (_, i) => fn(i));
 
-export const mat_perspectiveXY = /* @__PURE__ */ (mx: number, my: number, near: number, far: number) => [
-  mx,
-  0,
-  0,
-  0,
-  0,
-  my,
-  0,
-  0,
-  0,
-  0,
-  (far + near) / (near - far),
-  -1,
-  0,
-  0,
-  (2 * far * near) / (near - far),
-  0,
-];
-
 export interface Vec2 {
   x: number;
   y: number;
@@ -109,12 +87,10 @@ export type Vec3In = Readonly<Vec3>;
 
 export type Vec4In = Readonly<Vec4>;
 
-export const sqr = (n: number) => n * n;
-
 export const vec3_dot = /* @__PURE__ */ ({ x, y, z }: Vec3In, v: Vec3In): number => x * v.x + y * v.y + z * v.z;
 
 export const vec3_distance = /* @__PURE__ */ ({ x, y, z }: Vec3In, b: Vec3In): number =>
-  Math.hypot(x - b.x, y - b.y, z - b.z) || 0;
+  Math.hypot(x - b.x, y - b.y, z - b.z);
 
 /**
  * Computes a polygon plane using the Newell's method.
@@ -140,6 +116,9 @@ export const plane_fromPolygon = /* @__PURE__ */ (polygon: readonly Vec3In[]): P
   z /= b;
   return { x, y, z, w: x * a.x + y * a.y + z * a.z };
 };
+
+/** The identity matrix */
+export const identity: DOMMatrixReadOnly = /* @__PURE__ */ new DOMMatrix();
 
 export const float32Array16Temp = new Float32Array(16);
 
@@ -167,3 +146,22 @@ export const matrixToArray = (
   output[index] = $matrix.m44;
   return output;
 };
+
+export const mat_perspectiveXY = /* @__PURE__ */ (mx: number, my: number, near: number, far: number) => [
+  mx,
+  0,
+  0,
+  0,
+  0,
+  my,
+  0,
+  0,
+  0,
+  0,
+  (far + near) / (near - far),
+  -1,
+  0,
+  0,
+  (2 * far * near) / (near - far),
+  0,
+];

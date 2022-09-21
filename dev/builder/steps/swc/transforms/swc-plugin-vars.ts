@@ -220,11 +220,6 @@ function variableDeclarationSortCompare(
   }
 
   if (a.init && b.init) {
-    c = constExpressionOrdering(a.init, true) - constExpressionOrdering(b.init, true);
-    if (c) {
-      return c;
-    }
-
     if (a.init.type === "NumericLiteral" && b.init.type === "NumericLiteral") {
       return a.init.value < b.init.value ? -1 : a.init.value > b.init.value ? 1 : 0;
     }
@@ -233,6 +228,11 @@ function variableDeclarationSortCompare(
     }
     if (a.init.type === "StringLiteral" && b.init.type === "StringLiteral") {
       return a.init.value.localeCompare(b.init.value);
+    }
+
+    c = constExpressionOrdering(a.init, true) - constExpressionOrdering(b.init, true);
+    if (c) {
+      return c;
     }
 
     // c = constExpressionOrdering(a.init, true) - constExpressionOrdering(b.init, true);
@@ -279,9 +279,9 @@ function constExpressionOrdering(
   switch (expression.type) {
     case "NullLiteral":
       return 1;
-    case "BooleanLiteral":
-      return 2;
     case "NumericLiteral":
+      return 2;
+    case "BooleanLiteral":
       return 3;
     case "BigIntLiteral":
       return 4;

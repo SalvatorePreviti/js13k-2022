@@ -1,12 +1,3 @@
-html,
-body {
-  margin: 0;
-  font-family: "Times New Roman", serif;
-  background: #000;
-  font-size: max(min(3.8vw, 3.8vh), 15px);
-  text-shadow: 4px 4px 2px #000, -2px -2px 8px #000;
-}
-
 * {
   font-weight: 100;
   user-select: none;
@@ -18,6 +9,15 @@ body {
 
 body > * {
   position: absolute;
+}
+
+html,
+body {
+  margin: 0;
+  font-family: "Times New Roman", serif;
+  background: #000;
+  font-size: max(min(3.8vw, 3.8vh), 15px);
+  text-shadow: 4px 4px 2px #000, -2px -2px 8px #000;
 }
 
 /* souls counter */
@@ -93,10 +93,10 @@ li:hover {
   border-bottom: 3px solid;
 }
 
-/* hide main menu by default */
-main,
 /* hide souls counter by default */
 h3,
+/* hide main menu by default */
+main,
 /* hide messages if in menu */
 .m h4 {
   display: none;

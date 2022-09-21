@@ -5,11 +5,9 @@ import { sizeDifference } from "../lib/logging";
 import { JSDOM } from "jsdom";
 import { htmlMinify } from "./html-minify";
 import { jsRemoveEndingSemicolons, stripUtf8BOM } from "../lib/code-utils";
-import { jsUglify } from "./js-uglify";
-import { jsTdeMinify } from "./js-tde-minify";
 
 /**
- * you can try to set LEVEL to 2 if you want to squeeze as much bytes as possible.
+ * LEVEL 1 is quick, level 2 to squeeze as much bytes as possible.
  * Is much slower.
  */
 const LEVEL = 1;
@@ -22,30 +20,7 @@ export async function jsRoadroller(html: string): Promise<string> {
 
       const scriptsTags = Array.from(dom.window.document.querySelectorAll("script"));
 
-      const js = scriptsTags
-        .map((scriptTag) => `(()=>{${jsRemoveEndingSemicolons(scriptTag.textContent)}})()`)
-        .join("\n");
-
-      // js = await jsUglify(js, {
-      //   varify: true,
-      //   final: true,
-      //   computed_props: true,
-      //   inline: false,
-      //   join_vars: true,
-      //   reduce_vars: true,
-      //   sequences: true,
-      //   mangle: false,
-      // });
-
-      // js = await jsTerser(js, {
-      //   computed_props: true,
-      //   final: true,
-      //   join_vars: true,
-      //   mangle: "variables",
-      //   sequences: true,
-      // });
-
-      // js = await jsTdeMinify(js);
+      const js = scriptsTags.map((scriptTag) => jsRemoveEndingSemicolons(scriptTag.textContent)).join("\n");
 
       scriptsTags.forEach((scriptTag) => scriptTag.remove());
 
@@ -58,7 +33,7 @@ export async function jsRoadroller(html: string): Promise<string> {
           },
         ],
         {
-          allowFreeVars: true,
+          allowFreeVars: false,
         },
       );
 
@@ -70,24 +45,11 @@ export async function jsRoadroller(html: string): Promise<string> {
 
       const { firstLine, secondLine } = packer.makeDecoder();
 
-      // let compressedJs = firstLine + secondLine;
+      let compressedJs = firstLine + secondLine;
 
-      // trick, instead of relying on M variable in the generated code, replace it with the string
-      let compressedJs = secondLine.replace(
-        "M.charCodeAt",
-        `${jsRemoveEndingSemicolons(firstLine.slice(2))}.charCodeAt`,
-      );
+      compressedJs = `${jsRemoveEndingSemicolons(compressedJs).replace("eval", "Function")}()`;
 
-      compressedJs = await jsUglify(compressedJs, {
-        varify: false,
-        final: true,
-        computed_props: true,
-        inline: true,
-        join_vars: true,
-        reduce_vars: true,
-        sequences: true,
-        mangle: true,
-      });
+      compressedJs = jsRemoveEndingSemicolons(compressedJs);
 
       if (compressedJs) {
         const script = dom.window.document.createElement("script");
@@ -95,8 +57,6 @@ export async function jsRoadroller(html: string): Promise<string> {
         script.textContent = compressedJs;
         dom.window.document.body.appendChild(script);
       }
-      compressedJs = await jsTdeMinify(compressedJs);
-      compressedJs = jsRemoveEndingSemicolons(compressedJs);
 
       let bundled = dom.serialize();
 
