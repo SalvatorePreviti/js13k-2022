@@ -33,6 +33,9 @@ export const allModels: Model[] = [];
 
 export const levers: Lever[] = [];
 
+/** Fixed number of souls */
+export const SOULS_COUNT = 13;
+
 export const souls: Soul[] = [];
 
 export const player_position_final: Vec3 = {

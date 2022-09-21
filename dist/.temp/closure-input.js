@@ -443,7 +443,6 @@ const showMessage = (message, duration) => {
 };
 
 const worldStateUpdate = () => {
-  _messageEndTime && gameTime > _messageEndTime && (_messageEndTime = 0, h4.innerHTML = "");
   const shouldRotatePlatforms = lerpneg(levers[12].$lerpValue, levers[13].$lerpValue);
   rotatingHexCorridorRotation = lerp(
     lerpDamp(rotatingHexCorridorRotation, 0, 1),
@@ -466,6 +465,7 @@ const worldStateUpdate = () => {
       game_completed ? lerp(firstBoatLerp, -9, 1.5 * gameTimeDelta) : clamp01(gameTime / 3),
       1,
     ),
+    _messageEndTime && gameTime > _messageEndTime && (_messageEndTime = 0, h4.innerHTML = ""),
     levers[0].$value && 0.8 < levers[0].$lerpValue && (souls_collected_count < 13
       ? (showMessage("Not leaving now, there are souls to catch!", 3), levers[0].$value = 0)
       : game_completed
@@ -898,8 +898,8 @@ const initShaderProgram = (vertexShader, sfsSource) => {
     name => name ? uniforms[name] || (uniforms[name] = gl["gan"](program, name)) : gl["u7y"](program);
 };
 
-const renderModels = (worldMatrixLoc, renderPlayer, isCollider) => {
-  if (isCollider = allModels[isCollider ? 41 : 42], mainMenuVisible) {
+const renderModels = (worldMatrixLoc, renderPlayer, soulModelId = 42) => {
+  if (mainMenuVisible) {
     const matrix = identity.rotate(0, 40 * Math.sin(absoluteTime) - 70);
 
     for (const modelId of [37, MODEL_ID_PLAYER_LEG0, MODEL_ID_PLAYER_LEG1]) {
@@ -931,15 +931,24 @@ const renderModels = (worldMatrixLoc, renderPlayer, isCollider) => {
         6,
       );
 
-    for (let i1 = 0; levers.length > i1; ++i1) {
+    for (let i1 = 0; i1 < 13; ++i1) matrixToArray(souls[i1].$matrix, worldMatricesBuffer, i1);
+
+    for (let i2 = 0; levers.length > i2; ++i2) {
       const {
         $matrix: $matrix1,
         $lerpValue,
-      } = levers[i1];
-      matrixToArray($matrix1, worldMatricesBuffer, i1), worldMatricesBuffer[16 * i1 + 15] = 1 - $lerpValue;
+      } = levers[i2];
+      matrixToArray($matrix1, worldMatricesBuffer, i2 + 13), worldMatricesBuffer[16 * (i2 + 13) + 15] = 1 - $lerpValue;
     }
 
     gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer),
+      gl["das"](
+        4,
+        allModels[soulModelId].$vertexEnd - allModels[soulModelId].$vertexBegin,
+        5123,
+        2 * allModels[soulModelId].$vertexBegin,
+        13,
+      ),
       gl["das"](
         4,
         allModels[40].$vertexEnd - allModels[40].$vertexBegin,
@@ -947,11 +956,6 @@ const renderModels = (worldMatrixLoc, renderPlayer, isCollider) => {
         2 * allModels[40].$vertexBegin,
         levers.length,
       );
-
-    for (let i2 = 0; i2 < 13; ++i2) matrixToArray(souls[i2].$matrix, worldMatricesBuffer, i2);
-
-    gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer),
-      gl["das"](4, isCollider.$vertexEnd - isCollider.$vertexBegin, 5123, 2 * isCollider.$vertexBegin, 13);
   }
 };
 
@@ -1445,7 +1449,7 @@ loadStep(() => {
                 ),
               ),
             ),
-            renderModels(collisionShader("c"), 0, 1),
+            renderModels(collisionShader("c"), 0, 41),
             gl["c4s"](256),
             gl["cbf"](!1, !0, !0, !1),
             gl["uae"](
@@ -1455,7 +1459,7 @@ loadStep(() => {
                 identity.translate(-player_position_final.x, -player_position_final.y, -player_position_final.z - 0.3),
               ),
             ),
-            renderModels(collisionShader("c"), 0, 1),
+            renderModels(collisionShader("c"), 0, 41),
             gl["f1s"]()),
             csmShader(),
             gl["b6o"](36160, csm_framebuffer),
@@ -1472,7 +1476,7 @@ loadStep(() => {
             gl["uae"](mainShader("a"), !1, mat_perspective(0.3, 177)),
             gl["uae"](mainShader("b"), !1, matrixToArray(dt)),
             gl["ubu"](mainShader("k"), camera_position.x, camera_position.y, camera_position.z),
-            renderModels(mainShader("c"), !player_first_person, 0),
+            renderModels(mainShader("c"), !player_first_person),
             skyShader(),
             gl["ubu"](skyShader("j"), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime),
             mainMenuVisible
@@ -1490,10 +1494,10 @@ loadStep(() => {
         const collision_renderBuffer = gl["c3z"]();
         const collision_texture = gl["c25"]();
         const mainVertexShader = loadShader(`#version 300 es
-layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 a,b,c[39];void main(){mat4 i=c[f.w>0.?int(f.w)-1:gl_InstanceID];l=mix(d,vec4(.7,1,.2,0),d.w>0.?0.:1.-i[3][3]),i[3][3]=1.,n=f,m=i*vec4(f.xyz,1),gl_Position=a*b*m,m.w=f.w,o=i*vec4(e,0);}`);
+layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 a,b,c[39];void main(){mat4 i=c[int(abs(f.w))+gl_InstanceID-1];l=mix(d,vec4(.7,1,.2,0),d.w>0.?0.:1.-i[3][3]),i[3][3]=1.,n=f,m=i*vec4(f.xyz,1),gl_Position=a*b*m,m.w=f.w,o=i*vec4(e,0);}`);
         const csmShader = initShaderProgram(
           loadShader(`#version 300 es
-in vec4 f;uniform mat4 b,c[39];void main(){mat4 i=c[f.w>0.?int(f.w)-1:gl_InstanceID];i[3][3]=1.,gl_Position=b*i*vec4(f.xyz,1);}`),
+in vec4 f;uniform mat4 b,c[39];void main(){mat4 i=c[int(abs(f.w))+gl_InstanceID-1];i[3][3]=1.,gl_Position=b*i*vec4(f.xyz,1);}`),
           `#version 300 es
 void main(){}`,
         );
@@ -1543,7 +1547,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                       gl["uae"](csmShader("b"), !1, lightSpaceMatrix),
                       gl["fas"](36160, 36096, 3553, texture, 0),
                       gl["c4s"](256),
-                      renderModels(csmShader("c"), !player_first_person, 0))
+                      renderModels(csmShader("c"), !player_first_person))
                     : gl["uae"](lightSpaceMatrixLoc, !1, lightSpaceMatrix);
                 };
             }));
@@ -1637,7 +1641,10 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
           const _vertexFloats = new Float32Array(_vertexInts.buffer);
 
           for (const model of allModels) {
-            for (polygon of (_vertexFloats[3] = model.$kind && model.$modelId, model.$polygons)) {
+            for (
+              polygon
+                of (_vertexFloats[3] = model.$modelId === 40 ? -13 : model.$kind && model.$modelId, model.$polygons)
+            ) {
               const {
                 x,
                 y,

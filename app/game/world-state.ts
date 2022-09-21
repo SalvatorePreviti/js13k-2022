@@ -1,5 +1,5 @@
 import { lerp, angle_wrap_degrees, lerpneg, abs, clamp01, min } from "../math";
-import { allModels, levers, souls } from "./models";
+import { allModels, levers, souls, SOULS_COUNT } from "./models";
 
 export const KEY_LEFT = 0;
 
@@ -92,11 +92,6 @@ const showMessage = (message: string, duration: number) => {
 };
 
 export const worldStateUpdate = () => {
-  if (_messageEndTime && gameTime > _messageEndTime) {
-    _messageEndTime = 0;
-    h4.innerHTML = "";
-  }
-
   const shouldRotatePlatforms = lerpneg(levers[12]!.$lerpValue, levers[13]!.$lerpValue);
 
   rotatingHexCorridorRotation = lerp(
@@ -125,8 +120,13 @@ export const worldStateUpdate = () => {
     1,
   );
 
+  if (_messageEndTime && gameTime > _messageEndTime) {
+    _messageEndTime = 0;
+    h4.innerHTML = "";
+  }
+
   if (levers[0]!.$value && levers[0]!.$lerpValue > 0.8) {
-    if (souls_collected_count < 13) {
+    if (souls_collected_count < SOULS_COUNT) {
       showMessage("Not leaving now, there are souls to catch!", 3);
       levers[0]!.$value = 0;
     } else if (!game_completed) {

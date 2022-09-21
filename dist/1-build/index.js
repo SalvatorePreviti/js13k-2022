@@ -365,16 +365,16 @@ const showMessage = (message, duration) => {
 };
 
 const worldStateUpdate = () => {
-    if (_messageEndTime && gameTime > _messageEndTime) {
-        _messageEndTime = 0;
-        h4.innerHTML = "";
-    }
     const shouldRotatePlatforms = lerpneg(levers[12].$lerpValue, levers[13].$lerpValue);
     rotatingHexCorridorRotation = lerp(lerpDamp(rotatingHexCorridorRotation, 0, 1), angle_wrap_degrees(rotatingHexCorridorRotation + 60 * gameTimeDelta), levers[5].$lerpValue - levers[6].$lerpValue2);
     rotatingPlatform1Rotation = lerp(lerpDamp(rotatingPlatform1Rotation, 0, 5), angle_wrap_degrees(rotatingPlatform1Rotation + 56 * gameTimeDelta), shouldRotatePlatforms);
     rotatingPlatform2Rotation = lerp(lerpDamp(rotatingPlatform2Rotation, 0, 4), angle_wrap_degrees(rotatingPlatform2Rotation + 48 * gameTimeDelta), shouldRotatePlatforms);
     secondBoatLerp = lerpDamp(secondBoatLerp, levers[9].$lerpValue2, .2 + .3 * abs(2 * levers[9].$lerpValue2 - 1));
     firstBoatLerp = lerpDamp(firstBoatLerp, game_completed ? lerp(firstBoatLerp, -9, 1.5 * gameTimeDelta) : clamp01(gameTime / 3), 1);
+    if (_messageEndTime && gameTime > _messageEndTime) {
+        _messageEndTime = 0;
+        h4.innerHTML = "";
+    }
     if (levers[0].$value && levers[0].$lerpValue > .8) if (13 > souls_collected_count) {
         showMessage("Not leaving now, there are souls to catch!", 3);
         levers[0].$value = 0;
@@ -1105,8 +1105,7 @@ const initShaderProgram = (vertexShader, sfsSource) => {
 
 const worldMatricesBuffer = new Float32Array(624);
 
-const renderModels = (worldMatrixLoc, renderPlayer, isCollider) => {
-    const soulModelToRender = allModels[isCollider ? 41 : 42];
+const renderModels = (worldMatrixLoc, renderPlayer, soulModelId = 42) => {
     if (mainMenuVisible) {
         const matrix = identity.rotate(0, /* @__PURE__ */ 40 * Math.sin(absoluteTime) - 70);
         for (const modelId of [ 37, MODEL_ID_PLAYER_LEG0, MODEL_ID_PLAYER_LEG1 ]) matrixToArray(matrix, worldMatricesBuffer, modelId - 1);
@@ -1119,16 +1118,15 @@ const renderModels = (worldMatrixLoc, renderPlayer, isCollider) => {
         }
         gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer);
         gl["d97"](4, (renderPlayer ? allModels[MODEL_ID_PLAYER_LEG1].$vertexEnd : allModels[37].$vertexBegin) - 3, 5123, 6);
-        for (let i1 = 0; levers.length > i1; ++i1) {
-            const {$matrix: $matrix1, $lerpValue} = levers[i1];
-            matrixToArray($matrix1, worldMatricesBuffer, i1);
-            worldMatricesBuffer[16 * i1 + 15] = 1 - $lerpValue;
+        for (let i1 = 0; 13 > i1; ++i1) matrixToArray(souls[i1].$matrix, worldMatricesBuffer, i1);
+        for (let i2 = 0; levers.length > i2; ++i2) {
+            const {$matrix: $matrix1, $lerpValue} = levers[i2];
+            matrixToArray($matrix1, worldMatricesBuffer, i2 + 13);
+            worldMatricesBuffer[16 * (i2 + 13) + 15] = 1 - $lerpValue;
         }
         gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer);
+        gl["das"](4, allModels[soulModelId].$vertexEnd - allModels[soulModelId].$vertexBegin, 5123, 2 * allModels[soulModelId].$vertexBegin, 13);
         gl["das"](4, allModels[40].$vertexEnd - allModels[40].$vertexBegin, 5123, 2 * allModels[40].$vertexBegin, levers.length);
-        for (let i2 = 0; 13 > i2; ++i2) matrixToArray(souls[i2].$matrix, worldMatricesBuffer, i2);
-        gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer);
-        gl["das"](4, soulModelToRender.$vertexEnd - soulModelToRender.$vertexBegin, 5123, 2 * soulModelToRender.$vertexBegin, 13);
     }
 };
 
@@ -1379,11 +1377,11 @@ const startMainLoop = groundTextureImage => {
             gl["c4s"](16640);
             gl["cbf"](!0, !1, !0, !1);
             gl["uae"](collisionShader("b"), !1, matrixToArray(identity.rotate(0, 180).invertSelf().translateSelf(-player_position_final.x, -player_position_final.y, .3 - player_position_final.z)));
-            renderModels(collisionShader("c"), 0, 1);
+            renderModels(collisionShader("c"), 0, 41);
             gl["c4s"](256);
             gl["cbf"](!1, !0, !0, !1);
             gl["uae"](collisionShader("b"), !1, matrixToArray(identity.translate(-player_position_final.x, -player_position_final.y, -player_position_final.z - .3)));
-            renderModels(collisionShader("c"), 0, 1);
+            renderModels(collisionShader("c"), 0, 41);
             gl["f1s"]();
         }
         csmShader();
@@ -1401,7 +1399,7 @@ const startMainLoop = groundTextureImage => {
         gl["uae"](mainShader("a"), !1, mat_perspective(.3, 177));
         gl["uae"](mainShader("b"), !1, matrixToArray(camera_view));
         gl["ubu"](mainShader("k"), camera_position.x, camera_position.y, camera_position.z);
-        renderModels(mainShader("c"), !player_first_person, 0);
+        renderModels(mainShader("c"), !player_first_person);
         skyShader();
         gl["ubu"](skyShader("j"), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime);
         mainMenuVisible ? gl["ubu"](skyShader("k"), 0, 0, 0) : gl["ubu"](skyShader("k"), camera_position.x, camera_position.y, camera_position.z);
@@ -1415,8 +1413,8 @@ const startMainLoop = groundTextureImage => {
     const collision_frameBuffer = gl["c5w"]();
     const collision_renderBuffer = gl["c3z"]();
     const collision_texture = gl["c25"]();
-    const mainVertexShader = loadShader("#version 300 es\nlayout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 a,b,c[39];void main(){mat4 i=c[f.w>0.?int(f.w)-1:gl_InstanceID];l=mix(d,vec4(.7,1,.2,0),d.w>0.?0.:1.-i[3][3]),i[3][3]=1.,n=f,m=i*vec4(f.xyz,1),gl_Position=a*b*m,m.w=f.w,o=i*vec4(e,0);}");
-    const csmShader = initShaderProgram(loadShader("#version 300 es\nin vec4 f;uniform mat4 b,c[39];void main(){mat4 i=c[f.w>0.?int(f.w)-1:gl_InstanceID];i[3][3]=1.,gl_Position=b*i*vec4(f.xyz,1);}"), "#version 300 es\nvoid main(){}");
+    const mainVertexShader = loadShader("#version 300 es\nlayout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 a,b,c[39];void main(){mat4 i=c[int(abs(f.w))+gl_InstanceID-1];l=mix(d,vec4(.7,1,.2,0),d.w>0.?0.:1.-i[3][3]),i[3][3]=1.,n=f,m=i*vec4(f.xyz,1),gl_Position=a*b*m,m.w=f.w,o=i*vec4(e,0);}");
+    const csmShader = initShaderProgram(loadShader("#version 300 es\nin vec4 f;uniform mat4 b,c[39];void main(){mat4 i=c[int(abs(f.w))+gl_InstanceID-1];i[3][3]=1.,gl_Position=b*i*vec4(f.xyz,1);}"), "#version 300 es\nvoid main(){}");
     const skyShader = initShaderProgram(loadShader("#version 300 es\nin vec4 f;void main(){gl_Position=vec4(f.xy,1,1);}"), "#version 300 es\nprecision highp float;uniform vec3 j,k;uniform mat4 b;uniform highp sampler2D q;out vec4 O;void main(){vec2 t=gl_FragCoord.xy/j.xy*2.-1.;vec3 e=(normalize(b*vec4(t.x*-(j.x/j.y),-t.y,1.73205,0.))).xyz;float i=(-32.-k.y)/e.y,o=1.-clamp(abs(i/9999.),0.,1.);if(O=vec4(0,0,0,1),o>.01){if(i>0.){float o=cos(j.z/30.),i=sin(j.z/30.);e.xz*=mat2(o,i,-i,o);vec3 t=abs(e);O.xyz=vec3(dot(vec2(texture(q,e.xy).z,texture(q,e.yz*2.).z),t.zx)*t.y);}else e=k+e*i,O.x=(o*=.9-texture(q,e.xz/150.+vec2(sin(e.z/35.+j.z),cos(e.x/25.+j.z))/80.).y),O.y=o*o*o;}}");
     const collisionShader = initShaderProgram(mainVertexShader, "#version 300 es\nprecision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(m.xyz,1);float r=1.-min(abs(a.z/a.w),1.);O=vec4(vec2(r*(gl_FragCoord.y>31.?1.:abs(o.y))),r>0.?m.w/255.:0.,1);}");
     const mainShader = initShaderProgram(mainVertexShader, "#version 300 es\nprecision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform highp sampler2DShadow g,h;uniform highp sampler2D q;out vec4 O;void main(){vec4 c=vec4(m.xyz,1);vec3 e=normalize(o.xyz),s=l.w*(texture(q,n.yz*.035)*e.x+texture(q,n.xz*.035)*e.y+texture(q,n.xy*.035)*e.z).xyz;e=normalize(e+s*.5);float x=dot(e,vec3(-.656059,.666369,-.35431468)),t=1.,v=abs((b*c).z);vec4 r=(v<55.?i:j)*c;if(r=r/r.w*.5+.5,r.z<1.){t=0.;for(float e=-1.;e<=1.;++e)for(float a=-1.;a<=1.;++a){vec3 x=vec3(r.xy+vec2(e,a)/2048.,r.z-.00017439);t+=v<55.?texture(g,x):texture(h,x);}t/=9.;}vec3 a=l.xyz*(1.-s.x);O=vec4(vec3(.09,.05,.1)*a+a*(max(0.,x)*.5+a*x*x*vec3(.5,.45,.3))*(t*.7+.3)+a*max(dot(e,vec3(.09901475,-.99014753,-.09901475)),0.)*max(0.,2.-m.y)*vec3(.04285714,.00714286,0)+vec3(.6,.6,.5)*pow(max(0.,dot(normalize(m.xyz-k),reflect(vec3(-.656059,.666369,-.35431468),e))),35.)*t,1);}");
@@ -1449,7 +1447,7 @@ const startMainLoop = groundTextureImage => {
                 gl["uae"](csmShader("b"), !1, lightSpaceMatrix);
                 gl["fas"](36160, 36096, 3553, texture, 0);
                 gl["c4s"](256);
-                renderModels(csmShader("c"), !player_first_person, 0);
+                renderModels(csmShader("c"), !player_first_person);
             } else gl["uae"](lightSpaceMatrixLoc, !1, lightSpaceMatrix);
         };
     }));
@@ -1667,7 +1665,7 @@ loadStep((() => {
                 const _vertexIntsSmooth = new Int32Array(_vertexInts.buffer, 0, 5);
                 const _vertexFloats = new Float32Array(_vertexInts.buffer);
                 for (const model of allModels) {
-                    _vertexFloats[3] = model.$kind && model.$modelId;
+                    _vertexFloats[3] = 40 === model.$modelId ? -13 : model.$kind && model.$modelId;
                     for (polygon of model.$polygons) {
                         const {x, y, z} = plane_fromPolygon(polygon);
                         _vertexInts[4] = 0 | polygon.$color;

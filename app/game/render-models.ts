@@ -8,8 +8,9 @@ import {
   MODEL_ID_PLAYER_LEG0,
   MODEL_ID_PLAYER_LEG1,
   MODEL_ID_SOUL,
-  MODEL_ID_SOUL_COLLISION,
   souls,
+  SOULS_COUNT,
+  type MODEL_ID_SOUL_COLLISION,
 } from "./models";
 import { gl } from "../gl";
 
@@ -18,10 +19,8 @@ const worldMatricesBuffer = new Float32Array(39 * 16);
 export const renderModels = (
   worldMatrixLoc: WebGLUniformLocation,
   renderPlayer: 0 | 1 | boolean,
-  isCollider: 0 | 1,
+  soulModelId: typeof MODEL_ID_SOUL | typeof MODEL_ID_SOUL_COLLISION = MODEL_ID_SOUL,
 ) => {
-  const soulModelToRender = allModels[isCollider ? MODEL_ID_SOUL_COLLISION : MODEL_ID_SOUL]!;
-
   if (mainMenuVisible) {
     const matrix = identity.rotate(0, Math.sin(absoluteTime) * 40 - 70);
     for (const modelId of [MODEL_ID_PLAYER_BODY, MODEL_ID_PLAYER_LEG0, MODEL_ID_PLAYER_LEG1]) {
@@ -38,7 +37,7 @@ export const renderModels = (
     return;
   }
 
-  // Render world
+  // Setup world matrices
 
   for (let i = 0; i < allModels.length; ++i) {
     const { $kind, $modelId, $matrix } = allModels[i]!;
@@ -47,6 +46,9 @@ export const renderModels = (
     }
   }
   gl.uniformMatrix4fv(worldMatrixLoc, false, worldMatricesBuffer);
+
+  // Render world
+
   gl.drawElements(
     gl.TRIANGLES,
     (renderPlayer ? allModels[MODEL_ID_PLAYER_LEG1]!.$vertexEnd! : allModels[MODEL_ID_PLAYER_BODY]!.$vertexBegin!) - 3,
@@ -54,33 +56,38 @@ export const renderModels = (
     3 * 2,
   );
 
-  // Render souls
+  // Setup souls and levers matrices
+
+  for (let i = 0; i < SOULS_COUNT; ++i) {
+    matrixToArray(souls[i]!.$matrix!, worldMatricesBuffer, i);
+  }
 
   for (let i = 0; i < levers.length; ++i) {
     const { $matrix, $lerpValue } = levers[i]!;
-    matrixToArray($matrix!, worldMatricesBuffer, i);
-    worldMatricesBuffer[i * 16 + 15] = 1 - $lerpValue;
+    matrixToArray($matrix!, worldMatricesBuffer, i + SOULS_COUNT);
+    // Encode lerp value in matrix m44 so fragmemt shader can change the lever handle color
+    worldMatricesBuffer[(i + SOULS_COUNT) * 16 + 15] = 1 - $lerpValue;
   }
+
   gl.uniformMatrix4fv(worldMatrixLoc, false, worldMatricesBuffer);
+
+  // Render souls
+
+  gl.drawElementsInstanced(
+    gl.TRIANGLES,
+    allModels[soulModelId]!.$vertexEnd! - allModels[soulModelId]!.$vertexBegin!,
+    gl.UNSIGNED_SHORT,
+    allModels[soulModelId]!.$vertexBegin! * 2,
+    13,
+  );
+
+  // Render levers
+
   gl.drawElementsInstanced(
     gl.TRIANGLES,
     allModels[MODEL_ID_LEVER]!.$vertexEnd! - allModels[MODEL_ID_LEVER]!.$vertexBegin!,
     gl.UNSIGNED_SHORT,
     allModels[MODEL_ID_LEVER]!.$vertexBegin! * 2,
     levers.length,
-  );
-
-  // Render levers
-
-  for (let i = 0; i < 13; ++i) {
-    matrixToArray(souls[i]!.$matrix!, worldMatricesBuffer, i);
-  }
-  gl.uniformMatrix4fv(worldMatrixLoc, false, worldMatricesBuffer);
-  gl.drawElementsInstanced(
-    gl.TRIANGLES,
-    soulModelToRender.$vertexEnd! - soulModelToRender.$vertexBegin!,
-    gl.UNSIGNED_SHORT,
-    soulModelToRender.$vertexBegin! * 2,
-    13,
   );
 };

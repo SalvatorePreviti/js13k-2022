@@ -1,6 +1,6 @@
 import { plane_fromPolygon } from "../math";
 import type { Polygon } from "../geometry/geometry";
-import { allModels } from "./models";
+import { allModels, MODEL_ID_LEVER, SOULS_COUNT } from "./models";
 import { gl } from "../gl";
 
 export const initTriangleBuffers = () => {
@@ -43,7 +43,7 @@ export const initTriangleBuffers = () => {
   };
 
   for (const model of allModels) {
-    _vertexFloats[3] = model.$kind && model.$modelId;
+    _vertexFloats[3] = model.$modelId === MODEL_ID_LEVER ? -SOULS_COUNT : model.$kind && model.$modelId;
     for (polygon of model.$polygons!) {
       const { x, y, z } = plane_fromPolygon(polygon);
       _vertexInts[4] = polygon.$color! | 0;
