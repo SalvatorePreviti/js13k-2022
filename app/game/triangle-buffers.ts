@@ -1,6 +1,6 @@
 import { plane_fromPolygon } from "../math";
 import type { Polygon } from "../geometry/geometry";
-import { allModels, MODEL_ID_LEVER, SOULS_COUNT } from "./models";
+import { allModels, MODEL_ID_LEVER, souls, SOULS_COUNT } from "./models";
 import { gl } from "../gl";
 
 export const initTriangleBuffers = () => {
@@ -43,7 +43,7 @@ export const initTriangleBuffers = () => {
   };
 
   for (const model of allModels) {
-    _vertexFloats[3] = model.$modelId === MODEL_ID_LEVER ? -SOULS_COUNT : model.$kind && model.$modelId;
+    _vertexFloats[3] = model.$modelId === MODEL_ID_LEVER ? -SOULS_COUNT - 1 : model.$kind && model.$modelId;
     for (polygon of model.$polygons!) {
       const { x, y, z } = plane_fromPolygon(polygon);
       _vertexInts[4] = polygon.$color! | 0;
@@ -91,5 +91,9 @@ export const initTriangleBuffers = () => {
       "triangles": _triangleIndices.length / 3,
       "indices": _triangleIndices.length,
     });
+
+    if (souls.length !== SOULS_COUNT) {
+      throw new Error("Souls must be " + SOULS_COUNT + " but is " + souls.length);
+    }
   }
 };

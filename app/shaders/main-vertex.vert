@@ -16,7 +16,7 @@ uniform mat4 worldMatrices[39];
 #define modelId aPosition.w
 
 void main() {
-  mat4 worldMatrix = worldMatrices[int(abs(modelId)) + gl_InstanceID - 1];
+  mat4 worldMatrix = worldMatrices[max(0, abs(int(modelId)) - 1) + gl_InstanceID];
   // trick - use worldMatrix[3][3] that normally is 1 as a way to color the handle of pulled levers
   Color = mix(aColor, vec4(0.7, 1, 0.2, 0), aColor.w > 0. ? 0. : 1. - worldMatrix[3][3]);
   worldMatrix[3][3] = 1.;

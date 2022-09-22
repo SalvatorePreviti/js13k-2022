@@ -14,6 +14,7 @@ import {
   updateCollectedSoulsCounter,
 } from "./game/world-state";
 import { songAudioSource, audioContext } from "./music/audio-context";
+import { abs, clamp01 } from "./math";
 
 export let player_first_person: 0 | 1 | undefined;
 
@@ -24,8 +25,8 @@ export let touch_movementY = 0;
 export const initPage = () => {
   let touchStartTime: number | undefined;
 
-  let touchPosX: number | undefined;
-  let touchPosY: number | undefined;
+  let touchPosStartX: number | undefined;
+  let touchPosStartY: number | undefined;
   let touchPosIdentifier: number | undefined;
   let touchPosMoved: number | undefined;
 
@@ -47,7 +48,7 @@ export const initPage = () => {
       // connect the AudioBufferSourceNode to the  destination so we can hear the sound
       songAudioSource.connect(audioContext.destination);
     }
-    b4.innerHTML = "music: " + music_on;
+    b4.innerHTML = "Music: " + music_on;
   };
 
   const toggleMusic = () => {
@@ -182,18 +183,18 @@ export const initPage = () => {
       for (const { pageX, pageY, identifier } of e.changedTouches) {
         if (player_first_person && pageX > hC.clientWidth / 2) {
           if (touchRotIdentifier === undefined) {
-            touchRotIdentifier = identifier;
+            touchRotMoved = 0;
             touchRotX = pageX;
             touchRotY = pageY;
-            touchRotMoved = 0;
+            touchRotIdentifier = identifier;
             touchStartCameraRotX = camera_rotation.y;
             touchStartCameraRotY = camera_rotation.x;
           }
         } else if (touchPosIdentifier === undefined) {
-          touchPosIdentifier = identifier;
-          touchPosX = pageX;
-          touchPosY = pageY;
           touchPosMoved = 0;
+          touchPosStartX = pageX;
+          touchPosStartY = pageY;
+          touchPosIdentifier = identifier;
         }
       }
       touchStartTime = absoluteTime;
@@ -201,7 +202,8 @@ export const initPage = () => {
   };
 
   const TOUCH_SIZE = 20;
-  const TOUCH_MOVE_THRESHOLD = 0.4;
+  const TOUCH_MOVE_THRESHOLD = 0.5;
+  const TOUCH_MOVE_SNAP = 0.2;
 
   hC.ontouchmove = (e) => {
     if (!mainMenuVisible) {
@@ -212,27 +214,28 @@ export const initPage = () => {
           touchRotMoved = 1;
         }
         if (touchPosIdentifier === identifier) {
-          let delta = (touchPosX! - pageX) / TOUCH_SIZE;
-          let sign = delta < 0 ? -1 : 1;
-          let absDelta = sign * delta;
+          const deltaX = (touchPosStartX! - pageX) / TOUCH_SIZE;
+          const deltaY = (touchPosStartY! - pageY) / TOUCH_SIZE;
+          const absDeltaX = abs(deltaX);
+          const absDeltaY = abs(deltaY);
 
-          if (absDelta > TOUCH_MOVE_THRESHOLD) {
+          const angle = Math.atan2(deltaY, deltaX);
+          const speed = clamp01(Math.hypot(deltaY, deltaX) - TOUCH_MOVE_THRESHOLD);
+
+          touch_movementX = absDeltaX > TOUCH_MOVE_SNAP ? Math.cos(angle) * speed : 0;
+          touch_movementY = absDeltaY > TOUCH_MOVE_SNAP ? Math.sin(angle) * speed : 0;
+
+          if (touch_movementX || touch_movementY) {
+            // Moved, disable the click
             touchPosMoved = 1;
-            touch_movementX = sign * absDelta ** 1.5;
-            if (absDelta > 1.5) {
-              touchPosX = pageX + TOUCH_SIZE * sign;
-            }
           }
 
-          delta = (touchPosY! - pageY) / TOUCH_SIZE;
-          sign = delta < 0 ? -1 : 1;
-          absDelta = sign * delta;
-          if (absDelta > TOUCH_MOVE_THRESHOLD) {
-            touchPosMoved = 1;
-            touch_movementY = sign * absDelta ** 1.5;
-            if (absDelta > 1.5) {
-              touchPosY = pageY + TOUCH_SIZE * sign;
-            }
+          // Move the invisible joysticks
+          if (absDeltaX > 2) {
+            touchPosStartX = pageX + Math.sign(deltaX) * TOUCH_SIZE;
+          }
+          if (absDeltaY > 2) {
+            touchPosStartY = pageY + Math.sign(deltaY) * TOUCH_SIZE;
           }
         }
       }

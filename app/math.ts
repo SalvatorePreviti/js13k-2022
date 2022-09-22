@@ -38,18 +38,6 @@ export const angle_lerp = /* @__PURE__ */ (a0: number, a1: number, t: number) =>
 export const angle_lerp_degrees = /* @__PURE__ */ (a0: number, a1: number, t: number) =>
   angle_lerp(a0 * DEG_TO_RAD, a1 * DEG_TO_RAD, t) / DEG_TO_RAD;
 
-export const interpolate_with_hysteresis = /* @__PURE__ */ (
-  previous: number,
-  desired: number,
-  hysteresis: number,
-  t: number,
-) =>
-  lerp(
-    previous + (desired - previous < 0 ? -1 : 1) * max(0, abs(desired - previous) ** 0.9 - hysteresis) * t * 2,
-    desired,
-    t / 7,
-  );
-
 export interface Vec2 {
   x: number;
   y: number;

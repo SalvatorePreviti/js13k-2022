@@ -1,15 +1,4 @@
-import {
-  abs,
-  max,
-  clamp01,
-  DEG_TO_RAD,
-  identity,
-  angle_lerp_degrees,
-  lerp,
-  interpolate_with_hysteresis,
-  min,
-  angle_wrap_degrees,
-} from "./math";
+import { abs, max, clamp01, DEG_TO_RAD, identity, angle_lerp_degrees, lerp, min, angle_wrap_degrees } from "./math";
 import {
   levers,
   player_position_final,
@@ -63,7 +52,7 @@ export const player_init = () => {
   let currentModelId = 0;
 
   let player_has_ground: 0 | 1 | undefined;
-  let player_respawned: 0 | 1 = 1;
+  let player_respawned: 0 | 1 | 2 = 2;
   let player_look_angle_target = 0;
 
   let player_look_angle = 0;
@@ -91,28 +80,14 @@ export const player_init = () => {
   const player_collision_modelIdCounter = new Int32Array(256);
   const collision_buffer = new Uint8Array(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
 
-  const player_respawn = (boot?: 1) => {
-    const { $parent, $locMatrix } = levers[player_last_pulled_lever]!;
-
-    const { x, y, z } = $locMatrix!.transformPoint({ x: 0, y: 8, z: -3 });
-
-    player_position_final.x = player_position_global.x = x;
-    player_position_final.y = player_position_global.y = player_model_y = y;
-    player_position_final.z = player_position_global.z = z;
-
-    if (boot) {
-      camera_position.x = camera_lookat_x = x;
-      camera_position.y = (camera_lookat_y = y) + CAMERA_PLAYER_Y_DIST;
-      camera_position.z = (camera_lookat_z = z) + CAMERA_PLAYER_Z_DIST;
-    }
-
-    currentModelIdTMinus1 = currentModelId = $parent.$modelId || 1;
+  const player_respawn = () => {
+    currentModelIdTMinus1 = currentModelId = levers[player_last_pulled_lever]!.$parent.$modelId || 1;
     player_speed = 0;
     player_gravity = 0;
     player_collision_velocity_x = 0;
     player_collision_velocity_z = 0;
     player_has_ground = 0;
-    player_respawned = 1;
+    player_respawned = 2;
   };
 
   const doHorizontalCollisions = () => {
@@ -213,6 +188,10 @@ export const player_init = () => {
       lines / 41 - (player_has_ground ? 1 : player_gravity) * (grav / 41) * player_gravity * gameTimeDelta;
   };
 
+  const interpolate_with_hysteresis = /* @__PURE__ */ (previous: number, desired: number, hysteresis: number) => {
+    return lerpDamp(previous, desired, min(4, max(0.4, abs(previous - desired) - hysteresis)));
+  };
+
   player_update = () => {
     let strafe = touch_movementX + (keyboard_downKeys[KEY_LEFT] ? 1 : 0) + (keyboard_downKeys[KEY_RIGHT] ? -1 : 0);
     let forward = touch_movementY + (keyboard_downKeys[KEY_FRONT] ? 1 : 0) + (keyboard_downKeys[KEY_BACK] ? -1 : 0);
@@ -260,15 +239,19 @@ export const player_init = () => {
       }
     }
 
-    if (abs(forward) < 0.05) {
-      forward = 0;
-    }
-    if (abs(strafe) < 0.05) {
-      strafe = 0;
-    }
+    // if (abs(forward) < 0.05) {
+    //   forward = 0;
+    // }
+    // if (abs(strafe) < 0.05) {
+    //   strafe = 0;
+    // }
 
     const angle = Math.atan2(forward, strafe);
-    const amount = clamp01(Math.hypot(forward, strafe));
+    let amount = clamp01(Math.hypot(forward, strafe));
+
+    if (amount < 0.05) {
+      amount = 0;
+    }
 
     strafe = amount * Math.cos(angle);
     forward = amount * Math.sin(angle);
@@ -300,11 +283,15 @@ export const player_init = () => {
       player_has_ground ? (playerSpeedCollision > 0.1 ? 10 : strafe || forward ? 5 : 7) : 1,
     );
 
-    const movementRadians = player_first_person ? camera_rotation.y * DEG_TO_RAD : Math.PI;
-    const s = Math.sin(movementRadians) * player_speed * gameTimeDelta;
-    const c = Math.cos(movementRadians) * player_speed * gameTimeDelta;
-    player_collision_x -= strafe * c - forward * s;
-    player_collision_z -= strafe * s + forward * c;
+    // TODO - first person
+    // const movementRadians = player_first_person ? camera_rotation.y * DEG_TO_RAD : Math.PI;
+    // const s = Math.sin(movementRadians) ;
+    // const c = Math.cos(movementRadians) * player_speed * gameTimeDelta;
+    // player_collision_x -= strafe * c - forward * s;
+    // player_collision_z -= strafe * s + forward * c;
+
+    player_collision_x += strafe * player_speed * gameTimeDelta;
+    player_collision_z += forward * player_speed * gameTimeDelta;
 
     const referenceMatrix =
       (allModels[currentModelId]!.$kind === MODEL_KIND_GAME && allModels[currentModelId]!.$matrix) || identity;
@@ -320,6 +307,17 @@ export const player_init = () => {
 
     player_position_global.x += player_collision_x;
     player_position_global.z += player_collision_z;
+
+    if (player_respawned) {
+      const { $locMatrix } = levers[player_last_pulled_lever]!;
+      const { x: tx, y: ty, z: tz } = $locMatrix!.transformPoint({ x: 0, y: 12, z: -2.5 });
+      if (player_respawned > 1) {
+        player_respawned = 1;
+        player_model_y = player_position_final.y = ty;
+      }
+      player_position_final.x = tx;
+      player_position_final.z = tz;
+    }
 
     if (currentModelId !== oldModelId) {
       if (DEBUG) {
@@ -338,6 +336,7 @@ export const player_init = () => {
     const oldz = player_position_final.z;
 
     const { x, y, z } = referenceMatrix.transformPoint(player_position_global);
+
     player_position_final.x = x;
     player_position_final.y = y;
     player_position_final.z = z;
@@ -347,7 +346,7 @@ export const player_init = () => {
       player_collision_velocity_z = (z - oldz) / gameTimeDelta;
     }
 
-    if (strafe || forward) {
+    if (amount) {
       player_look_angle_target = 90 - angle / DEG_TO_RAD;
     }
     player_look_angle = angle_lerp_degrees(player_look_angle, player_look_angle_target, gameTimeDelta * 8);
@@ -356,28 +355,24 @@ export const player_init = () => {
     player_model_y = lerp(lerpDamp(player_model_y, y, 2), y, abs(player_model_y - y) * 8);
 
     if (!DEBUG_CAMERA) {
-      camera_lookat_x = interpolate_with_hysteresis(camera_lookat_x, x, 0.5, gameTimeDelta);
-      camera_lookat_y = interpolate_with_hysteresis(camera_lookat_y, y, 2, gameTimeDelta);
-      camera_lookat_z = interpolate_with_hysteresis(camera_lookat_z, z, 0.5, gameTimeDelta);
+      if (camera_lookat_x === undefined) {
+        camera_position.x = camera_lookat_x = x;
+        camera_position.y = (camera_lookat_y = player_model_y = y) + CAMERA_PLAYER_Y_DIST;
+        camera_position.z = (camera_lookat_z = z) + CAMERA_PLAYER_Z_DIST * 2;
+      }
+
+      camera_lookat_x = interpolate_with_hysteresis(camera_lookat_x, x, 1.5);
+      camera_lookat_y = interpolate_with_hysteresis(camera_lookat_y, y, 2.2);
+      camera_lookat_z = interpolate_with_hysteresis(camera_lookat_z, z, 1.5);
 
       if (player_first_person) {
         camera_position.x = lerpDamp(camera_position.x, x, player_respawned * 666 + 18);
         camera_position.y = lerpDamp(camera_position.y, player_model_y + 1.5, player_respawned * 666 + 18);
         camera_position.z = lerpDamp(camera_position.z, z, player_respawned * 666 + 18);
       } else {
-        camera_position.x = interpolate_with_hysteresis(camera_position.x, camera_lookat_x, 1, gameTimeDelta * 2);
-        camera_position.y = interpolate_with_hysteresis(
-          camera_position.y,
-          camera_lookat_y + CAMERA_PLAYER_Y_DIST + player_respawned * 15,
-          4,
-          gameTimeDelta * 2,
-        );
-        camera_position.z = interpolate_with_hysteresis(
-          camera_position.z,
-          camera_lookat_z + CAMERA_PLAYER_Z_DIST,
-          1,
-          gameTimeDelta * 2,
-        );
+        camera_position.x = lerpDamp(camera_position.x, camera_lookat_x, 2);
+        camera_position.y = lerpDamp(camera_position.y, max(camera_lookat_y + CAMERA_PLAYER_Y_DIST, 6), 2);
+        camera_position.z = lerpDamp(camera_position.z, camera_lookat_z + CAMERA_PLAYER_Z_DIST, 2);
 
         const viewDirDiffz = camera_position.z - camera_lookat_z;
         if (abs(viewDirDiffz) > 1) {
@@ -417,5 +412,5 @@ export const player_init = () => {
     });
   };
 
-  player_respawn(1);
+  player_respawn();
 };

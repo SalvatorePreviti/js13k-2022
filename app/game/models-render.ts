@@ -40,9 +40,8 @@ export const renderModels = (
   // Setup world matrices
 
   for (let i = 0; i < allModels.length; ++i) {
-    const { $kind, $modelId, $matrix } = allModels[i]!;
-    if ($kind) {
-      matrixToArray($matrix, worldMatricesBuffer, $modelId - 1);
+    if (allModels[i]!.$kind) {
+      matrixToArray(allModels[i]!.$matrix, worldMatricesBuffer, i - 1);
     }
   }
   gl.uniformMatrix4fv(worldMatrixLoc, false, worldMatricesBuffer);
@@ -63,10 +62,9 @@ export const renderModels = (
   }
 
   for (let i = 0; i < levers.length; ++i) {
-    const { $matrix, $lerpValue } = levers[i]!;
-    matrixToArray($matrix!, worldMatricesBuffer, i + SOULS_COUNT);
+    matrixToArray(levers[i]!.$matrix!, worldMatricesBuffer, i + SOULS_COUNT);
     // Encode lerp value in matrix m44 so fragmemt shader can change the lever handle color
-    worldMatricesBuffer[(i + SOULS_COUNT) * 16 + 15] = 1 - $lerpValue;
+    worldMatricesBuffer[(i + SOULS_COUNT) * 16 + 15] = 1 - levers[i]!.$lerpValue;
   }
 
   gl.uniformMatrix4fv(worldMatrixLoc, false, worldMatricesBuffer);
