@@ -48,19 +48,20 @@ export const build_life_the_universe_and_everything = () => {
   }
   const HORN_STACKS = 10;
 
-  const hornPolygons = ((): Polygon[] => {
-    const matrices = integers_map(HORN_STACKS + 1, (i: number) =>
-      identity
-        .translate(Math.sin((i / HORN_STACKS) * Math.PI), i / HORN_STACKS)
-        .rotate(10 * (i / HORN_STACKS))
-        .scale(1.0001 - i / HORN_STACKS, 0, 1 - i / HORN_STACKS),
-    );
+  const hornsMatrices = integers_map(HORN_STACKS + 1, (i: number) =>
+    identity
+      .translate(Math.sin((i / HORN_STACKS) * Math.PI), i / HORN_STACKS)
+      .rotate(10 * (i / HORN_STACKS))
+      .scale(1.0001 - i / HORN_STACKS, 0, 1 - i / HORN_STACKS),
+  );
 
-    const p = polygon_regular(18);
-    return integers_map(HORN_STACKS, (i) =>
-      cylinder_sides(polygon_transform(p, matrices[i]!).reverse(), polygon_transform(p, matrices[i + 1]!), 1),
-    ).flat();
-  })();
+  const hornPolygons = integers_map(HORN_STACKS, (i) =>
+    cylinder_sides(
+      polygon_transform(polygon_regular(18), hornsMatrices[i]!).reverse(),
+      polygon_transform(polygon_regular(18), hornsMatrices[i + 1]!),
+      1,
+    ),
+  ).flat();
 
   const boatPolygons = csg_polygons(
     csg_subtract(
@@ -86,6 +87,14 @@ export const build_life_the_universe_and_everything = () => {
     ),
   );
 
+  const gateBarsPolygons = integers_map(7, (i) =>
+    polygons_transform(
+      cylinder(6, 1),
+      identity.translate(4 * (i / 6 - 0.5), 3).scale(0.2, 3, 0.2),
+      material(0.3, 0.3, 0.38),
+    ),
+  ).flat();
+
   let tmpMatrix: DOMMatrixReadOnly;
 
   const getBoatAnimationMatrix = (x: number, y: number, z: number) =>
@@ -95,9 +104,7 @@ export const build_life_the_universe_and_everything = () => {
 
   // Initialize the full screen triangle for the sky. Must be the first model.
 
-  newModel(() => {
-    meshAdd([GQuad.slice(1)], identity.translate(-2).scale3d(3).rotate(90, 0));
-  }, MODEL_KIND_MESH);
+  newModel(() => meshAdd([GQuad.slice(1)], identity.translate(-2).scale3d(3).rotate(90, 0)), MODEL_KIND_MESH);
 
   newModel(() => {
     // ========= FIRST BOAT (modelId:2) ========= //
@@ -108,16 +115,6 @@ export const build_life_the_universe_and_everything = () => {
       meshAdd(boatPolygons);
       newLever(identity.translate(0, -3, 4));
     });
-
-    // ========= entranceBarsMesh ========= //
-
-    const entranceBarsPolygons = integers_map(7, (i) =>
-      polygons_transform(
-        cylinder(6, 1),
-        identity.translate(4 * (i / 6 - 0.5), 3).scale(0.2, 3, 0.2),
-        material(0.3, 0.3, 0.38),
-      ),
-    ).flat();
 
     // ========= WORLD! ========= //
 
@@ -153,7 +150,7 @@ export const build_life_the_universe_and_everything = () => {
       // in and out gate bars
       newModel((model) => {
         model._update = () => identity.translate(0, -levers[i + 1]!.$lerpValue * 4.7, z);
-        meshAdd(entranceBarsPolygons);
+        meshAdd(gateBarsPolygons);
       });
     });
 
@@ -188,7 +185,7 @@ export const build_life_the_universe_and_everything = () => {
 
     meshAdd(
       cylinder(),
-      identity.rotate(0, 60).translate(14.8, -1.46, -1).rotate(0, 0, -30).scale(4, 0.6, 4.5),
+      identity.rotate(0, 60).translate(14.8, -1.46, -1).rotate(-30).scale(4, 0.6, 4.5),
       material(0.8, 0.2, 0.2, 0.5),
     );
 
@@ -228,7 +225,7 @@ export const build_life_the_universe_and_everything = () => {
           // descent cut
           polygons_transform(
             cylinder(),
-            identity.rotate(0, 60).translate(14, 0.7, -1).rotate(0, 0, -35).scale(2, 2, 2),
+            identity.rotate(0, 60).translate(14, 0.7, -1).rotate(-35).scale(2, 2, 2),
             material(0.5, 0.5, 0.5, 0.5),
           ),
 
@@ -245,8 +242,8 @@ export const build_life_the_universe_and_everything = () => {
     // moving central platform
 
     newModel((model) => {
-      model._update = () => {
-        return identity.translate(
+      model._update = () =>
+        identity.translate(
           0,
           levers[3]!.$lerpValue > 0.01
             ? (Math.cos(gameTime * 1.5) * 5 + 2) * levers[3]!.$lerpValue2 * (1 - levers[2]!.$lerpValue) +
@@ -255,11 +252,9 @@ export const build_life_the_universe_and_everything = () => {
               -500,
           0,
         );
-      };
+      meshAdd(cylinder(5), identity.translate(0, -0.2).scale(5, 1, 5), material(0.6, 0.65, 0.7, 0.3));
 
       newLever(identity.translate(0, 1.2));
-
-      meshAdd(cylinder(5), identity.translate(0, -0.2).scale(5, 1, 5), material(0.6, 0.65, 0.7, 0.3));
     });
 
     newLever(identity.translate(15, -2, 4));
@@ -292,7 +287,7 @@ export const build_life_the_universe_and_everything = () => {
                   cylinder(),
                   identity
                     .translate(5 * i, 0.2, pz)
-                    .rotate(0, 0, i * -30)
+                    .rotate(i * -30)
                     .scale(4, 1, 2),
                   material(0.8, 0.8, 0.8, 0.3),
                 ),
@@ -415,13 +410,13 @@ export const build_life_the_universe_and_everything = () => {
           csg_union(
             polygons_transform(cylinder(), identity.translate(0, -3).scale(11, 1.4, 3), material(0.9, 0.9, 0.9, 0.2)),
             csg_subtract(
-              polygons_transform(cylinder(6), identity.rotate(0, 0, 90).scale(6, 8, 6), material(0.3, 0.6, 0.6, 0.3)),
+              polygons_transform(cylinder(6), identity.rotate(90).scale(6, 8, 6), material(0.3, 0.6, 0.6, 0.3)),
               polygons_transform(
                 cylinder(4, 0, 0.01),
                 identity.translate(0, 6).scale(12, 2, 0.75).rotate(0, 45),
                 material(0.3, 0.6, 0.6, 0.3),
               ),
-              polygons_transform(cylinder(6), identity.rotate(0, 0, 90).scale(5, 12, 5), material(0.3, 0.6, 0.6, 0.3)),
+              polygons_transform(cylinder(6), identity.rotate(90).scale(5, 12, 5), material(0.3, 0.6, 0.6, 0.3)),
               ...[5, 0, -5].map((x) =>
                 polygons_transform(
                   cylinder(5),
@@ -459,7 +454,7 @@ export const build_life_the_universe_and_everything = () => {
 
     meshAdd(
       cylinder(),
-      identity.translate(-88.3, -5.1, 55).rotate(0, 0, -30).scale(5, 1.25, 4.5),
+      identity.translate(-88.3, -5.1, 55).rotate(-30).scale(5, 1.25, 4.5),
       material(0.7, 0.7, 0.7, 0.2),
     );
 
@@ -567,7 +562,7 @@ export const build_life_the_universe_and_everything = () => {
 
     newModel((model) => {
       model._update = () => identity.translate(-99.7, -levers[6]!.$lerpValue * 5.3 - 2, 63.5);
-      meshAdd(entranceBarsPolygons);
+      meshAdd(gateBarsPolygons);
     });
 
     // hex columns
@@ -616,13 +611,11 @@ export const build_life_the_universe_and_everything = () => {
     const shouldOscillate = () => lerpneg(levers[7]!.$lerpValue2, levers[6]!.$lerpValue2);
 
     newModel((model) => {
-      model._update = () => {
-        const osc = shouldOscillate();
-        return identity.translate(
+      model._update = () =>
+        identity.translate(
           0,
-          (1 - max(levers[6]!.$lerpValue, levers[7]!.$lerpValue)) * 3.5 + osc * Math.sin(gameTime) * 5,
+          (1 - max(levers[6]!.$lerpValue, levers[7]!.$lerpValue)) * 3.5 + shouldOscillate() * Math.sin(gameTime) * 5,
         );
-      };
       [0, 12, 24].map((x) =>
         meshAdd(
           cylinder(),
@@ -633,10 +626,12 @@ export const build_life_the_universe_and_everything = () => {
     });
 
     newModel((model) => {
-      model._update = () => {
-        const osc = shouldOscillate();
-        return identity.translate(0, osc * Math.sin(gameTime + 3) * 6, Math.sin(gameTime * 0.6 + osc) * 6 * osc);
-      };
+      model._update = () =>
+        identity.translate(
+          0,
+          shouldOscillate() * Math.sin(gameTime + 3) * 6,
+          Math.sin(gameTime * 0.6 + 1) * 6 * shouldOscillate(),
+        );
       [6, 18].map((x) =>
         meshAdd(
           cylinder(),
@@ -707,7 +702,7 @@ export const build_life_the_universe_and_everything = () => {
 
       // SOUL 5 - soul over the central sculpture/monument
       newSoul(
-        identity.translate(-39.1, -0.3, 17).rotate(0, 0, 10),
+        identity.translate(-39.1, -0.6, 17).rotate(11),
         ...polygon_regular(15).map(({ x, z }) => [x * 3, z * 3, 1.2]),
       );
     });
@@ -894,11 +889,7 @@ export const build_life_the_universe_and_everything = () => {
 
     // internal pad
 
-    meshAdd(
-      cylinder(),
-      identity.translate(-84.9, -4.3, -40).rotate(0, 0, 12).scale(6, 1, 3),
-      material(0.6, 0.6, 0.6, 0.3),
-    );
+    meshAdd(cylinder(), identity.translate(-84.9, -4.3, -40).rotate(12).scale(6, 1, 3), material(0.6, 0.6, 0.6, 0.3));
 
     meshAdd(
       csg_polygons(
@@ -922,7 +913,7 @@ export const build_life_the_universe_and_everything = () => {
     newLever(identity.translate(-98, -4.4, -40).rotate(0, 90));
 
     // SOUL 8 - soul in the internal pad after the pushing rods
-    newSoul(identity.translate(30 - 123, -3, -28 - 12).rotate(0, 0, 4), [0, -2, 3.5], [0, 2, 3.5]);
+    newSoul(identity.translate(30 - 123, -3, -28 - 12).rotate(4), [0, -2, 3.5], [0, 2, 3.5]);
 
     // ******** LEVEL AFTER CENTRAL GATE ********
 
@@ -1018,7 +1009,7 @@ export const build_life_the_universe_and_everything = () => {
           identity
             .rotate(-i * 90, 180, 90) //
             .translate(0, 5)
-            .rotate(0, 0, 40) //
+            .rotate(40) //
             .scale(1.3, 10, 1.3), //
           material(1, 1, 0.8, 0.2),
         ),
@@ -1093,7 +1084,7 @@ export const build_life_the_universe_and_everything = () => {
 
     newModel((model) => {
       model._update = () => identity.translate(-100, 0.6 - levers[12]!.$lerpValue * 6, 96.5).scale(0.88, 1.2);
-      meshAdd(entranceBarsPolygons);
+      meshAdd(gateBarsPolygons);
     });
 
     // rotating platforms
@@ -1216,7 +1207,7 @@ export const build_life_the_universe_and_everything = () => {
           // out connections
           meshAdd(
             cylinder(),
-            identity.translate(-16.1, 0.5, 103.5).rotate(0, 0, -3.5).scale(3.9, 0.8, 2).skewX(-1),
+            identity.translate(-16.1, 0.5, 103.5).rotate(-3.5).scale(3.9, 0.8, 2).skewX(-1),
             material(0.6, 0.6, 0.7, 0.3),
           );
         }
@@ -1301,7 +1292,7 @@ export const build_life_the_universe_and_everything = () => {
     newModel((model) => {
       model._update = () => {
         const k = Math.sin(gameTime);
-        return identity.translate(k * -2).rotate(0, 0, k * 25);
+        return identity.translate(k * -2).rotate(k * 25);
       };
       meshAdd(
         cylinder(3),
@@ -1353,7 +1344,7 @@ export const build_life_the_universe_and_everything = () => {
     [0, 180].map((r) =>
       meshAdd(
         hornPolygons,
-        identity.rotate(0, r).translate(0.2, 1.32).rotate(0, 0, -30).scale(0.2, 0.6, 0.2),
+        identity.rotate(0, r).translate(0.2, 1.32).rotate(-30).scale(0.2, 0.6, 0.2),
         material(1, 1, 0.8),
       ),
     );

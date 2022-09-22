@@ -46,13 +46,19 @@ loadStep(() => {
   image.onload = image.onerror = end;
   image.src = groundTextureSvg;
 
-  NO_INLINE(loadSong)(() => {
+  const songLoaded = () => {
     loadStep(() => {
       initTriangleBuffers();
       loadStep(end);
     });
     build_life_the_universe_and_everything();
-  });
+  };
+
+  if (DEBUG && DEBUG_FLAG1) {
+    songLoaded();
+  } else {
+    NO_INLINE(loadSong)(songLoaded);
+  }
 
   if (DEBUG) {
     console.timeEnd("boot");
