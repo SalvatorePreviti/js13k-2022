@@ -43,6 +43,7 @@ import {
   GAMEPAD_BUTTON_DOWN,
 } from "./utils/keycodes";
 import { touch_movementX, touch_movementY, player_first_person } from "./page";
+import { gl } from "./gl";
 
 export let player_update: () => void;
 
@@ -53,8 +54,6 @@ export const CAMERA_PLAYER_Z_DIST = -18;
 export const PLAYER_LEGS_VELOCITY = 7 * 1.3;
 
 export const COLLISION_TEXTURE_SIZE = 128;
-
-export const collision_buffer = new Uint8Array(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
 
 export const player_init = () => {
   let oldModelId: number | undefined;
@@ -90,6 +89,7 @@ export const player_init = () => {
   let camera_lookat_z: number;
 
   const player_collision_modelIdCounter = new Int32Array(256);
+  const collision_buffer = new Uint8Array(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
 
   const player_respawn = (boot?: 1) => {
     const { $parent, $locMatrix } = levers[player_last_pulled_lever]!;
@@ -277,6 +277,11 @@ export const player_init = () => {
     player_collision_z = 0;
     player_has_ground = 0;
 
+    gl.finish();
+    gl.readPixels(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE, gl.RGBA, gl.UNSIGNED_BYTE, collision_buffer);
+    gl.invalidateFramebuffer(gl.READ_FRAMEBUFFER, [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT]);
+    gl.invalidateFramebuffer(gl.DRAW_FRAMEBUFFER, [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT]);
+
     NO_INLINE(doHorizontalCollisions)();
     NO_INLINE(doVerticalCollisions)();
 
@@ -348,7 +353,7 @@ export const player_init = () => {
     player_look_angle = angle_lerp_degrees(player_look_angle, player_look_angle_target, gameTimeDelta * 8);
     player_legs_speed = lerp(player_legs_speed, amount, gameTimeDelta * 10);
 
-    player_model_y = abs(player_model_y - y) > 0.03 ? y : lerpDamp(player_model_y, y, 2);
+    player_model_y = lerp(lerpDamp(player_model_y, y, 2), y, abs(player_model_y - y) * 8);
 
     if (!DEBUG_CAMERA) {
       camera_lookat_x = interpolate_with_hysteresis(camera_lookat_x, x, 0.5, gameTimeDelta);
@@ -396,23 +401,21 @@ export const player_init = () => {
       // Player fell in lava
       player_respawn();
     }
-  };
 
-  allModels[MODEL_ID_PLAYER_BODY]!._update = () =>
-    identity
+    allModels[MODEL_ID_PLAYER_BODY]!.$matrix = identity
       .translate(player_position_final.x, player_model_y, player_position_final.z)
       .rotateSelf(0, player_look_angle);
 
-  [MODEL_ID_PLAYER_LEG0, MODEL_ID_PLAYER_LEG1].map((modelId, i) => {
-    allModels[modelId]!._update = () =>
-      allModels[MODEL_ID_PLAYER_BODY]!.$matrix.translate(
+    [MODEL_ID_PLAYER_LEG0, MODEL_ID_PLAYER_LEG1].map((modelId, i) => {
+      allModels[modelId]!.$matrix = allModels[MODEL_ID_PLAYER_BODY]!.$matrix.translate(
         0,
         player_legs_speed * clamp01(Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI * (i - 1) - Math.PI / 2) * 0.45),
       ).rotateSelf(
         player_legs_speed * Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI * (i - 1)) * (0.25 / DEG_TO_RAD),
         0,
       );
-  });
+    });
+  };
 
   player_respawn(1);
 };

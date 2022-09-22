@@ -17,6 +17,10 @@ body {
   font-size: max(min(3.8vw, 3.8vh), 15px);
   text-shadow: 4px 4px 2px #000, -2px -2px 8px #000;
 }
+h3,
+h4 {
+  pointer-events: none;
+}
 .l h3,
 .l #b5 {
   display: block;

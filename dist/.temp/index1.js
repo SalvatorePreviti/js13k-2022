@@ -1,5 +1,5 @@
 NO_INLINE(
-  "<!DOCTYPE html><html><head>\n    <title>666</title>\n    <meta name=\"viewport\" content=\"width=device-width,initial-scale=1,user-scalable=0\">\n    \n    \n    \n  <link rel=\"stylesheet\" href=\"/index.css\"></head>\n\n  <body>\n    <canvas id=\"hC\"></canvas>\n    <h3>Souls: <b id=\"h3\"></b> / XIII</h3>\n    <h4 id=\"h4\">loading</h4>\n    <main>\n      <nav>\n        <h2>DANTE</h2>\n        Lucifer:\n        <i>\"Damn. Infernal delivery service failed again. A delivery of evil souls fell in an area under construction.\n          Dante, take them where they belong, to the 8th circle.\"</i>\n        <ul>\n          <li id=\"b1\">Play</li>\n          <li id=\"b2\">Play first person</li>\n          <li id=\"b3\">Restart</li>\n          <li id=\"b4\"></li>\n        </ul>\n        <p>Move: WASD/arrows, Levers: E/click, Menu: Esc</p>\n        <p>\n          <a target=\"_blank\" href=\"https://github.com/SalvatorePreviti/js13k-2022\">© 2022 SalvatorePreviti</a> -\n          <a target=\"_blank\" href=\"https://twitter.com/ryanmalm\">music Ryan Malm</a>\n        </p>\n      </nav>\n    </main>\n    <b id=\"b5\">☰</b>\n    \n  \n\n<script type=\"module\" src=\"/index.js\" crossorigin=\"\"></script></body></html> * {\n  font-weight: 100;\n  user-select: none;\n  touch-action: none;\n  overscroll-behavior: contain;\n  -webkit-user-select: none;\n  color: #fda;\n}\nbody > * {\n  position: absolute;\n}\nhtml,\nbody {\n  margin: 0;\n  font-family: \"Times New Roman\", serif;\n  background: #000;\n  font-size: max(min(3.8vw, 3.8vh), 15px);\n  text-shadow: 4px 4px 2px #000, -2px -2px 8px #000;\n}\n.l h3,\n.l #b5 {\n  display: block;\n  padding: 10px;\n}\n.l h3 {\n  text-align: right;\n  right: 5%;\n  bottom: 0;\n}\nh4 {\n  left: 0;\n  top: 0;\n  right: 0;\n  text-align: center;\n}\n.m main {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  top: 0;\n  right: 0;\n  bottom: 0;\n  min-width: 70%;\n}\nnav {\n  min-width: 50%;\n  max-width: 800px;\n  background: #00000080;\n  border-radius: 1em;\n  padding: 1em;\n}\np {\n  font-size: 0.7em;\n}\nh2 {\n  color: #f61;\n  margin: 0 0 0.7em;\n}\na,\nli {\n  cursor: pointer;\n  margin-bottom: 0.5em;\n  text-decoration: none;\n  border-bottom: 3px solid #00000000;\n}\nh2,\na:hover,\nli:hover {\n  border-bottom: 3px solid;\n}\nh3,\nmain,\n.m h4 {\n  display: none;\n}\n",
+  "<!DOCTYPE html><html><head>\n    <title>666</title>\n    <meta name=\"viewport\" content=\"width=device-width,initial-scale=1,user-scalable=0\">\n    \n    \n    \n  <link rel=\"stylesheet\" href=\"/index.css\"></head>\n\n  <body>\n    <canvas id=\"hC\"></canvas>\n    <h3>Souls: <b id=\"h3\"></b> / XIII</h3>\n    <h4 id=\"h4\">loading</h4>\n    <main>\n      <nav>\n        <h2>DANTE</h2>\n        Lucifer:\n        <i>\"Damn. Infernal delivery service failed again. A delivery of evil souls fell in an area under construction.\n          Dante, take them where they belong, to the 8th circle.\"</i>\n        <ul>\n          <li id=\"b1\">Play</li>\n          <li id=\"b2\">Play first person</li>\n          <li id=\"b3\">Restart</li>\n          <li id=\"b4\"></li>\n        </ul>\n        <p>Move: WASD/arrows, Levers: E/click, Menu: Esc</p>\n        <p>\n          <a target=\"_blank\" href=\"https://github.com/SalvatorePreviti/js13k-2022\">© 2022 SalvatorePreviti</a> -\n          <a target=\"_blank\" href=\"https://twitter.com/ryanmalm\">music Ryan Malm</a>\n        </p>\n      </nav>\n    </main>\n    <b id=\"b5\">☰</b>\n    \n  \n\n<script type=\"module\" src=\"/index.js\" crossorigin=\"\"></script></body></html> * {\n  font-weight: 100;\n  user-select: none;\n  touch-action: none;\n  overscroll-behavior: contain;\n  -webkit-user-select: none;\n  color: #fda;\n}\nbody > * {\n  position: absolute;\n}\nhtml,\nbody {\n  margin: 0;\n  font-family: \"Times New Roman\", serif;\n  background: #000;\n  font-size: max(min(3.8vw, 3.8vh), 15px);\n  text-shadow: 4px 4px 2px #000, -2px -2px 8px #000;\n}\nh3,\nh4 {\n  pointer-events: none;\n}\n.l h3,\n.l #b5 {\n  display: block;\n  padding: 10px;\n}\n.l h3 {\n  text-align: right;\n  right: 5%;\n  bottom: 0;\n}\nh4 {\n  left: 0;\n  top: 0;\n  right: 0;\n  text-align: center;\n}\n.m main {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  top: 0;\n  right: 0;\n  bottom: 0;\n  min-width: 70%;\n}\nnav {\n  min-width: 50%;\n  max-width: 800px;\n  background: #00000080;\n  border-radius: 1em;\n  padding: 1em;\n}\np {\n  font-size: 0.7em;\n}\nh2 {\n  color: #f61;\n  margin: 0 0 0.7em;\n}\na,\nli {\n  cursor: pointer;\n  margin-bottom: 0.5em;\n  text-decoration: none;\n  border-bottom: 3px solid #00000000;\n}\nh2,\na:hover,\nli:hover {\n  border-bottom: 3px solid;\n}\nh3,\nmain,\n.m h4 {\n  display: none;\n}\n",
 );
 const groundTextureSvg = "data:image/svg+xml;base64,"
   + /* @__PURE__ */ btoa(
@@ -490,7 +490,7 @@ const newModel = (fn, $kind = 1) => {
     $polygons: [],
   };
   allModels.push(currentEditModel = model);
-  model._update = fn(model);
+  fn(model);
   currentEditModel = previousModel;
   return model;
 };
@@ -1727,6 +1727,7 @@ const initPage = () => {
     touchPosIdentifier = touchRotIdentifier = void 0;
     document.hidden && mainMenu(!0);
   };
+  oncontextmenu = () => !1;
   b3.onclick = () => {
     if (confirm("Restart game?")) {
       localStorage["DanteSP22"] = "";
@@ -1779,7 +1780,6 @@ const initPage = () => {
       camera_rotation.x += .1 * movementY;
     }
   };
-  oncontextmenu = () => !1;
   hC.ontouchstart = e => {
     if (!mainMenuVisible) {
       for (const { pageX, pageY, identifier } of e.changedTouches) {
@@ -1802,12 +1802,12 @@ const initPage = () => {
       touchStartTime = absoluteTime;
     }
   };
-  hC.ontouchmove = ({ changedTouches }) => {
+  hC.ontouchmove = e => {
     if (!mainMenuVisible) {
-      for (const { pageX, pageY, identifier } of changedTouches) {
+      for (const { pageX, pageY, identifier } of e.changedTouches) {
         if (touchRotIdentifier === identifier) {
-          camera_rotation.y = touchStartCameraRotX + (pageX - touchRotX) / 3;
-          camera_rotation.x = touchStartCameraRotY + (pageY - touchRotY) / 3;
+          camera_rotation.y = touchStartCameraRotX + (pageX - touchRotX) / 2.3;
+          camera_rotation.x = touchStartCameraRotY + (pageY - touchRotY) / 2.3;
           touchRotMoved = 1;
         }
         if (touchPosIdentifier === identifier) {
@@ -1861,68 +1861,6 @@ const gl = hC.getContext("webgl2", {
 });
 
 for (const s in gl) gl[s[0] + [...s].reduce((p, c, i) => (p * i + c.charCodeAt(0)) % 434, 0).toString(36)] = gl[s];
-
-const loadShader = (source, type = 35633) => {
-  const shader = gl["c6x"](type);
-  gl["s3c"](shader, source);
-  gl["c6a"](shader);
-  return shader;
-};
-
-const initShaderProgram = (vertexShader, sfsSource) => {
-  const uniforms = {};
-  const program = gl["c1h"]();
-  gl["abz"](program, vertexShader);
-  gl["abz"](program, loadShader(sfsSource, 35632));
-  gl["l8l"](program);
-  return name => name ? uniforms[name] || (uniforms[name] = gl["gan"](program, name)) : gl["u7y"](program);
-};
-
-const worldMatricesBuffer = new Float32Array(624);
-
-const renderModels = (worldMatrixLoc, renderPlayer, soulModelId = 42) => {
-  if (mainMenuVisible) {
-    const matrix = identity.rotate(0, /* @__PURE__ */ 40 * Math.sin(absoluteTime) - 70);
-    for (const modelId of [37, MODEL_ID_PLAYER_LEG0, MODEL_ID_PLAYER_LEG1]) {
-      matrixToArray(matrix, worldMatricesBuffer, modelId - 1);
-    }
-    gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer);
-    gl["d97"](
-      4,
-      allModels[MODEL_ID_PLAYER_LEG1].$vertexEnd - allModels[37].$vertexBegin,
-      5123,
-      2 * allModels[37].$vertexBegin,
-    );
-  } else {
-    for (let i = 0; allModels.length > i; ++i) {
-      const { $kind, $modelId, $matrix } = allModels[i];
-      $kind && matrixToArray($matrix, worldMatricesBuffer, $modelId - 1);
-    }
-    gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer);
-    gl["d97"](4, (renderPlayer ? allModels[MODEL_ID_PLAYER_LEG1].$vertexEnd : allModels[37].$vertexBegin) - 3, 5123, 6);
-    for (let i1 = 0; 13 > i1; ++i1) matrixToArray(souls[i1].$matrix, worldMatricesBuffer, i1);
-    for (let i2 = 0; levers.length > i2; ++i2) {
-      const { $matrix: $matrix1, $lerpValue } = levers[i2];
-      matrixToArray($matrix1, worldMatricesBuffer, i2 + 13);
-      worldMatricesBuffer[16 * (i2 + 13) + 15] = 1 - $lerpValue;
-    }
-    gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer);
-    gl["das"](
-      4,
-      allModels[soulModelId].$vertexEnd - allModels[soulModelId].$vertexBegin,
-      5123,
-      2 * allModels[soulModelId].$vertexBegin,
-      13,
-    );
-    gl["das"](
-      4,
-      allModels[40].$vertexEnd - allModels[40].$vertexBegin,
-      5123,
-      2 * allModels[40].$vertexBegin,
-      levers.length,
-    );
-  }
-};
 
 let player_update;
 
@@ -2042,6 +1980,7 @@ const player_init = () => {
     player_position_global.y += lines / 41
       - (player_has_ground ? 1 : player_gravity) * (grav / 41) * player_gravity * gameTimeDelta;
   };
+  const collision_buffer = new Uint8Array(65536);
   player_update = () => {
     let strafe = touch_movementX + (keyboard_downKeys[0] ? 1 : 0) + (keyboard_downKeys[2] ? -1 : 0);
     let forward = touch_movementY + (keyboard_downKeys[1] ? 1 : 0) + (keyboard_downKeys[3] ? -1 : 0);
@@ -2073,6 +2012,9 @@ const player_init = () => {
     player_collision_x = 0;
     player_collision_z = 0;
     player_has_ground = 0;
+    gl["r9r"](0, 0, 128, 128, 6408, 5121, collision_buffer);
+    gl["iay"](36009, [36064, 36096]);
+    gl["iay"](36008, [36064, 36096]);
     NO_INLINE(doHorizontalCollisions)();
     NO_INLINE(doVerticalCollisions)();
     const playerSpeedCollision = clamp01(1 - 5 * max(abs(player_collision_x), abs(player_collision_z)));
@@ -2124,7 +2066,7 @@ const player_init = () => {
     (strafe || forward) && (player_look_angle_target = 90 - angle / DEG_TO_RAD);
     player_look_angle = angle_lerp_degrees(player_look_angle, player_look_angle_target, 8 * gameTimeDelta);
     player_legs_speed = lerp(player_legs_speed, amount, 10 * gameTimeDelta);
-    player_model_y = abs(player_model_y - y) > .03 ? y : lerpDamp(player_model_y, y, 2);
+    player_model_y = lerp(lerpDamp(player_model_y, y, 2), y, 8 * abs(player_model_y - y));
     camera_lookat_x = interpolate_with_hysteresis(camera_lookat_x, x, .5, gameTimeDelta);
     camera_lookat_y = interpolate_with_hysteresis(camera_lookat_y, y, 2, gameTimeDelta);
     camera_lookat_z = interpolate_with_hysteresis(camera_lookat_z, z, .5, gameTimeDelta);
@@ -2157,26 +2099,82 @@ const player_init = () => {
     1 === currentModelId && (levers[9].$value = -15 > player_position_final.x && 0 > player_position_final.z ? 1 : 0);
     (-25 > player_position_final.x || 109 > player_position_final.z ? -25 : -9) > player_position_final.y
       && player_respawn();
-  };
-  allModels[37]._update = () =>
-    identity.translate(player_position_final.x, player_model_y, player_position_final.z).rotateSelf(
-      0,
-      player_look_angle,
-    );
-  [MODEL_ID_PLAYER_LEG0, MODEL_ID_PLAYER_LEG1].map((modelId, i) => {
-    allModels[modelId]._update = () =>
-      allModels[37].$matrix.translate(
+    allModels[37].$matrix = identity.translate(player_position_final.x, player_model_y, player_position_final.z)
+      .rotateSelf(0, player_look_angle);
+    [MODEL_ID_PLAYER_LEG0, MODEL_ID_PLAYER_LEG1].map((modelId, i) => {
+      allModels[modelId].$matrix = allModels[37].$matrix.translate(
         0,
         player_legs_speed * clamp01(/* @__PURE__ */ .45 * Math.sin(9.1 * gameTime + Math.PI * (i - 1) - Math.PI / 2)),
       ).rotateSelf(
         player_legs_speed * /* @__PURE__ */ Math.sin(9.1 * gameTime + Math.PI * (i - 1)) * (.25 / DEG_TO_RAD),
         0,
       );
-  });
+    });
+  };
   player_respawn(1);
 };
 
-const collision_buffer = new Uint8Array(65536);
+const loadShader = (source, type = 35633) => {
+  const shader = gl["c6x"](type);
+  gl["s3c"](shader, source);
+  gl["c6a"](shader);
+  return shader;
+};
+
+const initShaderProgram = (vertexShader, sfsSource) => {
+  const uniforms = {};
+  const program = gl["c1h"]();
+  gl["abz"](program, vertexShader);
+  gl["abz"](program, loadShader(sfsSource, 35632));
+  gl["l8l"](program);
+  return name => name ? uniforms[name] || (uniforms[name] = gl["gan"](program, name)) : gl["u7y"](program);
+};
+
+const worldMatricesBuffer = new Float32Array(624);
+
+const renderModels = (worldMatrixLoc, renderPlayer, soulModelId = 42) => {
+  if (mainMenuVisible) {
+    const matrix = identity.rotate(0, /* @__PURE__ */ 40 * Math.sin(absoluteTime) - 70);
+    for (const modelId of [37, MODEL_ID_PLAYER_LEG0, MODEL_ID_PLAYER_LEG1]) {
+      matrixToArray(matrix, worldMatricesBuffer, modelId - 1);
+    }
+    gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer);
+    gl["d97"](
+      4,
+      allModels[MODEL_ID_PLAYER_LEG1].$vertexEnd - allModels[37].$vertexBegin,
+      5123,
+      2 * allModels[37].$vertexBegin,
+    );
+  } else {
+    for (let i = 0; allModels.length > i; ++i) {
+      const { $kind, $modelId, $matrix } = allModels[i];
+      $kind && matrixToArray($matrix, worldMatricesBuffer, $modelId - 1);
+    }
+    gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer);
+    gl["d97"](4, (renderPlayer ? allModels[MODEL_ID_PLAYER_LEG1].$vertexEnd : allModels[37].$vertexBegin) - 3, 5123, 6);
+    for (let i1 = 0; 13 > i1; ++i1) matrixToArray(souls[i1].$matrix, worldMatricesBuffer, i1);
+    for (let i2 = 0; levers.length > i2; ++i2) {
+      const { $matrix: $matrix1, $lerpValue } = levers[i2];
+      matrixToArray($matrix1, worldMatricesBuffer, i2 + 13);
+      worldMatricesBuffer[16 * (i2 + 13) + 15] = 1 - $lerpValue;
+    }
+    gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer);
+    gl["das"](
+      4,
+      allModels[soulModelId].$vertexEnd - allModels[soulModelId].$vertexBegin,
+      5123,
+      2 * allModels[soulModelId].$vertexBegin,
+      13,
+    );
+    gl["das"](
+      4,
+      allModels[40].$vertexEnd - allModels[40].$vertexBegin,
+      5123,
+      2 * allModels[40].$vertexBegin,
+      levers.length,
+    );
+  }
+};
 
 const startMainLoop = groundTextureImage => {
   const mainLoop = globalTime => {
@@ -2193,12 +2191,9 @@ const startMainLoop = groundTextureImage => {
     })(globalTime);
     if (gameTimeDelta > 0) {
       gl["b6o"](36160, collision_frameBuffer);
-      gl["fa7"]();
-      gl["r9r"](0, 0, 128, 128, 6408, 5121, collision_buffer);
-      gl["iay"](36009, [36064, 36096]);
-      gl["iay"](36008, [36064, 36096]);
-      player_update();
+      gl["f1s"]();
       worldStateUpdate();
+      player_update();
       keyboard_downKeys[5] = 0;
     }
     const camera_view = mainMenuVisible
@@ -2261,7 +2256,6 @@ const startMainLoop = groundTextureImage => {
       : gl["ubu"](skyShader("k"), camera_position.x, camera_position.y, camera_position.z);
     gl["uae"](skyShader("b"), !1, matrixToArray(camera_view.inverse()));
     gl["d97"](4, 3, 5123, 0);
-    gl["b6o"](36160, collision_frameBuffer);
     gl["f1s"]();
   };
   const csm_framebuffer = gl["c5w"]();

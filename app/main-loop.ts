@@ -36,9 +36,9 @@ import { mat_perspective, zFar, zNear, camera_position, camera_rotation } from "
 import { csm_buildMatrix } from "./csm";
 import { player_first_person } from "./page";
 import { gl } from "./gl";
+import { player_update, COLLISION_TEXTURE_SIZE, player_init } from "./player";
 import { loadShader, initShaderProgram } from "./shaders-utils";
 import { renderModels } from "./game/models-render";
-import { player_update, COLLISION_TEXTURE_SIZE, collision_buffer, player_init } from "./player";
 
 export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   const csm_framebuffer = gl.createFramebuffer();
@@ -147,6 +147,8 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
   const mainLoop = (globalTime: number) => {
+    gl.flush();
+
     requestAnimationFrame(mainLoop);
 
     gameTimeUpdate(globalTime);
@@ -154,15 +156,9 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     if (gameTimeDelta > 0) {
       // read collision shader output
 
-      gl.bindFramebuffer(gl.FRAMEBUFFER, collision_frameBuffer);
-      gl.finish();
-      gl.readPixels(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE, gl.RGBA, gl.UNSIGNED_BYTE, collision_buffer);
-      gl.invalidateFramebuffer(gl.DRAW_FRAMEBUFFER, [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT]);
-      gl.invalidateFramebuffer(gl.READ_FRAMEBUFFER, [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT]);
+      worldStateUpdate();
 
       player_update();
-
-      worldStateUpdate();
 
       keyboard_downKeys[KEY_INTERACT] = 0;
     }
@@ -214,7 +210,6 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       );
       renderModels(collisionShader(uniformName_worldMatrices), 0, MODEL_ID_SOUL_COLLISION);
 
-      // gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       gl.flush();
     }
 
@@ -270,5 +265,6 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
   NO_INLINE(player_init)();
 
+  // gl.bindFramebuffer(gl.FRAMEBUFFER, collision_frameBuffer);
   requestAnimationFrame(mainLoop);
 };

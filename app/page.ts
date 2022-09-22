@@ -82,6 +82,10 @@ export const initPage = () => {
     }
   };
 
+  if (!DEBUG) {
+    oncontextmenu = () => false;
+  }
+
   // "Restart" button
   b3.onclick = () => {
     // eslint-disable-next-line no-alert
@@ -164,10 +168,6 @@ export const initPage = () => {
     }
   };
 
-  if (!DEBUG) {
-    oncontextmenu = () => false;
-  }
-
   hC.ontouchstart = (e) => {
     if (!mainMenuVisible) {
       for (const { pageX, pageY, identifier } of e.changedTouches) {
@@ -194,12 +194,12 @@ export const initPage = () => {
   const TOUCH_SIZE = 20;
   const TOUCH_MOVE_THRESHOLD = 0.4;
 
-  hC.ontouchmove = ({ changedTouches }) => {
+  hC.ontouchmove = (e) => {
     if (!mainMenuVisible) {
-      for (const { pageX, pageY, identifier } of changedTouches) {
+      for (const { pageX, pageY, identifier } of e.changedTouches) {
         if (touchRotIdentifier === identifier) {
-          camera_rotation.y = touchStartCameraRotX! + (pageX - touchRotX!) / 3;
-          camera_rotation.x = touchStartCameraRotY! + (pageY - touchRotY!) / 3;
+          camera_rotation.y = touchStartCameraRotX! + (pageX - touchRotX!) / 2.3;
+          camera_rotation.x = touchStartCameraRotY! + (pageY - touchRotY!) / 2.3;
           touchRotMoved = 1;
         }
         if (touchPosIdentifier === identifier) {
@@ -255,7 +255,7 @@ export const initPage = () => {
 
     if (click && e.target === hC && touchStartTime) {
       const diff = absoluteTime - touchStartTime;
-      if (diff > 0.06 && diff < 0.7) {
+      if (diff > 0.02 && diff < 0.7) {
         keyboard_downKeys[KEY_INTERACT] = true;
       }
     }

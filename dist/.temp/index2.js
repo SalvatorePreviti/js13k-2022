@@ -81,7 +81,6 @@ const DEG_TO_RAD = Math.PI / 180;
 const identity = new DOMMatrix();
 const float32Array16Temp = new Float32Array(16);
 const worldMatricesBuffer = new Float32Array(624);
-const collision_buffer = new Uint8Array(65536);
 
 const integers_map = (n, fn) => Array.from(Array(n), (_, i) => fn(i));
 
@@ -524,7 +523,7 @@ const newModel = (fn, $kind = 1) => {
     $kind,
     $polygons: [],
   };
-  return allModels.push(currentEditModel = $kind), $kind._update = fn($kind), currentEditModel = previousModel, $kind;
+  return allModels.push(currentEditModel = $kind), fn($kind), currentEditModel = previousModel, $kind;
 };
 
 const meshAdd = (polygons, transform = identity, color) =>
@@ -763,9 +762,10 @@ const initPage = () => {
     }
   };
 
-  b3.onclick = () => {
-    confirm("Restart game?") && (localStorage["DanteSP22"] = "", location.reload());
-  },
+  oncontextmenu = () => !1,
+    b3.onclick = () => {
+      confirm("Restart game?") && (localStorage["DanteSP22"] = "", location.reload());
+    },
     b1.onclick = () => mainMenu(),
     b2.onclick = () => {
       mainMenu(), player_first_person = 1;
@@ -812,7 +812,6 @@ const initPage = () => {
       player_first_person && (movementX || movementY)
         && (camera_rotation.y += 0.1 * movementX, camera_rotation.x += 0.1 * movementY);
     },
-    oncontextmenu = () => !1,
     hC.ontouchstart = e => {
       if (!mainMenuVisible) {
         for (
@@ -837,22 +836,20 @@ const initPage = () => {
         touchStartTime = absoluteTime;
       }
     },
-    hC.ontouchmove = ({
-      changedTouches,
-    }) => {
+    hC.ontouchmove = e => {
       if (!mainMenuVisible) {
         for (
           let {
             pageX,
             pageY,
             identifier,
-          } of changedTouches
+          } of e.changedTouches
         ) {
           var sign;
           var absDelta;
           touchRotIdentifier === identifier
-          && (camera_rotation.y = touchStartCameraRotX + (pageX - touchRotX) / 3,
-            camera_rotation.x = touchStartCameraRotY + (pageY - touchRotY) / 3,
+          && (camera_rotation.y = touchStartCameraRotX + (pageX - touchRotX) / 2.3,
+            camera_rotation.x = touchStartCameraRotY + (pageY - touchRotY) / 2.3,
             touchRotMoved = 1),
             touchPosIdentifier === identifier
             && (0.4 < (absDelta = (sign = (identifier = (touchPosX - pageX) / 20) < 0 ? -1 : 1) * identifier)
@@ -892,78 +889,6 @@ const initPage = () => {
     mainMenu(!0);
 };
 
-const loadShader = (source, type = 35633) => (type = gl["c6x"](type), gl["s3c"](type, source), gl["c6a"](type), type);
-
-const initShaderProgram = (vertexShader, sfsSource) => {
-  const uniforms = {};
-  const program = gl["c1h"]();
-  return gl["abz"](program, vertexShader),
-    gl["abz"](program, loadShader(sfsSource, 35632)),
-    gl["l8l"](program),
-    name => name ? uniforms[name] || (uniforms[name] = gl["gan"](program, name)) : gl["u7y"](program);
-};
-
-const renderModels = (worldMatrixLoc, renderPlayer, soulModelId = 42) => {
-  if (mainMenuVisible) {
-    const matrix = identity.rotate(0, 40 * Math.sin(absoluteTime) - 70);
-
-    for (const modelId of [37, MODEL_ID_PLAYER_LEG0, MODEL_ID_PLAYER_LEG1]) {
-      matrixToArray(matrix, worldMatricesBuffer, modelId - 1);
-    }
-
-    gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer),
-      gl["d97"](
-        4,
-        allModels[MODEL_ID_PLAYER_LEG1].$vertexEnd - allModels[37].$vertexBegin,
-        5123,
-        2 * allModels[37].$vertexBegin,
-      );
-  } else {
-    for (let i = 0; allModels.length > i; ++i) {
-      const {
-        $kind,
-        $modelId,
-        $matrix,
-      } = allModels[i];
-      $kind && matrixToArray($matrix, worldMatricesBuffer, $modelId - 1);
-    }
-
-    gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer),
-      gl["d97"](
-        4,
-        (renderPlayer ? allModels[MODEL_ID_PLAYER_LEG1].$vertexEnd : allModels[37].$vertexBegin) - 3,
-        5123,
-        6,
-      );
-
-    for (let i1 = 0; i1 < 13; ++i1) matrixToArray(souls[i1].$matrix, worldMatricesBuffer, i1);
-
-    for (let i2 = 0; levers.length > i2; ++i2) {
-      const {
-        $matrix: $matrix1,
-        $lerpValue,
-      } = levers[i2];
-      matrixToArray($matrix1, worldMatricesBuffer, i2 + 13), worldMatricesBuffer[16 * (i2 + 13) + 15] = 1 - $lerpValue;
-    }
-
-    gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer),
-      gl["das"](
-        4,
-        allModels[soulModelId].$vertexEnd - allModels[soulModelId].$vertexBegin,
-        5123,
-        2 * allModels[soulModelId].$vertexBegin,
-        13,
-      ),
-      gl["das"](
-        4,
-        allModels[40].$vertexEnd - allModels[40].$vertexBegin,
-        5123,
-        2 * allModels[40].$vertexBegin,
-        levers.length,
-      );
-  }
-};
-
 const player_init = () => {
   let currentModelIdTMinus1 = 0;
   let currentModelId = 0;
@@ -992,6 +917,7 @@ const player_init = () => {
     z: 0,
   };
   const player_collision_modelIdCounter = new Int32Array(256);
+  const collision_buffer = new Uint8Array(65536);
 
   const player_respawn = boot => {
     var {
@@ -1114,6 +1040,9 @@ const player_init = () => {
         player_collision_x = 0,
         player_collision_z = 0,
         player_has_ground = 0,
+        gl["r9r"](0, 0, 128, 128, 6408, 5121, collision_buffer),
+        gl["iay"](36009, [36064, 36096]),
+        gl["iay"](36008, [36064, 36096]),
         NO_INLINE(doHorizontalCollisions)(),
         NO_INLINE(doVerticalCollisions)(),
         clamp01(1 - 5 * max(abs(player_collision_x), abs(player_collision_z))));
@@ -1173,7 +1102,7 @@ const player_init = () => {
       (strafe || forward) && (player_look_angle_target = 90 - gamepad / DEG_TO_RAD),
       player_look_angle = angle_lerp_degrees(player_look_angle, player_look_angle_target, 8 * gameTimeDelta),
       player_legs_speed = lerp(player_legs_speed, getGamepadButtonState, 10 * gameTimeDelta),
-      player_model_y = 0.03 < abs(player_model_y - s) ? s : lerpDamp(player_model_y, s, 2),
+      player_model_y = lerp(lerpDamp(player_model_y, s, 2), s, 8 * abs(player_model_y - s)),
       camera_lookat_x = interpolate_with_hysteresis(camera_lookat_x, z2, 0.5, gameTimeDelta),
       camera_lookat_y = interpolate_with_hysteresis(camera_lookat_y, s, 2, gameTimeDelta),
       camera_lookat_z = interpolate_with_hysteresis(camera_lookat_z, z, 0.5, gameTimeDelta),
@@ -1204,21 +1133,88 @@ const player_init = () => {
       camera_rotation.y = angle_wrap_degrees(camera_rotation.y),
       currentModelId === 1 && (levers[9].$value = player_position_final.x < -15 && player_position_final.z < 0 ? 1 : 0),
       (player_position_final.x < -25 || player_position_final.z < 109 ? -25 : -9) > player_position_final.y
-      && player_respawn();
-  },
-    allModels[37]._update = () =>
-      identity.translate(player_position_final.x, player_model_y, player_position_final.z).rotateSelf(
-        0,
-        player_look_angle,
-      ),
-    [MODEL_ID_PLAYER_LEG0, MODEL_ID_PLAYER_LEG1].map((modelId, i) => {
-      allModels[modelId]._update = () =>
-        allModels[37].$matrix.translate(
+      && player_respawn(),
+      allModels[37].$matrix = identity.translate(player_position_final.x, player_model_y, player_position_final.z)
+        .rotateSelf(0, player_look_angle),
+      [MODEL_ID_PLAYER_LEG0, MODEL_ID_PLAYER_LEG1].map((modelId, i) => {
+        allModels[modelId].$matrix = allModels[37].$matrix.translate(
           0,
           player_legs_speed * clamp01(0.45 * Math.sin(9.1 * gameTime + Math.PI * (i - 1) - Math.PI / 2)),
         ).rotateSelf(player_legs_speed * Math.sin(9.1 * gameTime + Math.PI * (i - 1)) * 0.25 / DEG_TO_RAD, 0);
-    }),
-    player_respawn(1);
+      });
+  }, player_respawn(1);
+};
+
+const loadShader = (source, type = 35633) => (type = gl["c6x"](type), gl["s3c"](type, source), gl["c6a"](type), type);
+
+const initShaderProgram = (vertexShader, sfsSource) => {
+  const uniforms = {};
+  const program = gl["c1h"]();
+  return gl["abz"](program, vertexShader),
+    gl["abz"](program, loadShader(sfsSource, 35632)),
+    gl["l8l"](program),
+    name => name ? uniforms[name] || (uniforms[name] = gl["gan"](program, name)) : gl["u7y"](program);
+};
+
+const renderModels = (worldMatrixLoc, renderPlayer, soulModelId = 42) => {
+  if (mainMenuVisible) {
+    const matrix = identity.rotate(0, 40 * Math.sin(absoluteTime) - 70);
+
+    for (const modelId of [37, MODEL_ID_PLAYER_LEG0, MODEL_ID_PLAYER_LEG1]) {
+      matrixToArray(matrix, worldMatricesBuffer, modelId - 1);
+    }
+
+    gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer),
+      gl["d97"](
+        4,
+        allModels[MODEL_ID_PLAYER_LEG1].$vertexEnd - allModels[37].$vertexBegin,
+        5123,
+        2 * allModels[37].$vertexBegin,
+      );
+  } else {
+    for (let i = 0; allModels.length > i; ++i) {
+      const {
+        $kind,
+        $modelId,
+        $matrix,
+      } = allModels[i];
+      $kind && matrixToArray($matrix, worldMatricesBuffer, $modelId - 1);
+    }
+
+    gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer),
+      gl["d97"](
+        4,
+        (renderPlayer ? allModels[MODEL_ID_PLAYER_LEG1].$vertexEnd : allModels[37].$vertexBegin) - 3,
+        5123,
+        6,
+      );
+
+    for (let i1 = 0; i1 < 13; ++i1) matrixToArray(souls[i1].$matrix, worldMatricesBuffer, i1);
+
+    for (let i2 = 0; levers.length > i2; ++i2) {
+      const {
+        $matrix: $matrix1,
+        $lerpValue,
+      } = levers[i2];
+      matrixToArray($matrix1, worldMatricesBuffer, i2 + 13), worldMatricesBuffer[16 * (i2 + 13) + 15] = 1 - $lerpValue;
+    }
+
+    gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer),
+      gl["das"](
+        4,
+        allModels[soulModelId].$vertexEnd - allModels[soulModelId].$vertexBegin,
+        5123,
+        2 * allModels[soulModelId].$vertexBegin,
+        13,
+      ),
+      gl["das"](
+        4,
+        allModels[40].$vertexEnd - allModels[40].$vertexBegin,
+        5123,
+        2 * allModels[40].$vertexBegin,
+        levers.length,
+      );
+  }
 };
 
 const loadStep = fn => {
@@ -1400,12 +1396,9 @@ loadStep(() => {
             _globalTime = globalTime,
             0 < gameTimeDelta
             && (gl["b6o"](36160, collision_frameBuffer),
-              gl["fa7"](),
-              gl["r9r"](0, 0, 128, 128, 6408, 5121, collision_buffer),
-              gl["iay"](36009, [36064, 36096]),
-              gl["iay"](36008, [36064, 36096]),
-              player_update(),
+              gl["f1s"](),
               worldStateUpdate(),
+              player_update(),
               keyboard_downKeys[5] = 0);
           var dt = mainMenuVisible
             ? identity.rotate(-20, -90).invertSelf().translateSelf(4.5, -2, -3.2 + clamp01(hC.clientWidth / 1e3))
@@ -1466,7 +1459,6 @@ loadStep(() => {
               : gl["ubu"](skyShader("k"), camera_position.x, camera_position.y, camera_position.z),
             gl["uae"](skyShader("b"), !1, matrixToArray(dt.inverse())),
             gl["d97"](4, 3, 5123, 0),
-            gl["b6o"](36160, collision_frameBuffer),
             gl["f1s"]();
         };
 
@@ -2971,6 +2963,10 @@ body {
   background: #000;
   font-size: max(min(3.8vw, 3.8vh), 15px);
   text-shadow: 4px 4px 2px #000, -2px -2px 8px #000;
+}
+h3,
+h4 {
+  pointer-events: none;
 }
 .l h3,
 .l #b5 {

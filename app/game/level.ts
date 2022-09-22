@@ -1349,10 +1349,6 @@ export const build_life_the_universe_and_everything = () => {
 
   newModel(() => {
     checkModelId("PLAYER_BODY", MODEL_ID_PLAYER_BODY);
-    // Player legs
-
-    // Player body
-
     // horns
     [0, 180].map((r) =>
       meshAdd(

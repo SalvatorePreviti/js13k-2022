@@ -20,6 +20,12 @@ body {
   text-shadow: 4px 4px 2px #000, -2px -2px 8px #000;
 }
 
+/* disable mouse and touch events to souls counter and messages */
+h3,
+h4 {
+  pointer-events: none;
+}
+
 /* souls counter */
 .l h3,
 /* menu hamburger */
