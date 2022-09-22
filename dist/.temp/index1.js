@@ -490,7 +490,7 @@ const newModel = (fn, $kind = 1) => {
     $polygons: [],
   };
   allModels.push(currentEditModel = model);
-  fn(model);
+  model._update = fn(model);
   currentEditModel = previousModel;
   return model;
 };

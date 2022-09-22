@@ -524,7 +524,7 @@ const newModel = (fn, $kind = 1) => {
     $kind,
     $polygons: [],
   };
-  return allModels.push(currentEditModel = $kind), fn($kind), currentEditModel = previousModel, $kind;
+  return allModels.push(currentEditModel = $kind), $kind._update = fn($kind), currentEditModel = previousModel, $kind;
 };
 
 const meshAdd = (polygons, transform = identity, color) =>

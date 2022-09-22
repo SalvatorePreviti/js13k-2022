@@ -314,7 +314,7 @@ const La = Math.PI / 180,
   T = (c, b = 1) => {
     const h = ua;
     b = { l: r, F: f.length, H: b, s: [] };
-    return f.push(ua = b), c(b), ua = h, b;
+    return f.push(ua = b), b.g = c(b), ua = h, b;
   },
   U = (c, b = r, h) => ua.s.push(...K(c, b, h)),
   ub = c => {

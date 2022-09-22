@@ -236,7 +236,7 @@ let j = 0,
   },
   b = (t, a = 1) => {
     let e = Pt;
-    return q.push(Pt = a = { l: E, F: q.length, H: a, s: [] }), t(a), Pt = e, a;
+    return q.push(Pt = a = { l: E, F: q.length, H: a, s: [] }), a.g = t(a), Pt = e, a;
   },
   I = (t, a = E, e) => Pt.s.push(...m(t, a, e)),
   A = r => {
