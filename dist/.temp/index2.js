@@ -744,15 +744,15 @@ const initPage = () => {
 
   const updateMusicOnState = () => {
     mainMenuVisible || !music_on ? songAudioSource.disconnect() : songAudioSource.connect(audioContext.destination),
-      b4.innerHTML = "Music: " + music_on;
+      b4.innerHTML = "music: " + music_on;
   };
 
   const mainMenu = (value = !1) => {
     if (mainMenuVisible !== value) {
-      mainMenuVisible = value;
+      setTimeout(handleResize), mainMenuVisible = value;
 
       try {
-        value ? document.exitPointerLock() : songAudioSource.start();
+        value ? (document.exitFullscreen().catch(() => {}), document.exitPointerLock()) : songAudioSource.start();
       } catch {}
 
       player_first_person = 0,
@@ -762,13 +762,23 @@ const initPage = () => {
     }
   };
 
+  const handleResize = () => {
+    hC.width = innerWidth,
+      hC.height = innerHeight,
+      keyboard_downKeys.length = touch_movementX = touch_movementY = 0,
+      touchPosIdentifier = touchRotIdentifier = void 0,
+      document.hidden && mainMenu(!0);
+  };
+
   oncontextmenu = () => !1,
     b3.onclick = () => {
       confirm("Restart game?") && (localStorage["DanteSP22"] = "", location.reload());
     },
-    b1.onclick = () => mainMenu(),
+    b1.onclick = () => {
+      document.body.requestFullscreen(), mainMenu();
+    },
     b2.onclick = () => {
-      mainMenu(), player_first_person = 1;
+      document.body.requestFullscreen(), mainMenu(), player_first_person = 1;
     },
     b4.onclick = () => {
       music_on = !music_on, updateMusicOnState();
@@ -876,16 +886,10 @@ const initPage = () => {
             touchPosMoved = 0)
           : click = 1;}
 
-      click && e.target === hC && touchStartTime && 0.06 < (e = absoluteTime - touchStartTime) && e < 0.7
+      click && e.target === hC && touchStartTime && 0.02 < (e = absoluteTime - touchStartTime) && e < 0.7
         && (keyboard_downKeys[5] = !0);
     },
-    (document.onvisibilitychange = onblur = onresize = () => {
-      hC.width = innerWidth,
-        hC.height = innerHeight,
-        keyboard_downKeys.length = touch_movementX = touch_movementY = 0,
-        touchPosIdentifier = touchRotIdentifier = void 0,
-        document.hidden && mainMenu(!0);
-    })(),
+    (document.onvisibilitychange = onblur = onresize = handleResize)(),
     mainMenu(!0);
 };
 
@@ -1040,9 +1044,10 @@ const player_init = () => {
         player_collision_x = 0,
         player_collision_z = 0,
         player_has_ground = 0,
+        gl["fa7"](),
         gl["r9r"](0, 0, 128, 128, 6408, 5121, collision_buffer),
-        gl["iay"](36009, [36064, 36096]),
         gl["iay"](36008, [36064, 36096]),
+        gl["iay"](36009, [36064, 36096]),
         NO_INLINE(doHorizontalCollisions)(),
         NO_INLINE(doVerticalCollisions)(),
         clamp01(1 - 5 * max(abs(player_collision_x), abs(player_collision_z))));
@@ -1388,18 +1393,14 @@ loadStep(() => {
     if (++loadStatus == 2) {
       {
         const mainLoop = globalTime => {
-          requestAnimationFrame(mainLoop),
+          gl["f1s"](),
+            requestAnimationFrame(mainLoop),
             dt = (globalTime - (_globalTime || globalTime)) / 1e3,
             mainMenuVisible ? (gameTimeDelta = 0, keyboard_downKeys[5] = 0) : gameTimeDelta = min(0.066, dt),
             gameTime += gameTimeDelta,
             absoluteTime += dt,
             _globalTime = globalTime,
-            0 < gameTimeDelta
-            && (gl["b6o"](36160, collision_frameBuffer),
-              gl["f1s"](),
-              worldStateUpdate(),
-              player_update(),
-              keyboard_downKeys[5] = 0);
+            0 < gameTimeDelta && (worldStateUpdate(), player_update(), keyboard_downKeys[5] = 0);
           var dt = mainMenuVisible
             ? identity.rotate(-20, -90).invertSelf().translateSelf(4.5, -2, -3.2 + clamp01(hC.clientWidth / 1e3))
             : identity.rotate(-camera_rotation.x, -camera_rotation.y, -camera_rotation.z).invertSelf().translateSelf(
@@ -1459,6 +1460,7 @@ loadStep(() => {
               : gl["ubu"](skyShader("k"), camera_position.x, camera_position.y, camera_position.z),
             gl["uae"](skyShader("b"), !1, matrixToArray(dt.inverse())),
             gl["d97"](4, 3, 5123, 0),
+            gl["b6o"](36160, collision_frameBuffer),
             gl["f1s"]();
         };
 
@@ -2934,9 +2936,9 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
           <li id="b3">Restart</li>
           <li id="b4"></li>
         </ul>
-        <p>Move: WASD/arrows, Levers: E/click, Menu: Esc</p>
+        <p>move WASD/arrows, levers E/click, menu Esc</p>
         <p>
-          <a target="_blank" href="https://github.com/SalvatorePreviti/js13k-2022">© 2022 SalvatorePreviti</a> -
+          <a target="_blank" href="https://github.com/SalvatorePreviti/js13k-2022">© 2022 Salvatore Previti</a> -
           <a target="_blank" href="https://twitter.com/ryanmalm">music Ryan Malm</a>
         </p>
       </nav>

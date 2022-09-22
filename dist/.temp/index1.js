@@ -1,5 +1,5 @@
 NO_INLINE(
-  "<!DOCTYPE html><html><head>\n    <title>666</title>\n    <meta name=\"viewport\" content=\"width=device-width,initial-scale=1,user-scalable=0\">\n    \n    \n    \n  <link rel=\"stylesheet\" href=\"/index.css\"></head>\n\n  <body>\n    <canvas id=\"hC\"></canvas>\n    <h3>Souls: <b id=\"h3\"></b> / XIII</h3>\n    <h4 id=\"h4\">loading</h4>\n    <main>\n      <nav>\n        <h2>DANTE</h2>\n        Lucifer:\n        <i>\"Damn. Infernal delivery service failed again. A delivery of evil souls fell in an area under construction.\n          Dante, take them where they belong, to the 8th circle.\"</i>\n        <ul>\n          <li id=\"b1\">Play</li>\n          <li id=\"b2\">Play first person</li>\n          <li id=\"b3\">Restart</li>\n          <li id=\"b4\"></li>\n        </ul>\n        <p>Move: WASD/arrows, Levers: E/click, Menu: Esc</p>\n        <p>\n          <a target=\"_blank\" href=\"https://github.com/SalvatorePreviti/js13k-2022\">© 2022 SalvatorePreviti</a> -\n          <a target=\"_blank\" href=\"https://twitter.com/ryanmalm\">music Ryan Malm</a>\n        </p>\n      </nav>\n    </main>\n    <b id=\"b5\">☰</b>\n    \n  \n\n<script type=\"module\" src=\"/index.js\" crossorigin=\"\"></script></body></html> * {\n  font-weight: 100;\n  user-select: none;\n  touch-action: none;\n  overscroll-behavior: contain;\n  -webkit-user-select: none;\n  color: #fda;\n}\nbody > * {\n  position: absolute;\n}\nhtml,\nbody {\n  margin: 0;\n  font-family: \"Times New Roman\", serif;\n  background: #000;\n  font-size: max(min(3.8vw, 3.8vh), 15px);\n  text-shadow: 4px 4px 2px #000, -2px -2px 8px #000;\n}\nh3,\nh4 {\n  pointer-events: none;\n}\n.l h3,\n.l #b5 {\n  display: block;\n  padding: 10px;\n}\n.l h3 {\n  text-align: right;\n  right: 5%;\n  bottom: 0;\n}\nh4 {\n  left: 0;\n  top: 0;\n  right: 0;\n  text-align: center;\n}\n.m main {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  top: 0;\n  right: 0;\n  bottom: 0;\n  min-width: 70%;\n}\nnav {\n  min-width: 50%;\n  max-width: 800px;\n  background: #00000080;\n  border-radius: 1em;\n  padding: 1em;\n}\np {\n  font-size: 0.7em;\n}\nh2 {\n  color: #f61;\n  margin: 0 0 0.7em;\n}\na,\nli {\n  cursor: pointer;\n  margin-bottom: 0.5em;\n  text-decoration: none;\n  border-bottom: 3px solid #00000000;\n}\nh2,\na:hover,\nli:hover {\n  border-bottom: 3px solid;\n}\nh3,\nmain,\n.m h4 {\n  display: none;\n}\n",
+  "<!DOCTYPE html><html><head>\n    <title>666</title>\n    <meta name=\"viewport\" content=\"width=device-width,initial-scale=1,user-scalable=0\">\n    \n    \n    \n  <link rel=\"stylesheet\" href=\"/index.css\"></head>\n\n  <body>\n    <canvas id=\"hC\"></canvas>\n    <h3>Souls: <b id=\"h3\"></b> / XIII</h3>\n    <h4 id=\"h4\">loading</h4>\n    <main>\n      <nav>\n        <h2>DANTE</h2>\n        Lucifer:\n        <i>\"Damn. Infernal delivery service failed again. A delivery of evil souls fell in an area under construction.\n          Dante, take them where they belong, to the 8th circle.\"</i>\n        <ul>\n          <li id=\"b1\">Play</li>\n          <li id=\"b2\">Play first person</li>\n          <li id=\"b3\">Restart</li>\n          <li id=\"b4\"></li>\n        </ul>\n        <p>move WASD/arrows, levers E/click, menu Esc</p>\n        <p>\n          <a target=\"_blank\" href=\"https://github.com/SalvatorePreviti/js13k-2022\">© 2022 Salvatore Previti</a> -\n          <a target=\"_blank\" href=\"https://twitter.com/ryanmalm\">music Ryan Malm</a>\n        </p>\n      </nav>\n    </main>\n    <b id=\"b5\">☰</b>\n    \n  \n\n<script type=\"module\" src=\"/index.js\" crossorigin=\"\"></script></body></html> * {\n  font-weight: 100;\n  user-select: none;\n  touch-action: none;\n  overscroll-behavior: contain;\n  -webkit-user-select: none;\n  color: #fda;\n}\nbody > * {\n  position: absolute;\n}\nhtml,\nbody {\n  margin: 0;\n  font-family: \"Times New Roman\", serif;\n  background: #000;\n  font-size: max(min(3.8vw, 3.8vh), 15px);\n  text-shadow: 4px 4px 2px #000, -2px -2px 8px #000;\n}\nh3,\nh4 {\n  pointer-events: none;\n}\n.l h3,\n.l #b5 {\n  display: block;\n  padding: 10px;\n}\n.l h3 {\n  text-align: right;\n  right: 5%;\n  bottom: 0;\n}\nh4 {\n  left: 0;\n  top: 0;\n  right: 0;\n  text-align: center;\n}\n.m main {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  top: 0;\n  right: 0;\n  bottom: 0;\n  min-width: 70%;\n}\nnav {\n  min-width: 50%;\n  max-width: 800px;\n  background: #00000080;\n  border-radius: 1em;\n  padding: 1em;\n}\np {\n  font-size: 0.7em;\n}\nh2 {\n  color: #f61;\n  margin: 0 0 0.7em;\n}\na,\nli {\n  cursor: pointer;\n  margin-bottom: 0.5em;\n  text-decoration: none;\n  border-bottom: 3px solid #00000000;\n}\nh2,\na:hover,\nli:hover {\n  border-bottom: 3px solid;\n}\nh3,\nmain,\n.m h4 {\n  display: none;\n}\n",
 );
 const groundTextureSvg = "data:image/svg+xml;base64,"
   + /* @__PURE__ */ btoa(
@@ -1705,13 +1705,17 @@ const initPage = () => {
   let pageClicked;
   const updateMusicOnState = () => {
     mainMenuVisible || !music_on ? songAudioSource.disconnect() : songAudioSource.connect(audioContext.destination);
-    b4.innerHTML = "Music: " + music_on;
+    b4.innerHTML = "music: " + music_on;
   };
   const mainMenu = (value = !1) => {
     if (mainMenuVisible !== value) {
+      setTimeout(handleResize);
       visible = value, mainMenuVisible = visible;
       try {
-        value ? document.exitPointerLock() : songAudioSource.start();
+        if (value) {
+          document.exitFullscreen().catch(() => {});
+          document.exitPointerLock();
+        } else songAudioSource.start();
       } catch {}
       player_first_person = 0;
       document.body.className = value ? "l m" : "l";
@@ -1734,8 +1738,12 @@ const initPage = () => {
       location.reload();
     }
   };
-  b1.onclick = () => mainMenu();
+  b1.onclick = () => {
+    document.body.requestFullscreen();
+    mainMenu();
+  };
   b2.onclick = () => {
+    document.body.requestFullscreen();
     mainMenu();
     player_first_person = 1;
   };
@@ -1848,7 +1856,7 @@ const initPage = () => {
     }
     if (click && e.target === hC && touchStartTime) {
       const diff = absoluteTime - touchStartTime;
-      diff > .06 && .7 > diff && (keyboard_downKeys[5] = !0);
+      diff > .02 && .7 > diff && (keyboard_downKeys[5] = !0);
     }
   };
   document.onvisibilitychange = onblur = onresize = handleResize;
@@ -2012,9 +2020,10 @@ const player_init = () => {
     player_collision_x = 0;
     player_collision_z = 0;
     player_has_ground = 0;
+    gl["fa7"]();
     gl["r9r"](0, 0, 128, 128, 6408, 5121, collision_buffer);
-    gl["iay"](36009, [36064, 36096]);
     gl["iay"](36008, [36064, 36096]);
+    gl["iay"](36009, [36064, 36096]);
     NO_INLINE(doHorizontalCollisions)();
     NO_INLINE(doVerticalCollisions)();
     const playerSpeedCollision = clamp01(1 - 5 * max(abs(player_collision_x), abs(player_collision_z)));
@@ -2178,6 +2187,7 @@ const renderModels = (worldMatrixLoc, renderPlayer, soulModelId = 42) => {
 
 const startMainLoop = groundTextureImage => {
   const mainLoop = globalTime => {
+    gl["f1s"]();
     requestAnimationFrame(mainLoop);
     (time => {
       const dt = (time - (_globalTime || time)) / 1e3;
@@ -2190,8 +2200,6 @@ const startMainLoop = groundTextureImage => {
       _globalTime = time;
     })(globalTime);
     if (gameTimeDelta > 0) {
-      gl["b6o"](36160, collision_frameBuffer);
-      gl["f1s"]();
       worldStateUpdate();
       player_update();
       keyboard_downKeys[5] = 0;
@@ -2256,6 +2264,7 @@ const startMainLoop = groundTextureImage => {
       : gl["ubu"](skyShader("k"), camera_position.x, camera_position.y, camera_position.z);
     gl["uae"](skyShader("b"), !1, matrixToArray(camera_view.inverse()));
     gl["d97"](4, 3, 5123, 0);
+    gl["b6o"](36160, collision_frameBuffer);
     gl["f1s"]();
   };
   const csm_framebuffer = gl["c5w"]();

@@ -23,8 +23,8 @@ import {
   onSoulCollected,
 } from "./world-state";
 
-const LEVER_SENSITIVITY_RADIUS = 2.9;
-const SOUL_SENSITIVITY_RADIUS = 1.5;
+const LEVER_SENSITIVITY_RADIUS = 3;
+const SOUL_SENSITIVITY_RADIUS = 1.55;
 
 export const material = NO_INLINE(
   (r: number, g: number, b: number, a: number = 0): number =>

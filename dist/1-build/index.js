@@ -939,13 +939,17 @@ const initPage = () => {
     let pageClicked;
     const updateMusicOnState = () => {
         mainMenuVisible || !music_on ? songAudioSource.disconnect() : songAudioSource.connect(audioContext.destination);
-        b4.innerHTML = "Music: " + music_on;
+        b4.innerHTML = "music: " + music_on;
     };
     const mainMenu = (value = !1) => {
         if (mainMenuVisible !== value) {
+            setTimeout(handleResize);
             visible = value, mainMenuVisible = visible;
             try {
-                value ? document.exitPointerLock() : songAudioSource.start();
+                if (value) {
+                    document.exitFullscreen().catch((() => {}));
+                    document.exitPointerLock();
+                } else songAudioSource.start();
             } catch {}
             player_first_person = 0;
             document.body.className = value ? "l m" : "l";
@@ -968,8 +972,12 @@ const initPage = () => {
             location.reload();
         }
     };
-    b1.onclick = () => mainMenu();
+    b1.onclick = () => {
+        document.body.requestFullscreen();
+        mainMenu();
+    };
     b2.onclick = () => {
+        document.body.requestFullscreen();
         mainMenu();
         player_first_person = 1;
     };
@@ -1074,7 +1082,7 @@ const initPage = () => {
         } else click = 1;
         if (click && e.target === hC && touchStartTime) {
             const diff = absoluteTime - touchStartTime;
-            diff > .06 && .7 > diff && (keyboard_downKeys[5] = !0);
+            diff > .02 && .7 > diff && (keyboard_downKeys[5] = !0);
         }
     };
     document.onvisibilitychange = onblur = onresize = handleResize;
@@ -1234,9 +1242,10 @@ const player_init = () => {
         player_collision_x = 0;
         player_collision_z = 0;
         player_has_ground = 0;
+        gl["fa7"]();
         gl["r9r"](0, 0, 128, 128, 6408, 5121, collision_buffer);
-        gl["iay"](36009, [ 36064, 36096 ]);
         gl["iay"](36008, [ 36064, 36096 ]);
+        gl["iay"](36009, [ 36064, 36096 ]);
         NO_INLINE(doHorizontalCollisions)();
         NO_INLINE(doVerticalCollisions)();
         const playerSpeedCollision = clamp01(1 - 5 * max(abs(player_collision_x), abs(player_collision_z)));
@@ -1360,6 +1369,7 @@ const renderModels = (worldMatrixLoc, renderPlayer, soulModelId = 42) => {
 
 const startMainLoop = groundTextureImage => {
     const mainLoop = globalTime => {
+        gl["f1s"]();
         requestAnimationFrame(mainLoop);
         (time => {
             const dt = (time - (_globalTime || time)) / 1e3;
@@ -1372,8 +1382,6 @@ const startMainLoop = groundTextureImage => {
             _globalTime = time;
         })(globalTime);
         if (gameTimeDelta > 0) {
-            gl["b6o"](36160, collision_frameBuffer);
-            gl["f1s"]();
             worldStateUpdate();
             player_update();
             keyboard_downKeys[5] = 0;
@@ -1414,6 +1422,7 @@ const startMainLoop = groundTextureImage => {
         mainMenuVisible ? gl["ubu"](skyShader("k"), 0, 0, 0) : gl["ubu"](skyShader("k"), camera_position.x, camera_position.y, camera_position.z);
         gl["uae"](skyShader("b"), !1, matrixToArray(camera_view.inverse()));
         gl["d97"](4, 3, 5123, 0);
+        gl["b6o"](36160, collision_frameBuffer);
         gl["f1s"]();
     };
     const csm_framebuffer = gl["c5w"]();

@@ -47,7 +47,7 @@ export const initPage = () => {
       // connect the AudioBufferSourceNode to the  destination so we can hear the sound
       songAudioSource.connect(audioContext.destination);
     }
-    b4.innerHTML = "Music: " + music_on;
+    b4.innerHTML = "music: " + music_on;
   };
 
   const toggleMusic = () => {
@@ -57,9 +57,12 @@ export const initPage = () => {
 
   const mainMenu = (value: boolean = false) => {
     if (mainMenuVisible !== value) {
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
       setMainMenuVisible(value);
       try {
         if (value) {
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
+          document.exitFullscreen().catch(() => {});
           document.exitPointerLock();
         } else {
           songAudioSource.start();
@@ -96,10 +99,16 @@ export const initPage = () => {
   };
 
   // "Play" button
-  b1.onclick = () => mainMenu();
+  b1.onclick = () => {
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    document.body.requestFullscreen();
+    mainMenu();
+  };
 
   // "Play first person" button
   b2.onclick = () => {
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    document.body.requestFullscreen();
     mainMenu();
     player_first_person = 1;
   };
