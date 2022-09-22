@@ -39,7 +39,7 @@ declare const h3: HTMLCanvasElement;
 /** Messages and loading text */
 declare const h4: HTMLHeadingElement;
 
-declare function NO_INLINE(fn: Function);
+declare function NO_INLINE<T>(fn: T): T;
 
 interface Array<T> {
   reduce<U = T>(
