@@ -296,7 +296,7 @@ const La = Math.PI / 180,
         || (1 / 0 > qa && (qa = a + 1 / 0, h4.innerHTML = "Well done. They will be punished.<br>Thanks for playing"),
           ka = 1));
     for (const h of f) {
-      h.g && (h.l = h.g(h));
+      h.g && (h.l = h.g());
     }
     for (const h of l) {
       h.g();
@@ -1574,6 +1574,9 @@ Ib(() => {
           K(L(5), r.translate(0, 16, 103.5).scale(5.5, 5, 5.5), W(0.5, 0.3, 0.3, 0.4)),
         ),
       ));
+      U(L(6), r.translate(0, 16, 121).scale(2.5, 1, 2.1).rotate(0, 90), W(0.5, 0.6, 0.7, 0.3));
+      U(L(), r.translate(0, 16, 129).scale(1.5, 1, 2), W(0.5, 0.6, 0.7, 0.3));
+      U(L(7), r.translate(0, 16.2, 133).scale(5, 1, 5), W(0.4, 0.5, 0.6, 0.4));
       T(e => {
         e.g = () => {
           const g = Math.sin(a);
@@ -1585,9 +1588,6 @@ Ib(() => {
           U(L(), r.translate(0, 6.2, g + 95).scale(0.5, 11, 0.5), W(0.5, 0.3, 0.3, 0.4));
         });
       });
-      U(L(6), r.translate(0, 16, 121).scale(2.5, 1, 2.1).rotate(0, 90), W(0.5, 0.6, 0.7, 0.3));
-      U(L(), r.translate(0, 16, 129).scale(1.5, 1, 2), W(0.5, 0.6, 0.7, 0.3));
-      U(L(7), r.translate(0, 16.2, 133).scale(5, 1, 5), W(0.4, 0.5, 0.6, 0.4));
       T(e => {
         e.g = () => {
           const g = Ta(Ta((l[14].h + l[14].i) / 2, l[13].i), (l[15].h + l[15].i) / 2);

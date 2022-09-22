@@ -382,7 +382,7 @@ const worldStateUpdate = () => {
         showMessage("Well done. They will be punished.<br>Thanks for playing", Infinity);
         game_completed = 1;
     }
-    for (const model of allModels) model._update && (model.$matrix = model._update(model));
+    for (const model of allModels) model._update && (model.$matrix = model._update());
     for (const lever of levers) lever._update();
     for (const soul of souls) soul._update();
 };
@@ -791,6 +791,9 @@ const build_life_the_universe_and_everything = () => {
         newLever(identity.translate(0, 1.7, 82).rotate(0, 180));
         meshAdd(cylinder(5), identity.translate(0, -15.7, 82).scale(2.5, 17, 2.5).rotate(0, 35), material(.5, .3, .3, .4));
         meshAdd(csg_polygons(csg_subtract(csg_union(polygons_transform(cylinder(), identity.translate(0, 16, 110.5).scale(12, 1, 3), material(.5, .3, .3, .4)), polygons_transform(cylinder(), identity.translate(0, 16, 111).scale(3, 1, 3.8), material(.5, .3, .3, .4))), polygons_transform(cylinder(5), identity.translate(0, 16, 103.5).scale(5.5, 5, 5.5), material(.5, .3, .3, .4)))));
+        meshAdd(cylinder(6), identity.translate(0, 16, 121).scale(2.5, 1, 2.1).rotate(0, 90), material(.5, .6, .7, .3));
+        meshAdd(cylinder(), identity.translate(0, 16, 129).scale(1.5, 1, 2), material(.5, .6, .7, .3));
+        meshAdd(cylinder(7), identity.translate(0, 16.2, 133).scale(5, 1, 5), material(.4, .5, .6, .4));
         newModel((model => {
             model._update = () => {
                 const k = /* @__PURE__ */ Math.sin(gameTime);
@@ -802,9 +805,6 @@ const build_life_the_universe_and_everything = () => {
                 meshAdd(cylinder(), identity.translate(0, 6.2, z + 95).scale(.5, 11, .5), material(.5, .3, .3, .4));
             }));
         }));
-        meshAdd(cylinder(6), identity.translate(0, 16, 121).scale(2.5, 1, 2.1).rotate(0, 90), material(.5, .6, .7, .3));
-        meshAdd(cylinder(), identity.translate(0, 16, 129).scale(1.5, 1, 2), material(.5, .6, .7, .3));
-        meshAdd(cylinder(7), identity.translate(0, 16.2, 133).scale(5, 1, 5), material(.4, .5, .6, .4));
         newModel((model => {
             model._update = () => {
                 const v = lerpneg(lerpneg((levers[14].$lerpValue + levers[14].$lerpValue2) / 2, levers[13].$lerpValue2), (levers[15].$lerpValue + levers[15].$lerpValue2) / 2);

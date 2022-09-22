@@ -209,7 +209,7 @@ let j = 0,
         : e
           || (1 / 0 > w && (w = D + 1 / 0, h4.innerHTML = "Well done. They will be punished.<br>Thanks for playing"),
             e = 1));
-    for (let t of q) t.g && (t.l = t.g(t));
+    for (let t of q) t.g && (t.l = t.g());
     for (let t of L) t.g();
     for (let t of lt) t.g();
   },
@@ -1527,6 +1527,9 @@ wt(() => {
                 m(g(5), E.translate(0, 16, 103.5).scale(5.5, 5, 5.5), S(.5, .3, .3, .4)),
               ),
             )),
+            I(g(6), E.translate(0, 16, 121).scale(2.5, 1, 2.1).rotate(0, 90), S(.5, .6, .7, .3)),
+            I(g(), E.translate(0, 16, 129).scale(1.5, 1, 2), S(.5, .6, .7, .3)),
+            I(g(7), E.translate(0, 16.2, 133).scale(5, 1, 5), S(.4, .5, .6, .4)),
             b(t => {
               t.g = () => {
                 let t = Math.sin(D);
@@ -1538,9 +1541,6 @@ wt(() => {
                     I(g(), E.translate(0, 6.2, t + 95).scale(.5, 11, .5), S(.5, .3, .3, .4));
                 });
             }),
-            I(g(6), E.translate(0, 16, 121).scale(2.5, 1, 2.1).rotate(0, 90), S(.5, .6, .7, .3)),
-            I(g(), E.translate(0, 16, 129).scale(1.5, 1, 2), S(.5, .6, .7, .3)),
-            I(g(7), E.translate(0, 16.2, 133).scale(5, 1, 5), S(.4, .5, .6, .4)),
             b(t => {
               t.g = () => {
                 let t = i(i((L[14].h + L[14].i) / 2, L[13].i), (L[15].h + L[15].i) / 2);

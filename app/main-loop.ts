@@ -37,7 +37,7 @@ import { csm_buildMatrix } from "./csm";
 import { player_first_person } from "./page";
 import { gl } from "./gl";
 import { loadShader, initShaderProgram } from "./shaders-utils";
-import { renderModels } from "./game/render-models";
+import { renderModels } from "./game/models-render";
 import { player_update, COLLISION_TEXTURE_SIZE, collision_buffer, player_init } from "./player";
 
 export const startMainLoop = (groundTextureImage: HTMLImageElement) => {

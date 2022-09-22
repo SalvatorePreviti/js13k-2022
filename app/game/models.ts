@@ -6,7 +6,7 @@ export interface Model {
   $modelId: number;
   $kind: MODEL_KIND;
   $polygons: Polygon[] | null;
-  _update?: (model: Model) => DOMMatrixReadOnly;
+  _update?: () => DOMMatrixReadOnly;
   $vertexBegin?: number;
   $vertexEnd?: number;
 }
@@ -30,6 +30,8 @@ export interface Soul {
 export type Circle = [number, number, number];
 
 export const allModels: Model[] = [];
+
+/** Fixed number of levers */
 
 export const levers: Lever[] = [];
 

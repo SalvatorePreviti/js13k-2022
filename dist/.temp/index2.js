@@ -473,7 +473,7 @@ const worldStateUpdate = () => {
       : game_completed
         || (showMessage("Well done. They will be punished.<br>Thanks for playing", 1 / 0), game_completed = 1));
 
-  for (const model of allModels) model._update && (model.$matrix = model._update(model));
+  for (const model of allModels) model._update && (model.$matrix = model._update());
 
   for (const lever of levers) lever._update();
 
@@ -2802,6 +2802,13 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   ),
                 ),
               ),
+              meshAdd(
+                cylinder(6),
+                identity.translate(0, 16, 121).scale(2.5, 1, 2.1).rotate(0, 90),
+                material(0.5, 0.6, 0.7, 0.3),
+              ),
+              meshAdd(cylinder(), identity.translate(0, 16, 129).scale(1.5, 1, 2), material(0.5, 0.6, 0.7, 0.3)),
+              meshAdd(cylinder(7), identity.translate(0, 16.2, 133).scale(5, 1, 5), material(0.4, 0.5, 0.6, 0.4)),
               newModel(model => {
                 model._update = () => {
                   const k = Math.sin(gameTime);
@@ -2825,13 +2832,6 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                       );
                   });
               }),
-              meshAdd(
-                cylinder(6),
-                identity.translate(0, 16, 121).scale(2.5, 1, 2.1).rotate(0, 90),
-                material(0.5, 0.6, 0.7, 0.3),
-              ),
-              meshAdd(cylinder(), identity.translate(0, 16, 129).scale(1.5, 1, 2), material(0.5, 0.6, 0.7, 0.3)),
-              meshAdd(cylinder(7), identity.translate(0, 16.2, 133).scale(5, 1, 5), material(0.4, 0.5, 0.6, 0.4)),
               newModel(model => {
                 model._update = () => {
                   const v = lerpneg(

@@ -137,7 +137,7 @@ export const worldStateUpdate = () => {
 
   for (const model of allModels) {
     if (model._update) {
-      model.$matrix = model._update(model);
+      model.$matrix = model._update();
     }
   }
 

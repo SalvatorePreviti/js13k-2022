@@ -444,7 +444,7 @@ const worldStateUpdate = () => {
       game_completed = 1;
     }
   }
-  for (const model of allModels) model._update && (model.$matrix = model._update(model));
+  for (const model of allModels) model._update && (model.$matrix = model._update());
   for (const lever of levers) lever._update();
   for (const soul of souls) soul._update();
 };
@@ -1521,6 +1521,9 @@ const build_life_the_universe_and_everything = () => {
         ),
       ),
     );
+    meshAdd(cylinder(6), identity.translate(0, 16, 121).scale(2.5, 1, 2.1).rotate(0, 90), material(.5, .6, .7, .3));
+    meshAdd(cylinder(), identity.translate(0, 16, 129).scale(1.5, 1, 2), material(.5, .6, .7, .3));
+    meshAdd(cylinder(7), identity.translate(0, 16.2, 133).scale(5, 1, 5), material(.4, .5, .6, .4));
     newModel(model => {
       model._update = () => {
         const k = /* @__PURE__ */ Math.sin(gameTime);
@@ -1540,9 +1543,6 @@ const build_life_the_universe_and_everything = () => {
         meshAdd(cylinder(), identity.translate(0, 6.2, z + 95).scale(.5, 11, .5), material(.5, .3, .3, .4));
       });
     });
-    meshAdd(cylinder(6), identity.translate(0, 16, 121).scale(2.5, 1, 2.1).rotate(0, 90), material(.5, .6, .7, .3));
-    meshAdd(cylinder(), identity.translate(0, 16, 129).scale(1.5, 1, 2), material(.5, .6, .7, .3));
-    meshAdd(cylinder(7), identity.translate(0, 16.2, 133).scale(5, 1, 5), material(.4, .5, .6, .4));
     newModel(model => {
       model._update = () => {
         const v = lerpneg(
