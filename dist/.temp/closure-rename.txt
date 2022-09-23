@@ -6,13 +6,13 @@ $kind:G
 $lerpValue:g
 $lerpValue2:i
 $locMatrix:I
-$matrix:j
+$matrix:l
 $modelId:H
 $parent:u
 $polygon:C
 $polygons:s
 $smooth:D
-$value:l
+$value:j
 $vertexBegin:v
 $vertexEnd:F
 _update:h

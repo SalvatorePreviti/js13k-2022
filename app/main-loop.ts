@@ -63,7 +63,6 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
   const csm_render = integers_map(2, (csmSplit: number) => {
     const texture = gl.createTexture()!;
-    const lightSpaceMatrix: Float32Array = new Float32Array(16);
     const lightSpaceMatrixLoc = mainShader(csmSplit ? uniformName_csm_matrix1 : uniformName_csm_matrix0);
     gl.uniform1i(mainShader(csmSplit ? uniformName_csm_texture1 : uniformName_csm_texture0), csmSplit);
 
@@ -93,6 +92,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 
+    const lightSpaceMatrix: Float32Array = new Float32Array(16);
     return (matrix?: DOMMatrix) => {
       if (matrix) {
         matrixToArray(matrix, lightSpaceMatrix);
@@ -124,7 +124,6 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
   gl.activeTexture(gl.TEXTURE3);
   gl.bindTexture(gl.TEXTURE_2D, collision_texture);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, collision_texture, 0);
   gl.texImage2D(
     gl.TEXTURE_2D,
     0,
@@ -136,6 +135,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     gl.UNSIGNED_BYTE,
     null,
   );
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, collision_texture, 0);
 
   // Ground texture
 
@@ -174,6 +174,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
           .translateSelf(-camera_position.x, -camera_position.y, -camera_position.z);
 
     if (gameTimeDelta > 0) {
+      const { x, y, z } = player_position_final;
       // *** COLLISION RENDERER ***
 
       collisionShader();
@@ -192,7 +193,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
           identity
             .rotate(0, 180)
             .invertSelf()
-            .translateSelf(-player_position_final.x, -player_position_final.y, 0.3 - player_position_final.z),
+            .translateSelf(-x, -y, 0.3 - z),
         ),
       );
       renderModels(collisionShader(uniformName_worldMatrices), 0, MODEL_ID_SOUL_COLLISION, 0);
@@ -204,9 +205,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       gl.uniformMatrix4fv(
         collisionShader(uniformName_viewMatrix),
         false,
-        matrixToArray(
-          identity.translate(-player_position_final.x, -player_position_final.y, -player_position_final.z - 0.3),
-        ),
+        matrixToArray(identity.translate(-x, -y, -z - 0.3)),
       );
       renderModels(collisionShader(uniformName_worldMatrices), 0, MODEL_ID_SOUL_COLLISION, 0);
 

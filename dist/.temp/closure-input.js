@@ -923,14 +923,16 @@ const player_init = () => {
   const player_collision_modelIdCounter = new Int32Array(256);
   const collision_buffer = new Uint8Array(65536);
 
+  const interpolate_with_hysteresis = (previous, desired, hysteresis) =>
+    lerpDamp(previous, desired, min(4, max(0.4, abs(previous - desired) - hysteresis)));
+
   const player_respawn = () => {
-    currentModelIdTMinus1 = currentModelId = levers[player_last_pulled_lever].$parent.$modelId || 1,
+    player_respawned = 2,
+      currentModelIdTMinus1 = currentModelId = levers[player_last_pulled_lever].$parent.$modelId || 1,
       player_speed = 0,
-      player_gravity = 0,
       player_collision_velocity_x = 0,
       player_collision_velocity_z = 0,
-      player_has_ground = 0,
-      player_respawned = 2;
+      player_gravity = 0;
   };
 
   const doHorizontalCollisions = () => {
@@ -994,9 +996,6 @@ const player_init = () => {
         - (player_has_ground ? 1 : player_gravity) * grav / 41 * player_gravity * gameTimeDelta;
   };
 
-  const interpolate_with_hysteresis = (previous, desired, hysteresis) =>
-    lerpDamp(previous, desired, min(4, max(0.4, abs(previous - desired) - hysteresis)));
-
   player_update = () => {
     let strafe = touch_movementX + (keyboard_downKeys[0] ? 1 : 0) + (keyboard_downKeys[2] ? -1 : 0);
     let forward = touch_movementY + (keyboard_downKeys[1] ? 1 : 0) + (keyboard_downKeys[3] ? -1 : 0);
@@ -1020,10 +1019,10 @@ const player_init = () => {
     }
 
     gamepad = Math.atan2(forward, strafe);
-    let amount = clamp01(Math.hypot(forward, strafe));
-    amount < 0.05 && (amount = 0),
-      strafe = amount * Math.cos(gamepad),
-      forward = amount * Math.sin(gamepad),
+    let movAmount = clamp01(Math.hypot(forward, strafe));
+    movAmount < 0.05 && (movAmount = 0),
+      strafe = movAmount * Math.cos(gamepad),
+      forward = movAmount * Math.sin(gamepad),
       player_collision_x = 0,
       player_collision_z = 0,
       player_has_ground = 0,
@@ -1034,105 +1033,106 @@ const player_init = () => {
       NO_INLINE(doHorizontalCollisions)(),
       NO_INLINE(doVerticalCollisions)();
     var getGamepadButtonState = clamp01(1 - 5 * max(abs(player_collision_x), abs(player_collision_z)));
-    var ty = (currentModelId
+    var getGamepadButtonState = (currentModelId
       || (player_collision_x += player_collision_velocity_x * getGamepadButtonState * gameTimeDelta,
         player_collision_z += player_collision_velocity_z * getGamepadButtonState * gameTimeDelta),
       player_collision_velocity_x = lerpDamp(player_collision_velocity_x, 0, player_has_ground ? 8 : 4),
       player_collision_velocity_z = lerpDamp(player_collision_velocity_z, 0, player_has_ground ? 8 : 4),
       player_speed = lerpDamp(
         player_speed,
-        player_has_ground ? (strafe || forward ? player_has_ground ? 7 : 4 : 0) * getGamepadButtonState : 0,
-        player_has_ground ? 0.1 < getGamepadButtonState ? 10 : strafe || forward ? 5 : 7 : 1,
+        player_has_ground ? (movAmount ? player_has_ground ? 7 : 4 : 0) * getGamepadButtonState : 0,
+        player_has_ground ? 0.1 < getGamepadButtonState ? 10 : movAmount ? 5 : 7 : 1,
       ),
-      player_collision_x += strafe * player_speed * gameTimeDelta,
-      player_collision_z += forward * player_speed * gameTimeDelta,
-      (inverseReferenceRotationMatrix =
-        (getGamepadButtonState = allModels[currentModelId].$kind === 1 && allModels[currentModelId].$matrix
-          || identity).inverse()).m41 = 0,
-      inverseReferenceRotationMatrix.m42 = 0,
-      inverseReferenceRotationMatrix.m43 = 0,
-      ({
-        x: player_collision_x,
-        z: player_collision_z,
-      } = inverseReferenceRotationMatrix.transformPoint({
-        x: player_collision_x,
-        z: player_collision_z,
-        w: 0,
-      })),
-      player_position_global.x += player_collision_x,
-      player_position_global.z += player_collision_z,
-      player_respawned && (({
-        x: inverseReferenceRotationMatrix,
-        y: ty,
-        z: tz,
+      player_first_person ? camera_rotation.y * DEG_TO_RAD : Math.PI);
+    var s = Math.sin(getGamepadButtonState) * player_speed * gameTimeDelta;
+    var getGamepadButtonState = Math.cos(getGamepadButtonState) * player_speed * gameTimeDelta;
+    var s =
+      (player_collision_x -= strafe * getGamepadButtonState - forward * s,
+        player_collision_z -= strafe * s + forward * getGamepadButtonState,
+        allModels[currentModelId].$kind === 1 && allModels[currentModelId].$matrix || identity);
+    var {
+      x: respawnY,
+      y: getGamepadButtonState,
+      z: respawnZ,
+    } = (player_respawned
+      ? (({
+        x: getGamepadButtonState,
+        y: respawnY,
+        z: respawnZ,
       } = levers[player_last_pulled_lever].$locMatrix.transformPoint({
         x: 0,
         y: 12,
         z: -2.5,
       })),
-        1 < player_respawned && (player_respawned = 1, player_model_y = player_position_final.y = ty),
-        player_position_final.x = inverseReferenceRotationMatrix,
-        player_position_final.z = tz),
+        1 < player_respawned && (player_respawned = 1, player_model_y = player_position_final.y = respawnY),
+        player_position_final.x = getGamepadButtonState,
+        player_position_final.z = respawnZ)
+      : (({
+        x: getGamepadButtonState,
+        z: respawnZ,
+      } = ((respawnY = s.inverse()).m41 = 0,
+        respawnY.m42 = 0,
+        respawnY.m43 = 0,
+        respawnY.transformPoint({
+          x: player_collision_x,
+          z: player_collision_z,
+          w: 0,
+        }))),
+        player_position_global.x += getGamepadButtonState,
+        player_position_global.z += respawnZ),
       currentModelId !== oldModelId && (oldModelId = currentModelId,
         ({
-          x: ty,
-          y: inverseReferenceRotationMatrix,
-          z: tz,
-        } = getGamepadButtonState.inverse().transformPoint(player_position_final)),
-        player_position_global.x = ty,
-        player_position_global.y = inverseReferenceRotationMatrix,
-        player_position_global.z = tz),
-      player_position_final.x);
-    var inverseReferenceRotationMatrix = player_position_final.z;
-    var {
-      x: tz,
-      y: getGamepadButtonState,
-      z,
-    } = getGamepadButtonState.transformPoint(player_position_global);
-    player_position_final.x = tz,
+          x: respawnY,
+          y: getGamepadButtonState,
+          z: respawnZ,
+        } = s.inverse().transformPoint(player_position_final)),
+        player_position_global.x = respawnY,
+        player_position_global.y = getGamepadButtonState,
+        player_position_global.z = respawnZ),
+      s.transformPoint(player_position_global));
+    var s = respawnY - player_position_final.x;
+    let dz = respawnZ - player_position_final.z;
+    player_position_final.x = respawnY,
       player_position_final.y = getGamepadButtonState,
-      player_position_final.z = z,
+      player_position_final.z = respawnZ,
       currentModelId
-      && (player_collision_velocity_x = (tz - ty) / gameTimeDelta,
-        player_collision_velocity_z = (z - inverseReferenceRotationMatrix) / gameTimeDelta),
-      amount && (player_look_angle_target = 90 - gamepad / DEG_TO_RAD),
-      player_look_angle = angle_lerp_degrees(player_look_angle, player_look_angle_target, 8 * gameTimeDelta),
-      player_legs_speed = lerp(player_legs_speed, amount, 10 * gameTimeDelta),
+      && (player_collision_velocity_x = s / gameTimeDelta, player_collision_velocity_z = dz / gameTimeDelta),
+      movAmount && (player_look_angle_target = 90 - gamepad / DEG_TO_RAD),
       player_model_y = lerp(
         lerpDamp(player_model_y, getGamepadButtonState, 2),
         getGamepadButtonState,
         8 * abs(player_model_y - getGamepadButtonState),
       ),
       camera_lookat_x === void 0
-      && (camera_position.x = camera_lookat_x = tz,
+      && (camera_position.x = camera_lookat_x = respawnY,
         camera_position.y = (camera_lookat_y = player_model_y = getGamepadButtonState) + 13,
-        camera_position.z = (camera_lookat_z = z) + -36),
-      camera_lookat_x = interpolate_with_hysteresis(camera_lookat_x, tz, 1.5),
+        camera_position.z = (camera_lookat_z = respawnZ) + -36),
+      camera_lookat_x = interpolate_with_hysteresis(camera_lookat_x, respawnY, 1.5),
       camera_lookat_y = interpolate_with_hysteresis(camera_lookat_y, getGamepadButtonState, 2.2),
-      camera_lookat_z = interpolate_with_hysteresis(camera_lookat_z, z, 1.5),
+      camera_lookat_z = interpolate_with_hysteresis(camera_lookat_z, respawnZ, 1.5),
       player_first_person
-        ? (camera_position.x = lerpDamp(camera_position.x, tz, 666 * player_respawned + 18),
+        ? (camera_position.x = lerpDamp(camera_position.x, respawnY, 666 * player_respawned + 18),
           camera_position.y = lerpDamp(camera_position.y, player_model_y + 1.5, 666 * player_respawned + 18),
-          camera_position.z = lerpDamp(camera_position.z, z, 666 * player_respawned + 18))
+          camera_position.z = lerpDamp(camera_position.z, respawnZ, 666 * player_respawned + 18))
         : (camera_position.x = lerpDamp(camera_position.x, camera_lookat_x, 2),
           camera_position.y = lerpDamp(camera_position.y, max(camera_lookat_y + 13, 6), 2),
           camera_position.z = lerpDamp(camera_position.z, camera_lookat_z + -18, 2),
-          ty = camera_position.z - camera_lookat_z,
-          1 < abs(ty)
-          && (inverseReferenceRotationMatrix = camera_position.x - camera_lookat_x,
-            camera_rotation.y = 270 + Math.atan2(ty, inverseReferenceRotationMatrix) / DEG_TO_RAD,
-            camera_rotation.x = 90
-              - Math.atan2(Math.hypot(ty, inverseReferenceRotationMatrix), camera_position.y - camera_lookat_y)
-                / DEG_TO_RAD)),
+          s = camera_position.z - camera_lookat_z,
+          1 < abs(s)
+          && (dz = camera_position.x - camera_lookat_x,
+            camera_rotation.y = 270 + Math.atan2(s, dz) / DEG_TO_RAD,
+            camera_rotation.x = 90 - Math.atan2(Math.hypot(s, dz), camera_position.y - camera_lookat_y) / DEG_TO_RAD)),
       camera_rotation.x = max(min(camera_rotation.x, 87), -87),
       camera_rotation.y = angle_wrap_degrees(camera_rotation.y),
-      currentModelId === 1 && (levers[9].$value = player_position_final.x < -15 && player_position_final.z < 0 ? 1 : 0),
-      (player_position_final.x < -25 || player_position_final.z < 109 ? -25 : -9) > player_position_final.y
-      && player_respawn(),
-      allModels[37].$matrix = identity.translate(player_position_final.x, player_model_y, player_position_final.z)
-        .rotateSelf(0, player_look_angle),
+      getGamepadButtonState < (respawnY < -25 || respawnZ < 109 ? -25 : -9) && player_respawn(),
+      currentModelId === 1 && (levers[9].$value = respawnY < -15 && respawnZ < 0 ? 1 : 0);
+    const playerMatrix = allModels[37].$matrix = identity.translate(respawnY, player_model_y, respawnZ).rotateSelf(
+      0,
+      player_look_angle = angle_lerp_degrees(player_look_angle, player_look_angle_target, 8 * gameTimeDelta),
+    );
+    player_legs_speed = lerpDamp(player_legs_speed, movAmount, 10),
       [MODEL_ID_PLAYER_LEG0, MODEL_ID_PLAYER_LEG1].map((modelId, i) => {
-        allModels[modelId].$matrix = allModels[37].$matrix.translate(
+        allModels[modelId].$matrix = playerMatrix.translate(
           0,
           player_legs_speed * clamp01(0.45 * Math.sin(9.1 * gameTime + Math.PI * (i - 1) - Math.PI / 2)),
         ).rotateSelf(player_legs_speed * Math.sin(9.1 * gameTime + Math.PI * (i - 1)) * 0.25 / DEG_TO_RAD, 0);
@@ -1375,6 +1375,8 @@ loadStep(() => {
     if (++loadStatus == 2) {
       {
         const mainLoop = globalTime => {
+          let y;
+          let z;
           gl["f1s"](),
             requestAnimationFrame(mainLoop),
             dt = (globalTime - (_globalTime || globalTime)) / 1e3,
@@ -1390,8 +1392,12 @@ loadStep(() => {
               -camera_position.y,
               -camera_position.z,
             );
-          0 < gameTimeDelta
-          && (collisionShader(),
+          0 < gameTimeDelta && (({
+            x: globalTime,
+            y,
+            z,
+          } = player_position_final),
+            collisionShader(),
             gl["b6o"](36160, collision_frameBuffer),
             gl["v5y"](0, 0, 128, 128),
             gl["c4s"](16640),
@@ -1399,24 +1405,12 @@ loadStep(() => {
             gl["uae"](
               collisionShader("b"),
               !1,
-              matrixToArray(
-                identity.rotate(0, 180).invertSelf().translateSelf(
-                  -player_position_final.x,
-                  -player_position_final.y,
-                  0.3 - player_position_final.z,
-                ),
-              ),
+              matrixToArray(identity.rotate(0, 180).invertSelf().translateSelf(-globalTime, -y, 0.3 - z)),
             ),
             renderModels(collisionShader("c"), 0, 41, 0),
             gl["c4s"](256),
             gl["cbf"](!1, !0, !0, !1),
-            gl["uae"](
-              collisionShader("b"),
-              !1,
-              matrixToArray(
-                identity.translate(-player_position_final.x, -player_position_final.y, -player_position_final.z - 0.3),
-              ),
-            ),
+            gl["uae"](collisionShader("b"), !1, matrixToArray(identity.translate(-globalTime, -y, -z - 0.3))),
             renderModels(collisionShader("c"), 0, 41, 0),
             gl["f1s"]()),
             csmShader(),
@@ -1521,8 +1515,8 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
           gl["f8w"](36160, 36096, 36161, collision_renderBuffer),
           gl["a4v"](33987),
           gl["b9j"](3553, collision_texture),
-          gl["fas"](36160, 36064, 3553, collision_texture, 0),
           gl["t60"](3553, 0, 6407, 128, 128, 0, 6407, 5121, null),
+          gl["fas"](36160, 36064, 3553, collision_texture, 0),
           gl["a4v"](33987),
           gl["b9j"](3553, gl["c25"]()),
           gl["t60"](3553, 0, 6408, 1024, 1024, 0, 6408, 5121, groundTextureImage),
