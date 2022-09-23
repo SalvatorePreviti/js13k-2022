@@ -21,20 +21,19 @@ import sky_vsSource from "./shaders/sky-vertex.vert";
 import sky_fsSource, { uniformName_iResolution } from "./shaders/sky-fragment.frag";
 
 import { clamp01, integers_map, identity, mat_perspectiveXY, matrixToArray } from "./math";
+import { MODEL_ID_SOUL, MODEL_ID_SOUL_COLLISION, player_position_final } from "./game/models";
 import {
   absoluteTime,
   gameTimeDelta,
   gameTimeUpdate,
   keyboard_downKeys,
   KEY_INTERACT,
-  loadGame,
   mainMenuVisible,
   worldStateUpdate,
 } from "./game/world-state";
-import { MODEL_ID_SOUL, MODEL_ID_SOUL_COLLISION, player_position_final } from "./game/models";
 import { mat_perspective, zFar, zNear, camera_position, camera_rotation } from "./camera";
 import { csm_buildMatrix } from "./csm";
-import { player_first_person } from "./page";
+import { initPage, player_first_person } from "./page";
 import { gl } from "./gl";
 import { player_update, COLLISION_TEXTURE_SIZE, player_init } from "./player";
 import { loadShader, initShaderProgram } from "./shaders-utils";
@@ -269,11 +268,11 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   gl.depthFunc(gl.LEQUAL); // LEQUAL to make sky works
   gl.clearColor(0, 0, 0, 1);
 
-  loadGame();
-
   worldStateUpdate();
 
   NO_INLINE(player_init)();
+
+  NO_INLINE(initPage)();
 
   // gl.bindFramebuffer(gl.FRAMEBUFFER, collision_frameBuffer);
   requestAnimationFrame(mainLoop);

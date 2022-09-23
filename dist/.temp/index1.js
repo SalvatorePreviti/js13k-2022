@@ -2240,23 +2240,9 @@ const startMainLoop = groundTextureImage => {
   gl["c7a"](1029);
   gl["d4n"](515);
   gl["c5t"](0, 0, 0, 1);
-  (() => {
-    try {
-      const [savedLevers, savedSouls, savedLastPulledLever, savedGameTime, savedSecondBoatLerp] = JSON.parse(
-        localStorage["DanteSP22"],
-      );
-      levers.map(
-        (lever, index2) => lever.$lerpValue = lever.$lerpValue2 = lever.$value = index2 ? 0 | savedLevers[index2] : 0,
-      );
-      souls.map((soul, index2) => soul.$value = 0 | savedSouls[index2]);
-      player_last_pulled_lever = savedLastPulledLever;
-      gameTime = savedGameTime;
-      secondBoatLerp = savedSecondBoatLerp;
-    } catch (e) {}
-    firstBoatLerp = clamp01(player_last_pulled_lever);
-  })();
   worldStateUpdate();
   NO_INLINE(player_init)();
+  NO_INLINE(initPage)();
   requestAnimationFrame(mainLoop);
 };
 
@@ -2448,10 +2434,7 @@ const loadSong = done => {
 loadStep(() => {
   let loadStatus = 0;
   const end = () => {
-    if (2 == ++loadStatus) {
-      startMainLoop(image);
-      NO_INLINE(initPage)();
-    }
+    2 == ++loadStatus && startMainLoop(image);
   };
   const image = new Image();
   image.onload = image.onerror = end;
@@ -2521,6 +2504,22 @@ loadStep(() => {
         gl["e3x"](2);
       })();
       loadStep(end);
+      (() => {
+        try {
+          const [savedLevers, savedSouls, savedLastPulledLever, savedGameTime, savedSecondBoatLerp] = JSON.parse(
+            localStorage["DanteSP22"],
+          );
+          levers.map(
+            (lever, index2) =>
+              lever.$lerpValue = lever.$lerpValue2 = lever.$value = index2 ? 0 | savedLevers[index2] : 0,
+          );
+          souls.map((soul, index2) => soul.$value = 0 | savedSouls[index2]);
+          player_last_pulled_lever = savedLastPulledLever;
+          gameTime = savedGameTime;
+          secondBoatLerp = savedSecondBoatLerp;
+        } catch (e) {}
+        firstBoatLerp = clamp01(player_last_pulled_lever);
+      })();
     });
     build_life_the_universe_and_everything();
   });

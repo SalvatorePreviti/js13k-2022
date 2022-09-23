@@ -538,12 +538,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
           J.c70(1),
           J.c7a(1029),
           J.d4n(515),
-          J.c5t(0, 0, 0, 1);
-        try {
-          let [e, l, t, a, s] = JSON.parse(localStorage.DanteSP22);
-          O.map((t, a) => t.g = t.i = t.j = a ? 0 | e[a] : 0), R.map((t, a) => t.j = 0 | l[a]), T = t, k = a, j = s;
-        } catch {}
-        F = T < 0 ? 0 : 1 < T ? 1 : T,
+          J.c5t(0, 0, 0, 1),
           gt(),
           (() => {
             let n = 0,
@@ -693,7 +688,6 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   0,
               M = m = O[T].s.F;
           })(),
-          requestAnimationFrame(s),
           (() => {
             let t = !0,
               a = () => {
@@ -808,7 +802,8 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   document.hidden && s(!0);
               })(),
               s(!0);
-          })();
+          })(),
+          requestAnimationFrame(s);
       }
     },
     l = new Image();
@@ -977,6 +972,11 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
           J.e3x(1),
           J.e3x(2),
           bt(e);
+        try {
+          let [e, l, t, a, s] = JSON.parse(localStorage.DanteSP22);
+          O.map((t, a) => t.g = t.i = t.j = a ? 0 | e[a] : 0), R.map((t, a) => t.j = 0 | l[a]), T = t, k = a, j = s;
+        } catch {}
+        F = T < 0 ? 0 : 1 < T ? 1 : T;
       });
       let a = g(
           11,

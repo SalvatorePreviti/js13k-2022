@@ -13,7 +13,7 @@ import { startMainLoop } from "./main-loop";
 import { initTriangleBuffers } from "./game/triangle-buffers";
 import { loadStep } from "./load-step";
 import { loadSong } from "./music/music-player";
-import { initPage } from "./page";
+import { loadGame } from "./game/world-state";
 
 loadStep(() => {
   let loadStatus = 0;
@@ -38,8 +38,6 @@ loadStep(() => {
       if (DEBUG) {
         console.timeEnd("startMainLoop");
       }
-
-      NO_INLINE(initPage)();
     }
   };
 
@@ -50,6 +48,7 @@ loadStep(() => {
     loadStep(() => {
       initTriangleBuffers();
       loadStep(end);
+      loadGame();
     });
     build_life_the_universe_and_everything();
   };
