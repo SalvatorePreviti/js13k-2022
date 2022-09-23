@@ -114,11 +114,7 @@ export const worldStateUpdate = () => {
 
   secondBoatLerp = lerpDamp(secondBoatLerp, levers[9]!.$lerpValue2, 0.2 + 0.3 * abs(levers[9]!.$lerpValue2 * 2 - 1));
 
-  firstBoatLerp = lerpDamp(
-    firstBoatLerp,
-    game_completed ? lerp(firstBoatLerp, -9, gameTimeDelta * 1.5) : clamp01(gameTime / 3),
-    1,
-  );
+  firstBoatLerp = lerpDamp(firstBoatLerp, game_completed ? lerpDamp(firstBoatLerp, -9, 1.5) : clamp01(gameTime / 3), 1);
 
   if (_messageEndTime && gameTime > _messageEndTime) {
     _messageEndTime = 0;
@@ -153,7 +149,7 @@ export const worldStateUpdate = () => {
 export const updateCollectedSoulsCounter = () => {
   h3.innerHTML =
     "Souls: " +
-    ["0", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII"][
+    [0, "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII"][
       (souls_collected_count = souls.reduce((acc, { $value }) => acc + $value, 0))
     ]! +
     " / XIII";

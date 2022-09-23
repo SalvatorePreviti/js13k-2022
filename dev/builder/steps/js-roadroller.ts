@@ -7,8 +7,7 @@ import { htmlMinify } from "./html-minify";
 import { jsRemoveEndingSemicolons, stripUtf8BOM } from "../lib/code-utils";
 
 /**
- * LEVEL 1 is quick, level 2 to squeeze as much bytes as possible.
- * Is much slower.
+ * LEVEL 1 is quick, LEVEL 2 to squeeze as much bytes as possible, is much slower.
  */
 const LEVEL = 1;
 

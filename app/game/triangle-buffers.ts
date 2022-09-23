@@ -8,18 +8,17 @@ export const initTriangleBuffers = () => {
     console.time("initTriangleBuffers");
   }
 
-  const _vertexMap = new Map<string, number>();
-  const _vertexInts = new Int32Array(8);
-  const _vertexIntsSmooth = new Int32Array(_vertexInts.buffer, 0, 5);
-  const _vertexFloats = new Float32Array(_vertexInts.buffer);
+  let polygon: Polygon | undefined;
 
   const _triangleIndices: number[] = [];
   const _vertexPositions: number[] = [];
   const _vertexColors: number[] = [];
   const _vertexNormals: number[] = [];
 
-  let polygon: Polygon | undefined;
-  let meshFirstIndex: number = 0;
+  const _vertexInts = new Int32Array(8);
+  const _vertexIntsSmooth = new Int32Array(_vertexInts.buffer, 0, 5);
+  const _vertexFloats = new Float32Array(_vertexInts.buffer);
+  const _vertexMap = new Map<string, number>();
 
   const getVertex = (i: number): number => {
     let { x, y, z } = polygon![i]!;
@@ -41,6 +40,8 @@ export const initTriangleBuffers = () => {
     }
     return index;
   };
+
+  let meshFirstIndex: number = 0;
 
   for (const model of allModels) {
     _vertexFloats[3] = model.$modelId === MODEL_ID_LEVER ? -SOULS_COUNT - 1 : model.$kind && model.$modelId;

@@ -10,10 +10,10 @@ import groundTextureSvg from "./groundTexture.svg";
 
 import { build_life_the_universe_and_everything } from "./game/level";
 import { startMainLoop } from "./main-loop";
-import { initTriangleBuffers } from "./game/triangle-buffers";
-import { loadStep } from "./load-step";
-import { loadSong } from "./music/music-player";
 import { loadGame } from "./game/world-state";
+import { initTriangleBuffers } from "./game/triangle-buffers";
+import { loadSong } from "./music/music-player";
+import { loadStep } from "./load-step";
 
 loadStep(() => {
   let loadStatus = 0;

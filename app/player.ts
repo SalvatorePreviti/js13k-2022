@@ -24,12 +24,13 @@ import {
   lerpDamp,
   gameTimeDelta,
   keyboard_downKeys,
+  gameTime,
+  firstBoatLerp,
   KEY_LEFT,
   KEY_RIGHT,
   KEY_FRONT,
   KEY_BACK,
   KEY_INTERACT,
-  gameTime,
 } from "./game/world-state";
 import { camera_rotation, camera_position } from "./camera";
 import {
@@ -194,7 +195,11 @@ export const player_init = () => {
       (allModels[currentModelId]!.$kind === MODEL_KIND_GAME && allModels[currentModelId]!.$matrix) || identity;
 
     if (player_respawned) {
-      const { x, y, z } = levers[player_last_pulled_lever]!.$locMatrix!.transformPoint({ x: 0, y: 12, z: -2.5 });
+      const { x, y, z } = levers[player_last_pulled_lever]!.$locMatrix!.transformPoint({
+        x: 0,
+        y: player_last_pulled_lever || firstBoatLerp > 0.9 ? 12 : 2,
+        z: -2.5,
+      });
       if (player_respawned > 1) {
         player_respawned = 1;
         player_model_y = player_position_final.y = y;

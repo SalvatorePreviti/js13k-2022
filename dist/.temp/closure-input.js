@@ -17,6 +17,7 @@ let _globalTime;
 let currentEditModel;
 let player_first_person;
 let player_update;
+const fieldOfViewAmount = 1.732051;
 const MODEL_ID_PLAYER_LEG0 = 38;
 const MODEL_ID_PLAYER_LEG1 = 39;
 const GQuad = [
@@ -208,12 +209,8 @@ const threshold = (value, amount) => abs(value) > amount ? value : 0;
 const clamp01 = (t) => t < 0 ? 0 : 1 < t ? 1 : t;
 const lerp = (a, b, t) => a + (b - a) * clamp01(t);
 const lerpneg = (v, t) => (v = clamp01(v), lerp(v, 1 - v, t));
-const angle_wrap_degrees = (
-  degrees,
-) => (degrees *= DEG_TO_RAD, Math.atan2(Math.sin(degrees), Math.cos(degrees)) / DEG_TO_RAD);
-const angle_lerp_degrees = (a0, a1, t) =>
-  ((a0 *= DEG_TO_RAD) + (2 * (a1 = (a1 * DEG_TO_RAD - a0) % (2 * Math.PI)) % (2 * Math.PI) - a1) * clamp01(t))
-  / DEG_TO_RAD;
+const angle_wrap_degrees = (degrees) => Math.atan2(Math.sin(degrees *= DEG_TO_RAD), Math.cos(degrees)) / DEG_TO_RAD;
+const angle_lerp_degrees = (a0, a1, t) => a0 + (2 * (a1 = (a1 - a0) % 360) % 360 - a1) * clamp01(t);
 const vec3_distance = ({ x, y, z }, b) => Math.hypot(x - b.x, y - b.y, z - b.z);
 const vec3_dot = ({ x, y, z }, b) => x * b.x + y * b.y + z * b.z;
 const plane_fromPolygon = (polygon) => {
@@ -235,24 +232,24 @@ const plane_fromPolygon = (polygon) => {
 const matrixToArray = (
   $matrix,
   output = float32Array16Temp,
-  index2 = 0,
-) => (index2 *= 16,
-  output[index2++] = $matrix.m11,
-  output[index2++] = $matrix.m12,
-  output[index2++] = $matrix.m13,
-  output[index2++] = $matrix.m14,
-  output[index2++] = $matrix.m21,
-  output[index2++] = $matrix.m22,
-  output[index2++] = $matrix.m23,
-  output[index2++] = $matrix.m24,
-  output[index2++] = $matrix.m31,
-  output[index2++] = $matrix.m32,
-  output[index2++] = $matrix.m33,
-  output[index2++] = $matrix.m34,
-  output[index2++] = $matrix.m41,
-  output[index2++] = $matrix.m42,
-  output[index2++] = $matrix.m43,
-  output[index2] = $matrix.m44,
+  index = 0,
+) => (index *= 16,
+  output[index++] = $matrix.m11,
+  output[index++] = $matrix.m12,
+  output[index++] = $matrix.m13,
+  output[index++] = $matrix.m14,
+  output[index++] = $matrix.m21,
+  output[index++] = $matrix.m22,
+  output[index++] = $matrix.m23,
+  output[index++] = $matrix.m24,
+  output[index++] = $matrix.m31,
+  output[index++] = $matrix.m32,
+  output[index++] = $matrix.m33,
+  output[index++] = $matrix.m34,
+  output[index++] = $matrix.m41,
+  output[index++] = $matrix.m42,
+  output[index++] = $matrix.m43,
+  output[index] = $matrix.m44,
   output);
 const mat_perspectiveXY = (mx, my, near, far) => [
   mx,
@@ -519,7 +516,7 @@ const worldStateUpdate = () => {
     secondBoatLerp = lerpDamp(secondBoatLerp, levers[9].$lerpValue2, 0.2 + 0.3 * abs(2 * levers[9].$lerpValue2 - 1)),
     firstBoatLerp = lerpDamp(
       firstBoatLerp,
-      game_completed ? lerp(firstBoatLerp, -9, 1.5 * gameTimeDelta) : clamp01(gameTime / 3),
+      game_completed ? lerpDamp(firstBoatLerp, -9, 1.5) : clamp01(gameTime / 3),
       1,
     ),
     _messageEndTime && gameTime > _messageEndTime && (_messageEndTime = 0, h4.innerHTML = ""),
@@ -533,7 +530,7 @@ const worldStateUpdate = () => {
 };
 const updateCollectedSoulsCounter = () => {
   h3.innerHTML = "Souls: " + [
-    "0",
+    0,
     "I",
     "II",
     "III",
@@ -550,7 +547,7 @@ const updateCollectedSoulsCounter = () => {
   ][souls_collected_count = souls.reduce((acc, { $value }) => acc + $value, 0)] + " / XIII";
 };
 const saveGame = () => {
-  localStorage["DanteSP22"] = JSON.stringify([
+  localStorage.DanteSP22 = JSON.stringify([
     levers.map(({ $value }) => $value),
     souls.map(({ $value }) => $value),
     player_last_pulled_lever,
@@ -572,7 +569,7 @@ const meshAdd = (polygons, transform = identity, color) =>
   currentEditModel.$polygons.push(...polygons_transform(polygons, transform, color));
 const newLever = (transform) => {
   const $parent = currentEditModel;
-  const index2 = levers.length;
+  const index = levers.length;
   const lever = {
     $value: 0,
     $lerpValue: 0,
@@ -586,7 +583,7 @@ const newLever = (transform) => {
         vec3_distance(locMatrix.transformPoint(), player_position_final) < 3 && keyboard_downKeys[5]
         && ($lerpValue < 0.3 || 0.7 < $lerpValue)
         && (lever.$value = $value ? 0 : 1,
-          (leverIndex = index2) && showMessage("* click *", 1),
+          (leverIndex = index) && showMessage("* click *", 1),
           player_last_pulled_lever = leverIndex,
           saveGame()),
         lever.$lerpValue = lerpDamp($lerpValue, $value, 4),
@@ -681,14 +678,14 @@ const newSoul = (transform, ...walkingPath) => {
       }
       soul.$value
         && (soul.$matrix = allModels[2].$matrix.translate(
-          index2 % 4 * 1.2 - 1.7 + Math.sin(gameTime + index2) / 7,
+          index % 4 * 1.2 - 1.7 + Math.sin(gameTime + index) / 7,
           -2,
-          1.7 * (index2 / 4 | 0) - 5.5 + abs(index2 % 4 - 2) + Math.cos(gameTime / 1.5 + index2) / 6,
+          1.7 * (index / 4 | 0) - 5.5 + abs(index % 4 - 2) + Math.cos(gameTime / 1.5 + index) / 6,
         ));
     },
   };
   const parentModel = currentEditModel;
-  const index2 = souls.length;
+  const index = souls.length;
   const circles = walkingPath.map(([x, z, w]) => ({
     x,
     z,
@@ -701,7 +698,7 @@ const newSoul = (transform, ...walkingPath) => {
   souls.push(soul);
 };
 const mat_perspective = (near, far) =>
-  mat_perspectiveXY(hC.clientHeight / hC.clientWidth * 1.732051, 1.732051, near, far);
+  mat_perspectiveXY(hC.clientHeight / hC.clientWidth * fieldOfViewAmount, fieldOfViewAmount, near, far);
 const csm_buildMatrix = (camera_view, nearPlane, farPlane, zMultiplier) => {
   let tx = 0;
   let ty = 0;
@@ -759,9 +756,8 @@ const initPage = () => {
       b4.innerHTML = "Music: " + music_on;
   };
   const mainMenu = (value = !1) => {
-    let visible;
     if (mainMenuVisible !== value) {
-      visible = value, mainMenuVisible = visible;
+      mainMenuVisible = value;
       try {
         value ? (document.exitFullscreen().catch(() => {}), document.exitPointerLock()) : songAudioSource.start();
       } catch {}
@@ -773,7 +769,7 @@ const initPage = () => {
   };
   oncontextmenu = () => !1,
     b3.onclick = () => {
-      confirm("Restart game?") && (localStorage["DanteSP22"] = "", location.reload());
+      confirm("Restart game?") && (localStorage.DanteSP22 = "", location.reload());
     },
     b1.onclick = () => {
       document.body.requestFullscreen(), mainMenu();
@@ -969,7 +965,7 @@ const player_init = () => {
     var { x: y2, y: x2, z: z2 } = (player_respawned
       ? ({ x: x2, y: y2, z: z2 } = levers[player_last_pulled_lever].$locMatrix.transformPoint({
         x: 0,
-        y: 12,
+        y: player_last_pulled_lever || 0.9 < firstBoatLerp ? 12 : 2,
         z: -2.5,
       }),
         1 < player_respawned && (player_respawned = 1, player_model_y = player_position_final.y = y2),
@@ -1049,7 +1045,7 @@ const player_init = () => {
     let forward = touch_movementY + (keyboard_downKeys[1] ? 1 : 0) - (keyboard_downKeys[3] ? 1 : 0);
     let gamepad = navigator.getGamepads()[0];
     if (gamepad) {
-      var getGamepadButtonState = (index2) => buttons[index2]?.pressed || 0 < buttons[index2]?.value ? 1 : 0;
+      var getGamepadButtonState = (index) => buttons[index]?.pressed || 0 < buttons[index]?.value ? 1 : 0;
       const { buttons, axes } = gamepad;
       gamepad = getGamepadButtonState(3) || getGamepadButtonState(2) || getGamepadButtonState(1)
         || getGamepadButtonState(0),
@@ -1488,26 +1484,26 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
           const _vertexPositions = [];
           const _vertexColors = [];
           const _vertexNormals = [];
-          const _vertexMap = new Map();
           const _vertexInts = new Int32Array(8);
+          const _vertexMap = new Map();
           const getVertex = (i) => {
             let { x: x2, y: y2, z: z2 } = polygon[i];
-            let index2 =
+            let index =
               (_vertexFloats[0] = x2,
                 _vertexFloats[1] = y2,
                 _vertexFloats[2] = z2,
                 i = "" + (polygon.$smooth ? _vertexIntsSmooth : _vertexInts),
                 _vertexMap.get(i));
-            return index2 !== void 0
-              ? (x2 = 3 * index2,
+            return index !== void 0
+              ? (x2 = 3 * index,
                 _vertexNormals[x2] = (_vertexNormals[x2++] + _vertexInts[5]) / 2,
                 _vertexNormals[x2] = (_vertexNormals[x2++] + _vertexInts[6]) / 2,
                 _vertexNormals[x2] = (_vertexNormals[x2] + _vertexInts[7]) / 2)
-              : (_vertexMap.set(i, index2 = _vertexMap.size),
+              : (_vertexMap.set(i, index = _vertexMap.size),
                 _vertexPositions.push(x2, y2, z2, _vertexFloats[3]),
                 _vertexColors.push(_vertexInts[4]),
                 _vertexNormals.push(_vertexInts[5], _vertexInts[6], _vertexInts[7])),
-              index2;
+              index;
           };
           const _vertexIntsSmooth = new Int32Array(_vertexInts.buffer, 0, 5);
           const _vertexFloats = new Float32Array(_vertexInts.buffer);
@@ -1547,12 +1543,12 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
         loadStep(end);
         try {
           const [savedLevers, savedSouls, savedLastPulledLever, savedGameTime, savedSecondBoatLerp] = JSON.parse(
-            localStorage["DanteSP22"],
+            localStorage.DanteSP22,
           );
-          levers.map((lever, index2) =>
-            lever.$lerpValue = lever.$lerpValue2 = lever.$value = index2 ? 0 | savedLevers[index2] : 0
+          levers.map((lever, index) =>
+            lever.$lerpValue = lever.$lerpValue2 = lever.$value = index ? 0 | savedLevers[index] : 0
           ),
-            souls.map((soul, index2) => soul.$value = 0 | savedSouls[index2]),
+            souls.map((soul, index) => soul.$value = 0 | savedSouls[index]),
             player_last_pulled_lever = savedLastPulledLever,
             gameTime = savedGameTime,
             secondBoatLerp = savedSecondBoatLerp;

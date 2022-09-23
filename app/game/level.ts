@@ -23,6 +23,7 @@ import {
   MODEL_ID_SOUL,
   souls,
 } from "./models";
+import { currentEditModel, material, meshAdd, newLever, newModel, newSoul } from "./models-factory";
 import {
   gameTime,
   firstBoatLerp,
@@ -31,7 +32,6 @@ import {
   rotatingPlatform1Rotation,
   rotatingPlatform2Rotation,
 } from "./world-state";
-import { currentEditModel, material, meshAdd, newLever, newModel, newSoul } from "./models-factory";
 
 const checkModelId = DEBUG
   ? (name: string, expectedId: number) => {
@@ -42,7 +42,7 @@ const checkModelId = DEBUG
     }
   : () => {};
 
-export const build_life_the_universe_and_everything = () => {
+export const build_life_the_universe_and_everything = (): 42 | void => {
   if (DEBUG) {
     console.time("build_life_the_universe_and_everything");
   }

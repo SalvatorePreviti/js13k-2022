@@ -32,13 +32,10 @@ export const angle_wrap_radians = /* @__PURE__ */ (radians: number): number =>
 export const angle_wrap_degrees = /* @__PURE__ */ (degrees: number): number =>
   angle_wrap_radians(degrees * DEG_TO_RAD) / DEG_TO_RAD;
 
-export const angle_lerp = /* @__PURE__ */ (a0: number, a1: number, t: number) => {
-  const da = (a1 - a0) % (Math.PI * 2);
-  return a0 + (((2 * da) % (Math.PI * 2)) - da) * clamp01(t);
+export const angle_lerp_degrees = /* @__PURE__ */ (a0: number, a1: number, t: number) => {
+  const da = (a1 - a0) % 360;
+  return a0 + (((2 * da) % 360) - da) * clamp01(t);
 };
-
-export const angle_lerp_degrees = /* @__PURE__ */ (a0: number, a1: number, t: number) =>
-  angle_lerp(a0 * DEG_TO_RAD, a1 * DEG_TO_RAD, t) / DEG_TO_RAD;
 
 export interface Vec2 {
   x: number;

@@ -54,7 +54,7 @@ export async function build() {
 
     const includeDevTools = process.argv.includes("--with-dev-tools");
 
-    const sources = await buildWithVite({ stripDevTools: !includeDevTools, minifier: "terser" });
+    const sources = await buildWithVite({ stripDevTools: !includeDevTools, minifier: "esbuild" });
 
     devLog.logGreenBright(`\n📈 Stats: ${devLog.colors.whiteBright(path.join(outPath_build, "stats.html"))}\n`);
 
