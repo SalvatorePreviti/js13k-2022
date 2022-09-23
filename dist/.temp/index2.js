@@ -965,9 +965,13 @@ const player_init = () => {
     var { x: y2, y: x2, z: z2 } = (player_respawned
       ? ({ x: x2, y: y2, z: z2 } = levers[player_last_pulled_lever].$locMatrix.transformPoint({
         x: 0,
-        y: player_last_pulled_lever || 0.9 < firstBoatLerp ? 12 : 2,
+        y: player_last_pulled_lever || 0.9 < firstBoatLerp ? 12 : 1,
         z: -2.5,
       }),
+        camera_lookat_x === void 0
+        && (camera_position.x = camera_lookat_x = x2,
+          camera_position.y = (camera_lookat_y = player_model_y = y2) + 13,
+          camera_position.z = (camera_lookat_z = z2) + -18),
         1 < player_respawned && (player_respawned = 1, player_model_y = player_position_final.y = y2),
         player_position_final.x = x2,
         player_position_final.z = z2)
@@ -1005,10 +1009,6 @@ const player_init = () => {
         currentModelIdTMinus1 = currentModelId = levers[player_last_pulled_lever].$parent.$modelId,
         player_respawned = 2),
       player_model_y = lerp(lerpDamp(player_model_y, x2, 2), x2, 8 * abs(player_model_y - x2)),
-      camera_lookat_x === void 0
-      && (camera_position.x = camera_lookat_x = y2,
-        camera_position.y = (camera_lookat_y = player_model_y = x2) + 13,
-        camera_position.z = (camera_lookat_z = z2) + -36),
       camera_lookat_x = interpolate_with_hysteresis(camera_lookat_x, y2, 1.5),
       camera_lookat_y = interpolate_with_hysteresis(camera_lookat_y, x2, 2.2),
       camera_lookat_z = interpolate_with_hysteresis(camera_lookat_z, z2, 1.5),
@@ -1017,7 +1017,11 @@ const player_init = () => {
           camera_position.y = lerpDamp(camera_position.y, player_model_y + 1.5, 666 * player_respawned + 18),
           camera_position.z = lerpDamp(camera_position.z, z2, 666 * player_respawned + 18))
         : (camera_position.x = lerpDamp(camera_position.x, camera_lookat_x, 2),
-          camera_position.y = lerpDamp(camera_position.y, max(camera_lookat_y + 13, 6), 2),
+          camera_position.y = lerpDamp(
+            camera_position.y,
+            max(camera_lookat_y + 13 + min(20, max(0, -z2 - 60) / 8), 6),
+            2,
+          ),
           camera_position.z = lerpDamp(camera_position.z, camera_lookat_z + -18, 2),
           referenceMatrix = camera_position.x - camera_lookat_x,
           dz = camera_position.z - camera_lookat_z,
@@ -1333,12 +1337,14 @@ loadStep(() => {
           absoluteTime += dt,
           _globalTime = globalTime,
           0 < gameTimeDelta && (worldStateUpdate(), player_update(), keyboard_downKeys[5] = 0);
-        var dt = mainMenuVisible
-          ? identity.rotate(-20, -90).invertSelf().translateSelf(4.5, -2, -3.2 + clamp01(hC.clientWidth / 1e3))
-          : identity.rotate(-camera_rotation.x, -camera_rotation.y, -camera_rotation.z).invertSelf().translateSelf(
-            -camera_position.x,
-            -camera_position.y,
-            -camera_position.z,
+        let { x: cameraX, y: cameraY, z: cameraZ } = camera_position;
+        mainMenuVisible && (cameraX = -4.5, cameraY = 2, cameraZ = 3.2 - clamp01(hC.clientWidth / 1e3));
+        var dt = (mainMenuVisible
+          ? identity.rotate(-20, -90)
+          : identity.rotate(-camera_rotation.x, -camera_rotation.y, -camera_rotation.z)).invertSelf().translateSelf(
+            -cameraX,
+            -cameraY,
+            -cameraZ,
           );
         0 < gameTimeDelta
         && ({ x: globalTime, y, z } = player_position_final,
@@ -1362,7 +1368,7 @@ loadStep(() => {
           gl["b6o"](36160, csm_framebuffer),
           gl["v5y"](0, 0, 2048, 2048),
           csm_render[0](csm_buildMatrix(dt, 0.3, 55, 10)),
-          csm_render[1](csm_buildMatrix(dt, 55, 177, 11)),
+          csm_render[1](csm_buildMatrix(dt, 55, 186, 11)),
           mainShader(),
           gl["b6o"](36160, null),
           gl["v5y"](0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight),
@@ -1370,15 +1376,13 @@ loadStep(() => {
           gl["c4s"](16640),
           csm_render[0](),
           csm_render[1](),
-          gl["uae"](mainShader("a"), !1, mat_perspective(0.3, 177)),
+          gl["uae"](mainShader("a"), !1, mat_perspective(0.3, 186)),
           gl["uae"](mainShader("b"), !1, matrixToArray(dt)),
-          gl["ubu"](mainShader("k"), camera_position.x, camera_position.y, camera_position.z),
+          gl["ubu"](mainShader("k"), cameraX, cameraY, cameraZ),
           renderModels(mainShader("c"), !player_first_person, 42, 0),
           skyShader(),
           gl["ubu"](skyShader("j"), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime),
-          mainMenuVisible
-            ? gl["ubu"](skyShader("k"), 0, 0, 0)
-            : gl["ubu"](skyShader("k"), camera_position.x, camera_position.y, camera_position.z),
+          gl["ubu"](skyShader("k"), cameraX, cameraY, cameraZ),
           gl["uae"](skyShader("b"), !1, matrixToArray(dt.inverse())),
           gl["d97"](4, 3, 5123, 0),
           gl["b6o"](36160, collision_frameBuffer),

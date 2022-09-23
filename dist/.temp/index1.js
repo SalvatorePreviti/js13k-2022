@@ -1863,7 +1863,7 @@ const uniformName_viewPos = "k";
 const constDef_CSM_TEXTURE_SIZE = 2048;
 const constDef_zNear = 0.3;
 const constDef_CSM_PLANE_DISTANCE = 55;
-const constDef_zFar = 177;
+const constDef_zFar = 186;
 const code$3 =
   "#version 300 es\nprecision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(m.xyz,1);float r=1.-min(abs(a.z/a.w),1.);O=vec4(vec2(r*(gl_FragCoord.y>31.?1.:abs(o.y))),r>0.?m.w/255.:0.,1);}";
 const code$2 = "#version 300 es\nvoid main(){}";
@@ -2286,9 +2286,14 @@ const player_init = () => {
     if (player_respawned) {
       const { x: x2, y: y2, z: z2 } = levers[player_last_pulled_lever].$locMatrix.transformPoint({
         x: 0,
-        y: player_last_pulled_lever || firstBoatLerp > 0.9 ? 12 : 2,
+        y: player_last_pulled_lever || firstBoatLerp > 0.9 ? 12 : 1,
         z: -2.5,
       });
+      if (camera_lookat_x === void 0) {
+        camera_position.x = camera_lookat_x = x2;
+        camera_position.y = (camera_lookat_y = player_model_y = y2) + CAMERA_PLAYER_Y_DIST;
+        camera_position.z = (camera_lookat_z = z2) + CAMERA_PLAYER_Z_DIST;
+      }
       if (player_respawned > 1) {
         player_respawned = 1;
         player_model_y = player_position_final.y = y2;
@@ -2338,11 +2343,6 @@ const player_init = () => {
       player_respawned = 2;
     }
     player_model_y = lerp(lerpDamp(player_model_y, y, 2), y, abs(player_model_y - y) * 8);
-    if (camera_lookat_x === void 0) {
-      camera_position.x = camera_lookat_x = x;
-      camera_position.y = (camera_lookat_y = player_model_y = y) + CAMERA_PLAYER_Y_DIST;
-      camera_position.z = (camera_lookat_z = z) + CAMERA_PLAYER_Z_DIST * 2;
-    }
     camera_lookat_x = interpolate_with_hysteresis(camera_lookat_x, x, 1.5);
     camera_lookat_y = interpolate_with_hysteresis(camera_lookat_y, y, 2.2);
     camera_lookat_z = interpolate_with_hysteresis(camera_lookat_z, z, 1.5);
@@ -2352,7 +2352,11 @@ const player_init = () => {
       camera_position.z = lerpDamp(camera_position.z, z, player_respawned * 666 + 18);
     } else {
       camera_position.x = lerpDamp(camera_position.x, camera_lookat_x, 2);
-      camera_position.y = lerpDamp(camera_position.y, max(camera_lookat_y + CAMERA_PLAYER_Y_DIST, 6), 2);
+      camera_position.y = lerpDamp(
+        camera_position.y,
+        max(camera_lookat_y + CAMERA_PLAYER_Y_DIST + min(20, max(0, -z - 60) / 8), 6),
+        2,
+      );
       camera_position.z = lerpDamp(camera_position.z, camera_lookat_z + CAMERA_PLAYER_Z_DIST, 2);
       const viewDirDiffx = camera_position.x - camera_lookat_x;
       const viewDirDiffz = camera_position.z - camera_lookat_z;
@@ -2540,12 +2544,18 @@ const startMainLoop = (groundTextureImage) => {
       player_update();
       keyboard_downKeys[KEY_INTERACT] = 0;
     }
-    const camera_view = mainMenuVisible
-      ? identity.rotate(-20, -90).invertSelf().translateSelf(4.5, -2, -3.2 + clamp01(hC.clientWidth / 1e3))
-      : identity.rotate(-camera_rotation.x, -camera_rotation.y, -camera_rotation.z).invertSelf().translateSelf(
-        -camera_position.x,
-        -camera_position.y,
-        -camera_position.z,
+    let { x: cameraX, y: cameraY, z: cameraZ } = camera_position;
+    if (mainMenuVisible) {
+      cameraX = -4.5;
+      cameraY = 2;
+      cameraZ = 3.2 - clamp01(hC.clientWidth / 1e3);
+    }
+    const camera_view = (mainMenuVisible
+      ? identity.rotate(-20, -90)
+      : identity.rotate(-camera_rotation.x, -camera_rotation.y, -camera_rotation.z)).invertSelf().translateSelf(
+        -cameraX,
+        -cameraY,
+        -cameraZ,
       );
     if (gameTimeDelta > 0) {
       const { x, y, z } = player_position_final;
@@ -2580,15 +2590,11 @@ const startMainLoop = (groundTextureImage) => {
     csm_render[1]();
     gl["uae"](mainShader(uniformName_projectionMatrix), false, mat_perspective(zNear, zFar));
     gl["uae"](mainShader(uniformName_viewMatrix), false, matrixToArray(camera_view));
-    gl["ubu"](mainShader(uniformName_viewPos), camera_position.x, camera_position.y, camera_position.z);
+    gl["ubu"](mainShader(uniformName_viewPos), cameraX, cameraY, cameraZ);
     renderModels(mainShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL, 0);
     skyShader();
     gl["ubu"](skyShader(uniformName_iResolution), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime);
-    if (mainMenuVisible) {
-      gl["ubu"](skyShader(uniformName_viewPos), 0, 0, 0);
-    } else {
-      gl["ubu"](skyShader(uniformName_viewPos), camera_position.x, camera_position.y, camera_position.z);
-    }
+    gl["ubu"](skyShader(uniformName_viewPos), cameraX, cameraY, cameraZ);
     gl["uae"](skyShader(uniformName_viewMatrix), false, matrixToArray(camera_view.inverse()));
     gl["d97"](4, 3, 5123, 0);
     gl["b6o"](36160, collision_frameBuffer);

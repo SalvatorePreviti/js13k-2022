@@ -276,5 +276,5 @@ export const initPage = () => {
   document.onvisibilitychange = onblur = onresize = handleResize;
 
   handleResize();
-  mainMenu(!DEBUG);
+  mainMenu(!DEBUG || DEBUG_FLAG2);
 };

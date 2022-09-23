@@ -109,15 +109,21 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       keyboard_downKeys[KEY_INTERACT] = 0;
     }
 
-    const camera_view = mainMenuVisible
-      ? identity
-          .rotate(-20, -90)
-          .invertSelf()
-          .translateSelf(4.5, -2, -3.2 + clamp01(hC.clientWidth / 1000))
-      : identity
-          .rotate(-camera_rotation.x, -camera_rotation.y, -camera_rotation.z)
-          .invertSelf()
-          .translateSelf(-camera_position.x, -camera_position.y, -camera_position.z);
+    let { x: cameraX, y: cameraY, z: cameraZ } = camera_position;
+
+    if (mainMenuVisible) {
+      cameraX = -4.5;
+      cameraY = 2;
+      cameraZ = 3.2 - clamp01(hC.clientWidth / 1000);
+    }
+
+    const camera_view = (
+      mainMenuVisible
+        ? identity.rotate(-20, -90)
+        : identity.rotate(-camera_rotation.x, -camera_rotation.y, -camera_rotation.z)
+    )
+      .invertSelf()
+      .translateSelf(-cameraX, -cameraY, -cameraZ);
 
     if (gameTimeDelta > 0) {
       const { x, y, z } = player_position_final;
@@ -183,7 +189,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
     gl.uniformMatrix4fv(mainShader(uniformName_projectionMatrix), false, mat_perspective(zNear, zFar));
     gl.uniformMatrix4fv(mainShader(uniformName_viewMatrix), false, matrixToArray(camera_view));
-    gl.uniform3f(mainShader(uniformName_viewPos), camera_position.x, camera_position.y, camera_position.z);
+    gl.uniform3f(mainShader(uniformName_viewPos), cameraX, cameraY, cameraZ);
 
     renderModels(mainShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL, 0);
 
@@ -192,11 +198,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     skyShader();
 
     gl.uniform3f(skyShader(uniformName_iResolution), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime);
-    if (mainMenuVisible) {
-      gl.uniform3f(skyShader(uniformName_viewPos), 0, 0, 0);
-    } else {
-      gl.uniform3f(skyShader(uniformName_viewPos), camera_position.x, camera_position.y, camera_position.z);
-    }
+    gl.uniform3f(skyShader(uniformName_viewPos), cameraX, cameraY, cameraZ);
     gl.uniformMatrix4fv(skyShader(uniformName_viewMatrix), false, matrixToArray(camera_view.inverse()));
 
     gl.drawElements(gl.TRIANGLES, 3, gl.UNSIGNED_SHORT, 0);

@@ -197,9 +197,16 @@ export const player_init = () => {
     if (player_respawned) {
       const { x, y, z } = levers[player_last_pulled_lever]!.$locMatrix!.transformPoint({
         x: 0,
-        y: player_last_pulled_lever || firstBoatLerp > 0.9 ? 12 : 2,
+        y: player_last_pulled_lever || firstBoatLerp > 0.9 ? 12 : 1,
         z: -2.5,
       });
+
+      if (camera_lookat_x === undefined) {
+        camera_position.x = camera_lookat_x = x;
+        camera_position.y = (camera_lookat_y = player_model_y = y) + CAMERA_PLAYER_Y_DIST;
+        camera_position.z = (camera_lookat_z = z) + CAMERA_PLAYER_Z_DIST;
+      }
+
       if (player_respawned > 1) {
         player_respawned = 1;
         player_model_y = player_position_final.y = y;
@@ -260,12 +267,6 @@ export const player_init = () => {
 
     player_model_y = lerp(lerpDamp(player_model_y, y, 2), y, abs(player_model_y - y) * 8);
 
-    if (camera_lookat_x === undefined) {
-      camera_position.x = camera_lookat_x = x;
-      camera_position.y = (camera_lookat_y = player_model_y = y) + CAMERA_PLAYER_Y_DIST;
-      camera_position.z = (camera_lookat_z = z) + CAMERA_PLAYER_Z_DIST * 2;
-    }
-
     camera_lookat_x = interpolate_with_hysteresis(camera_lookat_x, x, 1.5);
     camera_lookat_y = interpolate_with_hysteresis(camera_lookat_y, y, 2.2);
     camera_lookat_z = interpolate_with_hysteresis(camera_lookat_z, z, 1.5);
@@ -277,7 +278,11 @@ export const player_init = () => {
         camera_position.z = lerpDamp(camera_position.z, z, player_respawned * 666 + 18);
       } else {
         camera_position.x = lerpDamp(camera_position.x, camera_lookat_x, 2);
-        camera_position.y = lerpDamp(camera_position.y, max(camera_lookat_y + CAMERA_PLAYER_Y_DIST, 6), 2);
+        camera_position.y = lerpDamp(
+          camera_position.y,
+          max(camera_lookat_y + CAMERA_PLAYER_Y_DIST + min(20, max(0, -z - 60) / 8), 6),
+          2,
+        );
         camera_position.z = lerpDamp(camera_position.z, camera_lookat_z + CAMERA_PLAYER_Z_DIST, 2);
 
         const viewDirDiffx = camera_position.x - camera_lookat_x;
