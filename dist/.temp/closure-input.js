@@ -396,38 +396,41 @@ const csg_union = (...inputs) =>
     return a;
   });
 
-const csg_subtract = (a, ...b) => csg_tree_flip(csg_union(csg_tree_flip(csg_tree(a)), ...b));
+const csg_polygons_subtract = (...input) => {
+  let b;
+  {
+    const byParent = new Map();
+    const allPolygons = new Map();
 
-const csg_polygons = tree => {
-  const byParent = new Map();
-  const allPolygons = new Map();
+    const add = polygon => {
+      let found;
+      return polygon.$parent
+        && ((found = byParent.get(polygon.$parent))
+          ? (allPolygons.delete(found), polygon = add(polygon.$parent))
+          : byParent.set(polygon.$parent, polygon)),
+        polygon;
+    };
 
-  const add = polygon => {
-    let found;
-    return polygon.$parent
-      && ((found = byParent.get(polygon.$parent))
-        ? (allPolygons.delete(found), polygon = add(polygon.$parent))
-        : byParent.set(polygon.$parent, polygon)),
-      polygon;
-  };
-
-  return csg_tree_each(tree, node => {
-    for (const polygon of node.$polygons) allPolygons.set(add(polygon), polygon.$flipped);
-  }),
-    Array.from(allPolygons, ([{
-      $polygon,
-    }, flipped]) => {
-      const polygon = $polygon.map(({
-        x,
-        y,
-        z,
-      }) => ({
-        x,
-        y,
-        z,
-      }));
-      return polygon_color(flipped ? polygon.reverse() : polygon, $polygon.$color, $polygon.$smooth);
-    });
+    return [input, ...b] = [...input],
+      input = csg_tree_flip(csg_union(csg_tree_flip(csg_tree(input)), ...b)),
+      csg_tree_each(input, node => {
+        for (const polygon of node.$polygons) allPolygons.set(add(polygon), polygon.$flipped);
+      }),
+      Array.from(allPolygons, ([{
+        $polygon,
+      }, flipped]) => {
+        const polygon = $polygon.map(({
+          x,
+          y,
+          z,
+        }) => ({
+          x,
+          y,
+          z,
+        }));
+        return polygon_color(flipped ? polygon.reverse() : polygon, $polygon.$color, $polygon.$smooth);
+      });
+  }
 };
 
 const lerpDamp = (from, to, speed) => lerp(from, to, 1 - Math.exp(-speed * gameTimeDelta));
@@ -1470,7 +1473,7 @@ precision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b
         const mainShader = initShaderProgram(
           mainVertexShader,
           `#version 300 es
-precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform highp sampler2DShadow g,h;uniform highp sampler2D q;out vec4 O;void main(){vec4 c=vec4(m.xyz,1);vec3 e=normalize(o.xyz),s=l.w*(texture(q,n.yz*.035)*e.x+texture(q,n.xz*.035)*e.y+texture(q,n.xy*.035)*e.z).xyz;e=normalize(e+s*.5);float x=dot(e,vec3(-.656059,.666369,-.35431468)),t=1.,v=abs((b*c).z);vec4 r=(v<55.?i:j)*c;if(r=r/r.w*.5+.5,r.z<1.){t=0.;for(float e=-1.;e<=1.;++e)for(float a=-1.;a<=1.;++a){vec3 x=vec3(r.xy+vec2(e,a)/2048.,r.z-.00017439);t+=v<55.?texture(g,x):texture(h,x);}t/=9.;}vec3 a=l.xyz*(1.-s.x);O=vec4(vec3(.09,.05,.1)*a+a*(max(0.,x)*.5+a*x*x*vec3(.5,.45,.3))*(t*.7+.3)+a*max(dot(e,vec3(.09901475,-.99014753,-.09901475)),0.)*max(0.,2.-m.y)*vec3(.04285714,.00714286,0)+vec3(.6,.6,.5)*pow(max(0.,dot(normalize(m.xyz-k),reflect(vec3(-.656059,.666369,-.35431468),e))),35.)*t,1);}`,
+precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform highp sampler2DShadow g,h;uniform highp sampler2D q;out vec4 O;void main(){vec4 s=vec4(m.xyz,1);vec3 e=normalize(o.xyz),v=l.w*(texture(q,n.yz*.035)*e.x+texture(q,n.xz*.035)*e.y+texture(q,n.xy*.035)*e.z).xyz;e=normalize(e+v*.5);float a=dot(e,vec3(-.656059,.666369,-.35431468)),t=1.,u=abs((b*s).z);vec4 r=(u<55.?i:j)*s;if(r=r/r.w*.5+.5,r.z<1.){t=0.;for(float e=-1.;e<=1.;++e)for(float a=-1.;a<=1.;++a){vec3 x=vec3(r.xy+vec2(e,a)/2048.,r.z-.00017439);t+=u<55.?texture(g,x):texture(h,x);}t/=9.;}vec3 x=l.xyz*(1.-v.x);float c=max(max(abs(e.x),abs(e.z))*.3-e.y,0.)*pow(max(0.,(8.-m.y)/45.),1.7);O=vec4(vec3(c,c*c*.5,0)+vec3(.09,.05,.11)*x+x*(max(0.,a)*.5+x*a*a*vec3(.5,.45,.3))*(t*.75+.25)+vec3(.6,.6,.5)*pow(max(0.,dot(normalize(m.xyz-k),reflect(vec3(-.656059,.666369,-.35431468),e))),35.)*t,1);}`,
         );
         const csm_render =
           (collisionShader(),
@@ -1638,13 +1641,6 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
         loadStep(end);
       });
       {
-        const getBoatAnimationMatrix = (x, y, z) =>
-          identity.translate(x + Math.sin(gameTime + 2) / 5, y + Math.sin(0.8 * gameTime) / 3, z).rotateSelf(
-            2 * Math.sin(gameTime),
-            Math.sin(0.7 * gameTime),
-            Math.sin(0.9 * gameTime),
-          );
-
         const hornsMatrices = integers_map(
           11,
           i => identity.translate(Math.sin(i / 10 * Math.PI), i / 10).rotate(+i).scale(1.0001 - i / 10, 0, 1 - i / 10),
@@ -1654,34 +1650,6 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
             polygon_transform(polygon_regular(18), hornsMatrices[i]).reverse(),
             polygon_transform(polygon_regular(18), hornsMatrices[i + 1]),
             1,
-          )).flat();
-        const boatPolygons = csg_polygons(
-          csg_subtract(
-            polygons_transform(
-              cylinder(20, 1, 1.15, 1),
-              identity.translate(0, -3).scale(3.5, 1, 3.5),
-              material(0.7, 0.4, 0.25, 0.7),
-            ),
-            polygons_transform(
-              cylinder(20, 1, 1.3, 1),
-              identity.translate(0, -2.5).scale(2.6, 1, 3),
-              material(0.7, 0.4, 0.25, 0.2),
-            ),
-            polygons_transform(cylinder(), identity.translate(4, -1.2).scale3d(2), material(0.7, 0.4, 0.25, 0.3)),
-          ),
-        );
-        const bigArcPolygons = csg_polygons(
-          csg_subtract(
-            polygons_transform(cylinder(), identity.translate(0, -8).scale(6, 15, 2.2)),
-            polygons_transform(cylinder(), identity.translate(0, -14.1).scale(4, 13, 4)),
-            polygons_transform(cylinder(20, 1), identity.translate(0, -1).rotate(90, 0, 90).scale3d(4)),
-          ),
-        );
-        const gateBarsPolygons = integers_map(7, i =>
-          polygons_transform(
-            cylinder(6, 1),
-            identity.translate(4 * (i / 6 - 0.5), 3).scale(0.2, 3, 0.2),
-            material(0.3, 0.3, 0.38),
           )).flat();
         newModel(() => meshAdd([GQuad.slice(1)], identity.translate(-2).scale3d(3).rotate(90, 0)), 0),
           newModel(() => {
@@ -1705,25 +1673,37 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                       );
                   }),
                   meshAdd(
-                    csg_polygons(
-                      csg_subtract(
+                    csg_polygons_subtract(
+                      polygons_transform(
+                        cylinder(),
+                        identity.translate(0, 0, pz).scale(5, 1, 5),
+                        material(0.8, 0.8, 0.8, 0.3),
+                      ),
+                      ...[-1, 1].map(i =>
                         polygons_transform(
                           cylinder(),
-                          identity.translate(0, 0, pz).scale(5, 1, 5),
+                          identity.translate(5 * i, 0.2, pz).rotate(-30 * i).scale(4, 1, 2),
                           material(0.8, 0.8, 0.8, 0.3),
-                        ),
-                        ...[-1, 1].map(i =>
-                          polygons_transform(
-                            cylinder(),
-                            identity.translate(5 * i, 0.2, pz).rotate(-30 * i).scale(4, 1, 2),
-                            material(0.8, 0.8, 0.8, 0.3),
-                          )
-                        ),
+                        )
                       ),
                     ),
                   ),
                   meshAdd(cylinder(), identity.translate(0, -3, pz).scale(8, 2, 8), material(0.4, 0.4, 0.4, 0.3));
               });
+
+            const getBoatAnimationMatrix = (x, y, z) =>
+              identity.translate(x + Math.sin(gameTime + 2) / 5, y + Math.sin(0.8 * gameTime) / 3, z).rotateSelf(
+                2 * Math.sin(gameTime),
+                Math.sin(0.7 * gameTime),
+                Math.sin(0.9 * gameTime),
+              );
+
+            const makeBigArcPolygons = height =>
+              csg_polygons_subtract(
+                polygons_transform(cylinder(), identity.translate(0, -height / 2).scale(6, height - 1, 2.2)),
+                polygons_transform(cylinder(), identity.translate(0, -height / 2 - 6).scale(4, height - 3, 4)),
+                polygons_transform(cylinder(32, 1), identity.translate(0, height / 2 - 9).rotate(90, 0, 90).scale3d(4)),
+              );
 
             const level2Oscillation = () => min(levers[2].$lerpValue2, 1 - levers[4].$lerpValue2);
 
@@ -1736,6 +1716,25 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
 
             const hexPadShouldOscillate = () => lerpneg(levers[8].$lerpValue2, levers[12].$lerpValue2);
 
+            const boatPolygons = csg_polygons_subtract(
+              polygons_transform(
+                cylinder(20, 1, 1.15, 1),
+                identity.translate(0, -3).scale(3.5, 1, 3.5),
+                material(0.7, 0.4, 0.25, 0.7),
+              ),
+              polygons_transform(
+                cylinder(20, 1, 1.3, 1),
+                identity.translate(0, -2.5).scale(2.6, 1, 3),
+                material(0.7, 0.4, 0.25, 0.2),
+              ),
+              polygons_transform(cylinder(), identity.translate(4, -1.2).scale3d(2), material(0.7, 0.4, 0.25, 0.3)),
+            );
+            const gateBarsPolygons = integers_map(7, i =>
+              polygons_transform(
+                cylinder(6, 1),
+                identity.translate(4 * (i / 6 - 0.5), 3).scale(0.2, 3, 0.2),
+                material(0.3, 0.3, 0.38),
+              )).flat();
             const hexCorridorPolygons = (newModel(model => {
               model._update = () => getBoatAnimationMatrix(-12, 4.2, 40 * firstBoatLerp - 66),
                 meshAdd(boatPolygons),
@@ -1774,7 +1773,8 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 meshAdd(cylinder(), identity.translate(0, 6.3, z).scale(4, 0.3, 1), material(0.3, 0.3, 0.3, 0.4)),
                   meshAdd(cylinder(), identity.translate(0, 1, z).scale(3, 0.2, 0.35), material(0.5, 0.5, 0.5, 0.3)),
                   newModel(model => {
-                    model._update = () => identity.translate(0, 4.7 * -levers[i + 1].$lerpValue, z),
+                    model._update = () =>
+                      identity.translate(0, 0, z).scale(1, clamp01(1.22 - levers[i + 1].$lerpValue), 1),
                       meshAdd(gateBarsPolygons);
                   });
               }),
@@ -1809,41 +1809,39 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 material(0.8, 0.2, 0.2, 0.5),
               ),
               meshAdd(
-                csg_polygons(
-                  csg_subtract(
-                    csg_union(
-                      polygons_transform(
-                        cylinder(6, 0, 0, 0.3),
-                        identity.translate(8, -3, -4).scale(13, 1, 13),
-                        material(0.7, 0.7, 0.7, 0.2),
-                      ),
-                      polygons_transform(
-                        cylinder(6),
-                        identity.translate(0, -8).scale(9, 8, 8),
-                        material(0.4, 0.2, 0.5, 0.5),
-                      ),
-                      polygons_transform(
-                        cylinder(6, 0, 0, 0.3),
-                        identity.translate(0, -0.92).scale(13, 2, 13),
-                        material(0.8, 0.8, 0.8, 0.2),
-                      ),
-                    ),
-                    polygons_transform(cylinder(5), identity.scale(5, 30, 5), material(0.4, 0.2, 0.6, 0.5)),
+                csg_polygons_subtract(
+                  csg_union(
                     polygons_transform(
-                      cylinder(5, 0, 1.5),
-                      identity.translate(0, 1).scale(4.5, 0.3, 4.5),
-                      material(0.7, 0.5, 0.9, 0.2),
-                    ),
-                    polygons_transform(
-                      cylinder(),
-                      identity.rotate(0, 60).translate(14, 0.7, -1).rotate(-35).scale(2, 2, 2),
-                      material(0.5, 0.5, 0.5, 0.5),
+                      cylinder(6, 0, 0, 0.3),
+                      identity.translate(8, -3, -4).scale(13, 1, 13),
+                      material(0.7, 0.7, 0.7, 0.2),
                     ),
                     polygons_transform(
                       cylinder(6),
-                      identity.translate(15, -1.5, 4).scale(3.5, 1, 3.5),
-                      material(0.5, 0.5, 0.5, 0.5),
+                      identity.translate(0, -8).scale(9, 8, 8),
+                      material(0.4, 0.2, 0.5, 0.5),
                     ),
+                    polygons_transform(
+                      cylinder(6, 0, 0, 0.3),
+                      identity.translate(0, -0.92).scale(13, 2, 13),
+                      material(0.8, 0.8, 0.8, 0.2),
+                    ),
+                  ),
+                  polygons_transform(cylinder(5), identity.scale(5, 30, 5), material(0.4, 0.2, 0.6, 0.5)),
+                  polygons_transform(
+                    cylinder(5, 0, 1.5),
+                    identity.translate(0, 1).scale(4.5, 0.3, 4.5),
+                    material(0.7, 0.5, 0.9, 0.2),
+                  ),
+                  polygons_transform(
+                    cylinder(),
+                    identity.rotate(0, 60).translate(14, 0.7, -1).rotate(-35).scale(2, 2, 2),
+                    material(0.5, 0.5, 0.5, 0.5),
+                  ),
+                  polygons_transform(
+                    cylinder(6),
+                    identity.translate(15, -1.5, 4).scale(3.5, 1, 3.5),
+                    material(0.5, 0.5, 0.5, 0.5),
                   ),
                 ),
               ),
@@ -1866,24 +1864,22 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               newModel(model => {
                 model._update = () => identity.translate(level2Oscillation() * Math.sin(gameTime / 1.5 + 2) * 12),
                   meshAdd(
-                    csg_polygons(
-                      csg_subtract(
-                        csg_union(
-                          polygons_transform(cylinder(), identity.scale(1.5, 1, 5), material(0.9, 0.9, 0.9, 0.2)),
-                          polygons_transform(cylinder(6), identity.scale(4, 1, 5), material(0.9, 0.9, 0.9, 0.2)),
-                          polygons_transform(
-                            cylinder(),
-                            identity.translate(0, -2).scale(2, 3.2, 1.9),
-                            material(0.3, 0.8, 0.5, 0.5),
-                          ),
-                          polygons_transform(
-                            cylinder(16, 1, 0, 4),
-                            identity.scale(1, 1, 1.5).rotate(0, 90),
-                            material(0.9, 0.9, 0.9, 0.2),
-                          ),
+                    csg_polygons_subtract(
+                      csg_union(
+                        polygons_transform(cylinder(), identity.scale(1.5, 1, 5), material(0.9, 0.9, 0.9, 0.2)),
+                        polygons_transform(cylinder(6), identity.scale(4, 1, 5), material(0.9, 0.9, 0.9, 0.2)),
+                        polygons_transform(
+                          cylinder(),
+                          identity.translate(0, -2).scale(2, 3.2, 1.9),
+                          material(0.3, 0.8, 0.5, 0.5),
                         ),
-                        polygons_transform(cylinder(), identity.scale(1.3, 10, 1.3), material(0.2, 0.7, 0.4, 0.6)),
+                        polygons_transform(
+                          cylinder(16, 1, 0, 4),
+                          identity.scale(1, 1, 1.5).rotate(0, 90),
+                          material(0.9, 0.9, 0.9, 0.2),
+                        ),
                       ),
+                      polygons_transform(cylinder(), identity.scale(1.3, 10, 1.3), material(0.2, 0.7, 0.4, 0.6)),
                     ),
                     identity.translate(0, 0, 45),
                   ),
@@ -1918,11 +1914,9 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                     material(0.7, 0.7, 0.7, 0.2),
                   ),
                   meshAdd(
-                    csg_polygons(
-                      csg_subtract(
-                        polygons_transform(cylinder(), identity.scale(3, 1.4, 2.7)),
-                        polygons_transform(cylinder(), identity.scale(1.2, 8, 1.2)),
-                      ),
+                    csg_polygons_subtract(
+                      polygons_transform(cylinder(), identity.scale(3, 1.4, 2.7)),
+                      polygons_transform(cylinder(), identity.scale(1.2, 8, 1.2)),
                     ),
                     identity.translate(-33, -3, 55),
                     material(0.7, 0.7, 0.7, 0.2),
@@ -1931,18 +1925,16 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               newModel(model => {
                 model._update = () => identity.translate(0, 0, level3Oscillation() * Math.sin(0.9 * gameTime) * 8),
                   meshAdd(
-                    csg_polygons(
-                      csg_subtract(
-                        polygons_transform(
-                          cylinder(),
-                          identity.translate(-27, -3, 55).scale(3, 1.4, 2.7),
-                          material(0.9, 0.9, 0.9, 0.2),
-                        ),
-                        polygons_transform(
-                          cylinder(),
-                          identity.translate(-27, -3, 55).scale(1, 3),
-                          material(0.9, 0.9, 0.9, 0.2),
-                        ),
+                    csg_polygons_subtract(
+                      polygons_transform(
+                        cylinder(),
+                        identity.translate(-27, -3, 55).scale(3, 1.4, 2.7),
+                        material(0.9, 0.9, 0.9, 0.2),
+                      ),
+                      polygons_transform(
+                        cylinder(),
+                        identity.translate(-27, -3, 55).scale(1, 3),
+                        material(0.9, 0.9, 0.9, 0.2),
                       ),
                     ),
                   ),
@@ -1959,31 +1951,29 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               newLever(identity.translate(-55, -1.1, 46).rotate(0, 90)),
               meshAdd(cylinder(6), identity.translate(-61.3, -2.4, 49).scale(3, 1, 5), material(0.4, 0.6, 0.6, 0.3)),
               meshAdd(cylinder(7), identity.translate(-57, -2.6, 46).scale(4, 1, 4), material(0.8, 0.8, 0.8, 0.3)),
-              csg_polygons(
-                csg_union(
+              [
+                ...polygons_transform(
+                  cylinder(),
+                  identity.translate(0, -3).scale(11, 1.4, 3),
+                  material(0.9, 0.9, 0.9, 0.2),
+                ),
+                ...csg_polygons_subtract(
+                  polygons_transform(cylinder(6), identity.rotate(90).scale(6, 8, 6), material(0.3, 0.6, 0.6, 0.3)),
                   polygons_transform(
-                    cylinder(),
-                    identity.translate(0, -3).scale(11, 1.4, 3),
-                    material(0.9, 0.9, 0.9, 0.2),
+                    cylinder(4, 0, 0.01),
+                    identity.translate(0, 6).scale(12, 2, 0.75).rotate(0, 45),
+                    material(0.3, 0.6, 0.6, 0.3),
                   ),
-                  csg_subtract(
-                    polygons_transform(cylinder(6), identity.rotate(90).scale(6, 8, 6), material(0.3, 0.6, 0.6, 0.3)),
+                  polygons_transform(cylinder(6), identity.rotate(90).scale(5, 12, 5), material(0.3, 0.6, 0.6, 0.3)),
+                  ...[5, 0, -5].map(x =>
                     polygons_transform(
-                      cylinder(4, 0, 0.01),
-                      identity.translate(0, 6).scale(12, 2, 0.75).rotate(0, 45),
+                      cylinder(5),
+                      identity.translate(x, 2.5).rotate(90, 0, 36).scale(1.8, 10, 1.8),
                       material(0.3, 0.6, 0.6, 0.3),
-                    ),
-                    polygons_transform(cylinder(6), identity.rotate(90).scale(5, 12, 5), material(0.3, 0.6, 0.6, 0.3)),
-                    ...[5, 0, -5].map(x =>
-                      polygons_transform(
-                        cylinder(5),
-                        identity.translate(x, 2.5).rotate(90, 0, 36).scale(1.8, 10, 1.8),
-                        material(0.3, 0.6, 0.6, 0.3),
-                      )
-                    ),
+                    )
                   ),
                 ),
-              ));
+              ]);
             const pushingRod = (meshAdd(hexCorridorPolygons, identity.translate(-53, 0, 55)),
               newModel(model => {
                 model._update = () =>
@@ -2003,88 +1993,85 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 material(0.8, 0.8, 0.8, 0.2),
               ),
               meshAdd(
-                csg_polygons(
-                  csg_subtract(
-                    csg_union(
-                      polygons_transform(
-                        cylinder(),
-                        identity.translate(-100, -2.5, 55).scale(8, 1, 8),
-                        material(0.8, 0.8, 0.8, 0.2),
-                      ),
-                      polygons_transform(
-                        cylinder(),
-                        identity.translate(-113, -2.6, 55).scale(6.2, 1.1, 3).skewX(3),
-                        material(0.8, 0.8, 0.8, 0.2),
-                      ),
-                      polygons_transform(
-                        cylinder(),
-                        identity.translate(-100, -2.6, 70).scale(3, 1.1, 7),
-                        material(0.8, 0.8, 0.8, 0.2),
-                      ),
-                      polygons_transform(
-                        cylinder(),
-                        identity.translate(-96, -2.6, 73).rotate(0, 45).scale(3, 1.1, 5),
-                        material(0.8, 0.8, 0.8, 0.2),
-                      ),
-                      polygons_transform(
-                        cylinder(6),
-                        identity.translate(-88.79, -2.6, 80.21).scale(6, 1.1, 6).rotate(0, 15),
-                        material(0.6, 0.6, 0.6, 0.3),
-                      ),
-                      polygons_transform(
-                        cylinder(),
-                        identity.translate(-100, -1.1, 82.39).rotate(-15, 0).scale(3, 1.1, 6),
-                        material(0.8, 0.8, 0.8, 0.2),
-                      ),
-                      polygons_transform(
-                        cylinder(),
-                        identity.translate(-100, 0.42, 92).scale(3, 1.1, 4.1),
-                        material(0.8, 0.8, 0.8, 0.2),
-                      ),
+                csg_polygons_subtract(
+                  csg_union(
+                    polygons_transform(
+                      cylinder(),
+                      identity.translate(-100, -2.5, 55).scale(8, 1, 8),
+                      material(0.8, 0.8, 0.8, 0.2),
                     ),
                     polygons_transform(
-                      cylinder(8),
-                      identity.translate(-100, -1, 55).scale(7, 0.9, 7),
-                      material(0.3, 0.3, 0.3, 0.4),
+                      cylinder(),
+                      identity.translate(-113, -2.6, 55).scale(6.2, 1.1, 3).skewX(3),
+                      material(0.8, 0.8, 0.8, 0.2),
                     ),
                     polygons_transform(
-                      cylinder(8),
-                      identity.translate(-100, -2, 55).scale(4, 0.3, 4),
-                      material(0.4, 0.4, 0.4, 0.5),
+                      cylinder(),
+                      identity.translate(-100, -2.6, 70).scale(3, 1.1, 7),
+                      material(0.8, 0.8, 0.8, 0.2),
                     ),
                     polygons_transform(
-                      cylinder(8),
-                      identity.translate(-100, -3, 55).scale(0.6, 1, 0.6),
-                      material(0.4, 0.4, 0.4, 0.5),
+                      cylinder(),
+                      identity.translate(-96, -2.6, 73).rotate(0, 45).scale(3, 1.1, 5),
+                      material(0.8, 0.8, 0.8, 0.2),
                     ),
+                    polygons_transform(
+                      cylinder(6),
+                      identity.translate(-88.79, -2.6, 80.21).scale(6, 1.1, 6).rotate(0, 15),
+                      material(0.6, 0.6, 0.6, 0.3),
+                    ),
+                    polygons_transform(
+                      cylinder(),
+                      identity.translate(-100, -1.1, 82.39).rotate(-15, 0).scale(3, 1.1, 6),
+                      material(0.8, 0.8, 0.8, 0.2),
+                    ),
+                    polygons_transform(
+                      cylinder(),
+                      identity.translate(-100, 0.42, 92).scale(3, 1.1, 4.1),
+                      material(0.8, 0.8, 0.8, 0.2),
+                    ),
+                  ),
+                  polygons_transform(
+                    cylinder(8),
+                    identity.translate(-100, -1, 55).scale(7, 0.9, 7),
+                    material(0.3, 0.3, 0.3, 0.4),
+                  ),
+                  polygons_transform(
+                    cylinder(8),
+                    identity.translate(-100, -2, 55).scale(4, 0.3, 4),
+                    material(0.4, 0.4, 0.4, 0.5),
+                  ),
+                  polygons_transform(
+                    cylinder(8),
+                    identity.translate(-100, -3, 55).scale(0.6, 1, 0.6),
+                    material(0.4, 0.4, 0.4, 0.5),
                   ),
                 ),
               ),
               newSoul(identity.translate(-100, 0.2, 55), [0, 0, 7.5], [-8, 0, 3.5], [-12, 0, 3.5], [-15, 0, 3.5]),
               newSoul(identity.translate(-89, 0.2, 80), [0, 0, 6]),
               meshAdd(
-                csg_polygons(
-                  csg_subtract(
-                    polygons_transform(
-                      cylinder(),
-                      identity.translate(-100, 1, 63).scale(7.5, 4),
-                      material(0.5, 0.5, 0.5, 0.4),
-                    ),
-                    polygons_transform(
-                      cylinder(),
-                      identity.translate(-100, 0, 70).scale(2, 2, 10),
-                      material(0.5, 0.5, 0.5, 0.4),
-                    ),
-                    polygons_transform(
-                      cylinder(20, 1),
-                      identity.translate(-100, 2, 70).scale(2, 2, 10).rotate(90, 0),
-                      material(0.5, 0.5, 0.5, 0.4),
-                    ),
+                csg_polygons_subtract(
+                  polygons_transform(
+                    cylinder(),
+                    identity.translate(-100, 1, 63).scale(7.5, 4),
+                    material(0.5, 0.5, 0.5, 0.4),
+                  ),
+                  polygons_transform(
+                    cylinder(),
+                    identity.translate(-100, 0, 70).scale(2, 2, 10),
+                    material(0.5, 0.5, 0.5, 0.4),
+                  ),
+                  polygons_transform(
+                    cylinder(20, 1),
+                    identity.translate(-100, 2, 70).scale(2, 2, 10).rotate(90, 0),
+                    material(0.5, 0.5, 0.5, 0.4),
                   ),
                 ),
               ),
               newModel(model => {
-                model._update = () => identity.translate(-99.7, 5.3 * -levers[6].$lerpValue - 2, 63.5),
+                model._update = () =>
+                  identity.translate(-99.7, -1.9, 63.5).scale(1, clamp01(1.1 - levers[6].$lerpValue), 1),
                   meshAdd(gateBarsPolygons);
               }),
               GQuad.map(({
@@ -2154,19 +2141,17 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   );
               }),
               meshAdd(
-                csg_polygons(
-                  csg_subtract(
-                    csg_union(
-                      polygons_transform(cylinder(), identity.scale(11, 1, 13), material(0.3, 0.4, 0.6, 0.3)),
-                      polygons_transform(
-                        cylinder(5),
-                        identity.translate(0, 0, -7).scale(2, 1.2, 2),
-                        material(0.2, 0.4, 0.7, 0.3),
-                      ),
-                      polygons_transform(cylinder(5), identity.scale(9, 1.2, 9), material(0, 0.2, 0.3, 0.5)),
+                csg_polygons_subtract(
+                  csg_union(
+                    polygons_transform(cylinder(), identity.scale(11, 1, 13), material(0.3, 0.4, 0.6, 0.3)),
+                    polygons_transform(
+                      cylinder(5),
+                      identity.translate(0, 0, -7).scale(2, 1.2, 2),
+                      material(0.2, 0.4, 0.7, 0.3),
                     ),
-                    polygons_transform(cylinder(5), identity.scale(5.4, 5, 5.4), material(0, 0.2, 0.3, 0.5)),
+                    polygons_transform(cylinder(5), identity.scale(9, 1.2, 9), material(0, 0.2, 0.3, 0.5)),
                   ),
+                  polygons_transform(cylinder(5), identity.scale(5.4, 5, 5.4), material(0, 0.2, 0.3, 0.5)),
                 ),
                 identity.translate(-38.9, -11.3, 17),
               ),
@@ -2174,30 +2159,28 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               newModel(model => {
                 model._update = () => identity.translate(0, -7.3 * levers[7].$lerpValue2),
                   meshAdd(
-                    csg_polygons(
-                      csg_subtract(
-                        csg_union(
-                          polygons_transform(
-                            cylinder(5),
-                            identity.translate(0, 2).scale(5, 7, 5).skewY(8),
-                            material(0.2, 0.4, 0.5, 0.5),
-                          ),
-                          polygons_transform(
-                            cylinder(5),
-                            identity.translate(0, 6).scale(1.1, 7, 1.1).skewY(-8),
-                            material(0.25, 0.35, 0.5, 0.5),
-                          ),
-                          polygons_transform(
-                            cylinder(5),
-                            identity.translate(0, 9).scale(0.6, 7, 0.6).skewY(8),
-                            material(0.35, 0.3, 0.5, 0.5),
-                          ),
+                    csg_polygons_subtract(
+                      csg_union(
+                        polygons_transform(
+                          cylinder(5),
+                          identity.translate(0, 2).scale(5, 7, 5).skewY(8),
+                          material(0.2, 0.4, 0.5, 0.5),
                         ),
                         polygons_transform(
                           cylinder(5),
-                          identity.translate(0, 5).scale(1.5, 1.5, 8).rotate(90, 0, 35),
-                          material(0.2, 0.4, 0.5, 0.5),
+                          identity.translate(0, 6).scale(1.1, 7, 1.1).skewY(-8),
+                          material(0.25, 0.35, 0.5, 0.5),
                         ),
+                        polygons_transform(
+                          cylinder(5),
+                          identity.translate(0, 9).scale(0.6, 7, 0.6).skewY(8),
+                          material(0.35, 0.3, 0.5, 0.5),
+                        ),
+                      ),
+                      polygons_transform(
+                        cylinder(5),
+                        identity.translate(0, 5).scale(1.5, 1.5, 8).rotate(90, 0, 35),
+                        material(0.2, 0.4, 0.5, 0.5),
                       ),
                     ),
                     identity.translate(-38.9, -11.3, 17),
@@ -2228,32 +2211,30 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   );
               }),
               meshAdd(
-                csg_polygons(
-                  csg_subtract(
-                    csg_union(
+                csg_polygons_subtract(
+                  csg_union(
+                    polygons_transform(
+                      cylinder(6),
+                      identity.translate(0, 0, -36).scale(15, 1.2, 15),
+                      material(0.7, 0.7, 0.7, 0.3),
+                    ),
+                    polygons_transform(
+                      cylinder(),
+                      identity.translate(0, 0, -18).scale(4, 1.2, 6),
+                      material(0.45, 0.4, 0.6, 0.3),
+                    ),
+                  ),
+                  ...integers_map(6, z =>
+                    integers_map(6, x =>
                       polygons_transform(
                         cylinder(6),
-                        identity.translate(0, 0, -36).scale(15, 1.2, 15),
+                        identity.translate(4.6 * x - 12 + 2 * (1 & z), 0, 4.6 * z - 50 + 2 * Math.sin(4 * x)).scale(
+                          2,
+                          5,
+                          2,
+                        ),
                         material(0.7, 0.7, 0.7, 0.3),
-                      ),
-                      polygons_transform(
-                        cylinder(),
-                        identity.translate(0, 0, -18).scale(4, 1.2, 6),
-                        material(0.45, 0.4, 0.6, 0.3),
-                      ),
-                    ),
-                    ...integers_map(6, z =>
-                      integers_map(6, x =>
-                        polygons_transform(
-                          cylinder(6),
-                          identity.translate(4.6 * x - 12 + 2 * (1 & z), 0, 4.6 * z - 50 + 2 * Math.sin(4 * x)).scale(
-                            2,
-                            5,
-                            2,
-                          ),
-                          material(0.7, 0.7, 0.7, 0.3),
-                        ))).flat(),
-                  ),
+                      ))).flat(),
                 ),
                 identity.translate(-38.9, -11.3, 17),
               ),
@@ -2270,25 +2251,23 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   newLever(identity.translate(0, -3, -4).rotate(0, 180));
               }),
               newSoul(identity.translate(-115, 0.2, -12), [0, 0, 3.5]),
-              csg_polygons(
-                csg_subtract(
+              csg_polygons_subtract(
+                polygons_transform(
+                  cylinder(),
+                  identity.translate(0, -0.5, 1).scale(1.15, 1.2, 6.5),
+                  material(0.25, 0.25, 0.35, 0.3),
+                ),
+                polygons_transform(
+                  cylinder(3),
+                  identity.translate(0, 0, -5.5).scale(3, 2),
+                  material(0.6, 0.3, 0.4, 0.3),
+                ),
+                ...[-1.2, 1.2].map(i =>
                   polygons_transform(
                     cylinder(),
-                    identity.translate(0, -0.5, 1).scale(1.15, 1.2, 6.5),
-                    material(0.25, 0.25, 0.35, 0.3),
-                  ),
-                  polygons_transform(
-                    cylinder(3),
-                    identity.translate(0, 0, -5.5).scale(3, 2),
-                    material(0.6, 0.3, 0.4, 0.3),
-                  ),
-                  ...[-1.2, 1.2].map(i =>
-                    polygons_transform(
-                      cylinder(),
-                      identity.translate(i, -0.5, 1).scale(0.14, 0.3, 6.5),
-                      material(0.7, 0.2, 0, 0.3),
-                    )
-                  ),
+                    identity.translate(i, -0.5, 1).scale(0.14, 0.3, 6.5),
+                    material(0.7, 0.2, 0, 0.3),
+                  )
                 ),
               ));
             newModel(model => {
@@ -2314,30 +2293,23 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   ), integers_map(3, x => meshAdd(pushingRod, identity.translate(9 * x - 106, 1.7, -12)));
               }),
               meshAdd(
-                csg_polygons(
-                  csg_subtract(
-                    csg_union(
-                      polygons_transform(cylinder(), identity.translate(26.5, -1.6, 10).scale(17, 2.08, 3)),
-                      polygons_transform(cylinder(), identity.translate(26.5, -0.6, 10).scale(17, 2, 0.5)),
-                    ),
-                    ...integers_map(4, x =>
-                      polygons_transform(
-                        cylinder(),
-                        identity.translate(13 + 9 * x + (1 & x), -0.8, 9).scale(1.35, 1.35, 9),
-                      )),
-                    ...integers_map(
-                      3,
-                      x => polygons_transform(cylinder(), identity.translate(17 + 9 * x, -0.8, 9).scale(1.35, 1.35, 9)),
-                    ),
+                csg_polygons_subtract(
+                  csg_union(
+                    polygons_transform(cylinder(), identity.translate(26.5, -1.6, 10).scale(20, 2.08, 3)),
+                    polygons_transform(cylinder(), identity.translate(26.5, -0.6, 10).scale(19, 2, 0.5)),
+                  ),
+                  ...integers_map(4, x =>
+                    polygons_transform(
+                      cylinder(),
+                      identity.translate(13 + 9 * x + (1 & x), -0.8, 9).scale(1.35, 1.35, 9),
+                    )),
+                  ...integers_map(
+                    3,
+                    x => polygons_transform(cylinder(), identity.translate(17 + 9 * x, -0.8, 9).scale(1.35, 1.35, 9)),
                   ),
                 ),
                 identity.translate(-123, 0, -12),
                 material(0.5, 0.5, 0.6, 0.2),
-              ),
-              meshAdd(
-                cylinder(5),
-                identity.translate(-113.6, -1.6, -2).rotate(0, 90, 90).scale(1.5, 0.2, 1.5),
-                material(0.25, 0.25, 0.35, 1),
               ),
               newLever(identity.translate(-116, -1.4, -18).rotate(0, 180)),
               meshAdd(
@@ -2350,49 +2322,53 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 identity.translate(-116, -2.6, -16.5).scale(3.2, 0.8, 3),
                 material(0.6, 0.5, 0.7, 0.2),
               ),
-              integers_map(3, i => {
-                meshAdd(bigArcPolygons, identity.translate(12 * i - 109, -9, -12), material(0.6, 0.6, 0.6, 0.3)),
-                  meshAdd(
-                    bigArcPolygons,
-                    identity.translate(-77, -9, -12 * i - 20).rotate(0, 90),
-                    material(0.6, 0.6, 0.6, 0.3),
-                  );
-              }),
-              meshAdd(
-                csg_polygons(
-                  csg_subtract(
-                    polygons_transform(
-                      cylinder(12),
-                      identity.translate(-77, -13.9, -12).scale(4, 18.2, 4),
-                      material(0.7, 0.7, 0.7, 0.2),
-                    ),
-                    polygons_transform(
-                      cylinder(),
-                      identity.translate(-79, 0, -12).scale(3.5, 2.2, 1.3),
-                      material(0.4, 0.5, 0.6, 0.2),
-                    ),
-                    polygons_transform(
-                      cylinder(),
-                      identity.translate(-77, 0, -14).scale(1.5, 2.2, 2),
-                      material(0.4, 0.5, 0.6, 0.2),
-                    ),
-                    polygons_transform(
-                      cylinder(12),
-                      identity.translate(-77, 2.8, -12).scale(3, 5, 3),
-                      material(0.4, 0.5, 0.6, 0.2),
-                    ),
-                  ),
-                ),
-              ),
               meshAdd(
                 cylinder(),
                 identity.translate(-115.5, -17, -12).scale(0.5, 15, 2.2),
                 material(0.6, 0.6, 0.6, 0.3),
               ),
+              meshAdd(cylinder(8), identity.translate(-114, -17, -2).scale(2, 15, 2), material(0.6, 0.6, 0.6, 0.3)),
+              meshAdd(cylinder(8), identity.translate(-79, -17, -2).scale(2, 15, 2), material(1, 1, 1, 0.3)),
               meshAdd(
                 cylinder(),
                 identity.translate(-77, -17, -50.5).scale(2.2, 15, 0.5),
                 material(0.6, 0.6, 0.6, 0.3),
+              ),
+              integers_map(3, i => {
+                meshAdd(
+                  makeBigArcPolygons(16),
+                  identity.translate(12 * i - 109, -9, -12),
+                  material(0.6, 0.6, 0.6, 0.3),
+                ),
+                  meshAdd(
+                    makeBigArcPolygons(16),
+                    identity.translate(-77, -9, -12 * i - 20).rotate(0, 90),
+                    material(0.6, 0.6, 0.6, 0.3),
+                  );
+              }),
+              meshAdd(
+                csg_polygons_subtract(
+                  polygons_transform(
+                    cylinder(12),
+                    identity.translate(-77, -14.5, -12).scale(4, 17.5, 4),
+                    material(0.7, 0.7, 0.7, 0.2),
+                  ),
+                  polygons_transform(
+                    cylinder(),
+                    identity.translate(-79, 0.1, -12).scale(3.5, 2, 1.3),
+                    material(0.4, 0.5, 0.6, 0.2),
+                  ),
+                  polygons_transform(
+                    cylinder(),
+                    identity.translate(-77, 0.1, -14).scale(1.5, 2, 2),
+                    material(0.4, 0.5, 0.6, 0.2),
+                  ),
+                  polygons_transform(
+                    cylinder(12),
+                    identity.translate(-77, 3.1, -12).scale(3, 5, 3),
+                    material(0.4, 0.5, 0.6, 0.2),
+                  ),
+                ),
               ),
               meshAdd(
                 cylinder(),
@@ -2401,47 +2377,43 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               ),
               meshAdd(
                 cylinder(9),
-                identity.translate(-98, -5.8, -40).scale(2.5, 0.9, 2.5),
+                identity.translate(-98, -18.4, -40).scale(2.5, 13.5, 2.5),
                 material(0.5, 0.5, 0.5, 0.3),
               ),
               meshAdd(
-                csg_polygons(
-                  csg_subtract(
-                    polygons_transform(
-                      cylinder(),
-                      identity.translate(-93, -5.8, -40).scale(9, 1, 5),
-                      material(0.8, 0.8, 0.8, 0.1),
-                    ),
-                    polygons_transform(
-                      cylinder(9),
-                      identity.translate(-98, -5.8, -40).scale(3, 8, 3),
-                      material(0.7, 0.7, 0.7, 0.2),
-                    ),
+                csg_polygons_subtract(
+                  polygons_transform(
+                    cylinder(),
+                    identity.translate(-93, -5.8, -40).scale(9, 1, 5),
+                    material(0.8, 0.8, 0.8, 0.1),
+                  ),
+                  polygons_transform(
+                    cylinder(9),
+                    identity.translate(-98, -5.8, -40).scale(3, 8, 3),
+                    material(0.7, 0.7, 0.7, 0.2),
                   ),
                 ),
               ),
               newLever(identity.translate(-98, -4.4, -40).rotate(0, 90)),
               newSoul(identity.translate(-93, -3, -40).rotate(4), [0, -2, 3.5], [0, 2, 3.5]),
               meshAdd(
-                csg_polygons(
-                  csg_subtract(
-                    csg_union(
-                      polygons_transform(
-                        cylinder(6, 0, 0, 0.6),
-                        identity.translate(-100, 0.7, 105.5).scale(8, 1, 11),
-                        material(0.7, 0.7, 0.7, 0.2),
-                      ),
-                      polygons_transform(
-                        cylinder(),
-                        identity.translate(-101.5, 0.7, 93.5).scale(10.5, 1, 2),
-                        material(0.7, 0.7, 0.7, 0.2),
-                      ),
-                    ),
+                csg_polygons_subtract(
+                  csg_union(
                     polygons_transform(
-                      cylinder(5),
-                      identity.translate(-100, 0.7, 113).scale(4, 3, 4),
+                      cylinder(6, 0, 0, 0.6),
+                      identity.translate(-100, 0.7, 105.5).scale(8, 1, 11),
                       material(0.7, 0.7, 0.7, 0.2),
                     ),
+                    polygons_transform(
+                      cylinder(),
+                      identity.translate(-101.5, 0.7, 93.5).scale(10.5, 1, 2),
+                      material(0.7, 0.7, 0.7, 0.2),
+                    ),
+                  ),
+                  polygons_transform(
+                    cylinder(5),
+                    identity.translate(-100, 0.7, 113).scale(4, 3, 4),
+                    material(0.7, 0.7, 0.7, 0.2),
                   ),
                 ),
               ),
@@ -2472,11 +2444,9 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   ).rotateSelf(Math.cos(1.3 * gameTime) * (3 * osc + 3), 0);
                 },
                   meshAdd(
-                    csg_polygons(
-                      csg_subtract(
-                        polygons_transform(cylinder(10), identity.scale(6, 2, 6), material(0.1, 0.6, 0.5, 0.3)),
-                        polygons_transform(cylinder(10), identity.scale(3.3, 6, 3.3), material(0.1, 0.6, 0.5, 0.5)),
-                      ),
+                    csg_polygons_subtract(
+                      polygons_transform(cylinder(10), identity.scale(6, 2, 6), material(0.1, 0.6, 0.5, 0.3)),
+                      polygons_transform(cylinder(10), identity.scale(3.3, 6, 3.3), material(0.1, 0.6, 0.5, 0.5)),
                     ),
                   ),
                   meshAdd(
@@ -2523,69 +2493,59 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                     material(1, 1, 0.8),
                   ),
                   meshAdd(
-                    csg_polygons(
-                      csg_subtract(
-                        polygons_transform(
-                          cylinder(),
-                          identity.translate(-4 * x, 3.5, -0.5).scale(4, 4, 0.7),
-                          material(0.5, 0.5, 0.5, 0.4),
-                        ),
-                        polygons_transform(cylinder(), identity.scale(3, 3, 10), material(0.6, 0.24, 0.2, 0.5)),
-                        polygons_transform(
-                          cylinder(28, 1),
-                          identity.translate(0, 3, -5).scale(3, 4, 10).rotate(90, 0),
-                          material(0.6, 0.24, 0.2, 0.5),
-                        ),
-                        polygons_transform(
-                          cylinder(5),
-                          identity.translate(-5.3 * x, 7).rotate(90, 0).scale(1.7, 5, 1.7),
-                          material(0.6, 0.24, 0.2, 0.5),
-                        ),
-                        polygons_transform(
-                          cylinder(5),
-                          identity.translate(-5.3 * x, 3.8).rotate(90, 0, 35).scale(0.75, 5, 0.75),
-                          material(0.6, 0.24, 0.2, 0.5),
-                        ),
+                    csg_polygons_subtract(
+                      polygons_transform(
+                        cylinder(),
+                        identity.translate(-4 * x, 3.5, -0.5).scale(4, 4, 0.7),
+                        material(0.5, 0.5, 0.5, 0.4),
+                      ),
+                      polygons_transform(cylinder(), identity.scale(3, 3, 10), material(0.6, 0.24, 0.2, 0.5)),
+                      polygons_transform(
+                        cylinder(28, 1),
+                        identity.translate(0, 3, -5).scale(3, 4, 10).rotate(90, 0),
+                        material(0.6, 0.24, 0.2, 0.5),
+                      ),
+                      polygons_transform(
+                        cylinder(5),
+                        identity.translate(-5.3 * x, 7).rotate(90, 0).scale(1.7, 5, 1.7),
+                        material(0.6, 0.24, 0.2, 0.5),
+                      ),
+                      polygons_transform(
+                        cylinder(5),
+                        identity.translate(-5.3 * x, 3.8).rotate(90, 0, 35).scale(0.75, 5, 0.75),
+                        material(0.6, 0.24, 0.2, 0.5),
                       ),
                     ),
                     identity.translate(x - 100, 0.7, 97),
                   );
               }),
               newModel(model => {
-                model._update = () => identity.translate(-100, 0.6 - 6 * levers[12].$lerpValue, 96.5).scale(0.88, 1.2),
+                model._update = () => identity.translate(-100, 0.6, 96.5).scale(0.88, 1.2 - levers[12].$lerpValue),
                   meshAdd(gateBarsPolygons);
               }),
               meshAdd(
-                csg_polygons(
-                  csg_subtract(
-                    polygons_transform(
-                      cylinder(),
-                      identity.translate(-82.07, 0.8, 106).scale(11, 0.9, 2.2),
-                      material(0.7, 0.7, 0.7, 0.1),
-                    ),
-                    polygons_transform(
-                      cylinder(45, 1),
-                      identity.translate(-81, 0.7, 106).scale3d(7.7),
-                      material(0.7, 0.7, 0.7, 0.1),
-                    ),
+                csg_polygons_subtract(
+                  polygons_transform(
+                    cylinder(),
+                    identity.translate(-82.07, 0.8, 106).scale(11, 0.9, 2.2),
+                    material(0.7, 0.7, 0.7, 0.1),
+                  ),
+                  polygons_transform(
+                    cylinder(45, 1),
+                    identity.translate(-81, 0.7, 106).scale3d(7.7),
+                    material(0.7, 0.7, 0.7, 0.1),
                   ),
                 ),
               ),
               newModel(model => {
                 model._update = () => identity.translate(-81, 0.6, 106).rotate(0, 40 + rotatingPlatform1Rotation),
                   meshAdd(
-                    csg_polygons(
-                      csg_subtract(
-                        polygons_transform(
-                          cylinder(45, 1),
-                          identity.scale(7.5, 1, 7.5),
-                          material(0.45, 0.45, 0.45, 0.2),
-                        ),
-                        polygons_transform(
-                          cylinder(),
-                          identity.translate(0, 0, -5.5).scale(1.5, 3, 2.7),
-                          material(0.45, 0.45, 0.45, 0.2),
-                        ),
+                    csg_polygons_subtract(
+                      polygons_transform(cylinder(45, 1), identity.scale(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2)),
+                      polygons_transform(
+                        cylinder(),
+                        identity.translate(0, 0, -5.5).scale(1.5, 3, 2.7),
+                        material(0.45, 0.45, 0.45, 0.2),
                       ),
                     ),
                   ),
@@ -2597,10 +2557,10 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   meshAdd(cylinder(5), identity.translate(0, 2).scale(1, 2), material(0.3, 0.3, 0.3, 0.2)),
                   newSoul(
                     identity.translate(0, 3),
-                    ...polygon_regular(10).map(({
+                    ...polygon_regular(14).map(({
                       x,
                       z,
-                    }) => [5.6 * x, 5.6 * z, 2.5]),
+                    }) => [5.6 * x, 5.6 * z, 2]),
                   );
               }),
               newModel(model => {
@@ -2613,15 +2573,13 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                     )
                   ),
                   meshAdd(
-                    csg_polygons(
-                      csg_subtract(
-                        polygons_transform(
-                          cylinder(28, 1),
-                          identity.translate(0, 2).scale(7.5, 1, 7.5),
-                          material(0.35, 0, 0, 0.3),
-                        ),
-                        polygons_transform(cylinder(), identity.scale(9, 5, 2), material(0.3, 0, 0, 0.3)),
+                    csg_polygons_subtract(
+                      polygons_transform(
+                        cylinder(28, 1),
+                        identity.translate(0, 2).scale(7.5, 1, 7.5),
+                        material(0.35, 0, 0, 0.3),
                       ),
+                      polygons_transform(cylinder(), identity.scale(9, 5, 2), material(0.3, 0, 0, 0.3)),
                     ),
                   ),
                   meshAdd(
@@ -2638,19 +2596,17 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               newModel(model => {
                 model._update = () => identity.translate(-50.7, 0.8, 106).rotate(0, 180 - rotatingPlatform2Rotation),
                   meshAdd(
-                    csg_polygons(
-                      csg_subtract(
-                        polygons_transform(
-                          cylinder(28, 1),
-                          identity.translate(0, 2).scale(7.5, 1, 7.5),
-                          material(0.35, 0, 0, 0.3),
-                        ),
-                        polygons_transform(cylinder(), identity.translate(7).scale(9, 5, 2), material(0.3, 0, 0, 0.3)),
-                        polygons_transform(
-                          cylinder(),
-                          identity.translate(0, 0, 7).scale(2, 5, 9),
-                          material(0.3, 0, 0, 0.3),
-                        ),
+                    csg_polygons_subtract(
+                      polygons_transform(
+                        cylinder(28, 1),
+                        identity.translate(0, 2).scale(7.5, 1, 7.5),
+                        material(0.35, 0, 0, 0.3),
+                      ),
+                      polygons_transform(cylinder(), identity.translate(7).scale(9, 5, 2), material(0.3, 0, 0, 0.3)),
+                      polygons_transform(
+                        cylinder(),
+                        identity.translate(0, 0, 7).scale(2, 5, 9),
+                        material(0.3, 0, 0, 0.3),
                       ),
                     ),
                   ),
@@ -2668,19 +2624,17 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               newModel(model => {
                 model._update = () => identity.translate(-50.7, 0.8, 91).rotate(0, 270 + rotatingPlatform2Rotation),
                   meshAdd(
-                    csg_polygons(
-                      csg_subtract(
-                        polygons_transform(
-                          cylinder(28, 1),
-                          identity.translate(0, 2).scale(7.5, 1, 7.5),
-                          material(0.35, 0, 0, 0.3),
-                        ),
-                        polygons_transform(cylinder(), identity.translate(7).scale(9, 5, 2), material(0.3, 0, 0, 0.3)),
-                        polygons_transform(
-                          cylinder(),
-                          identity.translate(0, 0, -7).scale(2, 5, 9),
-                          material(0.3, 0, 0, 0.3),
-                        ),
+                    csg_polygons_subtract(
+                      polygons_transform(
+                        cylinder(28, 1),
+                        identity.translate(0, 2).scale(7.5, 1, 7.5),
+                        material(0.35, 0, 0, 0.3),
+                      ),
+                      polygons_transform(cylinder(), identity.translate(7).scale(9, 5, 2), material(0.3, 0, 0, 0.3)),
+                      polygons_transform(
+                        cylinder(),
+                        identity.translate(0, 0, -7).scale(2, 5, 9),
+                        material(0.3, 0, 0, 0.3),
                       ),
                     ),
                   ),
@@ -2744,30 +2698,26 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   material(1, 1, 0.8),
                 )
               ),
-              [8, -6.1].map((y, p) =>
-                integers_map(
-                  3,
-                  i =>
-                    meshAdd(
-                      bigArcPolygons,
-                      identity.translate(6 * i - 6, y - (1 & i), 111 - 0.2 * (1 & i) - p),
-                      1 & i ? material(0.5, 0.5, 0.5, 0.3) : material(0.35, 0.35, 0.35, 0.5),
-                    ),
-                )
+              integers_map(
+                3,
+                i =>
+                  meshAdd(
+                    makeBigArcPolygons(24.7 - 0.7 * (1 & i)),
+                    identity.translate(6 * i - 6, 4 - (1 & i), 111 - 0.2 * (1 & i)),
+                    1 & i ? material(0.5, 0.5, 0.5, 0.3) : material(0.35, 0.35, 0.35, 0.5),
+                  ),
               ),
               meshAdd(
-                csg_polygons(
-                  csg_subtract(
-                    polygons_transform(
-                      cylinder(6, 0, 0, 0.3),
-                      identity.translate(0, -0.92, 95).scale(14, 2, 14),
-                      material(0.8, 0.8, 0.8, 0.2),
-                    ),
-                    polygons_transform(
-                      cylinder(5),
-                      identity.translate(0, 0, 95).scale3d(6),
-                      material(0.3, 0.3, 0.3, 0.5),
-                    ),
+                csg_polygons_subtract(
+                  polygons_transform(
+                    cylinder(6, 0, 0, 0.3),
+                    identity.translate(0, -0.92, 95).scale(14, 2, 14),
+                    material(0.8, 0.8, 0.8, 0.2),
+                  ),
+                  polygons_transform(
+                    cylinder(5),
+                    identity.translate(0, 0, 95).scale3d(6),
+                    material(0.3, 0.3, 0.3, 0.5),
                   ),
                 ),
               ),
@@ -2785,25 +2735,23 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               meshAdd(cylinder(), identity.translate(0, 16, 129).scale(1.5, 1, 2), material(0.5, 0.6, 0.7, 0.3)),
               meshAdd(cylinder(7), identity.translate(0, 16.2, 133).scale(5, 1, 5), material(0.4, 0.5, 0.6, 0.4)),
               meshAdd(
-                csg_polygons(
-                  csg_subtract(
-                    csg_union(
-                      polygons_transform(
-                        cylinder(),
-                        identity.translate(0, 16, 110.5).scale(12, 1, 3),
-                        material(0.5, 0.3, 0.3, 0.4),
-                      ),
-                      polygons_transform(
-                        cylinder(),
-                        identity.translate(0, 16, 111).scale(3, 1, 3.8),
-                        material(0.5, 0.3, 0.3, 0.4),
-                      ),
-                    ),
+                csg_polygons_subtract(
+                  csg_union(
                     polygons_transform(
-                      cylinder(5),
-                      identity.translate(0, 16, 103.5).scale(5.5, 5, 5.5),
+                      cylinder(),
+                      identity.translate(0, 16, 110.5).scale(12, 1, 3),
                       material(0.5, 0.3, 0.3, 0.4),
                     ),
+                    polygons_transform(
+                      cylinder(),
+                      identity.translate(0, 16, 111).scale(3, 1, 3.8),
+                      material(0.5, 0.3, 0.3, 0.4),
+                    ),
+                  ),
+                  polygons_transform(
+                    cylinder(5),
+                    identity.translate(0, 16, 103.5).scale(5.5, 5, 5.5),
+                    material(0.5, 0.3, 0.3, 0.4),
                   ),
                 ),
               ),
@@ -2860,11 +2808,9 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               )
             ), meshAdd(sphere(20), identity.translate(0, 1).scale(0.5, 0.5, 0.5), material(1, 0.3, 0.4));
             const eye = polygons_transform(
-              csg_polygons(
-                csg_subtract(
-                  cylinder(15, 1),
-                  polygons_transform(cylinder(), identity.translate(0, 0, 1).scale(2, 2, 0.5)),
-                ),
+              csg_polygons_subtract(
+                cylinder(15, 1),
+                polygons_transform(cylinder(), identity.translate(0, 0, 1).scale(2, 2, 0.5)),
               ),
               identity.rotate(-90, 0).scale(0.1, 0.05, 0.1),
               material(0.3, 0.3, 0.3),

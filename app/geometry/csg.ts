@@ -253,3 +253,5 @@ export const csg_polygons = /* @__PURE__ */ (tree: CSGNode): Polygon[] => {
 };
 
 export const csg_polygons_subtract = (...input: CSGInput[]) => csg_polygons((csg_subtract as any)(...input));
+
+export const csg_polygons_union = (...input: CSGInput[]) => csg_polygons(csg_union(...input));
