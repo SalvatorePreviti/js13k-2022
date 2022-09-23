@@ -1,44 +1,34 @@
 * {
-  font-weight: 100;
+  -webkit-user-select: none;
   user-select: none;
+  color: #fda;
+  font-weight: 100;
   touch-action: none;
   overscroll-behavior: contain;
-  -webkit-user-select: none;
-  color: #fda;
+}
+
+html,
+body {
+  background: #000;
+  margin: 0;
+  font-family: "Times New Roman", serif;
+  font-size: max(min(3.8vw, 3.8vh), 15px);
+  text-shadow: 4px 4px 2px #000, -2px -2px 8px #000;
+}
+
+/* menu bottom text */
+p {
+  font-size: 0.7em;
 }
 
 body > * {
   position: absolute;
 }
 
-html,
-body {
-  margin: 0;
-  font-family: "Times New Roman", serif;
-  background: #000;
-  font-size: max(min(3.8vw, 3.8vh), 15px);
-  text-shadow: 4px 4px 2px #000, -2px -2px 8px #000;
-}
-
-/* disable mouse and touch events to souls counter and messages */
-h3,
-h4 {
-  pointer-events: none;
-}
-
-/* souls counter */
-.l h3,
-/* menu hamburger */
-.l #b5 {
-  display: block;
-  padding: 10px;
-}
-
-/* souls counter */
-.l h3 {
-  text-align: right;
-  right: 5%;
-  bottom: 0;
+/* menu title */
+h2 {
+  color: #f61;
+  margin: 0 0 0.7em;
 }
 
 /* messages */
@@ -47,6 +37,12 @@ h4 {
   top: 0;
   right: 0;
   text-align: center;
+}
+
+/* disable mouse and touch events to souls counter and messages */
+h3,
+h4 {
+  pointer-events: none;
 }
 
 /* main menu container */
@@ -67,17 +63,6 @@ nav {
   background: #00000080;
   border-radius: 1em;
   padding: 1em;
-}
-
-/* menu bottom text */
-p {
-  font-size: 0.7em;
-}
-
-/* menu title */
-h2 {
-  color: #f61;
-  margin: 0 0 0.7em;
 }
 
 /* links */
@@ -106,4 +91,19 @@ main,
 /* hide messages if in menu */
 .m h4 {
   display: none;
+}
+
+/* souls counter */
+.l h3 {
+  text-align: right;
+  right: 5%;
+  bottom: 0;
+}
+
+/* souls counter */
+.l #b5,
+/* menu hamburger */
+.l h3 {
+  display: block;
+  padding: 10px;
 }

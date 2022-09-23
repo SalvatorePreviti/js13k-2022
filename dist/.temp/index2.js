@@ -2947,43 +2947,40 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
   
 
 <script type="module" src="/index.js" crossorigin=""><\/script></body></html> * {
-  font-weight: 100;
+  -webkit-user-select: none;
   user-select: none;
+  color: #fda;
+  font-weight: 100;
   touch-action: none;
   overscroll-behavior: contain;
-  -webkit-user-select: none;
-  color: #fda;
+}
+html,
+body {
+  background: #000;
+  margin: 0;
+  font-family: "Times New Roman", serif;
+  font-size: max(min(3.8vw, 3.8vh), 15px);
+  text-shadow: 4px 4px 2px #000, -2px -2px 8px #000;
+}
+p {
+  font-size: 0.7em;
 }
 body > * {
   position: absolute;
 }
-html,
-body {
-  margin: 0;
-  font-family: "Times New Roman", serif;
-  background: #000;
-  font-size: max(min(3.8vw, 3.8vh), 15px);
-  text-shadow: 4px 4px 2px #000, -2px -2px 8px #000;
-}
-h3,
-h4 {
-  pointer-events: none;
-}
-.l h3,
-.l #b5 {
-  display: block;
-  padding: 10px;
-}
-.l h3 {
-  text-align: right;
-  right: 5%;
-  bottom: 0;
+h2 {
+  color: #f61;
+  margin: 0 0 0.7em;
 }
 h4 {
   left: 0;
   top: 0;
   right: 0;
   text-align: center;
+}
+h3,
+h4 {
+  pointer-events: none;
 }
 .m main {
   display: flex;
@@ -3001,13 +2998,6 @@ nav {
   border-radius: 1em;
   padding: 1em;
 }
-p {
-  font-size: 0.7em;
-}
-h2 {
-  color: #f61;
-  margin: 0 0 0.7em;
-}
 a,
 li {
   cursor: pointer;
@@ -3024,5 +3014,15 @@ h3,
 main,
 .m h4 {
   display: none;
+}
+.l h3 {
+  text-align: right;
+  right: 5%;
+  bottom: 0;
+}
+.l #b5,
+.l h3 {
+  display: block;
+  padding: 10px;
 }
 `);
