@@ -41,36 +41,14 @@ import { loadShader, initShaderProgram } from "./shaders-utils";
 import { renderModels } from "./game/models-render";
 
 export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
-  const csm_framebuffer = gl.createFramebuffer();
-  const collision_frameBuffer = gl.createFramebuffer()!;
-  const collision_renderBuffer = gl.createRenderbuffer();
-  const collision_texture = gl.createTexture()!;
-
   const mainVertexShader = loadShader(main_vsSource);
   const csmShader = initShaderProgram(loadShader(csm_vsSource), void_fsSource);
   const skyShader = initShaderProgram(loadShader(sky_vsSource), sky_fsSource);
   const collisionShader = initShaderProgram(mainVertexShader, collider_fsSource);
   const mainShader = initShaderProgram(mainVertexShader, main_fsSource);
 
-  collisionShader();
-  gl.uniformMatrix4fv(collisionShader(uniformName_projectionMatrix), false, mat_perspectiveXY(1.4, 0.59, 0.0001, 1));
-
-  skyShader();
-  gl.uniform1i(skyShader(uniformName_groundTexture), 3); // TEXTURE3
-
-  mainShader();
-  gl.uniform1i(mainShader(uniformName_groundTexture), 3); // TEXTURE3
-
   const csm_render = integers_map(2, (csmSplit: number) => {
     const texture = gl.createTexture()!;
-    const lightSpaceMatrixLoc = mainShader(csmSplit ? uniformName_csm_matrix1 : uniformName_csm_matrix0);
-    gl.uniform1i(mainShader(csmSplit ? uniformName_csm_texture1 : uniformName_csm_texture0), csmSplit);
-
-    gl.bindFramebuffer(gl.FRAMEBUFFER, csm_framebuffer);
-
-    // Disable rendering to the csm color buffer, we just need the depth buffer
-    gl.drawBuffers([gl.NONE]);
-    gl.readBuffer(gl.NONE);
 
     gl.activeTexture(gl.TEXTURE0 + csmSplit);
     gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -101,50 +79,19 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
         gl.clear(gl.DEPTH_BUFFER_BIT);
         renderModels(csmShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL, 1);
       } else {
-        gl.uniformMatrix4fv(lightSpaceMatrixLoc, false, lightSpaceMatrix);
+        gl.uniformMatrix4fv(
+          mainShader(csmSplit ? uniformName_csm_matrix1 : uniformName_csm_matrix0),
+          false,
+          lightSpaceMatrix,
+        );
       }
     };
   });
 
-  gl.enable(gl.DEPTH_TEST); // Enable depth testing
-  gl.enable(gl.CULL_FACE); // Don't render triangle backs
-
-  gl.clearDepth(1); // Clear everything. Default value is 1
-  gl.cullFace(gl.BACK); // Default value is already BACK
-  gl.depthFunc(gl.LEQUAL); // LEQUAL to make sky works
-  gl.clearColor(0, 0, 0, 1);
-
-  // Collision framebuffer
-
-  gl.bindFramebuffer(gl.FRAMEBUFFER, collision_frameBuffer);
-  gl.bindRenderbuffer(gl.RENDERBUFFER, collision_renderBuffer);
-
-  gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
-  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, collision_renderBuffer);
-
-  gl.activeTexture(gl.TEXTURE3);
-  gl.bindTexture(gl.TEXTURE_2D, collision_texture);
-  gl.texImage2D(
-    gl.TEXTURE_2D,
-    0,
-    gl.RGB,
-    COLLISION_TEXTURE_SIZE,
-    COLLISION_TEXTURE_SIZE,
-    0,
-    gl.RGB,
-    gl.UNSIGNED_BYTE,
-    null,
-  );
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, collision_texture, 0);
-
-  // Ground texture
-
-  gl.activeTexture(gl.TEXTURE3);
-  gl.bindTexture(gl.TEXTURE_2D, gl.createTexture());
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1024, 1024, 0, gl.RGBA, gl.UNSIGNED_BYTE, groundTextureImage);
-  gl.generateMipmap(gl.TEXTURE_2D);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  const csm_framebuffer = gl.createFramebuffer();
+  const collision_renderBuffer = gl.createRenderbuffer();
+  const collision_frameBuffer = gl.createFramebuffer()!;
+  const collision_texture = gl.createTexture()!;
 
   const mainLoop = (globalTime: number) => {
     gl.flush();
@@ -261,6 +208,66 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     gl.bindFramebuffer(gl.FRAMEBUFFER, collision_frameBuffer);
     gl.flush();
   };
+
+  collisionShader();
+  gl.uniformMatrix4fv(collisionShader(uniformName_projectionMatrix), false, mat_perspectiveXY(1.4, 0.59, 0.0001, 1));
+
+  mainShader();
+  gl.uniform1i(mainShader(uniformName_groundTexture), 2);
+  gl.uniform1i(mainShader(uniformName_csm_texture1), 1);
+  gl.uniform1i(mainShader(uniformName_csm_texture0), 0);
+
+  skyShader();
+  gl.uniform1i(skyShader(uniformName_groundTexture), 2);
+
+  // Shadows framebuffer
+
+  gl.bindFramebuffer(gl.FRAMEBUFFER, csm_framebuffer);
+  // Disable rendering to the csm color buffer, we just need the depth buffer
+  gl.drawBuffers([gl.NONE]);
+  gl.readBuffer(gl.NONE);
+
+  // Collision framebuffer
+
+  gl.bindFramebuffer(gl.FRAMEBUFFER, collision_frameBuffer);
+  gl.bindRenderbuffer(gl.RENDERBUFFER, collision_renderBuffer);
+
+  gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
+  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, collision_renderBuffer);
+
+  gl.activeTexture(gl.TEXTURE2);
+
+  gl.bindTexture(gl.TEXTURE_2D, collision_texture);
+  gl.texImage2D(
+    gl.TEXTURE_2D,
+    0,
+    gl.RGB,
+    COLLISION_TEXTURE_SIZE,
+    COLLISION_TEXTURE_SIZE,
+    0,
+    gl.RGB,
+    gl.UNSIGNED_BYTE,
+    null,
+  );
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, collision_texture, 0);
+
+  // Ground texture
+
+  gl.bindTexture(gl.TEXTURE_2D, gl.createTexture());
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1024, 1024, 0, gl.RGBA, gl.UNSIGNED_BYTE, groundTextureImage);
+  gl.generateMipmap(gl.TEXTURE_2D);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+  // GL Setup
+
+  gl.enable(gl.DEPTH_TEST); // Enable depth testing
+  gl.enable(gl.CULL_FACE); // Don't render triangle backs
+
+  gl.clearDepth(1); // Clear everything. Default value is 1
+  gl.cullFace(gl.BACK); // Default value is already BACK
+  gl.depthFunc(gl.LEQUAL); // LEQUAL to make sky works
+  gl.clearColor(0, 0, 0, 1);
 
   loadGame();
 

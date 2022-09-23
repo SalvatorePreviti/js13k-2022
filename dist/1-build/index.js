@@ -1162,7 +1162,7 @@ const player_init = () => {
         }
         nextModelId && (player_has_ground = 1);
         player_gravity = lerpDamp(player_gravity, player_has_ground ? 6.5 : 8, 4);
-        player_position_global.y += lines / 41 - (player_has_ground ? 1 : player_gravity) * (grav / 41) * player_gravity * gameTimeDelta;
+        player_position_global.y += lines / 41 - (player_has_ground || player_gravity) * (grav / 41) * player_gravity * gameTimeDelta;
         if (player_respawned) {
             if (nextModelId) {
                 player_respawned = 0;
@@ -1222,14 +1222,14 @@ const player_init = () => {
             player_respawned = 2;
         }
         player_model_y = lerp(lerpDamp(player_model_y, y, 2), y, 8 * abs(player_model_y - y));
-        camera_lookat_x = interpolate_with_hysteresis(camera_lookat_x, x, 1.5);
-        camera_lookat_y = interpolate_with_hysteresis(camera_lookat_y, y, 2.2);
-        camera_lookat_z = interpolate_with_hysteresis(camera_lookat_z, z, 1.5);
         if (void 0 === camera_lookat_x) {
             camera_position.x = camera_lookat_x = x;
             camera_position.y = (camera_lookat_y = player_model_y = y) + 13;
             camera_position.z = (camera_lookat_z = z) + -36;
         }
+        camera_lookat_x = interpolate_with_hysteresis(camera_lookat_x, x, 1.5);
+        camera_lookat_y = interpolate_with_hysteresis(camera_lookat_y, y, 2.2);
+        camera_lookat_z = interpolate_with_hysteresis(camera_lookat_z, z, 1.5);
         if (player_first_person) {
             camera_position.x = lerpDamp(camera_position.x, x, 666 * player_respawned + 18);
             camera_position.y = lerpDamp(camera_position.y, player_model_y + 1.5, 666 * player_respawned + 18);
@@ -1286,9 +1286,9 @@ const player_init = () => {
         gl["iay"](36009, [ 36064, 36096 ]);
         NO_INLINE(doHorizontalCollisions)();
         NO_INLINE(doVerticalCollisions)();
-        const playerSpeedCollision = clamp01(1 - 5 * max(abs(player_collision_x), abs(player_collision_z)));
         player_collision_velocity_x = lerpDamp(player_collision_velocity_x, 0, player_has_ground ? 8 : 4);
         player_collision_velocity_z = lerpDamp(player_collision_velocity_z, 0, player_has_ground ? 8 : 4);
+        const playerSpeedCollision = clamp01(1 - 5 * max(abs(player_collision_x), abs(player_collision_z)));
         if (!currentModelId) {
             player_collision_x += player_collision_velocity_x * playerSpeedCollision * gameTimeDelta;
             player_collision_z += player_collision_velocity_z * playerSpeedCollision * gameTimeDelta;
@@ -1301,7 +1301,7 @@ const player_init = () => {
         player_collision_z -= strafe * s + forward * c;
         NO_INLINE(player_move)();
     };
-    player_has_ground = player_legs_speed = player_collision_velocity_x = player_collision_velocity_z = player_gravity = player_speed = 0;
+    player_legs_speed = player_collision_velocity_x = player_collision_velocity_z = player_gravity = player_speed = 0;
     currentModelIdTMinus1 = currentModelId = levers[player_last_pulled_lever].$parent.$modelId;
 };
 
@@ -1403,29 +1403,14 @@ const startMainLoop = groundTextureImage => {
         gl["b6o"](36160, collision_frameBuffer);
         gl["f1s"]();
     };
-    const csm_framebuffer = gl["c5w"]();
-    const collision_frameBuffer = gl["c5w"]();
-    const collision_renderBuffer = gl["c3z"]();
-    const collision_texture = gl["c25"]();
     const mainVertexShader = loadShader("#version 300 es\nlayout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 a,b,c[39];void main(){mat4 i=c[max(0,abs(int(f.w))-1)+gl_InstanceID];l=mix(d,vec4(.7,1,.2,0),d.w>0.?0.:1.-i[3][3]),i[3][3]=1.,n=f,m=i*vec4(f.xyz,1),gl_Position=a*b*m,m.w=f.w,o=i*vec4(e,0);}");
     const csmShader = initShaderProgram(loadShader("#version 300 es\nin vec4 f;uniform mat4 b,c[39];void main(){gl_Position=b*c[max(0,abs(int(f.w))-1)+gl_InstanceID]*vec4(f.xyz,1);}"), "#version 300 es\nvoid main(){}");
     const skyShader = initShaderProgram(loadShader("#version 300 es\nin vec4 f;void main(){gl_Position=vec4(f.xy,1,1);}"), "#version 300 es\nprecision highp float;uniform vec3 j,k;uniform mat4 b;uniform highp sampler2D q;out vec4 O;void main(){vec2 t=gl_FragCoord.xy/j.xy*2.-1.;vec3 e=(normalize(b*vec4(t.x*-(j.x/j.y),-t.y,1.73205,0.))).xyz;float i=(-32.-k.y)/e.y,o=1.-clamp(abs(i/9999.),0.,1.);if(O=vec4(0,0,0,1),o>.01){if(i>0.){float o=cos(j.z/30.),i=sin(j.z/30.);e.xz*=mat2(o,i,-i,o);vec3 t=abs(e);O.xyz=vec3(dot(vec2(texture(q,e.xy).z,texture(q,e.yz*2.).z),t.zx)*t.y);}else e=k+e*i,O.x=(o*=.9-texture(q,e.xz/150.+vec2(sin(e.z/35.+j.z),cos(e.x/25.+j.z))/80.).y),O.y=o*o*o;}}");
     const collisionShader = initShaderProgram(mainVertexShader, "#version 300 es\nprecision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(m.xyz,1);float r=1.-min(abs(a.z/a.w),1.);O=vec4(vec2(r*(gl_FragCoord.y>31.?1.:abs(o.y))),r>0.?m.w/255.:0.,1);}");
     const mainShader = initShaderProgram(mainVertexShader, "#version 300 es\nprecision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform highp sampler2DShadow g,h;uniform highp sampler2D q;out vec4 O;void main(){vec4 s=vec4(m.xyz,1);vec3 e=normalize(o.xyz),v=l.w*(texture(q,n.yz*.035)*e.x+texture(q,n.xz*.035)*e.y+texture(q,n.xy*.035)*e.z).xyz;e=normalize(e+v*.5);float a=dot(e,vec3(-.656059,.666369,-.35431468)),t=1.,u=abs((b*s).z);vec4 r=(u<55.?i:j)*s;if(r=r/r.w*.5+.5,r.z<1.){t=0.;for(float e=-1.;e<=1.;++e)for(float a=-1.;a<=1.;++a){vec3 x=vec3(r.xy+vec2(e,a)/2048.,r.z-.00017439);t+=u<55.?texture(g,x):texture(h,x);}t/=9.;}vec3 x=l.xyz*(1.-v.x);float c=max(max(abs(e.x),abs(e.z))*.3-e.y,0.)*pow(max(0.,(8.-m.y)/48.),1.6);O=vec4(vec3(c,c*c*.5,0)+vec3(.09,.05,.11)*x+x*(max(0.,a)*.5+x*a*a*vec3(.5,.45,.3))*(t*.75+.25)+vec3(.6,.6,.5)*pow(max(0.,dot(normalize(m.xyz-k),reflect(vec3(-.656059,.666369,-.35431468),e))),35.)*t,1);}");
-    collisionShader();
-    gl["uae"](collisionShader("a"), !1, mat_perspectiveXY(1.4, .59, 1e-4, 1));
-    skyShader();
-    gl["ubh"](skyShader("q"), 3);
-    mainShader();
-    gl["ubh"](mainShader("q"), 3);
     const csm_render = integers_map(2, (csmSplit => {
         const lightSpaceMatrix = new Float32Array(16);
         const texture = gl["c25"]();
-        const lightSpaceMatrixLoc = mainShader(csmSplit ? "j" : "i");
-        gl["ubh"](mainShader(csmSplit ? "h" : "g"), csmSplit);
-        gl["b6o"](36160, csm_framebuffer);
-        gl["d45"]([ 0 ]);
-        gl["r9l"](0);
         gl["a4v"](33984 + csmSplit);
         gl["b9j"](3553, texture);
         gl["t60"](3553, 0, 33190, 2048, 2048, 0, 6402, 5125, null);
@@ -1442,29 +1427,43 @@ const startMainLoop = groundTextureImage => {
                 gl["fas"](36160, 36096, 3553, texture, 0);
                 gl["c4s"](256);
                 renderModels(csmShader("c"), !player_first_person, 42, 1);
-            } else gl["uae"](lightSpaceMatrixLoc, !1, lightSpaceMatrix);
+            } else gl["uae"](mainShader(csmSplit ? "j" : "i"), !1, lightSpaceMatrix);
         };
     }));
+    const csm_framebuffer = gl["c5w"]();
+    const collision_renderBuffer = gl["c3z"]();
+    const collision_frameBuffer = gl["c5w"]();
+    const collision_texture = gl["c25"]();
+    collisionShader();
+    gl["uae"](collisionShader("a"), !1, mat_perspectiveXY(1.4, .59, 1e-4, 1));
+    mainShader();
+    gl["ubh"](mainShader("q"), 2);
+    gl["ubh"](mainShader("h"), 1);
+    gl["ubh"](mainShader("g"), 0);
+    skyShader();
+    gl["ubh"](skyShader("q"), 2);
+    gl["b6o"](36160, csm_framebuffer);
+    gl["d45"]([ 0 ]);
+    gl["r9l"](0);
+    gl["b6o"](36160, collision_frameBuffer);
+    gl["bb1"](36161, collision_renderBuffer);
+    gl["r4v"](36161, 33189, 128, 128);
+    gl["f8w"](36160, 36096, 36161, collision_renderBuffer);
+    gl["a4v"](33986);
+    gl["b9j"](3553, collision_texture);
+    gl["t60"](3553, 0, 6407, 128, 128, 0, 6407, 5121, null);
+    gl["fas"](36160, 36064, 3553, collision_texture, 0);
+    gl["b9j"](3553, gl["c25"]());
+    gl["t60"](3553, 0, 6408, 1024, 1024, 0, 6408, 5121, groundTextureImage);
+    gl["gbn"](3553);
+    gl["t2z"](3553, 10241, 9987);
+    gl["t2z"](3553, 10240, 9729);
     gl["e8z"](2929);
     gl["e8z"](2884);
     gl["c70"](1);
     gl["c7a"](1029);
     gl["d4n"](515);
     gl["c5t"](0, 0, 0, 1);
-    gl["b6o"](36160, collision_frameBuffer);
-    gl["bb1"](36161, collision_renderBuffer);
-    gl["r4v"](36161, 33189, 128, 128);
-    gl["f8w"](36160, 36096, 36161, collision_renderBuffer);
-    gl["a4v"](33987);
-    gl["b9j"](3553, collision_texture);
-    gl["t60"](3553, 0, 6407, 128, 128, 0, 6407, 5121, null);
-    gl["fas"](36160, 36064, 3553, collision_texture, 0);
-    gl["a4v"](33987);
-    gl["b9j"](3553, gl["c25"]());
-    gl["t60"](3553, 0, 6408, 1024, 1024, 0, 6408, 5121, groundTextureImage);
-    gl["gbn"](3553);
-    gl["t2z"](3553, 10241, 9987);
-    gl["t2z"](3553, 10240, 9729);
     (() => {
         try {
             const [savedLevers, savedSouls, savedLastPulledLever, savedGameTime, savedSecondBoatLerp] = JSON.parse(localStorage["DanteSP22"]);

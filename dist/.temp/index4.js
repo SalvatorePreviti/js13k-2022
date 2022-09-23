@@ -428,121 +428,116 @@ bt(() => {
               : N.rotate(-Q, -z, -0).invertSelf().translateSelf(-x, -D, -H);
             0 < B
             && ({ x: t, y: a, z: e } = W,
-              i(),
-              J.b6o(36160, n),
+              o(),
+              J.b6o(36160, f),
               J.v5y(0, 0, 128, 128),
               J.c4s(16640),
               J.cbf(!0, !1, !0, !1),
-              J.uae(i("b"), !1, m(N.rotate(0, 180).invertSelf().translateSelf(-t, -a, .3 - e))),
-              zt(i("c"), 0, 41, 0),
+              J.uae(o("b"), !1, m(N.rotate(0, 180).invertSelf().translateSelf(-t, -a, .3 - e))),
+              zt(o("c"), 0, 41, 0),
               J.c4s(256),
               J.cbf(!1, !0, !0, !1),
-              J.uae(i("b"), !1, m(N.translate(-t, -a, -e - .3))),
-              zt(i("c"), 0, 41, 0),
+              J.uae(o("b"), !1, m(N.translate(-t, -a, -e - .3))),
+              zt(o("c"), 0, 41, 0),
               J.f1s()),
-              o(),
-              J.b6o(36160, r),
+              r(),
+              J.b6o(36160, h),
               J.v5y(0, 0, 2048, 2048),
-              f[0](vt(l, .3, 55, 10)),
-              f[1](vt(l, 55, 177, 11)),
-              h(),
+              i[0](vt(l, .3, 55, 10)),
+              i[1](vt(l, 55, 177, 11)),
+              c(),
               J.b6o(36160, null),
               J.v5y(0, 0, J.drawingBufferWidth, J.drawingBufferHeight),
               J.cbf(!0, !0, !0, !0),
               J.c4s(16640),
-              f[0](),
-              f[1](),
-              J.uae(h("a"), !1, ct(hC.clientHeight / hC.clientWidth * 1.732051, 1.732051, .3, 177)),
-              J.uae(h("b"), !1, m(l)),
-              J.ubu(h("k"), x, D, H),
-              zt(h("c"), !V, 42, 0),
-              c(),
-              J.ubu(c("j"), J.drawingBufferWidth, J.drawingBufferHeight, P),
-              A ? J.ubu(c("k"), 0, 0, 0) : J.ubu(c("k"), x, D, H),
-              J.uae(c("b"), !1, m(l.inverse())),
+              i[0](),
+              i[1](),
+              J.uae(c("a"), !1, ct(hC.clientHeight / hC.clientWidth * 1.732051, 1.732051, .3, 177)),
+              J.uae(c("b"), !1, m(l)),
+              J.ubu(c("k"), x, D, H),
+              zt(c("c"), !V, 42, 0),
+              n(),
+              J.ubu(n("j"), J.drawingBufferWidth, J.drawingBufferHeight, P),
+              A ? J.ubu(n("k"), 0, 0, 0) : J.ubu(n("k"), x, D, H),
+              J.uae(n("b"), !1, m(l.inverse())),
               J.d97(4, 3, 5123, 0),
-              J.b6o(36160, n),
+              J.b6o(36160, f),
               J.f1s();
           },
-          r = J.c5w(),
-          n = J.c5w(),
-          t = J.c3z(),
-          a = J.c25(),
-          e = dt(`#version 300 es
+          t = dt(`#version 300 es
 layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 a,b,c[39];void main(){mat4 i=c[max(0,abs(int(f.w))-1)+gl_InstanceID];l=mix(d,vec4(.7,1,.2,0),d.w>0.?0.:1.-i[3][3]),i[3][3]=1.,n=f,m=i*vec4(f.xyz,1),gl_Position=a*b*m,m.w=f.w,o=i*vec4(e,0);}`),
-          o = pt(
+          r = pt(
             dt(`#version 300 es
 in vec4 f;uniform mat4 b,c[39];void main(){gl_Position=b*c[max(0,abs(int(f.w))-1)+gl_InstanceID]*vec4(f.xyz,1);}`),
             `#version 300 es
 void main(){}`,
           ),
-          c = pt(
+          n = pt(
             dt(`#version 300 es
 in vec4 f;void main(){gl_Position=vec4(f.xy,1,1);}`),
             `#version 300 es
 precision highp float;uniform vec3 j,k;uniform mat4 b;uniform highp sampler2D q;out vec4 O;void main(){vec2 t=gl_FragCoord.xy/j.xy*2.-1.;vec3 e=(normalize(b*vec4(t.x*-(j.x/j.y),-t.y,1.73205,0.))).xyz;float i=(-32.-k.y)/e.y,o=1.-clamp(abs(i/9999.),0.,1.);if(O=vec4(0,0,0,1),o>.01){if(i>0.){float o=cos(j.z/30.),i=sin(j.z/30.);e.xz*=mat2(o,i,-i,o);vec3 t=abs(e);O.xyz=vec3(dot(vec2(texture(q,e.xy).z,texture(q,e.yz*2.).z),t.zx)*t.y);}else e=k+e*i,O.x=(o*=.9-texture(q,e.xz/150.+vec2(sin(e.z/35.+j.z),cos(e.x/25.+j.z))/80.).y),O.y=o*o*o;}}`,
           ),
-          i = pt(
-            e,
+          o = pt(
+            t,
             `#version 300 es
 precision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(m.xyz,1);float r=1.-min(abs(a.z/a.w),1.);O=vec4(vec2(r*(gl_FragCoord.y>31.?1.:abs(o.y))),r>0.?m.w/255.:0.,1);}`,
           ),
-          h = pt(
-            e,
+          c = pt(
+            t,
             `#version 300 es
 precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform highp sampler2DShadow g,h;uniform highp sampler2D q;out vec4 O;void main(){vec4 s=vec4(m.xyz,1);vec3 e=normalize(o.xyz),v=l.w*(texture(q,n.yz*.035)*e.x+texture(q,n.xz*.035)*e.y+texture(q,n.xy*.035)*e.z).xyz;e=normalize(e+v*.5);float a=dot(e,vec3(-.656059,.666369,-.35431468)),t=1.,u=abs((b*s).z);vec4 r=(u<55.?i:j)*s;if(r=r/r.w*.5+.5,r.z<1.){t=0.;for(float e=-1.;e<=1.;++e)for(float a=-1.;a<=1.;++a){vec3 x=vec3(r.xy+vec2(e,a)/2048.,r.z-.00017439);t+=u<55.?texture(g,x):texture(h,x);}t/=9.;}vec3 x=l.xyz*(1.-v.x);float c=max(max(abs(e.x),abs(e.z))*.3-e.y,0.)*pow(max(0.,(8.-m.y)/48.),1.6);O=vec4(vec3(c,c*c*.5,0)+vec3(.09,.05,.11)*x+x*(max(0.,a)*.5+x*a*a*vec3(.5,.45,.3))*(t*.75+.25)+vec3(.6,.6,.5)*pow(max(0.,dot(normalize(m.xyz-k),reflect(vec3(-.656059,.666369,-.35431468),e))),35.)*t,1);}`,
           ),
-          f = (i(),
-            J.uae(i("a"), !1, ct(1.4, .59, 1e-4, 1)),
-            c(),
-            J.ubh(c("q"), 3),
-            h(),
-            J.ubh(h("q"), 3),
-            g(2, t => {
-              let a = new Float32Array(16), e = J.c25(), l = h(t ? "j" : "i");
-              return J.ubh(h(t ? "h" : "g"), t),
-                J.b6o(36160, r),
-                J.d45([0]),
-                J.r9l(0),
-                J.a4v(33984 + t),
-                J.b9j(3553, e),
-                J.t60(3553, 0, 33190, 2048, 2048, 0, 6402, 5125, null),
-                J.t2z(3553, 10241, 9729),
-                J.t2z(3553, 10240, 9729),
-                J.t2z(3553, 34893, 515),
-                J.t2z(3553, 34892, 34894),
-                J.t2z(3553, 10243, 33071),
-                J.t2z(3553, 10242, 33071),
-                t => {
-                  t
-                    ? (m(t, a),
-                      J.uae(o("b"), !1, a),
-                      J.fas(36160, 36096, 3553, e, 0),
-                      J.c4s(256),
-                      zt(o("c"), !V, 42, 1))
-                    : J.uae(l, !1, a);
-                };
-            }));
-        J.e8z(2929),
-          J.e8z(2884),
-          J.c70(1),
-          J.c7a(1029),
-          J.d4n(515),
-          J.c5t(0, 0, 0, 1),
-          J.b6o(36160, n),
+          i = g(2, a => {
+            let e = new Float32Array(16), l = J.c25();
+            return J.a4v(33984 + a),
+              J.b9j(3553, l),
+              J.t60(3553, 0, 33190, 2048, 2048, 0, 6402, 5125, null),
+              J.t2z(3553, 10241, 9729),
+              J.t2z(3553, 10240, 9729),
+              J.t2z(3553, 34893, 515),
+              J.t2z(3553, 34892, 34894),
+              J.t2z(3553, 10243, 33071),
+              J.t2z(3553, 10242, 33071),
+              t => {
+                t
+                  ? (m(t, e), J.uae(r("b"), !1, e), J.fas(36160, 36096, 3553, l, 0), J.c4s(256), zt(r("c"), !V, 42, 1))
+                  : J.uae(c(a ? "j" : "i"), !1, e);
+              };
+          }),
+          h = J.c5w(),
+          f = (t = J.c3z(), J.c5w()),
+          a = J.c25();
+        o(),
+          J.uae(o("a"), !1, ct(1.4, .59, 1e-4, 1)),
+          c(),
+          J.ubh(c("q"), 2),
+          J.ubh(c("h"), 1),
+          J.ubh(c("g"), 0),
+          n(),
+          J.ubh(n("q"), 2),
+          J.b6o(36160, h),
+          J.d45([0]),
+          J.r9l(0),
+          J.b6o(36160, f),
           J.bb1(36161, t),
           J.r4v(36161, 33189, 128, 128),
           J.f8w(36160, 36096, 36161, t),
-          J.a4v(33987),
+          J.a4v(33986),
           J.b9j(3553, a),
           J.t60(3553, 0, 6407, 128, 128, 0, 6407, 5121, null),
           J.fas(36160, 36064, 3553, a, 0),
-          J.a4v(33987),
           J.b9j(3553, J.c25()),
           J.t60(3553, 0, 6408, 1024, 1024, 0, 6408, 5121, l),
           J.gbn(3553),
           J.t2z(3553, 10241, 9987),
-          J.t2z(3553, 10240, 9729);
+          J.t2z(3553, 10240, 9729),
+          J.e8z(2929),
+          J.e8z(2884),
+          J.c70(1),
+          J.c7a(1029),
+          J.d4n(515),
+          J.c5t(0, 0, 0, 1);
         try {
           let [e, l, t, a, s] = JSON.parse(localStorage.DanteSP22);
           O.map((t, a) => t.g = t.i = t.j = a ? 0 | e[a] : 0), R.map((t, a) => t.j = 0 | l[a]), T = t, k = a, j = s;
@@ -628,13 +623,13 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   }
                   n && (v = 1),
                     p = G(p, v ? 6.5 : 8, 4),
-                    i.y += a / 41 - (v ? 1 : p) * e / 41 * p * B,
+                    i.y += a / 41 - (v || p) * e / 41 * p * B,
                     c ? n && (c = 0, u = n) : u = n || M,
                     M = n;
                 })(),
-                r = K(1 - 5 * E(S < 0 ? -S : S, Y < 0 ? -Y : Y)),
                 I = G(I, 0, v ? 8 : 4),
                 A = G(A, 0, v ? 8 : 4),
+                r = K(1 - 5 * E(S < 0 ? -S : S, Y < 0 ? -Y : Y)),
                 u || (S += I * r * B, Y += A * r * B),
                 b = G(b, v ? (s ? v ? 7 : 4 : 0) * r : 0, v ? .1 < r ? 10 : s ? 5 : 7 : 1),
                 s = Math.sin(r = V ? z * X : Math.PI) * b * B,
@@ -669,10 +664,10 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                           M = u = O[T].s.F,
                           c = 2),
                         P = et(G(P, e, 2), e, 8 * U(P - e)),
+                        void 0 === C && (x = C = a, D = (F = P = e) + 13, H = (j = l) + -36),
                         C = G(C, a, tt(E(.4, U(C - a) - 1.5))),
                         F = G(F, e, tt(E(.4, U(F - e) - 2.2))),
                         j = G(j, l, tt(E(.4, U(j - l) - 1.5))),
-                        void 0 === C && (x = C = a, D = (F = P = e) + 13, H = (j = l) + -36),
                         V
                           ? (x = G(x, a, 666 * c + 18), D = G(D, P + 1.5, 666 * c + 18), H = G(H, l, 666 * c + 18))
                           : (x = G(x, C, 2),
@@ -689,8 +684,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   });
                 })();
             },
-              v =
-                d =
+              d =
                 I =
                 A =
                 p =

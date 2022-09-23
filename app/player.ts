@@ -175,7 +175,7 @@ export const player_init = () => {
 
     // push up and gravity
     player_position_global.y +=
-      lines / 41 - (player_has_ground ? 1 : player_gravity) * (grav / 41) * player_gravity * gameTimeDelta;
+      lines / 41 - (player_has_ground || player_gravity) * (grav / 41) * player_gravity * gameTimeDelta;
 
     if (player_respawned) {
       // keep the previous modelId until the player touch ground
@@ -255,17 +255,17 @@ export const player_init = () => {
 
     player_model_y = lerp(lerpDamp(player_model_y, y, 2), y, abs(player_model_y - y) * 8);
 
+    if (camera_lookat_x === undefined) {
+      camera_position.x = camera_lookat_x = x;
+      camera_position.y = (camera_lookat_y = player_model_y = y) + CAMERA_PLAYER_Y_DIST;
+      camera_position.z = (camera_lookat_z = z) + CAMERA_PLAYER_Z_DIST * 2;
+    }
+
     camera_lookat_x = interpolate_with_hysteresis(camera_lookat_x, x, 1.5);
     camera_lookat_y = interpolate_with_hysteresis(camera_lookat_y, y, 2.2);
     camera_lookat_z = interpolate_with_hysteresis(camera_lookat_z, z, 1.5);
 
     if (!DEBUG_CAMERA) {
-      if (camera_lookat_x === undefined) {
-        camera_position.x = camera_lookat_x = x;
-        camera_position.y = (camera_lookat_y = player_model_y = y) + CAMERA_PLAYER_Y_DIST;
-        camera_position.z = (camera_lookat_z = z) + CAMERA_PLAYER_Z_DIST * 2;
-      }
-
       if (player_first_person) {
         camera_position.x = lerpDamp(camera_position.x, x, player_respawned * 666 + 18);
         camera_position.y = lerpDamp(camera_position.y, player_model_y + 1.5, player_respawned * 666 + 18);
@@ -371,10 +371,9 @@ export const player_init = () => {
     NO_INLINE(doHorizontalCollisions)();
     NO_INLINE(doVerticalCollisions)();
 
-    const playerSpeedCollision = clamp01(1 - max(abs(player_collision_x), abs(player_collision_z)) * 5);
-
     player_collision_velocity_x = lerpDamp(player_collision_velocity_x, 0, player_has_ground ? 8 : 4);
     player_collision_velocity_z = lerpDamp(player_collision_velocity_z, 0, player_has_ground ? 8 : 4);
+    const playerSpeedCollision = clamp01(1 - max(abs(player_collision_x), abs(player_collision_z)) * 5);
     if (!currentModelId) {
       player_collision_x += player_collision_velocity_x * playerSpeedCollision * gameTimeDelta;
       player_collision_z += player_collision_velocity_z * playerSpeedCollision * gameTimeDelta;
