@@ -50,6 +50,15 @@ nav {
   border-radius: 1em;
   padding: 1em;
 }
+#b5,
+h3 {
+  padding: 10px;
+}
+h3 {
+  text-align: right;
+  right: 5%;
+  bottom: 0;
+}
 a,
 li {
   cursor: pointer;
@@ -62,18 +71,7 @@ a:hover,
 li:hover {
   border-bottom: 3px solid;
 }
-h3,
 main,
 .m h4 {
   display: none;
-}
-.l h3 {
-  text-align: right;
-  right: 5%;
-  bottom: 0;
-}
-.l #b5,
-.l h3 {
-  display: block;
-  padding: 10px;
 }

@@ -65,6 +65,20 @@ nav {
   padding: 1em;
 }
 
+/* menu hamburger */
+#b5,
+/* souls counter */
+h3 {
+  padding: 10px;
+}
+
+/* souls counter */
+h3 {
+  text-align: right;
+  right: 5%;
+  bottom: 0;
+}
+
 /* links */
 a,
 /* menu buttons */
@@ -84,26 +98,9 @@ li:hover {
   border-bottom: 3px solid;
 }
 
-/* hide souls counter by default */
-h3,
 /* hide main menu by default */
 main,
 /* hide messages if in menu */
 .m h4 {
   display: none;
-}
-
-/* souls counter */
-.l h3 {
-  text-align: right;
-  right: 5%;
-  bottom: 0;
-}
-
-/* souls counter */
-.l #b5,
-/* menu hamburger */
-.l h3 {
-  display: block;
-  padding: 10px;
 }

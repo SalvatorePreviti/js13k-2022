@@ -531,8 +531,8 @@ const worldStateUpdate = () => {
   for (const lever of levers) lever._update();
   for (const soul of souls) soul._update();
 };
-const updateCollectedSoulsCounter = () =>
-  h3.innerHTML = [
+const updateCollectedSoulsCounter = () => {
+  h3.innerHTML = "Souls: " + [
     "0",
     "I",
     "II",
@@ -547,7 +547,8 @@ const updateCollectedSoulsCounter = () =>
     "XI",
     "XII",
     "XIII",
-  ][souls_collected_count = souls.reduce((acc, { $value }) => acc + $value, 0)];
+  ][souls_collected_count = souls.reduce((acc, { $value }) => acc + $value, 0)] + " / XIII";
+};
 const saveGame = () => {
   localStorage["DanteSP22"] = JSON.stringify([
     levers.map(({ $value }) => $value),
@@ -2921,8 +2922,9 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
 
   <body>
     <canvas id="hC"></canvas>
-    <h3>Souls: <b id="h3"></b> / XIII</h3>
     <h4 id="h4">loading</h4>
+    <b id="b5">☰</b>
+    <h3 id="h3"></h3>
     <main>
       <nav>
         <h2>DANTE</h2>
@@ -2942,7 +2944,6 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
         </p>
       </nav>
     </main>
-    <b id="b5">☰</b>
     
   
 
@@ -2998,6 +2999,15 @@ nav {
   border-radius: 1em;
   padding: 1em;
 }
+#b5,
+h3 {
+  padding: 10px;
+}
+h3 {
+  text-align: right;
+  right: 5%;
+  bottom: 0;
+}
 a,
 li {
   cursor: pointer;
@@ -3010,19 +3020,8 @@ a:hover,
 li:hover {
   border-bottom: 3px solid;
 }
-h3,
 main,
 .m h4 {
   display: none;
-}
-.l h3 {
-  text-align: right;
-  right: 5%;
-  bottom: 0;
-}
-.l #b5,
-.l h3 {
-  display: block;
-  padding: 10px;
 }
 `);

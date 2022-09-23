@@ -150,10 +150,14 @@ export const worldStateUpdate = () => {
   }
 };
 
-export const updateCollectedSoulsCounter = () =>
-  (h3.innerHTML = ["0", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII"][
-    (souls_collected_count = souls.reduce((acc, { $value }) => acc + $value, 0))
-  ]!);
+export const updateCollectedSoulsCounter = () => {
+  h3.innerHTML =
+    "Souls: " +
+    ["0", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII"][
+      (souls_collected_count = souls.reduce((acc, { $value }) => acc + $value, 0))
+    ]! +
+    " / XIII";
+};
 
 export const loadGame = () => {
   try {

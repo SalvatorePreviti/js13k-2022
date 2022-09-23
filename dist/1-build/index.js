@@ -385,7 +385,9 @@ const worldStateUpdate = () => {
     for (const soul of souls) soul._update();
 };
 
-const updateCollectedSoulsCounter = () => h3.innerHTML = [ "0", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII" ][souls_collected_count = souls.reduce(((acc, {$value}) => acc + $value), 0)];
+const updateCollectedSoulsCounter = () => {
+    h3.innerHTML = "Souls: " + [ "0", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII" ][souls_collected_count = souls.reduce(((acc, {$value}) => acc + $value), 0)] + " / XIII";
+};
 
 const saveGame = () => {
     localStorage["DanteSP22"] = JSON.stringify([ levers.map((({$value}) => $value)), souls.map((({$value}) => $value)), player_last_pulled_lever, gameTime, secondBoatLerp ]);
