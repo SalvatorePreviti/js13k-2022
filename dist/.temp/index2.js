@@ -13,55 +13,174 @@ let touch_movementY = 0;
 let gameTimeDelta = 0.066;
 let _messageEndTime = 1;
 let mainMenuVisible;
-
 let _globalTime;
-
 let currentEditModel;
 let player_first_person;
 let player_update;
 const MODEL_ID_PLAYER_LEG0 = 38;
 const MODEL_ID_PLAYER_LEG1 = 39;
-const GQuad = [{
-  x: -1,
-  z: 1,
-}, {
-  x: 1,
-  z: 1,
-}, {
-  x: 1,
-  z: -1,
-}, {
-  x: -1,
-  z: -1,
-}];
+const GQuad = [
+  {
+    x: -1,
+    z: 1,
+  },
+  {
+    x: 1,
+    z: 1,
+  },
+  {
+    x: 1,
+    z: -1,
+  },
+  {
+    x: -1,
+    z: -1,
+  },
+];
 const allModels = [];
 const levers = [];
 const souls = [];
 const keyboard_downKeys = [];
-const song_instruments = [[69, 128, 0, 143, 128, 0, 0, 196, 100, 36, 0, 0, 149, 110, 31, 47, 3, 56, 2, 0, [
-  "(.15:15:=5:=A:=AF=AFIFIMRMRUY(Y(((((((((((((((((((((((((((((M(M(((((((((((((((((((((((((((((R(R(((((((((((((((((((((((((((((U(U",
-  "(059<59<A9<AE<AEHAEHMEHMQMQTY(Y",
-  "(5:>A:>AF>AFJAFJMFJMRJMRVMRVY(Y",
-  "(:?BFFKNRRWZ^(^((:=@FFILRRUX^(^",
-  "Q(M(M(O(Q(R(T(Q(T(R(W(U(T(R(Q(N(W((Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(X]",
-  "QN(M(N(M(N(M(N(M((((((((((((((((W(Y(Y(Y(Y(Y(Y(Y(Y(((((((((((((((]",
-]], [100, 128, 0, 201, 128, 0, 0, 100, 144, 35, 0, 6, 135, 0, 32, 147, 6, 0, 6, 195, [
-  ".(5(.(5(.(5(.(5(.(5(.(5(.(5(.(5",
-  "-(5(-(5(-(5(-(5(-(5(-(5(-(5(-(5",
-  ",(5(,(5(,(5(,(5(,(5(,(5(,(5(,(5",
-  "*(6(*(6(*(6(*(6(*(6(*(6(*(6(*(6",
-  "5(E(E(F(H(I(K(H(K(I(N(M(K(I(H(F(A(((((((((((((((((((((((((((((((5(((5(((5(((5(((5(((5(((5(((5",
-  "5(6(5(6(5(6(5(6(5((()(((((((((((A(B(A(B(A(B(A(B(A(((5",
-]], [255, 116, 85, 255, 116, 37, 14, 64, 144, 73, 99, 0, 136, 15, 32, 0, 0, 66, 6, 0, [
-  "9(((9(((9(((9(((9(((9(((9(((9",
-  "9(((Q(((Q(((Q",
-]], [0, 140, 0, 0, 140, 0, 81, 64, 400, 47, 55, 5, 239, 135, 13, 176, 5, 16, 4, 187, [
-  "9(9(9(9(9(9(9(999(9(9(9(999(9(9",
-  "9(9(9(9(9(999(9(((((Q",
-]], [221, 128, 64, 210, 128, 64, 255, 64, 144, 73, 79, 7, 195, 15, 21, 20, 0, 9, 3, 64, [
-  "((((Q(((((((Q(((((((Q(((((((Q",
-  "Q((Q((Q((Q((Q((Q((((Q",
-]]];
+const song_instruments = [
+  [
+    69,
+    128,
+    0,
+    143,
+    128,
+    0,
+    0,
+    196,
+    100,
+    36,
+    0,
+    0,
+    149,
+    110,
+    31,
+    47,
+    3,
+    56,
+    2,
+    0,
+    [
+      "(.15:15:=5:=A:=AF=AFIFIMRMRUY(Y(((((((((((((((((((((((((((((M(M(((((((((((((((((((((((((((((R(R(((((((((((((((((((((((((((((U(U",
+      "(059<59<A9<AE<AEHAEHMEHMQMQTY(Y",
+      "(5:>A:>AF>AFJAFJMFJMRJMRVMRVY(Y",
+      "(:?BFFKNRRWZ^(^((:=@FFILRRUX^(^",
+      "Q(M(M(O(Q(R(T(Q(T(R(W(U(T(R(Q(N(W((Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(X]",
+      "QN(M(N(M(N(M(N(M((((((((((((((((W(Y(Y(Y(Y(Y(Y(Y(Y(((((((((((((((]",
+    ],
+  ],
+  [
+    100,
+    128,
+    0,
+    201,
+    128,
+    0,
+    0,
+    100,
+    144,
+    35,
+    0,
+    6,
+    135,
+    0,
+    32,
+    147,
+    6,
+    0,
+    6,
+    195,
+    [
+      ".(5(.(5(.(5(.(5(.(5(.(5(.(5(.(5",
+      "-(5(-(5(-(5(-(5(-(5(-(5(-(5(-(5",
+      ",(5(,(5(,(5(,(5(,(5(,(5(,(5(,(5",
+      "*(6(*(6(*(6(*(6(*(6(*(6(*(6(*(6",
+      "5(E(E(F(H(I(K(H(K(I(N(M(K(I(H(F(A(((((((((((((((((((((((((((((((5(((5(((5(((5(((5(((5(((5(((5",
+      "5(6(5(6(5(6(5(6(5((()(((((((((((A(B(A(B(A(B(A(B(A(((5",
+    ],
+  ],
+  [
+    255,
+    116,
+    85,
+    255,
+    116,
+    37,
+    14,
+    64,
+    144,
+    73,
+    99,
+    0,
+    136,
+    15,
+    32,
+    0,
+    0,
+    66,
+    6,
+    0,
+    [
+      "9(((9(((9(((9(((9(((9(((9(((9",
+      "9(((Q(((Q(((Q",
+    ],
+  ],
+  [
+    0,
+    140,
+    0,
+    0,
+    140,
+    0,
+    81,
+    64,
+    400,
+    47,
+    55,
+    5,
+    239,
+    135,
+    13,
+    176,
+    5,
+    16,
+    4,
+    187,
+    [
+      "9(9(9(9(9(9(9(999(9(9(9(999(9(9",
+      "9(9(9(9(9(999(9(((((Q",
+    ],
+  ],
+  [
+    221,
+    128,
+    64,
+    210,
+    128,
+    64,
+    255,
+    64,
+    144,
+    73,
+    79,
+    7,
+    195,
+    15,
+    21,
+    20,
+    0,
+    9,
+    3,
+    64,
+    [
+      "((((Q(((((((Q(((((((Q(((((((Q",
+      "Q((Q((Q((Q((Q((Q((((Q",
+    ],
+  ],
+];
 const player_position_final = {
   x: 0,
   y: 0,
@@ -81,52 +200,31 @@ const DEG_TO_RAD = Math.PI / 180;
 const identity = new DOMMatrix();
 const float32Array16Temp = new Float32Array(16);
 const worldMatricesBuffer = new Float32Array(624);
-
 const integers_map = (n, fn) => Array.from(Array(n), (_, i) => fn(i));
-
 const min = (a, b) => a < b ? a : b;
-
 const max = (a, b) => b < a ? a : b;
-
-const abs = n => n < 0 ? -n : n;
-
+const abs = (n) => n < 0 ? -n : n;
 const threshold = (value, amount) => abs(value) > amount ? value : 0;
-
-const clamp01 = t => t < 0 ? 0 : 1 < t ? 1 : t;
-
+const clamp01 = (t) => t < 0 ? 0 : 1 < t ? 1 : t;
 const lerp = (a, b, t) => a + (b - a) * clamp01(t);
-
 const lerpneg = (v, t) => (v = clamp01(v), lerp(v, 1 - v, t));
-
-const angle_wrap_degrees = degrees => Math.atan2(Math.sin(degrees *= DEG_TO_RAD), Math.cos(degrees)) / DEG_TO_RAD;
-
+const angle_wrap_degrees = (
+  degrees,
+) => (degrees *= DEG_TO_RAD, Math.atan2(Math.sin(degrees), Math.cos(degrees)) / DEG_TO_RAD);
 const angle_lerp_degrees = (a0, a1, t) =>
   ((a0 *= DEG_TO_RAD) + (2 * (a1 = (a1 * DEG_TO_RAD - a0) % (2 * Math.PI)) % (2 * Math.PI) - a1) * clamp01(t))
   / DEG_TO_RAD;
-
-const vec3_distance = ({
-  x,
-  y,
-  z,
-}, b) => Math.hypot(x - b.x, y - b.y, z - b.z);
-
-const vec3_dot = ({
-  x,
-  y,
-  z,
-}, b) => x * b.x + y * b.y + z * b.z;
-
-const plane_fromPolygon = polygon => {
+const vec3_distance = ({ x, y, z }, b) => Math.hypot(x - b.x, y - b.y, z - b.z);
+const vec3_dot = ({ x, y, z }, b) => x * b.x + y * b.y + z * b.z;
+const plane_fromPolygon = (polygon) => {
   let x = 0;
   let y = 0;
   let z = 0;
   let b;
   let a = polygon.at(-1);
-
   for (b of polygon) {
     x += (a.y - b.y) * (a.z + b.z), y += (a.z - b.z) * (a.x + b.x), z += (a.x - b.x) * (a.y + b.y), a = b;
   }
-
   return b = Math.hypot(x, y, z), x /= b, y /= b, z /= b, {
     x,
     y,
@@ -134,7 +232,6 @@ const plane_fromPolygon = polygon => {
     w: x * a.x + y * a.y + z * a.z,
   };
 };
-
 const matrixToArray = (
   $matrix,
   output = float32Array16Temp,
@@ -157,35 +254,36 @@ const matrixToArray = (
   output[index2++] = $matrix.m43,
   output[index2] = $matrix.m44,
   output);
-
-const mat_perspectiveXY = (
+const mat_perspectiveXY = (mx, my, near, far) => [
   mx,
+  0,
+  0,
+  0,
+  0,
   my,
-  near,
-  far,
-) => [mx, 0, 0, 0, 0, my, 0, 0, 0, 0, (far + near) / (near - far), -1, 0, 0, 2 * far * near / (near - far), 0];
-
+  0,
+  0,
+  0,
+  0,
+  (far + near) / (near - far),
+  -1,
+  0,
+  0,
+  2 * far * near / (near - far),
+  0,
+];
 const polygon_color = (polygon, color, smooth) => (polygon.$smooth = smooth, polygon.$color = color, polygon);
-
 const polygon_transform = (polygon, m, color = polygon.$color) =>
   polygon_color(
-    polygon.map(p => {
+    polygon.map((p) => {
       let y;
       let z;
-      return ({
-        x: p,
-        y,
-        z,
-      } = p),
-        ({
+      return { x: p, y, z } = p,
+        { x: p, y, z } = m.transformPoint({
           x: p,
           y,
           z,
-        } = m.transformPoint({
-          x: p,
-          y,
-          z,
-        })),
+        }),
         {
           x: p,
           y,
@@ -195,11 +293,9 @@ const polygon_transform = (polygon, m, color = polygon.$color) =>
     color,
     polygon.$smooth,
   );
-
-const polygons_transform = (polygons, m, color) => polygons.map(polygon => polygon_transform(polygon, m, color));
-
+const polygons_transform = (polygons, m, color) => polygons.map((polygon) => polygon_transform(polygon, m, color));
 const polygon_regular = (segments, elongate = 0) =>
-  integers_map(segments, i => {
+  integers_map(segments, (i) => {
     const z = Math.cos(2 * Math.PI * i / segments);
     return {
       x: Math.sin(2 * Math.PI * i / segments),
@@ -207,18 +303,19 @@ const polygon_regular = (segments, elongate = 0) =>
       z: abs(z) < 0.01 ? z : z < 0 ? z - elongate : z + elongate,
     };
   });
-
 const cylinder_sides = (btm, top, smooth) =>
-  btm.map((btmi, i, {
-    length,
-  }) =>
+  btm.map((btmi, i, { length }) =>
     polygon_color(
-      [btmi, top[length - i - 1], top[length - (i + 1) % length - 1], btm[(i + 1) % length]],
+      [
+        btmi,
+        top[length - i - 1],
+        top[length - (i + 1) % length - 1],
+        btm[(i + 1) % length],
+      ],
       btm.$color,
       smooth,
     )
   );
-
 const cylinder = (
   segments,
   smooth,
@@ -227,19 +324,20 @@ const cylinder = (
 ) => (segments = segments ? polygon_regular(segments, elongate) : GQuad,
   elongate = polygon_transform(segments, identity.translate(0, 1).scale3d(0 < topSize ? topSize : 1)),
   segments = polygon_transform(segments, identity.translate(0, -1).scale3d(topSize < 0 ? -topSize : 1)).reverse(),
-  [...cylinder_sides(segments, elongate, smooth), elongate, segments]);
-
+  [
+    ...cylinder_sides(segments, elongate, smooth),
+    elongate,
+    segments,
+  ]);
 const sphere = (slices, stacks = slices, vertexFunc = (x, y) => (y *= Math.PI / stacks, {
   x: Math.cos(x *= 2 * Math.PI / slices) * Math.sin(y),
   y: Math.cos(y),
   z: Math.sin(x) * Math.sin(y),
 })) => {
   const polygons = [];
-
   for (let i = 0; slices > i; i++) {
     for (let j = 0; stacks > j; j++) {
       const vertex = (x, y) => polygon.push(vertexFunc(x, y, polygon));
-
       const polygon = polygon_color([], 0, 1);
       polygons.push(polygon),
         vertex(i, j),
@@ -248,32 +346,25 @@ const sphere = (slices, stacks = slices, vertexFunc = (x, y) => (y *= Math.PI / 
         vertex(i, j + 1 % stacks);
     }
   }
-
   return polygons;
 };
-
 const CSGPolygon_split = (plane, polygon) => {
   let d;
   let $front;
   let $back;
   const $polygon = polygon.$polygon;
-
   for (let i = 0; $polygon.length > i; ++i) {
     if (
       (d = vec3_dot(plane, $polygon[i]) - plane.w) < -0.00008 ? $back = polygon : 8e-5 < d && ($front = polygon),
         $back && $front
     ) {
       return ((plane2, polygon2) => {
+        let jd;
         const fpoints = [];
         const bpoints = [];
-        let jd;
-        const {
-          $polygon: $polygon2,
-          $flipped,
-        } = polygon2;
+        const { $polygon: $polygon2, $flipped } = polygon2;
         let iv = $polygon2.at(-1);
         let id = vec3_dot(plane2, iv) - plane2.w;
-
         for (const jv of $polygon2) {
           jd = vec3_dot(plane2, jv) - plane2.w,
             id < 8e-5 && bpoints.push(iv),
@@ -289,7 +380,6 @@ const CSGPolygon_split = (plane, polygon) => {
             iv = jv,
             id = jd;
         }
-
         return {
           $front: 2 < fpoints.length && {
             $polygon: polygon_color(fpoints, $polygon2.$color, $polygon2.$smooth),
@@ -305,64 +395,47 @@ const CSGPolygon_split = (plane, polygon) => {
       })(plane, polygon);
     }
   }
-
   return {
     $front,
     $back,
   };
 };
-
 const csg_tree_addPolygon = (node, polygon, plane = plane_fromPolygon(polygon.$polygon)) => {
   let $front;
   let $back;
   let w;
   return node
-    ? (({
-      $front,
-      $back,
-    } = CSGPolygon_split(node, polygon)),
+    ? ({ $front, $back } = CSGPolygon_split(node, polygon),
       $front || $back || node.$polygons.push(polygon),
       $front && (node.$front = csg_tree_addPolygon(node.$front, $front, plane)),
       $back && (node.$back = csg_tree_addPolygon(node.$back, $back, plane)))
-    : (({
-      x: $front,
-      y: $back,
-      z: plane,
-      w,
-    } = plane),
+    : ({ x: $front, y: $back, z: plane, w } = plane,
       node = {
         x: $front,
         y: $back,
         z: plane,
         w,
-        $polygons: [polygon],
+        $polygons: [
+          polygon,
+        ],
         $front: 0,
         $back: 0,
       }),
     node;
 };
-
 const csg_tree_clipNode = (anode, bnode, polygonPlaneFlipped) => {
   const result = [];
-
   const recursion = (node, polygon) => {
-    let {
-      $front,
-      $back,
-    } = CSGPolygon_split(node, polygon);
+    let { $front, $back } = CSGPolygon_split(node, polygon);
     $front || $back || (0 < polygonPlaneFlipped * vec3_dot(node, bnode) ? $front = polygon : $back = polygon),
       $front && (node.$front ? recursion(node.$front, $front) : result.push($front)),
       $back && node.$back && recursion(node.$back, $back);
   };
-
   for (const polygon of bnode.$polygons) recursion(anode, polygon);
-
   return result;
 };
-
 const csg_tree_each = (node, fn) => node && (fn(node), csg_tree_each(node.$front, fn), csg_tree_each(node.$back, fn));
-
-const csg_tree = n =>
+const csg_tree = (n) =>
   n.length
     ? n.reduce((prev, $polygon) =>
       csg_tree_addPolygon(prev, {
@@ -371,40 +444,33 @@ const csg_tree = n =>
         $parent: 0,
       }), 0)
     : n;
-
-const csg_tree_flip = root => (csg_tree_each(root, node => {
-  const {
-    $front,
-    $back,
-  } = node;
+const csg_tree_flip = (root) => (csg_tree_each(root, (node) => {
+  const { $front, $back } = node;
   node.$back = $front, node.$front = $back, node.x *= -1, node.y *= -1, node.z *= -1, node.w *= -1;
-
   for (const polygon of node.$polygons) polygon.$flipped = !polygon.$flipped;
 }),
   root);
-
 const csg_union = (...inputs) =>
   inputs.reduce((a, b) => {
     const polygonsToAdd = [];
-
     if (a = csg_tree(a), b) {
       b = csg_tree(b),
-        csg_tree_each(a, node => node.$polygons = csg_tree_clipNode(b, node, 1)),
-        csg_tree_each(b, node => polygonsToAdd.push([node, csg_tree_clipNode(a, node, -1)]));
-
+        csg_tree_each(a, (node) => node.$polygons = csg_tree_clipNode(b, node, 1)),
+        csg_tree_each(b, (node) =>
+          polygonsToAdd.push([
+            node,
+            csg_tree_clipNode(a, node, -1),
+          ]));
       for (let [plane, polygons] of polygonsToAdd) for (const pp of polygons) csg_tree_addPolygon(a, pp, plane);
     }
-
     return a;
   });
-
 const csg_polygons_subtract = (...input) => {
   let b;
   {
     const byParent = new Map();
     const allPolygons = new Map();
-
-    const add = polygon => {
+    const add = (polygon) => {
       let found;
       return polygon.$parent
         && ((found = byParent.get(polygon.$parent))
@@ -412,20 +478,15 @@ const csg_polygons_subtract = (...input) => {
           : byParent.set(polygon.$parent, polygon)),
         polygon;
     };
-
-    return [input, ...b] = [...input],
+    return [input, ...b] = [
+      ...input,
+    ],
       input = csg_tree_flip(csg_union(csg_tree_flip(csg_tree(input)), ...b)),
-      csg_tree_each(input, node => {
+      csg_tree_each(input, (node) => {
         for (const polygon of node.$polygons) allPolygons.set(add(polygon), polygon.$flipped);
       }),
-      Array.from(allPolygons, ([{
-        $polygon,
-      }, flipped]) => {
-        const polygon = $polygon.map(({
-          x,
-          y,
-          z,
-        }) => ({
+      Array.from(allPolygons, ([{ $polygon }, flipped]) => {
+        const polygon = $polygon.map(({ x, y, z }) => ({
           x,
           y,
           z,
@@ -434,13 +495,10 @@ const csg_polygons_subtract = (...input) => {
       });
   }
 };
-
 const lerpDamp = (from, to, speed) => lerp(from, to, 1 - Math.exp(-speed * gameTimeDelta));
-
 const showMessage = (message, duration) => {
   1 / 0 > _messageEndTime && (_messageEndTime = gameTime + duration, h4.innerHTML = message);
 };
-
 const worldStateUpdate = () => {
   const shouldRotatePlatforms = lerpneg(levers[12].$lerpValue, levers[13].$lerpValue);
   rotatingHexCorridorRotation = lerp(
@@ -469,14 +527,10 @@ const worldStateUpdate = () => {
       ? (showMessage("Not leaving now, there are souls to catch!", 3), levers[0].$value = 0)
       : game_completed
         || (showMessage("Well done. They will be punished.<br>Thanks for playing", 1 / 0), game_completed = 1));
-
   for (const model of allModels) model._update && (model.$matrix = model._update());
-
   for (const lever of levers) lever._update();
-
   for (const soul of souls) soul._update();
 };
-
 const updateCollectedSoulsCounter = () =>
   h3.innerHTML = [
     "0",
@@ -493,26 +547,16 @@ const updateCollectedSoulsCounter = () =>
     "XI",
     "XII",
     "XIII",
-  ][
-    souls_collected_count = souls.reduce((acc, {
-      $value,
-    }) => acc + $value, 0)
-  ];
-
+  ][souls_collected_count = souls.reduce((acc, { $value }) => acc + $value, 0)];
 const saveGame = () => {
   localStorage["DanteSP22"] = JSON.stringify([
-    levers.map(({
-      $value,
-    }) => $value),
-    souls.map(({
-      $value,
-    }) => $value),
+    levers.map(({ $value }) => $value),
+    souls.map(({ $value }) => $value),
     player_last_pulled_lever,
     gameTime,
     secondBoatLerp,
   ]);
 };
-
 const newModel = (fn, $kind = 1) => {
   const previousModel = currentEditModel;
   var $kind = {
@@ -523,11 +567,9 @@ const newModel = (fn, $kind = 1) => {
   };
   return allModels.push(currentEditModel = $kind), fn($kind), currentEditModel = previousModel, $kind;
 };
-
 const meshAdd = (polygons, transform = identity, color) =>
   currentEditModel.$polygons.push(...polygons_transform(polygons, transform, color));
-
-const newLever = transform => {
+const newLever = (transform) => {
   const $parent = currentEditModel;
   const index2 = levers.length;
   const lever = {
@@ -535,14 +577,9 @@ const newLever = transform => {
     $lerpValue: 0,
     $lerpValue2: 0,
     $parent,
-
     _update() {
       let leverIndex;
-      const {
-        $value,
-        $lerpValue,
-        $lerpValue2,
-      } = lever;
+      const { $value, $lerpValue, $lerpValue2 } = lever;
       const locMatrix = $parent.$matrix.multiply(transform);
       lever.$locMatrix = locMatrix,
         vec3_distance(locMatrix.transformPoint(), player_position_final) < 3 && keyboard_downKeys[5]
@@ -561,7 +598,6 @@ const newLever = transform => {
     meshAdd(cylinder(5), transform.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5)),
     meshAdd(cylinder(), transform.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
 };
-
 const newSoul = (transform, ...walkingPath) => {
   let dirX = -1;
   let dirZ = 0;
@@ -573,36 +609,26 @@ const newSoul = (transform, ...walkingPath) => {
   let velocity = 3;
   const soul = {
     $value: 0,
-
     _update() {
       if (!soul.$value) {
+        let contextualVelocity = 1;
+        let mindist = 1 / 0;
         let x1;
         let z1;
         let w1;
         let ax;
         let az;
         let magnitude;
-        let contextualVelocity = 1;
-        let mindist = 1 / 0;
         let isInside;
-
         for (const c of circles) {
-          var {
-            x,
-            z,
-            w,
-          } = c;
+          var { x, z, w } = c;
           var z = (x = Math.hypot(targetX - x, targetZ - z)) - w;
           isInside ||= x < w,
             0 < z && mindist > z && (mindist = z, circle = c),
             contextualVelocity = min(contextualVelocity, x / w);
         }
-
-        isInside || (({
-          x: x1,
-          z: z1,
-          w: w1,
-        } = circle),
+        isInside
+        || ({ x: x1, z: z1, w: w1 } = circle,
           ax = targetX - x1,
           az = targetZ - z1,
           magnitude = Math.hypot(ax, az),
@@ -630,30 +656,28 @@ const newSoul = (transform, ...walkingPath) => {
         var angle = (soul.$matrix = parentModel.$matrix.multiply(
           transform.translate(soulX, 0, soulZ).rotateSelf(0, lookAngle, 7 * Math.sin(1.7 * gameTime)),
         )).transformPoint();
-        vec3_distance(angle, player_position_final) < 1.55
-          && (soul.$value = 1,
-            showMessage(
-              [
-                ,
-                "Mark Zuckemberg<br>made the world worse",
-                ,
-                "Andrzej Mazur<br>for the js13k competition",
-                "Donald Trump<br>lies",
-                "Kim Jong-un<br>Dictator, liked pineapple on pizza",
-                "Maxime Euziere<br>forced me to finish this game",
-                "She traded NFTs apes",
-                ,
-                "Vladimir Putin<br>evil war",
-                "He was not a good person",
-                ,
-                "Salvatore Previti<br>made this evil game<br><br>Done. Go back to the boat",
-              ][souls_collected_count] || "Catched a \"crypto bro\".<br>\"Web3\" is all scam, lies and grift",
-              souls_collected_count && souls_collected_count < 12 ? 5 : 7,
-            ),
-            updateCollectedSoulsCounter(),
-            saveGame());
+        vec3_distance(angle, player_position_final) < 1.55 && (soul.$value = 1,
+          showMessage(
+            [
+              ,
+              "Mark Zuckemberg<br>made the world worse",
+              ,
+              "Andrzej Mazur<br>for the js13k competition",
+              "Donald Trump<br>lies",
+              "Kim Jong-un<br>Dictator, liked pineapple on pizza",
+              "Maxime Euziere<br>forced me to finish this game",
+              "She traded NFTs apes",
+              ,
+              "Vladimir Putin<br>evil war",
+              "He was not a good person",
+              ,
+              "Salvatore Previti<br>made this evil game<br><br>Done. Go back to the boat",
+            ][souls_collected_count] || "Catched a \"crypto bro\".<br>\"Web3\" is all scam, lies and grift",
+            souls_collected_count && souls_collected_count < 12 ? 5 : 7,
+          ),
+          updateCollectedSoulsCounter(),
+          saveGame());
       }
-
       soul.$value
         && (soul.$matrix = allModels[2].$matrix.translate(
           index2 % 4 * 1.2 - 1.7 + Math.sin(gameTime + index2) / 7,
@@ -670,18 +694,13 @@ const newSoul = (transform, ...walkingPath) => {
     w,
   }));
   let circle = circles[0];
-  let {
-    x: targetX,
-    z: targetZ,
-  } = circle;
+  let { x: targetX, z: targetZ } = circle;
   let soulX = targetX;
   let soulZ = targetZ;
   souls.push(soul);
 };
-
 const mat_perspective = (near, far) =>
   mat_perspectiveXY(hC.clientHeight / hC.clientWidth * 1.732051, 1.732051, near, far);
-
 const csm_buildMatrix = (camera_view, nearPlane, farPlane, zMultiplier) => {
   let tx = 0;
   let ty = 0;
@@ -694,7 +713,7 @@ const csm_buildMatrix = (camera_view, nearPlane, farPlane, zMultiplier) => {
   let far = -1 / 0;
   const roundingRadius = 1.1 * (farPlane - nearPlane);
   const projViewInverse = new DOMMatrix(mat_perspective(nearPlane, farPlane)).multiplySelf(camera_view).invertSelf();
-  return nearPlane = integers_map(8, i => (i = projViewInverse.transformPoint({
+  return nearPlane = integers_map(8, (i) => (i = projViewInverse.transformPoint({
     x: 4 & i ? 1 : -1,
     y: 2 & i ? 1 : -1,
     z: 1 & i ? 1 : -1,
@@ -704,11 +723,7 @@ const csm_buildMatrix = (camera_view, nearPlane, farPlane, zMultiplier) => {
     tz -= i.z = (roundingRadius * i.z | 0) / roundingRadius / i.w,
     i)),
     farPlane = identity.rotate(298, 139).translateSelf(tx / 8, ty / 8, tz / 8),
-    polygon_transform(nearPlane, farPlane).map(({
-      x,
-      y,
-      z,
-    }) => {
+    polygon_transform(nearPlane, farPlane).map(({ x, y, z }) => {
       left = min(left, x),
         right = max(right, x),
         bottom = min(bottom, y),
@@ -724,7 +739,6 @@ const csm_buildMatrix = (camera_view, nearPlane, farPlane, zMultiplier) => {
       (near + far) / 2,
     ).multiplySelf(farPlane);
 };
-
 const initPage = () => {
   let music_on = !0;
   let touchStartTime;
@@ -739,27 +753,23 @@ const initPage = () => {
   let touchStartCameraRotX;
   let touchStartCameraRotY;
   let pageClicked;
-
   const updateMusicOnState = () => {
     mainMenuVisible || !music_on ? songAudioSource.disconnect() : songAudioSource.connect(audioContext.destination),
       b4.innerHTML = "Music: " + music_on;
   };
-
   const mainMenu = (value = !1) => {
+    let visible;
     if (mainMenuVisible !== value) {
-      mainMenuVisible = value;
-
+      visible = value, mainMenuVisible = visible;
       try {
         value ? (document.exitFullscreen().catch(() => {}), document.exitPointerLock()) : songAudioSource.start();
       } catch {}
-
       player_first_person = 0,
         document.body.className = value ? "l m" : "l",
         updateMusicOnState(),
         updateCollectedSoulsCounter();
     }
   };
-
   oncontextmenu = () => !1,
     b3.onclick = () => {
       confirm("Restart game?") && (localStorage["DanteSP22"] = "", location.reload());
@@ -774,22 +784,17 @@ const initPage = () => {
       music_on = !music_on, updateMusicOnState();
     },
     b5.onclick = () => mainMenu(!0),
-    onclick = e => {
+    onclick = (e) => {
       pageClicked = 1,
         mainMenuVisible
         || (e.target === hC && (keyboard_downKeys[5] = !0), player_first_person && hC.requestPointerLock());
     },
-    onkeyup = onkeydown = ({
-      code: code2,
-      target,
-      type,
-      repeat,
-    }) => {
+    onkeyup = onkeydown = ({ code: code2, target, type, repeat }) => {
       repeat
         || ((repeat = !!type[5] && target === document.body)
             && (code2 === "Escape" || code2 === "Enter" && mainMenuVisible)
           ? mainMenuVisible && !pageClicked || mainMenu(!mainMenuVisible)
-          : (type = {
+          : (type = ({
               "KeyA": 0,
               "ArrowLeft": 0,
               "KeyW": 1,
@@ -801,26 +806,17 @@ const initPage = () => {
               "KeyE": 5,
               "Space": 5,
               "Enter": 5,
-            }[code2]) === 5
+            })[code2]) === 5
           ? repeat && (keyboard_downKeys[type] = 1)
           : keyboard_downKeys[type] = repeat);
     },
-    onmousemove = ({
-      movementX,
-      movementY,
-    }) => {
+    onmousemove = ({ movementX, movementY }) => {
       player_first_person && (movementX || movementY)
         && (camera_rotation.y += 0.1 * movementX, camera_rotation.x += 0.1 * movementY);
     },
-    hC.ontouchstart = e => {
+    hC.ontouchstart = (e) => {
       if (!mainMenuVisible) {
-        for (
-          let {
-            pageX,
-            pageY,
-            identifier,
-          } of e.changedTouches
-        ) {
+        for (let { pageX, pageY, identifier } of e.changedTouches) {
           player_first_person && pageX > hC.clientWidth / 2
             ? touchRotIdentifier === void 0
               && (touchRotMoved = 0,
@@ -832,19 +828,12 @@ const initPage = () => {
             : touchPosIdentifier === void 0
               && (touchPosMoved = 0, touchPosStartX = pageX, touchPosStartY = pageY, touchPosIdentifier = identifier);
         }
-
         touchStartTime = absoluteTime;
       }
     },
-    hC.ontouchmove = e => {
+    hC.ontouchmove = (e) => {
       if (!mainMenuVisible) {
-        for (
-          let {
-            pageX,
-            pageY,
-            identifier,
-          } of e.changedTouches
-        ) {
+        for (let { pageX, pageY, identifier } of e.changedTouches) {
           var deltaY;
           var absDeltaX;
           var absDeltaY;
@@ -869,10 +858,9 @@ const initPage = () => {
         }
       }
     },
-    hC.ontouchend = e => {
+    hC.ontouchend = (e) => {
       let click;
       e.preventDefault();
-
       for (const touch of e.changedTouches) {touch.identifier === touchRotIdentifier
           ? (touchRotIdentifier = void 0, touchRotMoved || (click = 1), touchRotMoved = 0)
           : touch.identifier === touchPosIdentifier
@@ -881,7 +869,6 @@ const initPage = () => {
             touchPosMoved || (click = 1),
             touchPosMoved = 0)
           : click = 1;}
-
       click && e.target === hC && touchStartTime && 0.02 < (e = absoluteTime - touchStartTime) && e < 0.7
         && (keyboard_downKeys[5] = !0);
     },
@@ -894,7 +881,6 @@ const initPage = () => {
     })(),
     mainMenu(!0);
 };
-
 const player_init = () => {
   let currentModelIdTMinus1 = 0;
   let currentModelId = 0;
@@ -922,10 +908,8 @@ const player_init = () => {
   };
   const player_collision_modelIdCounter = new Int32Array(256);
   const collision_buffer = new Uint8Array(65536);
-
   const interpolate_with_hysteresis = (previous, desired, amount) =>
     lerpDamp(previous, desired, min(4, max(0.4, abs(previous - desired) - amount)));
-
   const player_respawn = () => {
     player_respawned = 2,
       player_speed = 0,
@@ -934,7 +918,6 @@ const player_init = () => {
       player_gravity = 0,
       currentModelIdTMinus1 = currentModelId = levers[player_last_pulled_lever].$parent.$modelId || 1;
   };
-
   const doHorizontalCollisions = () => {
     for (let y = 32; y < 128; y += 2) {
       let front = 0;
@@ -942,7 +925,6 @@ const player_init = () => {
       let left = 0;
       let right = 0;
       const yindex = 512 * y;
-
       for (let x = 1 & y; x < 128; x += 2) {
         const i1 = yindex + 4 * x;
         let i2 = yindex + 4 * (127 - x);
@@ -955,23 +937,19 @@ const player_init = () => {
           (x < 54 || 74 < x) && 1e-3 < (i2 = (1 - t) * max(dist1, dist2) / 3)
           && (x < 64 && i2 > left ? left = i2 : 64 < x && i2 > right && (right = i2));
       }
-
       abs(right - left) > abs(player_collision_x) && (player_collision_x = right - left),
         abs(back - front) > abs(player_collision_z) && (player_collision_z = back - front);
     }
   };
-
   const doVerticalCollisions = () => {
     let maxModelIdCount = 0;
     let nextModelId = 0;
     let lines = 0;
     let grav = 0;
     player_collision_modelIdCounter.fill(0);
-
     for (let y = 0; y < 31; ++y) {
       let up = 0;
       const yindex = 512 * y;
-
       for (let x = 0; x < 128; x++) {
         var i = yindex + 4 * x;
         let a = (collision_buffer[i] + collision_buffer[1 + i]) / 255;
@@ -982,10 +960,8 @@ const player_init = () => {
             player_collision_modelIdCounter[i] = a,
             maxModelIdCount > a || (maxModelIdCount = a, nextModelId = i));
       }
-
       up < 3 && 5 < y && (grav += y / 32), 3 < up && (7 < y && (lines += y / 15), player_has_ground = 1);
     }
-
     nextModelId && (player_has_ground = 1),
       player_respawned
         ? nextModelId && (player_respawned = 0, currentModelId = nextModelId)
@@ -995,45 +971,30 @@ const player_init = () => {
       player_position_global.y += lines / 41
         - (player_has_ground ? 1 : player_gravity) * grav / 41 * player_gravity * gameTimeDelta;
   };
-
   const player_move = () => {
     var referenceMatrix = allModels[currentModelId].$kind === 1 && allModels[currentModelId].$matrix || identity;
-    var {
-      x: y2,
-      y: x2,
-      z: z2,
-    } = (player_respawned
-      ? (({
-        x: x2,
-        y: y2,
-        z: z2,
-      } = levers[player_last_pulled_lever].$locMatrix.transformPoint({
+    var { x: y2, y: x2, z: z2 } = (player_respawned
+      ? ({ x: x2, y: y2, z: z2 } = levers[player_last_pulled_lever].$locMatrix.transformPoint({
         x: 0,
         y: 12,
         z: -2.5,
-      })),
+      }),
         1 < player_respawned && (player_respawned = 1, player_model_y = player_position_final.y = y2),
         player_position_final.x = x2,
         player_position_final.z = z2)
-      : (({
-        x: x2,
-        z: z2,
-      } = ((y2 = referenceMatrix.inverse()).m41 = 0,
+      : ({ x: x2, z: z2 } = ((y2 = referenceMatrix.inverse()).m41 = 0,
         y2.m42 = 0,
         y2.m43 = 0,
         y2.transformPoint({
           x: player_collision_x,
           z: player_collision_z,
           w: 0,
-        }))),
+        })),
         player_position_global.x += x2,
         player_position_global.z += z2),
-      currentModelId !== oldModelId && (oldModelId = currentModelId,
-        ({
-          x: y2,
-          y: x2,
-          z: z2,
-        } = referenceMatrix.inverse().transformPoint(player_position_final)),
+      currentModelId !== oldModelId
+      && (oldModelId = currentModelId,
+        { x: y2, y: x2, z: z2 } = referenceMatrix.inverse().transformPoint(player_position_final),
         player_position_global.x = y2,
         player_position_global.y = x2,
         player_position_global.z = z2),
@@ -1074,26 +1035,23 @@ const player_init = () => {
       0,
       player_look_angle = angle_lerp_degrees(player_look_angle, player_look_angle_target, 8 * gameTimeDelta),
     );
-    [MODEL_ID_PLAYER_LEG0, MODEL_ID_PLAYER_LEG1].map((modelId, i) => {
+    [
+      MODEL_ID_PLAYER_LEG0,
+      MODEL_ID_PLAYER_LEG1,
+    ].map((modelId, i) => {
       allModels[modelId].$matrix = playerMatrix.translate(
         0,
         player_legs_speed * clamp01(0.45 * Math.sin(9.1 * gameTime + Math.PI * (i - 1) - Math.PI / 2)),
       ).rotateSelf(player_legs_speed * Math.sin(9.1 * gameTime + Math.PI * (i - 1)) * 0.25 / DEG_TO_RAD, 0);
     });
   };
-
   player_update = () => {
     let strafe = touch_movementX + (keyboard_downKeys[0] ? 1 : 0) - (keyboard_downKeys[2] ? 1 : 0);
     let forward = touch_movementY + (keyboard_downKeys[1] ? 1 : 0) - (keyboard_downKeys[3] ? 1 : 0);
     let gamepad = navigator.getGamepads()[0];
-
     if (gamepad) {
-      var getGamepadButtonState = index2 => buttons[index2]?.pressed || 0 < buttons[index2]?.value ? 1 : 0;
-
-      const {
-        buttons,
-        axes,
-      } = gamepad;
+      var getGamepadButtonState = (index2) => buttons[index2]?.pressed || 0 < buttons[index2]?.value ? 1 : 0;
+      const { buttons, axes } = gamepad;
       gamepad = getGamepadButtonState(3) || getGamepadButtonState(2) || getGamepadButtonState(1)
         || getGamepadButtonState(0),
         strafe += getGamepadButtonState(14) - getGamepadButtonState(15) - threshold(axes[0], 0.2),
@@ -1104,7 +1062,6 @@ const player_init = () => {
         gamepad && !gamepadInteractPressed && (keyboard_downKeys[5] = 1),
         gamepadInteractPressed = gamepad;
     }
-
     getGamepadButtonState = Math.atan2(forward, strafe),
       gamepad = threshold(clamp01(Math.hypot(forward, strafe)), 0.05),
       strafe = gamepad * Math.cos(getGamepadButtonState),
@@ -1116,8 +1073,14 @@ const player_init = () => {
       player_has_ground = 0,
       gl["fa7"](),
       gl["r9r"](0, 0, 128, 128, 6408, 5121, collision_buffer),
-      gl["iay"](36008, [36064, 36096]),
-      gl["iay"](36009, [36064, 36096]),
+      gl["iay"](36008, [
+        36064,
+        36096,
+      ]),
+      gl["iay"](36009, [
+        36064,
+        36096,
+      ]),
       NO_INLINE(doHorizontalCollisions)(),
       NO_INLINE(doVerticalCollisions)(),
       getGamepadButtonState = clamp01(1 - 5 * max(abs(player_collision_x), abs(player_collision_z))),
@@ -1139,26 +1102,27 @@ const player_init = () => {
       NO_INLINE(player_move)();
   }, player_respawn();
 };
-
 const loadShader = (source, type = 35633) => (type = gl["c6x"](type), gl["s3c"](type, source), gl["c6a"](type), type);
-
 const initShaderProgram = (vertexShader, sfsSource) => {
   const uniforms = {};
   const program = gl["c1h"]();
   return gl["abz"](program, vertexShader),
     gl["abz"](program, loadShader(sfsSource, 35632)),
     gl["l8l"](program),
-    name => name ? uniforms[name] || (uniforms[name] = gl["gan"](program, name)) : gl["u7y"](program);
+    (name) => name ? uniforms[name] || (uniforms[name] = gl["gan"](program, name)) : gl["u7y"](program);
 };
-
 const renderModels = (worldMatrixLoc, renderPlayer, soulModelId, isShadowRender) => {
   if (mainMenuVisible) {
     const matrix = identity.rotate(0, 40 * Math.sin(absoluteTime) - 70);
-
-    for (const modelId of [37, MODEL_ID_PLAYER_LEG0, MODEL_ID_PLAYER_LEG1]) {
+    for (
+      const modelId of [
+        37,
+        MODEL_ID_PLAYER_LEG0,
+        MODEL_ID_PLAYER_LEG1,
+      ]
+    ) {
       matrixToArray(matrix, worldMatricesBuffer, modelId - 1);
     }
-
     gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer),
       gl["d97"](
         4,
@@ -1170,7 +1134,6 @@ const renderModels = (worldMatrixLoc, renderPlayer, soulModelId, isShadowRender)
     for (let i = 0; allModels.length > i; ++i) {
       allModels[i].$kind && matrixToArray(allModels[i].$matrix, worldMatricesBuffer, i - 1);
     }
-
     gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer),
       gl["d97"](
         4,
@@ -1178,14 +1141,11 @@ const renderModels = (worldMatrixLoc, renderPlayer, soulModelId, isShadowRender)
         5123,
         6,
       );
-
     for (let i1 = 0; i1 < 13; ++i1) matrixToArray(souls[i1].$matrix, worldMatricesBuffer, i1);
-
     for (let i2 = 0; levers.length > i2; ++i2) {
       matrixToArray(levers[i2].$matrix, worldMatricesBuffer, i2 + 13),
         isShadowRender || (worldMatricesBuffer[16 * (i2 + 13) + 15] = 1 - levers[i2].$lerpValue);
     }
-
     gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer),
       gl["das"](
         4,
@@ -1203,40 +1163,29 @@ const renderModels = (worldMatrixLoc, renderPlayer, soulModelId, isShadowRender)
       );
   }
 };
-
-const loadStep = fn => {
+const loadStep = (fn) => {
   h4.innerHTML += ".", setTimeout(fn);
 };
-
-const getnotefreq = n => 396e-5 * 2 ** ((n - 256) / 12);
-
-const osc_sin = value => Math.sin(value * Math.PI * 2);
-
-const osc_square = value => value % 1 < 0.5 ? 1 : -1;
-
-const osc_saw = value => value % 1 * 2 - 1;
-
-const osc_tri = value => (value = value % 1 * 4) < 2 ? value - 1 : 3 - value;
-
-const loadSong = done => {
+const getnotefreq = (n) => 396e-5 * 2 ** ((n - 256) / 12);
+const osc_sin = (value) => Math.sin(value * Math.PI * 2);
+const osc_square = (value) => value % 1 < 0.5 ? 1 : -1;
+const osc_saw = (value) => value % 1 * 2 - 1;
+const osc_tri = (value) => (value = value % 1 * 4) < 2 ? value - 1 : 3 - value;
+const loadSong = (done) => {
   let channelIndex = 0;
   const song_numWords = 10725888;
-
   const finish = () => {
     const audioBuffer = audioContext.createBuffer(2, song_numWords / 2, 44100);
-
     for (let i = 0; i < 2; i++) {
       for (let j = i, data = audioBuffer.getChannelData(i); song_numWords > j; j += 2) {
         data[j >> 1] = mixBuffer[j] / 65536;
       }
     }
-
     songAudioSource.buffer = audioBuffer, songAudioSource.loop = !0, loadStep(done);
   };
-
   const next = () => {
-    let high;
     let mixIndex = 0;
+    let high;
     let [
       OSC1_VOL,
       OSC1_SEMI,
@@ -1261,19 +1210,23 @@ const loadSong = done => {
       COLUMNS,
     ] = song_instruments[channelIndex];
     ENV_RELEASE = ENV_RELEASE * ENV_RELEASE * 4;
-
-    for (const song_rowLen of [5513, 4562, 3891]) {
-      const noteCache = [];
+    for (
+      const song_rowLen of [
+        5513,
+        4562,
+        3891,
+      ]
+    ) {
       let low = 0;
       let band = 0;
       let n;
       let f;
       let filterActive;
+      const noteCache = [];
       const chnBuf = new Int32Array(768 * song_rowLen);
       const lfoFreq = 2 ** (LFO_FREQ - 9) / song_rowLen;
       const panFreq = Math.PI * 2 ** (FX_PAN_FREQ - 8) / song_rowLen;
       const dly = FX_DELAY_TIME * song_rowLen & -2;
-
       for (let p = 0; p <= 11; ++p) {
         for (
           let row = 0, cp = +"000001234556112341234556011111111112011111111112000001111112"[12 * channelIndex + p];
@@ -1281,7 +1234,6 @@ const loadSong = done => {
           ++row
         ) {
           const rowStartSample = (32 * p + row) * song_rowLen;
-
           for (let col = 0; col < 4; ++col) {
             if (n = 0, cp && (n = COLUMNS[cp - 1].charCodeAt(row + 32 * col) - 40, n += 0 < n ? 106 : 0), n) {
               const noteBuf = noteCache[n] || (noteCache[n] = ((song_rowLen2, note) => {
@@ -1292,7 +1244,6 @@ const loadSong = done => {
                 const OSC1_WAVEFORM = channelIndex < 2 ? osc_saw : osc_sin;
                 const OSC2_WAVEFORM = channelIndex < 2 ? channelIndex < 1 ? osc_square : osc_tri : osc_sin;
                 const noteBuf2 = new Int32Array(ENV_ATTACK + ENV_SUSTAIN + ENV_RELEASE);
-
                 for (let j1 = 0, j2 = 0; ENV_ATTACK + ENV_SUSTAIN + ENV_RELEASE > j1; ++j1, ++j2) {
                   let e = 1;
                   ENV_ATTACK > j1
@@ -1310,14 +1261,11 @@ const loadSong = done => {
                           + (NOISE_VOL ? (2 * Math.random() - 1) * NOISE_VOL : 0))
                         * e | 0;
                 }
-
                 return noteBuf2;
               })(song_rowLen, n));
-
               for (let j = 0, i = 2 * rowStartSample; noteBuf.length > j; ++j, i += 2) chnBuf[i] += noteBuf[j];
             }
           }
-
           for (let rsample, j1 = 0; song_rowLen > j1; ++j1) {
             let lsample = 0;
             let k = 2 * (rowStartSample + j1);
@@ -1344,17 +1292,13 @@ const loadSong = done => {
           }
         }
       }
-
       mixIndex += chnBuf.length;
     }
-
     loadStep(++channelIndex < 5 ? next : finish);
   };
-
   const mixBuffer = new Int32Array(song_numWords);
   loadStep(next);
 };
-
 const groundTextureSvg = "data:image/svg+xml;base64,"
   + btoa(
     "<svg color-interpolation-filters=\"sRGB\" height=\"1024\" width=\"1024\" xmlns=\"http://www.w3.org/2000/svg\"><filter filterUnits=\"userSpaceOnUse\" height=\"1026\" id=\"a\" width=\"1026\" x=\"0\" y=\"0\"><feTurbulence baseFrequency=\".007\" height=\"1025\" numOctaves=\"6\" stitchTiles=\"stitch\" width=\"1025\" result=\"z\" type=\"fractalNoise\" x=\"1\" y=\"1\"/><feTile height=\"1024\" width=\"1024\" x=\"-1\" y=\"-1\"/><feTile/><feDiffuseLighting diffuseConstant=\"4\" lighting-color=\"red\" surfaceScale=\"5\"><feDistantLight azimuth=\"270\" elevation=\"5\"/></feDiffuseLighting><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"x\"/><feColorMatrix values=\"0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 1\" in=\"z\"/><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"z\"/><feTurbulence baseFrequency=\".01\" height=\"1024\" numOctaves=\"5\" stitchTiles=\"stitch\" width=\"1024\"/><feColorMatrix values=\"0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1\"/><feBlend in2=\"x\" mode=\"screen\"/><feBlend in2=\"z\" mode=\"screen\"/></filter><rect filter=\"url(#a)\" height=\"100%\" width=\"100%\"/></svg>",
@@ -1365,16 +1309,19 @@ const songAudioSource = audioContext.createBufferSource();
 const gl = hC.getContext("webgl2", {
   powerPreference: "high-performance",
 });
-
-for (const s in gl) gl[s[0] + [...s].reduce((p, c, i) => (p * i + c.charCodeAt(0)) % 434, 0).toString(36)] = gl[s];
-
+for (const s in gl) {
+  gl[
+    s[0] + [
+      ...s,
+    ].reduce((p, c, i) => (p * i + c.charCodeAt(0)) % 434, 0).toString(36)
+  ] = gl[s];
+}
 loadStep(() => {
   let loadStatus = 0;
-
   const end = () => {
     if (++loadStatus == 2) {
       {
-        const mainLoop = globalTime => {
+        const mainLoop = (globalTime) => {
           let y;
           let z;
           gl["f1s"](),
@@ -1392,11 +1339,8 @@ loadStep(() => {
               -camera_position.y,
               -camera_position.z,
             );
-          0 < gameTimeDelta && (({
-            x: globalTime,
-            y,
-            z,
-          } = player_position_final),
+          0 < gameTimeDelta
+          && ({ x: globalTime, y, z } = player_position_final,
             collisionShader(),
             gl["b6o"](36160, collision_frameBuffer),
             gl["v5y"](0, 0, 128, 128),
@@ -1439,7 +1383,6 @@ loadStep(() => {
             gl["b6o"](36160, collision_frameBuffer),
             gl["f1s"]();
         };
-
         const groundTextureImage = image;
         const csm_framebuffer = gl["c5w"]();
         const collision_frameBuffer = gl["c5w"]();
@@ -1476,13 +1419,15 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
             gl["ubh"](skyShader("q"), 3),
             mainShader(),
             gl["ubh"](mainShader("q"), 3),
-            integers_map(2, csmSplit => {
+            integers_map(2, (csmSplit) => {
               const lightSpaceMatrix = new Float32Array(16);
               const texture = gl["c25"]();
               const lightSpaceMatrixLoc = mainShader(csmSplit ? "j" : "i");
               return gl["ubh"](mainShader(csmSplit ? "h" : "g"), csmSplit),
                 gl["b6o"](36160, csm_framebuffer),
-                gl["d45"]([0]),
+                gl["d45"]([
+                  0,
+                ]),
                 gl["r9l"](0),
                 gl["a4v"](33984 + csmSplit),
                 gl["b9j"](3553, texture),
@@ -1493,7 +1438,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 gl["t2z"](3553, 34892, 34894),
                 gl["t2z"](3553, 10243, 33071),
                 gl["t2z"](3553, 10242, 33071),
-                matrix => {
+                (matrix) => {
                   matrix
                     ? (matrixToArray(matrix, lightSpaceMatrix),
                       gl["uae"](csmShader("b"), !1, lightSpaceMatrix),
@@ -1523,7 +1468,6 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
           gl["gbn"](3553),
           gl["t2z"](3553, 10241, 9987),
           gl["t2z"](3553, 10240, 9729);
-
         try {
           const [savedLevers, savedSouls, savedLastPulledLever, savedGameTime, savedSecondBoatLerp] = JSON.parse(
             localStorage["DanteSP22"],
@@ -1536,7 +1480,6 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
             gameTime = savedGameTime,
             secondBoatLerp = savedSecondBoatLerp;
         } catch {}
-
         firstBoatLerp = clamp01(player_last_pulled_lever),
           worldStateUpdate(),
           NO_INLINE(player_init)(),
@@ -1545,21 +1488,22 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
       NO_INLINE(initPage)();
     }
   };
-
   const image = new Image();
   image.onload = image.onerror = end,
     image.src = groundTextureSvg,
     NO_INLINE(loadSong)(() => {
       loadStep(() => {
         {
+          let meshFirstIndex = 0;
+          let polygon;
           const _triangleIndices = [];
-
-          const getVertex = i => {
-            let {
-              x: x2,
-              y: y2,
-              z: z2,
-            } = polygon[i];
+          const _vertexPositions = [];
+          const _vertexColors = [];
+          const _vertexNormals = [];
+          const _vertexMap = new Map();
+          const _vertexInts = new Int32Array(8);
+          const getVertex = (i) => {
+            let { x: x2, y: y2, z: z2 } = polygon[i];
             let index2 =
               (_vertexFloats[0] = x2,
                 _vertexFloats[1] = y2,
@@ -1577,46 +1521,26 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 _vertexNormals.push(_vertexInts[5], _vertexInts[6], _vertexInts[7])),
               index2;
           };
-
-          let meshFirstIndex = 0;
-          let polygon;
-          const _vertexPositions = [];
-          const _vertexColors = [];
-          const _vertexNormals = [];
-
-          const _vertexMap = new Map();
-
-          const _vertexInts = new Int32Array(8);
-
           const _vertexIntsSmooth = new Int32Array(_vertexInts.buffer, 0, 5);
-
           const _vertexFloats = new Float32Array(_vertexInts.buffer);
-
           for (const model of allModels) {
             for (
               polygon
                 of (_vertexFloats[3] = model.$modelId === 40 ? -14 : model.$kind && model.$modelId, model.$polygons)
             ) {
-              const {
-                x,
-                y,
-                z,
-              } = plane_fromPolygon(polygon);
+              const { x, y, z } = plane_fromPolygon(polygon);
               _vertexInts[4] = 0 | polygon.$color,
                 _vertexInts[5] = 32767 * x,
                 _vertexInts[6] = 32767 * y,
                 _vertexInts[7] = 32767 * z;
-
               for (let i = 2, a = getVertex(0), b = getVertex(1); polygon.length > i; ++i) {
                 _triangleIndices.push(a, b, b = getVertex(i));
               }
             }
-
             model.$polygons = null,
               model.$vertexBegin = meshFirstIndex,
               model.$vertexEnd = meshFirstIndex = _triangleIndices.length;
           }
-
           gl["b11"](34962, gl["c1b"]()),
             gl["b2v"](34962, new Float32Array(_vertexPositions), 35044),
             gl["v7s"](0, 4, 5126, !1, 0, 0),
@@ -1637,24 +1561,25 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
       {
         const hornsMatrices = integers_map(
           11,
-          i => identity.translate(Math.sin(i / 10 * Math.PI), i / 10).rotate(+i).scale(1.0001 - i / 10, 0, 1 - i / 10),
+          (i) =>
+            identity.translate(Math.sin(i / 10 * Math.PI), i / 10).rotate(+i).scale(1.0001 - i / 10, 0, 1 - i / 10),
         );
-        const hornPolygons = integers_map(10, i =>
+        const hornPolygons = integers_map(10, (i) =>
           cylinder_sides(
             polygon_transform(polygon_regular(18), hornsMatrices[i]).reverse(),
             polygon_transform(polygon_regular(18), hornsMatrices[i + 1]),
             1,
           )).flat();
-        newModel(() => meshAdd([GQuad.slice(1)], identity.translate(-2).scale3d(3).rotate(90, 0)), 0),
+        newModel(() =>
+          meshAdd([
+            GQuad.slice(1),
+          ], identity.translate(-2).scale3d(3).rotate(90, 0)), 0),
           newModel(() => {
             const blackPlatform = (freq, amplitude, pz) =>
-              newModel(model => {
+              newModel((model) => {
                 model._update = () =>
                   identity.translate(level2Oscillation() * Math.sin(3 * freq + gameTime * freq) * amplitude),
-                  GQuad.map(({
-                    x,
-                    z,
-                  }) => {
+                  GQuad.map(({ x, z }) => {
                     meshAdd(
                       cylinder(11, 1),
                       identity.translate(4 * x, 4, pz + 4 * z).scale(0.8, 3, 0.8),
@@ -1673,7 +1598,10 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                         identity.translate(0, 0, pz).scale(5, 1, 5),
                         material(0.8, 0.8, 0.8, 0.3),
                       ),
-                      ...[-1, 1].map(i =>
+                      ...[
+                        -1,
+                        1,
+                      ].map((i) =>
                         polygons_transform(
                           cylinder(),
                           identity.translate(5 * i, 0.2, pz).rotate(-30 * i).scale(4, 1, 2),
@@ -1684,32 +1612,24 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   ),
                   meshAdd(cylinder(), identity.translate(0, -3, pz).scale(8, 2, 8), material(0.4, 0.4, 0.4, 0.3));
               });
-
             const getBoatAnimationMatrix = (x, y, z) =>
               identity.translate(x + Math.sin(gameTime + 2) / 5, y + Math.sin(0.8 * gameTime) / 3, z).rotateSelf(
                 2 * Math.sin(gameTime),
                 Math.sin(0.7 * gameTime),
                 Math.sin(0.9 * gameTime),
               );
-
-            const makeBigArcPolygons = height =>
+            const makeBigArcPolygons = (height) =>
               csg_polygons_subtract(
                 polygons_transform(cylinder(), identity.translate(0, -height / 2).scale(6, height - 1, 2.2)),
                 polygons_transform(cylinder(), identity.translate(0, -height / 2 - 6).scale(4, height - 3, 4)),
                 polygons_transform(cylinder(32, 1), identity.translate(0, height / 2 - 9).rotate(90, 0, 90).scale3d(4)),
               );
-
             const level2Oscillation = () => min(levers[2].$lerpValue2, 1 - levers[4].$lerpValue2);
-
             const level3Oscillation = () =>
               clamp01(1 - 5 * level2Oscillation()) * lerpneg(levers[4].$lerpValue, levers[5].$lerpValue);
-
             const shouldOscillate = () => lerpneg(levers[7].$lerpValue2, levers[6].$lerpValue2);
-
             const shouldPushRods = () => lerpneg(levers[10].$lerpValue, levers[11].$lerpValue);
-
             const hexPadShouldOscillate = () => lerpneg(levers[8].$lerpValue2, levers[12].$lerpValue2);
-
             const boatPolygons = csg_polygons_subtract(
               polygons_transform(
                 cylinder(20, 1, 1.15, 1),
@@ -1723,59 +1643,79 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               ),
               polygons_transform(cylinder(), identity.translate(4, -1.2).scale3d(2), material(0.7, 0.4, 0.25, 0.3)),
             );
-            const gateBarsPolygons = integers_map(7, i =>
+            const gateBarsPolygons = integers_map(7, (i) =>
               polygons_transform(
                 cylinder(6, 1),
                 identity.translate(4 * (i / 6 - 0.5), 3).scale(0.2, 3, 0.2),
                 material(0.3, 0.3, 0.38),
               )).flat();
-            const hexCorridorPolygons = (newModel(model => {
+            const hexCorridorPolygons = (newModel((model) => {
               model._update = () => getBoatAnimationMatrix(-12, 4.2, 40 * firstBoatLerp - 66),
                 meshAdd(boatPolygons),
                 newLever(identity.translate(0, -3, 4));
             }),
               newLever(identity.translate(-5.4, 1.5, -19).rotate(0, -90)),
-              newSoul(identity.translate(-0.5, 2.8, -20), [0, 0, 2.5], [0, -3, 2.5]),
+              newSoul(identity.translate(-0.5, 2.8, -20), [
+                0,
+                0,
+                2.5,
+              ], [
+                0,
+                -3,
+                2.5,
+              ]),
               newSoul(
                 identity.translate(0, 2.8),
-                [5, 10, 3],
-                [-5, 10, 3],
-                ...polygon_regular(18).map(({
-                  x,
-                  z,
-                }) => [7 * x, 10 * z, 4.5 - 2 * abs(x)]),
+                [
+                  5,
+                  10,
+                  3,
+                ],
+                [
+                  -5,
+                  10,
+                  3,
+                ],
+                ...polygon_regular(18).map(({ x, z }) => [
+                  7 * x,
+                  10 * z,
+                  4.5 - 2 * abs(x),
+                ]),
               ),
               meshAdd(
                 cylinder(),
                 identity.translate(-5, -0.2, -26).scale(3.2, 1, 2.5).skewX(3),
                 material(0.8, 0.8, 0.8, 0.2),
               ),
-              GQuad.map(({
-                x,
-                z,
-              }) =>
+              GQuad.map(({ x, z }) =>
                 meshAdd(
                   cylinder(6),
                   identity.translate(3 * x, 3, 15 * z).scale(0.7, 4, 0.7),
                   material(0.6, 0.3, 0.3, 0.4),
                 )
               ),
-              [-23, 22].map(z =>
+              [
+                -23,
+                22,
+              ].map((z) =>
                 meshAdd(cylinder(), identity.translate(0, 0, z).scale(3, 1, 8), material(0.9, 0.9, 0.9, 0.2))
               ),
-              [-15, 15].map((z, i) => {
+              [
+                -15,
+                15,
+              ].map((z, i) => {
                 meshAdd(cylinder(), identity.translate(0, 6.3, z).scale(4, 0.3, 1), material(0.3, 0.3, 0.3, 0.4)),
                   meshAdd(cylinder(), identity.translate(0, 1, z).scale(3, 0.2, 0.35), material(0.5, 0.5, 0.5, 0.3)),
-                  newModel(model => {
+                  newModel((model) => {
                     model._update = () =>
                       identity.translate(0, 0, z).scale(1, clamp01(1.22 - levers[i + 1].$lerpValue), 1),
                       meshAdd(gateBarsPolygons);
                   });
               }),
-              integers_map(5, i =>
-                integers_map(
-                  2,
-                  j =>
+              integers_map(
+                5,
+                (i) =>
+                  integers_map(2, (j) =>
                     meshAdd(
                       hornPolygons,
                       identity.translate(18.5 * (j - 0.5), 0, 4.8 * i - 9.5).rotate(0, 180 - 180 * j).scale(
@@ -1784,8 +1724,8 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                         1.2,
                       ),
                       material(1, 1, 0.8, 0.2),
-                    ),
-                )),
+                    )),
+              ),
               meshAdd(cylinder(), identity.translate(3, 1.5, -20).scale(0.5, 2, 5), material(0.7, 0.7, 0.7, 0.2)),
               meshAdd(
                 cylinder(),
@@ -1839,7 +1779,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   ),
                 ),
               ),
-              newModel(model => {
+              newModel((model) => {
                 model._update = () =>
                   identity.translate(
                     0,
@@ -1855,7 +1795,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               newLever(identity.translate(15, -2, 4)),
               blackPlatform(0.7, 12, 35),
               blackPlatform(1, 8.2, 55),
-              newModel(model => {
+              newModel((model) => {
                 model._update = () => identity.translate(level2Oscillation() * Math.sin(gameTime / 1.5 + 2) * 12),
                   meshAdd(
                     csg_polygons_subtract(
@@ -1877,14 +1817,18 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                     ),
                     identity.translate(0, 0, 45),
                   ),
-                  newSoul(identity.translate(0, 2.8, 45), [0, 0, 4.5]);
+                  newSoul(identity.translate(0, 2.8, 45), [
+                    0,
+                    0,
+                    4.5,
+                  ]);
               }),
               meshAdd(
                 cylinder(),
                 identity.translate(-18.65, -3, 55).scale(2.45, 1.4, 2.7),
                 material(0.9, 0.9, 0.9, 0.2),
               ),
-              newModel(model => {
+              newModel((model) => {
                 model._update = () => identity.translate(9.8 * (1 - level2Oscillation())),
                   meshAdd(
                     cylinder(3),
@@ -1900,7 +1844,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   meshAdd(cylinder(), identity.translate(-23, -2.2, 62).scale(3, 1, 4), material(0.5, 0.5, 0.5, 0.3)),
                   newLever(identity.translate(-23, -0.5, 66.5));
               }),
-              newModel(model => {
+              newModel((model) => {
                 model._update = () => identity.translate(0, level3Oscillation() * Math.sin(1.35 * gameTime) * 4),
                   meshAdd(
                     cylinder(),
@@ -1916,7 +1860,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                     material(0.7, 0.7, 0.7, 0.2),
                   );
               }),
-              newModel(model => {
+              newModel((model) => {
                 model._update = () => identity.translate(0, 0, level3Oscillation() * Math.sin(0.9 * gameTime) * 8),
                   meshAdd(
                     csg_polygons_subtract(
@@ -1934,7 +1878,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   ),
                   meshAdd(cylinder(), identity.translate(-39, -3, 55).scale(3, 1.4, 2.7), material(0.9, 0.9, 0.9, 0.2));
               }),
-              newModel(model => {
+              newModel((model) => {
                 model._update = () => identity.translate(0, -6.5 * levers[4].$lerpValue2),
                   meshAdd(
                     cylinder(6),
@@ -1959,7 +1903,11 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                     material(0.3, 0.6, 0.6, 0.3),
                   ),
                   polygons_transform(cylinder(6), identity.rotate(90).scale(5, 12, 5), material(0.3, 0.6, 0.6, 0.3)),
-                  ...[5, 0, -5].map(x =>
+                  ...[
+                    5,
+                    0,
+                    -5,
+                  ].map((x) =>
                     polygons_transform(
                       cylinder(5),
                       identity.translate(x, 2.5).rotate(90, 0, 36).scale(1.8, 10, 1.8),
@@ -1969,7 +1917,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 ),
               ]);
             const pushingRod = (meshAdd(hexCorridorPolygons, identity.translate(-53, 0, 55)),
-              newModel(model => {
+              newModel((model) => {
                 model._update = () =>
                   identity.translate(-75, (1 - levers[5].$lerpValue2) * (1 - levers[6].$lerpValue) * 3, 55).rotate(
                     180 * (1 - levers[5].$lerpValue2) + rotatingHexCorridorRotation,
@@ -2042,8 +1990,28 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   ),
                 ),
               ),
-              newSoul(identity.translate(-100, 0.2, 55), [0, 0, 7.5], [-8, 0, 3.5], [-12, 0, 3.5], [-15, 0, 3.5]),
-              newSoul(identity.translate(-89, 0.2, 80), [0, 0, 6]),
+              newSoul(identity.translate(-100, 0.2, 55), [
+                0,
+                0,
+                7.5,
+              ], [
+                -8,
+                0,
+                3.5,
+              ], [
+                -12,
+                0,
+                3.5,
+              ], [
+                -15,
+                0,
+                3.5,
+              ]),
+              newSoul(identity.translate(-89, 0.2, 80), [
+                0,
+                0,
+                6,
+              ]),
               meshAdd(
                 csg_polygons_subtract(
                   polygons_transform(
@@ -2063,21 +2031,21 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   ),
                 ),
               ),
-              newModel(model => {
+              newModel((model) => {
                 model._update = () =>
                   identity.translate(-99.7, -1.9, 63.5).scale(1, clamp01(1.1 - levers[6].$lerpValue), 1),
                   meshAdd(gateBarsPolygons);
               }),
-              GQuad.map(({
-                x,
-                z,
-              }) => {
+              GQuad.map(({ x, z }) => {
                 meshAdd(
                   cylinder(6),
                   identity.translate(7 * x - 100, -3, 7 * z + 55).scale(1, 8.1),
                   material(0.6, 0.15, 0.15, 0.8),
                 ),
-                  [4, -0.4].map(i =>
+                  [
+                    4,
+                    -0.4,
+                  ].map((i) =>
                     meshAdd(
                       cylinder(6),
                       identity.translate(7 * x - 100, i, 7 * z + 55).scale(1.3, 0.5, 1.3),
@@ -2085,7 +2053,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                     )
                   );
               }),
-              integers_map(7, i => {
+              integers_map(7, (i) => {
                 meshAdd(
                   cylinder((23 * i + 1) % 5 + 5, 0, 0.55),
                   identity.translate(5 * Math.sin(i) - 101 + i, -2.3 - i, 44.9 - 2.8 * i).scaleSelf(
@@ -2104,14 +2072,18 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 material(0.3, 0.3, 0.4, 0.1),
               ),
               newLever(identity.translate(-86, -7.5, 31)),
-              newModel(model => {
+              newModel((model) => {
                 model._update = () =>
                   identity.translate(
                     0,
                     3.5 * (1 - max(levers[6].$lerpValue, levers[7].$lerpValue))
                       + shouldOscillate() * Math.sin(gameTime) * 5,
                   ),
-                  [0, 12, 24].map(x =>
+                  [
+                    0,
+                    12,
+                    24,
+                  ].map((x) =>
                     meshAdd(
                       cylinder(),
                       identity.translate(x - 76.9, x / -13 - 10, 24).scale(2.8, 1.5, 3),
@@ -2119,14 +2091,17 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                     )
                   );
               }),
-              newModel(model => {
+              newModel((model) => {
                 model._update = () =>
                   identity.translate(
                     0,
                     shouldOscillate() * Math.sin(gameTime + 3) * 6,
                     6 * Math.sin(0.6 * gameTime + 1) * shouldOscillate(),
                   ),
-                  [6, 18].map(x =>
+                  [
+                    6,
+                    18,
+                  ].map((x) =>
                     meshAdd(
                       cylinder(),
                       identity.translate(x - 76.9, x / -13 - 10, 24).scale(2.8, 1.5, 3),
@@ -2150,7 +2125,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 identity.translate(-38.9, -11.3, 17),
               ),
               newLever(identity.translate(-38.9, -9.6, 10)),
-              newModel(model => {
+              newModel((model) => {
                 model._update = () => identity.translate(0, -7.3 * levers[7].$lerpValue2),
                   meshAdd(
                     csg_polygons_subtract(
@@ -2182,22 +2157,23 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   ),
                   newSoul(
                     identity.translate(-39.1, -0.6, 17).rotate(11),
-                    ...polygon_regular(15).map(({
-                      x,
-                      z,
-                    }) => [3 * x, 3 * z, 1.2]),
+                    ...polygon_regular(15).map(({ x, z }) => [
+                      3 * x,
+                      3 * z,
+                      1.2,
+                    ]),
                   );
               }),
-              GQuad.map(({
-                x,
-                z,
-              }) => {
+              GQuad.map(({ x, z }) => {
                 meshAdd(
                   cylinder(14, 1),
                   identity.translate(9 * x - 38.9, -7.3, 11 * z + 17).scale(1, 4),
                   material(0.25, 0.25, 0.25, 1),
                 ),
-                  [1.5, 8].map(y =>
+                  [
+                    1.5,
+                    8,
+                  ].map((y) =>
                     meshAdd(
                       cylinder(17, 1),
                       identity.translate(9 * x - 38.9, -7.3, 11 * z + 17).translate(0, y - 4).scale(1.5, 0.5, 1.5),
@@ -2219,8 +2195,8 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                       material(0.45, 0.4, 0.6, 0.3),
                     ),
                   ),
-                  ...integers_map(6, z =>
-                    integers_map(6, x =>
+                  ...integers_map(6, (z) =>
+                    integers_map(6, (x) =>
                       polygons_transform(
                         cylinder(6),
                         identity.translate(4.6 * x - 12 + 2 * (1 & z), 0, 4.6 * z - 50 + 2 * Math.sin(4 * x)).scale(
@@ -2233,14 +2209,26 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 ),
                 identity.translate(-38.9, -11.3, 17),
               ),
-              newSoul(identity.translate(-38.9, -8.4, -21), [-7, -2.5, 6], [6, -3, 6], [0, -5, 7]),
+              newSoul(identity.translate(-38.9, -8.4, -21), [
+                -7,
+                -2.5,
+                6,
+              ], [
+                6,
+                -3,
+                6,
+              ], [
+                0,
+                -5,
+                7,
+              ]),
               meshAdd(
                 cylinder(5),
                 identity.translate(-84, -2, 85).scale(4, 0.8, 4).rotate(0, 10),
                 material(0.8, 0.1, 0.25, 0.4),
               ),
               newLever(identity.translate(-84, -0.5, 85).rotate(0, 45)),
-              newModel(model => {
+              newModel((model) => {
                 model._update = () => getBoatAnimationMatrix(-123, 1.4, 55 + -65 * secondBoatLerp),
                   meshAdd(boatPolygons),
                   newLever(identity.translate(0, -3, -4).rotate(0, 180));
@@ -2256,7 +2244,10 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   identity.translate(0, 0, -5.5).scale(3, 2),
                   material(0.6, 0.3, 0.4, 0.3),
                 ),
-                ...[-1.2, 1.2].map(i =>
+                ...[
+                  -1.2,
+                  1.2,
+                ].map((i) =>
                   polygons_transform(
                     cylinder(),
                     identity.translate(i, -0.5, 1).scale(0.14, 0.3, 6.5),
@@ -2264,17 +2255,20 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   )
                 ),
               ));
-            newModel(model => {
+            newModel((model) => {
               model._update = () =>
                 identity.translate(0, -2, shouldPushRods() * abs(Math.sin(1.1 * gameTime)) * -8.5 + 10),
-                integers_map(2, x => meshAdd(pushingRod, identity.translate(9 * x - 110 + (1 & x), 1.7, -12)));
+                integers_map(2, (x) => meshAdd(pushingRod, identity.translate(9 * x - 110 + (1 & x), 1.7, -12)));
             }),
-              newModel(model => {
+              newModel((model) => {
                 model._update = () =>
                   identity.translate(0, -2, shouldPushRods() * abs(Math.sin(2.1 * gameTime)) * -8.5 + 10),
-                  integers_map(2, x => meshAdd(pushingRod, identity.translate(9 * (x + 2) - 110 + (1 & x), 1.7, -12)));
+                  integers_map(
+                    2,
+                    (x) => meshAdd(pushingRod, identity.translate(9 * (x + 2) - 110 + (1 & x), 1.7, -12)),
+                  );
               }),
-              newModel(model => {
+              newModel((model) => {
                 model._update = () =>
                   identity.translate(
                     0,
@@ -2284,7 +2278,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                           (1 - levers[10].$lerpValue) * (1 - shouldPushRods()),
                           shouldPushRods() * abs(Math.sin(1.5 * gameTime)),
                         ) + 10,
-                  ), integers_map(3, x => meshAdd(pushingRod, identity.translate(9 * x - 106, 1.7, -12)));
+                  ), integers_map(3, (x) => meshAdd(pushingRod, identity.translate(9 * x - 106, 1.7, -12)));
               }),
               meshAdd(
                 csg_polygons_subtract(
@@ -2292,14 +2286,14 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                     polygons_transform(cylinder(), identity.translate(26.5, -1.6, 10).scale(20, 2.08, 3)),
                     polygons_transform(cylinder(), identity.translate(26.5, -0.6, 10).scale(19, 2, 0.5)),
                   ),
-                  ...integers_map(4, x =>
+                  ...integers_map(4, (x) =>
                     polygons_transform(
                       cylinder(),
                       identity.translate(13 + 9 * x + (1 & x), -0.8, 9).scale(1.35, 1.35, 9),
                     )),
                   ...integers_map(
                     3,
-                    x => polygons_transform(cylinder(), identity.translate(17 + 9 * x, -0.8, 9).scale(1.35, 1.35, 9)),
+                    (x) => polygons_transform(cylinder(), identity.translate(17 + 9 * x, -0.8, 9).scale(1.35, 1.35, 9)),
                   ),
                 ),
                 identity.translate(-123, 0, -12),
@@ -2328,7 +2322,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 identity.translate(-77, -17, -50.5).scale(2.2, 15, 0.5),
                 material(0.6, 0.6, 0.6, 0.3),
               ),
-              integers_map(3, i => {
+              integers_map(3, (i) => {
                 meshAdd(
                   makeBigArcPolygons(16),
                   identity.translate(12 * i - 109, -9, -12),
@@ -2389,8 +2383,20 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 ),
               ),
               newLever(identity.translate(-98, -4.4, -40).rotate(0, 90)),
-              newSoul(identity.translate(-115, 0.2, -12), [0, 0, 3.5]),
-              newSoul(identity.translate(-93, -3, -40).rotate(4), [0, -2, 3.5], [0, 2, 3.5]),
+              newSoul(identity.translate(-115, 0.2, -12), [
+                0,
+                0,
+                3.5,
+              ]),
+              newSoul(identity.translate(-93, -3, -40).rotate(4), [
+                0,
+                -2,
+                3.5,
+              ], [
+                0,
+                2,
+                3.5,
+              ]),
               meshAdd(
                 csg_polygons_subtract(
                   csg_union(
@@ -2412,8 +2418,8 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   ),
                 ),
               ),
-              integers_map(4, i =>
-                newModel(model => {
+              integers_map(4, (i) =>
+                newModel((model) => {
                   model._update = () => {
                     const osc = hexPadShouldOscillate();
                     return identity.translate(
@@ -2429,7 +2435,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                       material(0.5 - i / 8, i / 12 + 0.5, 0.7, 0.3),
                     );
                 })),
-              newModel(model => {
+              newModel((model) => {
                 model._update = () => {
                   const osc = hexPadShouldOscillate();
                   return identity.translate(
@@ -2460,22 +2466,39 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                     material(0.5, 0.5, 0.5, 0.5),
                   ),
                   newLever(identity.translate(-7.5).rotate(0, 90).translate(0, 3.4).rotate(0, 180)),
-                  [-1, 1].map(i =>
+                  [
+                    -1,
+                    1,
+                  ].map((i) =>
                     meshAdd(
                       hornPolygons,
                       identity.rotate(90 * -i, 180, 90).translate(0, 5).rotate(40).scale(1.3, 10, 1.3),
                       material(1, 1, 0.8, 0.2),
                     )
                   ),
-                  newSoul(identity.translate(-5, 4), [0, -1.2, 1.7], [0, 1.2, 1.7]);
+                  newSoul(identity.translate(-5, 4), [
+                    0,
+                    -1.2,
+                    1.7,
+                  ], [
+                    0,
+                    1.2,
+                    1.7,
+                  ]);
               }),
-              [-1, 1].map(x => {
+              [
+                -1,
+                1,
+              ].map((x) => {
                 meshAdd(
                   cylinder(12, 1),
                   identity.translate(-7.5 * x - 100, 3.7, 96).scale(0.8, 4, 0.8),
                   material(0.6, 0.24, 0.2, 0.5),
                 ),
-                  [7.2, 1.5].map(y =>
+                  [
+                    7.2,
+                    1.5,
+                  ].map((y) =>
                     meshAdd(
                       cylinder(15, 1),
                       identity.translate(-7.5 * x - 100, y + 0.7, 96).scale(1.1, 0.5, 1.1),
@@ -2514,7 +2537,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                     identity.translate(x - 100, 0.7, 97),
                   );
               }),
-              newModel(model => {
+              newModel((model) => {
                 model._update = () => identity.translate(-100, 0.6, 96.5).scale(0.88, 1.2 - levers[12].$lerpValue),
                   meshAdd(gateBarsPolygons);
               }),
@@ -2532,7 +2555,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   ),
                 ),
               ),
-              newModel(model => {
+              newModel((model) => {
                 model._update = () => identity.translate(-81, 0.6, 106).rotate(0, 40 + rotatingPlatform1Rotation),
                   meshAdd(
                     csg_polygons_subtract(
@@ -2552,15 +2575,19 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   meshAdd(cylinder(5), identity.translate(0, 2).scale(1, 2), material(0.3, 0.3, 0.3, 0.2)),
                   newSoul(
                     identity.translate(0, 3),
-                    ...polygon_regular(14).map(({
-                      x,
-                      z,
-                    }) => [5.6 * x, 5.6 * z, 2]),
+                    ...polygon_regular(14).map(({ x, z }) => [
+                      5.6 * x,
+                      5.6 * z,
+                      2,
+                    ]),
                   );
               }),
-              newModel(model => {
+              newModel((model) => {
                 model._update = () => identity.translate(-65.8, 0.8, 106).rotate(0, rotatingPlatform2Rotation),
-                  [-1, 1].map(x =>
+                  [
+                    -1,
+                    1,
+                  ].map((x) =>
                     meshAdd(
                       hornPolygons,
                       identity.rotate(0, 90).translate(-5 * x, 1, -0.5).scale(1.2, 10, 1.2).rotate(0, 90 * x + 90),
@@ -2588,7 +2615,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                     ),
                   );
               }),
-              newModel(model => {
+              newModel((model) => {
                 model._update = () => identity.translate(-50.7, 0.8, 106).rotate(0, 180 - rotatingPlatform2Rotation),
                   meshAdd(
                     csg_polygons_subtract(
@@ -2616,7 +2643,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                     ),
                   );
               }),
-              newModel(model => {
+              newModel((model) => {
                 model._update = () => identity.translate(-50.7, 0.8, 91).rotate(0, 270 + rotatingPlatform2Rotation),
                   meshAdd(
                     csg_polygons_subtract(
@@ -2654,11 +2681,12 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 identity.translate(-34, 0.2, 96).scale(3, 2, 4).rotate(-20, 0),
                 material(0.2, 0.5, 0.5, 0.6),
               ),
-              [material(0.1, 0.55, 0.45, 0.2), material(0.2, 0.5, 0.5, 0.3), material(0.3, 0.45, 0.55, 0.4)].map((
-                m,
-                i,
-              ) =>
-                newModel(model => {
+              [
+                material(0.1, 0.55, 0.45, 0.2),
+                material(0.2, 0.5, 0.5, 0.3),
+                material(0.3, 0.45, 0.55, 0.4),
+              ].map((m, i) =>
+                newModel((model) => {
                   model._update = () => {
                     const v = lerpneg(levers[13].$lerpValue2, levers[14].$lerpValue2);
                     return identity.translate(
@@ -2686,7 +2714,10 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                     );
                 })
               ),
-              [-1, 1].map(x =>
+              [
+                -1,
+                1,
+              ].map((x) =>
                 meshAdd(
                   hornPolygons,
                   identity.translate(-8 * x, 1, 85).scale(1.2, 10, 1.2).rotate(0, 90 * x + 90),
@@ -2695,7 +2726,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               ),
               integers_map(
                 3,
-                i =>
+                (i) =>
                   meshAdd(
                     makeBigArcPolygons(24.7 - 0.7 * (1 & i)),
                     identity.translate(6 * i - 6, 4 - (1 & i), 111 - 0.2 * (1 & i)),
@@ -2750,7 +2781,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   ),
                 ),
               ),
-              newModel(model => {
+              newModel((model) => {
                 model._update = () => {
                   const k = Math.sin(gameTime);
                   return identity.translate(-2 * k).rotate(25 * k);
@@ -2760,7 +2791,10 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                     identity.translate(0, -3, 118.8).scale(0.8, 0.8, 18).rotate(90, 0, 60),
                     material(0.5, 0.3, 0.3, 0.4),
                   ),
-                  [22, 30].map(z => {
+                  [
+                    22,
+                    30,
+                  ].map((z) => {
                     meshAdd(
                       cylinder(6),
                       identity.translate(0, 16, z + 95).scale(3, 1, 2.3).rotate(0, 90),
@@ -2773,7 +2807,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                       );
                   });
               }),
-              newModel(model => {
+              newModel((model) => {
                 model._update = () => {
                   const v = lerpneg(
                     lerpneg((levers[14].$lerpValue + levers[14].$lerpValue2) / 2, levers[13].$lerpValue2),
@@ -2787,15 +2821,23 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               }),
               newSoul(
                 identity.translate(0, 3, 95),
-                ...polygon_regular(9).map(({
-                  x,
-                  z,
-                }) => [9 * x, 9 * z, 4]),
+                ...polygon_regular(9).map(({ x, z }) => [
+                  9 * x,
+                  9 * z,
+                  4,
+                ]),
               ),
-              newSoul(identity.translate(0, 19, 134), [0, 0, 3.5]);
+              newSoul(identity.translate(0, 19, 134), [
+                0,
+                0,
+                3.5,
+              ]);
           }),
           newModel(() => {
-            [0, 180].map(r =>
+            [
+              0,
+              180,
+            ].map((r) =>
               meshAdd(
                 hornPolygons,
                 identity.rotate(0, r).translate(0.2, 1.32).rotate(-30).scale(0.2, 0.6, 0.2),
@@ -2810,11 +2852,17 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               identity.rotate(-90, 0).scale(0.1, 0.05, 0.1),
               material(0.3, 0.3, 0.3),
             );
-            [-1, 1].map(i => meshAdd(eye, identity.translate(0.2 * i, 1.2, 0.4).rotate(0, 20 * i, 20 * i))),
+            [
+              -1,
+              1,
+            ].map((i) => meshAdd(eye, identity.translate(0.2 * i, 1.2, 0.4).rotate(0, 20 * i, 20 * i))),
               meshAdd(cylinder(), identity.translate(0, 0.9, 0.45).scale(0.15, 0.02, 0.06), material(0.3, 0.3, 0.3)),
               meshAdd(sphere(20), identity.scale(0.7, 0.8, 0.55), material(1, 0.3, 0.4));
           }),
-          [-1, 1].map(x =>
+          [
+            -1,
+            1,
+          ].map((x) =>
             newModel(() => {
               meshAdd(cylinder(10, 1), identity.translate(0.3 * x, -0.8).scale(0.2, 0.7, 0.24), material(1, 0.3, 0.4));
             })
@@ -2852,7 +2900,11 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               }),
               identity.scale3d(0.7),
               material(1, 1, 1),
-            ), [-1, 1].map(x => meshAdd(sphere(12), identity.translate(0.16 * x, 0.4, -0.36).scale3d(0.09)));
+            ),
+              [
+                -1,
+                1,
+              ].map((x) => meshAdd(sphere(12), identity.translate(0.16 * x, 0.4, -0.36).scale3d(0.09)));
           }, 0);
       }
     });

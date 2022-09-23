@@ -34,6 +34,7 @@ import resugarObjectsShorthand from "@resugar/codemod-objects-shorthand";
 import resugarConcise from "@resugar/codemod-objects-concise";
 import { babelPluginSimple } from "./steps/babel/babel-plugin-simple";
 import { jsEsbuildMinify } from "./steps/js-esbuild";
+import { jsRemoveEndingSemicolons } from "./lib/code-utils";
 
 const resugarBlockScope = [resugarBlockScopePlugin, { "declarations.block-scope": { disableConst: true } }];
 
@@ -132,17 +133,14 @@ export async function build() {
   async function minifyJavascript(js: string): Promise<string> {
     js = await dprint(js);
 
+    js = await jsTransformSwc(js, false, swcPluginVars());
+
     js = await jsBabel(js, {
       minify: false,
-      plugins: [
-        "babel-plugin-minify-dead-code-elimination",
-        babelPluginSimple({ unmangleableProperties: "mark" }),
-        resugarBlockScope,
-        resugarFunctionsArrow,
-      ],
+      plugins: [babelPluginSimple({ unmangleableProperties: "mark" }), resugarBlockScope, resugarFunctionsArrow],
     });
 
-    js = await jsTransformSwc(js, false, swcPluginVars());
+    // js = await jsTransformSwc(js, false, swcPluginVars());
 
     js = await jsTerser(js, {
       mangle: false,
@@ -158,7 +156,7 @@ export async function build() {
       mangle: false,
       minifySyntax: true,
       minifyWhitespace: false,
-      computed_props: false,
+      computed_props: true,
     });
 
     js = await jsTransformSwc(js, false, swcPluginVars());
@@ -179,7 +177,7 @@ export async function build() {
       mangle: false,
       minifySyntax: true,
       minifyWhitespace: false,
-      computed_props: false,
+      computed_props: true,
     });
 
     js = await jsTransformSwc(js, false, swcPluginVars({ floatRound: 6 }));
@@ -196,6 +194,8 @@ export async function build() {
         }),
       ],
     });
+
+    js = await jsTransformSwc(js, false, swcPluginVars({ floatRound: 6 }));
 
     // ===== Google closure compiler =====
 
@@ -233,16 +233,19 @@ export async function build() {
 
     js = await jsBabel(js, {
       minify: false,
-      plugins: [resugarConcise, resugarObjectsShorthand, resugarFunctionsArrow, resugarBlockScope],
+      plugins: [
+        "babel-plugin-minify-dead-code-elimination",
+        resugarConcise,
+        resugarObjectsShorthand,
+        resugarFunctionsArrow,
+        resugarBlockScope,
+      ],
     });
 
-    js = await jsTransformSwc(js, false, swcPluginVars({ constToLet: true, floatRound: 6 }));
-
-    js = await jsTerser(js, {
-      mangle: "variables",
-      final: false,
-      join_vars: true,
-      sequences: true,
+    js = await jsEsbuildMinify(js, {
+      mangle: false,
+      minifySyntax: true,
+      minifyWhitespace: false,
       computed_props: true,
     });
 
@@ -271,6 +274,17 @@ export async function build() {
       computed_props: true,
     });
 
+    js = await jsTransformSwc(js, false, swcPluginVars({ constToLet: true, floatRound: 6 }));
+
+    js = await jsEsbuildMinify(js, {
+      mangle: false,
+      minifySyntax: true,
+      minifyWhitespace: false,
+      computed_props: true,
+    });
+
+    // js = await jsTransformSwc(js, false, swcPluginVars({ constToLet: true, floatRound: 6 }));
+
     js = await jsUglify(js, {
       varify: false,
       final: true,
@@ -294,7 +308,7 @@ export async function build() {
       ],
     });
 
-    js = await jsTransformSwc(js, false, swcPluginVars({ constToLet: true, floatRound: 6 }));
+    // js = await jsTransformSwc(js, false, swcPluginVars({ constToLet: true, floatRound: 6 }));
 
     js = await jsUglify(js, {
       varify: false,
@@ -308,6 +322,8 @@ export async function build() {
     });
 
     // js = await jsTdeMinify(js);
+
+    js = jsRemoveEndingSemicolons(js);
 
     return js;
   }
