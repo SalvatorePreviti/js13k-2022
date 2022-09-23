@@ -1,4 +1,4 @@
-import { abs, clamp01, integers_map, lerpneg, max, min, identity } from "../math";
+import { abs, clamp, integers_map, lerpneg, max, min, identity } from "../math";
 import {
   GQuad,
   cylinder,
@@ -154,7 +154,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
       meshAdd(cylinder(), identity.translate(0, 1, z).scale(3, 0.2, 0.35), material(0.5, 0.5, 0.5, 0.3));
       // in and out gate bars
       newModel((model) => {
-        model._update = () => identity.translate(0, 0, z).scale(1, clamp01(1.22 - levers[i + 1]!.$lerpValue), 1);
+        model._update = () => identity.translate(0, 0, z).scale(1, clamp(1.22 - levers[i + 1]!.$lerpValue), 1);
         meshAdd(gateBarsPolygons);
       });
     });
@@ -328,7 +328,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     });
 
     const level3Oscillation = () =>
-      clamp01(1 - level2Oscillation() * 5) * lerpneg(levers[4]!.$lerpValue, levers[5]!.$lerpValue);
+      clamp(1 - level2Oscillation() * 5) * lerpneg(levers[4]!.$lerpValue, levers[5]!.$lerpValue);
 
     // ******** LEVEL 3 ********
 
@@ -538,7 +538,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
     // gate bars
     newModel((model) => {
-      model._update = () => identity.translate(-99.7, -1.9, 63.5).scale(1, clamp01(1.1 - levers[6]!.$lerpValue), 1);
+      model._update = () => identity.translate(-99.7, -1.9, 63.5).scale(1, clamp(1.1 - levers[6]!.$lerpValue), 1);
       meshAdd(gateBarsPolygons);
     });
 
@@ -914,7 +914,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
             (i > 2 ? (1 - osc) * 2 + osc : 0) - 100,
             osc * Math.sin(gameTime * 1.3 + i * 1.7) * (3 + i / 3) + 0.7,
             (i & 1 ? -1 : 1) * (1 - levers[8]!.$lerpValue2) * (1 - levers[12]!.$lerpValue2) * -7 +
-              max(0.05, osc) * Math.cos(gameTime * 1.3 + i * 7) * (4 - 2 * (1 - i / 3)) +
+              max(osc, 0.05) * Math.cos(gameTime * 1.3 + i * 7) * (4 - 2 * (1 - i / 3)) +
               115,
           );
         };
@@ -1270,7 +1270,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
           lerpneg((levers[14]!.$lerpValue + levers[14]!.$lerpValue2) / 2, levers[13]!.$lerpValue2),
           (levers[15]!.$lerpValue + levers[15]!.$lerpValue2) / 2,
         );
-        return identity.translate(0, v * 16, clamp01(v * 2 - 1) * 8.5 + 95);
+        return identity.translate(0, v * 16, clamp(v * 2 - 1) * 8.5 + 95);
       };
       meshAdd(cylinder(5), identity.scale(5, 1.1, 5), material(0.5, 0.3, 0.3, 0.4));
       meshAdd(cylinder(5), identity.scale(5.5, 0.9, 5.5), material(0.25, 0.25, 0.25, 0.4));

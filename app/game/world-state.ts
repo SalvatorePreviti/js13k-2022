@@ -1,4 +1,4 @@
-import { lerp, angle_wrap_degrees, lerpneg, abs, clamp01, min } from "../math";
+import { lerp, angle_wrap_degrees, lerpneg, abs, clamp, min } from "../math";
 import { allModels, levers, souls, SOULS_COUNT } from "./models";
 
 export const KEY_LEFT = 0;
@@ -114,7 +114,7 @@ export const worldStateUpdate = () => {
 
   secondBoatLerp = lerpDamp(secondBoatLerp, levers[9]!.$lerpValue2, 0.2 + 0.3 * abs(levers[9]!.$lerpValue2 * 2 - 1));
 
-  firstBoatLerp = lerpDamp(firstBoatLerp, game_completed ? lerpDamp(firstBoatLerp, -9, 1.5) : clamp01(gameTime / 3), 1);
+  firstBoatLerp = lerpDamp(firstBoatLerp, game_completed ? lerpDamp(firstBoatLerp, -9, 1.5) : clamp(gameTime / 3), 1);
 
   if (_messageEndTime && gameTime > _messageEndTime) {
     _messageEndTime = 0;
@@ -173,7 +173,7 @@ export const loadGame = () => {
       console.log(e);
     }
   }
-  firstBoatLerp = clamp01(player_last_pulled_lever);
+  firstBoatLerp = clamp(player_last_pulled_lever);
 };
 
 export const saveGame = () => {

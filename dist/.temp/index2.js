@@ -205,12 +205,12 @@ const integers_map = (n, fn) => Array.from(Array(n), (_, i) => fn(i));
 const min = (a, b) => a < b ? a : b;
 const max = (a, b) => b < a ? a : b;
 const abs = (n) => n < 0 ? -n : n;
+const clamp = (value, minValue = 0, maxValue = 1) => value < minValue ? minValue : maxValue < value ? maxValue : value;
 const threshold = (value, amount) => abs(value) > amount ? value : 0;
-const clamp01 = (t) => t < 0 ? 0 : 1 < t ? 1 : t;
-const lerp = (a, b, t) => a + (b - a) * clamp01(t);
-const lerpneg = (v, t) => (v = clamp01(v), lerp(v, 1 - v, t));
+const lerp = (a, b, t) => a + (b - a) * clamp(t);
+const lerpneg = (v, t) => (v = clamp(v), lerp(v, 1 - v, t));
 const angle_wrap_degrees = (degrees) => Math.atan2(Math.sin(degrees *= DEG_TO_RAD), Math.cos(degrees)) / DEG_TO_RAD;
-const angle_lerp_degrees = (a0, a1, t) => a0 + (2 * (a1 = (a1 - a0) % 360) % 360 - a1) * clamp01(t);
+const angle_lerp_degrees = (a0, a1, t) => a0 + (2 * (a1 = (a1 - a0) % 360) % 360 - a1) * clamp(t);
 const vec3_distance = ({ x, y, z }, b) => Math.hypot(x - b.x, y - b.y, z - b.z);
 const vec3_dot = ({ x, y, z }, b) => x * b.x + y * b.y + z * b.z;
 const plane_fromPolygon = (polygon) => {
@@ -514,11 +514,7 @@ const worldStateUpdate = () => {
       shouldRotatePlatforms,
     ),
     secondBoatLerp = lerpDamp(secondBoatLerp, levers[9].$lerpValue2, 0.2 + 0.3 * abs(2 * levers[9].$lerpValue2 - 1)),
-    firstBoatLerp = lerpDamp(
-      firstBoatLerp,
-      game_completed ? lerpDamp(firstBoatLerp, -9, 1.5) : clamp01(gameTime / 3),
-      1,
-    ),
+    firstBoatLerp = lerpDamp(firstBoatLerp, game_completed ? lerpDamp(firstBoatLerp, -9, 1.5) : clamp(gameTime / 3), 1),
     _messageEndTime && gameTime > _messageEndTime && (_messageEndTime = 0, h4.innerHTML = ""),
     levers[0].$value && 0.8 < levers[0].$lerpValue && (souls_collected_count < 13
       ? (showMessage("Not leaving now, there are souls to catch!", 3), levers[0].$value = 0)
@@ -632,7 +628,7 @@ const newSoul = (transform, ...walkingPath) => {
           magnitude = Math.hypot(ax, az),
           angle = Math.atan2(-az, ax),
           wasInside
-          && (randAngle = (Math.random() - 0.5) * Math.PI / 2, velocity = max(1, velocity / (1 + Math.random()))),
+          && (randAngle = (Math.random() - 0.5) * Math.PI / 2, velocity = clamp(velocity / (1 + Math.random()))),
           angle += randAngle,
           dirX = -Math.cos(angle),
           dirZ = Math.sin(angle),
@@ -641,7 +637,7 @@ const newSoul = (transform, ...walkingPath) => {
             targetX = ax * magnitude + x1,
             targetZ = az * magnitude + z1)),
           wasInside = isInside,
-          velocity = lerpDamp(velocity, 3 + 6 * (1 - contextualVelocity), 3 + contextualVelocity),
+          velocity = lerpDamp(velocity, 6 * (1 - contextualVelocity) + 3, contextualVelocity + 3),
           soulX = lerpDamp(soulX, targetX = lerpDamp(targetX, targetX + dirX, velocity), velocity),
           soulZ = lerpDamp(soulZ, targetZ = lerpDamp(targetZ, targetZ + dirZ, velocity), velocity),
           lookAngle = angle_lerp_degrees(
@@ -846,7 +842,7 @@ const initPage = () => {
               absDeltaX = abs(identifier),
               absDeltaY = abs(deltaY),
               angle = Math.atan2(deltaY, identifier),
-              speed = clamp01(Math.hypot(deltaY, identifier) - 0.5),
+              speed = clamp(Math.hypot(deltaY, identifier) - 0.5),
               touch_movementX = 0.2 < absDeltaX ? Math.cos(angle) * speed : 0,
               touch_movementY = 0.2 < absDeltaY ? Math.sin(angle) * speed : 0,
               (touch_movementX || touch_movementY) && (touchPosMoved = 1),
@@ -906,7 +902,7 @@ const player_init = () => {
   const player_collision_modelIdCounter = new Int32Array(256);
   const collision_buffer = new Uint8Array(65536);
   const interpolate_with_hysteresis = (previous, desired, amount) =>
-    lerpDamp(previous, desired, min(4, max(0.4, abs(previous - desired) - amount)));
+    lerpDamp(previous, desired, clamp(abs(previous - desired) - amount, 0.4, 4));
   const doHorizontalCollisions = () => {
     for (let y = 32; y < 128; y += 2) {
       let front = 0;
@@ -921,8 +917,8 @@ const player_init = () => {
         const dist2 = collision_buffer[1 + i2] / 255;
         const t = 1 - abs(x / 63.5 - 1);
         10 < x && x < 118
-        && (front = max(front, max(dist1 * t, dist1 * collision_buffer[i2] / 255)),
-          back = max(back, max(dist2 * t, dist2 * collision_buffer[1 + i1] / 255))),
+        && (front = max(max(dist1 * t, dist1 * collision_buffer[i2] / 255), front),
+          back = max(max(dist2 * t, dist2 * collision_buffer[1 + i1] / 255), back)),
           (x < 54 || 74 < x) && 1e-3 < (i2 = (1 - t) * max(dist1, dist2) / 3)
           && (x < 64 && i2 > left ? left = i2 : 64 < x && i2 > right && (right = i2));
       }
@@ -1019,7 +1015,7 @@ const player_init = () => {
         : (camera_position.x = lerpDamp(camera_position.x, camera_lookat_x, 2),
           camera_position.y = lerpDamp(
             camera_position.y,
-            max(camera_lookat_y + 13 + min(20, max(0, -z2 - 60) / 8), 6),
+            max(camera_lookat_y + 13 + clamp((-60 - z2) / 8, 0, 20), 6),
             2,
           ),
           camera_position.z = lerpDamp(camera_position.z, camera_lookat_z + -18, 2),
@@ -1028,7 +1024,7 @@ const player_init = () => {
           (x2 = threshold(Math.hypot(dz, referenceMatrix), 0.1))
           && (camera_rotation.x = 90 - Math.atan2(x2, camera_position.y - camera_lookat_y) / DEG_TO_RAD,
             camera_rotation.y = 270 + Math.atan2(dz, referenceMatrix) / DEG_TO_RAD)),
-      camera_rotation.x = max(min(camera_rotation.x, 87), -87),
+      camera_rotation.x = clamp(camera_rotation.x, -87, 87),
       camera_rotation.y = angle_wrap_degrees(camera_rotation.y);
     const playerMatrix = allModels[37].$matrix = identity.translate(y2, player_model_y, z2).rotateSelf(
       0,
@@ -1040,7 +1036,7 @@ const player_init = () => {
     ].map((modelId, i) => {
       allModels[modelId].$matrix = playerMatrix.translate(
         0,
-        player_legs_speed * clamp01(0.45 * Math.sin(9.1 * gameTime + Math.PI * (i - 1) - Math.PI / 2)),
+        player_legs_speed * clamp(0.45 * Math.sin(9.1 * gameTime + Math.PI * (i - 1) - Math.PI / 2)),
       ).rotateSelf(player_legs_speed * Math.sin(9.1 * gameTime + Math.PI * (i - 1)) * 0.25 / DEG_TO_RAD, 0);
     });
   };
@@ -1062,7 +1058,7 @@ const player_init = () => {
         gamepadInteractPressed = gamepad;
     }
     getGamepadButtonState = Math.atan2(forward, strafe),
-      gamepad = threshold(clamp01(Math.hypot(forward, strafe)), 0.05),
+      gamepad = threshold(clamp(Math.hypot(forward, strafe)), 0.05),
       strafe = gamepad * Math.cos(getGamepadButtonState),
       forward = gamepad * Math.sin(getGamepadButtonState),
       player_legs_speed = lerpDamp(player_legs_speed, gamepad, 10),
@@ -1084,7 +1080,7 @@ const player_init = () => {
       NO_INLINE(doVerticalCollisions)(),
       player_collision_velocity_x = lerpDamp(player_collision_velocity_x, 0, player_has_ground ? 8 : 4),
       player_collision_velocity_z = lerpDamp(player_collision_velocity_z, 0, player_has_ground ? 8 : 4),
-      getGamepadButtonState = clamp01(1 - 5 * max(abs(player_collision_x), abs(player_collision_z))),
+      getGamepadButtonState = clamp(1 - 5 * max(abs(player_collision_x), abs(player_collision_z))),
       currentModelId
       || (player_collision_x += player_collision_velocity_x * getGamepadButtonState * gameTimeDelta,
         player_collision_z += player_collision_velocity_z * getGamepadButtonState * gameTimeDelta),
@@ -1338,7 +1334,7 @@ loadStep(() => {
           _globalTime = globalTime,
           0 < gameTimeDelta && (worldStateUpdate(), player_update(), keyboard_downKeys[5] = 0);
         let { x: cameraX, y: cameraY, z: cameraZ } = camera_position;
-        mainMenuVisible && (cameraX = -4.5, cameraY = 2, cameraZ = 3.2 - clamp01(hC.clientWidth / 1e3));
+        mainMenuVisible && (cameraX = -4.5, cameraY = 2, cameraZ = 3.2 - clamp(hC.clientWidth / 1e3));
         var dt = (mainMenuVisible
           ? identity.rotate(-20, -90)
           : identity.rotate(-camera_rotation.x, -camera_rotation.y, -camera_rotation.z)).invertSelf().translateSelf(
@@ -1558,7 +1554,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
             secondBoatLerp = savedSecondBoatLerp;
         } catch {
         }
-        firstBoatLerp = clamp01(player_last_pulled_lever);
+        firstBoatLerp = clamp(player_last_pulled_lever);
       });
       {
         const hornsMatrices = integers_map(
@@ -1628,7 +1624,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               );
             const level2Oscillation = () => min(levers[2].$lerpValue2, 1 - levers[4].$lerpValue2);
             const level3Oscillation = () =>
-              clamp01(1 - 5 * level2Oscillation()) * lerpneg(levers[4].$lerpValue, levers[5].$lerpValue);
+              clamp(1 - 5 * level2Oscillation()) * lerpneg(levers[4].$lerpValue, levers[5].$lerpValue);
             const shouldOscillate = () => lerpneg(levers[7].$lerpValue2, levers[6].$lerpValue2);
             const shouldPushRods = () => lerpneg(levers[10].$lerpValue, levers[11].$lerpValue);
             const hexPadShouldOscillate = () => lerpneg(levers[8].$lerpValue2, levers[12].$lerpValue2);
@@ -1710,7 +1706,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   meshAdd(cylinder(), identity.translate(0, 1, z).scale(3, 0.2, 0.35), material(0.5, 0.5, 0.5, 0.3)),
                   newModel((model) => {
                     model._update = () =>
-                      identity.translate(0, 0, z).scale(1, clamp01(1.22 - levers[i + 1].$lerpValue), 1),
+                      identity.translate(0, 0, z).scale(1, clamp(1.22 - levers[i + 1].$lerpValue), 1),
                       meshAdd(gateBarsPolygons);
                   });
               }),
@@ -2035,7 +2031,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               ),
               newModel((model) => {
                 model._update = () =>
-                  identity.translate(-99.7, -1.9, 63.5).scale(1, clamp01(1.1 - levers[6].$lerpValue), 1),
+                  identity.translate(-99.7, -1.9, 63.5).scale(1, clamp(1.1 - levers[6].$lerpValue), 1),
                   meshAdd(gateBarsPolygons);
               }),
               GQuad.map(({ x, z }) => {
@@ -2428,7 +2424,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                       (2 < i ? 2 * (1 - osc) + osc : 0) - 100,
                       osc * Math.sin(1.3 * gameTime + 1.7 * i) * (3 + i / 3) + 0.7,
                       115 + (1 & i ? -1 : 1) * (1 - levers[8].$lerpValue2) * (1 - levers[12].$lerpValue2) * -7
-                        + max(0.05, osc) * Math.cos(1.3 * gameTime + 7 * i) * (4 - 2 * (1 - i / 3)),
+                        + max(osc, 0.05) * Math.cos(1.3 * gameTime + 7 * i) * (4 - 2 * (1 - i / 3)),
                     );
                   },
                     meshAdd(
@@ -2815,7 +2811,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                     lerpneg((levers[14].$lerpValue + levers[14].$lerpValue2) / 2, levers[13].$lerpValue2),
                     (levers[15].$lerpValue + levers[15].$lerpValue2) / 2,
                   );
-                  return identity.translate(0, 16 * v, 8.5 * clamp01(2 * v - 1) + 95);
+                  return identity.translate(0, 16 * v, 8.5 * clamp(2 * v - 1) + 95);
                 },
                   meshAdd(cylinder(5), identity.scale(5, 1.1, 5), material(0.5, 0.3, 0.3, 0.4)),
                   meshAdd(cylinder(5), identity.scale(5.5, 0.9, 5.5), material(0.25, 0.25, 0.25, 0.4)),

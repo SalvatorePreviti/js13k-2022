@@ -14,7 +14,7 @@ import {
   updateCollectedSoulsCounter,
 } from "./game/world-state";
 import { songAudioSource, audioContext } from "./music/audio-context";
-import { abs, clamp01 } from "./math";
+import { abs, clamp } from "./math";
 
 export let player_first_person: 0 | 1 | undefined;
 
@@ -220,7 +220,7 @@ export const initPage = () => {
           const absDeltaY = abs(deltaY);
 
           const angle = Math.atan2(deltaY, deltaX);
-          const speed = clamp01(Math.hypot(deltaY, deltaX) - TOUCH_MOVE_THRESHOLD);
+          const speed = clamp(Math.hypot(deltaY, deltaX) - TOUCH_MOVE_THRESHOLD);
 
           touch_movementX = absDeltaX > TOUCH_MOVE_SNAP ? Math.cos(angle) * speed : 0;
           touch_movementY = absDeltaY > TOUCH_MOVE_SNAP ? Math.sin(angle) * speed : 0;

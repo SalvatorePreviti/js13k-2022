@@ -20,7 +20,7 @@ import void_fsSource from "./shaders/void-fragment.frag";
 import sky_vsSource from "./shaders/sky-vertex.vert";
 import sky_fsSource, { uniformName_iResolution } from "./shaders/sky-fragment.frag";
 
-import { clamp01, integers_map, identity, mat_perspectiveXY, matrixToArray } from "./math";
+import { clamp, integers_map, identity, mat_perspectiveXY, matrixToArray } from "./math";
 import { MODEL_ID_SOUL, MODEL_ID_SOUL_COLLISION, player_position_final } from "./game/models";
 import {
   absoluteTime,
@@ -114,7 +114,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     if (mainMenuVisible) {
       cameraX = -4.5;
       cameraY = 2;
-      cameraZ = 3.2 - clamp01(hC.clientWidth / 1000);
+      cameraZ = 3.2 - clamp(hC.clientWidth / 1000);
     }
 
     const camera_view = (

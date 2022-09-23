@@ -13,11 +13,11 @@ const integers_map = (n, fn) => Array.from(/* @__PURE__ */ Array(n), (_, i) => f
 const min = (a, b) => a < b ? a : b;
 const max = (a, b) => a > b ? a : b;
 const abs = (n) => n < 0 ? -n : n;
+const clamp = (value, minValue = 0, maxValue = 1) => value < minValue ? minValue : value > maxValue ? maxValue : value;
 const threshold = (value, amount) => abs(value) > amount ? value : 0;
-const clamp01 = (t) => t < 0 ? 0 : t > 1 ? 1 : t;
-const lerp = (a, b, t) => a + (b - a) * clamp01(t);
+const lerp = (a, b, t) => a + (b - a) * clamp(t);
 const lerpneg = (v, t) => {
-  v = clamp01(v);
+  v = clamp(v);
   return lerp(v, 1 - v, t);
 };
 const angle_wrap_radians = (radians) =>
@@ -25,7 +25,7 @@ const angle_wrap_radians = (radians) =>
 const angle_wrap_degrees = (degrees) => angle_wrap_radians(degrees * DEG_TO_RAD) / DEG_TO_RAD;
 const angle_lerp_degrees = (a0, a1, t) => {
   const da = (a1 - a0) % 360;
-  return a0 + (2 * da % 360 - da) * clamp01(t);
+  return a0 + (2 * da % 360 - da) * clamp(t);
 };
 const vec3_distance = ({ x, y, z }, b) => /* @__PURE__ */ Math.hypot(x - b.x, y - b.y, z - b.z);
 const vec3_dot = ({ x, y, z }, b) => x * b.x + y * b.y + z * b.z;
@@ -461,7 +461,7 @@ const worldStateUpdate = () => {
     shouldRotatePlatforms,
   );
   secondBoatLerp = lerpDamp(secondBoatLerp, levers[9].$lerpValue2, 0.2 + 0.3 * abs(levers[9].$lerpValue2 * 2 - 1));
-  firstBoatLerp = lerpDamp(firstBoatLerp, game_completed ? lerpDamp(firstBoatLerp, -9, 1.5) : clamp01(gameTime / 3), 1);
+  firstBoatLerp = lerpDamp(firstBoatLerp, game_completed ? lerpDamp(firstBoatLerp, -9, 1.5) : clamp(gameTime / 3), 1);
   if (_messageEndTime && gameTime > _messageEndTime) {
     _messageEndTime = 0;
     h4.innerHTML = "";
@@ -519,7 +519,7 @@ const loadGame = () => {
     secondBoatLerp = savedSecondBoatLerp;
   } catch (e) {
   }
-  firstBoatLerp = clamp01(player_last_pulled_lever);
+  firstBoatLerp = clamp(player_last_pulled_lever);
 };
 const saveGame = () => {
   localStorage[LOCAL_STORAGE_SAVED_GAME_KEY] = JSON.stringify([
@@ -644,7 +644,7 @@ const newSoul = (transform, ...walkingPath) => {
           let angle = /* @__PURE__ */ Math.atan2(-az, ax);
           if (wasInside) {
             randAngle = (/* @__PURE__ */ Math.random() - 0.5) * Math.PI / 2;
-            velocity = max(1, velocity / (1 + /* @__PURE__ */ Math.random()));
+            velocity = clamp(velocity / (1 + /* @__PURE__ */ Math.random()));
           }
           angle += randAngle;
           dirX = -/* @__PURE__ */ Math.cos(angle);
@@ -656,7 +656,7 @@ const newSoul = (transform, ...walkingPath) => {
           }
         }
         wasInside = isInside;
-        velocity = lerpDamp(velocity, 3 + (1 - contextualVelocity) * 6, 3 + contextualVelocity);
+        velocity = lerpDamp(velocity, (1 - contextualVelocity) * 6 + 3, contextualVelocity + 3);
         soulX = lerpDamp(soulX, targetX = lerpDamp(targetX, targetX + dirX, velocity), velocity);
         soulZ = lerpDamp(soulZ, targetZ = lerpDamp(targetZ, targetZ + dirZ, velocity), velocity);
         lookAngle = angle_lerp_degrees(
@@ -767,7 +767,7 @@ const build_life_the_universe_and_everything = () => {
         meshAdd(cylinder(), identity.translate(0, -3, pz).scale(8, 2, 8), material(0.4, 0.4, 0.4, 0.3));
       });
     const level3Oscillation = () =>
-      clamp01(1 - level2Oscillation() * 5) * lerpneg(levers[4].$lerpValue, levers[5].$lerpValue);
+      clamp(1 - level2Oscillation() * 5) * lerpneg(levers[4].$lerpValue, levers[5].$lerpValue);
     const shouldOscillate = () => lerpneg(levers[7].$lerpValue2, levers[6].$lerpValue2);
     const shouldPushRods = () => lerpneg(levers[10].$lerpValue, levers[11].$lerpValue);
     const shouldBlockRods = () => (1 - levers[10].$lerpValue) * (1 - shouldPushRods());
@@ -842,7 +842,7 @@ const build_life_the_universe_and_everything = () => {
       meshAdd(cylinder(), identity.translate(0, 6.3, z).scale(4, 0.3, 1), material(0.3, 0.3, 0.3, 0.4));
       meshAdd(cylinder(), identity.translate(0, 1, z).scale(3, 0.2, 0.35), material(0.5, 0.5, 0.5, 0.3));
       newModel((model) => {
-        model._update = () => identity.translate(0, 0, z).scale(1, clamp01(1.22 - levers[i + 1].$lerpValue), 1);
+        model._update = () => identity.translate(0, 0, z).scale(1, clamp(1.22 - levers[i + 1].$lerpValue), 1);
         meshAdd(gateBarsPolygons);
       });
     });
@@ -1121,7 +1121,7 @@ const build_life_the_universe_and_everything = () => {
       ),
     );
     newModel((model) => {
-      model._update = () => identity.translate(-99.7, -1.9, 63.5).scale(1, clamp01(1.1 - levers[6].$lerpValue), 1);
+      model._update = () => identity.translate(-99.7, -1.9, 63.5).scale(1, clamp(1.1 - levers[6].$lerpValue), 1);
       meshAdd(gateBarsPolygons);
     });
     GQuad.map(({ x, z }) => {
@@ -1448,7 +1448,7 @@ const build_life_the_universe_and_everything = () => {
             (i > 2 ? (1 - osc) * 2 + osc : 0) - 100,
             osc * /* @__PURE__ */ Math.sin(gameTime * 1.3 + i * 1.7) * (3 + i / 3) + 0.7,
             (i & 1 ? -1 : 1) * (1 - levers[8].$lerpValue2) * (1 - levers[12].$lerpValue2) * -7
-              + max(0.05, osc) * /* @__PURE__ */ Math.cos(gameTime * 1.3 + i * 7) * (4 - 2 * (1 - i / 3)) + 115,
+              + max(osc, 0.05) * /* @__PURE__ */ Math.cos(gameTime * 1.3 + i * 7) * (4 - 2 * (1 - i / 3)) + 115,
           );
         };
         meshAdd(
@@ -1749,7 +1749,7 @@ const build_life_the_universe_and_everything = () => {
           lerpneg((levers[14].$lerpValue + levers[14].$lerpValue2) / 2, levers[13].$lerpValue2),
           (levers[15].$lerpValue + levers[15].$lerpValue2) / 2,
         );
-        return identity.translate(0, v * 16, clamp01(v * 2 - 1) * 8.5 + 95);
+        return identity.translate(0, v * 16, clamp(v * 2 - 1) * 8.5 + 95);
       };
       meshAdd(cylinder(5), identity.scale(5, 1.1, 5), material(0.5, 0.3, 0.3, 0.4));
       meshAdd(cylinder(5), identity.scale(5.5, 0.9, 5.5), material(0.25, 0.25, 0.25, 0.4));
@@ -2094,7 +2094,7 @@ const initPage = () => {
           const absDeltaX = abs(deltaX);
           const absDeltaY = abs(deltaY);
           const angle = /* @__PURE__ */ Math.atan2(deltaY, deltaX);
-          const speed = clamp01(/* @__PURE__ */ Math.hypot(deltaY, deltaX) - TOUCH_MOVE_THRESHOLD);
+          const speed = clamp(/* @__PURE__ */ Math.hypot(deltaY, deltaX) - TOUCH_MOVE_THRESHOLD);
           touch_movementX = absDeltaX > TOUCH_MOVE_SNAP ? /* @__PURE__ */ Math.cos(angle) * speed : 0;
           touch_movementY = absDeltaY > TOUCH_MOVE_SNAP ? /* @__PURE__ */ Math.sin(angle) * speed : 0;
           if (touch_movementX || touch_movementY) {
@@ -2192,7 +2192,7 @@ const player_init = () => {
   };
   const player_collision_modelIdCounter = new Int32Array(256);
   const interpolate_with_hysteresis = (previous, desired, amount) =>
-    lerpDamp(previous, desired, min(4, max(0.4, abs(previous - desired) - amount)));
+    lerpDamp(previous, desired, clamp(abs(previous - desired) - amount, 0.4, 4));
   const doHorizontalCollisions = () => {
     for (let y = 32; y < COLLISION_TEXTURE_SIZE; y += 2) {
       let front = 0;
@@ -2207,8 +2207,8 @@ const player_init = () => {
         const dist2 = collision_buffer[i2 + 1] / 255;
         const t = 1 - abs(2 * (x / (COLLISION_TEXTURE_SIZE - 1)) - 1);
         if (x > 10 && x < COLLISION_TEXTURE_SIZE - 10) {
-          front = max(front, max(dist1 * t, dist1 * collision_buffer[i2] / 255));
-          back = max(back, max(dist2 * t, dist2 * collision_buffer[i1 + 1] / 255));
+          front = max(max(dist1 * t, dist1 * collision_buffer[i2] / 255), front);
+          back = max(max(dist2 * t, dist2 * collision_buffer[i1 + 1] / 255), back);
         }
         if (x < COLLISION_TEXTURE_SIZE / 2 - 10 || x > COLLISION_TEXTURE_SIZE / 2 + 10) {
           const xdist = (1 - t) * max(dist1, dist2) / 3;
@@ -2354,7 +2354,7 @@ const player_init = () => {
       camera_position.x = lerpDamp(camera_position.x, camera_lookat_x, 2);
       camera_position.y = lerpDamp(
         camera_position.y,
-        max(camera_lookat_y + CAMERA_PLAYER_Y_DIST + min(20, max(0, -z - 60) / 8), 6),
+        max(camera_lookat_y + CAMERA_PLAYER_Y_DIST + clamp((-60 - z) / 8, 0, 20), 6),
         2,
       );
       camera_position.z = lerpDamp(camera_position.z, camera_lookat_z + CAMERA_PLAYER_Z_DIST, 2);
@@ -2367,7 +2367,7 @@ const player_init = () => {
         camera_rotation.y = 270 + /* @__PURE__ */ Math.atan2(viewDirDiffz, viewDirDiffx) / DEG_TO_RAD;
       }
     }
-    camera_rotation.x = max(min(camera_rotation.x, 87), -87);
+    camera_rotation.x = clamp(camera_rotation.x, -87, 87);
     camera_rotation.y = angle_wrap_degrees(camera_rotation.y);
     const playerMatrix = allModels[MODEL_ID_PLAYER_BODY].$matrix = identity.translate(x, player_model_y, z).rotateSelf(
       0,
@@ -2380,7 +2380,7 @@ const player_init = () => {
       allModels[modelId].$matrix = playerMatrix.translate(
         0,
         player_legs_speed
-          * clamp01(/* @__PURE__ */ Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI * (i - 1) - Math.PI / 2) * 0.45),
+          * clamp(/* @__PURE__ */ Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI * (i - 1) - Math.PI / 2) * 0.45),
       ).rotateSelf(
         player_legs_speed * /* @__PURE__ */ Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI * (i - 1))
           * (0.25 / DEG_TO_RAD),
@@ -2412,7 +2412,7 @@ const player_init = () => {
       gamepadInteractPressed = interactButtonPressed;
     }
     const movAngle = /* @__PURE__ */ Math.atan2(forward, strafe);
-    const movAmount = threshold(clamp01(/* @__PURE__ */ Math.hypot(forward, strafe)), 0.05);
+    const movAmount = threshold(clamp(/* @__PURE__ */ Math.hypot(forward, strafe)), 0.05);
     strafe = movAmount * /* @__PURE__ */ Math.cos(movAngle);
     forward = movAmount * /* @__PURE__ */ Math.sin(movAngle);
     player_legs_speed = lerpDamp(player_legs_speed, movAmount, 10);
@@ -2436,7 +2436,7 @@ const player_init = () => {
     NO_INLINE(doVerticalCollisions)();
     player_collision_velocity_x = lerpDamp(player_collision_velocity_x, 0, player_has_ground ? 8 : 4);
     player_collision_velocity_z = lerpDamp(player_collision_velocity_z, 0, player_has_ground ? 8 : 4);
-    const playerSpeedCollision = clamp01(1 - max(abs(player_collision_x), abs(player_collision_z)) * 5);
+    const playerSpeedCollision = clamp(1 - max(abs(player_collision_x), abs(player_collision_z)) * 5);
     if (!currentModelId) {
       player_collision_x += player_collision_velocity_x * playerSpeedCollision * gameTimeDelta;
       player_collision_z += player_collision_velocity_z * playerSpeedCollision * gameTimeDelta;
@@ -2548,7 +2548,7 @@ const startMainLoop = (groundTextureImage) => {
     if (mainMenuVisible) {
       cameraX = -4.5;
       cameraY = 2;
-      cameraZ = 3.2 - clamp01(hC.clientWidth / 1e3);
+      cameraZ = 3.2 - clamp(hC.clientWidth / 1e3);
     }
     const camera_view = (mainMenuVisible
       ? identity.rotate(-20, -90)

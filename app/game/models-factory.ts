@@ -1,4 +1,4 @@
-import { min, max, angle_lerp_degrees, DEG_TO_RAD, abs, identity, type Vec3Optional, vec3_distance } from "../math";
+import { min, angle_lerp_degrees, DEG_TO_RAD, abs, identity, type Vec3Optional, vec3_distance, clamp } from "../math";
 import { cylinder, polygons_transform, type Polygon } from "../geometry/geometry";
 import {
   levers,
@@ -133,7 +133,7 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]
           let angle = Math.atan2(-az, ax);
           if (wasInside) {
             randAngle = ((Math.random() - 0.5) * Math.PI) / 2;
-            velocity = max(1, velocity / (1 + Math.random()));
+            velocity = clamp(velocity / (1 + Math.random()));
           }
           angle += randAngle;
           dirX = -Math.cos(angle);
@@ -148,7 +148,7 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]
 
         wasInside = isInside;
 
-        velocity = lerpDamp(velocity, 3 + (1 - contextualVelocity) * 6, 3 + contextualVelocity);
+        velocity = lerpDamp(velocity, (1 - contextualVelocity) * 6 + 3, contextualVelocity + 3);
         soulX = lerpDamp(soulX, (targetX = lerpDamp(targetX, targetX + dirX, velocity)), velocity);
         soulZ = lerpDamp(soulZ, (targetZ = lerpDamp(targetZ, targetZ + dirZ, velocity)), velocity);
 

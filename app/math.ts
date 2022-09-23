@@ -9,18 +9,16 @@ export const max = /* @__PURE__ */ (a: number, b: number) => (a > b ? a : b);
 
 export const abs = /* @__PURE__ */ (n: number) => (n < 0 ? -n : n);
 
-export const threshold = (value: number | undefined, amount: number) => (abs(value!) > amount ? value! : 0);
-
-export const clamp = /* @__PURE__ */ (value: number, minValue: number, maxValue: number) =>
+export const clamp = /* @__PURE__ */ (value: number, minValue: number = 0, maxValue: number = 1) =>
   value < minValue ? minValue : value > maxValue ? maxValue : value;
 
-export const clamp01 = /* @__PURE__ */ (t: number) => (t < 0 ? 0 : t > 1 ? 1 : t);
+export const threshold = (value: number | undefined, amount: number) => (abs(value!) > amount ? value! : 0);
 
 /** Linear interpolation */
-export const lerp = /* @__PURE__ */ (a: number, b: number, t: number) => a + (b - a) * clamp01(t);
+export const lerp = /* @__PURE__ */ (a: number, b: number, t: number) => a + (b - a) * clamp(t);
 
 export const lerpneg = /* @__PURE__ */ (v: number, t: number) => {
-  v = clamp01(v);
+  v = clamp(v);
   return lerp(v, 1 - v, t);
 };
 
@@ -37,7 +35,7 @@ export const angle_wrap_degrees = /* @__PURE__ */ (degrees: number): number =>
 
 export const angle_lerp_degrees = /* @__PURE__ */ (a0: number, a1: number, t: number) => {
   const da = (a1 - a0) % 360;
-  return a0 + (((2 * da) % 360) - da) * clamp01(t);
+  return a0 + (((2 * da) % 360) - da) * clamp(t);
 };
 
 export interface Vec2 {
