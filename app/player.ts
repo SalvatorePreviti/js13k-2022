@@ -58,19 +58,16 @@ export const COLLISION_TEXTURE_SIZE = 128;
 export const player_init = () => {
   let gamepadInteractPressed: 0 | 1 | undefined;
 
+  let currentModelId: number;
+  let currentModelIdTMinus1: number;
   let oldModelId: number | undefined;
 
-  let currentModelIdTMinus1 = 0;
-
-  let currentModelId = 0;
-
-  let player_has_ground: 0 | 1 | undefined;
   let player_respawned: 0 | 1 | 2 = 2;
+  let player_has_ground: 0 | 1;
   let player_look_angle_target = 0;
-
   let player_look_angle = 0;
 
-  let player_legs_speed = 0;
+  let player_legs_speed: number;
 
   let player_gravity: number;
   let player_speed: number;
@@ -93,15 +90,6 @@ export const player_init = () => {
 
   const interpolate_with_hysteresis = /* @__PURE__ */ (previous: number, desired: number, amount: number) =>
     lerpDamp(previous, desired, min(4, max(0.4, abs(previous - desired) - amount)));
-
-  const player_respawn = () => {
-    player_respawned = 2;
-    player_speed = 0;
-    player_collision_velocity_x = 0;
-    player_collision_velocity_z = 0;
-    player_gravity = 0;
-    currentModelIdTMinus1 = currentModelId = levers[player_last_pulled_lever]!.$parent.$modelId || 1;
-  };
 
   const doHorizontalCollisions = () => {
     for (let y = 32; y < COLLISION_TEXTURE_SIZE; y += 2) {
@@ -183,6 +171,12 @@ export const player_init = () => {
       player_has_ground = 1;
     }
 
+    player_gravity = lerpDamp(player_gravity, player_has_ground ? 6.5 : 8, 4);
+
+    // push up and gravity
+    player_position_global.y +=
+      lines / 41 - (player_has_ground ? 1 : player_gravity) * (grav / 41) * player_gravity * gameTimeDelta;
+
     if (player_respawned) {
       // keep the previous modelId until the player touch ground
       if (nextModelId) {
@@ -193,12 +187,6 @@ export const player_init = () => {
       currentModelId = nextModelId || currentModelIdTMinus1;
     }
     currentModelIdTMinus1 = nextModelId;
-
-    player_gravity = lerpDamp(player_gravity, player_has_ground ? 6.5 : 8, 4);
-
-    // push up and gravity
-    player_position_global.y +=
-      lines / 41 - (player_has_ground ? 1 : player_gravity) * (grav / 41) * player_gravity * gameTimeDelta;
   };
 
   const player_move = () => {
@@ -241,7 +229,6 @@ export const player_init = () => {
     }
 
     const { x, y, z } = referenceMatrix.transformPoint(player_position_global);
-
     const dx = x - player_position_final.x;
     const dz = z - player_position_final.z;
 
@@ -249,17 +236,28 @@ export const player_init = () => {
     player_position_final.y = y;
     player_position_final.z = z;
 
-    if (y < (x < -25 || z < 109 ? -25 : -9)) {
-      // Player fell in lava
-      player_respawn();
-    }
-
     if (currentModelId) {
       player_collision_velocity_x = dx / gameTimeDelta;
       player_collision_velocity_z = dz / gameTimeDelta;
     }
 
+    // Special handling for the second boat (lever 7) - the boat must be on the side of the map the player is
+    if (currentModelId === 1) {
+      levers[9]!.$value = x < -15 && z < 0 ? 1 : 0;
+    }
+
+    if (y < (x < -25 || z < 109 ? -25 : -9)) {
+      // Player fell in lava
+      player_collision_velocity_x = player_collision_velocity_z = player_gravity = player_speed = 0;
+      currentModelIdTMinus1 = currentModelId = levers[player_last_pulled_lever]!.$parent.$modelId;
+      player_respawned = 2;
+    }
+
     player_model_y = lerp(lerpDamp(player_model_y, y, 2), y, abs(player_model_y - y) * 8);
+
+    camera_lookat_x = interpolate_with_hysteresis(camera_lookat_x, x, 1.5);
+    camera_lookat_y = interpolate_with_hysteresis(camera_lookat_y, y, 2.2);
+    camera_lookat_z = interpolate_with_hysteresis(camera_lookat_z, z, 1.5);
 
     if (!DEBUG_CAMERA) {
       if (camera_lookat_x === undefined) {
@@ -267,10 +265,6 @@ export const player_init = () => {
         camera_position.y = (camera_lookat_y = player_model_y = y) + CAMERA_PLAYER_Y_DIST;
         camera_position.z = (camera_lookat_z = z) + CAMERA_PLAYER_Z_DIST * 2;
       }
-
-      camera_lookat_x = interpolate_with_hysteresis(camera_lookat_x, x, 1.5);
-      camera_lookat_y = interpolate_with_hysteresis(camera_lookat_y, y, 2.2);
-      camera_lookat_z = interpolate_with_hysteresis(camera_lookat_z, z, 1.5);
 
       if (player_first_person) {
         camera_position.x = lerpDamp(camera_position.x, x, player_respawned * 666 + 18);
@@ -292,11 +286,6 @@ export const player_init = () => {
 
       camera_rotation.x = max(min(camera_rotation.x, 87), -87);
       camera_rotation.y = angle_wrap_degrees(camera_rotation.y);
-    }
-
-    // Special handling for the second boat (lever 7) - the boat must be on the side of the map the player is
-    if (currentModelId === 1) {
-      levers[9]!.$value = x < -15 && z < 0 ? 1 : 0;
     }
 
     const playerMatrix = (allModels[MODEL_ID_PLAYER_BODY]!.$matrix = identity
@@ -384,12 +373,12 @@ export const player_init = () => {
 
     const playerSpeedCollision = clamp01(1 - max(abs(player_collision_x), abs(player_collision_z)) * 5);
 
+    player_collision_velocity_x = lerpDamp(player_collision_velocity_x, 0, player_has_ground ? 8 : 4);
+    player_collision_velocity_z = lerpDamp(player_collision_velocity_z, 0, player_has_ground ? 8 : 4);
     if (!currentModelId) {
       player_collision_x += player_collision_velocity_x * playerSpeedCollision * gameTimeDelta;
       player_collision_z += player_collision_velocity_z * playerSpeedCollision * gameTimeDelta;
     }
-    player_collision_velocity_x = lerpDamp(player_collision_velocity_x, 0, player_has_ground ? 8 : 4);
-    player_collision_velocity_z = lerpDamp(player_collision_velocity_z, 0, player_has_ground ? 8 : 4);
 
     player_speed = lerpDamp(
       player_speed,
@@ -406,5 +395,6 @@ export const player_init = () => {
     NO_INLINE(player_move)();
   };
 
-  player_respawn();
+  player_legs_speed = player_collision_velocity_x = player_collision_velocity_z = player_gravity = player_speed = 0;
+  currentModelIdTMinus1 = currentModelId = levers[player_last_pulled_lever]!.$parent.$modelId;
 };

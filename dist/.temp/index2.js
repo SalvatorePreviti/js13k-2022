@@ -882,15 +882,15 @@ const initPage = () => {
     mainMenu(!0);
 };
 const player_init = () => {
-  let currentModelIdTMinus1 = 0;
-  let currentModelId = 0;
   let player_look_angle_target = 0;
   let player_look_angle = 0;
-  let player_legs_speed = 0;
   let player_respawned = 2;
   let gamepadInteractPressed;
+  let currentModelId;
+  let currentModelIdTMinus1;
   let oldModelId;
   let player_has_ground;
+  let player_legs_speed;
   let player_gravity;
   let player_speed;
   let player_collision_velocity_x;
@@ -910,14 +910,6 @@ const player_init = () => {
   const collision_buffer = new Uint8Array(65536);
   const interpolate_with_hysteresis = (previous, desired, amount) =>
     lerpDamp(previous, desired, min(4, max(0.4, abs(previous - desired) - amount)));
-  const player_respawn = () => {
-    player_respawned = 2,
-      player_speed = 0,
-      player_collision_velocity_x = 0,
-      player_collision_velocity_z = 0,
-      player_gravity = 0,
-      currentModelIdTMinus1 = currentModelId = levers[player_last_pulled_lever].$parent.$modelId || 1;
-  };
   const doHorizontalCollisions = () => {
     for (let y = 32; y < 128; y += 2) {
       let front = 0;
@@ -963,13 +955,13 @@ const player_init = () => {
       up < 3 && 5 < y && (grav += y / 32), 3 < up && (7 < y && (lines += y / 15), player_has_ground = 1);
     }
     nextModelId && (player_has_ground = 1),
+      player_gravity = lerpDamp(player_gravity, player_has_ground ? 6.5 : 8, 4),
+      player_position_global.y += lines / 41
+        - (player_has_ground ? 1 : player_gravity) * grav / 41 * player_gravity * gameTimeDelta,
       player_respawned
         ? nextModelId && (player_respawned = 0, currentModelId = nextModelId)
         : currentModelId = nextModelId || currentModelIdTMinus1,
-      currentModelIdTMinus1 = nextModelId,
-      player_gravity = lerpDamp(player_gravity, player_has_ground ? 6.5 : 8, 4),
-      player_position_global.y += lines / 41
-        - (player_has_ground ? 1 : player_gravity) * grav / 41 * player_gravity * gameTimeDelta;
+      currentModelIdTMinus1 = nextModelId;
   };
   const player_move = () => {
     var referenceMatrix = allModels[currentModelId].$kind === 1 && allModels[currentModelId].$matrix || identity;
@@ -1004,18 +996,25 @@ const player_init = () => {
     player_position_final.x = y2,
       player_position_final.y = x2,
       player_position_final.z = z2,
-      x2 < (y2 < -25 || z2 < 109 ? -25 : -9) && player_respawn(),
       currentModelId
       && (player_collision_velocity_x = referenceMatrix / gameTimeDelta,
         player_collision_velocity_z = dz / gameTimeDelta),
+      currentModelId === 1 && (levers[9].$value = y2 < -15 && z2 < 0 ? 1 : 0),
+      x2 < (y2 < -25 || z2 < 109 ? -25 : -9) && (player_collision_velocity_x =
+        player_collision_velocity_z =
+        player_gravity =
+        player_speed =
+          0,
+        currentModelIdTMinus1 = currentModelId = levers[player_last_pulled_lever].$parent.$modelId,
+        player_respawned = 2),
       player_model_y = lerp(lerpDamp(player_model_y, x2, 2), x2, 8 * abs(player_model_y - x2)),
+      camera_lookat_x = interpolate_with_hysteresis(camera_lookat_x, y2, 1.5),
+      camera_lookat_y = interpolate_with_hysteresis(camera_lookat_y, x2, 2.2),
+      camera_lookat_z = interpolate_with_hysteresis(camera_lookat_z, z2, 1.5),
       camera_lookat_x === void 0
       && (camera_position.x = camera_lookat_x = y2,
         camera_position.y = (camera_lookat_y = player_model_y = x2) + 13,
         camera_position.z = (camera_lookat_z = z2) + -36),
-      camera_lookat_x = interpolate_with_hysteresis(camera_lookat_x, y2, 1.5),
-      camera_lookat_y = interpolate_with_hysteresis(camera_lookat_y, x2, 2.2),
-      camera_lookat_z = interpolate_with_hysteresis(camera_lookat_z, z2, 1.5),
       player_first_person
         ? (camera_position.x = lerpDamp(camera_position.x, y2, 666 * player_respawned + 18),
           camera_position.y = lerpDamp(camera_position.y, player_model_y + 1.5, 666 * player_respawned + 18),
@@ -1029,8 +1028,7 @@ const player_init = () => {
           && (camera_rotation.x = 90 - Math.atan2(x2, camera_position.y - camera_lookat_y) / DEG_TO_RAD,
             camera_rotation.y = 270 + Math.atan2(dz, referenceMatrix) / DEG_TO_RAD)),
       camera_rotation.x = max(min(camera_rotation.x, 87), -87),
-      camera_rotation.y = angle_wrap_degrees(camera_rotation.y),
-      currentModelId === 1 && (levers[9].$value = y2 < -15 && z2 < 0 ? 1 : 0);
+      camera_rotation.y = angle_wrap_degrees(camera_rotation.y);
     const playerMatrix = allModels[37].$matrix = identity.translate(y2, player_model_y, z2).rotateSelf(
       0,
       player_look_angle = angle_lerp_degrees(player_look_angle, player_look_angle_target, 8 * gameTimeDelta),
@@ -1084,11 +1082,11 @@ const player_init = () => {
       NO_INLINE(doHorizontalCollisions)(),
       NO_INLINE(doVerticalCollisions)(),
       getGamepadButtonState = clamp01(1 - 5 * max(abs(player_collision_x), abs(player_collision_z))),
+      player_collision_velocity_x = lerpDamp(player_collision_velocity_x, 0, player_has_ground ? 8 : 4),
+      player_collision_velocity_z = lerpDamp(player_collision_velocity_z, 0, player_has_ground ? 8 : 4),
       currentModelId
       || (player_collision_x += player_collision_velocity_x * getGamepadButtonState * gameTimeDelta,
         player_collision_z += player_collision_velocity_z * getGamepadButtonState * gameTimeDelta),
-      player_collision_velocity_x = lerpDamp(player_collision_velocity_x, 0, player_has_ground ? 8 : 4),
-      player_collision_velocity_z = lerpDamp(player_collision_velocity_z, 0, player_has_ground ? 8 : 4),
       player_speed = lerpDamp(
         player_speed,
         player_has_ground ? (gamepad ? player_has_ground ? 7 : 4 : 0) * getGamepadButtonState : 0,
@@ -1100,7 +1098,15 @@ const player_init = () => {
       player_collision_x -= strafe * getGamepadButtonState - forward * gamepad,
       player_collision_z -= strafe * gamepad + forward * getGamepadButtonState,
       NO_INLINE(player_move)();
-  }, player_respawn();
+  },
+    player_has_ground =
+      player_legs_speed =
+      player_collision_velocity_x =
+      player_collision_velocity_z =
+      player_gravity =
+      player_speed =
+        0,
+    currentModelIdTMinus1 = currentModelId = levers[player_last_pulled_lever].$parent.$modelId;
 };
 const loadShader = (source, type = 35633) => (type = gl["c6x"](type), gl["s3c"](type, source), gl["c6a"](type), type);
 const initShaderProgram = (vertexShader, sfsSource) => {
