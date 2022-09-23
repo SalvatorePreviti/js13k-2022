@@ -1,5 +1,6 @@
 import { identity, matrixToArray } from "../math";
 import { absoluteTime, mainMenuVisible } from "./world-state";
+import type { MODEL_ID_SOUL } from "./models";
 import {
   allModels,
   levers,
@@ -7,7 +8,6 @@ import {
   MODEL_ID_PLAYER_BODY,
   MODEL_ID_PLAYER_LEG0,
   MODEL_ID_PLAYER_LEG1,
-  MODEL_ID_SOUL,
   souls,
   SOULS_COUNT,
   type MODEL_ID_SOUL_COLLISION,
@@ -19,7 +19,8 @@ const worldMatricesBuffer = new Float32Array(39 * 16);
 export const renderModels = (
   worldMatrixLoc: WebGLUniformLocation,
   renderPlayer: 0 | 1 | boolean,
-  soulModelId: typeof MODEL_ID_SOUL | typeof MODEL_ID_SOUL_COLLISION = MODEL_ID_SOUL,
+  soulModelId: typeof MODEL_ID_SOUL | typeof MODEL_ID_SOUL_COLLISION,
+  isShadowRender: 0 | 1,
 ) => {
   if (mainMenuVisible) {
     const matrix = identity.rotate(0, Math.sin(absoluteTime) * 40 - 70);
@@ -64,7 +65,9 @@ export const renderModels = (
   for (let i = 0; i < levers.length; ++i) {
     matrixToArray(levers[i]!.$matrix!, worldMatricesBuffer, i + SOULS_COUNT);
     // Encode lerp value in matrix m44 so fragmemt shader can change the lever handle color
-    worldMatricesBuffer[(i + SOULS_COUNT) * 16 + 15] = 1 - levers[i]!.$lerpValue;
+    if (!isShadowRender) {
+      worldMatricesBuffer[(i + SOULS_COUNT) * 16 + 15] = 1 - levers[i]!.$lerpValue;
+    }
   }
 
   gl.uniformMatrix4fv(worldMatrixLoc, false, worldMatricesBuffer);

@@ -1151,7 +1151,7 @@ const initShaderProgram = (vertexShader, sfsSource) => {
     name => name ? uniforms[name] || (uniforms[name] = gl["gan"](program, name)) : gl["u7y"](program);
 };
 
-const renderModels = (worldMatrixLoc, renderPlayer, soulModelId = 42) => {
+const renderModels = (worldMatrixLoc, renderPlayer, soulModelId, isShadowRender) => {
   if (mainMenuVisible) {
     const matrix = identity.rotate(0, 40 * Math.sin(absoluteTime) - 70);
 
@@ -1183,7 +1183,7 @@ const renderModels = (worldMatrixLoc, renderPlayer, soulModelId = 42) => {
 
     for (let i2 = 0; levers.length > i2; ++i2) {
       matrixToArray(levers[i2].$matrix, worldMatricesBuffer, i2 + 13),
-        worldMatricesBuffer[16 * (i2 + 13) + 15] = 1 - levers[i2].$lerpValue;
+        isShadowRender || (worldMatricesBuffer[16 * (i2 + 13) + 15] = 1 - levers[i2].$lerpValue);
     }
 
     gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer),
@@ -1407,7 +1407,7 @@ loadStep(() => {
                 ),
               ),
             ),
-            renderModels(collisionShader("c"), 0, 41),
+            renderModels(collisionShader("c"), 0, 41, 0),
             gl["c4s"](256),
             gl["cbf"](!1, !0, !0, !1),
             gl["uae"](
@@ -1417,7 +1417,7 @@ loadStep(() => {
                 identity.translate(-player_position_final.x, -player_position_final.y, -player_position_final.z - 0.3),
               ),
             ),
-            renderModels(collisionShader("c"), 0, 41),
+            renderModels(collisionShader("c"), 0, 41, 0),
             gl["f1s"]()),
             csmShader(),
             gl["b6o"](36160, csm_framebuffer),
@@ -1434,7 +1434,7 @@ loadStep(() => {
             gl["uae"](mainShader("a"), !1, mat_perspective(0.3, 177)),
             gl["uae"](mainShader("b"), !1, matrixToArray(dt)),
             gl["ubu"](mainShader("k"), camera_position.x, camera_position.y, camera_position.z),
-            renderModels(mainShader("c"), !player_first_person),
+            renderModels(mainShader("c"), !player_first_person, 42, 0),
             skyShader(),
             gl["ubu"](skyShader("j"), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime),
             mainMenuVisible
@@ -1455,7 +1455,7 @@ loadStep(() => {
 layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 a,b,c[39];void main(){mat4 i=c[max(0,abs(int(f.w))-1)+gl_InstanceID];l=mix(d,vec4(.7,1,.2,0),d.w>0.?0.:1.-i[3][3]),i[3][3]=1.,n=f,m=i*vec4(f.xyz,1),gl_Position=a*b*m,m.w=f.w,o=i*vec4(e,0);}`);
         const csmShader = initShaderProgram(
           loadShader(`#version 300 es
-in vec4 f;uniform mat4 b,c[39];void main(){mat4 i=c[max(0,abs(int(f.w))-1)+gl_InstanceID];i[3][3]=1.,gl_Position=b*i*vec4(f.xyz,1);}`),
+in vec4 f;uniform mat4 b,c[39];void main(){gl_Position=b*c[max(0,abs(int(f.w))-1)+gl_InstanceID]*vec4(f.xyz,1);}`),
           `#version 300 es
 void main(){}`,
         );
@@ -1473,7 +1473,7 @@ precision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b
         const mainShader = initShaderProgram(
           mainVertexShader,
           `#version 300 es
-precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform highp sampler2DShadow g,h;uniform highp sampler2D q;out vec4 O;void main(){vec4 s=vec4(m.xyz,1);vec3 e=normalize(o.xyz),v=l.w*(texture(q,n.yz*.035)*e.x+texture(q,n.xz*.035)*e.y+texture(q,n.xy*.035)*e.z).xyz;e=normalize(e+v*.5);float a=dot(e,vec3(-.656059,.666369,-.35431468)),t=1.,u=abs((b*s).z);vec4 r=(u<55.?i:j)*s;if(r=r/r.w*.5+.5,r.z<1.){t=0.;for(float e=-1.;e<=1.;++e)for(float a=-1.;a<=1.;++a){vec3 x=vec3(r.xy+vec2(e,a)/2048.,r.z-.00017439);t+=u<55.?texture(g,x):texture(h,x);}t/=9.;}vec3 x=l.xyz*(1.-v.x);float c=max(max(abs(e.x),abs(e.z))*.3-e.y,0.)*pow(max(0.,(8.-m.y)/45.),1.7);O=vec4(vec3(c,c*c*.5,0)+vec3(.09,.05,.11)*x+x*(max(0.,a)*.5+x*a*a*vec3(.5,.45,.3))*(t*.75+.25)+vec3(.6,.6,.5)*pow(max(0.,dot(normalize(m.xyz-k),reflect(vec3(-.656059,.666369,-.35431468),e))),35.)*t,1);}`,
+precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform highp sampler2DShadow g,h;uniform highp sampler2D q;out vec4 O;void main(){vec4 s=vec4(m.xyz,1);vec3 e=normalize(o.xyz),v=l.w*(texture(q,n.yz*.035)*e.x+texture(q,n.xz*.035)*e.y+texture(q,n.xy*.035)*e.z).xyz;e=normalize(e+v*.5);float a=dot(e,vec3(-.656059,.666369,-.35431468)),t=1.,u=abs((b*s).z);vec4 r=(u<55.?i:j)*s;if(r=r/r.w*.5+.5,r.z<1.){t=0.;for(float e=-1.;e<=1.;++e)for(float a=-1.;a<=1.;++a){vec3 x=vec3(r.xy+vec2(e,a)/2048.,r.z-.00017439);t+=u<55.?texture(g,x):texture(h,x);}t/=9.;}vec3 x=l.xyz*(1.-v.x);float c=max(max(abs(e.x),abs(e.z))*.3-e.y,0.)*pow(max(0.,(8.-m.y)/48.),1.6);O=vec4(vec3(c,c*c*.5,0)+vec3(.09,.05,.11)*x+x*(max(0.,a)*.5+x*a*a*vec3(.5,.45,.3))*(t*.75+.25)+vec3(.6,.6,.5)*pow(max(0.,dot(normalize(m.xyz-k),reflect(vec3(-.656059,.666369,-.35431468),e))),35.)*t,1);}`,
         );
         const csm_render =
           (collisionShader(),
@@ -1505,7 +1505,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                       gl["uae"](csmShader("b"), !1, lightSpaceMatrix),
                       gl["fas"](36160, 36096, 3553, texture, 0),
                       gl["c4s"](256),
-                      renderModels(csmShader("c"), !player_first_person))
+                      renderModels(csmShader("c"), !player_first_person, 42, 1))
                     : gl["uae"](lightSpaceMatrixLoc, !1, lightSpaceMatrix);
                 };
             }));

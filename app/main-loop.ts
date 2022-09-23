@@ -31,7 +31,7 @@ import {
   mainMenuVisible,
   worldStateUpdate,
 } from "./game/world-state";
-import { MODEL_ID_SOUL_COLLISION, player_position_final } from "./game/models";
+import { MODEL_ID_SOUL, MODEL_ID_SOUL_COLLISION, player_position_final } from "./game/models";
 import { mat_perspective, zFar, zNear, camera_position, camera_rotation } from "./camera";
 import { csm_buildMatrix } from "./csm";
 import { player_first_person } from "./page";
@@ -99,7 +99,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
         gl.uniformMatrix4fv(csmShader(uniformName_viewMatrix), false, lightSpaceMatrix);
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, texture, 0);
         gl.clear(gl.DEPTH_BUFFER_BIT);
-        renderModels(csmShader(uniformName_worldMatrices), !player_first_person);
+        renderModels(csmShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL, 1);
       } else {
         gl.uniformMatrix4fv(lightSpaceMatrixLoc, false, lightSpaceMatrix);
       }
@@ -195,7 +195,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
             .translateSelf(-player_position_final.x, -player_position_final.y, 0.3 - player_position_final.z),
         ),
       );
-      renderModels(collisionShader(uniformName_worldMatrices), 0, MODEL_ID_SOUL_COLLISION);
+      renderModels(collisionShader(uniformName_worldMatrices), 0, MODEL_ID_SOUL_COLLISION, 0);
 
       // second collision render
 
@@ -208,7 +208,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
           identity.translate(-player_position_final.x, -player_position_final.y, -player_position_final.z - 0.3),
         ),
       );
-      renderModels(collisionShader(uniformName_worldMatrices), 0, MODEL_ID_SOUL_COLLISION);
+      renderModels(collisionShader(uniformName_worldMatrices), 0, MODEL_ID_SOUL_COLLISION, 0);
 
       gl.flush();
     }
@@ -239,7 +239,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     gl.uniformMatrix4fv(mainShader(uniformName_viewMatrix), false, matrixToArray(camera_view));
     gl.uniform3f(mainShader(uniformName_viewPos), camera_position.x, camera_position.y, camera_position.z);
 
-    renderModels(mainShader(uniformName_worldMatrices), !player_first_person);
+    renderModels(mainShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL, 0);
 
     // *** SKY RENDER ***
 

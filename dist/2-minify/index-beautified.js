@@ -26,7 +26,7 @@ let j = 0,
   E = Math.PI / 180,
   U = new DOMMatrix(),
   l = new Float32Array(16),
-  s = new Float32Array(624),
+  r = new Float32Array(624),
   g = (t, e) => Array.from(Array(t), (t, a) => e(a)),
   at = t => 4 < t ? 4 : t,
   K = (t, a) => a < t ? t : a,
@@ -85,7 +85,7 @@ let j = 0,
       let a = Math.cos(2 * Math.PI * t / e);
       return { x: Math.sin(2 * Math.PI * t / e), y: 0, z: (a < 0 ? -a : a) < .01 ? a : a < 0 ? a - l : a + l };
     }),
-  r = (l, s, r) =>
+  s = (l, s, r) =>
     l.map((t, a, { length: e }) => ct([t, s[e - a - 1], s[e - (a + 1) % e - 1], l[(a + 1) % e]], l.A, r)),
   u = (
     t,
@@ -95,7 +95,7 @@ let j = 0,
   ) => (t = t ? ht(t, l) : tt,
     l = it(t, U.translate(0, 1).scale3d(0 < e ? e : 1)),
     t = it(t, U.translate(0, -1).scale3d(e < 0 ? -e : 1)).reverse(),
-    [...r(t, l, a), l, t]),
+    [...s(t, l, a), l, t]),
   n = (
     l,
     s = l,
@@ -377,15 +377,15 @@ let j = 0,
     let e = {}, l = Z.c1h();
     return Z.abz(l, t), Z.abz(l, vt(a, 35632)), Z.l8l(l), t => t ? e[t] || (e[t] = Z.gan(l, t)) : Z.u7y(l);
   },
-  dt = (t, a, e = 42) => {
+  dt = (t, a, e, l) => {
     if (P) {
-      for (var l of (e = U.rotate(0, 40 * Math.sin(S) - 70), [37, 38, 39])) f(e, s, l - 1);
-      Z.uae(t, !1, s), Z.d97(4, L[39].F - L[37].v, 5123, 2 * L[37].v);
+      for (var s of (e = U.rotate(0, 40 * Math.sin(S) - 70), [37, 38, 39])) f(e, r, s - 1);
+      Z.uae(t, !1, r), Z.d97(4, L[39].F - L[37].v, 5123, 2 * L[37].v);
     } else {
-      for (l = 0; L.length > l; ++l) L[l].G && f(L[l].j, s, l - 1);
-      for (Z.uae(t, !1, s), Z.d97(4, (a ? L[39].F : L[37].v) - 3, 5123, 6), a = 0; a < 13; ++a) f(F[a].j, s, a);
-      for (a = 0; W.length > a; ++a) f(W[a].j, s, a + 13), s[16 * (a + 13) + 15] = 1 - W[a].g;
-      Z.uae(t, !1, s),
+      for (s = 0; L.length > s; ++s) L[s].G && f(L[s].j, r, s - 1);
+      for (Z.uae(t, !1, r), Z.d97(4, (a ? L[39].F : L[37].v) - 3, 5123, 6), a = 0; a < 13; ++a) f(F[a].j, r, a);
+      for (a = 0; W.length > a; ++a) f(W[a].j, r, a + 13), l || (r[16 * (a + 13) + 15] = 1 - W[a].g);
+      Z.uae(t, !1, r),
         Z.das(4, L[e].F - L[e].v, 5123, 2 * L[e].v, 13),
         Z.das(4, L[40].F - L[40].v, 5123, 2 * L[40].v, W.length);
     }
@@ -431,11 +431,11 @@ pt(() => {
               Z.c4s(16640),
               Z.cbf(!0, !1, !0, !1),
               Z.uae(o("b"), !1, f(U.rotate(0, 180).invertSelf().translateSelf(-N.x, -N.y, .3 - N.z))),
-              dt(o("c"), 0, 41),
+              dt(o("c"), 0, 41, 0),
               Z.c4s(256),
               Z.cbf(!1, !0, !0, !1),
               Z.uae(o("b"), !1, f(U.translate(-N.x, -N.y, -N.z - .3))),
-              dt(o("c"), 0, 41),
+              dt(o("c"), 0, 41, 0),
               Z.f1s()),
               r(),
               Z.b6o(36160, s),
@@ -452,7 +452,7 @@ pt(() => {
               Z.uae(c("a"), !1, ot(hC.clientHeight / hC.clientWidth * 1.732051, 1.732051, .3, 177)),
               Z.uae(c("b"), !1, f(a)),
               Z.ubu(c("k"), Q, B, z),
-              dt(c("c"), !_),
+              dt(c("c"), !_, 42, 0),
               n(),
               Z.ubu(n("j"), Z.drawingBufferWidth, Z.drawingBufferHeight, S),
               P ? Z.ubu(n("k"), 0, 0, 0) : Z.ubu(n("k"), Q, B, z),
@@ -470,7 +470,7 @@ pt(() => {
           ),
           r = zt(
             vt(
-              "#version 300 es\nin vec4 f;uniform mat4 b,c[39];void main(){mat4 i=c[max(0,abs(int(f.w))-1)+gl_InstanceID];i[3][3]=1.,gl_Position=b*i*vec4(f.xyz,1);}",
+              "#version 300 es\nin vec4 f;uniform mat4 b,c[39];void main(){gl_Position=b*c[max(0,abs(int(f.w))-1)+gl_InstanceID]*vec4(f.xyz,1);}",
             ),
             "#version 300 es\nvoid main(){}",
           ),
@@ -484,7 +484,7 @@ pt(() => {
           ),
           c = zt(
             a,
-            "#version 300 es\nprecision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform highp sampler2DShadow g,h;uniform highp sampler2D q;out vec4 O;void main(){vec4 s=vec4(m.xyz,1);vec3 e=normalize(o.xyz),v=l.w*(texture(q,n.yz*.035)*e.x+texture(q,n.xz*.035)*e.y+texture(q,n.xy*.035)*e.z).xyz;e=normalize(e+v*.5);float a=dot(e,vec3(-.656059,.666369,-.35431468)),t=1.,u=abs((b*s).z);vec4 r=(u<55.?i:j)*s;if(r=r/r.w*.5+.5,r.z<1.){t=0.;for(float e=-1.;e<=1.;++e)for(float a=-1.;a<=1.;++a){vec3 x=vec3(r.xy+vec2(e,a)/2048.,r.z-.00017439);t+=u<55.?texture(g,x):texture(h,x);}t/=9.;}vec3 x=l.xyz*(1.-v.x);float c=max(max(abs(e.x),abs(e.z))*.3-e.y,0.)*pow(max(0.,(8.-m.y)/45.),1.7);O=vec4(vec3(c,c*c*.5,0)+vec3(.09,.05,.11)*x+x*(max(0.,a)*.5+x*a*a*vec3(.5,.45,.3))*(t*.75+.25)+vec3(.6,.6,.5)*pow(max(0.,dot(normalize(m.xyz-k),reflect(vec3(-.656059,.666369,-.35431468),e))),35.)*t,1);}",
+            "#version 300 es\nprecision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform highp sampler2DShadow g,h;uniform highp sampler2D q;out vec4 O;void main(){vec4 s=vec4(m.xyz,1);vec3 e=normalize(o.xyz),v=l.w*(texture(q,n.yz*.035)*e.x+texture(q,n.xz*.035)*e.y+texture(q,n.xy*.035)*e.z).xyz;e=normalize(e+v*.5);float a=dot(e,vec3(-.656059,.666369,-.35431468)),t=1.,u=abs((b*s).z);vec4 r=(u<55.?i:j)*s;if(r=r/r.w*.5+.5,r.z<1.){t=0.;for(float e=-1.;e<=1.;++e)for(float a=-1.;a<=1.;++a){vec3 x=vec3(r.xy+vec2(e,a)/2048.,r.z-.00017439);t+=u<55.?texture(g,x):texture(h,x);}t/=9.;}vec3 x=l.xyz*(1.-v.x);float c=max(max(abs(e.x),abs(e.z))*.3-e.y,0.)*pow(max(0.,(8.-m.y)/48.),1.6);O=vec4(vec3(c,c*c*.5,0)+vec3(.09,.05,.11)*x+x*(max(0.,a)*.5+x*a*a*vec3(.5,.45,.3))*(t*.75+.25)+vec3(.6,.6,.5)*pow(max(0.,dot(normalize(m.xyz-k),reflect(vec3(-.656059,.666369,-.35431468),e))),35.)*t,1);}",
           ),
           i = (o(),
             Z.uae(o("a"), !1, ot(1.4, .59, 1e-4, 1)),
@@ -509,7 +509,11 @@ pt(() => {
                 Z.t2z(3553, 10242, 33071),
                 t => {
                   t
-                    ? (f(t, a), Z.uae(r("b"), !1, a), Z.fas(36160, 36096, 3553, e, 0), Z.c4s(256), dt(r("c"), !_))
+                    ? (f(t, a),
+                      Z.uae(r("b"), !1, a),
+                      Z.fas(36160, 36096, 3553, e, 0),
+                      Z.c4s(256),
+                      dt(r("c"), !_, 42, 1))
                     : Z.uae(l, !1, a);
                 };
             }));
@@ -970,7 +974,7 @@ pt(() => {
           11,
           t => U.translate(Math.sin(t / 10 * Math.PI), t / 10).rotate(+t).scale(1.0001 - t / 10, 0, 1 - t / 10),
         ),
-        c = g(10, t => r(it(ht(18), a[t]).reverse(), it(ht(18), a[t + 1]), 1)).flat();
+        c = g(10, t => s(it(ht(18), a[t]).reverse(), it(ht(18), a[t + 1]), 1)).flat();
       d(() => p([tt.slice(1)], U.translate(-2).scale3d(3).rotate(90, 0)), 0),
         d(() => {
           let t = (a, e, l) =>
