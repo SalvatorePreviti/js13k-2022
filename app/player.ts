@@ -1,4 +1,15 @@
-import { abs, max, clamp01, DEG_TO_RAD, identity, angle_lerp_degrees, lerp, min, angle_wrap_degrees } from "./math";
+import {
+  abs,
+  max,
+  clamp01,
+  DEG_TO_RAD,
+  identity,
+  angle_lerp_degrees,
+  lerp,
+  min,
+  angle_wrap_degrees,
+  threshold,
+} from "./math";
 import {
   levers,
   player_position_final,
@@ -45,6 +56,8 @@ export const PLAYER_LEGS_VELOCITY = 7 * 1.3;
 export const COLLISION_TEXTURE_SIZE = 128;
 
 export const player_init = () => {
+  let gamepadInteractPressed: 0 | 1 | undefined;
+
   let oldModelId: number | undefined;
 
   let currentModelIdTMinus1 = 0;
@@ -69,9 +82,6 @@ export const player_init = () => {
   let player_collision_x: number;
   let player_collision_z: number;
 
-  // let _gamepadStartPressed = false;
-  let _gamepadInteractPressed = false;
-
   let camera_lookat_x: number;
   let camera_lookat_y: number;
   let camera_lookat_z: number;
@@ -81,16 +91,16 @@ export const player_init = () => {
   const player_collision_modelIdCounter = new Int32Array(256);
   const collision_buffer = new Uint8Array(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
 
-  const interpolate_with_hysteresis = /* @__PURE__ */ (previous: number, desired: number, hysteresis: number) =>
-    lerpDamp(previous, desired, min(4, max(0.4, abs(previous - desired) - hysteresis)));
+  const interpolate_with_hysteresis = /* @__PURE__ */ (previous: number, desired: number, amount: number) =>
+    lerpDamp(previous, desired, min(4, max(0.4, abs(previous - desired) - amount)));
 
   const player_respawn = () => {
     player_respawned = 2;
-    currentModelIdTMinus1 = currentModelId = levers[player_last_pulled_lever]!.$parent.$modelId || 1;
     player_speed = 0;
     player_collision_velocity_x = 0;
     player_collision_velocity_z = 0;
     player_gravity = 0;
+    currentModelIdTMinus1 = currentModelId = levers[player_last_pulled_lever]!.$parent.$modelId || 1;
   };
 
   const doHorizontalCollisions = () => {
@@ -191,115 +201,18 @@ export const player_init = () => {
       lines / 41 - (player_has_ground ? 1 : player_gravity) * (grav / 41) * player_gravity * gameTimeDelta;
   };
 
-  player_update = () => {
-    let strafe = touch_movementX + (keyboard_downKeys[KEY_LEFT] ? 1 : 0) + (keyboard_downKeys[KEY_RIGHT] ? -1 : 0);
-    let forward = touch_movementY + (keyboard_downKeys[KEY_FRONT] ? 1 : 0) + (keyboard_downKeys[KEY_BACK] ? -1 : 0);
-
-    const gamepad = navigator.getGamepads()[0];
-    if (gamepad) {
-      const { buttons, axes } = gamepad;
-      const getGamepadButtonState = (index: number) => buttons[index]?.pressed || (buttons[index]?.value as any) > 0;
-
-      const interactButtonPressed =
-        getGamepadButtonState(GAMEPAD_BUTTON_A) ||
-        getGamepadButtonState(GAMEPAD_BUTTON_X) ||
-        getGamepadButtonState(GAMEPAD_BUTTON_Y) ||
-        getGamepadButtonState(GAMEPAD_BUTTON_B);
-      if (interactButtonPressed !== _gamepadInteractPressed) {
-        _gamepadInteractPressed = interactButtonPressed;
-        if (_gamepadInteractPressed) {
-          keyboard_downKeys[KEY_INTERACT] = 1;
-        }
-      }
-
-      strafe +=
-        (abs(-axes[0]!) > 0.2 ? -axes[0]! : 0) +
-        (getGamepadButtonState(GAMEPAD_BUTTON_LEFT) ? 1 : 0) +
-        (getGamepadButtonState(GAMEPAD_BUTTON_RIGHT) ? -1 : 0);
-
-      forward +=
-        (abs(-axes[1]!) > 0.2 ? -axes[1]! : 0) +
-        (getGamepadButtonState(GAMEPAD_BUTTON_UP) ? 1 : 0) +
-        (getGamepadButtonState(GAMEPAD_BUTTON_DOWN) ? -1 : 0);
-
-      // const startPressed = getGamepadButtonState(GAMEPAD_BUTTON_START);
-      // if (_gamepadStartPressed !== startPressed && startPressed && game_play_clicked_once) {
-      //   setMainMenuVisible(!mainMenuVisible);
-      // }
-      // _gamepadStartPressed = startPressed;
-
-      if (player_first_person) {
-        if (abs(axes[2]!) > 0.3) {
-          camera_rotation.y += axes[2]! * 80 * gameTimeDelta;
-        }
-        if (abs(axes[3]!) > 0.3) {
-          camera_rotation.x += axes[3]! * 80 * gameTimeDelta;
-        }
-      }
-    }
-
-    // if (abs(forward) < 0.05) {
-    //   forward = 0;
-    // }
-    // if (abs(strafe) < 0.05) {
-    //   strafe = 0;
-    // }
-
-    const movAngle = Math.atan2(forward, strafe);
-    let movAmount = clamp01(Math.hypot(forward, strafe));
-
-    if (movAmount < 0.05) {
-      movAmount = 0;
-    }
-
-    strafe = movAmount * Math.cos(movAngle);
-    forward = movAmount * Math.sin(movAngle);
-
-    player_collision_x = 0;
-    player_collision_z = 0;
-    player_has_ground = 0;
-
-    gl.finish();
-    gl.readPixels(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE, gl.RGBA, gl.UNSIGNED_BYTE, collision_buffer);
-    gl.invalidateFramebuffer(gl.READ_FRAMEBUFFER, [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT]);
-    gl.invalidateFramebuffer(gl.DRAW_FRAMEBUFFER, [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT]);
-
-    NO_INLINE(doHorizontalCollisions)();
-    NO_INLINE(doVerticalCollisions)();
-
-    const playerSpeedCollision = clamp01(1 - max(abs(player_collision_x), abs(player_collision_z)) * 5);
-
-    if (!currentModelId) {
-      player_collision_x += player_collision_velocity_x * playerSpeedCollision * gameTimeDelta;
-      player_collision_z += player_collision_velocity_z * playerSpeedCollision * gameTimeDelta;
-    }
-    player_collision_velocity_x = lerpDamp(player_collision_velocity_x, 0, player_has_ground ? 8 : 4);
-    player_collision_velocity_z = lerpDamp(player_collision_velocity_z, 0, player_has_ground ? 8 : 4);
-
-    player_speed = lerpDamp(
-      player_speed,
-      player_has_ground ? (movAmount ? (player_has_ground ? 7 : 4) : 0) * playerSpeedCollision : 0,
-      player_has_ground ? (playerSpeedCollision > 0.1 ? 10 : movAmount ? 5 : 7) : 1,
-    );
-
-    const movementRadians = player_first_person ? camera_rotation.y * DEG_TO_RAD : Math.PI;
-    const s = Math.sin(movementRadians) * player_speed * gameTimeDelta;
-    const c = Math.cos(movementRadians) * player_speed * gameTimeDelta;
-    player_collision_x -= strafe * c - forward * s;
-    player_collision_z -= strafe * s + forward * c;
-
+  const player_move = () => {
     const referenceMatrix =
       (allModels[currentModelId]!.$kind === MODEL_KIND_GAME && allModels[currentModelId]!.$matrix) || identity;
 
     if (player_respawned) {
-      const { $locMatrix } = levers[player_last_pulled_lever]!;
-      const { x: respawnX, y: respawnY, z: respawnZ } = $locMatrix!.transformPoint({ x: 0, y: 12, z: -2.5 });
+      const { x, y, z } = levers[player_last_pulled_lever]!.$locMatrix!.transformPoint({ x: 0, y: 12, z: -2.5 });
       if (player_respawned > 1) {
         player_respawned = 1;
-        player_model_y = player_position_final.y = respawnY;
+        player_model_y = player_position_final.y = y;
       }
-      player_position_final.x = respawnX;
-      player_position_final.z = respawnZ;
+      player_position_final.x = x;
+      player_position_final.z = z;
     } else {
       const inverseReferenceRotationMatrix = referenceMatrix.inverse();
       inverseReferenceRotationMatrix.m41 = 0;
@@ -336,13 +249,14 @@ export const player_init = () => {
     player_position_final.y = y;
     player_position_final.z = z;
 
+    if (y < (x < -25 || z < 109 ? -25 : -9)) {
+      // Player fell in lava
+      player_respawn();
+    }
+
     if (currentModelId) {
       player_collision_velocity_x = dx / gameTimeDelta;
       player_collision_velocity_z = dz / gameTimeDelta;
-    }
-
-    if (movAmount) {
-      player_look_angle_target = 90 - movAngle / DEG_TO_RAD;
     }
 
     player_model_y = lerp(lerpDamp(player_model_y, y, 2), y, abs(player_model_y - y) * 8);
@@ -367,22 +281,17 @@ export const player_init = () => {
         camera_position.y = lerpDamp(camera_position.y, max(camera_lookat_y + CAMERA_PLAYER_Y_DIST, 6), 2);
         camera_position.z = lerpDamp(camera_position.z, camera_lookat_z + CAMERA_PLAYER_Z_DIST, 2);
 
+        const viewDirDiffx = camera_position.x - camera_lookat_x;
         const viewDirDiffz = camera_position.z - camera_lookat_z;
-        if (abs(viewDirDiffz) > 1) {
-          const viewDirDiffx = camera_position.x - camera_lookat_x;
+        const viewDirDiffAmount = threshold(Math.hypot(viewDirDiffz, viewDirDiffx), 0.1);
+        if (viewDirDiffAmount) {
+          camera_rotation.x = 90 - Math.atan2(viewDirDiffAmount, camera_position.y - camera_lookat_y) / DEG_TO_RAD;
           camera_rotation.y = 270 + Math.atan2(viewDirDiffz, viewDirDiffx) / DEG_TO_RAD;
-          camera_rotation.x =
-            90 - Math.atan2(Math.hypot(viewDirDiffz, viewDirDiffx), camera_position.y - camera_lookat_y) / DEG_TO_RAD;
         }
       }
 
       camera_rotation.x = max(min(camera_rotation.x, 87), -87);
       camera_rotation.y = angle_wrap_degrees(camera_rotation.y);
-    }
-
-    if (y < (x < -25 || z < 109 ? -25 : -9)) {
-      // Player fell in lava
-      player_respawn();
     }
 
     // Special handling for the second boat (lever 7) - the boat must be on the side of the map the player is
@@ -397,8 +306,6 @@ export const player_init = () => {
         (player_look_angle = angle_lerp_degrees(player_look_angle, player_look_angle_target, gameTimeDelta * 8)),
       ));
 
-    player_legs_speed = lerpDamp(player_legs_speed, movAmount, 10);
-
     [MODEL_ID_PLAYER_LEG0, MODEL_ID_PLAYER_LEG1].map((modelId, i) => {
       allModels[modelId]!.$matrix = playerMatrix
         .translate(
@@ -411,6 +318,92 @@ export const player_init = () => {
           0,
         );
     });
+  };
+
+  player_update = () => {
+    let strafe = touch_movementX + (keyboard_downKeys[KEY_LEFT] ? 1 : 0) - (keyboard_downKeys[KEY_RIGHT] ? 1 : 0);
+    let forward = touch_movementY + (keyboard_downKeys[KEY_FRONT] ? 1 : 0) - (keyboard_downKeys[KEY_BACK] ? 1 : 0);
+
+    const gamepad = navigator.getGamepads()[0];
+    if (gamepad) {
+      const { buttons, axes } = gamepad;
+      const getGamepadButtonState = (index: number) =>
+        buttons[index]?.pressed || (buttons[index]?.value as any) > 0 ? 1 : 0;
+
+      const interactButtonPressed =
+        getGamepadButtonState(GAMEPAD_BUTTON_X) ||
+        getGamepadButtonState(GAMEPAD_BUTTON_Y) ||
+        getGamepadButtonState(GAMEPAD_BUTTON_A) ||
+        getGamepadButtonState(GAMEPAD_BUTTON_B);
+
+      strafe +=
+        getGamepadButtonState(GAMEPAD_BUTTON_LEFT) -
+        getGamepadButtonState(GAMEPAD_BUTTON_RIGHT) -
+        threshold(axes[0], 0.2);
+
+      forward +=
+        getGamepadButtonState(GAMEPAD_BUTTON_UP) - getGamepadButtonState(GAMEPAD_BUTTON_DOWN) - threshold(axes[1], 0.2);
+
+      if (player_first_person) {
+        camera_rotation.x += threshold(axes[3], 0.3) * 80 * gameTimeDelta;
+        camera_rotation.y += threshold(axes[2], 0.3) * 80 * gameTimeDelta;
+      }
+
+      if (interactButtonPressed && !gamepadInteractPressed) {
+        keyboard_downKeys[KEY_INTERACT] = 1;
+      }
+      gamepadInteractPressed = interactButtonPressed;
+    }
+
+    const movAngle = Math.atan2(forward, strafe);
+    const movAmount = threshold(clamp01(Math.hypot(forward, strafe)), 0.05);
+
+    strafe = movAmount * Math.cos(movAngle);
+    forward = movAmount * Math.sin(movAngle);
+
+    player_legs_speed = lerpDamp(player_legs_speed, movAmount, 10);
+    if (movAmount) {
+      player_look_angle_target = 90 - movAngle / DEG_TO_RAD;
+    }
+
+    player_collision_x = 0;
+    player_collision_z = 0;
+    player_has_ground = 0;
+
+    // ------- read collision renderBuffer -------
+
+    gl.finish();
+    gl.readPixels(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE, gl.RGBA, gl.UNSIGNED_BYTE, collision_buffer);
+    gl.invalidateFramebuffer(gl.READ_FRAMEBUFFER, [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT]);
+    gl.invalidateFramebuffer(gl.DRAW_FRAMEBUFFER, [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT]);
+
+    // ------- process collision renderBuffer -------
+
+    NO_INLINE(doHorizontalCollisions)();
+    NO_INLINE(doVerticalCollisions)();
+
+    const playerSpeedCollision = clamp01(1 - max(abs(player_collision_x), abs(player_collision_z)) * 5);
+
+    if (!currentModelId) {
+      player_collision_x += player_collision_velocity_x * playerSpeedCollision * gameTimeDelta;
+      player_collision_z += player_collision_velocity_z * playerSpeedCollision * gameTimeDelta;
+    }
+    player_collision_velocity_x = lerpDamp(player_collision_velocity_x, 0, player_has_ground ? 8 : 4);
+    player_collision_velocity_z = lerpDamp(player_collision_velocity_z, 0, player_has_ground ? 8 : 4);
+
+    player_speed = lerpDamp(
+      player_speed,
+      player_has_ground ? (movAmount ? (player_has_ground ? 7 : 4) : 0) * playerSpeedCollision : 0,
+      player_has_ground ? (playerSpeedCollision > 0.1 ? 10 : movAmount ? 5 : 7) : 1,
+    );
+
+    const movementRadians = player_first_person ? camera_rotation.y * DEG_TO_RAD : Math.PI;
+    const s = Math.sin(movementRadians) * player_speed * gameTimeDelta;
+    const c = Math.cos(movementRadians) * player_speed * gameTimeDelta;
+    player_collision_x -= strafe * c - forward * s;
+    player_collision_z -= strafe * s + forward * c;
+
+    NO_INLINE(player_move)();
   };
 
   player_respawn();

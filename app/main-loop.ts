@@ -209,6 +209,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       );
       renderModels(collisionShader(uniformName_worldMatrices), 0, MODEL_ID_SOUL_COLLISION, 0);
 
+      // Flushing collision render
       gl.flush();
     }
 
@@ -253,6 +254,9 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     gl.uniformMatrix4fv(skyShader(uniformName_viewMatrix), false, matrixToArray(camera_view.inverse()));
 
     gl.drawElements(gl.TRIANGLES, 3, gl.UNSIGNED_SHORT, 0);
+
+    // Prepare for collision reading on next frame.
+    // Flushing here increase the chance of the GPU finishing the rendering before we read the texture.
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, collision_frameBuffer);
     gl.flush();

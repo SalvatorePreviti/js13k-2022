@@ -9,6 +9,8 @@ export const max = /* @__PURE__ */ (a: number, b: number) => (a > b ? a : b);
 
 export const abs = /* @__PURE__ */ (n: number) => (n < 0 ? -n : n);
 
+export const threshold = (value: number | undefined, amount: number) => (abs(value!) > amount ? value! : 0);
+
 export const clamp01 = /* @__PURE__ */ (t: number) => (t < 0 ? 0 : t > 1 ? 1 : t);
 
 /** Linear interpolation */

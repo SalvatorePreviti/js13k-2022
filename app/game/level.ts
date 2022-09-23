@@ -623,11 +623,12 @@ export const build_life_the_universe_and_everything = () => {
     meshAdd(
       csg_polygons_subtract(
         csg_union(
-          polygons_transform(cylinder(), identity.scale(11, 1, 13), material(0.3, 0.4, 0.6, 0.3)),
           // lever pad
           polygons_transform(cylinder(5), identity.translate(0, 0, -7).scale(2, 1.2, 2), material(0.2, 0.4, 0.7, 0.3)),
           // blue pentagon
           polygons_transform(cylinder(5), identity.scale(9, 1.2, 9), material(0, 0.2, 0.3, 0.5)),
+          // base
+          polygons_transform(cylinder(), identity.scale(11, 1, 13), material(0.3, 0.4, 0.6, 0.3)),
         ),
         polygons_transform(cylinder(5), identity.scale(5.4, 5, 5.4), material(0, 0.2, 0.3, 0.5)),
       ),
@@ -660,6 +661,7 @@ export const build_life_the_universe_and_everything = () => {
               material(0.35, 0.3, 0.5, 0.5),
             ),
           ),
+          polygons_transform(cylinder(5), identity.scale(4, 8, 4), material(0.2, 0.4, 0.5, 0.5)),
           polygons_transform(
             cylinder(5),
             identity.translate(0, 5).scale(1.5, 1.5, 8).rotate(90, 0, 35),
@@ -741,8 +743,10 @@ export const build_life_the_universe_and_everything = () => {
 
     // ******** LEVEL AFTER SECOND BOAT ********
 
-    // SOUL 7 - soul after the second boat
-    newSoul(identity.translate(8 - 123, 0.2, -12), [0, 0, 3.5]);
+    // pushing rods
+
+    const shouldPushRods = () => lerpneg(levers[10]!.$lerpValue, levers[11]!.$lerpValue);
+    const shouldBlockRods = () => (1 - levers[10]!.$lerpValue) * (1 - shouldPushRods());
 
     const pushingRod = csg_polygons_subtract(
       polygons_transform(
@@ -759,11 +763,6 @@ export const build_life_the_universe_and_everything = () => {
         ),
       ),
     );
-
-    // pushing rods
-
-    const shouldPushRods = () => lerpneg(levers[10]!.$lerpValue, levers[11]!.$lerpValue);
-    const shouldBlockRods = () => (1 - levers[10]!.$lerpValue) * (1 - shouldPushRods());
 
     newModel((model) => {
       model._update = () => identity.translate(0, -2, shouldPushRods() * abs(Math.sin(gameTime * 1.1)) * -8.5 + 10);
@@ -871,8 +870,11 @@ export const build_life_the_universe_and_everything = () => {
 
     newLever(identity.translate(-98, -4.4, -40).rotate(0, 90));
 
+    // SOUL 7 - soul after the second boat
+    newSoul(identity.translate(-115, 0.2, -12), [0, 0, 3.5]);
+
     // SOUL 8 - soul in the internal pad after the pushing rods
-    newSoul(identity.translate(30 - 123, -3, -28 - 12).rotate(4), [0, -2, 3.5], [0, 2, 3.5]);
+    newSoul(identity.translate(-93, -3, -28 - 12).rotate(4), [0, -2, 3.5], [0, 2, 3.5]);
 
     // ******** LEVEL AFTER CENTRAL GATE ********
 
@@ -1329,7 +1331,7 @@ export const build_life_the_universe_and_everything = () => {
   newModel(() => {
     checkModelId("LEVER", MODEL_ID_LEVER);
     meshAdd(cylinder(6, 1), identity.scale(0.13, 1.4, 0.13), material(0.3, 0.3, 0.5, 0.1));
-    meshAdd(cylinder(8, 1), identity.translate(0, 1).scale(0.21, 0.3, 0.21), material(1, 0.5, 0.2));
+    meshAdd(cylinder(10), identity.translate(0, 1).scale(0.21, 0.3, 0.21), material(1, 0.5, 0.2));
     meshAdd(cylinder(3), identity.translate(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3), material(0.2, 0.2, 0.2, 0.1));
   }, MODEL_KIND_MESH);
 
