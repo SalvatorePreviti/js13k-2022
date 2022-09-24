@@ -35,6 +35,7 @@ import resugarConcise from "@resugar/codemod-objects-concise";
 import { babelPluginSimple } from "./steps/babel/babel-plugin-simple";
 import { jsEsbuildMinify } from "./steps/js-esbuild";
 import { jsRemoveEndingSemicolons } from "./lib/code-utils";
+import { babelPluginMath } from "./steps/babel/babel-plugin-math";
 
 const resugarBlockScope = [resugarBlockScopePlugin, { "declarations.block-scope": { disableConst: true } }];
 
@@ -205,7 +206,13 @@ export async function build() {
 
     js = await jsBabel(js, {
       minify: false,
-      plugins: [resugarBlockScope, resugarConcise, resugarFunctionsArrow, resugarObjectsShorthand],
+      plugins: [
+        resugarBlockScope,
+        resugarConcise,
+        resugarFunctionsArrow,
+        resugarObjectsShorthand,
+        "babel-plugin-minify-dead-code-elimination",
+      ],
     });
 
     js = await jsTransformSwc(js, false, swcPluginVars({ constToLet: true, floatRound: 6 }));
@@ -260,6 +267,7 @@ export async function build() {
         resugarObjectsShorthand,
         resugarFunctionsArrow,
         resugarBlockScope,
+        babelPluginMath(),
         babelPluginSimple({ removeNoInlineCall: true, constToLet: true }),
       ],
     });

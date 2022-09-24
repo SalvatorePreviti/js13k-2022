@@ -1,4 +1,4 @@
-import { abs, max, clamp, DEG_TO_RAD, identity, angle_lerp_degrees, lerp, angle_wrap_degrees, threshold } from "./math";
+import { max, clamp, DEG_TO_RAD, identity, angle_lerp_degrees, lerp, angle_wrap_degrees, threshold } from "./math";
 import {
   levers,
   player_position_final,
@@ -79,7 +79,7 @@ export const player_init = () => {
   const collision_buffer = new Uint8Array(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
 
   const interpolate_with_hysteresis = /* @__PURE__ */ (previous: number, desired: number, amount: number) =>
-    lerpDamp(previous, desired, clamp(abs(previous - desired) - amount, 0.4, 4));
+    lerpDamp(previous, desired, clamp(Math.abs(previous - desired) - amount, 0.4, 4));
 
   const doHorizontalCollisions = () => {
     for (let y = 32; y < COLLISION_TEXTURE_SIZE; y += 2) {
@@ -93,7 +93,7 @@ export const player_init = () => {
         const i2 = yindex + (COLLISION_TEXTURE_SIZE - 1 - x) * 4;
         const dist1 = collision_buffer[i1]! / 255;
         const dist2 = collision_buffer[i2 + 1]! / 255;
-        const t = 1 - abs(2 * (x / (COLLISION_TEXTURE_SIZE - 1)) - 1);
+        const t = 1 - Math.abs(2 * (x / (COLLISION_TEXTURE_SIZE - 1)) - 1);
 
         if (x > 10 && x < COLLISION_TEXTURE_SIZE - 10) {
           front = max(max(dist1 * t, (dist1 * collision_buffer[i2]!) / 255), front);
@@ -112,10 +112,10 @@ export const player_init = () => {
         }
       }
 
-      if (abs(right - left) > abs(player_collision_x)) {
+      if (Math.abs(right - left) > Math.abs(player_collision_x)) {
         player_collision_x = right - left;
       }
-      if (abs(back - front) > abs(player_collision_z)) {
+      if (Math.abs(back - front) > Math.abs(player_collision_z)) {
         player_collision_z = back - front;
       }
     }
@@ -254,7 +254,7 @@ export const player_init = () => {
       player_respawned = 2;
     }
 
-    player_model_y = lerp(lerpDamp(player_model_y, y, 2), y, abs(player_model_y - y) * 8);
+    player_model_y = lerp(lerpDamp(player_model_y, y, 2), y, Math.abs(player_model_y - y) * 8);
 
     camera_lookat_x = interpolate_with_hysteresis(camera_lookat_x, x, 1.5);
     camera_lookat_y = interpolate_with_hysteresis(camera_lookat_y, y, 2.2);
@@ -371,7 +371,7 @@ export const player_init = () => {
 
     player_collision_velocity_x = lerpDamp(player_collision_velocity_x, 0, player_has_ground ? 8 : 4);
     player_collision_velocity_z = lerpDamp(player_collision_velocity_z, 0, player_has_ground ? 8 : 4);
-    const playerSpeedCollision = clamp(1 - max(abs(player_collision_x), abs(player_collision_z)) * 5);
+    const playerSpeedCollision = clamp(1 - max(Math.abs(player_collision_x), Math.abs(player_collision_z)) * 5);
     if (!currentModelId) {
       player_collision_x += player_collision_velocity_x * playerSpeedCollision * gameTimeDelta;
       player_collision_z += player_collision_velocity_z * playerSpeedCollision * gameTimeDelta;

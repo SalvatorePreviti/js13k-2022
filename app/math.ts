@@ -7,12 +7,10 @@ export const min = /* @__PURE__ */ (a: number, b: number) => (a < b ? a : b);
 
 export const max = /* @__PURE__ */ (a: number, b: number) => (a > b ? a : b);
 
-export const abs = /* @__PURE__ */ (n: number) => (n < 0 ? -n : n);
-
 export const clamp = /* @__PURE__ */ (value: number, minValue: number = 0, maxValue: number = 1) =>
   value < minValue ? minValue : value > maxValue ? maxValue : value;
 
-export const threshold = (value: number | undefined, amount: number) => (abs(value!) > amount ? value! : 0);
+export const threshold = (value: number | undefined, amount: number) => (Math.abs(value!) > amount ? value! : 0);
 
 /** Linear interpolation */
 export const lerp = /* @__PURE__ */ (a: number, b: number, t: number) => a + (b - a) * clamp(t);

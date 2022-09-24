@@ -20,9 +20,6 @@ export interface BabelPluginSimpleSettings {
 const material = (r: number, g: number, b: number, a: number = 0): number =>
   ((a * 255) << 24) | ((b * 255) << 16) | ((g * 255) << 8) | (r * 255);
 
-/**
- * This magic plugin optimize destructuring by maximizing shorthand.
- */
 export function babelPluginSimple(settings: BabelPluginSimpleSettings): PluginItem {
   return [jsBabelSimplePlugin, {}, `simple${++_pluginCounter}`];
 
