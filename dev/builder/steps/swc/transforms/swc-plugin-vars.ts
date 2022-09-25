@@ -221,13 +221,22 @@ function variableDeclarationSortCompare(
 
   if (a.init && b.init) {
     if (a.init.type === "NumericLiteral" && b.init.type === "NumericLiteral") {
-      return a.init.value < b.init.value ? -1 : a.init.value > b.init.value ? 1 : 0;
+      c = a.init.value < b.init.value ? -1 : a.init.value > b.init.value ? 1 : 0;
+      if (c) {
+        return c;
+      }
     }
     if (a.init.type === "BooleanLiteral" && b.init.type === "BooleanLiteral") {
-      return a.init.value < b.init.value ? -1 : a.init.value > b.init.value ? 1 : 0;
+      c = a.init.value < b.init.value ? -1 : a.init.value > b.init.value ? 1 : 0;
+      if (c) {
+        return c;
+      }
     }
     if (a.init.type === "StringLiteral" && b.init.type === "StringLiteral") {
-      return a.init.value.localeCompare(b.init.value);
+      c = a.init.value.localeCompare(b.init.value);
+      if (c) {
+        return c;
+      }
     }
 
     c = constExpressionOrdering(a.init, true) - constExpressionOrdering(b.init, true);
@@ -235,32 +244,37 @@ function variableDeclarationSortCompare(
       return c;
     }
 
-    // c = constExpressionOrdering(a.init, true) - constExpressionOrdering(b.init, true);
-    // if (c) {
-    //   return c;
-    // }
-    // if (a.init.type === "ArrayExpression" && b.init.type === "ArrayExpression") {
-    //   c = a.init.elements.length - b.init.elements.length;
-    //   if (c) {
-    //     return c;
-    //   }
-    //   for (let i = 0; i < a.init.elements.length; i++) {
-    //     const aexpr = (a.init.elements[i]! as any).expression;
-    //     const bexpr = (b.init.elements[i]! as any).expression;
-    //     if (aexpr && bexpr) {
-    //       c = constExpressionOrdering(aexpr, false) - constExpressionOrdering(bexpr, false);
-    //       if (c) {
-    //         return c;
-    //       }
-    //     }
-    //     if (aexpr) {
-    //       return 1;
-    //     }
-    //     if (bexpr) {
-    //       return -1;
-    //     }
-    //   }
-    // }
+    c = constExpressionOrdering(a.init, false) - constExpressionOrdering(b.init, false);
+    if (c) {
+      return c;
+    }
+
+    c = constExpressionOrdering(a.init, true) - constExpressionOrdering(b.init, true);
+    if (c) {
+      return c;
+    }
+    if (a.init.type === "ArrayExpression" && b.init.type === "ArrayExpression") {
+      c = a.init.elements.length - b.init.elements.length;
+      if (c) {
+        return c;
+      }
+      for (let i = 0; i < a.init.elements.length; i++) {
+        const aexpr = (a.init.elements[i]! as any).expression;
+        const bexpr = (b.init.elements[i]! as any).expression;
+        if (aexpr && bexpr) {
+          c = constExpressionOrdering(aexpr, false) - constExpressionOrdering(bexpr, false);
+          if (c) {
+            return c;
+          }
+        }
+        if (aexpr) {
+          return 1;
+        }
+        if (bexpr) {
+          return -1;
+        }
+      }
+    }
   }
 
   if ("span" in a && "span" in b) {
@@ -277,13 +291,13 @@ function constExpressionOrdering(
   recursive: boolean,
 ): number {
   switch (expression.type) {
-    case "NullLiteral":
-      return 1;
     case "NumericLiteral":
+      return 1;
+    case "BigIntLiteral":
       return 2;
     case "BooleanLiteral":
       return 3;
-    case "BigIntLiteral":
+    case "NullLiteral":
       return 4;
     case "StringLiteral":
       return 5;
@@ -301,9 +315,9 @@ function constExpressionOrdering(
       return 11;
     case "ClassExpression":
       return 12;
-    case "FunctionExpression":
-      return 13;
     case "NewExpression":
+      return 13;
+    case "FunctionExpression":
       return 14;
     case "ArrowFunctionExpression":
       return 15;

@@ -20,6 +20,10 @@ let player_update;
 const fieldOfViewAmount = 1.732051;
 const MODEL_ID_PLAYER_LEG0 = 38;
 const MODEL_ID_PLAYER_LEG1 = 39;
+const allModels = [];
+const levers = [];
+const souls = [];
+const keyboard_downKeys = [];
 const GQuad = [
   {
     x: -1,
@@ -38,10 +42,6 @@ const GQuad = [
     z: -1,
   },
 ];
-const allModels = [];
-const levers = [];
-const souls = [];
-const keyboard_downKeys = [];
 const song_columns = [
   [
     "(.15:15:=5:=A:=AF=AFIFIMRMRUY(Y(((((((((((((((((((((((((((((M(M(((((((((((((((((((((((((((((R(R(((((((((((((((((((((((((((((U(U",
@@ -604,7 +604,6 @@ const newLever = (transform) => {
     meshAdd(cylinder(), transform.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
 };
 const newSoul = (transform, ...walkingPath) => {
-  let dirX = -1;
   let dirZ = 0;
   let randAngle = 0;
   let lookAngle = 0;
@@ -612,6 +611,7 @@ const newSoul = (transform, ...walkingPath) => {
   let prevZ = 0;
   let wasInside = 1;
   let velocity = 3;
+  let dirX = -1;
   const soul = {
     $value: 0,
     _update() {
@@ -1012,8 +1012,10 @@ const player_init = () => {
     let grav = 0;
     let lines = 0;
     player_has_ground = 0, player_collision_modelIdCounter.fill(0);
-    for (let up, y = 0; y < 31; ++y) {
-      for (let x = up = 0, yindex = 512 * y; x < 128; x++) {
+    for (let y = 0; y < 31; ++y) {
+      let up = 0;
+      const yindex = 512 * y;
+      for (let x = 0; x < 128; x++) {
         var i = yindex + 4 * x;
         let a = (collision_buffer[i] + collision_buffer[1 + i]) / 255;
         var i = collision_buffer[2 + i];

@@ -614,7 +614,6 @@ const newLever = (transform) => {
   meshAdd(cylinder(), transform.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
 };
 const newSoul = (transform, ...walkingPath) => {
-  let dirX = -1;
   let dirZ = 0;
   let randAngle = 0;
   let lookAngle = 0;
@@ -622,6 +621,7 @@ const newSoul = (transform, ...walkingPath) => {
   let prevZ = 0;
   let wasInside = 1;
   let velocity = 3;
+  let dirX = -1;
   const soul = {
     $value: 0,
     _update: () => {
@@ -2175,10 +2175,10 @@ const GAMEPAD_BUTTON_LEFT = 14;
 const GAMEPAD_BUTTON_RIGHT = 15;
 let player_update;
 const CAMERA_PLAYER_Y_DIST = 13;
-const CAMERA_PLAYER_Z_DIST = -18;
-const PLAYER_LEGS_VELOCITY = 9.1;
-const PLAYER_RESPAWN_Z = -2.4;
 const COLLISION_TEXTURE_SIZE = 128;
+const CAMERA_PLAYER_Z_DIST = -18;
+const PLAYER_RESPAWN_Z = -2.4;
+const PLAYER_LEGS_VELOCITY = 9.1;
 const player_position_global = {
   x: 0,
   y: 0,
@@ -2336,8 +2336,10 @@ const player_init = () => {
     let lines = 0;
     player_has_ground = 0;
     player_collision_modelIdCounter.fill(0);
-    for (let y = 0, up; y < 31; ++y) {
-      for (let x = up = 0, yindex = y * (COLLISION_TEXTURE_SIZE * 4); x < COLLISION_TEXTURE_SIZE - 0; x++) {
+    for (let y = 0; y < 31; ++y) {
+      let up = 0;
+      const yindex = y * (COLLISION_TEXTURE_SIZE * 4);
+      for (let x = 0; x < COLLISION_TEXTURE_SIZE - 0; x++) {
         let i = yindex + x * 4;
         const a = (collision_buffer[i] + collision_buffer[i + 1]) / 255;
         i = collision_buffer[i + 2];
