@@ -194,6 +194,10 @@ const camera_position = {
 };
 const camera_rotation = {
   x: 0,
+  y: 180,
+};
+const player_position_global = {
+  x: 0,
   y: 0,
   z: 0,
 };
@@ -206,7 +210,7 @@ const min = (a, b) => a < b ? a : b;
 const max = (a, b) => b < a ? a : b;
 const clamp = (value, minValue = 0, maxValue = 1) => value < minValue ? minValue : maxValue < value ? maxValue : value;
 const threshold = (value, amount) => amount < Math.abs(value) ? value : 0;
-const lerp = (a, b, t) => a + (b - a) * clamp(t);
+const lerp = (a, b, t) => (0 < t ? t < 1 ? a + (b - a) * t : b : a) || 0;
 const lerpneg = (v, t) => (v = clamp(v), lerp(v, 1 - v, t));
 const angle_wrap_degrees = (degrees) => Math.atan2(Math.sin(degrees *= DEG_TO_RAD), Math.cos(degrees)) / DEG_TO_RAD;
 const angle_lerp_degrees = (a0, a1, t) => a0 + (2 * (a1 = (a1 - a0) % 360) % 360 - a1) * clamp(t);
@@ -491,7 +495,8 @@ const csg_polygons_subtract = (...input) => {
       });
   }
 };
-const lerpDamp = (from, to, speed) => lerp(from, to, 1 - Math.exp(-speed * gameTimeDelta));
+const damp = (speed) => 1 - Math.exp(-speed * gameTimeDelta);
+const lerpDamp = (from, to, speed) => lerp(from, to, damp(speed));
 const showMessage = (message, duration) => {
   1 / 0 > _messageEndTime && (_messageEndTime = gameTime + duration, h4.innerHTML = message);
 };
@@ -881,6 +886,8 @@ const initPage = () => {
 const player_init = () => {
   let player_look_angle_target = 0;
   let player_look_angle = 0;
+  let boot = 1;
+  let player_gravity = 2;
   let player_respawned = 2;
   let gamepadInteractPressed;
   let currentModelId;
@@ -888,7 +895,6 @@ const player_init = () => {
   let oldModelId;
   let player_has_ground;
   let player_legs_speed;
-  let player_gravity;
   let player_speed;
   let player_collision_velocity_x;
   let player_collision_velocity_z;
@@ -898,16 +904,20 @@ const player_init = () => {
   let camera_lookat_x;
   let camera_lookat_y;
   let camera_lookat_z;
-  const player_position_global = {
-    x: 0,
-    y: 0,
-    z: 0,
-  };
   const player_collision_modelIdCounter = new Int32Array(256);
   const collision_buffer = new Uint8Array(65536);
-  const interpolate_with_hysteresis = (previous, desired, amount) =>
-    lerpDamp(previous, desired, clamp(Math.abs(previous - desired) - amount, 0.4, 4));
+  const interpolate_with_hysteresis = (previous, desired, hysteresis) =>
+    boot
+      ? desired
+      : lerp(
+        previous
+          + Math.sign(desired - previous) * max(0, Math.abs(desired - previous) ** 0.9 - hysteresis) * gameTimeDelta
+            * 2,
+        desired,
+        gameTimeDelta / 7,
+      );
   const doHorizontalCollisions = () => {
+    player_collision_x = 0, player_collision_z = 0;
     for (let y = 32; y < 128; y += 2) {
       let front = 0;
       let back = 0;
@@ -935,7 +945,7 @@ const player_init = () => {
     let nextModelId = 0;
     let lines = 0;
     let grav = 0;
-    player_collision_modelIdCounter.fill(0);
+    player_has_ground = 0, player_collision_modelIdCounter.fill(0);
     for (let y = 0; y < 31; ++y) {
       let up = 0;
       const yindex = 512 * y;
@@ -955,82 +965,87 @@ const player_init = () => {
       player_gravity = lerpDamp(player_gravity, player_has_ground ? 6.5 : 8, 4),
       player_position_global.y += lines / 41
         - (player_has_ground || player_gravity) * grav / 41 * player_gravity * gameTimeDelta,
-      player_respawned
-        ? nextModelId && (player_respawned = 0, currentModelId = nextModelId)
-        : currentModelId = nextModelId || currentModelIdTMinus1,
+      currentModelId = nextModelId || currentModelIdTMinus1,
       currentModelIdTMinus1 = nextModelId;
   };
+  const getReferenceMatrix = () =>
+    player_respawned
+      ? levers[player_last_pulled_lever].$parent.$matrix
+      : oldModelId && allModels[oldModelId].$kind === 1 && allModels[oldModelId].$matrix || identity;
   const player_move = () => {
-    var referenceMatrix = allModels[currentModelId].$kind === 1 && allModels[currentModelId].$matrix || identity;
-    var { x: y2, y: x2, z: z2 } = (player_respawned
-      ? ({ x: x2, y: y2, z: z2 } = levers[player_last_pulled_lever].$locMatrix.transformPoint({
+    let referenceMatrix = getReferenceMatrix();
+    var { x: inverseReferenceRotationMatrix, y: v, z: referenceMatrix2 } = 1 < player_respawned
+      ? levers[player_last_pulled_lever].$locMatrix.transformPoint({
         x: 0,
-        y: player_last_pulled_lever || 0.9 < firstBoatLerp ? 12 : 1,
-        z: -2.5,
-      }),
-        camera_lookat_x === void 0
-        && (camera_position.x = camera_lookat_x = x2,
-          camera_position.y = (camera_lookat_y = player_model_y = y2) + 13,
-          camera_position.z = (camera_lookat_z = z2) + -18),
-        1 < player_respawned && (player_respawned = 1, player_model_y = player_position_final.y = y2),
-        player_position_final.x = x2,
-        player_position_final.z = z2)
-      : ({ x: x2, z: z2 } = ((y2 = referenceMatrix.inverse()).m41 = 0,
-        y2.m42 = 0,
-        y2.m43 = 0,
-        y2.transformPoint({
+        y: player_last_pulled_lever || 0.9 < firstBoatLerp ? 15 : 1,
+        z: -2.4,
+      })
+      : ((inverseReferenceRotationMatrix = (referenceMatrix2 = referenceMatrix).inverse()).m41 = 0,
+        inverseReferenceRotationMatrix.m42 = 0,
+        inverseReferenceRotationMatrix.m43 = 0,
+        v = inverseReferenceRotationMatrix.transformPoint({
           x: player_collision_x,
           z: player_collision_z,
           w: 0,
-        })),
-        player_position_global.x += x2,
-        player_position_global.z += z2),
-      currentModelId !== oldModelId
-      && (oldModelId = currentModelId,
-        { x: y2, y: x2, z: z2 } = referenceMatrix.inverse().transformPoint(player_position_final),
-        player_position_global.x = y2,
-        player_position_global.y = x2,
-        player_position_global.z = z2),
-      referenceMatrix.transformPoint(player_position_global));
-    var referenceMatrix = y2 - player_position_final.x;
-    let dz = z2 - player_position_final.z;
-    player_position_final.x = y2,
-      player_position_final.y = x2,
-      player_position_final.z = z2,
+        }),
+        player_position_global.x += v.x,
+        player_position_global.z += v.z,
+        referenceMatrix2.transformPoint(player_position_global));
+    let dx = inverseReferenceRotationMatrix - player_position_final.x;
+    let dz = referenceMatrix2 - player_position_final.z;
+    if (
+      player_respawned = player_respawned && (player_has_ground && currentModelId ? 0 : 1),
+        player_position_final.x = inverseReferenceRotationMatrix,
+        player_position_final.y = v,
+        player_position_final.z = referenceMatrix2,
+        player_respawned || currentModelId !== oldModelId
+    ) {
+      oldModelId = currentModelId;
+      const v1 = (referenceMatrix = getReferenceMatrix()).inverse().transformPoint(player_position_final);
+      player_position_global.x = v1.x, player_position_global.y = v1.y, player_position_global.z = v1.z;
+    }
+    v < (inverseReferenceRotationMatrix < -25 || referenceMatrix2 < 109 ? -25 : -9) && (player_respawned = 2),
       currentModelId
-      && (player_collision_velocity_x = referenceMatrix / gameTimeDelta,
-        player_collision_velocity_z = dz / gameTimeDelta),
-      currentModelId === 1 && (levers[9].$value = y2 < -15 && z2 < 0 ? 1 : 0),
-      x2 < (y2 < -25 || z2 < 109 ? -25 : -9) && (player_collision_velocity_x =
-        player_collision_velocity_z =
-        player_gravity =
-        player_speed =
-          0,
-        currentModelIdTMinus1 = currentModelId = levers[player_last_pulled_lever].$parent.$modelId,
-        player_respawned = 2),
-      player_model_y = lerp(lerpDamp(player_model_y, x2, 2), x2, 8 * Math.abs(player_model_y - x2)),
-      camera_lookat_x = interpolate_with_hysteresis(camera_lookat_x, y2, 1.5),
-      camera_lookat_y = interpolate_with_hysteresis(camera_lookat_y, x2, 2.2),
-      camera_lookat_z = interpolate_with_hysteresis(camera_lookat_z, z2, 1.5),
+      && (player_collision_velocity_x = dx / gameTimeDelta, player_collision_velocity_z = dz / gameTimeDelta),
+      currentModelId === 1 && (levers[9].$value = inverseReferenceRotationMatrix < -15 && referenceMatrix2 < 0 ? 1 : 0),
+      player_model_y = lerp(lerpDamp(player_model_y, v, 2), v, player_respawned || 8 * Math.abs(player_model_y - v)),
+      camera_lookat_y = interpolate_with_hysteresis(camera_lookat_y, player_model_y, 3),
+      camera_lookat_x = interpolate_with_hysteresis(camera_lookat_x, inverseReferenceRotationMatrix, 2),
+      camera_lookat_z = interpolate_with_hysteresis(camera_lookat_z, referenceMatrix2, 2),
       player_first_person
-        ? (camera_position.x = lerpDamp(camera_position.x, y2, 666 * player_respawned + 18),
-          camera_position.y = lerpDamp(camera_position.y, player_model_y + 1.5, 666 * player_respawned + 18),
-          camera_position.z = lerpDamp(camera_position.z, z2, 666 * player_respawned + 18))
-        : (camera_position.x = lerpDamp(camera_position.x, camera_lookat_x, 2),
-          camera_position.y = lerpDamp(
+        ? (referenceMatrix = player_respawned + damp(18),
+          camera_position.x = lerp(camera_position.x, inverseReferenceRotationMatrix, referenceMatrix),
+          camera_position.y = lerp(camera_position.y, player_model_y + 1.5, referenceMatrix),
+          camera_position.z = lerp(camera_position.z, referenceMatrix2, referenceMatrix),
+          camera_rotation.y = angle_wrap_degrees(camera_rotation.y))
+        : (dx = boot + damp(2),
+          camera_position.x = lerp(camera_position.x, camera_lookat_x, dx),
+          camera_position.y = lerp(
             camera_position.y,
-            max(camera_lookat_y + 13 + clamp((-60 - z2) / 8, 0, 20), 6),
-            2,
+            max(camera_lookat_y + clamp((-60 - referenceMatrix2) / 8, 0, 20) + 13, 6),
+            dx,
           ),
-          camera_position.z = lerpDamp(camera_position.z, camera_lookat_z + -18, 2),
-          referenceMatrix = camera_position.x - camera_lookat_x,
-          dz = camera_position.z - camera_lookat_z,
-          (x2 = threshold(Math.hypot(dz, referenceMatrix), 0.1))
-          && (camera_rotation.x = 90 - Math.atan2(x2, camera_position.y - camera_lookat_y) / DEG_TO_RAD,
-            camera_rotation.y = 270 + Math.atan2(dz, referenceMatrix) / DEG_TO_RAD)),
+          camera_position.z = lerp(camera_position.z, camera_lookat_z + -18, dx),
+          dz = camera_lookat_x - camera_position.x,
+          v = -Math.abs(camera_lookat_z - camera_position.z),
+          dx = boot + damp(4),
+          camera_rotation.x = angle_lerp_degrees(
+            camera_rotation.x,
+            90 - Math.atan2(Math.hypot(v, dz), camera_position.y - camera_lookat_y) / DEG_TO_RAD,
+            dx,
+          ),
+          camera_rotation.y = angle_lerp_degrees(
+            camera_rotation.y,
+            90 - angle_wrap_degrees(Math.atan2(v, dz) / DEG_TO_RAD),
+            dx,
+          )),
       camera_rotation.x = clamp(camera_rotation.x, -87, 87),
-      camera_rotation.y = angle_wrap_degrees(camera_rotation.y);
-    const playerMatrix = allModels[37].$matrix = identity.translate(y2, player_model_y, z2).rotateSelf(
+      boot = 0;
+    const playerMatrix = allModels[37].$matrix = identity.translate(
+      inverseReferenceRotationMatrix,
+      player_model_y,
+      referenceMatrix2,
+    ).rotateSelf(
       0,
       player_look_angle = angle_lerp_degrees(player_look_angle, player_look_angle_target, 8 * gameTimeDelta),
     );
@@ -1067,9 +1082,6 @@ const player_init = () => {
       forward = gamepad * Math.sin(getGamepadButtonState),
       player_legs_speed = lerpDamp(player_legs_speed, gamepad, 10),
       gamepad && (player_look_angle_target = 90 - getGamepadButtonState / DEG_TO_RAD),
-      player_collision_x = 0,
-      player_collision_z = 0,
-      player_has_ground = 0,
       gl["fa7"](),
       gl["r9r"](0, 0, 128, 128, 6408, 5121, collision_buffer),
       gl["iay"](36008, [
@@ -1090,8 +1102,8 @@ const player_init = () => {
         player_collision_z += player_collision_velocity_z * getGamepadButtonState * gameTimeDelta),
       player_speed = lerpDamp(
         player_speed,
-        player_has_ground ? (gamepad ? player_has_ground ? 7 : 4 : 0) * getGamepadButtonState : 0,
-        player_has_ground ? 0.1 < getGamepadButtonState ? 10 : gamepad ? 5 : 7 : 1,
+        player_has_ground * getGamepadButtonState * clamp(2 * gamepad) * 7,
+        player_has_ground ? 0.1 < getGamepadButtonState ? 10 : 5 + 2 * gamepad : 1,
       ),
       getGamepadButtonState = player_first_person ? camera_rotation.y * DEG_TO_RAD : Math.PI,
       gamepad = Math.sin(getGamepadButtonState) * player_speed * gameTimeDelta,
@@ -1099,14 +1111,7 @@ const player_init = () => {
       player_collision_x -= strafe * getGamepadButtonState - forward * gamepad,
       player_collision_z -= strafe * gamepad + forward * getGamepadButtonState,
       NO_INLINE(player_move)();
-  },
-    player_legs_speed =
-      player_collision_velocity_x =
-      player_collision_velocity_z =
-      player_gravity =
-      player_speed =
-        0,
-    currentModelIdTMinus1 = currentModelId = levers[player_last_pulled_lever].$parent.$modelId;
+  };
 };
 const loadShader = (source, type = 35633) => (type = gl["c6x"](type), gl["s3c"](type, source), gl["c6a"](type), type);
 const initShaderProgram = (vertexShader, sfsSource) => {
@@ -1339,13 +1344,8 @@ loadStep(() => {
           0 < gameTimeDelta && (worldStateUpdate(), player_update(), keyboard_downKeys[5] = 0);
         let { x: cameraX, y: cameraY, z: cameraZ } = camera_position;
         mainMenuVisible && (cameraX = -4.5, cameraY = 2, cameraZ = 3.2 - clamp(hC.clientWidth / 1e3));
-        var dt = (mainMenuVisible
-          ? identity.rotate(-20, -90)
-          : identity.rotate(-camera_rotation.x, -camera_rotation.y, -camera_rotation.z)).invertSelf().translateSelf(
-            -cameraX,
-            -cameraY,
-            -cameraZ,
-          );
+        var dt = (mainMenuVisible ? identity.rotate(-20, -90) : identity.rotate(-camera_rotation.x, -camera_rotation.y))
+          .invertSelf().translateSelf(-cameraX, -cameraY, -cameraZ);
         0 < gameTimeDelta
         && ({ x: globalTime, y, z } = player_position_final,
           collisionShader(),
@@ -1491,20 +1491,20 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
           const _vertexInts = new Int32Array(8);
           const _vertexMap = new Map();
           const getVertex = (i) => {
-            let { x: x2, y: y2, z: z2 } = polygon[i];
+            let { x, y, z } = polygon[i];
             let index =
-              (_vertexFloats[0] = x2,
-                _vertexFloats[1] = y2,
-                _vertexFloats[2] = z2,
+              (_vertexFloats[0] = x,
+                _vertexFloats[1] = y,
+                _vertexFloats[2] = z,
                 i = "" + (polygon.$smooth ? _vertexIntsSmooth : _vertexInts),
                 _vertexMap.get(i));
             return index !== void 0
-              ? (x2 = 3 * index,
-                _vertexNormals[x2] = (_vertexNormals[x2++] + _vertexInts[5]) / 2,
-                _vertexNormals[x2] = (_vertexNormals[x2++] + _vertexInts[6]) / 2,
-                _vertexNormals[x2] = (_vertexNormals[x2] + _vertexInts[7]) / 2)
+              ? (x = 3 * index,
+                _vertexNormals[x] = (_vertexNormals[x++] + _vertexInts[5]) / 2,
+                _vertexNormals[x] = (_vertexNormals[x++] + _vertexInts[6]) / 2,
+                _vertexNormals[x] = (_vertexNormals[x] + _vertexInts[7]) / 2)
               : (_vertexMap.set(i, index = _vertexMap.size),
-                _vertexPositions.push(x2, y2, z2, _vertexFloats[3]),
+                _vertexPositions.push(x, y, z, _vertexFloats[3]),
                 _vertexColors.push(_vertexInts[4]),
                 _vertexNormals.push(_vertexInts[5], _vertexInts[6], _vertexInts[7])),
               index;

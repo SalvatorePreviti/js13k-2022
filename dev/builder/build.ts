@@ -37,7 +37,7 @@ import { jsEsbuildMinify } from "./steps/js-esbuild";
 import { jsRemoveEndingSemicolons } from "./lib/code-utils";
 import { babelPluginMath } from "./steps/babel/babel-plugin-math";
 
-const resugarBlockScope = [resugarBlockScopePlugin, { "declarations.block-scope": { disableConst: true } }];
+const resugarBlockScope = [resugarBlockScopePlugin, { "declarations.block-scope": { disableConst: false } }];
 
 devLog.titlePaddingWidth = 18;
 
@@ -138,7 +138,12 @@ export async function build() {
 
     js = await jsBabel(js, {
       minify: false,
-      plugins: [babelPluginSimple({ unmangleableProperties: "mark" }), resugarBlockScope, resugarFunctionsArrow],
+      plugins: [
+        babelPluginSimple({ unmangleableProperties: "mark" }),
+        resugarBlockScope,
+        resugarFunctionsArrow,
+        "babel-plugin-minify-dead-code-elimination",
+      ],
     });
 
     // js = await jsTransformSwc(js, false, swcPluginVars());
@@ -174,6 +179,11 @@ export async function build() {
 
     js = await jsTransformSwc(js, false, swcPluginVars({ floatRound: 6 }));
 
+    js = await jsBabel(js, {
+      minify: false,
+      plugins: [resugarBlockScope, resugarFunctionsArrow],
+    });
+
     js = await jsEsbuildMinify(js, {
       mangle: false,
       minifySyntax: true,
@@ -207,18 +217,20 @@ export async function build() {
     js = await jsBabel(js, {
       minify: false,
       plugins: [
+        babelPluginMath(),
         resugarBlockScope,
         resugarConcise,
         resugarFunctionsArrow,
         resugarObjectsShorthand,
-        "babel-plugin-minify-dead-code-elimination",
+        // "babel-plugin-minify-dead-code-elimination",
+        babelPluginSimple({ floatRound: 6 }),
       ],
     });
 
-    js = await jsTransformSwc(js, false, swcPluginVars({ constToLet: true, floatRound: 6 }));
+    js = await jsTransformSwc(js, false, swcPluginVars({ floatRound: 6 }));
 
     js = await jsUglify(js, {
-      mangle: false,
+      mangle: true,
       varify: false,
       final: false,
       reduce_vars: true,
@@ -228,7 +240,7 @@ export async function build() {
       inline: true,
     });
 
-    js = await jsTransformSwc(js, false, swcPluginVars({ constToLet: true, floatRound: 6 }));
+    js = await jsTransformSwc(js, false, swcPluginVars({ floatRound: 6 }));
 
     js = await jsTerser(js, {
       mangle: false,
@@ -241,7 +253,7 @@ export async function build() {
     js = await jsBabel(js, {
       minify: false,
       plugins: [
-        "babel-plugin-minify-dead-code-elimination",
+        // "babel-plugin-minify-dead-code-elimination",
         resugarConcise,
         resugarObjectsShorthand,
         resugarFunctionsArrow,
@@ -256,23 +268,22 @@ export async function build() {
       computed_props: true,
     });
 
-    js = await jsTransformSwc(js, false, swcPluginVars({ constToLet: true, floatRound: 6 }));
+    js = await jsTransformSwc(js, false, swcPluginVars({ floatRound: 6 }));
 
     js = await jsBabel(js, {
       minify: false,
       plugins: [
         "babel-plugin-minify-constant-folding",
-        "babel-plugin-minify-dead-code-elimination",
+        // "babel-plugin-minify-dead-code-elimination",
         resugarConcise,
         resugarObjectsShorthand,
         resugarFunctionsArrow,
         resugarBlockScope,
-        babelPluginMath(),
-        babelPluginSimple({ removeNoInlineCall: true, constToLet: true }),
+        babelPluginSimple({ removeNoInlineCall: true }),
       ],
     });
 
-    js = await jsTransformSwc(js, false, swcPluginVars({ constToLet: true, floatRound: 6 }));
+    js = await jsTransformSwc(js, false, swcPluginVars({ floatRound: 6 }));
 
     js = await jsTerser(js, {
       mangle: "variables",
@@ -282,7 +293,7 @@ export async function build() {
       computed_props: true,
     });
 
-    js = await jsTransformSwc(js, false, swcPluginVars({ constToLet: true, floatRound: 6 }));
+    js = await jsTransformSwc(js, false, swcPluginVars({ floatRound: 6 }));
 
     js = await jsEsbuildMinify(js, {
       mangle: false,
@@ -308,7 +319,7 @@ export async function build() {
       minify: true,
       plugins: [
         "babel-plugin-minify-constant-folding",
-        "babel-plugin-minify-dead-code-elimination",
+        // "babel-plugin-minify-dead-code-elimination",
         resugarConcise,
         resugarObjectsShorthand,
         resugarFunctionsArrow,
@@ -316,7 +327,7 @@ export async function build() {
       ],
     });
 
-    // js = await jsTransformSwc(js, false, swcPluginVars({ constToLet: true, floatRound: 6 }));
+    js = await jsTransformSwc(js, false, swcPluginVars({ constToLet: true, floatRound: 6 }));
 
     js = await jsUglify(js, {
       varify: false,

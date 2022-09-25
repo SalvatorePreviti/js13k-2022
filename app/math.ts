@@ -13,7 +13,8 @@ export const clamp = /* @__PURE__ */ (value: number, minValue: number = 0, maxVa
 export const threshold = (value: number | undefined, amount: number) => (Math.abs(value!) > amount ? value! : 0);
 
 /** Linear interpolation */
-export const lerp = /* @__PURE__ */ (a: number, b: number, t: number) => a + (b - a) * clamp(t);
+export const lerp = /* @__PURE__ */ (a: number, b: number, t: number) =>
+  (t <= 0 ? a : t >= 1 ? b : a + (b - a) * t) || 0;
 
 export const lerpneg = /* @__PURE__ */ (v: number, t: number) => {
   v = clamp(v);

@@ -118,9 +118,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     }
 
     const camera_view = (
-      mainMenuVisible
-        ? identity.rotate(-20, -90)
-        : identity.rotate(-camera_rotation.x, -camera_rotation.y, -camera_rotation.z)
+      mainMenuVisible ? identity.rotate(-20, -90) : identity.rotate(-camera_rotation.x, -camera_rotation.y)
     )
       .invertSelf()
       .translateSelf(-cameraX, -cameraY, -cameraZ);

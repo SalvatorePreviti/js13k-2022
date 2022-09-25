@@ -34,8 +34,9 @@ let _globalTime: number | undefined;
 
 let _messageEndTime = 1;
 
-export const lerpDamp = /* @__PURE__ */ (from: number, to: number, speed: number) =>
-  lerp(from, to, 1 - Math.exp(-speed * gameTimeDelta));
+export const damp = (speed: number) => 1 - Math.exp(-speed * gameTimeDelta);
+
+export const lerpDamp = /* @__PURE__ */ (from: number, to: number, speed: number) => lerp(from, to, damp(speed));
 
 export const gameTimeUpdate = (time: number) => {
   const dt = (time - (_globalTime || time)) / 1000;
