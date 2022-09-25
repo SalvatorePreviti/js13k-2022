@@ -16,7 +16,7 @@ const angle_wrap_radians = (radians) => /* @__PURE__ */ Math.atan2(/* @__PURE__ 
 const angle_wrap_degrees = (degrees) => angle_wrap_radians(degrees * DEG_TO_RAD) / DEG_TO_RAD;
 const angle_lerp_degrees = (a0, a1, t) => {
   const da = (a1 - a0) % 360;
-  return a0 + (2 * da % 360 - da) * clamp(t);
+  return a0 + (2 * da % 360 - da) * clamp(t) || 0;
 };
 const vec3_distance = ({ x, y, z }, b) => /* @__PURE__ */ Math.hypot(x - b.x, y - b.y, z - b.z);
 const vec3_dot = ({ x, y, z }, b) => x * b.x + y * b.y + z * b.z;
@@ -1486,12 +1486,12 @@ const player_init = () => {
       camera_rotation.y = angle_lerp_degrees(camera_rotation.y, 90 - angle_wrap_degrees(/* @__PURE__ */ Math.atan2(viewDirDiffz, viewDirDiffx) / DEG_TO_RAD), camRotSpeed);
     }
     camera_rotation.x = clamp(camera_rotation.x, -87, 87);
-    const playerMatrix = allModels[MODEL_ID_PLAYER_BODY].$matrix = identity.translate(x, player_model_y, z).rotateSelf(0, player_look_angle);
+    const playerMatrix = identity.translate(x, player_model_y, z).rotateSelf(0, player_look_angle);
+    allModels[MODEL_ID_PLAYER_BODY].$matrix = playerMatrix;
     [
-      MODEL_ID_PLAYER_LEG0,
       MODEL_ID_PLAYER_LEG1
     ].map((modelId, i) => {
-      allModels[modelId].$matrix = playerMatrix.translate(0, player_legs_speed * clamp(/* @__PURE__ */ Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI * (i - 1) - Math.PI / 2) * 0.45)).rotateSelf(player_legs_speed * /* @__PURE__ */ Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI * (i - 1)) * (0.25 / DEG_TO_RAD), 0);
+      allModels[modelId].$matrix = playerMatrix.translate(i, player_legs_speed * clamp(/* @__PURE__ */ Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI * (i - 1) - Math.PI / 2) * 0.45)).rotateSelf(player_legs_speed * /* @__PURE__ */ Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI * (i - 1)) * (0.25 / DEG_TO_RAD), 0);
     });
     boot = 0;
   };

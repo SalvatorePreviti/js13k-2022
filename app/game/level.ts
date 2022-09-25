@@ -1329,7 +1329,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
   [-1, 1].map((x) =>
     newModel(() => {
-      checkModelId("PLAYER_LEG" + (x + 1), x === -1 ? MODEL_ID_PLAYER_LEG0 : MODEL_ID_PLAYER_LEG1);
+      checkModelId("PLAYER_LEG" + (x < 0 ? 0 : 1), x < 0 ? MODEL_ID_PLAYER_LEG0 : MODEL_ID_PLAYER_LEG1);
       meshAdd(cylinder(10, 1), identity.translate(x * 0.3, -0.8).scale(0.2, 0.7, 0.24), material(1, 0.3, 0.4));
     }),
   );

@@ -21,7 +21,6 @@ let currentEditModel;
 let player_first_person;
 let player_update;
 const fieldOfViewAmount = 1.732051;
-const MODEL_ID_PLAYER_LEG0 = 38;
 const MODEL_ID_PLAYER_LEG1 = 39;
 const allModels = [];
 const levers = [];
@@ -213,7 +212,7 @@ const threshold = (value, amount) => amount < Math.abs(value) ? value : 0;
 const lerp = (a, b, t) => (0 < t ? t < 1 ? a + (b - a) * t : b : a) || 0;
 const lerpneg = (v, t) => (v = clamp(v), lerp(v, 1 - v, t));
 const angle_wrap_degrees = (degrees) => Math.atan2(Math.sin(degrees *= DEG_TO_RAD), Math.cos(degrees)) / DEG_TO_RAD;
-const angle_lerp_degrees = (a0, a1, t) => a0 + (2 * (a1 = (a1 - a0) % 360) % 360 - a1) * clamp(t);
+const angle_lerp_degrees = (a0, a1, t) => a0 + (2 * (a1 = (a1 - a0) % 360) % 360 - a1) * clamp(t) || 0;
 const vec3_distance = ({ x, y, z }, b) => Math.hypot(x - b.x, y - b.y, z - b.z);
 const vec3_dot = ({ x, y, z }, b) => x * b.x + y * b.y + z * b.z;
 const plane_fromPolygon = (polygon) => {
@@ -989,20 +988,18 @@ const player_init = () => {
             referenceMatrix,
           )),
       camera_rotation.x = clamp(camera_rotation.x, -87, 87);
-    const playerMatrix = allModels[37].$matrix = identity.translate(
-      inverseReferenceRotationMatrix,
-      player_model_y,
-      referenceMatrix2,
-    ).rotateSelf(0, player_look_angle);
-    [
-      MODEL_ID_PLAYER_LEG0,
-      MODEL_ID_PLAYER_LEG1,
-    ].map((modelId, i) => {
-      allModels[modelId].$matrix = playerMatrix.translate(
-        0,
-        player_legs_speed * clamp(0.45 * Math.sin(9.1 * gameTime + Math.PI * (i - 1) - Math.PI / 2)),
-      ).rotateSelf(player_legs_speed * Math.sin(9.1 * gameTime + Math.PI * (i - 1)) * 0.25 / DEG_TO_RAD, 0);
-    }), boot = 0;
+    const playerMatrix = identity.translate(inverseReferenceRotationMatrix, player_model_y, referenceMatrix2)
+      .rotateSelf(0, player_look_angle);
+    allModels[37].$matrix = playerMatrix,
+      [
+        MODEL_ID_PLAYER_LEG1,
+      ].map((modelId, i) => {
+        allModels[modelId].$matrix = playerMatrix.translate(
+          i,
+          player_legs_speed * clamp(0.45 * Math.sin(9.1 * gameTime + Math.PI * (i - 1) - Math.PI / 2)),
+        ).rotateSelf(player_legs_speed * Math.sin(9.1 * gameTime + Math.PI * (i - 1)) * 0.25 / DEG_TO_RAD, 0);
+      }),
+      boot = 0;
   };
   const doVerticalCollisions = () => {
     let maxModelIdCount = 0;
@@ -1123,7 +1120,7 @@ const renderModels = (worldMatrixLoc, renderPlayer, soulModelId, isShadowRender)
     for (
       const modelId of [
         37,
-        MODEL_ID_PLAYER_LEG0,
+        38,
         MODEL_ID_PLAYER_LEG1,
       ]
     ) {

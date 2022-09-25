@@ -34,7 +34,7 @@ export const angle_wrap_degrees = /* @__PURE__ */ (degrees: number): number =>
 
 export const angle_lerp_degrees = /* @__PURE__ */ (a0: number, a1: number, t: number) => {
   const da = (a1 - a0) % 360;
-  return a0 + (((2 * da) % 360) - da) * clamp(t);
+  return a0 + (((2 * da) % 360) - da) * clamp(t) || 0;
 };
 
 export interface Vec2 {

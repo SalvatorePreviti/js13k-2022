@@ -223,9 +223,9 @@ export const player_init = () => {
       camera_rotation.x = clamp(camera_rotation.x, -87, 87);
     }
 
-    const playerMatrix = (allModels[MODEL_ID_PLAYER_BODY]!.$matrix = identity
-      .translate(x, player_model_y, z)
-      .rotateSelf(0, player_look_angle));
+    const playerMatrix = identity.translate(x, player_model_y, z).rotateSelf(0, player_look_angle);
+
+    allModels[MODEL_ID_PLAYER_BODY]!.$matrix = playerMatrix;
 
     [MODEL_ID_PLAYER_LEG0, MODEL_ID_PLAYER_LEG1].map((modelId, i) => {
       allModels[modelId]!.$matrix = playerMatrix

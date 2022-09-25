@@ -34,7 +34,7 @@ let $ = 0,
   E = (e, t, a) => (0 < a ? a < 1 ? e + (t - e) * a : t : e) || 0,
   i = (e, t) => (e = N(e), E(e, 1 - e, t)),
   s1 = e => k1(V(e *= H1), G(e)) / H1,
-  n1 = (e, t, a) => e + (2 * (t = (t - e) % 360) % 360 - t) * N(a),
+  n1 = (e, t, a) => e + (2 * (t = (t - e) % 360) % 360 - t) * N(a) || 0,
   o1 = ({ x: e, y: t, z: a }) => S1(e - L.x, t - L.y, a - L.z),
   c1 = ({ x: e, y: t, z: a }, l) => e * l.x + t * l.y + a * l.z,
   i1 = e => {
@@ -659,13 +659,15 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                         Q = n1(Q, 90 - k1(S1(a, s), H - k) / H1, t),
                         n1(q, 90 - s1(k1(a, s) / H1), t)),
                     Q = N(Q, -87, 87);
-                  let n = O[37].j = X.translate(e, Y, l).rotateSelf(0, d);
-                  [38, 39].map((e, t) => {
-                    O[e].j = n.translate(0, b * N(.45 * V(9.1 * T + K * (t - 1) - K / 2))).rotateSelf(
-                      b * V(9.1 * T + K * (t - 1)) * .25 / H1,
-                      0,
-                    );
-                  }), o = 0;
+                  let n = X.translate(e, Y, l).rotateSelf(0, d);
+                  O[37].j = n,
+                    [39].map((e, t) => {
+                      O[e].j = n.translate(t, b * N(.45 * V(9.1 * T + K * (t - 1) - K / 2))).rotateSelf(
+                        b * V(9.1 * T + K * (t - 1)) * .25 / H1,
+                        0,
+                      );
+                    }),
+                    o = 0;
                 })(),
                 R[5] = 0;
             };
