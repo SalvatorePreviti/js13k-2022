@@ -1,8 +1,9 @@
 window.NO_INLINE = (fn) => fn;
 window.DEBUG_CAMERA = false;
 
-import { camera_position, camera_rotation } from "../camera";
+import { camera_rotation } from "../camera";
 import { angle_wrap_degrees, DEG_TO_RAD, type Vec3 } from "../math";
+import { camera_position_x, camera_position_y, camera_position_z, set_camera_position } from "../player";
 import type { KEY_CODE } from "../utils/keycodes";
 
 export const debug_camera_position: Vec3 = { x: 0, y: 0, z: 0 };
@@ -176,15 +177,13 @@ export function devInit() {
     }
 
     if (!window.DEBUG_CAMERA) {
-      debug_camera_position.x = camera_position.x;
-      debug_camera_position.y = camera_position.y;
-      debug_camera_position.z = camera_position.z;
+      debug_camera_position.x = camera_position_x;
+      debug_camera_position.y = camera_position_y;
+      debug_camera_position.z = camera_position_z;
       debug_camera_rotation.x = camera_rotation.x;
       debug_camera_rotation.y = camera_rotation.y;
     } else {
-      camera_position.x = debug_camera_position.x;
-      camera_position.y = debug_camera_position.y;
-      camera_position.z = debug_camera_position.z;
+      set_camera_position(debug_camera_position.x, debug_camera_position.y, debug_camera_position.z);
       camera_rotation.x = debug_camera_rotation.x;
       camera_rotation.y = debug_camera_rotation.y;
     }

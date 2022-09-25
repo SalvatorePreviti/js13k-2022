@@ -10,6 +10,9 @@ let firstBoatLerp = 0;
 let secondBoatLerp = 0;
 let touch_movementX = 0;
 let touch_movementY = 0;
+let camera_position_x = 0;
+let camera_position_y = 0;
+let camera_position_z = 0;
 let gameTimeDelta = 0.066;
 let _messageEndTime = 1;
 let mainMenuVisible;
@@ -185,11 +188,6 @@ const song_instruments = [
   ],
 ];
 const player_position_final = {
-  x: 0,
-  y: 0,
-  z: 0,
-};
-const camera_position = {
   x: 0,
   y: 0,
   z: 0,
@@ -965,24 +963,24 @@ const player_init = () => {
       camera_lookat_z = interpolate_with_hysteresis(camera_lookat_z, referenceMatrix2, 2),
       player_first_person
         ? (referenceMatrix = player_respawned + damp(18),
-          camera_position.x = lerp(camera_position.x, inverseReferenceRotationMatrix, referenceMatrix),
-          camera_position.y = lerp(camera_position.y, player_model_y + 1.5, referenceMatrix),
-          camera_position.z = lerp(camera_position.z, referenceMatrix2, referenceMatrix),
+          camera_position_x = lerp(camera_position_x, inverseReferenceRotationMatrix, referenceMatrix),
+          camera_position_y = lerp(camera_position_y, player_model_y + 1.5, referenceMatrix),
+          camera_position_z = lerp(camera_position_z, referenceMatrix2, referenceMatrix),
           camera_rotation.y = angle_wrap_degrees(camera_rotation.y))
         : (dx = boot + damp(2),
-          camera_position.x = lerp(camera_position.x, camera_lookat_x, dx),
-          camera_position.y = lerp(
-            camera_position.y,
+          camera_position_x = lerp(camera_position_x, camera_lookat_x, dx),
+          camera_position_y = lerp(
+            camera_position_y,
             max(camera_lookat_y + clamp((-60 - referenceMatrix2) / 8, 0, 20) + 13, 6),
             dx,
           ),
-          camera_position.z = lerp(camera_position.z, camera_lookat_z + -18, dx),
-          dz = camera_lookat_x - camera_position.x,
-          v = -Math.abs(camera_lookat_z - camera_position.z),
+          camera_position_z = lerp(camera_position_z, camera_lookat_z + -18, dx),
+          dz = camera_lookat_x - camera_position_x,
+          v = -Math.abs(camera_lookat_z - camera_position_z),
           referenceMatrix = boot + damp(4),
           camera_rotation.x = angle_lerp_degrees(
             camera_rotation.x,
-            90 - Math.atan2(Math.hypot(v, dz), camera_position.y - camera_lookat_y) / DEG_TO_RAD,
+            90 - Math.atan2(Math.hypot(v, dz), camera_position_y - camera_lookat_y) / DEG_TO_RAD,
             referenceMatrix,
           ),
           camera_rotation.y = angle_lerp_degrees(
@@ -1106,7 +1104,8 @@ const player_init = () => {
       player_mov_z += gameTimeDelta
         * ((currentModelId ? 0 : playerSpeedCollision * player_collision_velocity_z)
           - Math.sin(getGamepadButtonState + movementRadians) * gamepad * player_speed),
-      NO_INLINE(player_move)();
+      NO_INLINE(player_move)(),
+      keyboard_downKeys[5] = 0;
   };
 };
 const loadShader = (source, type = 35633) => (type = gl["c6x"](type), gl["s3c"](type, source), gl["c6a"](type), type);
@@ -1329,11 +1328,13 @@ loadStep(() => {
           gameTime += gameTimeDelta,
           absoluteTime += dt,
           _globalTime = globalTime,
-          0 < gameTimeDelta && (worldStateUpdate(), player_update(), keyboard_downKeys[5] = 0);
-        let { x: cameraX, y: cameraY, z: cameraZ } = camera_position;
-        mainMenuVisible && (cameraX = -4.5, cameraY = 2, cameraZ = 3.2 - clamp(hC.clientWidth / 1e3));
+          0 < gameTimeDelta && (worldStateUpdate(), player_update());
         var dt = (mainMenuVisible ? identity.rotate(-20, -90) : identity.rotate(-camera_rotation.x, -camera_rotation.y))
-          .invertSelf().translateSelf(-cameraX, -cameraY, -cameraZ);
+          .invertSelf().translateSelf(
+            mainMenuVisible ? -4.5 : -camera_position_x,
+            mainMenuVisible ? 2 : -camera_position_y,
+            mainMenuVisible ? 3.2 - clamp(hC.clientWidth / 1e3) : -camera_position_z,
+          );
         0 < gameTimeDelta
         && ({ x: globalTime, y, z } = player_position_final,
           collisionShader(),
@@ -1366,11 +1367,11 @@ loadStep(() => {
           csm_render[1](),
           gl["uae"](mainShader("a"), !1, mat_perspective(0.3, 186)),
           gl["uae"](mainShader("b"), !1, matrixToArray(dt)),
-          gl["ubu"](mainShader("k"), cameraX, cameraY, cameraZ),
+          gl["ubu"](mainShader("k"), camera_position_x, camera_position_y, camera_position_z),
           renderModels(mainShader("c"), !player_first_person, 42, 0),
           skyShader(),
           gl["ubu"](skyShader("j"), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime),
-          gl["ubu"](skyShader("k"), cameraX, cameraY, cameraZ),
+          gl["ubu"](skyShader("k"), camera_position_x, camera_position_y, camera_position_z),
           gl["uae"](skyShader("b"), !1, matrixToArray(dt.inverse())),
           gl["d97"](4, 3, 5123, 0),
           gl["b6o"](36160, collision_frameBuffer),

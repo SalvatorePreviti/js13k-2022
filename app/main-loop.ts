@@ -22,20 +22,19 @@ import sky_fsSource, { uniformName_iResolution } from "./shaders/sky-fragment.fr
 
 import { clamp, integers_map, identity, mat_perspectiveXY, matrixToArray } from "./math";
 import { MODEL_ID_SOUL, MODEL_ID_SOUL_COLLISION, player_position_final } from "./game/models";
-import {
-  absoluteTime,
-  gameTimeDelta,
-  gameTimeUpdate,
-  keyboard_downKeys,
-  KEY_INTERACT,
-  mainMenuVisible,
-  worldStateUpdate,
-} from "./game/world-state";
-import { mat_perspective, zFar, zNear, camera_position, camera_rotation } from "./camera";
+import { absoluteTime, gameTimeDelta, gameTimeUpdate, mainMenuVisible, worldStateUpdate } from "./game/world-state";
+import { mat_perspective, zFar, zNear, camera_rotation } from "./camera";
 import { csm_buildMatrix } from "./csm";
 import { initPage, player_first_person } from "./page";
 import { gl } from "./gl";
-import { player_update, COLLISION_TEXTURE_SIZE, player_init } from "./player";
+import {
+  player_update,
+  COLLISION_TEXTURE_SIZE,
+  player_init,
+  camera_position_x,
+  camera_position_y,
+  camera_position_z,
+} from "./player";
 import { loadShader, initShaderProgram } from "./shaders-utils";
 import { renderModels } from "./game/models-render";
 
@@ -100,28 +99,20 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     gameTimeUpdate(globalTime);
 
     if (gameTimeDelta > 0) {
-      // read collision shader output
-
       worldStateUpdate();
 
       player_update();
-
-      keyboard_downKeys[KEY_INTERACT] = 0;
-    }
-
-    let { x: cameraX, y: cameraY, z: cameraZ } = camera_position;
-
-    if (mainMenuVisible) {
-      cameraX = -4.5;
-      cameraY = 2;
-      cameraZ = 3.2 - clamp(hC.clientWidth / 1000);
     }
 
     const camera_view = (
       mainMenuVisible ? identity.rotate(-20, -90) : identity.rotate(-camera_rotation.x, -camera_rotation.y)
     )
       .invertSelf()
-      .translateSelf(-cameraX, -cameraY, -cameraZ);
+      .translateSelf(
+        mainMenuVisible ? -4.5 : -camera_position_x,
+        mainMenuVisible ? 2 : -camera_position_y,
+        mainMenuVisible ? 3.2 - clamp(hC.clientWidth / 1000) : -camera_position_z,
+      );
 
     if (gameTimeDelta > 0) {
       const { x, y, z } = player_position_final;
@@ -187,7 +178,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
     gl.uniformMatrix4fv(mainShader(uniformName_projectionMatrix), false, mat_perspective(zNear, zFar));
     gl.uniformMatrix4fv(mainShader(uniformName_viewMatrix), false, matrixToArray(camera_view));
-    gl.uniform3f(mainShader(uniformName_viewPos), cameraX, cameraY, cameraZ);
+    gl.uniform3f(mainShader(uniformName_viewPos), camera_position_x, camera_position_y, camera_position_z);
 
     renderModels(mainShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL, 0);
 
@@ -196,7 +187,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     skyShader();
 
     gl.uniform3f(skyShader(uniformName_iResolution), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime);
-    gl.uniform3f(skyShader(uniformName_viewPos), cameraX, cameraY, cameraZ);
+    gl.uniform3f(skyShader(uniformName_viewPos), camera_position_x, camera_position_y, camera_position_z);
     gl.uniformMatrix4fv(skyShader(uniformName_viewMatrix), false, matrixToArray(camera_view.inverse()));
 
     gl.drawElements(gl.TRIANGLES, 3, gl.UNSIGNED_SHORT, 0);

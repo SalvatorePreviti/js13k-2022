@@ -1126,11 +1126,6 @@ const code$1 = "#version 300 es\nin vec4 f;void main(){gl_Position=vec4(f.xy,1,1
 const code = "#version 300 es\nprecision highp float;uniform vec3 j,k;uniform mat4 b;uniform highp sampler2D q;out vec4 O;void main(){vec2 t=gl_FragCoord.xy/j.xy*2.-1.;vec3 e=(normalize(b*vec4(t.x*-(j.x/j.y),-t.y,1.73205,0.))).xyz;float i=(-32.-k.y)/e.y,o=1.-clamp(abs(i/9999.),0.,1.);if(O=vec4(0,0,0,1),o>.01){if(i>0.){float o=cos(j.z/30.),i=sin(j.z/30.);e.xz*=mat2(o,i,-i,o);vec3 t=abs(e);O.xyz=vec3(dot(vec2(texture(q,e.xy).z,texture(q,e.yz*2.).z),t.zx)*t.y);}else e=k+e*i,O.x=(o*=.9-texture(q,e.xz/150.+vec2(sin(e.z/35.+j.z),cos(e.x/25.+j.z))/80.).y),O.y=o*o*o;}}";
 const uniformName_iResolution = "j";
 const fieldOfViewDegrees = 60;
-const camera_position = {
-  x: 0,
-  y: 0,
-  z: 0
-};
 const camera_rotation = {
   x: 0,
   y: 180
@@ -1389,6 +1384,9 @@ const GAMEPAD_BUTTON_UP = 12;
 const GAMEPAD_BUTTON_DOWN = 13;
 const GAMEPAD_BUTTON_LEFT = 14;
 const GAMEPAD_BUTTON_RIGHT = 15;
+let camera_position_x = 0;
+let camera_position_y = 0;
+let camera_position_z = 0;
 let player_update;
 const CAMERA_PLAYER_Y_DIST = 13;
 const COLLISION_TEXTURE_SIZE = 128;
@@ -1472,19 +1470,19 @@ const player_init = () => {
     camera_lookat_z = interpolate_with_hysteresis(camera_lookat_z, z, 2);
     if (player_first_person) {
       const d = player_respawned + damp(18);
-      camera_position.x = lerp(camera_position.x, x, d);
-      camera_position.y = lerp(camera_position.y, player_model_y + 1.5, d);
-      camera_position.z = lerp(camera_position.z, z, d);
+      camera_position_x = lerp(camera_position_x, x, d);
+      camera_position_y = lerp(camera_position_y, player_model_y + 1.5, d);
+      camera_position_z = lerp(camera_position_z, z, d);
       camera_rotation.y = angle_wrap_degrees(camera_rotation.y);
     } else {
       const camMovSpeed = boot + damp(2);
-      camera_position.x = lerp(camera_position.x, camera_lookat_x, camMovSpeed);
-      camera_position.y = lerp(camera_position.y, max(camera_lookat_y + clamp((-60 - z) / 8, 0, 20) + CAMERA_PLAYER_Y_DIST, 6), camMovSpeed);
-      camera_position.z = lerp(camera_position.z, camera_lookat_z + CAMERA_PLAYER_Z_DIST, camMovSpeed);
-      const viewDirDiffx = camera_lookat_x - camera_position.x;
-      const viewDirDiffz = -/* @__PURE__ */ Math.abs(camera_lookat_z - camera_position.z);
+      camera_position_x = lerp(camera_position_x, camera_lookat_x, camMovSpeed);
+      camera_position_y = lerp(camera_position_y, max(camera_lookat_y + clamp((-60 - z) / 8, 0, 20) + CAMERA_PLAYER_Y_DIST, 6), camMovSpeed);
+      camera_position_z = lerp(camera_position_z, camera_lookat_z + CAMERA_PLAYER_Z_DIST, camMovSpeed);
+      const viewDirDiffx = camera_lookat_x - camera_position_x;
+      const viewDirDiffz = -/* @__PURE__ */ Math.abs(camera_lookat_z - camera_position_z);
       const camRotSpeed = boot + damp(4);
-      camera_rotation.x = angle_lerp_degrees(camera_rotation.x, 90 - /* @__PURE__ */ Math.atan2(/* @__PURE__ */ Math.hypot(viewDirDiffz, viewDirDiffx), camera_position.y - camera_lookat_y) / DEG_TO_RAD, camRotSpeed);
+      camera_rotation.x = angle_lerp_degrees(camera_rotation.x, 90 - /* @__PURE__ */ Math.atan2(/* @__PURE__ */ Math.hypot(viewDirDiffz, viewDirDiffx), camera_position_y - camera_lookat_y) / DEG_TO_RAD, camRotSpeed);
       camera_rotation.y = angle_lerp_degrees(camera_rotation.y, 90 - angle_wrap_degrees(/* @__PURE__ */ Math.atan2(viewDirDiffz, viewDirDiffx) / DEG_TO_RAD), camRotSpeed);
     }
     camera_rotation.x = clamp(camera_rotation.x, -87, 87);
@@ -1617,6 +1615,7 @@ const player_init = () => {
     player_collision_velocity_z = lerpDamp(player_collision_velocity_z, 0, player_has_ground ? 8 : 4);
     player_mov_z += gameTimeDelta * ((currentModelId ? 0 : playerSpeedCollision * player_collision_velocity_z) - /* @__PURE__ */ Math.sin(movAngle + movementRadians) * movAmount * player_speed);
     NO_INLINE(player_move)();
+    keyboard_downKeys[KEY_INTERACT] = 0;
   };
 };
 const loadShader = (source, type = 35633) => {
@@ -1671,15 +1670,8 @@ const startMainLoop = (groundTextureImage) => {
     if (gameTimeDelta > 0) {
       worldStateUpdate();
       player_update();
-      keyboard_downKeys[KEY_INTERACT] = 0;
     }
-    let { x: cameraX, y: cameraY, z: cameraZ } = camera_position;
-    if (mainMenuVisible) {
-      cameraX = -4.5;
-      cameraY = 2;
-      cameraZ = 3.2 - clamp(hC.clientWidth / 1e3);
-    }
-    const camera_view = (mainMenuVisible ? identity.rotate(-20, -90) : identity.rotate(-camera_rotation.x, -camera_rotation.y)).invertSelf().translateSelf(-cameraX, -cameraY, -cameraZ);
+    const camera_view = (mainMenuVisible ? identity.rotate(-20, -90) : identity.rotate(-camera_rotation.x, -camera_rotation.y)).invertSelf().translateSelf(mainMenuVisible ? -4.5 : -camera_position_x, mainMenuVisible ? 2 : -camera_position_y, mainMenuVisible ? 3.2 - clamp(hC.clientWidth / 1e3) : -camera_position_z);
     if (gameTimeDelta > 0) {
       const { x, y, z } = player_position_final;
       collisionShader();
@@ -1709,11 +1701,11 @@ const startMainLoop = (groundTextureImage) => {
     csm_render[1]();
     gl["uae"](mainShader(uniformName_projectionMatrix), false, mat_perspective(zNear, zFar));
     gl["uae"](mainShader(uniformName_viewMatrix), false, matrixToArray(camera_view));
-    gl["ubu"](mainShader(uniformName_viewPos), cameraX, cameraY, cameraZ);
+    gl["ubu"](mainShader(uniformName_viewPos), camera_position_x, camera_position_y, camera_position_z);
     renderModels(mainShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL, 0);
     skyShader();
     gl["ubu"](skyShader(uniformName_iResolution), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime);
-    gl["ubu"](skyShader(uniformName_viewPos), cameraX, cameraY, cameraZ);
+    gl["ubu"](skyShader(uniformName_viewPos), camera_position_x, camera_position_y, camera_position_z);
     gl["uae"](skyShader(uniformName_viewMatrix), false, matrixToArray(camera_view.inverse()));
     gl["d97"](4, 3, 5123, 0);
     gl["b6o"](36160, collision_frameBuffer);

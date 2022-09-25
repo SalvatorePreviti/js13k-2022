@@ -1,8 +1,9 @@
 import type { FC } from "react";
 import { useState, useEffect } from "react";
 import { debug_camera_position, debug_camera_rotation, debug_camera_zero } from "../dev";
-import { camera_position, camera_rotation } from "../../camera";
+import { camera_rotation } from "../../camera";
 import { player_position_final } from "../../game/models";
+import { camera_position_x, camera_position_y, camera_position_z } from "../../player";
 
 let updateCounter = 0;
 
@@ -22,7 +23,10 @@ export const GameCameraComponent: FC = () => {
     return () => clearInterval(updateInterval);
   }, []);
 
-  const p = window.DEBUG_CAMERA ? debug_camera_position : camera_position;
+  const p = window.DEBUG_CAMERA
+    ? debug_camera_position
+    : { x: camera_position_x, y: camera_position_y, z: camera_position_z };
+
   const r = window.DEBUG_CAMERA ? debug_camera_rotation : camera_rotation;
 
   return (

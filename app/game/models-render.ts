@@ -35,6 +35,7 @@ export const renderModels = (
       gl.UNSIGNED_SHORT,
       allModels[MODEL_ID_PLAYER_BODY]!.$vertexBegin! * 2,
     );
+
     return;
   }
 

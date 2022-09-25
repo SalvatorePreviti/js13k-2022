@@ -22,7 +22,7 @@ import {
   KEY_INTERACT,
   damp,
 } from "./game/world-state";
-import { camera_rotation, camera_position } from "./camera";
+import { camera_rotation } from "./camera";
 import {
   GAMEPAD_BUTTON_A,
   GAMEPAD_BUTTON_X,
@@ -49,6 +49,18 @@ export const PLAYER_RESPAWN_Z = -2.4;
 export const COLLISION_TEXTURE_SIZE = 128;
 
 export const player_position_global = { x: 0, y: 0, z: 0 };
+
+export let camera_position_x: number = 0;
+
+export let camera_position_y: number = 0;
+
+export let camera_position_z: number = 0;
+
+export const set_camera_position = (x: number, y: number, z: number) => {
+  camera_position_x = x;
+  camera_position_y = y;
+  camera_position_z = z;
+};
 
 export const player_init = () => {
   let gamepadInteractPressed: 0 | 1 | undefined;
@@ -177,27 +189,27 @@ export const player_init = () => {
     if (!DEBUG_CAMERA) {
       if (player_first_person) {
         const d = player_respawned + damp(18);
-        camera_position.x = lerp(camera_position.x, x, d);
-        camera_position.y = lerp(camera_position.y, player_model_y + 1.5, d);
-        camera_position.z = lerp(camera_position.z, z, d);
+        camera_position_x = lerp(camera_position_x, x, d);
+        camera_position_y = lerp(camera_position_y, player_model_y + 1.5, d);
+        camera_position_z = lerp(camera_position_z, z, d);
         camera_rotation.y = angle_wrap_degrees(camera_rotation.y);
       } else {
         const camMovSpeed = boot + damp(2);
-        camera_position.x = lerp(camera_position.x, camera_lookat_x, camMovSpeed);
-        camera_position.y = lerp(
-          camera_position.y,
+        camera_position_x = lerp(camera_position_x, camera_lookat_x, camMovSpeed);
+        camera_position_y = lerp(
+          camera_position_y,
           max(camera_lookat_y + clamp((-60 - z) / 8, 0, 20) + CAMERA_PLAYER_Y_DIST, 6),
           camMovSpeed,
         );
-        camera_position.z = lerp(camera_position.z, camera_lookat_z + CAMERA_PLAYER_Z_DIST, camMovSpeed);
+        camera_position_z = lerp(camera_position_z, camera_lookat_z + CAMERA_PLAYER_Z_DIST, camMovSpeed);
 
-        const viewDirDiffx = camera_lookat_x - camera_position.x;
-        const viewDirDiffz = -Math.abs(camera_lookat_z - camera_position.z);
+        const viewDirDiffx = camera_lookat_x - camera_position_x;
+        const viewDirDiffz = -Math.abs(camera_lookat_z - camera_position_z);
 
         const camRotSpeed = boot + damp(4);
         camera_rotation.x = angle_lerp_degrees(
           camera_rotation.x,
-          90 - Math.atan2(Math.hypot(viewDirDiffz, viewDirDiffx), camera_position.y - camera_lookat_y) / DEG_TO_RAD,
+          90 - Math.atan2(Math.hypot(viewDirDiffz, viewDirDiffx), camera_position_y - camera_lookat_y) / DEG_TO_RAD,
           camRotSpeed,
         );
 
@@ -400,5 +412,7 @@ export const player_init = () => {
         Math.sin(movAngle + movementRadians) * movAmount * player_speed);
 
     NO_INLINE(player_move)();
+
+    keyboard_downKeys[KEY_INTERACT] = 0;
   };
 };
