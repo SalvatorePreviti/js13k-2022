@@ -536,22 +536,22 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
           _.c5t(0, 0, 0, 1),
           g1(),
           (() => {
-            let o = 0,
-              c = 0,
-              i = 1,
+            let o = 1,
               e = 2,
-              f = 2,
-              h = new Int32Array(256),
-              m = new Uint8Array(65536),
-              u = (e, t, a) => i ? t : W(e + T1(t - e) * L(0, U(t - e) ** .9 - a) * D * 2, t, D / 7),
-              g = () => f ? B[$].u.j : p && 1 === w[p].G && w[p].j || R,
+              c = 2,
+              i = new Int32Array(256),
+              h = new Uint8Array(65536),
+              f = (e, t, a) => o ? t : W(e + T1(t - e) * L(0, U(t - e) ** .9 - a) * D * 2, t, D / 7),
+              m = () => c ? B[$].u.j : v && 1 === w[v].G && w[v].j || R,
               n,
+              u,
+              g,
               v,
+              t,
               d,
               p,
               b,
               A,
-              t,
               I,
               M,
               Y,
@@ -561,20 +561,20 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               k,
               S;
             F1 = () => {
-              let a, l, r = y + (q[0] ? 1 : 0) - (q[2] ? 1 : 0), s = t1 + (q[1] ? 1 : 0) - (q[3] ? 1 : 0);
+              let a, l, r = t1 + (q[1] ? 1 : 0) - (q[3] ? 1 : 0), s = y + (q[0] ? 1 : 0) - (q[2] ? 1 : 0);
               if (l = navigator.getGamepads()[0]) {
                 let t = l.buttons, e = l.axes;
                 l = (a = e => t[e]?.pressed || 0 < t[e]?.value ? 1 : 0)(3) || a(2) || a(1) || a(0),
-                  r += a(14) - a(15) - r1(e[0], .2),
-                  s += a(12) - a(13) - r1(e[1], .2),
+                  r += a(12) - a(13) - r1(e[1], .2),
+                  s += a(14) - a(15) - r1(e[0], .2),
                   N && (z += 80 * r1(e[3], .3) * D, Q += 80 * r1(e[2], .3) * D),
                   l && !n && (q[5] = 1),
                   n = l;
               }
-              a = j1(s, r),
-                l = r1(X(k1(s, r)), .05),
+              a = j1(r, s),
+                l = r1(X(k1(r, s)), .05),
                 _.fa7(),
-                _.r9r(0, 0, 128, 128, 6408, 5121, m),
+                _.r9r(0, 0, 128, 128, 6408, 5121, h),
                 _.iay(36008, [36064, 36096]),
                 _.iay(36009, [36064, 36096]),
                 (() => {
@@ -584,10 +584,10 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                     for (let s = 1 & e; s < 128; s += 2) {
                       let e = f + 4 * s,
                         t = f + 4 * (127 - s),
-                        a = m[e] / 255,
-                        l = m[1 + t] / 255,
+                        a = h[e] / 255,
+                        l = h[1 + t] / 255,
                         r = 1 - U(s / 63.5 - 1);
-                      10 < s && s < 118 && (n = L(L(a * r, a * m[t] / 255), n), o = L(L(l * r, l * m[1 + e] / 255), o)),
+                      10 < s && s < 118 && (n = L(L(a * r, a * h[t] / 255), n), o = L(L(l * r, l * h[1 + e] / 255), o)),
                         (s < 54 || 74 < s) && .001 < (t = (1 - r) * (l < a ? a : l) / 3)
                         && (s < 64 && t > c ? c = t : 64 < s && t > i && (i = t));
                     }
@@ -596,80 +596,77 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 })(),
                 (() => {
                   let s = 0, n = 0, t = 0, a = 0;
-                  b = 0, h.fill(0);
-                  for (let e = 0; e < 31; ++e) {
-                    let l = 0, r = 512 * e;
-                    for (let a = 0; a < 128; a++) {
-                      let e = r + 4 * a, t = (m[e] + m[1 + e]) / 255;
-                      e = m[2 + e],
-                        14 < a && a < 114 && (l += t),
-                        e && t && (t = h[e] + 1, h[e] = t, s > t || (s = t, n = e));
+                  p = 0, i.fill(0);
+                  for (let r, e = 0; e < 31; ++e) {
+                    for (let a = r = 0, l = 512 * e; a < 128; a++) {
+                      let e = l + 4 * a, t = (h[e] + h[1 + e]) / 255;
+                      e = h[2 + e],
+                        14 < a && a < 114 && (r += t),
+                        e && t && (t = i[e] + 1, i[e] = t, s > t || (s = t, n = e));
                     }
-                    l < 3 && 5 < e && (a += e / 32), 3 < l && (7 < e && (t += e / 15), b = 1);
+                    r < 3 && 5 < e && (t += e / 32), 3 < r && (7 < e && (a += e / 15), p = 1);
                   }
-                  n && (b = 1),
-                    e = W(e, b ? 6.5 : 8, 1 - V(-4 * D)),
-                    l1.y += t / 41 - (b || e) * a / 41 * e * D,
-                    v = n || d,
-                    d = n;
+                  n && (p = 1),
+                    u = n || g,
+                    g = n,
+                    e = W(e, p ? 6.5 : 8, 1 - V(-4 * D)),
+                    l1.y += a / 41 - (p || e) * t / 41 * e * D;
                 })(),
-                r = N ? Q * G : E,
-                s = X(1 - 5 * L(U(C), U(F))),
-                t = W(t, b * s * X(2 * l) * 7, 1 - V(-(b ? .1 < s ? 10 : 5 + 2 * l : 1) * D)),
-                I = W(I, 0, 1 - V(-(b ? 8 : 4) * D)),
-                C += D * ((v ? 0 : s * I) - J(a + r) * l * t),
-                M = W(M, 0, 1 - V(-(b ? 8 : 4) * D)),
-                F += D * ((v ? 0 : s * M) - K(a + r) * l * t),
-                A = W(A, l, 1 - V(-10 * D)),
-                l && (o = 90 - a / G),
+                r = X(1 - 5 * L(U(C), U(F))),
+                s = N ? Q * G : E,
+                b = W(b, l, 1 - V(-10 * D)),
+                l && (t = 90 - a / G),
+                d = n1(d, t, 8 * D),
+                A = W(A, p * r * X(2 * l) * 7, 1 - V(-(p ? .1 < r ? 10 : 5 + 2 * l : 1) * D)),
+                I = W(I, 0, 1 - V(-(p ? 8 : 4) * D)),
+                C += D * ((u ? 0 : r * I) - J(a + s) * l * A),
+                M = W(M, 0, 1 - V(-(p ? 8 : 4) * D)),
+                F += D * ((u ? 0 : r * M) - K(a + s) * l * A),
                 (() => {
-                  let t = g();
-                  var { x: e, y: a, z: l } = 1 < f
+                  let t = m();
+                  var { x: e, y: a, z: l } = 1 < c
                     ? B[$].J.transformPoint({ x: 0, y: $ || .9 < e1 ? 15 : 1, z: -2.4 })
-                    : ((e = (l = t).inverse()).m41 = 0,
-                      e.m42 = 0,
-                      e.m43 = 0,
+                    : ((e = (l = t).inverse()).m41 = e.m42 = e.m43 = 0,
                       a = e.transformPoint({ x: C, z: F, w: 0 }),
                       l1.x += a.x,
                       l1.z += a.z,
                       l.transformPoint(l1));
                   let r = e - O.x, s = l - O.z;
-                  if (f = f && (b && v ? 0 : 1), O.x = e, O.y = a, O.z = l, f || v !== p) {
-                    p = v;
-                    let e = (t = g()).inverse().transformPoint(O);
+                  if (c = c && (p && u ? 0 : 1), O.x = e, O.y = a, O.z = l, c || u !== v) {
+                    v = u;
+                    let e = (t = m()).inverse().transformPoint(O);
                     l1.x = e.x, l1.y = e.y, l1.z = e.z;
                   }
-                  a < (e < -25 || l < 109 ? -25 : -9) && (f = 2),
-                    v && (I = r / D, M = s / D),
-                    1 === v && (B[9].l = e < -15 && l < 0 ? 1 : 0),
-                    Y = W(W(Y, a, 1 - V(-2 * D)), a, f || 8 * U(Y - a)),
-                    k = u(k, Y, 3),
-                    j = u(j, e, 2),
-                    S = u(S, l, 2),
+                  a < (e < -25 || l < 109 ? -25 : -9) && (c = 2),
+                    u && (I = r / D, M = s / D),
+                    1 === u && (B[9].l = e < -15 && l < 0 ? 1 : 0),
+                    Y = W(W(Y, a, 1 - V(-2 * D)), a, c || 8 * U(Y - a)),
+                    k = f(k, Y, 3),
+                    j = f(j, e, 2),
+                    S = f(S, l, 2),
                     Q = N
-                      ? (t = f + (1 - V(-18 * D)),
+                      ? (t = c + (1 - V(-18 * D)),
                         P.x = W(P.x, e, t),
                         P.y = W(P.y, Y + 1.5, t),
                         P.z = W(P.z, l, t),
                         s1(Q))
-                      : (r = i + (1 - V(-2 * D)),
+                      : (r = o + (1 - V(-2 * D)),
                         P.x = W(P.x, j, r),
                         P.y = W(P.y, L(k + X((-60 - l) / 8, 0, 20) + 13, 6), r),
                         P.z = W(P.z, S + -18, r),
                         s = j - P.x,
                         a = -U(S - P.z),
-                        r = i + (1 - V(-4 * D)),
-                        z = n1(z, 90 - j1(k1(a, s), P.y - k) / G, r),
-                        n1(Q, 90 - s1(j1(a, s) / G), r)),
-                    z = X(z, -87, 87),
-                    i = 0;
-                  let n = w[37].j = R.translate(e, Y, l).rotateSelf(0, c = n1(c, o, 8 * D));
+                        t = o + (1 - V(-4 * D)),
+                        z = n1(z, 90 - j1(k1(a, s), P.y - k) / G, t),
+                        n1(Q, 90 - s1(j1(a, s) / G), t)),
+                    z = X(z, -87, 87);
+                  let n = w[37].j = R.translate(e, Y, l).rotateSelf(0, d);
                   [38, 39].map((e, t) => {
-                    w[e].j = n.translate(0, A * X(.45 * K(9.1 * T + E * (t - 1) - E / 2))).rotateSelf(
-                      A * K(9.1 * T + E * (t - 1)) * .25 / G,
+                    w[e].j = n.translate(0, b * X(.45 * K(9.1 * T + E * (t - 1) - E / 2))).rotateSelf(
+                      b * K(9.1 * T + E * (t - 1)) * .25 / G,
                       0,
                     );
-                  });
+                  }), o = 0;
                 })();
             };
           })(),
