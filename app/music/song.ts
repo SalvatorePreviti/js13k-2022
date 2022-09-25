@@ -4,6 +4,34 @@
 
 export const song_patterns = '000001234556112341234556011111111112011111111112000001111112'
 
+export const song_columns = [
+  [ // Columns 0
+    "(.15:15:=5:=A:=AF=AFIFIMRMRUY(Y(((((((((((((((((((((((((((((M(M(((((((((((((((((((((((((((((R(R(((((((((((((((((((((((((((((U(U",
+    "(059<59<A9<AE<AEHAEHMEHMQMQTY(Y",
+    "(5:>A:>AF>AFJAFJMFJMRJMRVMRVY(Y",
+    "(:?BFFKNRRWZ^(^((:=@FFILRRUX^(^",
+    "Q(M(M(O(Q(R(T(Q(T(R(W(U(T(R(Q(N(W((Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(X]",
+    "QN(M(N(M(N(M(N(M((((((((((((((((W(Y(Y(Y(Y(Y(Y(Y(Y(((((((((((((((]",
+  ],
+  [ // Columns 1
+    ".(5(.(5(.(5(.(5(.(5(.(5(.(5(.(5",
+    "-(5(-(5(-(5(-(5(-(5(-(5(-(5(-(5",
+    ",(5(,(5(,(5(,(5(,(5(,(5(,(5(,(5",
+    "*(6(*(6(*(6(*(6(*(6(*(6(*(6(*(6",
+    "5(E(E(F(H(I(K(H(K(I(N(M(K(I(H(F(A(((((((((((((((((((((((((((((((5(((5(((5(((5(((5(((5(((5(((5",
+    "5(6(5(6(5(6(5(6(5((()(((((((((((A(B(A(B(A(B(A(B(A(((5",
+  ],[ // Columns 2
+    "9(((9(((9(((9(((9(((9(((9(((9",
+    "9(((Q(((Q(((Q",
+  ],[ // Columns 3
+    "9(9(9(9(9(9(9(999(9(9(9(999(9(9",
+    "9(9(9(9(9(999(9(((((Q",
+  ],[ // Columns 4
+    "((((Q(((((((Q(((((((Q(((((((Q",
+    "Q((Q((Q((Q((Q((Q((((Q",
+  ]
+] as const;
+
 export const song_instruments = [
   [ // instrument 0
     69, // OSC1_VOL
@@ -26,14 +54,6 @@ export const song_instruments = [
     56, // FX_DELAY_AMT
     2, // FX_DELAY_TIME
     0, // LFO_AMT
-    [ // Columns 0
-      "(.15:15:=5:=A:=AF=AFIFIMRMRUY(Y(((((((((((((((((((((((((((((M(M(((((((((((((((((((((((((((((R(R(((((((((((((((((((((((((((((U(U",
-      "(059<59<A9<AE<AEHAEHMEHMQMQTY(Y",
-      "(5:>A:>AF>AFJAFJMFJMRJMRVMRVY(Y",
-      "(:?BFFKNRRWZ^(^((:=@FFILRRUX^(^",
-      "Q(M(M(O(Q(R(T(Q(T(R(W(U(T(R(Q(N(W((Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(X]",
-      "QN(M(N(M(N(M(N(M((((((((((((((((W(Y(Y(Y(Y(Y(Y(Y(Y(((((((((((((((]",
-    ]
   ],
   [ // Instrument 1
     100, // OSC1_VOL
@@ -56,14 +76,6 @@ export const song_instruments = [
     0, // FX_DELAY_AMT
     6, // FX_DELAY_TIME
     195, // LFO_AMT
-    [ // Columns 1
-      ".(5(.(5(.(5(.(5(.(5(.(5(.(5(.(5",
-      "-(5(-(5(-(5(-(5(-(5(-(5(-(5(-(5",
-      ",(5(,(5(,(5(,(5(,(5(,(5(,(5(,(5",
-      "*(6(*(6(*(6(*(6(*(6(*(6(*(6(*(6",
-      "5(E(E(F(H(I(K(H(K(I(N(M(K(I(H(F(A(((((((((((((((((((((((((((((((5(((5(((5(((5(((5(((5(((5(((5",
-      "5(6(5(6(5(6(5(6(5((()(((((((((((A(B(A(B(A(B(A(B(A(((5",
-    ]
   ],
   [ // Instrument 2
     255, // OSC1_VOL
@@ -86,10 +98,6 @@ export const song_instruments = [
     66, // FX_DELAY_AMT
     6, // FX_DELAY_TIME
     0, // LFO_AMT
-    [ // Columns 2
-      "9(((9(((9(((9(((9(((9(((9(((9",
-      "9(((Q(((Q(((Q",
-    ]
   ],
   [ // Instrument 3
     0, // OSC1_VOL
@@ -112,10 +120,6 @@ export const song_instruments = [
     16, // FX_DELAY_AMT
     4, // FX_DELAY_TIME
     187, // LFO_AMT
-    [ // Columns 3
-      "9(9(9(9(9(9(9(999(9(9(9(999(9(9",
-      "9(9(9(9(9(999(9(((((Q",
-    ]
   ],
   [ // Instrument 4
     221, // OSC1_VOL
@@ -138,10 +142,6 @@ export const song_instruments = [
     9, // FX_DELAY_AMT
     3, // FX_DELAY_TIME
     64, // LFO_AMT
-    [ // Columns 4
-      "((((Q(((((((Q(((((((Q(((((((Q",
-      "Q((Q((Q((Q((Q((Q((((Q",
-    ]
   ],
 ] as const
 

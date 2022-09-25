@@ -142,7 +142,7 @@ export async function build() {
         babelPluginSimple({ unmangleableProperties: "mark" }),
         resugarBlockScope,
         resugarFunctionsArrow,
-        "babel-plugin-minify-dead-code-elimination",
+        // "babel-plugin-minify-dead-code-elimination",
       ],
     });
 

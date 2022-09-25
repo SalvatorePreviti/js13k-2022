@@ -37,6 +37,7 @@ import {
   song_rowLen1,
   song_rowLen2,
   song_numChannels,
+  song_columns,
 } from "./song";
 import { loadStep } from "../load-step";
 
@@ -57,13 +58,14 @@ const osc_tri = (value: number) => {
   return v2 < 2 ? v2 - 1 : 3 - v2;
 };
 
-const getSegmentNumWords = (song_rowLen: number) => song_rowLen * song_patternLen * (song_endPattern + 1) * 2;
+const SEGMENT_NUM_WORDS = song_patternLen * (song_endPattern + 1) * 2;
+
+// const getSegmentNumWords = (song_rowLen: number) => song_rowLen * SEGMENT_NUM_WORDS;
+
+const song_numWords = (song_rowLen0 + song_rowLen1 + song_rowLen2) * SEGMENT_NUM_WORDS;
 
 export const loadSong = (done: () => void) => {
   let channelIndex = 0;
-
-  const song_numWords =
-    getSegmentNumWords(song_rowLen0) + getSegmentNumWords(song_rowLen1) + getSegmentNumWords(song_rowLen2);
 
   const mixBuffer = new Int32Array(song_numWords);
 
@@ -85,9 +87,9 @@ export const loadSong = (done: () => void) => {
   };
 
   const next = () => {
-    // Generate audio data for a single track/channel.
-    let mixIndex = 0;
-    let [
+    const COLUMNS = song_columns[channelIndex]!;
+
+    const [
       OSC1_VOL,
       OSC1_SEMI,
       OSC1_XENV,
@@ -97,7 +99,7 @@ export const loadSong = (done: () => void) => {
       NOISE_VOL,
       ENV_ATTACK,
       ENV_SUSTAIN,
-      ENV_RELEASE,
+      _ENV_RELEASE,
       ENV_EXP_DECAY,
       LFO_FREQ,
       FX_FREQ,
@@ -108,66 +110,67 @@ export const loadSong = (done: () => void) => {
       FX_DELAY_AMT,
       FX_DELAY_TIME,
       LFO_AMT,
-      COLUMNS,
     ] = song_instruments[channelIndex]!;
 
-    ENV_RELEASE = (ENV_RELEASE * ENV_RELEASE * 4) as any;
+    const ENV_RELEASE = _ENV_RELEASE ** 2 * 4;
 
-    const createNote = (song_rowLen: number, note: number) => {
-      const OSC1_WAVEFORM = channelIndex < 2 ? osc_saw : osc_sin;
-      const OSC2_WAVEFORM = channelIndex < 2 ? (channelIndex < 1 ? osc_square : osc_tri) : osc_sin;
+    // Generate audio data for a single track/channel.
+    let mixIndex = 0;
 
-      // Re-trig oscillators
-      let c1 = 0;
-      let c2 = 0;
+    const make = (song_rowLen: number) => {
+      const createNote = (note: number) => {
+        const OSC1_WAVEFORM = channelIndex < 2 ? osc_saw : osc_sin;
+        const OSC2_WAVEFORM = channelIndex < 2 ? (channelIndex < 1 ? osc_square : osc_tri) : osc_sin;
 
-      // Local variables.
-      let o1t: number;
-      let o2t: number;
+        // Local variables.
+        let o1t: number;
+        let o2t: number;
 
-      const noteBuf = new Int32Array(ENV_ATTACK + ENV_SUSTAIN + ENV_RELEASE);
+        // Re-trig oscillators
+        let c1 = 0;
+        let c2 = 0;
 
-      // Generate one note (attack + sustain + release)
-      for (let j1 = 0, j2 = 0; j1 < ENV_ATTACK + ENV_SUSTAIN + ENV_RELEASE; ++j1, ++j2) {
-        let e = 1;
-        // Envelope
-        if (j1 < ENV_ATTACK) {
-          e = j1 / ENV_ATTACK;
-        } else if (j1 >= ENV_ATTACK + ENV_SUSTAIN) {
-          e = (j1 - ENV_ATTACK - ENV_SUSTAIN) / ENV_RELEASE;
-          e = (1 - e) * 3 ** ((-ENV_EXP_DECAY / 16) * e);
-        }
+        const noteBuf = new Int32Array(ENV_ATTACK + ENV_SUSTAIN + ENV_RELEASE);
 
-        if (j2 >= 0) {
-          // Switch arpeggio note.
-          j2 -= song_rowLen * 4;
+        // Generate one note (attack + sustain + release)
+        for (let j1 = 0, j2 = 0; j1 < ENV_ATTACK + ENV_SUSTAIN + ENV_RELEASE; ++j1, ++j2) {
+          let e = 1;
+          // Envelope
+          if (j1 < ENV_ATTACK) {
+            e = j1 / ENV_ATTACK;
+          } else if (j1 >= ENV_ATTACK + ENV_SUSTAIN) {
+            e = (j1 - ENV_ATTACK - ENV_SUSTAIN) / ENV_RELEASE;
+            e = (1 - e) * 3 ** ((ENV_EXP_DECAY / -16) * e);
+          }
 
-          // Calculate note frequencies for the oscillators
-          o1t = getnotefreq(note + OSC1_SEMI);
-          o2t = getnotefreq(note + OSC2_SEMI) * (1 + (channelIndex ? 0 : 0.0008 * 9));
-        }
+          if (j2 >= 0) {
+            // Calculate note frequencies for the oscillators
+            o1t = getnotefreq(note + OSC1_SEMI);
+            o2t = getnotefreq(note + OSC2_SEMI) * (channelIndex ? 1 : 1.0072);
 
-        // Add to (mono) channel buffer
-        noteBuf[j1] =
-          (80 * // Oscillator 1
+            // Switch arpeggio note.
+            j2 -= song_rowLen * 4;
+          }
+
+          // Add to (mono) channel buffer
+          noteBuf[j1] =
+            80 * // Oscillator 1
             (OSC1_WAVEFORM((c1 += o1t! * e ** (OSC1_XENV / 32))) * OSC1_VOL +
               // Oscillator 2
               OSC2_WAVEFORM((c2 += o2t! * e ** (OSC2_XENV / 32))) * OSC2_VOL +
               // Noise oscillator
               (NOISE_VOL ? (Math.random() * 2 - 1) * NOISE_VOL : 0)) *
-            e) |
-          0;
-      }
-      return noteBuf;
-    };
+            e;
+        }
+        return noteBuf;
+      };
 
-    for (const song_rowLen of [song_rowLen0, song_rowLen1, song_rowLen2]) {
       // Local variables
       let n;
       let t;
       let f;
 
-      const chnBuf = new Int32Array(getSegmentNumWords(song_rowLen));
+      const chnBuf = new Int32Array(song_rowLen * SEGMENT_NUM_WORDS);
 
       // Clear effect state
       let low = 0;
@@ -186,10 +189,14 @@ export const loadSong = (done: () => void) => {
       // Patterns
       for (let p = 0; p <= song_endPattern; ++p) {
         // Pattern rows
-        for (let row = 0, cp = +song_patterns[channelIndex * 12 + p]!; row < song_patternLen; ++row) {
-          // Calculate start sample number for this row in the pattern
-          const rowStartSample = (p * song_patternLen + row) * song_rowLen;
-
+        for (
+          let row = 0,
+            cp = +song_patterns[channelIndex * 12 + p]!,
+            // Calculate start sample number for this row in the pattern
+            rowStartSample = (p * song_patternLen + row) * song_rowLen;
+          row < song_patternLen;
+          ++row
+        ) {
           // Generate notes for this pattern row
           for (let col = 0; col < 4; ++col) {
             n = 0;
@@ -198,7 +205,7 @@ export const loadSong = (done: () => void) => {
               n += n > 0 ? 106 : 0;
             }
             if (n) {
-              const noteBuf = noteCache[n] || (noteCache[n] = createNote(song_rowLen, n));
+              const noteBuf = noteCache[n] || (noteCache[n] = createNote(n));
               for (let j = 0, i = rowStartSample * 2; j < noteBuf.length; ++j, i += 2) {
                 chnBuf[i] += noteBuf[j]!;
               }
@@ -206,10 +213,10 @@ export const loadSong = (done: () => void) => {
           }
 
           // Perform effects for this pattern row
-          for (let j = 0, rsample; j < song_rowLen; ++j) {
+          for (let j = 0, lsample, rsample, k; j < song_rowLen; ++j) {
             // Dry mono-sample
-            let k = (rowStartSample + j) * 2;
-            let lsample = 0;
+            k = (rowStartSample + j) * 2;
+            lsample = 0;
             rsample = chnBuf[k]!;
 
             // We only do effects if we have some sound input
@@ -260,8 +267,12 @@ export const loadSong = (done: () => void) => {
         }
       }
 
-      mixIndex += chnBuf.length;
-    }
+      mixIndex += song_rowLen * SEGMENT_NUM_WORDS;
+    };
+
+    make(song_rowLen0);
+    make(song_rowLen1);
+    make(song_rowLen2);
 
     loadStep(++channelIndex < song_numChannels ? next : finish);
   };

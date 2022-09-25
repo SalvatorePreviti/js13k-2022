@@ -42,6 +42,36 @@ const allModels = [];
 const levers = [];
 const souls = [];
 const keyboard_downKeys = [];
+const song_columns = [
+  [
+    "(.15:15:=5:=A:=AF=AFIFIMRMRUY(Y(((((((((((((((((((((((((((((M(M(((((((((((((((((((((((((((((R(R(((((((((((((((((((((((((((((U(U",
+    "(059<59<A9<AE<AEHAEHMEHMQMQTY(Y",
+    "(5:>A:>AF>AFJAFJMFJMRJMRVMRVY(Y",
+    "(:?BFFKNRRWZ^(^((:=@FFILRRUX^(^",
+    "Q(M(M(O(Q(R(T(Q(T(R(W(U(T(R(Q(N(W((Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(X]",
+    "QN(M(N(M(N(M(N(M((((((((((((((((W(Y(Y(Y(Y(Y(Y(Y(Y(((((((((((((((]",
+  ],
+  [
+    ".(5(.(5(.(5(.(5(.(5(.(5(.(5(.(5",
+    "-(5(-(5(-(5(-(5(-(5(-(5(-(5(-(5",
+    ",(5(,(5(,(5(,(5(,(5(,(5(,(5(,(5",
+    "*(6(*(6(*(6(*(6(*(6(*(6(*(6(*(6",
+    "5(E(E(F(H(I(K(H(K(I(N(M(K(I(H(F(A(((((((((((((((((((((((((((((((5(((5(((5(((5(((5(((5(((5(((5",
+    "5(6(5(6(5(6(5(6(5((()(((((((((((A(B(A(B(A(B(A(B(A(((5",
+  ],
+  [
+    "9(((9(((9(((9(((9(((9(((9(((9",
+    "9(((Q(((Q(((Q",
+  ],
+  [
+    "9(9(9(9(9(9(9(999(9(9(9(999(9(9",
+    "9(9(9(9(9(999(9(((((Q",
+  ],
+  [
+    "((((Q(((((((Q(((((((Q(((((((Q",
+    "Q((Q((Q((Q((Q((Q((((Q",
+  ],
+];
 const song_instruments = [
   [
     69,
@@ -64,14 +94,6 @@ const song_instruments = [
     56,
     2,
     0,
-    [
-      "(.15:15:=5:=A:=AF=AFIFIMRMRUY(Y(((((((((((((((((((((((((((((M(M(((((((((((((((((((((((((((((R(R(((((((((((((((((((((((((((((U(U",
-      "(059<59<A9<AE<AEHAEHMEHMQMQTY(Y",
-      "(5:>A:>AF>AFJAFJMFJMRJMRVMRVY(Y",
-      "(:?BFFKNRRWZ^(^((:=@FFILRRUX^(^",
-      "Q(M(M(O(Q(R(T(Q(T(R(W(U(T(R(Q(N(W((Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(X]",
-      "QN(M(N(M(N(M(N(M((((((((((((((((W(Y(Y(Y(Y(Y(Y(Y(Y(((((((((((((((]",
-    ],
   ],
   [
     100,
@@ -94,14 +116,6 @@ const song_instruments = [
     0,
     6,
     195,
-    [
-      ".(5(.(5(.(5(.(5(.(5(.(5(.(5(.(5",
-      "-(5(-(5(-(5(-(5(-(5(-(5(-(5(-(5",
-      ",(5(,(5(,(5(,(5(,(5(,(5(,(5(,(5",
-      "*(6(*(6(*(6(*(6(*(6(*(6(*(6(*(6",
-      "5(E(E(F(H(I(K(H(K(I(N(M(K(I(H(F(A(((((((((((((((((((((((((((((((5(((5(((5(((5(((5(((5(((5(((5",
-      "5(6(5(6(5(6(5(6(5((()(((((((((((A(B(A(B(A(B(A(B(A(((5",
-    ],
   ],
   [
     255,
@@ -124,10 +138,6 @@ const song_instruments = [
     66,
     6,
     0,
-    [
-      "9(((9(((9(((9(((9(((9(((9(((9",
-      "9(((Q(((Q(((Q",
-    ],
   ],
   [
     0,
@@ -150,10 +160,6 @@ const song_instruments = [
     16,
     4,
     187,
-    [
-      "9(9(9(9(9(9(9(999(9(9(9(999(9(9",
-      "9(9(9(9(9(999(9(((((Q",
-    ],
   ],
   [
     221,
@@ -176,10 +182,6 @@ const song_instruments = [
     9,
     3,
     64,
-    [
-      "((((Q(((((((Q(((((((Q(((((((Q",
-      "Q((Q((Q((Q((Q((Q((((Q",
-    ],
   ],
 ];
 const player_position_final = {
@@ -1062,12 +1064,10 @@ const player_init = () => {
   player_update = () => {
     let strafe = touch_movementX + (keyboard_downKeys[0] ? 1 : 0) - (keyboard_downKeys[2] ? 1 : 0);
     let forward = touch_movementY + (keyboard_downKeys[1] ? 1 : 0) - (keyboard_downKeys[3] ? 1 : 0);
-    let gamepad = navigator.getGamepads()[0];
-    if (gamepad) {
-      var getGamepadButtonState = (index) => buttons[index]?.pressed || 0 < buttons[index]?.value ? 1 : 0;
+    if (gamepad = navigator.getGamepads()[0]) {
       const { buttons, axes } = gamepad;
-      gamepad = getGamepadButtonState(3) || getGamepadButtonState(2) || getGamepadButtonState(1)
-        || getGamepadButtonState(0),
+      gamepad = (getGamepadButtonState = (index) => buttons[index]?.pressed || 0 < buttons[index]?.value ? 1 : 0)(3)
+        || getGamepadButtonState(2) || getGamepadButtonState(1) || getGamepadButtonState(0),
         strafe += getGamepadButtonState(14) - getGamepadButtonState(15) - threshold(axes[0], 0.2),
         forward += getGamepadButtonState(12) - getGamepadButtonState(13) - threshold(axes[1], 0.2),
         player_first_person
@@ -1076,13 +1076,9 @@ const player_init = () => {
         gamepad && !gamepadInteractPressed && (keyboard_downKeys[5] = 1),
         gamepadInteractPressed = gamepad;
     }
-    getGamepadButtonState = Math.atan2(forward, strafe),
-      gamepad = threshold(clamp(Math.hypot(forward, strafe)), 0.05),
-      strafe = gamepad * Math.cos(getGamepadButtonState),
-      forward = gamepad * Math.sin(getGamepadButtonState),
-      player_legs_speed = lerpDamp(player_legs_speed, gamepad, 10),
-      gamepad && (player_look_angle_target = 90 - getGamepadButtonState / DEG_TO_RAD),
-      gl["fa7"](),
+    var getGamepadButtonState = Math.atan2(forward, strafe);
+    var gamepad = threshold(clamp(Math.hypot(forward, strafe)), 0.05);
+    const movementRadians = (gl["fa7"](),
       gl["r9r"](0, 0, 128, 128, 6408, 5121, collision_buffer),
       gl["iay"](36008, [
         36064,
@@ -1094,22 +1090,23 @@ const player_init = () => {
       ]),
       NO_INLINE(doHorizontalCollisions)(),
       NO_INLINE(doVerticalCollisions)(),
+      player_first_person ? camera_rotation.y * DEG_TO_RAD : Math.PI);
+    const playerSpeedCollision = clamp(1 - 5 * max(Math.abs(player_collision_x), Math.abs(player_collision_z)));
+    player_speed = lerpDamp(
+      player_speed,
+      player_has_ground * playerSpeedCollision * clamp(2 * gamepad) * 7,
+      player_has_ground ? 0.1 < playerSpeedCollision ? 10 : 5 + 2 * gamepad : 1,
+    ),
       player_collision_velocity_x = lerpDamp(player_collision_velocity_x, 0, player_has_ground ? 8 : 4),
+      player_collision_x += gameTimeDelta
+        * ((currentModelId ? 0 : playerSpeedCollision * player_collision_velocity_x)
+          - Math.cos(getGamepadButtonState + movementRadians) * gamepad * player_speed),
       player_collision_velocity_z = lerpDamp(player_collision_velocity_z, 0, player_has_ground ? 8 : 4),
-      getGamepadButtonState = clamp(1 - 5 * max(Math.abs(player_collision_x), Math.abs(player_collision_z))),
-      currentModelId
-      || (player_collision_x += player_collision_velocity_x * getGamepadButtonState * gameTimeDelta,
-        player_collision_z += player_collision_velocity_z * getGamepadButtonState * gameTimeDelta),
-      player_speed = lerpDamp(
-        player_speed,
-        player_has_ground * getGamepadButtonState * clamp(2 * gamepad) * 7,
-        player_has_ground ? 0.1 < getGamepadButtonState ? 10 : 5 + 2 * gamepad : 1,
-      ),
-      getGamepadButtonState = player_first_person ? camera_rotation.y * DEG_TO_RAD : Math.PI,
-      gamepad = Math.sin(getGamepadButtonState) * player_speed * gameTimeDelta,
-      getGamepadButtonState = Math.cos(getGamepadButtonState) * player_speed * gameTimeDelta,
-      player_collision_x -= strafe * getGamepadButtonState - forward * gamepad,
-      player_collision_z -= strafe * gamepad + forward * getGamepadButtonState,
+      player_collision_z += gameTimeDelta
+        * ((currentModelId ? 0 : playerSpeedCollision * player_collision_velocity_z)
+          - Math.sin(getGamepadButtonState + movementRadians) * gamepad * player_speed),
+      player_legs_speed = lerpDamp(player_legs_speed, gamepad, 10),
+      gamepad && (player_look_angle_target = 90 - getGamepadButtonState / DEG_TO_RAD),
       NO_INLINE(player_move)();
   };
 };
@@ -1184,52 +1181,20 @@ const osc_saw = (value) => value % 1 * 2 - 1;
 const osc_tri = (value) => (value = value % 1 * 4) < 2 ? value - 1 : 3 - value;
 const loadSong = (done) => {
   let channelIndex = 0;
-  const song_numWords = 10725888;
+  const mixBuffer = new Int32Array(10725888);
   const finish = () => {
-    const audioBuffer = audioContext.createBuffer(2, song_numWords / 2, 44100);
+    const audioBuffer = audioContext.createBuffer(2, 5362944, 44100);
     for (let i = 0; i < 2; i++) {
-      for (let j = i, data = audioBuffer.getChannelData(i); song_numWords > j; j += 2) {
-        data[j >> 1] = mixBuffer[j] / 65536;
-      }
+      for (let j = i, data = audioBuffer.getChannelData(i); j < 10725888; j += 2) data[j >> 1] = mixBuffer[j] / 65536;
     }
     songAudioSource.buffer = audioBuffer, songAudioSource.loop = !0, loadStep(done);
   };
   const next = () => {
     let mixIndex = 0;
-    let high;
-    let [
-      OSC1_VOL,
-      OSC1_SEMI,
-      OSC1_XENV,
-      OSC2_VOL,
-      OSC2_SEMI,
-      OSC2_XENV,
-      NOISE_VOL,
-      ENV_ATTACK,
-      ENV_SUSTAIN,
-      ENV_RELEASE,
-      ENV_EXP_DECAY,
-      LFO_FREQ,
-      FX_FREQ,
-      FX_RESONANCE,
-      FX_DRIVE,
-      FX_PAN_AMT,
-      FX_PAN_FREQ,
-      FX_DELAY_AMT,
-      FX_DELAY_TIME,
-      LFO_AMT,
-      COLUMNS,
-    ] = song_instruments[channelIndex];
-    ENV_RELEASE = ENV_RELEASE * ENV_RELEASE * 4;
-    for (
-      const song_rowLen of [
-        5513,
-        4562,
-        3891,
-      ]
-    ) {
+    const make = (song_rowLen) => {
       let low = 0;
       let band = 0;
+      let high;
       let n;
       let f;
       let filterActive;
@@ -1240,14 +1205,15 @@ const loadSong = (done) => {
       const dly = FX_DELAY_TIME * song_rowLen & -2;
       for (let p = 0; p <= 11; ++p) {
         for (
-          let row = 0, cp = +"000001234556112341234556011111111112011111111112000001111112"[12 * channelIndex + p];
+          let row = 0,
+            cp = +"000001234556112341234556011111111112011111111112000001111112"[12 * channelIndex + p],
+            rowStartSample = (32 * p + row) * song_rowLen;
           row < 32;
           ++row
         ) {
-          const rowStartSample = (32 * p + row) * song_rowLen;
           for (let col = 0; col < 4; ++col) {
             if (n = 0, cp && (n = COLUMNS[cp - 1].charCodeAt(row + 32 * col) - 40, n += 0 < n ? 106 : 0), n) {
-              const noteBuf = noteCache[n] || (noteCache[n] = ((song_rowLen2, note) => {
+              const noteBuf = noteCache[n] || (noteCache[n] = ((note) => {
                 let c1 = 0;
                 let c2 = 0;
                 let o1t;
@@ -1261,40 +1227,40 @@ const loadSong = (done) => {
                     ? e = j1 / ENV_ATTACK
                     : ENV_ATTACK + ENV_SUSTAIN > j1
                       || (e = (1 - (e = (j1 - ENV_ATTACK - ENV_SUSTAIN) / ENV_RELEASE))
-                        * 3 ** (-ENV_EXP_DECAY / 16 * e)),
+                        * 3 ** (ENV_EXP_DECAY / -16 * e)),
                     j2 < 0
-                    || (j2 -= 4 * song_rowLen2,
-                      o1t = getnotefreq(note + OSC1_SEMI),
-                      o2t = getnotefreq(note + OSC2_SEMI) * (1 + (channelIndex ? 0 : 0.007200))),
+                    || (o1t = getnotefreq(note + OSC1_SEMI),
+                      o2t = getnotefreq(note + OSC2_SEMI) * (channelIndex ? 1 : 1.0072),
+                      j2 -= 4 * song_rowLen),
                     noteBuf2[j1] = 80
-                        * (OSC1_WAVEFORM(c1 += o1t * e ** (OSC1_XENV / 32)) * OSC1_VOL
-                          + OSC2_WAVEFORM(c2 += o2t * e ** (OSC2_XENV / 32)) * OSC2_VOL
-                          + (NOISE_VOL ? (2 * Math.random() - 1) * NOISE_VOL : 0))
-                        * e | 0;
+                      * (OSC1_WAVEFORM(c1 += o1t * e ** (OSC1_XENV / 32)) * OSC1_VOL
+                        + OSC2_WAVEFORM(c2 += o2t * e ** (OSC2_XENV / 32)) * OSC2_VOL
+                        + (NOISE_VOL ? (2 * Math.random() - 1) * NOISE_VOL : 0))
+                      * e;
                 }
                 return noteBuf2;
-              })(song_rowLen, n));
+              })(n));
               for (let j = 0, i = 2 * rowStartSample; noteBuf.length > j; ++j, i += 2) chnBuf[i] += noteBuf[j];
             }
           }
-          for (let rsample, j1 = 0; song_rowLen > j1; ++j1) {
-            let lsample = 0;
-            let k = 2 * (rowStartSample + j1);
-            ((rsample = chnBuf[k]) || filterActive)
-            && (f = 308e-5 * FX_FREQ,
-              channelIndex !== 1 && channelIndex !== 4 || (f *= osc_sin(lfoFreq * k) * LFO_AMT / 512 + 0.5),
-              f = 1.5 * Math.sin(f),
-              low += f * band,
-              high = (1 - FX_RESONANCE / 255) * (rsample - band) - low,
-              band += f * high,
-              rsample = channelIndex === 4 ? band : channelIndex === 3 ? high : low,
-              channelIndex
-              || (rsample = (rsample *= 22e-5) < 1 ? -1 < rsample ? osc_sin(rsample / 4) : -1 : 1, rsample /= 22e-5),
-              rsample *= FX_DRIVE / 32,
-              filterActive = 1e-5 < rsample * rsample,
-              high = Math.sin(panFreq * k) * FX_PAN_AMT / 512 + 0.5,
-              lsample = rsample * (1 - high),
-              rsample *= high),
+          for (let lsample, rsample, k, j1 = 0; song_rowLen > j1; ++j1) {
+            k = 2 * (rowStartSample + j1),
+              lsample = 0,
+              ((rsample = chnBuf[k]) || filterActive)
+              && (f = 308e-5 * FX_FREQ,
+                channelIndex !== 1 && channelIndex !== 4 || (f *= osc_sin(lfoFreq * k) * LFO_AMT / 512 + 0.5),
+                f = 1.5 * Math.sin(f),
+                low += f * band,
+                high = (1 - FX_RESONANCE / 255) * (rsample - band) - low,
+                band += f * high,
+                rsample = channelIndex === 4 ? band : channelIndex === 3 ? high : low,
+                channelIndex
+                || (rsample = (rsample *= 22e-5) < 1 ? -1 < rsample ? osc_sin(rsample / 4) : -1 : 1, rsample /= 22e-5),
+                rsample *= FX_DRIVE / 32,
+                filterActive = 1e-5 < rsample * rsample,
+                high = Math.sin(panFreq * k) * FX_PAN_AMT / 512 + 0.5,
+                lsample = rsample * (1 - high),
+                rsample *= high),
               k < dly
               || (lsample += chnBuf[1 + k - dly] * FX_DELAY_AMT / 255, rsample += chnBuf[k - dly] * FX_DELAY_AMT / 255),
               mixBuffer[mixIndex + k] += chnBuf[k] = lsample,
@@ -1303,11 +1269,34 @@ const loadSong = (done) => {
           }
         }
       }
-      mixIndex += chnBuf.length;
-    }
-    loadStep(++channelIndex < 5 ? next : finish);
+      mixIndex += 768 * song_rowLen;
+    };
+    const COLUMNS = song_columns[channelIndex];
+    const [
+      OSC1_VOL,
+      OSC1_SEMI,
+      OSC1_XENV,
+      OSC2_VOL,
+      OSC2_SEMI,
+      OSC2_XENV,
+      NOISE_VOL,
+      ENV_ATTACK,
+      ENV_SUSTAIN,
+      _ENV_RELEASE,
+      ENV_EXP_DECAY,
+      LFO_FREQ,
+      FX_FREQ,
+      FX_RESONANCE,
+      FX_DRIVE,
+      FX_PAN_AMT,
+      FX_PAN_FREQ,
+      FX_DELAY_AMT,
+      FX_DELAY_TIME,
+      LFO_AMT,
+    ] = song_instruments[channelIndex];
+    const ENV_RELEASE = _ENV_RELEASE ** 2 * 4;
+    make(5513), make(4562), make(3891), loadStep(++channelIndex < 5 ? next : finish);
   };
-  const mixBuffer = new Int32Array(song_numWords);
   loadStep(next);
 };
 const groundTextureSvg = "data:image/svg+xml;base64,"

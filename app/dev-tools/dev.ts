@@ -181,14 +181,12 @@ export function devInit() {
       debug_camera_position.z = camera_position.z;
       debug_camera_rotation.x = camera_rotation.x;
       debug_camera_rotation.y = camera_rotation.y;
-      debug_camera_rotation.z = camera_rotation.z;
     } else {
       camera_position.x = debug_camera_position.x;
       camera_position.y = debug_camera_position.y;
       camera_position.z = debug_camera_position.z;
       camera_rotation.x = debug_camera_rotation.x;
       camera_rotation.y = debug_camera_rotation.y;
-      camera_rotation.z = debug_camera_rotation.z;
     }
 
     if (

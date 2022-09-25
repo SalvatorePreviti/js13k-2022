@@ -38,7 +38,6 @@ export const GameCameraComponent: FC = () => {
           <div className="dev-tool-bar-camera-values-title">rot</div>
           <div>{formatNumber(r.x, 2)}</div>
           <div>{formatNumber(r.y, 2)}</div>
-          <div>{formatNumber(r.z, 2)}</div>
         </div>
       </div>
 

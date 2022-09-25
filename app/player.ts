@@ -372,14 +372,6 @@ export const player_init = () => {
     const movAngle = Math.atan2(forward, strafe);
     const movAmount = threshold(clamp(Math.hypot(forward, strafe)), 0.05);
 
-    strafe = movAmount * Math.cos(movAngle);
-    forward = movAmount * Math.sin(movAngle);
-
-    player_legs_speed = lerpDamp(player_legs_speed, movAmount, 10);
-    if (movAmount) {
-      player_look_angle_target = 90 - movAngle / DEG_TO_RAD;
-    }
-
     // ------- read collision renderBuffer -------
 
     gl.finish();
@@ -392,12 +384,13 @@ export const player_init = () => {
     NO_INLINE(doHorizontalCollisions)();
     NO_INLINE(doVerticalCollisions)();
 
-    player_collision_velocity_x = lerpDamp(player_collision_velocity_x, 0, player_has_ground ? 8 : 4);
-    player_collision_velocity_z = lerpDamp(player_collision_velocity_z, 0, player_has_ground ? 8 : 4);
+    const movementRadians = player_first_person ? camera_rotation.y * DEG_TO_RAD : Math.PI;
+
     const playerSpeedCollision = clamp(1 - max(Math.abs(player_collision_x), Math.abs(player_collision_z)) * 5);
-    if (!currentModelId) {
-      player_collision_x += player_collision_velocity_x * playerSpeedCollision * gameTimeDelta;
-      player_collision_z += player_collision_velocity_z * playerSpeedCollision * gameTimeDelta;
+
+    player_legs_speed = lerpDamp(player_legs_speed, movAmount, 10);
+    if (movAmount) {
+      player_look_angle_target = 90 - movAngle / DEG_TO_RAD;
     }
 
     player_speed = lerpDamp(
@@ -406,11 +399,17 @@ export const player_init = () => {
       player_has_ground ? (playerSpeedCollision > 0.1 ? 10 : 5 + 2 * movAmount) : 1,
     );
 
-    const movementRadians = player_first_person ? camera_rotation.y * DEG_TO_RAD : Math.PI;
-    const s = Math.sin(movementRadians) * player_speed * gameTimeDelta;
-    const c = Math.cos(movementRadians) * player_speed * gameTimeDelta;
-    player_collision_x -= strafe * c - forward * s;
-    player_collision_z -= strafe * s + forward * c;
+    player_collision_velocity_x = lerpDamp(player_collision_velocity_x, 0, player_has_ground ? 8 : 4);
+    player_collision_x +=
+      gameTimeDelta *
+      ((currentModelId ? 0 : playerSpeedCollision * player_collision_velocity_x) -
+        Math.cos(movAngle + movementRadians) * movAmount * player_speed);
+
+    player_collision_velocity_z = lerpDamp(player_collision_velocity_z, 0, player_has_ground ? 8 : 4);
+    player_collision_z +=
+      gameTimeDelta *
+      ((currentModelId ? 0 : playerSpeedCollision * player_collision_velocity_z) -
+        Math.sin(movAngle + movementRadians) * movAmount * player_speed);
 
     NO_INLINE(player_move)();
   };
