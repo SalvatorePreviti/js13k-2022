@@ -23,9 +23,6 @@ let camera_position_z = 0;
 let _messageEndTime = 1;
 let gameTimeDelta = 0.066;
 const fieldOfViewAmount = 1.732051;
-const allModels = [];
-const levers = [];
-const souls = [];
 const keyboard_downKeys = [];
 const song_columns = [
   [
@@ -169,11 +166,6 @@ const song_instruments = [
     64,
   ],
 ];
-const player_position_final = {
-  x: 0,
-  y: 0,
-  z: 0,
-};
 const camera_rotation = {
   x: 0,
   y: 180,
@@ -185,6 +177,9 @@ const player_position_global = {
 };
 const integers_map = (n, fn) => Array.from(Array(n), (_, i) => fn(i));
 const DEG_TO_RAD = Math.PI / 180;
+const allModels = [];
+const levers = [];
+const souls = [];
 const GQuad = [
   {
     x: -1,
@@ -203,6 +198,11 @@ const GQuad = [
     z: -1,
   },
 ];
+const player_position_final = {
+  x: 0,
+  y: 0,
+  z: 0,
+};
 const clamp = (value, minValue = 0, maxValue = 1) => value < minValue ? minValue : maxValue < value ? maxValue : value;
 const threshold = (value, amount) => abs(value) > amount ? value : 0;
 const lerp = (a, b, t) => (0 < t ? t < 1 ? a + (b - a) * t : b : a) || 0;
@@ -267,6 +267,8 @@ const mat_perspectiveXY = (mx, my, near, far) => [
   2 * far * near / (near - far),
   0,
 ];
+const mat_perspective = (near, far) =>
+  mat_perspectiveXY(hC.clientHeight / hC.clientWidth * fieldOfViewAmount, fieldOfViewAmount, near, far);
 const polygon_color = (polygon, color, smooth) => (polygon.$smooth = smooth, polygon.$color = color, polygon);
 const polygon_transform = (polygon, m, color = polygon.$color) =>
   polygon_color(
@@ -692,8 +694,6 @@ const newSoul = (transform, ...walkingPath) => {
   let soulZ = targetZ;
   souls.push(soul);
 };
-const mat_perspective = (near, far) =>
-  mat_perspectiveXY(hC.clientHeight / hC.clientWidth * fieldOfViewAmount, fieldOfViewAmount, near, far);
 const csm_buildMatrix = (camera_view, nearPlane, farPlane, zMultiplier) => {
   let tx = 0;
   let ty = 0;

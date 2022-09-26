@@ -20,8 +20,16 @@ import void_fsSource from "./shaders/void-fragment.frag";
 import sky_vsSource from "./shaders/sky-vertex.vert";
 import sky_fsSource, { uniformName_iResolution } from "./shaders/sky-fragment.frag";
 
-import { integers_map, matrixToArray, mat_perspectiveXY, translation, rotation } from "./math";
-import { mat_perspective, zFar, zNear } from "./camera";
+import {
+  integers_map,
+  matrixToArray,
+  mat_perspectiveXY,
+  translation,
+  rotation,
+  mat_perspective,
+  zFar,
+  zNear,
+} from "./math";
 import { MODEL_ID_SOUL, MODEL_ID_SOUL_COLLISION, player_position_final } from "./game/models";
 import {
   absoluteTime,

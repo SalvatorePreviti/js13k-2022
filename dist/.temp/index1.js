@@ -6,8 +6,21 @@ const groundTextureSvg = `data:image/svg+xml;base64,${
     "<svg color-interpolation-filters=\"sRGB\" height=\"1024\" width=\"1024\" xmlns=\"http://www.w3.org/2000/svg\"><filter filterUnits=\"userSpaceOnUse\" height=\"1026\" id=\"a\" width=\"1026\" x=\"0\" y=\"0\"><feTurbulence baseFrequency=\".007\" height=\"1025\" numOctaves=\"6\" stitchTiles=\"stitch\" width=\"1025\" result=\"z\" type=\"fractalNoise\" x=\"1\" y=\"1\"/><feTile height=\"1024\" width=\"1024\" x=\"-1\" y=\"-1\"/><feTile/><feDiffuseLighting diffuseConstant=\"4\" lighting-color=\"red\" surfaceScale=\"5\"><feDistantLight azimuth=\"270\" elevation=\"5\"/></feDiffuseLighting><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"x\"/><feColorMatrix values=\"0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 1\" in=\"z\"/><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"z\"/><feTurbulence baseFrequency=\".01\" height=\"1024\" numOctaves=\"5\" stitchTiles=\"stitch\" width=\"1024\"/><feColorMatrix values=\"0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1\"/><feBlend in2=\"x\" mode=\"screen\"/><feBlend in2=\"z\" mode=\"screen\"/></filter><rect filter=\"url(#a)\" height=\"100%\" width=\"100%\"/></svg>",
   )
 }`;
+const code$6 =
+  "#version 300 es\nprecision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform highp sampler2DShadow g,h;uniform highp sampler2D q;out vec4 O;void main(){vec4 s=vec4(m.xyz,1);vec3 e=normalize(o.xyz),v=l.w*(texture(q,n.yz*.035)*e.x+texture(q,n.xz*.035)*e.y+texture(q,n.xy*.035)*e.z).xyz;e=normalize(e+v*.5);float a=dot(e,vec3(-.656059,.666369,-.35431468)),t=1.,u=abs((b*s).z);vec4 r=(u<55.?i:j)*s;if(r=r/r.w*.5+.5,r.z<1.){t=0.;for(float e=-1.;e<=1.;++e)for(float a=-1.;a<=1.;++a){vec3 x=vec3(r.xy+vec2(e,a)/2048.,r.z-.00017439);t+=u<55.?texture(g,x):texture(h,x);}t/=9.;}vec3 x=l.xyz*(1.-v.x);float c=max(max(abs(e.x),abs(e.z))*.3-e.y,0.)*pow(max(0.,(8.-m.y)/48.),1.6);O=vec4(vec3(c,c*c*.5,0)+vec3(.09,.05,.11)*x+x*(max(0.,a)*.5+x*a*a*vec3(.5,.45,.3))*(t*.75+.25)+vec3(.6,.6,.5)*pow(max(0.,dot(normalize(m.xyz-k),reflect(vec3(-.656059,.666369,-.35431468),e))),35.)*t,1);}";
+const uniformName_csm_matrix0 = "i";
+const uniformName_csm_matrix1 = "j";
+const uniformName_csm_texture0 = "g";
+const uniformName_csm_texture1 = "h";
+const uniformName_groundTexture = "q";
+const uniformName_viewPos = "k";
+const constDef_CSM_TEXTURE_SIZE = 2048;
+const constDef_zNear = 0.3;
+const constDef_CSM_PLANE_DISTANCE = 55;
+const constDef_zFar = 186;
 const integers_map = (n, fn) => Array.from(/* @__PURE__ */ Array(n), (_, i) => fn(i));
 const DEG_TO_RAD = Math.PI / 180;
+const fieldOfViewDegrees = 60;
 const clamp = (value, minValue = 0, maxValue = 1) => value < minValue ? minValue : value > maxValue ? maxValue : value;
 const threshold = (value, amount) => abs(value) > amount ? value : 0;
 const lerp = (a, b, t) => (t <= 0 ? a : t >= 1 ? b : a + (b - a) * t) || 0;
@@ -85,6 +98,8 @@ const mat_perspectiveXY = (mx, my, near, far) => [
   2 * far * near / (near - far),
   0,
 ];
+const mat_perspective = (near, far) =>
+  mat_perspectiveXY(hC.clientHeight / hC.clientWidth * fieldOfViewAmount, fieldOfViewAmount, near, far);
 const identity = new DOMMatrix();
 const float32Array16Temp = new Float32Array(16);
 const min = NO_INLINE((a, b) => a < b ? a : b);
@@ -93,6 +108,10 @@ const abs = NO_INLINE((a) => a < 0 ? -a : a);
 const translation = NO_INLINE((x, y, z) => identity.translate(x, y, z));
 const rotation = NO_INLINE((x, y, z) => identity.rotate(x, y, z));
 const scaling = NO_INLINE((x, y, z) => identity.scale(x, y, z));
+const zNear = constDef_zNear;
+const zFar = constDef_zFar;
+const fieldOfViewRadians = fieldOfViewDegrees * DEG_TO_RAD;
+const fieldOfViewAmount = 1 / /* @__PURE__ */ Math.tan(fieldOfViewRadians / 2);
 const GQuad = [
   {
     x: -1,
@@ -1688,25 +1707,13 @@ const build_life_the_universe_and_everything = () => {
     ].map((x) => meshAdd(sphere(12), translation(x * 0.16, 0.4, -0.36).scale3d(0.09)));
   }, MODEL_KIND_MESH);
 };
-const code$6 =
-  "#version 300 es\nin vec4 f;uniform mat4 b,c[39];void main(){gl_Position=b*c[max(0,abs(int(f.w))-1)+gl_InstanceID]*vec4(f.xyz,1);}";
 const code$5 =
+  "#version 300 es\nin vec4 f;uniform mat4 b,c[39];void main(){gl_Position=b*c[max(0,abs(int(f.w))-1)+gl_InstanceID]*vec4(f.xyz,1);}";
+const code$4 =
   "#version 300 es\nlayout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 a,b,c[39];void main(){mat4 i=c[max(0,abs(int(f.w))-1)+gl_InstanceID];l=mix(d,vec4(.7,1,.2,0),d.w>0.?0.:1.-i[3][3]),i[3][3]=1.,n=f,m=i*vec4(f.xyz,1),gl_Position=a*b*m,m.w=f.w,o=i*vec4(e,0);}";
 const uniformName_projectionMatrix = "a";
 const uniformName_viewMatrix = "b";
 const uniformName_worldMatrices = "c";
-const code$4 =
-  "#version 300 es\nprecision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform highp sampler2DShadow g,h;uniform highp sampler2D q;out vec4 O;void main(){vec4 s=vec4(m.xyz,1);vec3 e=normalize(o.xyz),v=l.w*(texture(q,n.yz*.035)*e.x+texture(q,n.xz*.035)*e.y+texture(q,n.xy*.035)*e.z).xyz;e=normalize(e+v*.5);float a=dot(e,vec3(-.656059,.666369,-.35431468)),t=1.,u=abs((b*s).z);vec4 r=(u<55.?i:j)*s;if(r=r/r.w*.5+.5,r.z<1.){t=0.;for(float e=-1.;e<=1.;++e)for(float a=-1.;a<=1.;++a){vec3 x=vec3(r.xy+vec2(e,a)/2048.,r.z-.00017439);t+=u<55.?texture(g,x):texture(h,x);}t/=9.;}vec3 x=l.xyz*(1.-v.x);float c=max(max(abs(e.x),abs(e.z))*.3-e.y,0.)*pow(max(0.,(8.-m.y)/48.),1.6);O=vec4(vec3(c,c*c*.5,0)+vec3(.09,.05,.11)*x+x*(max(0.,a)*.5+x*a*a*vec3(.5,.45,.3))*(t*.75+.25)+vec3(.6,.6,.5)*pow(max(0.,dot(normalize(m.xyz-k),reflect(vec3(-.656059,.666369,-.35431468),e))),35.)*t,1);}";
-const uniformName_csm_matrix0 = "i";
-const uniformName_csm_matrix1 = "j";
-const uniformName_csm_texture0 = "g";
-const uniformName_csm_texture1 = "h";
-const uniformName_groundTexture = "q";
-const uniformName_viewPos = "k";
-const constDef_CSM_TEXTURE_SIZE = 2048;
-const constDef_zNear = 0.3;
-const constDef_CSM_PLANE_DISTANCE = 55;
-const constDef_zFar = 186;
 const code$3 =
   "#version 300 es\nprecision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(m.xyz,1);float r=1.-min(abs(a.z/a.w),1.);O=vec4(vec2(r*(gl_FragCoord.y>31.?1.:abs(o.y))),r>0.?m.w/255.:0.,1);}";
 const code$2 = "#version 300 es\nvoid main(){}";
@@ -1714,17 +1721,6 @@ const code$1 = "#version 300 es\nin vec4 f;void main(){gl_Position=vec4(f.xy,1,1
 const code =
   "#version 300 es\nprecision highp float;uniform vec3 j,k;uniform mat4 b;uniform highp sampler2D q;out vec4 O;void main(){vec2 t=gl_FragCoord.xy/j.xy*2.-1.;vec3 e=(normalize(b*vec4(t.x*-(j.x/j.y),-t.y,1.73205,0.))).xyz;float i=(-32.-k.y)/e.y,o=1.-clamp(abs(i/9999.),0.,1.);if(O=vec4(0,0,0,1),o>.01){if(i>0.){float o=cos(j.z/30.),i=sin(j.z/30.);e.xz*=mat2(o,i,-i,o);vec3 t=abs(e);O.xyz=vec3(dot(vec2(texture(q,e.xy).z,texture(q,e.yz*2.).z),t.zx)*t.y);}else e=k+e*i,O.x=(o*=.9-texture(q,e.xz/150.+vec2(sin(e.z/35.+j.z),cos(e.x/25.+j.z))/80.).y),O.y=o*o*o;}}";
 const uniformName_iResolution = "j";
-const fieldOfViewDegrees = 60;
-const camera_rotation = {
-  x: 0,
-  y: 180,
-};
-const mat_perspective = (near, far) =>
-  mat_perspectiveXY(hC.clientHeight / hC.clientWidth * fieldOfViewAmount, fieldOfViewAmount, near, far);
-const zNear = constDef_zNear;
-const zFar = constDef_zFar;
-const fieldOfViewRadians = fieldOfViewDegrees * DEG_TO_RAD;
-const fieldOfViewAmount = 1 / /* @__PURE__ */ Math.tan(fieldOfViewRadians / 2);
 const LIGHT_ROT_Y = 139;
 const LIGHT_ROT_X = 298;
 const csm_buildMatrix = (camera_view, nearPlane, farPlane, zMultiplier) => {
@@ -1781,6 +1777,10 @@ let player_first_person;
 let updateInput;
 let movAngle = 0;
 let movAmount = 0;
+const camera_rotation = {
+  x: 0,
+  y: 180,
+};
 const initPage = () => {
   let touchStartTime;
   let touchPosStartX;
@@ -2436,11 +2436,11 @@ const startMainLoop = (groundTextureImage) => {
     gl["b6o"](36160, collision_frameBuffer);
     gl["f1s"]();
   };
-  const mainVertexShader = loadShader(code$5);
-  const csmShader = initShaderProgram(loadShader(code$6), code$2);
+  const mainVertexShader = loadShader(code$4);
+  const csmShader = initShaderProgram(loadShader(code$5), code$2);
   const skyShader = initShaderProgram(loadShader(code$1), code);
   const collisionShader = initShaderProgram(mainVertexShader, code$3);
-  const mainShader = initShaderProgram(mainVertexShader, code$4);
+  const mainShader = initShaderProgram(mainVertexShader, code$6);
   const csm_render = integers_map(2, (csmSplit) => {
     const lightSpaceMatrix = new Float32Array(16);
     const texture = gl["c25"]();
