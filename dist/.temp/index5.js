@@ -802,7 +802,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
     h.src = t,
     (e => {
       let L = 0,
-        o = () => {
+        r = () => {
           let l = D1.createBuffer(2, 5362944, 44100);
           for (let a = 0; a < 2; a++) {
             for (let e = a, t = l.getChannelData(a); e < 10725888; e += 2) {
@@ -811,37 +811,35 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
           }
           X1.buffer = l, X1.loop = !0, C1(e);
         },
-        s = () => {
+        o = () => {
           let b = 0,
             e = h => {
-              let o,
+              let r,
                 m,
+                o,
                 s,
-                c,
+                c = 0,
                 i = 0,
-                n = 0,
                 u = [],
-                f = new Int32Array(768 * h),
-                g = 2 ** (a - 9) / h,
-                v = W * 2 ** (r - 8) / h,
-                d = O * h & -2;
-              for (let e = 0; e <= 11; ++e) {
+                n = new Int32Array(768 * h),
+                f = 2 ** (t - 9) / h,
+                g = W * 2 ** (a - 8) / h,
+                v = l * h & -2;
+              for (let l = 0; l <= 11; ++l) {
                 for (
-                  let t = 0,
-                    a = +"000001234556112341234556011111111112011111111112000001111112"[12 * L + e],
-                    r = (32 * e + t) * h;
-                  t < 32;
-                  ++t
+                  let e = 0, t = +"000001234556112341234556011111111112011111111112000001111112"[12 * L + l];
+                  e < 32;
+                  ++e
                 ) {
-                  for (let e = 0; e < 4; ++e) {
-                    if (m = 0, a && (m = l[a - 1].charCodeAt(t + 32 * e) - 40, m += 0 < m ? 106 : 0), m) {
-                      var p;
-                      if (!(p = u[m])) {
+                  let a = (32 * l + e) * h;
+                  for (var d, p = 0; p < 4; ++p) {
+                    if (m = 0, t && (m = A[t - 1].charCodeAt(e + 32 * p) - 40, m += 0 < m ? 106 : 0), m) {
+                      if (!(d = u[m])) {
                         let l,
                           r,
                           o = 0,
                           s = 0,
-                          c = p = m,
+                          c = d = m,
                           i = L < 2
                             ? e => e % 1 * 2 - 1
                             : k1,
@@ -850,51 +848,50 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                               ? e => e % 1 < .5 ? 1 : -1
                               : e => (e = e % 1 * 4) < 2 ? e - 1 : 3 - e
                             : k1,
-                          f = new Int32Array(C + k + R);
-                        for (let t = 0, a = 0; C + k + R > t; ++t, ++a) {
+                          f = new Int32Array(k + T + D);
+                        for (let t = 0, a = 0; k + T + D > t; ++t, ++a) {
                           let e = 1;
-                          C > t ? e = t / C : C + k > t || (e = (1 - (e = (t - C - k) / R)) * 3 ** (T / -16 * e)),
+                          k > t ? e = t / k : k + T > t || (e = (1 - (e = (t - k - T) / D)) * 3 ** (-H / 16 * e)),
                             a < 0
-                            || (r = .00396 * 2 ** ((c + I - 256) / 12),
-                              l = .00396 * 2 ** ((c + j - 256) / 12) * (L ? 1 : 1.0072),
-                              a -= 4 * h),
+                            || (a -= 4 * h,
+                              r = .00396 * 2 ** ((c + M - 256) / 12),
+                              l = .00396 * 2 ** ((c + F - 256) / 12) * (1 + (L ? 0 : .0072))),
                             f[t] = 80
-                              * (i(o += r * e ** (M / 32)) * A + n(s += l * e ** (F / 32)) * Y
-                                + (S ? (2 * P1() - 1) * S : 0))
-                              * e;
+                                * (i(o += r * e ** (Y / 32)) * I + n(s += l * e ** (S / 32)) * j
+                                  + (C ? (2 * P1() - 1) * C : 0))
+                                * e | 0;
                         }
-                        p = u[p] = f;
+                        d = u[d] = f;
                       }
-                      for (let e = 0, t = 2 * r; p.length > e; ++e, t += 2) f[t] += p[e];
+                      for (let e = 0, t = 2 * a; d.length > e; ++e, t += 2) n[t] += d[e];
                     }
                   }
-                  for (let e, t, a, l = 0; h > l; ++l) {
-                    a = 2 * (r + l),
-                      e = 0,
-                      ((t = f[a]) || c)
-                      && (s = .00308 * D,
-                        1 !== L && 4 !== L || (s *= E(g * a * W * 2) * P / 512 + .5),
-                        s = 1.5 * E(s),
-                        i += s * n,
-                        o = (1 - H / 255) * (t - n) - i,
-                        n += s * o,
-                        t = 4 === L ? n : 3 === L ? o : i,
-                        L || (t = (t *= 22e-5) < 1 ? -1 < t ? E(t / 4 * W * 2) : -1 : 1, t /= 22e-5),
-                        t *= Q / 32,
-                        c = 1e-5 < t * t,
-                        o = E(v * a) * B / 512 + .5,
-                        e = t * (1 - o),
-                        t *= o),
-                      a < d || (e += f[1 + a - d] * q / 255, t += f[a - d] * q / 255),
-                      X[b + a] += f[a] = e,
-                      ++a,
-                      X[b + a] += f[a] = t;
+                  for (let e, t = 0; h > t; ++t) {
+                    p = 0,
+                      ((e = n[d = 2 * (a + t)]) || s)
+                      && (o = .00308 * Q,
+                        1 !== L && 4 !== L || (o *= E(f * d * W * 2) * R / 512 + .5),
+                        o = 1.5 * E(o),
+                        c += o * i,
+                        r = (1 - B / 255) * (e - i) - c,
+                        i += o * r,
+                        e = 4 === L ? i : 3 === L ? r : c,
+                        L || (e = (e *= 22e-5) < 1 ? -1 < e ? E(e / 4 * W * 2) : -1 : 1, e /= 22e-5),
+                        e *= q / 32,
+                        s = 1e-5 < e * e,
+                        r = E(g * d) * O / 512 + .5,
+                        p = e * (1 - r),
+                        e *= r),
+                      d < v || (p += n[1 + d - v] * P / 255, e += n[d - v] * P / 255),
+                      X[b + d] += n[d] = p,
+                      ++d,
+                      X[b + d] += n[d] = e;
                   }
                 }
               }
               b += 768 * h;
             },
-            l = [
+            A = [
               [
                 "(.15:15:=5:=A:=AF=AFIFIMRMRUY(Y(((((((((((((((((((((((((((((M(M(((((((((((((((((((((((((((((R(R(((((((((((((((((((((((((((((U(U",
                 "(059<59<A9<AE<AEHAEHMEHMQMQTY(Y",
@@ -915,18 +912,17 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               ["9(9(9(9(9(9(9(999(9(9(9(999(9(9", "9(9(9(9(9(999(9(((((Q"],
               ["((((Q(((((((Q(((((((Q(((((((Q", "Q((Q((Q((Q((Q((Q((((Q"],
             ][L],
-            [A, I, M, Y, j, F, S, C, k, t, T, a, D, H, Q, B, r, q, O, P] = [
+            [I, M, Y, j, F, S, C, k, T, D, H, t, Q, B, q, O, a, P, l, R] = [
               [69, 128, 0, 143, 128, 0, 0, 196, 100, 36, 0, 0, 149, 110, 31, 47, 3, 56, 2, 0],
               [100, 128, 0, 201, 128, 0, 0, 100, 144, 35, 0, 6, 135, 0, 32, 147, 6, 0, 6, 195],
               [255, 116, 85, 255, 116, 37, 14, 64, 144, 73, 99, 0, 136, 15, 32, 0, 0, 66, 6, 0],
               [0, 140, 0, 0, 140, 0, 81, 64, 400, 47, 55, 5, 239, 135, 13, 176, 5, 16, 4, 187],
               [221, 128, 64, 210, 128, 64, 255, 64, 144, 73, 79, 7, 195, 15, 21, 20, 0, 9, 3, 64],
-            ][L],
-            R = 4 * t ** 2;
-          e(5513), e(4562), e(3891), C1(++L < 5 ? s : o);
+            ][L];
+          D = D * D * 4, e(5513), e(4562), e(3891), C1(++L < 5 ? o : r);
         },
         X = new Int32Array(10725888);
-      C1(s);
+      C1(o);
     })(() => {
       C1(() => {
         let o,

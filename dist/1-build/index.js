@@ -2037,23 +2037,24 @@ const loadSong = (done) => {
             e = j1 / ENV_ATTACK;
           else if (j1 >= ENV_ATTACK + ENV_SUSTAIN) {
             e = (j1 - ENV_ATTACK - ENV_SUSTAIN) / ENV_RELEASE;
-            e = (1 - e) * 3 ** (ENV_EXP_DECAY / -16 * e);
+            e = (1 - e) * 3 ** (-ENV_EXP_DECAY / 16 * e);
           }
           if (j2 >= 0) {
-            o1t = getnotefreq(note + OSC1_SEMI);
-            o2t = getnotefreq(note + OSC2_SEMI) * (channelIndex ? 1 : 1.0072);
             j2 -= song_rowLen * 4;
+            o1t = getnotefreq(note + OSC1_SEMI);
+            o2t = getnotefreq(note + OSC2_SEMI) * (1 + (channelIndex ? 0 : 8e-4 * 9));
           }
-          noteBuf[j1] = 80 * (OSC1_WAVEFORM(c1 += o1t * e ** (OSC1_XENV / 32)) * OSC1_VOL + OSC2_WAVEFORM(c2 += o2t * e ** (OSC2_XENV / 32)) * OSC2_VOL + (NOISE_VOL ? (/* @__PURE__ */ Math.random() * 2 - 1) * NOISE_VOL : 0)) * e;
+          noteBuf[j1] = 80 * (OSC1_WAVEFORM(c1 += o1t * e ** (OSC1_XENV / 32)) * OSC1_VOL + OSC2_WAVEFORM(c2 += o2t * e ** (OSC2_XENV / 32)) * OSC2_VOL + (NOISE_VOL ? (/* @__PURE__ */ Math.random() * 2 - 1) * NOISE_VOL : 0)) * e | 0;
         }
         return noteBuf;
       };
-      const chnBuf = new Int32Array(song_rowLen * SEGMENT_NUM_WORDS);
+      const chnBuf = new Int32Array(song_rowLen * SONG_WORDS);
       const lfoFreq = 2 ** (LFO_FREQ - 9) / song_rowLen;
       const panFreq = Math.PI * 2 ** (FX_PAN_FREQ - 8) / song_rowLen;
       const dly = FX_DELAY_TIME * song_rowLen & -2;
       for (let p = 0; p <= song_endPattern; ++p)
-        for (let row = 0, cp = +song_patterns[channelIndex * 12 + p], rowStartSample = (p * song_patternLen + row) * song_rowLen; row < song_patternLen; ++row) {
+        for (let row = 0, cp = +song_patterns[channelIndex * 12 + p]; row < song_patternLen; ++row) {
+          const rowStartSample = (p * song_patternLen + row) * song_rowLen;
           for (let col = 0; col < 4; ++col) {
             n = 0;
             if (cp) {
@@ -2066,9 +2067,9 @@ const loadSong = (done) => {
                 chnBuf[i] += noteBuf[j];
             }
           }
-          for (let j1 = 0, lsample, rsample, k; j1 < song_rowLen; ++j1) {
-            k = (rowStartSample + j1) * 2;
-            lsample = 0;
+          for (let j1 = 0, rsample; j1 < song_rowLen; ++j1) {
+            let lsample = 0;
+            let k = (rowStartSample + j1) * 2;
             rsample = chnBuf[k];
             if (rsample || filterActive) {
               f = FX_FREQ * 0.003079991863530159;
@@ -2099,11 +2100,11 @@ const loadSong = (done) => {
             mixBuffer[mixIndex + k] += chnBuf[k] = rsample;
           }
         }
-      mixIndex += song_rowLen * SEGMENT_NUM_WORDS;
+      mixIndex += song_rowLen * SONG_WORDS;
     };
     const COLUMNS = song_columns[channelIndex];
-    const [OSC1_VOL, OSC1_SEMI, OSC1_XENV, OSC2_VOL, OSC2_SEMI, OSC2_XENV, NOISE_VOL, ENV_ATTACK, ENV_SUSTAIN, _ENV_RELEASE, ENV_EXP_DECAY, LFO_FREQ, FX_FREQ, FX_RESONANCE, FX_DRIVE, FX_PAN_AMT, FX_PAN_FREQ, FX_DELAY_AMT, FX_DELAY_TIME, LFO_AMT] = song_instruments[channelIndex];
-    const ENV_RELEASE = _ENV_RELEASE ** 2 * 4;
+    let [OSC1_VOL, OSC1_SEMI, OSC1_XENV, OSC2_VOL, OSC2_SEMI, OSC2_XENV, NOISE_VOL, ENV_ATTACK, ENV_SUSTAIN, ENV_RELEASE, ENV_EXP_DECAY, LFO_FREQ, FX_FREQ, FX_RESONANCE, FX_DRIVE, FX_PAN_AMT, FX_PAN_FREQ, FX_DELAY_AMT, FX_DELAY_TIME, LFO_AMT] = song_instruments[channelIndex];
+    ENV_RELEASE = ENV_RELEASE * ENV_RELEASE * 4;
     make(song_rowLen0);
     make(song_rowLen1);
     make(song_rowLen2);
@@ -2112,8 +2113,8 @@ const loadSong = (done) => {
   const mixBuffer = new Int32Array(song_numWords);
   loadStep(next);
 };
-const SEGMENT_NUM_WORDS = song_patternLen * (song_endPattern + 1) * 2;
-const song_numWords = (song_rowLen0 + song_rowLen1 + song_rowLen2) * SEGMENT_NUM_WORDS;
+const SONG_WORDS = song_patternLen * (song_endPattern + 1) * 2;
+const song_numWords = (song_rowLen0 + song_rowLen1 + song_rowLen2) * SONG_WORDS;
 loadStep(() => {
   let loadStatus = 0;
   const end = () => {
