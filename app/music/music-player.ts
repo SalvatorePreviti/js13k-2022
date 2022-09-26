@@ -59,36 +59,27 @@ const osc_tri = (value: number) => {
 };
 
 const SONG_WORDS = song_patternLen * (song_endPattern + 1) * 2;
-const song_numWords = (song_rowLen0 + song_rowLen1 + song_rowLen2) * SONG_WORDS;
+const SONG_TOTAL_WORDS = (song_rowLen0 + song_rowLen1 + song_rowLen2) * SONG_WORDS;
 
 export const loadSong = (done: () => void) => {
   let channelIndex = 0;
 
-  const mixBuffer = new Int32Array(song_numWords);
+  const audioBuffer = audioContext.createBuffer(2, SONG_TOTAL_WORDS / 2, 44100);
+  const mixBufferA = audioBuffer.getChannelData(0);
+  const mixBufferB = audioBuffer.getChannelData(1);
 
-  const finish = () => {
-    const audioBuffer = audioContext.createBuffer(2, song_numWords / 2, 44100);
-    for (let i = 0; i < 2; i++) {
-      for (let j = i, data = audioBuffer.getChannelData(i); j < song_numWords; j += 2) {
-        data[j >> 1] = mixBuffer[j]! / 65536;
-      }
-    }
+  // Load the buffer into the audio source
+  songAudioSource.buffer = audioBuffer;
 
-    // Load the buffer into the audio source
-    songAudioSource.buffer = audioBuffer;
-
-    // Loop forever
-    songAudioSource.loop = true;
-
-    loadStep(done);
-  };
+  // Loop forever
+  songAudioSource.loop = true;
 
   const next = () => {
     // Generate audio data for a single track/channel.
     let mixIndex = 0;
 
     const COLUMNS = song_columns[channelIndex]!;
-    let [
+    const [
       OSC1_VOL,
       OSC1_SEMI,
       OSC1_XENV,
@@ -98,7 +89,7 @@ export const loadSong = (done: () => void) => {
       NOISE_VOL,
       ENV_ATTACK,
       ENV_SUSTAIN,
-      ENV_RELEASE,
+      _ENV_RELEASE,
       ENV_EXP_DECAY,
       LFO_FREQ,
       FX_FREQ,
@@ -111,7 +102,7 @@ export const loadSong = (done: () => void) => {
       LFO_AMT,
     ] = song_instruments[channelIndex]!;
 
-    ENV_RELEASE = (ENV_RELEASE * ENV_RELEASE * 4) as any;
+    const ENV_RELEASE = _ENV_RELEASE ** 2 * 4;
 
     const make = (song_rowLen: number) => {
       const createNote = (note: number) => {
@@ -175,10 +166,8 @@ export const loadSong = (done: () => void) => {
       let high;
       let filterActive: boolean | undefined;
 
-      // Clear note cache.
       const noteCache = [];
 
-      // Put performance critical instrument properties in local variables
       const lfoFreq = 2 ** (LFO_FREQ - 9) / song_rowLen;
       const panFreq = (Math.PI * 2 ** (FX_PAN_FREQ - 8)) / song_rowLen;
       const dly = (FX_DELAY_TIME * song_rowLen) & ~1; // Must be an even number
@@ -253,9 +242,10 @@ export const loadSong = (done: () => void) => {
               rsample += (chnBuf[k - dly]! * FX_DELAY_AMT) / 255;
             }
 
-            mixBuffer[mixIndex + k] += chnBuf[k] = lsample;
-            ++k;
-            mixBuffer[mixIndex + k] += chnBuf[k] = rsample;
+            const kindex = (mixIndex + k) >> 1;
+
+            mixBufferA[kindex] += (chnBuf[k] = lsample) / 65536;
+            mixBufferB[kindex] += (chnBuf[++k] = rsample) / 65536;
           }
         }
       }
@@ -267,7 +257,7 @@ export const loadSong = (done: () => void) => {
     make(song_rowLen1);
     make(song_rowLen2);
 
-    loadStep(++channelIndex < song_numChannels ? next : finish);
+    loadStep(++channelIndex < song_numChannels ? next : done);
   };
 
   loadStep(next);

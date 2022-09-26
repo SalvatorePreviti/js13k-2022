@@ -950,17 +950,9 @@ const osc_square = (value) => value % 1 < 0.5 ? 1 : -1;
 const osc_tri = (value) => (value = value % 1 * 4) < 2 ? value - 1 : 3 - value;
 const loadSong = (done) => {
   let channelIndex = 0;
-  const finish = () => {
-    const audioBuffer = audioContext.createBuffer(2, 5362944, 44100);
-    for (let i = 0; i < 2; i++) {
-      for (let j = i, data = audioBuffer.getChannelData(i); j < 10725888; j += 2) data[j >> 1] = mixBuffer[j] / 65536;
-    }
-    songAudioSource.buffer = audioBuffer, songAudioSource.loop = !0, loadStep(done);
-  };
   const next = () => {
     let mixIndex = 0;
     const make = (song_rowLen) => {
-      let high;
       let n;
       let f;
       let filterActive;
@@ -1013,33 +1005,32 @@ const loadSong = (done) => {
           for (let rsample, j1 = 0; song_rowLen > j1; ++j1) {
             let lsample = 0;
             let k = 2 * (rowStartSample + j1);
-            ((rsample = chnBuf[k]) || filterActive)
-            && (f = 308e-5 * FX_FREQ,
-              channelIndex !== 1 && channelIndex !== 4 || (f *= osc_sin(lfoFreq * k) * LFO_AMT / 512 + 0.5),
-              f = 1.5 * Math.sin(f),
-              low += f * band,
-              high = (1 - FX_RESONANCE / 255) * (rsample - band) - low,
-              band += f * high,
-              rsample = channelIndex === 4 ? band : channelIndex === 3 ? high : low,
-              channelIndex
-              || (rsample = (rsample *= 22e-5) < 1 ? -1 < rsample ? osc_sin(rsample / 4) : -1 : 1, rsample /= 22e-5),
-              rsample *= FX_DRIVE / 32,
-              filterActive = 1e-5 < rsample * rsample,
-              high = Math.sin(panFreq * k) * FX_PAN_AMT / 512 + 0.5,
-              lsample = rsample * (1 - high),
-              rsample *= high),
+            var high = (((rsample = chnBuf[k]) || filterActive)
+              && (f = 308e-5 * FX_FREQ,
+                channelIndex !== 1 && channelIndex !== 4 || (f *= osc_sin(lfoFreq * k) * LFO_AMT / 512 + 0.5),
+                f = 1.5 * Math.sin(f),
+                low += f * band,
+                high = (1 - FX_RESONANCE / 255) * (rsample - band) - low,
+                band += f * high,
+                rsample = channelIndex === 4 ? band : channelIndex === 3 ? high : low,
+                channelIndex
+                || (rsample = (rsample *= 22e-5) < 1 ? -1 < rsample ? osc_sin(rsample / 4) : -1 : 1, rsample /= 22e-5),
+                rsample *= FX_DRIVE / 32,
+                filterActive = 1e-5 < rsample * rsample,
+                high = Math.sin(panFreq * k) * FX_PAN_AMT / 512 + 0.5,
+                lsample = rsample * (1 - high),
+                rsample *= high),
               k < dly
               || (lsample += chnBuf[1 + k - dly] * FX_DELAY_AMT / 255, rsample += chnBuf[k - dly] * FX_DELAY_AMT / 255),
-              mixBuffer[mixIndex + k] += chnBuf[k] = lsample,
-              ++k,
-              mixBuffer[mixIndex + k] += chnBuf[k] = rsample;
+              mixIndex + k >> 1);
+            mixBufferA[high] += (chnBuf[k] = lsample) / 65536, mixBufferB[high] += (chnBuf[++k] = rsample) / 65536;
           }
         }
       }
       mixIndex += 768 * song_rowLen;
     };
     const COLUMNS = song_columns[channelIndex];
-    let [
+    const [
       OSC1_VOL,
       OSC1_SEMI,
       OSC1_XENV,
@@ -1049,7 +1040,7 @@ const loadSong = (done) => {
       NOISE_VOL,
       ENV_ATTACK,
       ENV_SUSTAIN,
-      ENV_RELEASE,
+      _ENV_RELEASE,
       ENV_EXP_DECAY,
       LFO_FREQ,
       FX_FREQ,
@@ -1061,14 +1052,13 @@ const loadSong = (done) => {
       FX_DELAY_TIME,
       LFO_AMT,
     ] = song_instruments[channelIndex];
-    ENV_RELEASE = ENV_RELEASE * ENV_RELEASE * 4,
-      make(5513),
-      make(4562),
-      make(3891),
-      loadStep(++channelIndex < 5 ? next : finish);
+    const ENV_RELEASE = _ENV_RELEASE ** 2 * 4;
+    make(5513), make(4562), make(3891), loadStep(++channelIndex < 5 ? next : done);
   };
-  const mixBuffer = new Int32Array(10725888);
-  loadStep(next);
+  const audioBuffer = audioContext.createBuffer(2, 5362944, 44100);
+  const mixBufferA = audioBuffer.getChannelData(0);
+  const mixBufferB = audioBuffer.getChannelData(1);
+  songAudioSource.buffer = audioBuffer, songAudioSource.loop = !0, loadStep(next);
 };
 const player_init = () => {
   let currentModelId;
