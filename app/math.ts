@@ -116,6 +116,10 @@ export const identity: DOMMatrixReadOnly = /* @__PURE__ */ new DOMMatrix();
 
 export const translation = NO_INLINE((x: number, y?: number, z?: number) => identity.translate(x, y, z));
 
+export const rotation = NO_INLINE((x: number, y?: number, z?: number) => identity.rotate(x, y, z));
+
+export const scaling = NO_INLINE((x: number, y?: number, z?: number) => identity.scale(x, y, z));
+
 export const float32Array16Temp = new Float32Array(16);
 
 export const matrixToArray = (

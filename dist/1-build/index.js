@@ -1,7 +1,6 @@
 const groundTextureSvg = `data:image/svg+xml;base64,${/* @__PURE__ */ btoa('<svg color-interpolation-filters="sRGB" height="1024" width="1024" xmlns="http://www.w3.org/2000/svg"><filter filterUnits="userSpaceOnUse" height="1026" id="a" width="1026" x="0" y="0"><feTurbulence baseFrequency=".007" height="1025" numOctaves="6" stitchTiles="stitch" width="1025" result="z" type="fractalNoise" x="1" y="1"/><feTile height="1024" width="1024" x="-1" y="-1"/><feTile/><feDiffuseLighting diffuseConstant="4" lighting-color="red" surfaceScale="5"><feDistantLight azimuth="270" elevation="5"/></feDiffuseLighting><feTile height="1024" width="1024" x="1" y="1"/><feTile result="x"/><feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 1" in="z"/><feTile height="1024" width="1024" x="1" y="1"/><feTile result="z"/><feTurbulence baseFrequency=".01" height="1024" numOctaves="5" stitchTiles="stitch" width="1024"/><feColorMatrix values="0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1"/><feBlend in2="x" mode="screen"/><feBlend in2="z" mode="screen"/></filter><rect filter="url(#a)" height="100%" width="100%"/></svg>')}`;
 const integers_map = (n, fn) => Array.from(/* @__PURE__ */ Array(n), (_, i) => fn(i));
 const DEG_TO_RAD = Math.PI / 180;
-const abs = (a) => a < 0 ? -a : a;
 const clamp = (value, minValue = 0, maxValue = 1) => value < minValue ? minValue : value > maxValue ? maxValue : value;
 const threshold = (value, amount) => abs(value) > amount ? value : 0;
 const lerp = (a, b, t) => (t <= 0 ? a : t >= 1 ? b : a + (b - a) * t) || 0;
@@ -82,7 +81,10 @@ const identity = new DOMMatrix();
 const float32Array16Temp = new Float32Array(16);
 const min = NO_INLINE((a, b) => a < b ? a : b);
 const max = NO_INLINE((a, b) => a > b ? a : b);
+const abs = NO_INLINE((a) => a < 0 ? -a : a);
 const translation = NO_INLINE((x, y, z) => identity.translate(x, y, z));
+const rotation = NO_INLINE((x, y, z) => identity.rotate(x, y, z));
+const scaling = NO_INLINE((x, y, z) => identity.scale(x, y, z));
 const GQuad = [
   {
     x: -1,
@@ -698,8 +700,8 @@ const build_life_the_universe_and_everything = () => {
     meshAdd(cylinder(), translation(3, 1.5, -20).scale(0.5, 2, 5), material(0.7, 0.7, 0.7, 0.2));
     meshAdd(cylinder(), translation(-3.4, -0.2, -19).scale(2, 1, 1.5).rotate(0, -90), material(0.75, 0.75, 0.75, 0.2));
     meshAdd(cylinder(5), translation(-5.4, 0, -19).scale(2, 1, 2).rotate(0, -90), material(0.6, 0.3, 0.3, 0.4));
-    meshAdd(cylinder(), identity.rotate(0, 60).translate(14.8, -1.46, -1).rotate(-30).scale(4, 0.6, 4.5), material(0.8, 0.2, 0.2, 0.5));
-    meshAdd(csg_polygons_subtract(csg_union(polygons_transform(cylinder(6, 0, 0, 0.3), translation(8, -3, -4).scale(13, 1, 13), material(0.7, 0.7, 0.7, 0.2)), polygons_transform(cylinder(6), translation(0, -8).scale(9, 8, 8), material(0.4, 0.2, 0.5, 0.5)), polygons_transform(cylinder(6, 0, 0, 0.3), translation(0, -0.92).scale(13, 2, 13), material(0.8, 0.8, 0.8, 0.2))), polygons_transform(cylinder(5), identity.scale(5, 30, 5), material(0.4, 0.2, 0.6, 0.5)), polygons_transform(cylinder(5, 0, 1.5), translation(0, 1).scale(4.5, 0.3, 4.5), material(0.7, 0.5, 0.9, 0.2)), polygons_transform(cylinder(), identity.rotate(0, 60).translate(14, 0.7, -1).rotate(-35).scale(2, 2, 2), material(0.5, 0.5, 0.5, 0.5)), polygons_transform(cylinder(6), translation(15, -1.5, 4).scale(3.5, 1, 3.5), material(0.5, 0.5, 0.5, 0.5))));
+    meshAdd(cylinder(), rotation(0, 60).translate(14.8, -1.46, -1).rotate(-30).scale(4, 0.6, 4.5), material(0.8, 0.2, 0.2, 0.5));
+    meshAdd(csg_polygons_subtract(csg_union(polygons_transform(cylinder(6, 0, 0, 0.3), translation(8, -3, -4).scale(13, 1, 13), material(0.7, 0.7, 0.7, 0.2)), polygons_transform(cylinder(6), translation(0, -8).scale(9, 8, 8), material(0.4, 0.2, 0.5, 0.5)), polygons_transform(cylinder(6, 0, 0, 0.3), translation(0, -0.92).scale(13, 2, 13), material(0.8, 0.8, 0.8, 0.2))), polygons_transform(cylinder(5), scaling(5, 30, 5), material(0.4, 0.2, 0.6, 0.5)), polygons_transform(cylinder(5, 0, 1.5), translation(0, 1).scale(4.5, 0.3, 4.5), material(0.7, 0.5, 0.9, 0.2)), polygons_transform(cylinder(), rotation(0, 60).translate(14, 0.7, -1).rotate(-35).scale(2, 2, 2), material(0.5, 0.5, 0.5, 0.5)), polygons_transform(cylinder(6), translation(15, -1.5, 4).scale(3.5, 1, 3.5), material(0.5, 0.5, 0.5, 0.5))));
     newModel((model) => {
       model._update = () => translation(0, levers[3].$lerpValue > 0.01 ? (/* @__PURE__ */ Math.cos(gameTime * 1.5) * 5 + 2) * levers[3].$lerpValue2 * (1 - levers[2].$lerpValue) + (1 - levers[3].$lerpValue) * -15 : -500, 0);
       meshAdd(cylinder(5), translation(0, -0.2).scale(5, 1, 5), material(0.6, 0.65, 0.7, 0.3));
@@ -710,7 +712,7 @@ const build_life_the_universe_and_everything = () => {
     blackPlatform(1, 8.2, 55);
     newModel((model) => {
       model._update = () => translation(level2Oscillation() * /* @__PURE__ */ Math.sin(gameTime / 1.5 + 2) * 12);
-      meshAdd(csg_polygons_subtract(csg_union(polygons_transform(cylinder(), identity.scale(1.5, 1, 5), material(0.9, 0.9, 0.9, 0.2)), polygons_transform(cylinder(6), identity.scale(4, 1, 5), material(0.9, 0.9, 0.9, 0.2)), polygons_transform(cylinder(), translation(0, -2).scale(2, 3.2, 1.9), material(0.3, 0.8, 0.5, 0.5)), polygons_transform(cylinder(16, 1, 0, 4), identity.scale(1, 1, 1.5).rotate(0, 90), material(0.9, 0.9, 0.9, 0.2))), polygons_transform(cylinder(), identity.scale(1.3, 10, 1.3), material(0.2, 0.7, 0.4, 0.6))), translation(0, 0, 45));
+      meshAdd(csg_polygons_subtract(csg_union(polygons_transform(cylinder(), scaling(1.5, 1, 5), material(0.9, 0.9, 0.9, 0.2)), polygons_transform(cylinder(6), scaling(4, 1, 5), material(0.9, 0.9, 0.9, 0.2)), polygons_transform(cylinder(), translation(0, -2).scale(2, 3.2, 1.9), material(0.3, 0.8, 0.5, 0.5)), polygons_transform(cylinder(16, 1, 0, 4), scaling(1, 1, 1.5).rotate(0, 90), material(0.9, 0.9, 0.9, 0.2))), polygons_transform(cylinder(), scaling(1.3, 10, 1.3), material(0.2, 0.7, 0.4, 0.6))), translation(0, 0, 45));
       newSoul(translation(0, 2.8, 45), [
         0,
         0,
@@ -729,7 +731,7 @@ const build_life_the_universe_and_everything = () => {
     newModel((model) => {
       model._update = () => translation(0, level3Oscillation() * /* @__PURE__ */ Math.sin(gameTime * 1.35) * 4);
       meshAdd(cylinder(), translation(-22.55, -3, 55).scale(1.45, 1.4, 2.7), material(0.7, 0.7, 0.7, 0.2));
-      meshAdd(csg_polygons_subtract(polygons_transform(cylinder(), identity.scale(3, 1.4, 2.7)), polygons_transform(cylinder(), identity.scale(1.2, 8, 1.2))), translation(-33, -3, 55), material(0.7, 0.7, 0.7, 0.2));
+      meshAdd(csg_polygons_subtract(polygons_transform(cylinder(), scaling(3, 1.4, 2.7)), polygons_transform(cylinder(), scaling(1.2, 8, 1.2))), translation(-33, -3, 55), material(0.7, 0.7, 0.7, 0.2));
     });
     newModel((model) => {
       model._update = () => translation(0, 0, level3Oscillation() * /* @__PURE__ */ Math.sin(gameTime * 0.9) * 8);
@@ -745,7 +747,7 @@ const build_life_the_universe_and_everything = () => {
     meshAdd(cylinder(7), translation(-57, -2.6, 46).scale(4, 1, 4), material(0.8, 0.8, 0.8, 0.3));
     const hexCorridorPolygons = [
       ...polygons_transform(cylinder(), translation(0, -3).scale(11, 1.4, 3), material(0.9, 0.9, 0.9, 0.2)),
-      ...csg_polygons_subtract(polygons_transform(cylinder(6), identity.rotate(90).scale(6, 8, 6), material(0.3, 0.6, 0.6, 0.3)), polygons_transform(cylinder(4, 0, 0.01), translation(0, 6).scale(12, 2, 0.75).rotate(0, 45), material(0.3, 0.6, 0.6, 0.3)), polygons_transform(cylinder(6), identity.rotate(90).scale(5, 12, 5), material(0.3, 0.6, 0.6, 0.3)), ...[
+      ...csg_polygons_subtract(polygons_transform(cylinder(6), rotation(90).scale(6, 8, 6), material(0.3, 0.6, 0.6, 0.3)), polygons_transform(cylinder(4, 0, 0.01), translation(0, 6).scale(12, 2, 0.75).rotate(0, 45), material(0.3, 0.6, 0.6, 0.3)), polygons_transform(cylinder(6), rotation(90).scale(5, 12, 5), material(0.3, 0.6, 0.6, 0.3)), ...[
         5,
         0,
         -5
@@ -817,11 +819,11 @@ const build_life_the_universe_and_everything = () => {
         18
       ].map((x) => meshAdd(cylinder(), translation(x - 76.9, x / -13 - 10, 24).scale(2.8, 1.5, 3), material(0.1, 0.4, 0.5, 0.2)));
     });
-    meshAdd(csg_polygons_subtract(csg_union(polygons_transform(cylinder(5), translation(0, 0, -7).scale(2, 1.2, 2), material(0.2, 0.4, 0.7, 0.3)), polygons_transform(cylinder(5), identity.scale(9, 1.2, 9), material(0, 0.2, 0.3, 0.5)), polygons_transform(cylinder(), identity.scale(11, 1, 13), material(0.3, 0.4, 0.6, 0.3))), polygons_transform(cylinder(5), identity.scale(5.4, 5, 5.4), material(0, 0.2, 0.3, 0.5))), translation(-38.9, -11.3, 17));
+    meshAdd(csg_polygons_subtract(csg_union(polygons_transform(cylinder(5), translation(0, 0, -7).scale(2, 1.2, 2), material(0.2, 0.4, 0.7, 0.3)), polygons_transform(cylinder(5), scaling(9, 1.2, 9), material(0, 0.2, 0.3, 0.5)), polygons_transform(cylinder(), scaling(11, 1, 13), material(0.3, 0.4, 0.6, 0.3))), polygons_transform(cylinder(5), scaling(5.4, 5, 5.4), material(0, 0.2, 0.3, 0.5))), translation(-38.9, -11.3, 17));
     newLever(translation(-38.9, -9.6, 10));
     newModel((model) => {
       model._update = () => translation(0, levers[7].$lerpValue2 * -7.3);
-      meshAdd(csg_polygons_subtract(csg_union(polygons_transform(cylinder(5), translation(0, 2).scale(5, 7, 5).skewY(8), material(0.2, 0.4, 0.5, 0.5)), polygons_transform(cylinder(5), translation(0, 6).scale(1.1, 7, 1.1).skewY(-8), material(0.25, 0.35, 0.5, 0.5)), polygons_transform(cylinder(5), translation(0, 9).scale(0.6, 7, 0.6).skewY(8), material(0.35, 0.3, 0.5, 0.5))), polygons_transform(cylinder(5), identity.scale(4, 8, 4), material(0.2, 0.4, 0.5, 0.5)), polygons_transform(cylinder(5), translation(0, 5).scale(1.5, 1.5, 8).rotate(90, 0, 35), material(0.2, 0.4, 0.5, 0.5))), translation(-38.9, -11.3, 17));
+      meshAdd(csg_polygons_subtract(csg_union(polygons_transform(cylinder(5), translation(0, 2).scale(5, 7, 5).skewY(8), material(0.2, 0.4, 0.5, 0.5)), polygons_transform(cylinder(5), translation(0, 6).scale(1.1, 7, 1.1).skewY(-8), material(0.25, 0.35, 0.5, 0.5)), polygons_transform(cylinder(5), translation(0, 9).scale(0.6, 7, 0.6).skewY(8), material(0.35, 0.3, 0.5, 0.5))), polygons_transform(cylinder(5), scaling(4, 8, 4), material(0.2, 0.4, 0.5, 0.5)), polygons_transform(cylinder(5), translation(0, 5).scale(1.5, 1.5, 8).rotate(90, 0, 35), material(0.2, 0.4, 0.5, 0.5))), translation(-38.9, -11.3, 17));
       newSoul(translation(-39.1, -0.6, 17).rotate(11), ...polygon_regular(15).map(({ x, z }) => [
         x * 3,
         z * 3,
@@ -916,7 +918,7 @@ const build_life_the_universe_and_everything = () => {
         const osc = hexPadShouldOscillate();
         return translation((1 - osc) * 2.5 - 139.7, (1 - levers[8].$lerpValue) * -3 + osc * /* @__PURE__ */ Math.sin(gameTime * 0.8) * -1 - 1.8, 93.5).rotateSelf(/* @__PURE__ */ Math.cos(gameTime * 1.3) * (osc * 3 + 3), 0);
       };
-      meshAdd(csg_polygons_subtract(polygons_transform(cylinder(10), identity.scale(6, 2, 6), material(0.1, 0.6, 0.5, 0.3)), polygons_transform(cylinder(10), identity.scale(3.3, 6, 3.3), material(0.1, 0.6, 0.5, 0.5))));
+      meshAdd(csg_polygons_subtract(polygons_transform(cylinder(10), scaling(6, 2, 6), material(0.1, 0.6, 0.5, 0.3)), polygons_transform(cylinder(10), scaling(3.3, 6, 3.3), material(0.1, 0.6, 0.5, 0.5))));
       meshAdd(cylinder(15, 1), translation(-7.5).rotate(0, 90).scale(3, 2.3, 3), material(0.4, 0.4, 0.4, 0.3));
       meshAdd(cylinder(10), translation(-7.5).rotate(0, 90).scale(2, 2.5, 2), material(0.3, 0.8, 0.7, 0.3));
       meshAdd(cylinder(5), translation(-7.5).rotate(0, 90).scale(1, 3), material(0.5, 0.5, 0.5, 0.5));
@@ -924,7 +926,7 @@ const build_life_the_universe_and_everything = () => {
       [
         -1,
         1
-      ].map((i) => meshAdd(hornPolygons, identity.rotate(-i * 90, 180, 90).translate(0, 5).rotate(40).scale(1.3, 10, 1.3), material(1, 1, 0.8, 0.2)));
+      ].map((i) => meshAdd(hornPolygons, rotation(-i * 90, 180, 90).translate(0, 5).rotate(40).scale(1.3, 10, 1.3), material(1, 1, 0.8, 0.2)));
       newSoul(translation(-5, 4), [
         0,
         -1.2,
@@ -945,7 +947,7 @@ const build_life_the_universe_and_everything = () => {
         1.5
       ].map((y) => meshAdd(cylinder(15, 1), translation(-7.5 * x - 100, y + 0.7, 96).scale(1.1, 0.5, 1.1), material(0.5, 0.24, 0.2, 0.4)));
       meshAdd(hornPolygons, translation(x * -5 - 100, 1.7, 114.5).scale(1.2, 10, 1.2).rotate(0, 90 * x - 90), material(1, 1, 0.8));
-      meshAdd(csg_polygons_subtract(polygons_transform(cylinder(), translation(x * -4, 3.5, -0.5).scale(4, 4, 0.7), material(0.5, 0.5, 0.5, 0.4)), polygons_transform(cylinder(), identity.scale(3, 3, 10), material(0.6, 0.24, 0.2, 0.5)), polygons_transform(cylinder(28, 1), translation(0, 3, -5).scale(3, 4, 10).rotate(90, 0), material(0.6, 0.24, 0.2, 0.5)), polygons_transform(cylinder(5), translation(x * -5.3, 7).rotate(90, 0).scale(1.7, 5, 1.7), material(0.6, 0.24, 0.2, 0.5)), polygons_transform(cylinder(5), translation(x * -5.3, 3.8).rotate(90, 0, 35).scale(0.75, 5, 0.75), material(0.6, 0.24, 0.2, 0.5))), translation(x - 100, 0.7, 97));
+      meshAdd(csg_polygons_subtract(polygons_transform(cylinder(), translation(x * -4, 3.5, -0.5).scale(4, 4, 0.7), material(0.5, 0.5, 0.5, 0.4)), polygons_transform(cylinder(), scaling(3, 3, 10), material(0.6, 0.24, 0.2, 0.5)), polygons_transform(cylinder(28, 1), translation(0, 3, -5).scale(3, 4, 10).rotate(90, 0), material(0.6, 0.24, 0.2, 0.5)), polygons_transform(cylinder(5), translation(x * -5.3, 7).rotate(90, 0).scale(1.7, 5, 1.7), material(0.6, 0.24, 0.2, 0.5)), polygons_transform(cylinder(5), translation(x * -5.3, 3.8).rotate(90, 0, 35).scale(0.75, 5, 0.75), material(0.6, 0.24, 0.2, 0.5))), translation(x - 100, 0.7, 97));
     });
     newModel((model) => {
       model._update = () => translation(-100, 0.6, 96.5).scale(0.88, 1.2 - levers[12].$lerpValue);
@@ -954,7 +956,7 @@ const build_life_the_universe_and_everything = () => {
     meshAdd(csg_polygons_subtract(polygons_transform(cylinder(), translation(-82.07, 0.8, 106).scale(11, 0.9, 2.2), material(0.7, 0.7, 0.7, 0.1)), polygons_transform(cylinder(45, 1), translation(-81, 0.7, 106).scale3d(7.7), material(0.7, 0.7, 0.7, 0.1))));
     newModel((model) => {
       model._update = () => translation(-81, 0.6, 106).rotate(0, 40 + rotatingPlatform1Rotation);
-      meshAdd(csg_polygons_subtract(polygons_transform(cylinder(45, 1), identity.scale(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2)), polygons_transform(cylinder(), translation(0, 0, -5.5).scale(1.5, 3, 2.7), material(0.45, 0.45, 0.45, 0.2))));
+      meshAdd(csg_polygons_subtract(polygons_transform(cylinder(45, 1), scaling(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2)), polygons_transform(cylinder(), translation(0, 0, -5.5).scale(1.5, 3, 2.7), material(0.45, 0.45, 0.45, 0.2))));
       meshAdd(cylinder(8), translation(0, 2).scale(3, 1.5, 3).rotate(0, 22), material(0.7, 0.7, 0.7, 0.1));
       meshAdd(cylinder(5), translation(0, 2).scale(1, 2), material(0.3, 0.3, 0.3, 0.2));
       newSoul(translation(0, 3), ...polygon_regular(14).map(({ x, z }) => [
@@ -968,21 +970,21 @@ const build_life_the_universe_and_everything = () => {
       [
         -1,
         1
-      ].map((x) => meshAdd(hornPolygons, identity.rotate(0, 90).translate(x * -5, 1, -0.5).scale(1.2, 10, 1.2).rotate(0, 90 * x + 90), material(1, 1, 0.8)));
-      meshAdd(csg_polygons_subtract(polygons_transform(cylinder(28, 1), translation(0, 2).scale(7.5, 1, 7.5), material(0.35, 0, 0, 0.3)), polygons_transform(cylinder(), identity.scale(9, 5, 2), material(0.3, 0, 0, 0.3))));
-      meshAdd(polygons_transform(cylinder(28, 1), identity.scale(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2)));
+      ].map((x) => meshAdd(hornPolygons, rotation(0, 90).translate(x * -5, 1, -0.5).scale(1.2, 10, 1.2).rotate(0, 90 * x + 90), material(1, 1, 0.8)));
+      meshAdd(csg_polygons_subtract(polygons_transform(cylinder(28, 1), translation(0, 2).scale(7.5, 1, 7.5), material(0.35, 0, 0, 0.3)), polygons_transform(cylinder(), scaling(9, 5, 2), material(0.3, 0, 0, 0.3))));
+      meshAdd(polygons_transform(cylinder(28, 1), scaling(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2)));
       meshAdd(polygons_transform(cylinder(5), translation(0, 1).scale(1, 0.2), material(0.3, 0.3, 0.3, 0.2)));
     });
     newModel((model) => {
       model._update = () => translation(-50.7, 0.8, 106).rotate(0, 180 - rotatingPlatform2Rotation);
       meshAdd(csg_polygons_subtract(polygons_transform(cylinder(28, 1), translation(0, 2).scale(7.5, 1, 7.5), material(0.35, 0, 0, 0.3)), polygons_transform(cylinder(), translation(7).scale(9, 5, 2), material(0.3, 0, 0, 0.3)), polygons_transform(cylinder(), translation(0, 0, 7).scale(2, 5, 9), material(0.3, 0, 0, 0.3))));
-      meshAdd(polygons_transform(cylinder(28, 1), identity.scale(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2)));
+      meshAdd(polygons_transform(cylinder(28, 1), scaling(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2)));
       meshAdd(polygons_transform(cylinder(5), translation(0, 1).scale(1, 0.2), material(0.3, 0.3, 0.3, 0.2)));
     });
     newModel((model) => {
       model._update = () => translation(-50.7, 0.8, 91).rotate(0, 270 + rotatingPlatform2Rotation);
       meshAdd(csg_polygons_subtract(polygons_transform(cylinder(28, 1), translation(0, 2).scale(7.5, 1, 7.5), material(0.35, 0, 0, 0.3)), polygons_transform(cylinder(), translation(7).scale(9, 5, 2), material(0.3, 0, 0, 0.3)), polygons_transform(cylinder(), translation(0, 0, -7).scale(2, 5, 9), material(0.3, 0, 0, 0.3))));
-      meshAdd(polygons_transform(cylinder(28, 1), identity.scale(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2)));
+      meshAdd(polygons_transform(cylinder(28, 1), scaling(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2)));
       meshAdd(polygons_transform(cylinder(5), translation(0, 1).scale(1, 0.2), material(0.3, 0.3, 0.3, 0.2)));
     });
     meshAdd(cylinder(), translation(-58, 1, 106).scale(2, 0.65, 2), material(0.7, 0.7, 0.7, 0.2));
@@ -1037,8 +1039,8 @@ const build_life_the_universe_and_everything = () => {
         const v = lerpneg(lerpneg((levers[14].$lerpValue + levers[14].$lerpValue2) / 2, levers[13].$lerpValue2), (levers[15].$lerpValue + levers[15].$lerpValue2) / 2);
         return translation(0, v * 16, clamp(v * 2 - 1) * 8.5 + 95);
       };
-      meshAdd(cylinder(5), identity.scale(5, 1.1, 5), material(0.5, 0.3, 0.3, 0.4));
-      meshAdd(cylinder(5), identity.scale(5.5, 0.9, 5.5), material(0.25, 0.25, 0.25, 0.4));
+      meshAdd(cylinder(5), scaling(5, 1.1, 5), material(0.5, 0.3, 0.3, 0.4));
+      meshAdd(cylinder(5), scaling(5.5, 0.9, 5.5), material(0.25, 0.25, 0.25, 0.4));
       newLever(translation(0, 1.5, -1).rotate(0, 180));
     });
     newSoul(translation(0, 3, 95), ...polygon_regular(9).map(({ x, z }) => [
@@ -1056,15 +1058,15 @@ const build_life_the_universe_and_everything = () => {
     [
       0,
       180
-    ].map((r) => meshAdd(hornPolygons, identity.rotate(0, r).translate(0.2, 1.32).rotate(-30).scale(0.2, 0.6, 0.2), material(1, 1, 0.8)));
+    ].map((r) => meshAdd(hornPolygons, rotation(0, r).translate(0.2, 1.32).rotate(-30).scale(0.2, 0.6, 0.2), material(1, 1, 0.8)));
     meshAdd(sphere(20), translation(0, 1).scale(0.5, 0.5, 0.5), material(1, 0.3, 0.4));
-    const eye = polygons_transform(csg_polygons_subtract(cylinder(15, 1), polygons_transform(cylinder(), translation(0, 0, 1).scale(2, 2, 0.5))), identity.rotate(-90, 0).scale(0.1, 0.05, 0.1), material(0.3, 0.3, 0.3));
+    const eye = polygons_transform(csg_polygons_subtract(cylinder(15, 1), polygons_transform(cylinder(), translation(0, 0, 1).scale(2, 2, 0.5))), rotation(-90, 0).scale(0.1, 0.05, 0.1), material(0.3, 0.3, 0.3));
     [
       -1,
       1
     ].map((i) => meshAdd(eye, translation(i * 0.2, 1.2, 0.4).rotate(0, i * 20, i * 20)));
     meshAdd(cylinder(), translation(0, 0.9, 0.45).scale(0.15, 0.02, 0.06), material(0.3, 0.3, 0.3));
-    meshAdd(sphere(20), identity.scale(0.7, 0.8, 0.55), material(1, 0.3, 0.4));
+    meshAdd(sphere(20), scaling(0.7, 0.8, 0.55), material(1, 0.3, 0.4));
   });
   [
     -1,
@@ -1073,12 +1075,12 @@ const build_life_the_universe_and_everything = () => {
     meshAdd(cylinder(10, 1), translation(x * 0.3, -0.8).scale(0.2, 0.7, 0.24), material(1, 0.3, 0.4));
   }));
   newModel(() => {
-    meshAdd(cylinder(6, 1), identity.scale(0.13, 1.4, 0.13), material(0.3, 0.3, 0.5, 0.1));
+    meshAdd(cylinder(6, 1), scaling(0.13, 1.4, 0.13), material(0.3, 0.3, 0.5, 0.1));
     meshAdd(cylinder(10), translation(0, 1).scale(0.21, 0.3, 0.21), material(1, 0.5, 0.2));
     meshAdd(cylinder(3), translation(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3), material(0.2, 0.2, 0.2, 0.1));
   }, MODEL_KIND_MESH);
   newModel(() => {
-    meshAdd(cylinder(6).slice(0, -1), identity.scale(0.77, 1, 0.77), material(1, 0.3, 0.5));
+    meshAdd(cylinder(6).slice(0, -1), scaling(0.77, 1, 0.77), material(1, 0.3, 0.5));
   }, MODEL_KIND_MESH);
   newModel(() => {
     const GHOST_STACKS = 24;
@@ -1101,7 +1103,7 @@ const build_life_the_universe_and_everything = () => {
         y: /* @__PURE__ */ Math.cos(bm * Math.PI) - bm - osc,
         z: /* @__PURE__ */ Math.sin(theta) * /* @__PURE__ */ Math.sin(phixz) + /* @__PURE__ */ Math.sin(osc * Math.PI * 2) / 4
       };
-    }), identity.scale3d(0.7), material(1, 1, 1));
+    }), scaling(0.7, 0.7, 0.7), material(1, 1, 1));
     [
       -1,
       1
@@ -1158,7 +1160,7 @@ const csm_buildMatrix = (camera_view, nearPlane, farPlane, zMultiplier) => {
     tz -= v.z = (roundingRadius * v.z | 0) / (roundingRadius * v.w);
     return v;
   });
-  const lightViewTranslated = identity.rotate(LIGHT_ROT_X, LIGHT_ROT_Y).translateSelf(tx / 8, ty / 8, tz / 8);
+  const lightViewTranslated = rotation(LIGHT_ROT_X, LIGHT_ROT_Y).translateSelf(tx / 8, ty / 8, tz / 8);
   let left = Infinity;
   let right = -Infinity;
   let bottom = Infinity;
@@ -1175,7 +1177,7 @@ const csm_buildMatrix = (camera_view, nearPlane, farPlane, zMultiplier) => {
   });
   near *= near < 0 ? zMultiplier : 1 / zMultiplier;
   far *= far > 0 ? zMultiplier : 1 / zMultiplier;
-  return identity.scale(2 / (right - left), 2 / (top - bottom), 2 / (near - far)).translateSelf((right + left) / -2, (top + bottom) / -2, (near + far) / 2).multiplySelf(lightViewTranslated);
+  return lightViewTranslated.preMultiplySelf(scaling(2 / (right - left), 2 / (top - bottom), 2 / (near - far)).translateSelf((right + left) / -2, (top + bottom) / -2, (near + far) / 2));
 };
 const audioContext = new AudioContext();
 const songAudioSource = audioContext.createBufferSource();
@@ -1638,7 +1640,7 @@ const initShaderProgram = (vertexShader, sfsSource) => {
 };
 const renderModels = (worldMatrixLoc, renderPlayer, soulModelId, isShadowRender) => {
   if (mainMenuVisible) {
-    const matrix = identity.rotate(0, /* @__PURE__ */ Math.sin(absoluteTime) * 40 - 70);
+    const matrix = rotation(0, /* @__PURE__ */ Math.sin(absoluteTime) * 40 - 70);
     for (const modelId of [
       MODEL_ID_PLAYER_BODY,
       MODEL_ID_PLAYER_LEG0,
@@ -1682,7 +1684,7 @@ const startMainLoop = (groundTextureImage) => {
       gl["v5y"](0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
       gl["c4s"](16640);
       gl["cbf"](true, false, true, false);
-      gl["uae"](collisionShader(uniformName_viewMatrix), false, matrixToArray(identity.rotate(0, 180).invertSelf().translateSelf(-x, -y, 0.3 - z)));
+      gl["uae"](collisionShader(uniformName_viewMatrix), false, matrixToArray(rotation(0, 180).invertSelf().translateSelf(-x, -y, 0.3 - z)));
       renderModels(collisionShader(uniformName_worldMatrices), 0, MODEL_ID_SOUL_COLLISION, 0);
       gl["c4s"](256);
       gl["cbf"](false, true, true, false);
@@ -1690,7 +1692,7 @@ const startMainLoop = (groundTextureImage) => {
       renderModels(collisionShader(uniformName_worldMatrices), 0, MODEL_ID_SOUL_COLLISION, 0);
       gl["f1s"]();
     }
-    const camera_view = mainMenuVisible ? identity.rotate(-20, -90).invertSelf().translateSelf(5, -2, -3.4) : identity.rotate(-camera_rotation.x, -camera_rotation.y).invertSelf().translateSelf(-camera_position_x, -camera_position_y, -camera_position_z);
+    const camera_view = mainMenuVisible ? rotation(-20, -90).invertSelf().translateSelf(5, -2, -3.4) : rotation(-camera_rotation.x, -camera_rotation.y).invertSelf().translateSelf(-camera_position_x, -camera_position_y, -camera_position_z);
     csmShader();
     gl["b6o"](36160, csm_framebuffer);
     gl["v5y"](0, 0, constDef_CSM_TEXTURE_SIZE, constDef_CSM_TEXTURE_SIZE);

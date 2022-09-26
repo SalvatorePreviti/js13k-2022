@@ -1,4 +1,4 @@
-import { integers_map, max, min, identity } from "./math";
+import { integers_map, max, min, scaling, rotation } from "./math";
 import { polygon_transform } from "./geometry/geometry";
 import { mat_perspective } from "./camera";
 
@@ -6,7 +6,7 @@ const LIGHT_ROT_X = 298;
 const LIGHT_ROT_Y = 139;
 
 if (DEBUG) {
-  const lightMatrix = /* @__PURE__ */ identity.rotate(LIGHT_ROT_X, LIGHT_ROT_Y);
+  const lightMatrix = /* @__PURE__ */ rotation(LIGHT_ROT_X, LIGHT_ROT_Y);
   console.log("light direction: ", lightMatrix.m13, lightMatrix.m23, lightMatrix.m33);
 }
 
@@ -37,7 +37,7 @@ export const csm_buildMatrix = /* @__PURE__ */ (
     return v;
   });
 
-  const lightViewTranslated = identity.rotate(LIGHT_ROT_X, LIGHT_ROT_Y).translateSelf(tx / 8, ty / 8, tz / 8);
+  const lightViewTranslated = rotation(LIGHT_ROT_X, LIGHT_ROT_Y).translateSelf(tx / 8, ty / 8, tz / 8);
 
   let left = Infinity;
   let right = -Infinity;
@@ -60,8 +60,7 @@ export const csm_buildMatrix = /* @__PURE__ */ (
   far *= far > 0 ? zMultiplier : 1 / zMultiplier;
 
   // Build the ortographic matrix, multiply it with the light space view matrix.
-  return identity
-    .scale(2 / (right - left), 2 / (top - bottom), 2 / (near - far))
+  return scaling(2 / (right - left), 2 / (top - bottom), 2 / (near - far))
     .translateSelf((right + left) / -2, (top + bottom) / -2, (near + far) / 2)
     .multiplySelf(lightViewTranslated);
 };

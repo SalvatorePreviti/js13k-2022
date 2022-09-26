@@ -1,4 +1,4 @@
-import { identity, matrixToArray } from "../math";
+import { matrixToArray, rotation } from "../math";
 import { absoluteTime, mainMenuVisible } from "./world-state";
 import type { MODEL_ID_SOUL } from "./models";
 import {
@@ -23,7 +23,7 @@ export const renderModels = (
   isShadowRender: 0 | 1,
 ) => {
   if (mainMenuVisible) {
-    const matrix = identity.rotate(0, Math.sin(absoluteTime) * 40 - 70);
+    const matrix = rotation(0, Math.sin(absoluteTime) * 40 - 70);
     for (const modelId of [MODEL_ID_PLAYER_BODY, MODEL_ID_PLAYER_LEG0, MODEL_ID_PLAYER_LEG1]) {
       matrixToArray(matrix, worldMatricesBuffer, modelId - 1);
     }

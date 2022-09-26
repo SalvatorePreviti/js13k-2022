@@ -20,7 +20,7 @@ import void_fsSource from "./shaders/void-fragment.frag";
 import sky_vsSource from "./shaders/sky-vertex.vert";
 import sky_fsSource, { uniformName_iResolution } from "./shaders/sky-fragment.frag";
 
-import { integers_map, identity, mat_perspectiveXY, matrixToArray, translation } from "./math";
+import { integers_map, matrixToArray, mat_perspectiveXY, translation, rotation } from "./math";
 import { MODEL_ID_SOUL, MODEL_ID_SOUL_COLLISION, player_position_final } from "./game/models";
 import { absoluteTime, gameTimeDelta, gameTimeUpdate, mainMenuVisible, worldStateUpdate } from "./game/world-state";
 import { mat_perspective, zFar, zNear, camera_rotation } from "./camera";
@@ -121,8 +121,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
         collisionShader(uniformName_viewMatrix),
         false,
         matrixToArray(
-          identity
-            .rotate(0, 180)
+          rotation(0, 180)
             .invertSelf()
             .translateSelf(-x, -y, 0.3 - z),
         ),
@@ -143,9 +142,8 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     // view camera
 
     const camera_view = mainMenuVisible
-      ? identity.rotate(-20, -90).invertSelf().translateSelf(5, -2, -3.4)
-      : identity
-          .rotate(-camera_rotation.x, -camera_rotation.y)
+      ? rotation(-20, -90).invertSelf().translateSelf(5, -2, -3.4)
+      : rotation(-camera_rotation.x, -camera_rotation.y)
           .invertSelf()
           .translateSelf(-camera_position_x, -camera_position_y, -camera_position_z);
 
