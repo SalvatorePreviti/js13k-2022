@@ -116,9 +116,13 @@ export const player_init = () => {
     previous: number,
     desired: number,
     hysteresis: number,
-    t: number,
+    speed: number,
   ) =>
-    lerp(previous, desired, boot || (clamp(Math.abs(desired - previous) ** 0.9 - hysteresis) + 1 / 7) * damp(t * 1.5));
+    lerp(
+      previous,
+      desired,
+      boot || (clamp(Math.abs(desired - previous) ** 0.9 - hysteresis) + 1 / 7) * damp(speed * 1.5),
+    );
 
   player_move = () => {
     let referenceMatrix = getReferenceMatrix();
