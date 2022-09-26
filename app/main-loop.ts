@@ -21,7 +21,7 @@ import sky_vsSource from "./shaders/sky-vertex.vert";
 import sky_fsSource, { uniformName_iResolution } from "./shaders/sky-fragment.frag";
 
 import { integers_map, matrixToArray, mat_perspectiveXY, translation, rotation } from "./math";
-import { mat_perspective, zFar, zNear, camera_rotation } from "./camera";
+import { mat_perspective, zFar, zNear } from "./camera";
 import { MODEL_ID_SOUL, MODEL_ID_SOUL_COLLISION, player_position_final } from "./game/models";
 import {
   absoluteTime,
@@ -33,7 +33,7 @@ import {
   worldStateUpdate,
 } from "./game/world-state";
 import { csm_buildMatrix } from "./csm";
-import { initPage, player_first_person, updateInput } from "./page";
+import { camera_rotation, initPage, player_first_person, updateInput } from "./page";
 import { gl } from "./gl";
 import {
   player_update,
@@ -267,9 +267,9 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
   worldStateUpdate();
 
-  NO_INLINE(player_init)();
-
   NO_INLINE(initPage)();
+
+  NO_INLINE(player_init)();
 
   // gl.bindFramebuffer(gl.FRAMEBUFFER, collision_frameBuffer);
   requestAnimationFrame(mainLoop);

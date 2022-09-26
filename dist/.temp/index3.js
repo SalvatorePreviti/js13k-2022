@@ -941,8 +941,8 @@ Rb(() => {
         Z.d4n(515);
         Z.c5t(0, 0, 0, 1);
         sb();
-        NO_INLINE($b)();
         NO_INLINE(Gb)();
+        NO_INLINE($b)();
         requestAnimationFrame(l);
       }
     },

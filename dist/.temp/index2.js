@@ -1459,8 +1459,8 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
         gl["d4n"](515),
         gl["c5t"](0, 0, 0, 1),
         worldStateUpdate(),
-        NO_INLINE(player_init)(),
         NO_INLINE(initPage)(),
+        NO_INLINE(player_init)(),
         requestAnimationFrame(mainLoop);
     }
   };

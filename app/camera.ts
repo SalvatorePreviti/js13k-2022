@@ -12,8 +12,6 @@ export const fieldOfViewRadians = /* @__PURE__ */ fieldOfViewDegrees * DEG_TO_RA
 
 const fieldOfViewAmount = 1 / Math.tan(fieldOfViewRadians / 2);
 
-export const camera_rotation: Vec2 = { x: 0, y: 180 } as Vec2;
-
 export const mat_perspective = (near: number, far: number) =>
   mat_perspectiveXY((hC.clientHeight / hC.clientWidth) * fieldOfViewAmount, fieldOfViewAmount, near, far);
 

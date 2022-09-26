@@ -28,11 +28,8 @@ import {
   damp,
   shouldRotatePlatforms,
 } from "./game/world-state";
-import { camera_rotation } from "./camera";
-import { movAmount, movAngle, player_first_person } from "./page";
+import { camera_rotation, movAmount, movAngle, player_first_person } from "./page";
 import { gl } from "./gl";
-
-export let player_update: () => void;
 
 export const CAMERA_PLAYER_Y_DIST = 13;
 
@@ -51,6 +48,8 @@ export let camera_position_x: number = 0;
 export let camera_position_y: number = 0;
 
 export let camera_position_z: number = 0;
+
+export let player_update: () => void;
 
 export const set_camera_position = (x: number, y: number, z: number) => {
   camera_position_x = x;

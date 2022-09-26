@@ -9,7 +9,6 @@ import {
   GAMEPAD_BUTTON_X,
   GAMEPAD_BUTTON_Y,
 } from "./utils/keycodes";
-import { camera_rotation } from "./camera";
 import {
   absoluteTime,
   gameTimeDelta,
@@ -25,6 +24,7 @@ import {
   updateCollectedSoulsCounter,
 } from "./game/world-state";
 import { songAudioSource, audioContext } from "./music/audio-context";
+import type { Vec2 } from "./math";
 import { abs, clamp, threshold } from "./math";
 
 export let player_first_person: 0 | 1 | undefined;
@@ -34,6 +34,8 @@ export let movAngle = 0;
 export let movAmount = 0;
 
 export let updateInput: () => void;
+
+export const camera_rotation: Vec2 = { x: 0, y: 180 } as Vec2;
 
 export const initPage = () => {
   let touchStartTime: number | undefined;
