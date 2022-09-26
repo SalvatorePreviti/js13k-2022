@@ -36,6 +36,7 @@ import { babelPluginSimple } from "./steps/babel/babel-plugin-simple";
 import { jsEsbuildMinify } from "./steps/js-esbuild";
 import { jsRemoveEndingSemicolons } from "./lib/code-utils";
 import { babelPluginMath } from "./steps/babel/babel-plugin-math";
+import { jsTdeMinify } from "./steps/js-tde-minify";
 
 const resugarBlockScope = [resugarBlockScopePlugin, { "declarations.block-scope": { disableConst: false } }];
 
@@ -146,7 +147,7 @@ export async function build() {
       ],
     });
 
-    // js = await jsTransformSwc(js, false, swcPluginVars());
+    js = await jsTransformSwc(js, false, swcPluginVars());
 
     js = await jsTerser(js, {
       mangle: false,
@@ -196,6 +197,7 @@ export async function build() {
     js = await jsBabel(js, {
       minify: false,
       plugins: [
+        "babel-plugin-minify-constant-folding",
         resugarConcise,
         resugarFunctionsArrow,
         resugarBlockScope,
@@ -340,7 +342,7 @@ export async function build() {
       inline: false,
     });
 
-    // js = await jsTdeMinify(js);
+    js = await jsTdeMinify(js);
 
     js = jsRemoveEndingSemicolons(js);
 

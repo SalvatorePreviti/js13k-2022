@@ -1,3 +1,7 @@
+if (DEBUG) {
+  window.NO_INLINE = (fn) => fn;
+}
+
 export const integers_map = <T>(n: number, fn: (i: number) => T) => Array.from(Array(n), (_, i) => fn(i));
 
 /** Amount to be multiplied to an angle in degrees to obtain an angle in radians, approximately 0.017453292519943295 */
@@ -106,6 +110,8 @@ export const plane_fromPolygon = /* @__PURE__ */ (polygon: readonly Vec3In[]): P
 
 /** The identity matrix */
 export const identity: DOMMatrixReadOnly = /* @__PURE__ */ new DOMMatrix();
+
+export const translation = NO_INLINE((x: number, y?: number, z?: number) => identity.translate(x, y, z));
 
 export const float32Array16Temp = new Float32Array(16);
 

@@ -1,4 +1,4 @@
-import { integers_map, identity, type Vec3, type Vec3Optional } from "../math";
+import { integers_map, type Vec3, type Vec3Optional, translation } from "../math";
 
 export const GQuad = /* @__PURE__ */ [
   { x: -1, z: 1 },
@@ -79,8 +79,8 @@ export const cylinder = /* @__PURE__ */ (
   elongate?: number,
 ): Polygon[] => {
   const points = segments ? polygon_regular(segments, elongate) : GQuad;
-  const top = polygon_transform(points, identity.translate(0, 1).scale3d(topSize > 0 ? topSize : 1));
-  const bottom = polygon_transform(points, identity.translate(0, -1).scale3d(topSize < 0 ? -topSize : 1)).reverse();
+  const top = polygon_transform(points, translation(0, 1).scale3d(topSize > 0 ? topSize : 1));
+  const bottom = polygon_transform(points, translation(0, -1).scale3d(topSize < 0 ? -topSize : 1)).reverse();
   return [...cylinder_sides(bottom as Polygon, top, smooth), top, bottom];
 };
 
