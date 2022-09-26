@@ -1,4 +1,4 @@
-import { lerp, angle_wrap_degrees, lerpneg, clamp, min } from "../math";
+import { lerp, angle_wrap_degrees, lerpneg, clamp, min, abs } from "../math";
 import { allModels, levers, souls, SOULS_COUNT } from "./models";
 
 export const KEY_LEFT = 0;
@@ -120,11 +120,7 @@ export const worldStateUpdate = () => {
     shouldRotatePlatforms,
   );
 
-  secondBoatLerp = lerpDamp(
-    secondBoatLerp,
-    levers[9]!.$lerpValue2,
-    0.2 + 0.3 * Math.abs(levers[9]!.$lerpValue2 * 2 - 1),
-  );
+  secondBoatLerp = lerpDamp(secondBoatLerp, levers[9]!.$lerpValue2, 0.2 + 0.3 * abs(levers[9]!.$lerpValue2 * 2 - 1));
 
   firstBoatLerp = lerpDamp(firstBoatLerp, game_completed ? lerpDamp(firstBoatLerp, -9, 1.5) : clamp(gameTime / 3), 1);
 

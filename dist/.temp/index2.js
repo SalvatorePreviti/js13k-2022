@@ -203,16 +203,15 @@ const player_position_global = {
   y: 0,
   z: 0,
 };
-const min = (a, b) => a < b ? a : b;
-const max = (a, b) => b < a ? a : b;
+const abs = (a) => a < 0 ? -a : a;
 const clamp = (value, minValue = 0, maxValue = 1) => value < minValue ? minValue : maxValue < value ? maxValue : value;
-const threshold = (value, amount) => amount < Math.abs(value) ? value : 0;
+const threshold = (value, amount) => abs(value) > amount ? value : 0;
 const lerp = (a, b, t) => (0 < t ? t < 1 ? a + (b - a) * t : b : a) || 0;
 const lerpneg = (v, t) => (v = clamp(v), lerp(v, 1 - v, t));
 const angle_wrap_degrees = (degrees) => Math.atan2(Math.sin(degrees *= DEG_TO_RAD), Math.cos(degrees)) / DEG_TO_RAD;
 const angle_lerp_degrees = (a0, a1, t) => a0 + (2 * (a1 = (a1 - a0) % 360) % 360 - a1) * clamp(t) || 0;
 const vec3_distance = ({ x, y, z }, b) => Math.hypot(x - b.x, y - b.y, z - b.z);
-const vec3_dot = ({ x, y, z }, b) => b.x * x + b.y * y + b.z * z;
+const vec3_dot = ({ x, y, z }, b) => x * b.x + y * b.y + z * b.z;
 const plane_fromPolygon = (polygon) => {
   let b;
   let x = 0;
@@ -297,7 +296,7 @@ const polygon_regular = (segments, elongate = 0) =>
     return {
       x: Math.sin(2 * Math.PI * i / segments),
       y: 0,
-      z: Math.abs(z) < 0.01 ? z : z < 0 ? z - elongate : z + elongate,
+      z: abs(z) < 0.01 ? z : z < 0 ? z - elongate : z + elongate,
     };
   });
 const cylinder_sides = (btm, top, smooth) =>
@@ -514,15 +513,10 @@ const worldStateUpdate = () => {
       angle_wrap_degrees(rotatingPlatform2Rotation + 48 * gameTimeDelta),
       shouldRotatePlatforms,
     ),
-    secondBoatLerp = lerpDamp(
-      secondBoatLerp,
-      levers[9].$lerpValue2,
-      0.2 + 0.3 * Math.abs(2 * levers[9].$lerpValue2 - 1),
-    ),
+    secondBoatLerp = lerpDamp(secondBoatLerp, levers[9].$lerpValue2, 0.2 + 0.3 * abs(2 * levers[9].$lerpValue2 - 1)),
     firstBoatLerp = lerpDamp(firstBoatLerp, game_completed ? lerpDamp(firstBoatLerp, -9, 1.5) : clamp(gameTime / 3), 1),
     _messageEndTime && gameTime > _messageEndTime && (_messageEndTime = 0, h4.innerHTML = ""),
-    levers[0].$value && 0.8 < levers[0].$lerpValue
-    && (souls_collected_count < 13
+    levers[0].$value && 0.8 < levers[0].$lerpValue && (souls_collected_count < 13
       ? (showMessage("Not leaving now, there are souls to catch!", 3), levers[0].$value = 0)
       : game_completed
         || (showMessage("Well done. They will be punished.<br>Thanks for playing", 1 / 0), game_completed = 1));
@@ -682,7 +676,7 @@ const newSoul = (transform, ...walkingPath) => {
         && (soul.$matrix = allModels[2].$matrix.translate(
           index % 4 * 1.2 - 1.7 + Math.sin(gameTime + index) / 7,
           -2,
-          1.7 * (index / 4 | 0) - 5.5 + Math.abs(index % 4 - 2) + Math.cos(gameTime / 1.5 + index) / 6,
+          1.7 * (index / 4 | 0) - 5.5 + abs(index % 4 - 2) + Math.cos(gameTime / 1.5 + index) / 6,
         ));
     },
   };
@@ -845,8 +839,8 @@ const initPage = () => {
             touchPosIdentifier === identifier
             && (identifier = (touchPosStartX - pageX) / 20,
               deltaY = (touchPosStartY - pageY) / 20,
-              absDeltaX = Math.abs(identifier),
-              absDeltaY = Math.abs(deltaY),
+              absDeltaX = abs(identifier),
+              absDeltaY = abs(deltaY),
               angle = Math.atan2(deltaY, identifier),
               speed = clamp(Math.hypot(deltaY, identifier) - 0.5),
               touch_movementX = 0.2 < absDeltaX ? Math.cos(angle) * speed : 0,
@@ -907,11 +901,7 @@ const player_init = () => {
       ? levers[player_last_pulled_lever].$parent.$matrix
       : oldModelId && allModels[oldModelId].$kind === 1 && allModels[oldModelId].$matrix || identity;
   const interpolate_with_hysteresis = (previous, desired, hysteresis, speed) =>
-    lerp(
-      previous,
-      desired,
-      boot || (clamp(Math.abs(desired - previous) ** 0.9 - hysteresis) + 1 / 7) * damp(1.5 * speed),
-    );
+    lerp(previous, desired, boot || (clamp(abs(desired - previous) ** 0.9 - hysteresis) + 1 / 7) * damp(1.5 * speed));
   const doVerticalCollisions = () => {
     let maxModelIdCount = 0;
     let nextModelId = 0;
@@ -953,15 +943,15 @@ const player_init = () => {
         let i2 = yindex + 4 * (127 - x);
         const dist1 = collision_buffer[i1] / 255;
         const dist2 = collision_buffer[1 + i2] / 255;
-        const t = 1 - Math.abs(x / 63.5 - 1);
+        const t = 1 - abs(x / 63.5 - 1);
         10 < x && x < 118
         && (front = max(max(dist1 * t, dist1 * collision_buffer[i2] / 255), front),
           back = max(max(dist2 * t, dist2 * collision_buffer[1 + i1] / 255), back)),
           (x < 54 || 74 < x) && 1e-3 < (i2 = (1 - t) * max(dist1, dist2) / 3)
           && (x < 64 && i2 > left ? left = i2 : 64 < x && i2 > right && (right = i2));
       }
-      Math.abs(right - left) > Math.abs(player_mov_x) && (player_mov_x = right - left),
-        Math.abs(back - front) > Math.abs(player_mov_z) && (player_mov_z = back - front);
+      abs(right - left) > abs(player_mov_x) && (player_mov_x = right - left),
+        abs(back - front) > abs(player_mov_z) && (player_mov_z = back - front);
     }
   };
   const player_collision_modelIdCounter = new Int32Array(256);
@@ -1009,7 +999,7 @@ const player_init = () => {
       v < (inverseReferenceRotationMatrix < -25 || referenceMatrix2 < 109 ? -25 : -9)
       && (player_collision_velocity_x = player_collision_velocity_z = player_speed = 0, player_respawned = 2),
       currentModelId === 1 && (levers[9].$value = inverseReferenceRotationMatrix < -15 && referenceMatrix2 < 0 ? 1 : 0),
-      player_model_y = lerp(lerpDamp(player_model_y, v, 2), v, player_respawned || 8 * Math.abs(player_model_y - v)),
+      player_model_y = lerp(lerpDamp(player_model_y, v, 2), v, player_respawned || 8 * abs(player_model_y - v)),
       camera_pos_lookat_y = interpolate_with_hysteresis(camera_pos_lookat_y, player_model_y, 2, 1),
       camera_pos_lookat_x = interpolate_with_hysteresis(camera_pos_lookat_x, inverseReferenceRotationMatrix, 0.5, 1),
       camera_pos_lookat_z = interpolate_with_hysteresis(camera_pos_lookat_z, referenceMatrix2, 0.5, 1),
@@ -1040,7 +1030,7 @@ const player_init = () => {
             1,
             2 + player_on_rotating_platforms,
           ),
-          dx = min(4, -Math.abs(camera_pos_lookat_z - camera_position_z)),
+          dx = min(4, -abs(camera_pos_lookat_z - camera_position_z)),
           dz = camera_pos_lookat_x - camera_position_x,
           camera_rotation.y = angle_lerp_degrees(
             camera_rotation.y,
@@ -1095,7 +1085,7 @@ const player_init = () => {
           ]),
           NO_INLINE(doHorizontalCollisions)(),
           NO_INLINE(doVerticalCollisions)(),
-          clamp(1 - 5 * max(Math.abs(player_mov_x), Math.abs(player_mov_z))));
+          clamp(1 - 5 * max(abs(player_mov_x), abs(player_mov_z))));
       const movementRadians = player_first_person ? camera_rotation.y * DEG_TO_RAD : Math.PI;
       player_legs_speed = lerpDamp(player_legs_speed, gamepad, 10),
         gamepad && (player_look_angle_target = 90 - getGamepadButtonState / DEG_TO_RAD),
@@ -1304,6 +1294,8 @@ const groundTextureSvg = "data:image/svg+xml;base64,"
   + btoa(
     "<svg color-interpolation-filters=\"sRGB\" height=\"1024\" width=\"1024\" xmlns=\"http://www.w3.org/2000/svg\"><filter filterUnits=\"userSpaceOnUse\" height=\"1026\" id=\"a\" width=\"1026\" x=\"0\" y=\"0\"><feTurbulence baseFrequency=\".007\" height=\"1025\" numOctaves=\"6\" stitchTiles=\"stitch\" width=\"1025\" result=\"z\" type=\"fractalNoise\" x=\"1\" y=\"1\"/><feTile height=\"1024\" width=\"1024\" x=\"-1\" y=\"-1\"/><feTile/><feDiffuseLighting diffuseConstant=\"4\" lighting-color=\"red\" surfaceScale=\"5\"><feDistantLight azimuth=\"270\" elevation=\"5\"/></feDiffuseLighting><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"x\"/><feColorMatrix values=\"0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 1\" in=\"z\"/><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"z\"/><feTurbulence baseFrequency=\".01\" height=\"1024\" numOctaves=\"5\" stitchTiles=\"stitch\" width=\"1024\"/><feColorMatrix values=\"0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1\"/><feBlend in2=\"x\" mode=\"screen\"/><feBlend in2=\"z\" mode=\"screen\"/></filter><rect filter=\"url(#a)\" height=\"100%\" width=\"100%\"/></svg>",
   );
+const min = NO_INLINE((a, b) => a < b ? a : b);
+const max = NO_INLINE((a, b) => b < a ? a : b);
 const translation = NO_INLINE((x, y, z) => identity.translate(x, y, z));
 const material = NO_INLINE((r, g, b, a = 0) => 255 * a << 24 | 255 * b << 16 | 255 * g << 8 | 255 * r);
 const songAudioSource = audioContext.createBufferSource();
@@ -1672,7 +1664,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 ...polygon_regular(18).map(({ x, z }) => [
                   7 * x,
                   10 * z,
-                  4.5 - 2 * Math.abs(x),
+                  4.5 - 2 * abs(x),
                 ]),
               ),
               meshAdd(cylinder(), translation(-5, -0.2, -26).scale(3.2, 1, 2.5).skewX(3), material(0.8, 0.8, 0.8, 0.2)),
@@ -2190,13 +2182,11 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 ),
               ));
             newModel((model) => {
-              model._update = () =>
-                translation(0, -2, shouldPushRods() * Math.abs(Math.sin(1.1 * gameTime)) * -8.5 + 10),
+              model._update = () => translation(0, -2, shouldPushRods() * abs(Math.sin(1.1 * gameTime)) * -8.5 + 10),
                 integers_map(2, (x) => meshAdd(pushingRod, translation(9 * x - 110 + (1 & x), 1.7, -12)));
             }),
               newModel((model) => {
-                model._update = () =>
-                  translation(0, -2, shouldPushRods() * Math.abs(Math.sin(2.1 * gameTime)) * -8.5 + 10),
+                model._update = () => translation(0, -2, shouldPushRods() * abs(Math.sin(2.1 * gameTime)) * -8.5 + 10),
                   integers_map(2, (x) => meshAdd(pushingRod, translation(9 * (x + 2) - 110 + (1 & x), 1.7, -12)));
               }),
               newModel((model) => {
@@ -2207,7 +2197,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                     -8.5
                         * max(
                           (1 - levers[10].$lerpValue) * (1 - shouldPushRods()),
-                          shouldPushRods() * Math.abs(Math.sin(1.5 * gameTime)),
+                          shouldPushRods() * abs(Math.sin(1.5 * gameTime)),
                         ) + 10,
                   ), integers_map(3, (x) => meshAdd(pushingRod, translation(9 * x - 106, 1.7, -12)));
               }),

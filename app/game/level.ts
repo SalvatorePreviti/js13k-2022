@@ -1,4 +1,4 @@
-import { clamp, integers_map, lerpneg, max, min, identity, translation } from "../math";
+import { clamp, integers_map, lerpneg, max, min, identity, translation, abs } from "../math";
 import {
   GQuad,
   cylinder,
@@ -129,7 +129,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
       translation(0, 2.8),
       [5, 10, 3],
       [-5, 10, 3],
-      ...polygon_regular(18).map(({ x, z }) => [x * 7, z * 10, 4.5 - Math.abs(x) * 2]),
+      ...polygon_regular(18).map(({ x, z }) => [x * 7, z * 10, 4.5 - abs(x) * 2]),
     );
 
     // first boat attachment
@@ -672,18 +672,18 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     );
 
     newModel((model) => {
-      model._update = () => translation(0, -2, shouldPushRods() * Math.abs(Math.sin(gameTime * 1.1)) * -8.5 + 10);
+      model._update = () => translation(0, -2, shouldPushRods() * abs(Math.sin(gameTime * 1.1)) * -8.5 + 10);
       integers_map(2, (x) => meshAdd(pushingRod, translation(-110 + x * 9 + (x & 1), 1.7, -12)));
     });
 
     newModel((model) => {
-      model._update = () => translation(0, -2, shouldPushRods() * Math.abs(Math.sin(gameTime * 2.1)) * -8.5 + 10);
+      model._update = () => translation(0, -2, shouldPushRods() * abs(Math.sin(gameTime * 2.1)) * -8.5 + 10);
       integers_map(2, (x) => meshAdd(pushingRod, translation(-110 + (x + 2) * 9 + (x & 1), 1.7, -12)));
     });
 
     newModel((model) => {
       model._update = () =>
-        translation(0, -2, max(shouldBlockRods(), shouldPushRods() * Math.abs(Math.sin(gameTime * 1.5))) * -8.5 + 10);
+        translation(0, -2, max(shouldBlockRods(), shouldPushRods() * abs(Math.sin(gameTime * 1.5))) * -8.5 + 10);
       integers_map(3, (x) => meshAdd(pushingRod, translation(-106 + x * 9, 1.7, -12)));
     });
 

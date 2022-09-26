@@ -9,6 +9,7 @@ import {
   threshold,
   min,
   translation,
+  abs,
 } from "./math";
 import {
   levers,
@@ -129,11 +130,7 @@ export const player_init = () => {
     hysteresis: number,
     speed: number,
   ) =>
-    lerp(
-      previous,
-      desired,
-      boot || (clamp(Math.abs(desired - previous) ** 0.9 - hysteresis) + 1 / 7) * damp(speed * 1.5),
-    );
+    lerp(previous, desired, boot || (clamp(abs(desired - previous) ** 0.9 - hysteresis) + 1 / 7) * damp(speed * 1.5));
 
   player_move = () => {
     let referenceMatrix = getReferenceMatrix();
@@ -196,7 +193,7 @@ export const player_init = () => {
       levers[9]!.$value = x < -15 && z < 0 ? 1 : 0;
     }
 
-    player_model_y = lerp(lerpDamp(player_model_y, y, 2), y, player_respawned || Math.abs(player_model_y - y) * 8);
+    player_model_y = lerp(lerpDamp(player_model_y, y, 2), y, player_respawned || abs(player_model_y - y) * 8);
     camera_pos_lookat_y = interpolate_with_hysteresis(camera_pos_lookat_y, player_model_y, 2, 1);
     camera_pos_lookat_x = interpolate_with_hysteresis(camera_pos_lookat_x, x, 0.5, 1);
     camera_pos_lookat_z = interpolate_with_hysteresis(camera_pos_lookat_z, z, 0.5, 1);
@@ -233,7 +230,7 @@ export const player_init = () => {
           2 + player_on_rotating_platforms,
         );
 
-        const viewDirDiffz = min(4, -Math.abs(camera_pos_lookat_z - camera_position_z));
+        const viewDirDiffz = min(4, -abs(camera_pos_lookat_z - camera_position_z));
         const viewDirDiffx = camera_pos_lookat_x - camera_position_x;
 
         camera_rotation.y = angle_lerp_degrees(
@@ -332,7 +329,7 @@ export const player_init = () => {
         const i2 = yindex + (COLLISION_TEXTURE_SIZE - 1 - x) * 4;
         const dist1 = collision_buffer[i1]! / 255;
         const dist2 = collision_buffer[i2 + 1]! / 255;
-        const t = 1 - Math.abs(2 * (x / (COLLISION_TEXTURE_SIZE - 1)) - 1);
+        const t = 1 - abs(2 * (x / (COLLISION_TEXTURE_SIZE - 1)) - 1);
 
         if (x > 10 && x < COLLISION_TEXTURE_SIZE - 10) {
           front = max(max(dist1 * t, (dist1 * collision_buffer[i2]!) / 255), front);
@@ -351,10 +348,10 @@ export const player_init = () => {
         }
       }
 
-      if (Math.abs(right - left) > Math.abs(player_mov_x)) {
+      if (abs(right - left) > abs(player_mov_x)) {
         player_mov_x = right - left;
       }
-      if (Math.abs(back - front) > Math.abs(player_mov_z)) {
+      if (abs(back - front) > abs(player_mov_z)) {
         player_mov_z = back - front;
       }
     }
@@ -410,7 +407,7 @@ export const player_init = () => {
     NO_INLINE(doHorizontalCollisions)();
     NO_INLINE(doVerticalCollisions)();
 
-    const playerSpeedCollision = clamp(1 - max(Math.abs(player_mov_x), Math.abs(player_mov_z)) * 5);
+    const playerSpeedCollision = clamp(1 - max(abs(player_mov_x), abs(player_mov_z)) * 5);
     const movementRadians = player_first_person ? camera_rotation.y * DEG_TO_RAD : Math.PI;
     player_legs_speed = lerpDamp(player_legs_speed, movAmount, 10);
     if (movAmount) {

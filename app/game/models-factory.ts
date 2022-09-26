@@ -1,4 +1,4 @@
-import { min, angle_lerp_degrees, DEG_TO_RAD, identity, type Vec3Optional, vec3_distance, clamp } from "../math";
+import { min, angle_lerp_degrees, DEG_TO_RAD, identity, type Vec3Optional, vec3_distance, clamp, abs } from "../math";
 import { cylinder, polygons_transform, type Polygon } from "../geometry/geometry";
 import {
   levers,
@@ -171,7 +171,7 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]
         soul.$matrix = allModels[MODEL_ID_FIRST_BOAT]!.$matrix.translate(
           (index % 4) * 1.2 - 1.7 + Math.sin(gameTime + index) / 7,
           -2,
-          -5.5 + ((index / 4) | 0) * 1.7 + Math.abs((index % 4) - 2) + Math.cos(gameTime / 1.5 + index) / 6,
+          -5.5 + ((index / 4) | 0) * 1.7 + abs((index % 4) - 2) + Math.cos(gameTime / 1.5 + index) / 6,
         );
       }
     },

@@ -1,4 +1,4 @@
-import { integers_map, type Vec3, type Vec3Optional, translation } from "../math";
+import { integers_map, type Vec3, type Vec3Optional, translation, abs } from "../math";
 
 export const GQuad = /* @__PURE__ */ [
   { x: -1, z: 1 },
@@ -53,7 +53,7 @@ export const polygon_regular = /* @__PURE__ */ (segments: number, elongate: numb
     return {
       x: Math.sin(Math.PI * 2 * (i / segments)),
       y: 0,
-      z: Math.abs(z) < 0.01 ? z : z < 0 ? z - elongate : z + elongate,
+      z: abs(z) < 0.01 ? z : z < 0 ? z - elongate : z + elongate,
     };
   });
 
