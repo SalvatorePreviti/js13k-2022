@@ -45,14 +45,8 @@ export const lerpDamp = /* @__PURE__ */ (from: number, to: number, speed: number
 
 export const gameTimeUpdate = (time: number) => {
   const dt = (time - (_globalTime || time)) / 1000;
-  if (mainMenuVisible) {
-    gameTimeDelta = 0;
-    keyboard_downKeys[KEY_INTERACT] = 0;
-  } else {
-    gameTimeDelta = min(GAME_TIME_MAX_DELTA_TIME, dt);
-  }
-  gameTime += gameTimeDelta;
   absoluteTime += dt;
+  gameTime += gameTimeDelta = mainMenuVisible ? 0 : min(GAME_TIME_MAX_DELTA_TIME, dt);
   _globalTime = time;
 };
 

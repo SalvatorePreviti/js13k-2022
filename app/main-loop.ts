@@ -21,11 +21,19 @@ import sky_vsSource from "./shaders/sky-vertex.vert";
 import sky_fsSource, { uniformName_iResolution } from "./shaders/sky-fragment.frag";
 
 import { integers_map, matrixToArray, mat_perspectiveXY, translation, rotation } from "./math";
-import { MODEL_ID_SOUL, MODEL_ID_SOUL_COLLISION, player_position_final } from "./game/models";
-import { absoluteTime, gameTimeDelta, gameTimeUpdate, mainMenuVisible, worldStateUpdate } from "./game/world-state";
 import { mat_perspective, zFar, zNear, camera_rotation } from "./camera";
+import { MODEL_ID_SOUL, MODEL_ID_SOUL_COLLISION, player_position_final } from "./game/models";
+import {
+  absoluteTime,
+  gameTimeDelta,
+  gameTimeUpdate,
+  keyboard_downKeys,
+  KEY_INTERACT,
+  mainMenuVisible,
+  worldStateUpdate,
+} from "./game/world-state";
 import { csm_buildMatrix } from "./csm";
-import { initPage, player_first_person } from "./page";
+import { initPage, player_first_person, updateInput } from "./page";
 import { gl } from "./gl";
 import {
   player_update,
@@ -99,13 +107,12 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     gameTimeUpdate(globalTime);
 
     if (gameTimeDelta > 0) {
+      updateInput();
+
       worldStateUpdate();
 
       player_update();
-    }
 
-    if (gameTimeDelta > 0) {
-      const { x, y, z } = player_position_final;
       // *** COLLISION RENDERER ***
 
       collisionShader();
@@ -117,6 +124,9 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
       gl.colorMask(true, false, true, false);
+
+      const { x, y, z } = player_position_final;
+
       gl.uniformMatrix4fv(
         collisionShader(uniformName_viewMatrix),
         false,
@@ -138,6 +148,9 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       // Flushing collision render
       gl.flush();
     }
+
+    // Reset interact button
+    keyboard_downKeys[KEY_INTERACT] = 0;
 
     // view camera
 

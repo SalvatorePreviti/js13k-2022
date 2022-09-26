@@ -1,7 +1,18 @@
 import type { KEY_CODE } from "./utils/keycodes";
+import {
+  GAMEPAD_BUTTON_A,
+  GAMEPAD_BUTTON_B,
+  GAMEPAD_BUTTON_DOWN,
+  GAMEPAD_BUTTON_LEFT,
+  GAMEPAD_BUTTON_RIGHT,
+  GAMEPAD_BUTTON_UP,
+  GAMEPAD_BUTTON_X,
+  GAMEPAD_BUTTON_Y,
+} from "./utils/keycodes";
 import { camera_rotation } from "./camera";
 import {
   absoluteTime,
+  gameTimeDelta,
   keyboard_downKeys,
   KEY_BACK,
   KEY_FRONT,
@@ -14,13 +25,15 @@ import {
   updateCollectedSoulsCounter,
 } from "./game/world-state";
 import { songAudioSource, audioContext } from "./music/audio-context";
-import { abs, clamp } from "./math";
+import { abs, clamp, threshold } from "./math";
 
 export let player_first_person: 0 | 1 | undefined;
 
-export let touch_movementX = 0;
+export let movAngle = 0;
 
-export let touch_movementY = 0;
+export let movAmount = 0;
+
+export let updateInput: () => void;
 
 export const initPage = () => {
   let touchStartTime: number | undefined;
@@ -36,6 +49,11 @@ export const initPage = () => {
   let touchRotMoved: number | undefined;
   let touchStartCameraRotX: number | undefined;
   let touchStartCameraRotY: number | undefined;
+
+  let gamepadInteractPressed: 0 | 1 | undefined;
+
+  let touch_movementX: number;
+  let touch_movementY: number;
 
   let pageClicked: undefined | 1;
 
@@ -273,6 +291,46 @@ export const initPage = () => {
         keyboard_downKeys[KEY_INTERACT] = true;
       }
     }
+  };
+
+  updateInput = () => {
+    let input_forward =
+      touch_movementY + (keyboard_downKeys[KEY_FRONT] ? 1 : 0) - (keyboard_downKeys[KEY_BACK] ? 1 : 0);
+    let input_strafe = touch_movementX + (keyboard_downKeys[KEY_LEFT] ? 1 : 0) - (keyboard_downKeys[KEY_RIGHT] ? 1 : 0);
+
+    const gamepad = navigator.getGamepads()[0];
+    if (gamepad) {
+      const { buttons, axes } = gamepad;
+      const getGamepadButtonState = (index: number) =>
+        buttons[index]?.pressed || (buttons[index]?.value as any) > 0 ? 1 : 0;
+
+      const interactButtonPressed =
+        getGamepadButtonState(GAMEPAD_BUTTON_X) ||
+        getGamepadButtonState(GAMEPAD_BUTTON_Y) ||
+        getGamepadButtonState(GAMEPAD_BUTTON_A) ||
+        getGamepadButtonState(GAMEPAD_BUTTON_B);
+
+      input_forward +=
+        getGamepadButtonState(GAMEPAD_BUTTON_UP) - getGamepadButtonState(GAMEPAD_BUTTON_DOWN) - threshold(axes[1], 0.2);
+
+      input_strafe +=
+        getGamepadButtonState(GAMEPAD_BUTTON_LEFT) -
+        getGamepadButtonState(GAMEPAD_BUTTON_RIGHT) -
+        threshold(axes[0], 0.2);
+
+      if (player_first_person) {
+        camera_rotation.x += gameTimeDelta * threshold(axes[3], 0.3) * 80;
+        camera_rotation.y += gameTimeDelta * threshold(axes[2], 0.3) * 80;
+      }
+
+      if (interactButtonPressed && !gamepadInteractPressed) {
+        keyboard_downKeys[KEY_INTERACT] = 1;
+      }
+      gamepadInteractPressed = interactButtonPressed;
+    }
+
+    movAngle = Math.atan2(input_forward, input_strafe);
+    movAmount = threshold(clamp(Math.hypot(input_forward, input_strafe)), 0.05);
   };
 
   document.onvisibilitychange = onblur = onresize = handleResize;
