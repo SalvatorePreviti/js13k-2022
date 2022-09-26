@@ -59,7 +59,7 @@ export const initPage = () => {
 
   let pageClicked: undefined | 1;
 
-  let music_on = !DEBUG || DEBUG_FLAG3;
+  let music_on = !DEBUG || !DEBUG_FLAG1;
 
   const updateMusicOnState = () => {
     if (mainMenuVisible || !music_on) {

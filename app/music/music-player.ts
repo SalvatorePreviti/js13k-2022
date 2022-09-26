@@ -158,8 +158,6 @@ export const loadSong = (done: () => void) => {
       let t;
       let f;
 
-      const chnBuf = new Int32Array(song_rowLen * SONG_WORDS);
-
       // Clear effect state
       let low = 0;
       let band = 0;
@@ -167,6 +165,7 @@ export const loadSong = (done: () => void) => {
       let filterActive: boolean | undefined;
 
       const noteCache = [];
+      const chnBuf = new Int32Array(song_rowLen * SONG_WORDS);
 
       const lfoFreq = 2 ** (LFO_FREQ - 9) / song_rowLen;
       const panFreq = (Math.PI * 2 ** (FX_PAN_FREQ - 8)) / song_rowLen;
@@ -242,10 +241,10 @@ export const loadSong = (done: () => void) => {
               rsample += (chnBuf[k - dly]! * FX_DELAY_AMT) / 255;
             }
 
-            const kindex = (mixIndex + k) >> 1;
+            const mixBufferIndex = (mixIndex + k) >> 1;
 
-            mixBufferA[kindex] += (chnBuf[k] = lsample) / 65536;
-            mixBufferB[kindex] += (chnBuf[++k] = rsample) / 65536;
+            mixBufferA[mixBufferIndex] += (chnBuf[k] = lsample) / 65536;
+            mixBufferB[mixBufferIndex] += (chnBuf[++k] = rsample) / 65536;
           }
         }
       }

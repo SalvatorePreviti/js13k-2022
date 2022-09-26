@@ -2820,9 +2820,9 @@ const loadSong = (done) => {
               lsample += chnBuf[k - dly + 1] * FX_DELAY_AMT / 255;
               rsample += chnBuf[k - dly] * FX_DELAY_AMT / 255;
             }
-            const kindex = mixIndex + k >> 1;
-            mixBufferA[kindex] += (chnBuf[k] = lsample) / 65536;
-            mixBufferB[kindex] += (chnBuf[++k] = rsample) / 65536;
+            const mixBufferIndex = mixIndex + k >> 1;
+            mixBufferA[mixBufferIndex] += (chnBuf[k] = lsample) / 65536;
+            mixBufferB[mixBufferIndex] += (chnBuf[++k] = rsample) / 65536;
           }
         }
       }
