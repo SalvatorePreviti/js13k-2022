@@ -24,7 +24,7 @@ import {
 } from "./world-state";
 
 const LEVER_SENSITIVITY_RADIUS = 3;
-const SOUL_SENSITIVITY_RADIUS = 1.55;
+const SOUL_SENSITIVITY_RADIUS = 1.6;
 
 export const material = NO_INLINE(
   (r: number, g: number, b: number, a: number = 0): number =>

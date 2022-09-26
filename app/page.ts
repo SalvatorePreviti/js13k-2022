@@ -243,7 +243,9 @@ export const initPage = () => {
   };
 
   hC.ontouchend = (e) => {
-    e.preventDefault();
+    if (document.activeElement === document.body) {
+      e.preventDefault();
+    }
 
     let click: 1 | undefined;
     for (const touch of e.changedTouches) {

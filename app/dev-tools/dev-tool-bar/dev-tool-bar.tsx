@@ -6,7 +6,7 @@ import { FpsGraph } from "./fps-graph";
 import { DebugFlagsComponent } from "./debug-flags";
 import { LeversComponent } from "./levers-checkboxes";
 import { player_position_global } from "../../player";
-import { player_position_final } from "../../game/models";
+import { resetGameTime } from "../../game/world-state";
 
 function dumpPlayerZ() {
   player_position_global.z = 600;
@@ -64,6 +64,8 @@ export const DevToolBar: FC = () => {
             <button onClick={dumpPlayerMZ}>dumpMZ</button>
             <button onClick={dumpPlayerMX}>dumpMX</button>
             <button onClick={dumpPlayerMXZ}>dumpMXZ</button>
+            <br />
+            <button onClick={resetGameTime}>reset time</button>
             <canvas
               id="debug-canvas"
               width={128}

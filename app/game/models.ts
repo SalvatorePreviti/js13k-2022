@@ -58,6 +58,8 @@ export const MODEL_ID_STATIC_WORLD = 1;
 
 export const MODEL_ID_FIRST_BOAT = 2;
 
+export const MODEL_ID_ROTATING_PLATFORM = 28;
+
 export const MODEL_ID_PLAYER_BODY = 37;
 
 export const MODEL_ID_PLAYER_LEG0 = 38;

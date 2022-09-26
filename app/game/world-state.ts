@@ -24,6 +24,11 @@ export let gameTime = 0;
 
 export let gameTimeDelta: number = GAME_TIME_MAX_DELTA_TIME;
 
+export const resetGameTime = () => {
+  gameTime = 0;
+  gameTimeDelta = 0;
+};
+
 export let mainMenuVisible: boolean | undefined;
 
 export const setMainMenuVisible = (visible: boolean) => {
@@ -85,6 +90,8 @@ export let firstBoatLerp = 0;
 
 export let secondBoatLerp = 0;
 
+export let shouldRotatePlatforms = 0;
+
 const showMessage = (message: string, duration: number) => {
   if (_messageEndTime < Infinity) {
     _messageEndTime = gameTime + duration;
@@ -93,7 +100,7 @@ const showMessage = (message: string, duration: number) => {
 };
 
 export const worldStateUpdate = () => {
-  const shouldRotatePlatforms = lerpneg(levers[12]!.$lerpValue, levers[13]!.$lerpValue);
+  shouldRotatePlatforms = lerpneg(levers[12]!.$lerpValue, levers[13]!.$lerpValue);
 
   rotatingHexCorridorRotation = lerp(
     lerpDamp(rotatingHexCorridorRotation, 0, 1),

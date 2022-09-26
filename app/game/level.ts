@@ -22,6 +22,7 @@ import {
   MODEL_ID_SOUL_COLLISION,
   MODEL_ID_SOUL,
   souls,
+  MODEL_ID_ROTATING_PLATFORM,
 } from "./models";
 import { currentEditModel, material, meshAdd, newLever, newModel, newSoul } from "./models-factory";
 import {
@@ -1064,6 +1065,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
     // First rotating platform (with hole)
     newModel((model) => {
+      checkModelId("ROTATING_PLATFORM", MODEL_ID_ROTATING_PLATFORM);
       model._update = () => identity.translate(-81, 0.6, 106).rotate(0, 40 + rotatingPlatform1Rotation);
       meshAdd(
         csg_polygons_subtract(
