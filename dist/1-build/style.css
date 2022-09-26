@@ -44,10 +44,9 @@ h4 {
   min-width: 70%;
 }
 nav {
-  min-width: 50%;
-  max-width: 800px;
   background: #00000080;
   border-radius: 1em;
+  max-width: 780px;
   padding: 1em;
 }
 #b5,

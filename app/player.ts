@@ -1,4 +1,4 @@
-import { max, clamp, DEG_TO_RAD, identity, angle_lerp_degrees, lerp, angle_wrap_degrees, threshold } from "./math";
+import { max, clamp, DEG_TO_RAD, identity, angle_lerp_degrees, lerp, angle_wrap_degrees, threshold, min } from "./math";
 import {
   levers,
   player_position_final,
@@ -87,29 +87,36 @@ export const player_init = () => {
   let player_mov_x: number;
   let player_mov_z: number;
 
-  let camera_lookat_x: number;
-  let camera_lookat_y: number;
-  let camera_lookat_z: number;
+  let camera_pos_lookat_x: number;
+  let camera_pos_lookat_y: number;
+  let camera_pos_lookat_z: number;
 
   const player_collision_modelIdCounter = new Int32Array(256);
   const collision_buffer = new Uint8Array(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
 
-  // const interpolate_with_hysteresis = /* @__PURE__ */ (previous: number, desired: number, hysteresis: number) => {
-  //   return boot ? desired: lerpDamp(previous, desired, 2 + clamp(Math.abs(previous - desired) ** 0.9 - hysteresis, 0, 3.2));
-  // };
-
-  const interpolate_with_hysteresis = /* @__PURE__ */ (previous: number, desired: number, hysteresis: number) =>
-    boot
+  const interpolate_with_hysteresis = /* @__PURE__ */ (
+    previous: number,
+    desired: number,
+    hysteresis: number,
+    speed: number = 1,
+  ) => {
+    return boot
       ? desired
-      : lerp(
-          previous +
-            Math.sign(desired - previous) *
-              max(0, Math.abs(desired - previous) ** 0.9 - hysteresis) *
-              gameTimeDelta *
-              2,
-          desired,
-          gameTimeDelta / 7,
-        );
+      : lerpDamp(previous, desired, speed * clamp(Math.abs(previous - desired) ** 0.9 - hysteresis, 0.3, 2));
+  };
+
+  // const interpolate_with_hysteresis = /* @__PURE__ */ (previous: number, desired: number, hysteresis: number) =>
+  //   boot
+  //     ? desired
+  //     : lerp(
+  //         previous +
+  //           Math.sign(desired - previous) *
+  //             max(0, Math.abs(desired - previous) ** 0.9 - hysteresis) *
+  //             gameTimeDelta *
+  //             2,
+  //         desired,
+  //         gameTimeDelta / 7,
+  //       );
 
   const getReferenceMatrix = () =>
     player_respawned
@@ -182,9 +189,9 @@ export const player_init = () => {
     }
 
     player_model_y = lerp(lerpDamp(player_model_y, y, 2), y, player_respawned || Math.abs(player_model_y - y) * 8);
-    camera_lookat_y = interpolate_with_hysteresis(camera_lookat_y, player_model_y, 3);
-    camera_lookat_x = interpolate_with_hysteresis(camera_lookat_x, x, 2);
-    camera_lookat_z = interpolate_with_hysteresis(camera_lookat_z, z, 2);
+    camera_pos_lookat_y = interpolate_with_hysteresis(camera_pos_lookat_y, player_model_y, 3);
+    camera_pos_lookat_x = interpolate_with_hysteresis(camera_pos_lookat_x, x, 2);
+    camera_pos_lookat_z = interpolate_with_hysteresis(camera_pos_lookat_z, z, 2);
 
     if (!DEBUG_CAMERA) {
       if (player_first_person) {
@@ -195,21 +202,21 @@ export const player_init = () => {
         camera_rotation.y = angle_wrap_degrees(camera_rotation.y);
       } else {
         const camMovSpeed = boot + damp(2);
-        camera_position_x = lerp(camera_position_x, camera_lookat_x, camMovSpeed);
+        camera_position_x = lerp(camera_position_x, camera_pos_lookat_x, camMovSpeed);
         camera_position_y = lerp(
           camera_position_y,
-          max(camera_lookat_y + clamp((-60 - z) / 8, 0, 20) + CAMERA_PLAYER_Y_DIST, 6),
+          max(camera_pos_lookat_y + clamp((-60 - z) / 8, 0, 20) + CAMERA_PLAYER_Y_DIST, 6),
           camMovSpeed,
         );
-        camera_position_z = lerp(camera_position_z, camera_lookat_z + CAMERA_PLAYER_Z_DIST, camMovSpeed);
+        camera_position_z = lerp(camera_position_z, camera_pos_lookat_z + CAMERA_PLAYER_Z_DIST, camMovSpeed);
 
-        const viewDirDiffx = camera_lookat_x - camera_position_x;
-        const viewDirDiffz = -Math.abs(camera_lookat_z - camera_position_z);
+        const viewDirDiffx = camera_pos_lookat_x - camera_position_x;
+        const viewDirDiffz = min(1, -Math.abs(camera_pos_lookat_z - camera_position_z));
 
         const camRotSpeed = boot + damp(4);
         camera_rotation.x = angle_lerp_degrees(
           camera_rotation.x,
-          90 - Math.atan2(Math.hypot(viewDirDiffz, viewDirDiffx), camera_position_y - camera_lookat_y) / DEG_TO_RAD,
+          90 - Math.atan2(Math.hypot(viewDirDiffz, viewDirDiffx), camera_position_y - camera_pos_lookat_y) / DEG_TO_RAD,
           camRotSpeed,
         );
 

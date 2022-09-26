@@ -18,9 +18,9 @@ import {
   KEY_INTERACT,
   onPlayerPullLever,
   lerpDamp,
-  gameTimeDelta,
   gameTime,
   onSoulCollected,
+  damp,
 } from "./world-state";
 
 const LEVER_SENSITIVITY_RADIUS = 3;
@@ -152,11 +152,7 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]
         soulX = lerpDamp(soulX, (targetX = lerpDamp(targetX, targetX + dirX, velocity)), velocity);
         soulZ = lerpDamp(soulZ, (targetZ = lerpDamp(targetZ, targetZ + dirZ, velocity)), velocity);
 
-        lookAngle = angle_lerp_degrees(
-          lookAngle,
-          Math.atan2(soulX - prevX, soulZ - prevZ) / DEG_TO_RAD - 180,
-          3 * gameTimeDelta,
-        );
+        lookAngle = angle_lerp_degrees(lookAngle, Math.atan2(soulX - prevX, soulZ - prevZ) / DEG_TO_RAD - 180, damp(3));
 
         prevX = soulX;
         prevZ = soulZ;

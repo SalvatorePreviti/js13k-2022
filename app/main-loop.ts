@@ -20,7 +20,7 @@ import void_fsSource from "./shaders/void-fragment.frag";
 import sky_vsSource from "./shaders/sky-vertex.vert";
 import sky_fsSource, { uniformName_iResolution } from "./shaders/sky-fragment.frag";
 
-import { clamp, integers_map, identity, mat_perspectiveXY, matrixToArray } from "./math";
+import { integers_map, identity, mat_perspectiveXY, matrixToArray } from "./math";
 import { MODEL_ID_SOUL, MODEL_ID_SOUL_COLLISION, player_position_final } from "./game/models";
 import { absoluteTime, gameTimeDelta, gameTimeUpdate, mainMenuVisible, worldStateUpdate } from "./game/world-state";
 import { mat_perspective, zFar, zNear, camera_rotation } from "./camera";
@@ -104,16 +104,6 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       player_update();
     }
 
-    const camera_view = (
-      mainMenuVisible ? identity.rotate(-20, -90) : identity.rotate(-camera_rotation.x, -camera_rotation.y)
-    )
-      .invertSelf()
-      .translateSelf(
-        mainMenuVisible ? -4.5 : -camera_position_x,
-        mainMenuVisible ? 2 : -camera_position_y,
-        mainMenuVisible ? 3.2 - clamp(hC.clientWidth / 1000) : -camera_position_z,
-      );
-
     if (gameTimeDelta > 0) {
       const { x, y, z } = player_position_final;
       // *** COLLISION RENDERER ***
@@ -153,6 +143,15 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       // Flushing collision render
       gl.flush();
     }
+
+    // view camera
+
+    const camera_view = mainMenuVisible
+      ? identity.rotate(-20, -90).invertSelf().translateSelf(5, -2, -3.4)
+      : identity
+          .rotate(-camera_rotation.x, -camera_rotation.y)
+          .invertSelf()
+          .translateSelf(-camera_position_x, -camera_position_y, -camera_position_z);
 
     // *** CASCADED SHADOWMAPS ***
 

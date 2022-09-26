@@ -1,5 +1,5 @@
 NO_INLINE(
-  "<!DOCTYPE html><html><head>\n    <title>666</title>\n    <meta name=\"viewport\" content=\"width=device-width,initial-scale=1,user-scalable=0\">\n    \n    \n    \n  <link rel=\"stylesheet\" href=\"/index.css\"></head>\n\n  <body>\n    <canvas id=\"hC\"></canvas>\n    <h4 id=\"h4\">loading</h4>\n    <b id=\"b5\">☰</b>\n    <h3 id=\"h3\"></h3>\n    <main>\n      <nav>\n        <h2>DANTE</h2>\n        Lucifer:\n        <i>\"Damn. Infernal delivery service failed again. A delivery of evil souls fell in an area under construction.\n          Dante, take them where they belong, to the 8th circle.\"</i>\n        <ul>\n          <li id=\"b1\">Play</li>\n          <li id=\"b2\">Play first person</li>\n          <li id=\"b3\">Restart</li>\n          <li id=\"b4\"></li>\n        </ul>\n        <p>move WASD/arrows, levers E/click, menu Esc</p>\n        <p>\n          <a target=\"_blank\" href=\"https://github.com/SalvatorePreviti/js13k-2022\">© 2022 Salvatore Previti</a> -\n          <a target=\"_blank\" href=\"https://twitter.com/ryanmalm\">music Ryan Malm</a>\n        </p>\n      </nav>\n    </main>\n    \n  \n\n<script type=\"module\" src=\"/index.js\" crossorigin=\"\"></script></body></html> * {\n  -webkit-user-select: none;\n  user-select: none;\n  color: #fda;\n  font-weight: 100;\n  touch-action: none;\n  overscroll-behavior: contain;\n}\nhtml,\nbody {\n  background: #000;\n  margin: 0;\n  font-family: \"Times New Roman\", serif;\n  font-size: max(min(3.8vw, 3.8vh), 15px);\n  text-shadow: 4px 4px 2px #000, -2px -2px 8px #000;\n}\np {\n  font-size: 0.7em;\n}\nbody > * {\n  position: absolute;\n}\nh2 {\n  color: #f61;\n  margin: 0 0 0.7em;\n}\nh4 {\n  left: 0;\n  top: 0;\n  right: 0;\n  text-align: center;\n}\nh3,\nh4 {\n  pointer-events: none;\n}\n.m main {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  top: 0;\n  right: 0;\n  bottom: 0;\n  min-width: 70%;\n}\nnav {\n  min-width: 50%;\n  max-width: 800px;\n  background: #00000080;\n  border-radius: 1em;\n  padding: 1em;\n}\n#b5,\nh3 {\n  padding: 10px;\n}\nh3 {\n  text-align: right;\n  right: 5%;\n  bottom: 0;\n}\na,\nli {\n  cursor: pointer;\n  margin-bottom: 0.5em;\n  text-decoration: none;\n  border-bottom: 3px solid #00000000;\n}\nh2,\na:hover,\nli:hover {\n  border-bottom: 3px solid;\n}\nmain,\n.m h4 {\n  display: none;\n}\n",
+  "<!DOCTYPE html><html><head>\n    <title>666</title>\n    <meta name=\"viewport\" content=\"width=device-width,initial-scale=1,user-scalable=0\">\n    \n    \n    \n  <link rel=\"stylesheet\" href=\"/index.css\"></head>\n\n  <body>\n    <canvas id=\"hC\"></canvas>\n    <h4 id=\"h4\">loading</h4>\n    <b id=\"b5\">☰</b>\n    <h3 id=\"h3\"></h3>\n    <main>\n      <nav>\n        <h2>DANTE</h2>\n        Lucifer:\n        <i>\"Damn. Infernal delivery service failed again. A delivery of evil souls fell in an area under construction.\n          Dante, take them where they belong, to the 8th circle.\"</i>\n        <ul>\n          <li id=\"b1\">Play</li>\n          <li id=\"b2\">Play first person</li>\n          <li id=\"b3\">Restart</li>\n          <li id=\"b4\"></li>\n        </ul>\n        <p>move WASD/arrows, levers E/click, menu Esc</p>\n        <p>\n          <a target=\"_blank\" href=\"https://github.com/SalvatorePreviti/js13k-2022\">© 2022 Salvatore Previti</a> -\n          <a target=\"_blank\" href=\"https://twitter.com/ryanmalm\">music Ryan Malm</a>\n        </p>\n      </nav>\n    </main>\n    \n  \n\n<script type=\"module\" src=\"/index.js\" crossorigin=\"\"></script></body></html> * {\n  -webkit-user-select: none;\n  user-select: none;\n  color: #fda;\n  font-weight: 100;\n  touch-action: none;\n  overscroll-behavior: contain;\n}\nhtml,\nbody {\n  background: #000;\n  margin: 0;\n  font-family: \"Times New Roman\", serif;\n  font-size: max(min(3.8vw, 3.8vh), 15px);\n  text-shadow: 4px 4px 2px #000, -2px -2px 8px #000;\n}\np {\n  font-size: 0.7em;\n}\nbody > * {\n  position: absolute;\n}\nh2 {\n  color: #f61;\n  margin: 0 0 0.7em;\n}\nh4 {\n  left: 0;\n  top: 0;\n  right: 0;\n  text-align: center;\n}\nh3,\nh4 {\n  pointer-events: none;\n}\n.m main {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  top: 0;\n  right: 0;\n  bottom: 0;\n  min-width: 70%;\n}\nnav {\n  background: #00000080;\n  border-radius: 1em;\n  max-width: 780px;\n  padding: 1em;\n}\n#b5,\nh3 {\n  padding: 10px;\n}\nh3 {\n  text-align: right;\n  right: 5%;\n  bottom: 0;\n}\na,\nli {\n  cursor: pointer;\n  margin-bottom: 0.5em;\n  text-decoration: none;\n  border-bottom: 3px solid #00000000;\n}\nh2,\na:hover,\nli:hover {\n  border-bottom: 3px solid;\n}\nmain,\n.m h4 {\n  display: none;\n}\n",
 );
 const groundTextureSvg = `data:image/svg+xml;base64,${
   /* @__PURE__ */ btoa(
@@ -666,7 +666,7 @@ const newSoul = (transform, ...walkingPath) => {
         lookAngle = angle_lerp_degrees(
           lookAngle,
           /* @__PURE__ */ Math.atan2(soulX - prevX, soulZ - prevZ) / DEG_TO_RAD - 180,
-          3 * gameTimeDelta,
+          damp(3),
         );
         prevX = soulX;
         prevZ = soulZ;
@@ -2281,6 +2281,7 @@ const player_init = () => {
       camera_rotation.y = angle_wrap_degrees(camera_rotation.y);
     } else {
       const camMovSpeed = boot + damp(2);
+      const camRotSpeed = boot + damp(4);
       camera_position_x = lerp(camera_position_x, camera_lookat_x, camMovSpeed);
       camera_position_y = lerp(
         camera_position_y,
@@ -2290,7 +2291,6 @@ const player_init = () => {
       camera_position_z = lerp(camera_position_z, camera_lookat_z + CAMERA_PLAYER_Z_DIST, camMovSpeed);
       const viewDirDiffx = camera_lookat_x - camera_position_x;
       const viewDirDiffz = -/* @__PURE__ */ Math.abs(camera_lookat_z - camera_position_z);
-      const camRotSpeed = boot + damp(4);
       camera_rotation.x = angle_lerp_degrees(
         camera_rotation.x,
         90
@@ -2310,10 +2310,11 @@ const player_init = () => {
     const playerMatrix = identity.translate(x, player_model_y, z).rotateSelf(0, player_look_angle);
     allModels[MODEL_ID_PLAYER_BODY].$matrix = playerMatrix;
     [
+      MODEL_ID_PLAYER_LEG0,
       MODEL_ID_PLAYER_LEG1,
     ].map((modelId, i) => {
       allModels[modelId].$matrix = playerMatrix.translate(
-        i,
+        0,
         player_legs_speed
           * clamp(/* @__PURE__ */ Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI * (i - 1) - Math.PI / 2) * 0.45),
       ).rotateSelf(
@@ -2552,13 +2553,6 @@ const startMainLoop = (groundTextureImage) => {
       worldStateUpdate();
       player_update();
     }
-    const camera_view =
-      (mainMenuVisible ? identity.rotate(-20, -90) : identity.rotate(-camera_rotation.x, -camera_rotation.y))
-        .invertSelf().translateSelf(
-          mainMenuVisible ? -4.5 : -camera_position_x,
-          mainMenuVisible ? 2 : -camera_position_y,
-          mainMenuVisible ? 3.2 - clamp(hC.clientWidth / 1e3) : -camera_position_z,
-        );
     if (gameTimeDelta > 0) {
       const { x, y, z } = player_position_final;
       collisionShader();
@@ -2578,6 +2572,13 @@ const startMainLoop = (groundTextureImage) => {
       renderModels(collisionShader(uniformName_worldMatrices), 0, MODEL_ID_SOUL_COLLISION, 0);
       gl["f1s"]();
     }
+    const camera_view = mainMenuVisible
+      ? identity.rotate(-20, -90).invertSelf().translateSelf(5, -2, -3.4)
+      : identity.rotate(-camera_rotation.x, -camera_rotation.y).invertSelf().translateSelf(
+        -camera_position_x,
+        -camera_position_y,
+        -camera_position_z,
+      );
     csmShader();
     gl["b6o"](36160, csm_framebuffer);
     gl["v5y"](0, 0, constDef_CSM_TEXTURE_SIZE, constDef_CSM_TEXTURE_SIZE);

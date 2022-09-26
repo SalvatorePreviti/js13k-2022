@@ -21,6 +21,7 @@ let currentEditModel;
 let player_first_person;
 let player_update;
 const fieldOfViewAmount = 1.732051;
+const MODEL_ID_PLAYER_LEG0 = 38;
 const MODEL_ID_PLAYER_LEG1 = 39;
 const allModels = [];
 const levers = [];
@@ -651,7 +652,7 @@ const newSoul = (transform, ...walkingPath) => {
           lookAngle = angle_lerp_degrees(
             lookAngle,
             Math.atan2(soulX - prevX, soulZ - prevZ) / DEG_TO_RAD - 180,
-            3 * gameTimeDelta,
+            damp(3),
           ),
           prevX = soulX,
           prevZ = soulZ;
@@ -967,6 +968,7 @@ const player_init = () => {
           camera_position_z = lerp(camera_position_z, referenceMatrix2, referenceMatrix),
           camera_rotation.y = angle_wrap_degrees(camera_rotation.y))
         : (dx = boot + damp(2),
+          dz = boot + damp(4),
           camera_position_x = lerp(camera_position_x, camera_lookat_x, dx),
           camera_position_y = lerp(
             camera_position_y,
@@ -974,28 +976,28 @@ const player_init = () => {
             dx,
           ),
           camera_position_z = lerp(camera_position_z, camera_lookat_z + -18, dx),
-          dz = camera_lookat_x - camera_position_x,
-          v = -Math.abs(camera_lookat_z - camera_position_z),
-          referenceMatrix = boot + damp(4),
+          v = camera_lookat_x - camera_position_x,
+          referenceMatrix = -Math.abs(camera_lookat_z - camera_position_z),
           camera_rotation.x = angle_lerp_degrees(
             camera_rotation.x,
-            90 - Math.atan2(Math.hypot(v, dz), camera_position_y - camera_lookat_y) / DEG_TO_RAD,
-            referenceMatrix,
+            90 - Math.atan2(Math.hypot(referenceMatrix, v), camera_position_y - camera_lookat_y) / DEG_TO_RAD,
+            dz,
           ),
           camera_rotation.y = angle_lerp_degrees(
             camera_rotation.y,
-            90 - angle_wrap_degrees(Math.atan2(v, dz) / DEG_TO_RAD),
-            referenceMatrix,
+            90 - angle_wrap_degrees(Math.atan2(referenceMatrix, v) / DEG_TO_RAD),
+            dz,
           )),
       camera_rotation.x = clamp(camera_rotation.x, -87, 87);
     const playerMatrix = identity.translate(inverseReferenceRotationMatrix, player_model_y, referenceMatrix2)
       .rotateSelf(0, player_look_angle);
     allModels[37].$matrix = playerMatrix,
       [
+        MODEL_ID_PLAYER_LEG0,
         MODEL_ID_PLAYER_LEG1,
       ].map((modelId, i) => {
         allModels[modelId].$matrix = playerMatrix.translate(
-          i,
+          0,
           player_legs_speed * clamp(0.45 * Math.sin(9.1 * gameTime + Math.PI * (i - 1) - Math.PI / 2)),
         ).rotateSelf(player_legs_speed * Math.sin(9.1 * gameTime + Math.PI * (i - 1)) * 0.25 / DEG_TO_RAD, 0);
       }),
@@ -1120,7 +1122,7 @@ const renderModels = (worldMatrixLoc, renderPlayer, soulModelId, isShadowRender)
     for (
       const modelId of [
         37,
-        38,
+        MODEL_ID_PLAYER_LEG0,
         MODEL_ID_PLAYER_LEG1,
       ]
     ) {
@@ -1316,7 +1318,6 @@ loadStep(() => {
   const end = () => {
     if (++loadStatus == 2) {
       const mainLoop = (globalTime) => {
-        let y;
         let z;
         gl["f1s"](),
           requestAnimationFrame(mainLoop),
@@ -1325,32 +1326,33 @@ loadStep(() => {
           gameTime += gameTimeDelta,
           absoluteTime += dt,
           _globalTime = globalTime,
-          0 < gameTimeDelta && (worldStateUpdate(), player_update());
-        var dt = (mainMenuVisible ? identity.rotate(-20, -90) : identity.rotate(-camera_rotation.x, -camera_rotation.y))
-          .invertSelf().translateSelf(
-            mainMenuVisible ? -4.5 : -camera_position_x,
-            mainMenuVisible ? 2 : -camera_position_y,
-            mainMenuVisible ? 3.2 - clamp(hC.clientWidth / 1e3) : -camera_position_z,
+          0 < gameTimeDelta && (worldStateUpdate(), player_update()),
+          0 < gameTimeDelta
+          && ({ x: dt, y: globalTime, z } = player_position_final,
+            collisionShader(),
+            gl["b6o"](36160, collision_frameBuffer),
+            gl["v5y"](0, 0, 128, 128),
+            gl["c4s"](16640),
+            gl["cbf"](!0, !1, !0, !1),
+            gl["uae"](
+              collisionShader("b"),
+              !1,
+              matrixToArray(identity.rotate(0, 180).invertSelf().translateSelf(-dt, -globalTime, 0.3 - z)),
+            ),
+            renderModels(collisionShader("c"), 0, 41, 0),
+            gl["c4s"](256),
+            gl["cbf"](!1, !0, !0, !1),
+            gl["uae"](collisionShader("b"), !1, matrixToArray(identity.translate(-dt, -globalTime, -z - 0.3))),
+            renderModels(collisionShader("c"), 0, 41, 0),
+            gl["f1s"]());
+        var dt = mainMenuVisible
+          ? identity.rotate(-20, -90).invertSelf().translateSelf(5, -2, -3.4)
+          : identity.rotate(-camera_rotation.x, -camera_rotation.y).invertSelf().translateSelf(
+            -camera_position_x,
+            -camera_position_y,
+            -camera_position_z,
           );
-        0 < gameTimeDelta
-        && ({ x: globalTime, y, z } = player_position_final,
-          collisionShader(),
-          gl["b6o"](36160, collision_frameBuffer),
-          gl["v5y"](0, 0, 128, 128),
-          gl["c4s"](16640),
-          gl["cbf"](!0, !1, !0, !1),
-          gl["uae"](
-            collisionShader("b"),
-            !1,
-            matrixToArray(identity.rotate(0, 180).invertSelf().translateSelf(-globalTime, -y, 0.3 - z)),
-          ),
-          renderModels(collisionShader("c"), 0, 41, 0),
-          gl["c4s"](256),
-          gl["cbf"](!1, !0, !0, !1),
-          gl["uae"](collisionShader("b"), !1, matrixToArray(identity.translate(-globalTime, -y, -z - 0.3))),
-          renderModels(collisionShader("c"), 0, 41, 0),
-          gl["f1s"]()),
-          csmShader(),
+        csmShader(),
           gl["b6o"](36160, csm_framebuffer),
           gl["v5y"](0, 0, 2048, 2048),
           csm_render[0](csm_buildMatrix(dt, 0.3, 55, 10)),
@@ -2978,10 +2980,9 @@ h4 {
   min-width: 70%;
 }
 nav {
-  min-width: 50%;
-  max-width: 800px;
   background: #00000080;
   border-radius: 1em;
+  max-width: 780px;
   padding: 1em;
 }
 #b5,

@@ -588,7 +588,7 @@ const newSoul = (transform, ...walkingPath) => {
         velocity = lerpDamp(velocity, (1 - contextualVelocity) * 6 + 3, contextualVelocity + 3);
         soulX = lerpDamp(soulX, targetX = lerpDamp(targetX, targetX + dirX, velocity), velocity);
         soulZ = lerpDamp(soulZ, targetZ = lerpDamp(targetZ, targetZ + dirZ, velocity), velocity);
-        lookAngle = angle_lerp_degrees(lookAngle, /* @__PURE__ */ Math.atan2(soulX - prevX, soulZ - prevZ) / DEG_TO_RAD - 180, 3 * gameTimeDelta);
+        lookAngle = angle_lerp_degrees(lookAngle, /* @__PURE__ */ Math.atan2(soulX - prevX, soulZ - prevZ) / DEG_TO_RAD - 180, damp(3));
         prevX = soulX;
         prevZ = soulZ;
         const soulPos = (soul.$matrix = parentModel.$matrix.multiply(transform.translate(soulX, 0, soulZ).rotateSelf(0, lookAngle, /* @__PURE__ */ Math.sin(gameTime * 1.7) * 7))).transformPoint();
@@ -1476,12 +1476,12 @@ const player_init = () => {
       camera_rotation.y = angle_wrap_degrees(camera_rotation.y);
     } else {
       const camMovSpeed = boot + damp(2);
+      const camRotSpeed = boot + damp(4);
       camera_position_x = lerp(camera_position_x, camera_lookat_x, camMovSpeed);
       camera_position_y = lerp(camera_position_y, max(camera_lookat_y + clamp((-60 - z) / 8, 0, 20) + CAMERA_PLAYER_Y_DIST, 6), camMovSpeed);
       camera_position_z = lerp(camera_position_z, camera_lookat_z + CAMERA_PLAYER_Z_DIST, camMovSpeed);
       const viewDirDiffx = camera_lookat_x - camera_position_x;
       const viewDirDiffz = -/* @__PURE__ */ Math.abs(camera_lookat_z - camera_position_z);
-      const camRotSpeed = boot + damp(4);
       camera_rotation.x = angle_lerp_degrees(camera_rotation.x, 90 - /* @__PURE__ */ Math.atan2(/* @__PURE__ */ Math.hypot(viewDirDiffz, viewDirDiffx), camera_position_y - camera_lookat_y) / DEG_TO_RAD, camRotSpeed);
       camera_rotation.y = angle_lerp_degrees(camera_rotation.y, 90 - angle_wrap_degrees(/* @__PURE__ */ Math.atan2(viewDirDiffz, viewDirDiffx) / DEG_TO_RAD), camRotSpeed);
     }
@@ -1489,9 +1489,10 @@ const player_init = () => {
     const playerMatrix = identity.translate(x, player_model_y, z).rotateSelf(0, player_look_angle);
     allModels[MODEL_ID_PLAYER_BODY].$matrix = playerMatrix;
     [
+      MODEL_ID_PLAYER_LEG0,
       MODEL_ID_PLAYER_LEG1
     ].map((modelId, i) => {
-      allModels[modelId].$matrix = playerMatrix.translate(i, player_legs_speed * clamp(/* @__PURE__ */ Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI * (i - 1) - Math.PI / 2) * 0.45)).rotateSelf(player_legs_speed * /* @__PURE__ */ Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI * (i - 1)) * (0.25 / DEG_TO_RAD), 0);
+      allModels[modelId].$matrix = playerMatrix.translate(0, player_legs_speed * clamp(/* @__PURE__ */ Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI * (i - 1) - Math.PI / 2) * 0.45)).rotateSelf(player_legs_speed * /* @__PURE__ */ Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI * (i - 1)) * (0.25 / DEG_TO_RAD), 0);
     });
     boot = 0;
   };
@@ -1671,7 +1672,6 @@ const startMainLoop = (groundTextureImage) => {
       worldStateUpdate();
       player_update();
     }
-    const camera_view = (mainMenuVisible ? identity.rotate(-20, -90) : identity.rotate(-camera_rotation.x, -camera_rotation.y)).invertSelf().translateSelf(mainMenuVisible ? -4.5 : -camera_position_x, mainMenuVisible ? 2 : -camera_position_y, mainMenuVisible ? 3.2 - clamp(hC.clientWidth / 1e3) : -camera_position_z);
     if (gameTimeDelta > 0) {
       const { x, y, z } = player_position_final;
       collisionShader();
@@ -1687,6 +1687,7 @@ const startMainLoop = (groundTextureImage) => {
       renderModels(collisionShader(uniformName_worldMatrices), 0, MODEL_ID_SOUL_COLLISION, 0);
       gl["f1s"]();
     }
+    const camera_view = mainMenuVisible ? identity.rotate(-20, -90).invertSelf().translateSelf(5, -2, -3.4) : identity.rotate(-camera_rotation.x, -camera_rotation.y).invertSelf().translateSelf(-camera_position_x, -camera_position_y, -camera_position_z);
     csmShader();
     gl["b6o"](36160, csm_framebuffer);
     gl["v5y"](0, 0, constDef_CSM_TEXTURE_SIZE, constDef_CSM_TEXTURE_SIZE);
