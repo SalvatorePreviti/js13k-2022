@@ -1,18 +1,6 @@
 import { lerp, angle_wrap_degrees, lerpneg, clamp, min, abs } from "../math";
 import { allModels, levers, souls, SOULS_COUNT } from "./models";
 
-export const KEY_LEFT = 0;
-
-export const KEY_FRONT = 1;
-
-export const KEY_RIGHT = 2;
-
-export const KEY_BACK = 3;
-
-export const KEY_INTERACT = 5;
-
-export const keyboard_downKeys: (boolean | 0 | 1 | undefined)[] = [];
-
 export let souls_collected_count = 0;
 
 /** Minimum 15.3 frames per second */

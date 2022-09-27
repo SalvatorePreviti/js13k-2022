@@ -13,15 +13,8 @@ import {
   type MODEL_KIND,
   player_position_final,
 } from "./models";
-import {
-  keyboard_downKeys,
-  KEY_INTERACT,
-  onPlayerPullLever,
-  lerpDamp,
-  gameTime,
-  onSoulCollected,
-  damp,
-} from "./world-state";
+import { onPlayerPullLever, lerpDamp, gameTime, onSoulCollected, damp } from "./world-state";
+import { interact_pressed } from "../page";
 
 const LEVER_SENSITIVITY_RADIUS = 3;
 const SOUL_SENSITIVITY_RADIUS = 1.6;
@@ -68,7 +61,7 @@ export const newLever = (transform: DOMMatrixReadOnly): void => {
 
       if (
         vec3_distance(locMatrix.transformPoint(), player_position_final) < LEVER_SENSITIVITY_RADIUS &&
-        keyboard_downKeys[KEY_INTERACT]
+        interact_pressed
       ) {
         if ($lerpValue < 0.3 || $lerpValue > 0.7) {
           lever.$value = $value ? 0 : 1;

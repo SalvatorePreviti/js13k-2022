@@ -1,4 +1,3 @@
-import type { KEY_CODE } from "./utils/keycodes";
 import {
   GAMEPAD_BUTTON_A,
   GAMEPAD_BUTTON_B,
@@ -8,16 +7,12 @@ import {
   GAMEPAD_BUTTON_UP,
   GAMEPAD_BUTTON_X,
   GAMEPAD_BUTTON_Y,
+  GAMEPAD_BUTTON_START,
+  type KEY_CODE,
 } from "./utils/keycodes";
 import {
   absoluteTime,
   gameTimeDelta,
-  keyboard_downKeys,
-  KEY_BACK,
-  KEY_FRONT,
-  KEY_INTERACT,
-  KEY_LEFT,
-  KEY_RIGHT,
   LOCAL_STORAGE_SAVED_GAME_KEY,
   mainMenuVisible,
   setMainMenuVisible,
@@ -26,6 +21,12 @@ import {
 import { songAudioSource, audioContext } from "./music/audio-context";
 import type { Vec2 } from "./math";
 import { abs, clamp, threshold } from "./math";
+
+export let interact_pressed: 0 | 1;
+
+export const resetInteractPressed = () => {
+  interact_pressed = 0;
+};
 
 export let player_first_person: 0 | 1 | undefined;
 
@@ -57,9 +58,16 @@ export const initPage = () => {
   let touch_movementX: number;
   let touch_movementY: number;
 
-  let pageClicked: undefined | 1;
-
   let music_on = !DEBUG || !DEBUG_FLAG1;
+
+  const keyboard_downKeys: (boolean | 0 | 1 | undefined)[] = [];
+
+  const KEY_INTERACT = 0;
+  const KEY_LEFT = 1;
+  const KEY_RIGHT = 2;
+  const KEY_FRONT = 3;
+  const KEY_BACK = 4;
+  const KEY_MENU = 5;
 
   const updateMusicOnState = () => {
     if (mainMenuVisible || !music_on) {
@@ -71,44 +79,61 @@ export const initPage = () => {
     b4.innerHTML = "Music: " + music_on;
   };
 
-  const toggleMusic = () => {
-    music_on = !music_on;
-    updateMusicOnState();
-  };
-
-  const mainMenu = (value: boolean = false) => {
-    if (mainMenuVisible !== value) {
+  const handleResize = () => {
+    touchPosIdentifier = touchRotIdentifier = undefined;
+    keyboard_downKeys.length =
+      interact_pressed =
+      gamepadInteractPressed =
+      movAmount =
+      touch_movementX =
+      touch_movementY =
+        0;
+    hC.width = innerWidth;
+    hC.height = innerHeight;
+    if (document.hidden) {
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
-      setMainMenuVisible(value);
-      try {
-        if (value) {
-          // eslint-disable-next-line @typescript-eslint/no-floating-promises
-          document.exitFullscreen().catch(() => {});
-          document.exitPointerLock();
-        } else {
-          songAudioSource.start();
-        }
-      } catch {}
-      player_first_person = 0;
-      document.body.className = value ? "l m" : "l";
-      updateMusicOnState();
-      updateCollectedSoulsCounter();
+      mainMenu(true);
     }
   };
 
-  const handleResize = () => {
-    hC.width = innerWidth;
-    hC.height = innerHeight;
-    keyboard_downKeys.length = touch_movementX = touch_movementY = 0;
-    touchPosIdentifier = touchRotIdentifier = undefined;
-    if (document.hidden) {
-      mainMenu(true);
+  const mainMenu = (value: boolean, firstPerson: 0 | 1 = 0) => {
+    if (mainMenuVisible !== value) {
+      setMainMenuVisible(value);
+      player_first_person = firstPerson;
+      handleResize();
+      updateCollectedSoulsCounter();
+      document.body.className = value ? "l m" : "l";
+      try {
+        if (value) {
+          document.exitFullscreen().catch(() => 0);
+          document.exitPointerLock();
+        } else {
+          document.body.requestFullscreen().catch(() => 0);
+          songAudioSource.start();
+        }
+      } catch {}
+      updateMusicOnState();
     }
   };
 
   if (!DEBUG) {
     oncontextmenu = () => false;
   }
+
+  // "Play" button
+  b1.onclick = () => mainMenu(false);
+
+  // "Play first person" button
+  b2.onclick = () => mainMenu(false, 1);
+
+  // Menu hamburger button
+  b5.onclick = () => mainMenu(true);
+
+  // "Music" button
+  b4.onclick = () => {
+    music_on = !music_on;
+    updateMusicOnState();
+  };
 
   // "Restart" button
   b3.onclick = () => {
@@ -119,73 +144,53 @@ export const initPage = () => {
     }
   };
 
-  // "Play" button
-  b1.onclick = () => {
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    document.body.requestFullscreen();
-    mainMenu();
-  };
-
-  // "Play first person" button
-  b2.onclick = () => {
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    document.body.requestFullscreen();
-    mainMenu();
-    player_first_person = 1;
-  };
-
-  // "Music" button
-  b4.onclick = toggleMusic;
-
-  // Menu hamburger button
-  b5.onclick = () => mainMenu(true);
-
   onclick = (e) => {
-    pageClicked = 1;
     if (!mainMenuVisible) {
       if (e.target === hC) {
-        keyboard_downKeys[KEY_INTERACT] = true;
+        interact_pressed = 1;
       }
       if (player_first_person) {
-        hC.requestPointerLock();
+        try {
+          hC.requestPointerLock();
+        } catch {}
       }
     }
   };
 
-  onkeyup = onkeydown = ({ code, target, type, repeat }) => {
-    if (!repeat) {
-      const pressed = !!type[5] && target === document.body;
+  onkeyup = onkeydown = (e) => {
+    if (!e.repeat) {
+      const pressed = !!e.type[5] && (!DEBUG || e.target === document.body);
 
-      if (pressed && (code === "Escape" || (code === "Enter" && mainMenuVisible))) {
-        if (!mainMenuVisible || pageClicked) {
-          mainMenu(!mainMenuVisible);
-        }
-      } else {
-        const mapped = (
-          {
-            ["KeyA"]: KEY_LEFT,
-            ["ArrowLeft"]: KEY_LEFT,
+      const mapped = (
+        {
+          ["KeyA"]: KEY_LEFT,
+          ["ArrowLeft"]: KEY_LEFT,
 
-            ["KeyW"]: KEY_FRONT,
-            ["ArrowUp"]: KEY_FRONT,
+          ["KeyW"]: KEY_FRONT,
+          ["ArrowUp"]: KEY_FRONT,
 
-            ["KeyD"]: KEY_RIGHT,
-            ["ArrowRight"]: KEY_RIGHT,
+          ["KeyD"]: KEY_RIGHT,
+          ["ArrowRight"]: KEY_RIGHT,
 
-            ["KeyS"]: KEY_BACK,
-            ["ArrowDown"]: KEY_BACK,
+          ["KeyS"]: KEY_BACK,
+          ["ArrowDown"]: KEY_BACK,
 
-            ["KeyE"]: KEY_INTERACT,
-            ["Space"]: KEY_INTERACT,
-            ["Enter"]: KEY_INTERACT,
-          } as Partial<Record<KEY_CODE, number>>
-        )[code as KEY_CODE]!;
+          ["KeyE"]: KEY_INTERACT,
+          ["Space"]: KEY_INTERACT,
+          ["Enter"]: KEY_INTERACT,
+
+          ["Escape"]: KEY_MENU,
+        } as Partial<Record<KEY_CODE, number>>
+      )[e.code as KEY_CODE]!;
+
+      keyboard_downKeys[mapped] = pressed;
+
+      if (pressed) {
         if (mapped === KEY_INTERACT) {
-          if (pressed) {
-            keyboard_downKeys[mapped] = 1;
-          }
-        } else {
-          keyboard_downKeys[mapped] = pressed;
+          interact_pressed = 1;
+        }
+        if (mapped === KEY_MENU) {
+          mainMenu(true);
         }
       }
     }
@@ -252,10 +257,10 @@ export const initPage = () => {
 
           // Move the invisible joysticks
           if (absDeltaX > 2) {
-            touchPosStartX = pageX + Math.sign(deltaX) * TOUCH_SIZE;
+            touchPosStartX = pageX + (deltaX < 0 ? -1 : 1) * TOUCH_SIZE;
           }
           if (absDeltaY > 2) {
-            touchPosStartY = pageY + Math.sign(deltaY) * TOUCH_SIZE;
+            touchPosStartY = pageY + (deltaY < 0 ? -1 : 1) * TOUCH_SIZE;
           }
         }
       }
@@ -287,7 +292,7 @@ export const initPage = () => {
       }
     }
 
-    if (click && e.target === hC && touchStartTime) {
+    if (e.target === hC && click && touchStartTime) {
       const diff = absoluteTime - touchStartTime;
       if (diff > 0.02 && diff < 0.7) {
         keyboard_downKeys[KEY_INTERACT] = true;
@@ -320,13 +325,17 @@ export const initPage = () => {
         getGamepadButtonState(GAMEPAD_BUTTON_RIGHT) -
         threshold(axes[0], 0.2);
 
+      if (getGamepadButtonState(GAMEPAD_BUTTON_START)) {
+        mainMenu(true);
+      }
+
       if (player_first_person) {
         camera_rotation.x += gameTimeDelta * threshold(axes[3], 0.3) * 80;
         camera_rotation.y += gameTimeDelta * threshold(axes[2], 0.3) * 80;
       }
 
       if (interactButtonPressed && !gamepadInteractPressed) {
-        keyboard_downKeys[KEY_INTERACT] = 1;
+        interact_pressed = 1;
       }
       gamepadInteractPressed = interactButtonPressed;
     }
@@ -337,6 +346,5 @@ export const initPage = () => {
 
   document.onvisibilitychange = onblur = onresize = handleResize;
 
-  handleResize();
   mainMenu(!DEBUG || DEBUG_FLAG2);
 };

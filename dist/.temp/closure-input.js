@@ -1,8 +1,9 @@
 let mainMenuVisible;
 let _globalTime;
-let currentEditModel;
+let interact_pressed;
 let player_first_person;
 let updateInput;
+let currentEditModel;
 let player_update;
 let souls_collected_count = 0;
 let absoluteTime = 0;
@@ -22,8 +23,9 @@ let camera_position_y = 0;
 let camera_position_z = 0;
 let _messageEndTime = 1;
 let gameTimeDelta = 0.066;
-const fieldOfViewAmount = 1.732051;
-const keyboard_downKeys = [];
+const allModels = [];
+const levers = [];
+const souls = [];
 const song_columns = [
   [
     "(.15:15:=5:=A:=AF=AFIFIMRMRUY(Y(((((((((((((((((((((((((((((M(M(((((((((((((((((((((((((((((R(R(((((((((((((((((((((((((((((U(U",
@@ -53,6 +55,36 @@ const song_columns = [
     "((((Q(((((((Q(((((((Q(((((((Q",
     "Q((Q((Q((Q((Q((Q((((Q",
   ],
+];
+const player_position_final = {
+  x: 0,
+  y: 0,
+  z: 0,
+};
+const camera_rotation = {
+  x: 0,
+  y: 180,
+};
+const integers_map = (n, fn) => Array.from(Array(n), (_, i) => fn(i));
+const DEG_TO_RAD = Math.PI / 180;
+const fieldOfViewAmount = 1.732051;
+const GQuad = [
+  {
+    x: -1,
+    z: 1,
+  },
+  {
+    x: 1,
+    z: 1,
+  },
+  {
+    x: 1,
+    z: -1,
+  },
+  {
+    x: -1,
+    z: -1,
+  },
 ];
 const song_instruments = [
   [
@@ -166,39 +198,7 @@ const song_instruments = [
     64,
   ],
 ];
-const camera_rotation = {
-  x: 0,
-  y: 180,
-};
 const player_position_global = {
-  x: 0,
-  y: 0,
-  z: 0,
-};
-const integers_map = (n, fn) => Array.from(Array(n), (_, i) => fn(i));
-const DEG_TO_RAD = Math.PI / 180;
-const allModels = [];
-const levers = [];
-const souls = [];
-const GQuad = [
-  {
-    x: -1,
-    z: 1,
-  },
-  {
-    x: 1,
-    z: 1,
-  },
-  {
-    x: 1,
-    z: -1,
-  },
-  {
-    x: -1,
-    z: -1,
-  },
-];
-const player_position_final = {
   x: 0,
   y: 0,
   z: 0,
@@ -552,6 +552,175 @@ const saveGame = () => {
     secondBoatLerp,
   ]);
 };
+const initPage = () => {
+  let touchStartTime;
+  let touchPosStartX;
+  let touchPosStartY;
+  let touchPosIdentifier;
+  let touchPosMoved;
+  let touchRotX;
+  let touchRotY;
+  let touchRotIdentifier;
+  let touchRotMoved;
+  let touchStartCameraRotX;
+  let touchStartCameraRotY;
+  let gamepadInteractPressed;
+  let touch_movementX;
+  let touch_movementY;
+  let music_on = !0;
+  const keyboard_downKeys = [];
+  const updateMusicOnState = () => {
+    mainMenuVisible || !music_on ? songAudioSource.disconnect() : songAudioSource.connect(audioContext.destination),
+      b4.innerHTML = "Music: " + music_on;
+  };
+  const handleResize = () => {
+    touchPosIdentifier = touchRotIdentifier = void 0,
+      keyboard_downKeys.length =
+        interact_pressed =
+        gamepadInteractPressed =
+        movAmount =
+        touch_movementX =
+        touch_movementY =
+          0,
+      hC.width = innerWidth,
+      hC.height = innerHeight,
+      document.hidden && mainMenu(!0);
+  };
+  const mainMenu = (value, firstPerson = 0) => {
+    if (mainMenuVisible !== value) {
+      mainMenuVisible = value,
+        player_first_person = firstPerson,
+        handleResize(),
+        updateCollectedSoulsCounter(),
+        document.body.className = value ? "l m" : "l";
+      try {
+        value
+          ? (document.exitFullscreen().catch(() => 0), document.exitPointerLock())
+          : (document.body.requestFullscreen().catch(() => 0), songAudioSource.start());
+      } catch {}
+      updateMusicOnState();
+    }
+  };
+  oncontextmenu = () => !1,
+    b1.onclick = () => mainMenu(!1),
+    b2.onclick = () => mainMenu(!1, 1),
+    b5.onclick = () => mainMenu(!0),
+    b4.onclick = () => {
+      music_on = !music_on, updateMusicOnState();
+    },
+    b3.onclick = () => {
+      confirm("Restart game?") && (localStorage.DanteSP22 = "", location.reload());
+    },
+    onclick = (e) => {
+      if (!mainMenuVisible && (e.target === hC && (interact_pressed = 1), player_first_person)) {try {
+          hC.requestPointerLock();
+        } catch {}}
+    },
+    onkeyup = onkeydown = (e) => {
+      let pressed;
+      e.repeat || (pressed = !!e.type[5] && !0,
+        e = ({
+          "KeyA": 1,
+          "ArrowLeft": 1,
+          "KeyW": 3,
+          "ArrowUp": 3,
+          "KeyD": 2,
+          "ArrowRight": 2,
+          "KeyS": 4,
+          "ArrowDown": 4,
+          "KeyE": 0,
+          "Space": 0,
+          "Enter": 0,
+          "Escape": 5,
+        })[e.code],
+        (keyboard_downKeys[e] = pressed) && (e === 0 && (interact_pressed = 1), e === 5 && mainMenu(!0)));
+    },
+    onmousemove = ({ movementX, movementY }) => {
+      player_first_person && (movementX || movementY)
+        && (camera_rotation.y += 0.1 * movementX, camera_rotation.x += 0.1 * movementY);
+    },
+    hC.ontouchstart = (e) => {
+      if (!mainMenuVisible) {
+        for (let { pageX, pageY, identifier } of e.changedTouches) {
+          player_first_person && pageX > hC.clientWidth / 2
+            ? touchRotIdentifier === void 0
+              && (touchRotMoved = 0,
+                touchRotX = pageX,
+                touchRotY = pageY,
+                touchRotIdentifier = identifier,
+                touchStartCameraRotX = camera_rotation.y,
+                touchStartCameraRotY = camera_rotation.x)
+            : touchPosIdentifier === void 0
+              && (touchPosMoved = 0, touchPosStartX = pageX, touchPosStartY = pageY, touchPosIdentifier = identifier);
+        }
+        touchStartTime = absoluteTime;
+      }
+    },
+    hC.ontouchmove = (e) => {
+      if (!mainMenuVisible) {
+        for (let { pageX, pageY, identifier } of e.changedTouches) {
+          var deltaY;
+          var absDeltaX;
+          var absDeltaY;
+          var angle;
+          var speed;
+          touchRotIdentifier === identifier
+          && (camera_rotation.y = touchStartCameraRotX + (pageX - touchRotX) / 2.3,
+            camera_rotation.x = touchStartCameraRotY + (pageY - touchRotY) / 2.3,
+            touchRotMoved = 1),
+            touchPosIdentifier === identifier
+            && (identifier = (touchPosStartX - pageX) / 20,
+              deltaY = (touchPosStartY - pageY) / 20,
+              absDeltaX = abs(identifier),
+              absDeltaY = abs(deltaY),
+              angle = Math.atan2(deltaY, identifier),
+              speed = clamp(Math.hypot(deltaY, identifier) - 0.5),
+              touch_movementX = 0.2 < absDeltaX ? Math.cos(angle) * speed : 0,
+              touch_movementY = 0.2 < absDeltaY ? Math.sin(angle) * speed : 0,
+              (touch_movementX || touch_movementY) && (touchPosMoved = 1),
+              2 < absDeltaX && (touchPosStartX = pageX + 20 * (identifier < 0 ? -1 : 1)),
+              2 < absDeltaY && (touchPosStartY = pageY + 20 * (deltaY < 0 ? -1 : 1)));
+        }
+      }
+    },
+    hC.ontouchend = (e) => {
+      let click;
+      document.activeElement === document.body && e.preventDefault();
+      for (const touch of e.changedTouches) {touch.identifier === touchRotIdentifier
+          ? (touchRotIdentifier = void 0, touchRotMoved || (click = 1), touchRotMoved = 0)
+          : touch.identifier === touchPosIdentifier
+          ? (touchPosIdentifier = void 0,
+            touch_movementY = touch_movementX = 0,
+            touchPosMoved || (click = 1),
+            touchPosMoved = 0)
+          : click = 1;}
+      e.target === hC && click && touchStartTime && 0.02 < (e = absoluteTime - touchStartTime) && e < 0.7
+        && (keyboard_downKeys[0] = !0);
+    },
+    updateInput = () => {
+      let input_forward = touch_movementY + (keyboard_downKeys[3] ? 1 : 0) - (keyboard_downKeys[4] ? 1 : 0);
+      let input_strafe = touch_movementX + (keyboard_downKeys[1] ? 1 : 0) - (keyboard_downKeys[2] ? 1 : 0);
+      let gamepad = navigator.getGamepads()[0];
+      if (gamepad) {
+        const getGamepadButtonState = (index) => buttons[index]?.pressed || 0 < buttons[index]?.value ? 1 : 0;
+        const { buttons, axes } = gamepad;
+        gamepad = getGamepadButtonState(3) || getGamepadButtonState(2) || getGamepadButtonState(1)
+          || getGamepadButtonState(0),
+          input_forward += getGamepadButtonState(12) - getGamepadButtonState(13) - threshold(axes[1], 0.2),
+          input_strafe += getGamepadButtonState(14) - getGamepadButtonState(15) - threshold(axes[0], 0.2),
+          getGamepadButtonState(9) && mainMenu(!0),
+          player_first_person
+          && (camera_rotation.x += gameTimeDelta * threshold(axes[3], 0.3) * 80,
+            camera_rotation.y += gameTimeDelta * threshold(axes[2], 0.3) * 80),
+          gamepad && !gamepadInteractPressed && (interact_pressed = 1),
+          gamepadInteractPressed = gamepad;
+      }
+      movAngle = Math.atan2(input_forward, input_strafe),
+        movAmount = threshold(clamp(Math.hypot(input_forward, input_strafe)), 0.05);
+    },
+    document.onvisibilitychange = onblur = onresize = handleResize,
+    mainMenu(!0);
+};
 const newModel = (fn, $kind = 1) => {
   const previousModel = currentEditModel;
   var $kind = {
@@ -577,7 +746,7 @@ const newLever = (transform) => {
       const { $value, $lerpValue, $lerpValue2 } = lever;
       const locMatrix = $parent.$matrix.multiply(transform);
       lever.$locMatrix = locMatrix,
-        vec3_distance(locMatrix.transformPoint(), player_position_final) < 3 && keyboard_downKeys[5]
+        vec3_distance(locMatrix.transformPoint(), player_position_final) < 3 && interact_pressed
         && ($lerpValue < 0.3 || 0.7 < $lerpValue)
         && (lever.$value = $value ? 0 : 1,
           (leverIndex = index) && showMessage("* click *", 1),
@@ -731,334 +900,6 @@ const csm_buildMatrix = (camera_view, nearPlane, farPlane, zMultiplier) => {
       (top + bottom) / -2,
       (near + far) / 2,
     ).multiplySelf(farPlane);
-};
-const initPage = () => {
-  let touchStartTime;
-  let touchPosStartX;
-  let touchPosStartY;
-  let touchPosIdentifier;
-  let touchPosMoved;
-  let touchRotX;
-  let touchRotY;
-  let touchRotIdentifier;
-  let touchRotMoved;
-  let touchStartCameraRotX;
-  let touchStartCameraRotY;
-  let gamepadInteractPressed;
-  let touch_movementX;
-  let touch_movementY;
-  let pageClicked;
-  let music_on = !0;
-  const updateMusicOnState = () => {
-    mainMenuVisible || !music_on ? songAudioSource.disconnect() : songAudioSource.connect(audioContext.destination),
-      b4.innerHTML = "Music: " + music_on;
-  };
-  const mainMenu = (value = !1) => {
-    if (mainMenuVisible !== value) {
-      mainMenuVisible = value;
-      try {
-        value ? (document.exitFullscreen().catch(() => {}), document.exitPointerLock()) : songAudioSource.start();
-      } catch {}
-      player_first_person = 0,
-        document.body.className = value ? "l m" : "l",
-        updateMusicOnState(),
-        updateCollectedSoulsCounter();
-    }
-  };
-  oncontextmenu = () => !1,
-    b3.onclick = () => {
-      confirm("Restart game?") && (localStorage.DanteSP22 = "", location.reload());
-    },
-    b1.onclick = () => {
-      document.body.requestFullscreen(), mainMenu();
-    },
-    b2.onclick = () => {
-      document.body.requestFullscreen(), mainMenu(), player_first_person = 1;
-    },
-    b4.onclick = () => {
-      music_on = !music_on, updateMusicOnState();
-    },
-    b5.onclick = () => mainMenu(!0),
-    onclick = (e) => {
-      pageClicked = 1,
-        mainMenuVisible
-        || (e.target === hC && (keyboard_downKeys[5] = !0), player_first_person && hC.requestPointerLock());
-    },
-    onkeyup = onkeydown = ({ code: code2, target, type, repeat }) => {
-      repeat
-        || ((repeat = !!type[5] && target === document.body)
-            && (code2 === "Escape" || code2 === "Enter" && mainMenuVisible)
-          ? mainMenuVisible && !pageClicked || mainMenu(!mainMenuVisible)
-          : (type = ({
-              "KeyA": 0,
-              "ArrowLeft": 0,
-              "KeyW": 1,
-              "ArrowUp": 1,
-              "KeyD": 2,
-              "ArrowRight": 2,
-              "KeyS": 3,
-              "ArrowDown": 3,
-              "KeyE": 5,
-              "Space": 5,
-              "Enter": 5,
-            })[code2]) === 5
-          ? repeat && (keyboard_downKeys[type] = 1)
-          : keyboard_downKeys[type] = repeat);
-    },
-    onmousemove = ({ movementX, movementY }) => {
-      player_first_person && (movementX || movementY)
-        && (camera_rotation.y += 0.1 * movementX, camera_rotation.x += 0.1 * movementY);
-    },
-    hC.ontouchstart = (e) => {
-      if (!mainMenuVisible) {
-        for (let { pageX, pageY, identifier } of e.changedTouches) {
-          player_first_person && pageX > hC.clientWidth / 2
-            ? touchRotIdentifier === void 0
-              && (touchRotMoved = 0,
-                touchRotX = pageX,
-                touchRotY = pageY,
-                touchRotIdentifier = identifier,
-                touchStartCameraRotX = camera_rotation.y,
-                touchStartCameraRotY = camera_rotation.x)
-            : touchPosIdentifier === void 0
-              && (touchPosMoved = 0, touchPosStartX = pageX, touchPosStartY = pageY, touchPosIdentifier = identifier);
-        }
-        touchStartTime = absoluteTime;
-      }
-    },
-    hC.ontouchmove = (e) => {
-      if (!mainMenuVisible) {
-        for (let { pageX, pageY, identifier } of e.changedTouches) {
-          var deltaY;
-          var absDeltaX;
-          var absDeltaY;
-          var angle;
-          var speed;
-          touchRotIdentifier === identifier
-          && (camera_rotation.y = touchStartCameraRotX + (pageX - touchRotX) / 2.3,
-            camera_rotation.x = touchStartCameraRotY + (pageY - touchRotY) / 2.3,
-            touchRotMoved = 1),
-            touchPosIdentifier === identifier
-            && (identifier = (touchPosStartX - pageX) / 20,
-              deltaY = (touchPosStartY - pageY) / 20,
-              absDeltaX = abs(identifier),
-              absDeltaY = abs(deltaY),
-              angle = Math.atan2(deltaY, identifier),
-              speed = clamp(Math.hypot(deltaY, identifier) - 0.5),
-              touch_movementX = 0.2 < absDeltaX ? Math.cos(angle) * speed : 0,
-              touch_movementY = 0.2 < absDeltaY ? Math.sin(angle) * speed : 0,
-              (touch_movementX || touch_movementY) && (touchPosMoved = 1),
-              2 < absDeltaX && (touchPosStartX = pageX + 20 * Math.sign(identifier)),
-              2 < absDeltaY && (touchPosStartY = pageY + 20 * Math.sign(deltaY)));
-        }
-      }
-    },
-    hC.ontouchend = (e) => {
-      let click;
-      document.activeElement === document.body && e.preventDefault();
-      for (const touch of e.changedTouches) {touch.identifier === touchRotIdentifier
-          ? (touchRotIdentifier = void 0, touchRotMoved || (click = 1), touchRotMoved = 0)
-          : touch.identifier === touchPosIdentifier
-          ? (touchPosIdentifier = void 0,
-            touch_movementY = touch_movementX = 0,
-            touchPosMoved || (click = 1),
-            touchPosMoved = 0)
-          : click = 1;}
-      click && e.target === hC && touchStartTime && 0.02 < (e = absoluteTime - touchStartTime) && e < 0.7
-        && (keyboard_downKeys[5] = !0);
-    },
-    updateInput = () => {
-      let input_forward = touch_movementY + (keyboard_downKeys[1] ? 1 : 0) - (keyboard_downKeys[3] ? 1 : 0);
-      let input_strafe = touch_movementX + (keyboard_downKeys[0] ? 1 : 0) - (keyboard_downKeys[2] ? 1 : 0);
-      let gamepad = navigator.getGamepads()[0];
-      if (gamepad) {
-        const getGamepadButtonState = (index) => buttons[index]?.pressed || 0 < buttons[index]?.value ? 1 : 0;
-        const { buttons, axes } = gamepad;
-        gamepad = getGamepadButtonState(3) || getGamepadButtonState(2) || getGamepadButtonState(1)
-          || getGamepadButtonState(0),
-          input_forward += getGamepadButtonState(12) - getGamepadButtonState(13) - threshold(axes[1], 0.2),
-          input_strafe += getGamepadButtonState(14) - getGamepadButtonState(15) - threshold(axes[0], 0.2),
-          player_first_person
-          && (camera_rotation.x += gameTimeDelta * threshold(axes[3], 0.3) * 80,
-            camera_rotation.y += gameTimeDelta * threshold(axes[2], 0.3) * 80),
-          gamepad && !gamepadInteractPressed && (keyboard_downKeys[5] = 1),
-          gamepadInteractPressed = gamepad;
-      }
-      movAngle = Math.atan2(input_forward, input_strafe),
-        movAmount = threshold(clamp(Math.hypot(input_forward, input_strafe)), 0.05);
-    },
-    (document.onvisibilitychange = onblur = onresize = () => {
-      hC.width = innerWidth,
-        hC.height = innerHeight,
-        keyboard_downKeys.length = touch_movementX = touch_movementY = 0,
-        touchPosIdentifier = touchRotIdentifier = void 0,
-        document.hidden && mainMenu(!0);
-    })(),
-    mainMenu(!0);
-};
-const initShaderProgram = (vertexShader, sfsSource) => {
-  const uniforms = {};
-  const program = gl["c1h"]();
-  return gl["abz"](program, vertexShader),
-    gl["abz"](program, loadShader(sfsSource, 35632)),
-    gl["l8l"](program),
-    (name) => name ? uniforms[name] || (uniforms[name] = gl["gan"](program, name)) : gl["u7y"](program);
-};
-const renderModels = (worldMatrixLoc, renderPlayer, soulModelId, isShadowRender) => {
-  if (mainMenuVisible) {
-    const matrix = rotation(0, 40 * Math.sin(absoluteTime) - 70);
-    for (
-      const modelId of [
-        37,
-        38,
-        39,
-      ]
-    ) {
-      matrixToArray(matrix, worldMatricesBuffer, modelId - 1);
-    }
-    gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer),
-      gl["d97"](4, allModels[39].$vertexEnd - allModels[37].$vertexBegin, 5123, 2 * allModels[37].$vertexBegin);
-  } else {
-    for (let i = 0; allModels.length > i; ++i) {
-      allModels[i].$kind && matrixToArray(allModels[i].$matrix, worldMatricesBuffer, i - 1);
-    }
-    gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer),
-      gl["d97"](4, (renderPlayer ? allModels[39].$vertexEnd : allModels[37].$vertexBegin) - 3, 5123, 6);
-    for (let i1 = 0; i1 < 13; ++i1) matrixToArray(souls[i1].$matrix, worldMatricesBuffer, i1);
-    for (let i2 = 0; levers.length > i2; ++i2) {
-      matrixToArray(levers[i2].$matrix, worldMatricesBuffer, i2 + 13),
-        isShadowRender || (worldMatricesBuffer[16 * (i2 + 13) + 15] = 1 - levers[i2].$lerpValue);
-    }
-    gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer),
-      gl["das"](
-        4,
-        allModels[soulModelId].$vertexEnd - allModels[soulModelId].$vertexBegin,
-        5123,
-        2 * allModels[soulModelId].$vertexBegin,
-        13,
-      ),
-      gl["das"](
-        4,
-        allModels[40].$vertexEnd - allModels[40].$vertexBegin,
-        5123,
-        2 * allModels[40].$vertexBegin,
-        levers.length,
-      );
-  }
-};
-const osc_square = (value) => value % 1 < 0.5 ? 1 : -1;
-const osc_tri = (value) => (value = value % 1 * 4) < 2 ? value - 1 : 3 - value;
-const loadSong = (done) => {
-  let channelIndex = 0;
-  const next = () => {
-    let mixIndex = 0;
-    const make = (song_rowLen) => {
-      let n;
-      let f;
-      let filterActive;
-      let low = 0;
-      let band = 0;
-      const noteCache = [];
-      const chnBuf = new Int32Array(768 * song_rowLen);
-      const lfoFreq = 2 ** (LFO_FREQ - 9) / song_rowLen;
-      const panFreq = Math.PI * 2 ** (FX_PAN_FREQ - 8) / song_rowLen;
-      const dly = FX_DELAY_TIME * song_rowLen & -2;
-      for (let p = 0; p <= 11; ++p) {
-        for (
-          let row = 0, cp = +"000001234556112341234556011111111112011111111112000001111112"[12 * channelIndex + p];
-          row < 32;
-          ++row
-        ) {
-          const rowStartSample = (32 * p + row) * song_rowLen;
-          for (let col = 0; col < 4; ++col) {
-            if (n = 0, cp && (n = COLUMNS[cp - 1].charCodeAt(row + 32 * col) - 40, n += 0 < n ? 106 : 0), n) {
-              const noteBuf = noteCache[n] || (noteCache[n] = ((note) => {
-                let o1t;
-                let o2t;
-                let c1 = 0;
-                let c2 = 0;
-                const OSC1_WAVEFORM = channelIndex < 2 ? osc_saw : osc_sin;
-                const OSC2_WAVEFORM = channelIndex < 2 ? channelIndex < 1 ? osc_square : osc_tri : osc_sin;
-                const noteBuf2 = new Int32Array(ENV_ATTACK + ENV_SUSTAIN + ENV_RELEASE);
-                for (let j1 = 0, j2 = 0; ENV_ATTACK + ENV_SUSTAIN + ENV_RELEASE > j1; ++j1, ++j2) {
-                  let e = 1;
-                  ENV_ATTACK > j1
-                    ? e = j1 / ENV_ATTACK
-                    : ENV_ATTACK + ENV_SUSTAIN > j1
-                      || (e = (1 - (e = (j1 - ENV_ATTACK - ENV_SUSTAIN) / ENV_RELEASE))
-                        * 3 ** (-ENV_EXP_DECAY / 16 * e)),
-                    j2 < 0
-                    || (j2 -= 4 * song_rowLen,
-                      o1t = getnotefreq(note + OSC1_SEMI),
-                      o2t = getnotefreq(note + OSC2_SEMI) * (1 + (channelIndex ? 0 : 0.007200))),
-                    noteBuf2[j1] = 80
-                        * (OSC1_WAVEFORM(c1 += o1t * e ** (OSC1_XENV / 32)) * OSC1_VOL
-                          + OSC2_WAVEFORM(c2 += o2t * e ** (OSC2_XENV / 32)) * OSC2_VOL
-                          + (NOISE_VOL ? (2 * Math.random() - 1) * NOISE_VOL : 0))
-                        * e | 0;
-                }
-                return noteBuf2;
-              })(n));
-              for (let j = 0, i = 2 * rowStartSample; noteBuf.length > j; ++j, i += 2) chnBuf[i] += noteBuf[j];
-            }
-          }
-          for (let rsample, j1 = 0; song_rowLen > j1; ++j1) {
-            let lsample = 0;
-            let k = 2 * (rowStartSample + j1);
-            var high = (((rsample = chnBuf[k]) || filterActive)
-              && (f = 308e-5 * FX_FREQ,
-                channelIndex !== 1 && channelIndex !== 4 || (f *= osc_sin(lfoFreq * k) * LFO_AMT / 512 + 0.5),
-                f = 1.5 * Math.sin(f),
-                low += f * band,
-                high = (1 - FX_RESONANCE / 255) * (rsample - band) - low,
-                band += f * high,
-                rsample = channelIndex === 4 ? band : channelIndex === 3 ? high : low,
-                channelIndex
-                || (rsample = (rsample *= 22e-5) < 1 ? -1 < rsample ? osc_sin(rsample / 4) : -1 : 1, rsample /= 22e-5),
-                rsample *= FX_DRIVE / 32,
-                filterActive = 1e-5 < rsample * rsample,
-                high = Math.sin(panFreq * k) * FX_PAN_AMT / 512 + 0.5,
-                lsample = rsample * (1 - high),
-                rsample *= high),
-              k < dly
-              || (lsample += chnBuf[1 + k - dly] * FX_DELAY_AMT / 255, rsample += chnBuf[k - dly] * FX_DELAY_AMT / 255),
-              mixIndex + k >> 1);
-            mixBufferA[high] += (chnBuf[k] = lsample) / 65536, mixBufferB[high] += (chnBuf[++k] = rsample) / 65536;
-          }
-        }
-      }
-      mixIndex += 768 * song_rowLen;
-    };
-    const COLUMNS = song_columns[channelIndex];
-    const [
-      OSC1_VOL,
-      OSC1_SEMI,
-      OSC1_XENV,
-      OSC2_VOL,
-      OSC2_SEMI,
-      OSC2_XENV,
-      NOISE_VOL,
-      ENV_ATTACK,
-      ENV_SUSTAIN,
-      _ENV_RELEASE,
-      ENV_EXP_DECAY,
-      LFO_FREQ,
-      FX_FREQ,
-      FX_RESONANCE,
-      FX_DRIVE,
-      FX_PAN_AMT,
-      FX_PAN_FREQ,
-      FX_DELAY_AMT,
-      FX_DELAY_TIME,
-      LFO_AMT,
-    ] = song_instruments[channelIndex];
-    const ENV_RELEASE = _ENV_RELEASE ** 2 * 4;
-    make(5513), make(4562), make(3891), loadStep(++channelIndex < 5 ? next : done);
-  };
-  const audioBuffer = audioContext.createBuffer(2, 5362944, 44100);
-  const mixBufferA = audioBuffer.getChannelData(0);
-  const mixBufferB = audioBuffer.getChannelData(1);
-  songAudioSource.buffer = audioBuffer, songAudioSource.loop = !0, loadStep(next);
 };
 const player_init = () => {
   let currentModelId;
@@ -1271,12 +1112,176 @@ const player_init = () => {
   };
 };
 const loadShader = (source, type = 35633) => (type = gl["c6x"](type), gl["s3c"](type, source), gl["c6a"](type), type);
+const initShaderProgram = (vertexShader, sfsSource) => {
+  const uniforms = {};
+  const program = gl["c1h"]();
+  return gl["abz"](program, vertexShader),
+    gl["abz"](program, loadShader(sfsSource, 35632)),
+    gl["l8l"](program),
+    (name) => name ? uniforms[name] || (uniforms[name] = gl["gan"](program, name)) : gl["u7y"](program);
+};
+const renderModels = (worldMatrixLoc, renderPlayer, soulModelId, isShadowRender) => {
+  if (mainMenuVisible) {
+    const matrix = rotation(0, 40 * Math.sin(absoluteTime) - 70);
+    for (
+      const modelId of [
+        37,
+        38,
+        39,
+      ]
+    ) {
+      matrixToArray(matrix, worldMatricesBuffer, modelId - 1);
+    }
+    gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer),
+      gl["d97"](4, allModels[39].$vertexEnd - allModels[37].$vertexBegin, 5123, 2 * allModels[37].$vertexBegin);
+  } else {
+    for (let i = 0; allModels.length > i; ++i) {
+      allModels[i].$kind && matrixToArray(allModels[i].$matrix, worldMatricesBuffer, i - 1);
+    }
+    gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer),
+      gl["d97"](4, (renderPlayer ? allModels[39].$vertexEnd : allModels[37].$vertexBegin) - 3, 5123, 6);
+    for (let i1 = 0; i1 < 13; ++i1) matrixToArray(souls[i1].$matrix, worldMatricesBuffer, i1);
+    for (let i2 = 0; levers.length > i2; ++i2) {
+      matrixToArray(levers[i2].$matrix, worldMatricesBuffer, i2 + 13),
+        isShadowRender || (worldMatricesBuffer[16 * (i2 + 13) + 15] = 1 - levers[i2].$lerpValue);
+    }
+    gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer),
+      gl["das"](
+        4,
+        allModels[soulModelId].$vertexEnd - allModels[soulModelId].$vertexBegin,
+        5123,
+        2 * allModels[soulModelId].$vertexBegin,
+        13,
+      ),
+      gl["das"](
+        4,
+        allModels[40].$vertexEnd - allModels[40].$vertexBegin,
+        5123,
+        2 * allModels[40].$vertexBegin,
+        levers.length,
+      );
+  }
+};
 const loadStep = (fn) => {
   h4.innerHTML += ".", setTimeout(fn);
 };
 const getnotefreq = (n) => 396e-5 * 2 ** ((n - 256) / 12);
 const osc_sin = (value) => Math.sin(value * Math.PI * 2);
+const osc_square = (value) => value % 1 < 0.5 ? 1 : -1;
 const osc_saw = (value) => value % 1 * 2 - 1;
+const osc_tri = (value) => (value = value % 1 * 4) < 2 ? value - 1 : 3 - value;
+const loadSong = (done) => {
+  let channelIndex = 0;
+  const next = () => {
+    let mixIndex = 0;
+    const make = (song_rowLen) => {
+      let n;
+      let f;
+      let filterActive;
+      let low = 0;
+      let band = 0;
+      const noteCache = [];
+      const chnBuf = new Int32Array(768 * song_rowLen);
+      const lfoFreq = 2 ** (LFO_FREQ - 9) / song_rowLen;
+      const panFreq = Math.PI * 2 ** (FX_PAN_FREQ - 8) / song_rowLen;
+      const dly = FX_DELAY_TIME * song_rowLen & -2;
+      for (let p = 0; p <= 11; ++p) {
+        for (
+          let row = 0, cp = +"000001234556112341234556011111111112011111111112000001111112"[12 * channelIndex + p];
+          row < 32;
+          ++row
+        ) {
+          const rowStartSample = (32 * p + row) * song_rowLen;
+          for (let col = 0; col < 4; ++col) {
+            if (n = 0, cp && (n = COLUMNS[cp - 1].charCodeAt(row + 32 * col) - 40, n += 0 < n ? 106 : 0), n) {
+              const noteBuf = noteCache[n] || (noteCache[n] = ((note) => {
+                let o1t;
+                let o2t;
+                let c1 = 0;
+                let c2 = 0;
+                const OSC1_WAVEFORM = channelIndex < 2 ? osc_saw : osc_sin;
+                const OSC2_WAVEFORM = channelIndex < 2 ? channelIndex < 1 ? osc_square : osc_tri : osc_sin;
+                const noteBuf2 = new Int32Array(ENV_ATTACK + ENV_SUSTAIN + ENV_RELEASE);
+                for (let j1 = 0, j2 = 0; ENV_ATTACK + ENV_SUSTAIN + ENV_RELEASE > j1; ++j1, ++j2) {
+                  let e = 1;
+                  ENV_ATTACK > j1
+                    ? e = j1 / ENV_ATTACK
+                    : ENV_ATTACK + ENV_SUSTAIN > j1
+                      || (e = (1 - (e = (j1 - ENV_ATTACK - ENV_SUSTAIN) / ENV_RELEASE))
+                        * 3 ** (-ENV_EXP_DECAY / 16 * e)),
+                    j2 < 0
+                    || (j2 -= 4 * song_rowLen,
+                      o1t = getnotefreq(note + OSC1_SEMI),
+                      o2t = getnotefreq(note + OSC2_SEMI) * (1 + (channelIndex ? 0 : 0.007200))),
+                    noteBuf2[j1] = 80
+                        * (OSC1_WAVEFORM(c1 += o1t * e ** (OSC1_XENV / 32)) * OSC1_VOL
+                          + OSC2_WAVEFORM(c2 += o2t * e ** (OSC2_XENV / 32)) * OSC2_VOL
+                          + (NOISE_VOL ? (2 * Math.random() - 1) * NOISE_VOL : 0))
+                        * e | 0;
+                }
+                return noteBuf2;
+              })(n));
+              for (let j = 0, i = 2 * rowStartSample; noteBuf.length > j; ++j, i += 2) chnBuf[i] += noteBuf[j];
+            }
+          }
+          for (let rsample, j1 = 0; song_rowLen > j1; ++j1) {
+            let lsample = 0;
+            let k = 2 * (rowStartSample + j1);
+            var high = (((rsample = chnBuf[k]) || filterActive)
+              && (f = 308e-5 * FX_FREQ,
+                channelIndex !== 1 && channelIndex !== 4 || (f *= osc_sin(lfoFreq * k) * LFO_AMT / 512 + 0.5),
+                f = 1.5 * Math.sin(f),
+                low += f * band,
+                high = (1 - FX_RESONANCE / 255) * (rsample - band) - low,
+                band += f * high,
+                rsample = channelIndex === 4 ? band : channelIndex === 3 ? high : low,
+                channelIndex
+                || (rsample = (rsample *= 22e-5) < 1 ? -1 < rsample ? osc_sin(rsample / 4) : -1 : 1, rsample /= 22e-5),
+                rsample *= FX_DRIVE / 32,
+                filterActive = 1e-5 < rsample * rsample,
+                high = Math.sin(panFreq * k) * FX_PAN_AMT / 512 + 0.5,
+                lsample = rsample * (1 - high),
+                rsample *= high),
+              k < dly
+              || (lsample += chnBuf[1 + k - dly] * FX_DELAY_AMT / 255, rsample += chnBuf[k - dly] * FX_DELAY_AMT / 255),
+              mixIndex + k >> 1);
+            mixBufferA[high] += (chnBuf[k] = lsample) / 65536, mixBufferB[high] += (chnBuf[++k] = rsample) / 65536;
+          }
+        }
+      }
+      mixIndex += 768 * song_rowLen;
+    };
+    const COLUMNS = song_columns[channelIndex];
+    const [
+      OSC1_VOL,
+      OSC1_SEMI,
+      OSC1_XENV,
+      OSC2_VOL,
+      OSC2_SEMI,
+      OSC2_XENV,
+      NOISE_VOL,
+      ENV_ATTACK,
+      ENV_SUSTAIN,
+      _ENV_RELEASE,
+      ENV_EXP_DECAY,
+      LFO_FREQ,
+      FX_FREQ,
+      FX_RESONANCE,
+      FX_DRIVE,
+      FX_PAN_AMT,
+      FX_PAN_FREQ,
+      FX_DELAY_AMT,
+      FX_DELAY_TIME,
+      LFO_AMT,
+    ] = song_instruments[channelIndex];
+    const ENV_RELEASE = _ENV_RELEASE ** 2 * 4;
+    make(5513), make(4562), make(3891), loadStep(++channelIndex < 5 ? next : done);
+  };
+  const audioBuffer = audioContext.createBuffer(2, 5362944, 44100);
+  const mixBufferA = audioBuffer.getChannelData(0);
+  const mixBufferB = audioBuffer.getChannelData(1);
+  songAudioSource.buffer = audioBuffer, songAudioSource.loop = !0, loadStep(next);
+};
 const audioContext = new AudioContext();
 const identity = new DOMMatrix();
 const float32Array16Temp = new Float32Array(16);
@@ -1291,8 +1296,8 @@ const abs = NO_INLINE((a) => a < 0 ? -a : a);
 const translation = NO_INLINE((x, y, z) => identity.translate(x, y, z));
 const rotation = NO_INLINE((x, y, z) => identity.rotate(x, y, z));
 const scaling = NO_INLINE((x, y, z) => identity.scale(x, y, z));
-const material = NO_INLINE((r, g, b, a = 0) => 255 * a << 24 | 255 * b << 16 | 255 * g << 8 | 255 * r);
 const songAudioSource = audioContext.createBufferSource();
+const material = NO_INLINE((r, g, b, a = 0) => 255 * a << 24 | 255 * b << 16 | 255 * g << 8 | 255 * r);
 const gl = hC.getContext("webgl2", {
   powerPreference: "high-performance",
 });
@@ -1336,7 +1341,7 @@ loadStep(() => {
             gl["uae"](collisionShader("b"), !1, matrixToArray(translation(-dt, -globalTime, -z - 0.3))),
             renderModels(collisionShader("c"), 0, 41, 0),
             gl["f1s"]()),
-          keyboard_downKeys[5] = 0;
+          interact_pressed = 0;
         var dt = mainMenuVisible
           ? rotation(-20, -90).invertSelf().translateSelf(5, -2, -3.4)
           : rotation(-camera_rotation.x, -camera_rotation.y).invertSelf().translateSelf(

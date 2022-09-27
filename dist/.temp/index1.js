@@ -437,14 +437,8 @@ let firstBoatLerp = 0;
 let secondBoatLerp = 0;
 let shouldRotatePlatforms = 0;
 let _messageEndTime = 1;
-const KEY_LEFT = 0;
-const KEY_FRONT = 1;
-const KEY_RIGHT = 2;
-const KEY_BACK = 3;
-const KEY_INTERACT = 5;
 const GAME_TIME_MAX_DELTA_TIME = 0.066;
 const LOCAL_STORAGE_SAVED_GAME_KEY = "DanteSP22";
-const keyboard_downKeys = [];
 const setMainMenuVisible = (visible) => {
   mainMenuVisible = visible;
 };
@@ -579,6 +573,273 @@ const onPlayerPullLever = (leverIndex) => {
   saveGame();
 };
 let gameTimeDelta = GAME_TIME_MAX_DELTA_TIME;
+const GAMEPAD_BUTTON_B = 0;
+const GAMEPAD_BUTTON_A = 1;
+const GAMEPAD_BUTTON_Y = 2;
+const GAMEPAD_BUTTON_X = 3;
+const GAMEPAD_BUTTON_START = 9;
+const GAMEPAD_BUTTON_UP = 12;
+const GAMEPAD_BUTTON_DOWN = 13;
+const GAMEPAD_BUTTON_LEFT = 14;
+const GAMEPAD_BUTTON_RIGHT = 15;
+const audioContext = new AudioContext();
+const songAudioSource = audioContext.createBufferSource();
+let interact_pressed;
+let player_first_person;
+let updateInput;
+let movAngle = 0;
+let movAmount = 0;
+const camera_rotation = {
+  x: 0,
+  y: 180,
+};
+const resetInteractPressed = () => {
+  interact_pressed = 0;
+};
+const initPage = () => {
+  let touchStartTime;
+  let touchPosStartX;
+  let touchPosStartY;
+  let touchPosIdentifier;
+  let touchPosMoved;
+  let touchRotX;
+  let touchRotY;
+  let touchRotIdentifier;
+  let touchRotMoved;
+  let touchStartCameraRotX;
+  let touchStartCameraRotY;
+  let gamepadInteractPressed;
+  let touch_movementX;
+  let touch_movementY;
+  let music_on = true;
+  const KEY_INTERACT = 0;
+  const KEY_LEFT = 1;
+  const KEY_RIGHT = 2;
+  const KEY_FRONT = 3;
+  const KEY_BACK = 4;
+  const KEY_MENU = 5;
+  const TOUCH_SIZE = 20;
+  const TOUCH_MOVE_SNAP = 0.2;
+  const TOUCH_MOVE_THRESHOLD = 0.5;
+  const keyboard_downKeys = [];
+  const updateMusicOnState = () => {
+    if (mainMenuVisible || !music_on) {
+      songAudioSource.disconnect();
+    } else {
+      songAudioSource.connect(audioContext.destination);
+    }
+    b4.innerHTML = "Music: " + music_on;
+  };
+  const handleResize = () => {
+    touchPosIdentifier = touchRotIdentifier = void 0;
+    keyboard_downKeys.length =
+      interact_pressed =
+      gamepadInteractPressed =
+      movAmount =
+      touch_movementX =
+      touch_movementY =
+        0;
+    hC.width = innerWidth;
+    hC.height = innerHeight;
+    if (document.hidden) {
+      mainMenu(true);
+    }
+  };
+  const mainMenu = (value, firstPerson = 0) => {
+    if (mainMenuVisible !== value) {
+      setMainMenuVisible(value);
+      player_first_person = firstPerson;
+      handleResize();
+      updateCollectedSoulsCounter();
+      document.body.className = value ? "l m" : "l";
+      try {
+        if (value) {
+          document.exitFullscreen().catch(() => 0);
+          document.exitPointerLock();
+        } else {
+          document.body.requestFullscreen().catch(() => 0);
+          songAudioSource.start();
+        }
+      } catch {
+      }
+      updateMusicOnState();
+    }
+  };
+  oncontextmenu = () => false;
+  b1.onclick = () => mainMenu(false);
+  b2.onclick = () => mainMenu(false, 1);
+  b5.onclick = () => mainMenu(true);
+  b4.onclick = () => {
+    music_on = !music_on;
+    updateMusicOnState();
+  };
+  b3.onclick = () => {
+    if (confirm("Restart game?")) {
+      localStorage[LOCAL_STORAGE_SAVED_GAME_KEY] = "";
+      location.reload();
+    }
+  };
+  onclick = (e) => {
+    if (!mainMenuVisible) {
+      if (e.target === hC) {
+        interact_pressed = 1;
+      }
+      if (player_first_person) {
+        try {
+          hC.requestPointerLock();
+        } catch {
+        }
+      }
+    }
+  };
+  onkeyup = onkeydown = (e) => {
+    if (!e.repeat) {
+      const pressed = !!e.type[5] && true;
+      const mapped = {
+        ["KeyA"]: KEY_LEFT,
+        ["ArrowLeft"]: KEY_LEFT,
+        ["KeyW"]: KEY_FRONT,
+        ["ArrowUp"]: KEY_FRONT,
+        ["KeyD"]: KEY_RIGHT,
+        ["ArrowRight"]: KEY_RIGHT,
+        ["KeyS"]: KEY_BACK,
+        ["ArrowDown"]: KEY_BACK,
+        ["KeyE"]: KEY_INTERACT,
+        ["Space"]: KEY_INTERACT,
+        ["Enter"]: KEY_INTERACT,
+        ["Escape"]: KEY_MENU,
+      }[e.code];
+      keyboard_downKeys[mapped] = pressed;
+      if (pressed) {
+        if (mapped === KEY_INTERACT) {
+          interact_pressed = 1;
+        }
+        if (mapped === KEY_MENU) {
+          mainMenu(true);
+        }
+      }
+    }
+  };
+  onmousemove = ({ movementX, movementY }) => {
+    if (player_first_person && (movementX || movementY)) {
+      camera_rotation.y += movementX * 0.1;
+      camera_rotation.x += movementY * 0.1;
+    }
+  };
+  hC.ontouchstart = (e) => {
+    if (!mainMenuVisible) {
+      for (const { pageX, pageY, identifier } of e.changedTouches) {
+        if (player_first_person && pageX > hC.clientWidth / 2) {
+          if (touchRotIdentifier === void 0) {
+            touchRotMoved = 0;
+            touchRotX = pageX;
+            touchRotY = pageY;
+            touchRotIdentifier = identifier;
+            touchStartCameraRotX = camera_rotation.y;
+            touchStartCameraRotY = camera_rotation.x;
+          }
+        } else if (touchPosIdentifier === void 0) {
+          touchPosMoved = 0;
+          touchPosStartX = pageX;
+          touchPosStartY = pageY;
+          touchPosIdentifier = identifier;
+        }
+      }
+      touchStartTime = absoluteTime;
+    }
+  };
+  hC.ontouchmove = (e) => {
+    if (!mainMenuVisible) {
+      for (const { pageX, pageY, identifier } of e.changedTouches) {
+        if (touchRotIdentifier === identifier) {
+          camera_rotation.y = touchStartCameraRotX + (pageX - touchRotX) / 2.3;
+          camera_rotation.x = touchStartCameraRotY + (pageY - touchRotY) / 2.3;
+          touchRotMoved = 1;
+        }
+        if (touchPosIdentifier === identifier) {
+          const deltaX = (touchPosStartX - pageX) / TOUCH_SIZE;
+          const deltaY = (touchPosStartY - pageY) / TOUCH_SIZE;
+          const absDeltaX = abs(deltaX);
+          const absDeltaY = abs(deltaY);
+          const angle = /* @__PURE__ */ Math.atan2(deltaY, deltaX);
+          const speed = clamp(/* @__PURE__ */ Math.hypot(deltaY, deltaX) - TOUCH_MOVE_THRESHOLD);
+          touch_movementX = absDeltaX > TOUCH_MOVE_SNAP ? /* @__PURE__ */ Math.cos(angle) * speed : 0;
+          touch_movementY = absDeltaY > TOUCH_MOVE_SNAP ? /* @__PURE__ */ Math.sin(angle) * speed : 0;
+          if (touch_movementX || touch_movementY) {
+            touchPosMoved = 1;
+          }
+          if (absDeltaX > 2) {
+            touchPosStartX = pageX + (deltaX < 0 ? -1 : 1) * TOUCH_SIZE;
+          }
+          if (absDeltaY > 2) {
+            touchPosStartY = pageY + (deltaY < 0 ? -1 : 1) * TOUCH_SIZE;
+          }
+        }
+      }
+    }
+  };
+  hC.ontouchend = (e) => {
+    let click;
+    if (document.activeElement === document.body) {
+      e.preventDefault();
+    }
+    for (const touch of e.changedTouches) {
+      if (touch.identifier === touchRotIdentifier) {
+        touchRotIdentifier = void 0;
+        if (!touchRotMoved) {
+          click = 1;
+        }
+        touchRotMoved = 0;
+      } else if (touch.identifier === touchPosIdentifier) {
+        touchPosIdentifier = void 0;
+        touch_movementY = touch_movementX = 0;
+        if (!touchPosMoved) {
+          click = 1;
+        }
+        touchPosMoved = 0;
+      } else {
+        click = 1;
+      }
+    }
+    if (e.target === hC && click && touchStartTime) {
+      const diff = absoluteTime - touchStartTime;
+      if (diff > 0.02 && diff < 0.7) {
+        keyboard_downKeys[KEY_INTERACT] = true;
+      }
+    }
+  };
+  updateInput = () => {
+    let input_forward = touch_movementY + (keyboard_downKeys[KEY_FRONT] ? 1 : 0)
+      - (keyboard_downKeys[KEY_BACK] ? 1 : 0);
+    let input_strafe = touch_movementX + (keyboard_downKeys[KEY_LEFT] ? 1 : 0) - (keyboard_downKeys[KEY_RIGHT] ? 1 : 0);
+    const gamepad = navigator.getGamepads()[0];
+    if (gamepad) {
+      const getGamepadButtonState = (index) => buttons[index]?.pressed || buttons[index]?.value > 0 ? 1 : 0;
+      const { buttons, axes } = gamepad;
+      const interactButtonPressed = getGamepadButtonState(GAMEPAD_BUTTON_X) || getGamepadButtonState(GAMEPAD_BUTTON_Y)
+        || getGamepadButtonState(GAMEPAD_BUTTON_A) || getGamepadButtonState(GAMEPAD_BUTTON_B);
+      input_forward += getGamepadButtonState(GAMEPAD_BUTTON_UP) - getGamepadButtonState(GAMEPAD_BUTTON_DOWN)
+        - threshold(axes[1], 0.2);
+      input_strafe += getGamepadButtonState(GAMEPAD_BUTTON_LEFT) - getGamepadButtonState(GAMEPAD_BUTTON_RIGHT)
+        - threshold(axes[0], 0.2);
+      if (getGamepadButtonState(GAMEPAD_BUTTON_START)) {
+        mainMenu(true);
+      }
+      if (player_first_person) {
+        camera_rotation.x += gameTimeDelta * threshold(axes[3], 0.3) * 80;
+        camera_rotation.y += gameTimeDelta * threshold(axes[2], 0.3) * 80;
+      }
+      if (interactButtonPressed && !gamepadInteractPressed) {
+        interact_pressed = 1;
+      }
+      gamepadInteractPressed = interactButtonPressed;
+    }
+    movAngle = /* @__PURE__ */ Math.atan2(input_forward, input_strafe);
+    movAmount = threshold(clamp(/* @__PURE__ */ Math.hypot(input_forward, input_strafe)), 0.05);
+  };
+  document.onvisibilitychange = onblur = onresize = handleResize;
+  mainMenu(true);
+};
 let currentEditModel;
 const LEVER_SENSITIVITY_RADIUS = 3;
 const SOUL_SENSITIVITY_RADIUS = 1.6;
@@ -610,8 +871,7 @@ const newLever = (transform) => {
       const locMatrix = $parent.$matrix.multiply(transform);
       lever.$locMatrix = locMatrix;
       if (
-        vec3_distance(locMatrix.transformPoint(), player_position_final) < LEVER_SENSITIVITY_RADIUS
-        && keyboard_downKeys[KEY_INTERACT]
+        vec3_distance(locMatrix.transformPoint(), player_position_final) < LEVER_SENSITIVITY_RADIUS && interact_pressed
       ) {
         if ($lerpValue < 0.3 || $lerpValue > 0.7) {
           lever.$value = $value ? 0 : 1;
@@ -1763,262 +2023,6 @@ const csm_buildMatrix = (camera_view, nearPlane, farPlane, zMultiplier) => {
     (near + far) / 2,
   ).multiplySelf(lightViewTranslated);
 };
-const GAMEPAD_BUTTON_B = 0;
-const GAMEPAD_BUTTON_A = 1;
-const GAMEPAD_BUTTON_Y = 2;
-const GAMEPAD_BUTTON_X = 3;
-const GAMEPAD_BUTTON_UP = 12;
-const GAMEPAD_BUTTON_DOWN = 13;
-const GAMEPAD_BUTTON_LEFT = 14;
-const GAMEPAD_BUTTON_RIGHT = 15;
-const audioContext = new AudioContext();
-const songAudioSource = audioContext.createBufferSource();
-let player_first_person;
-let updateInput;
-let movAngle = 0;
-let movAmount = 0;
-const camera_rotation = {
-  x: 0,
-  y: 180,
-};
-const initPage = () => {
-  let touchStartTime;
-  let touchPosStartX;
-  let touchPosStartY;
-  let touchPosIdentifier;
-  let touchPosMoved;
-  let touchRotX;
-  let touchRotY;
-  let touchRotIdentifier;
-  let touchRotMoved;
-  let touchStartCameraRotX;
-  let touchStartCameraRotY;
-  let gamepadInteractPressed;
-  let touch_movementX;
-  let touch_movementY;
-  let pageClicked;
-  let music_on = true;
-  const TOUCH_SIZE = 20;
-  const TOUCH_MOVE_SNAP = 0.2;
-  const TOUCH_MOVE_THRESHOLD = 0.5;
-  const updateMusicOnState = () => {
-    if (mainMenuVisible || !music_on) {
-      songAudioSource.disconnect();
-    } else {
-      songAudioSource.connect(audioContext.destination);
-    }
-    b4.innerHTML = "Music: " + music_on;
-  };
-  const toggleMusic = () => {
-    music_on = !music_on;
-    updateMusicOnState();
-  };
-  const mainMenu = (value = false) => {
-    if (mainMenuVisible !== value) {
-      setMainMenuVisible(value);
-      try {
-        if (value) {
-          document.exitFullscreen().catch(() => {
-          });
-          document.exitPointerLock();
-        } else {
-          songAudioSource.start();
-        }
-      } catch {
-      }
-      player_first_person = 0;
-      document.body.className = value ? "l m" : "l";
-      updateMusicOnState();
-      updateCollectedSoulsCounter();
-    }
-  };
-  const handleResize = () => {
-    hC.width = innerWidth;
-    hC.height = innerHeight;
-    keyboard_downKeys.length = touch_movementX = touch_movementY = 0;
-    touchPosIdentifier = touchRotIdentifier = void 0;
-    if (document.hidden) {
-      mainMenu(true);
-    }
-  };
-  oncontextmenu = () => false;
-  b3.onclick = () => {
-    if (confirm("Restart game?")) {
-      localStorage[LOCAL_STORAGE_SAVED_GAME_KEY] = "";
-      location.reload();
-    }
-  };
-  b1.onclick = () => {
-    document.body.requestFullscreen();
-    mainMenu();
-  };
-  b2.onclick = () => {
-    document.body.requestFullscreen();
-    mainMenu();
-    player_first_person = 1;
-  };
-  b4.onclick = toggleMusic;
-  b5.onclick = () => mainMenu(true);
-  onclick = (e) => {
-    pageClicked = 1;
-    if (!mainMenuVisible) {
-      if (e.target === hC) {
-        keyboard_downKeys[KEY_INTERACT] = true;
-      }
-      if (player_first_person) {
-        hC.requestPointerLock();
-      }
-    }
-  };
-  onkeyup = onkeydown = ({ code: code2, target, type, repeat }) => {
-    if (!repeat) {
-      const pressed = !!type[5] && target === document.body;
-      if (pressed && (code2 === "Escape" || code2 === "Enter" && mainMenuVisible)) {
-        if (!mainMenuVisible || pageClicked) {
-          mainMenu(!mainMenuVisible);
-        }
-      } else {
-        const mapped = {
-          ["KeyA"]: KEY_LEFT,
-          ["ArrowLeft"]: KEY_LEFT,
-          ["KeyW"]: KEY_FRONT,
-          ["ArrowUp"]: KEY_FRONT,
-          ["KeyD"]: KEY_RIGHT,
-          ["ArrowRight"]: KEY_RIGHT,
-          ["KeyS"]: KEY_BACK,
-          ["ArrowDown"]: KEY_BACK,
-          ["KeyE"]: KEY_INTERACT,
-          ["Space"]: KEY_INTERACT,
-          ["Enter"]: KEY_INTERACT,
-        }[code2];
-        if (mapped === KEY_INTERACT) {
-          if (pressed) {
-            keyboard_downKeys[mapped] = 1;
-          }
-        } else {
-          keyboard_downKeys[mapped] = pressed;
-        }
-      }
-    }
-  };
-  onmousemove = ({ movementX, movementY }) => {
-    if (player_first_person && (movementX || movementY)) {
-      camera_rotation.y += movementX * 0.1;
-      camera_rotation.x += movementY * 0.1;
-    }
-  };
-  hC.ontouchstart = (e) => {
-    if (!mainMenuVisible) {
-      for (const { pageX, pageY, identifier } of e.changedTouches) {
-        if (player_first_person && pageX > hC.clientWidth / 2) {
-          if (touchRotIdentifier === void 0) {
-            touchRotMoved = 0;
-            touchRotX = pageX;
-            touchRotY = pageY;
-            touchRotIdentifier = identifier;
-            touchStartCameraRotX = camera_rotation.y;
-            touchStartCameraRotY = camera_rotation.x;
-          }
-        } else if (touchPosIdentifier === void 0) {
-          touchPosMoved = 0;
-          touchPosStartX = pageX;
-          touchPosStartY = pageY;
-          touchPosIdentifier = identifier;
-        }
-      }
-      touchStartTime = absoluteTime;
-    }
-  };
-  hC.ontouchmove = (e) => {
-    if (!mainMenuVisible) {
-      for (const { pageX, pageY, identifier } of e.changedTouches) {
-        if (touchRotIdentifier === identifier) {
-          camera_rotation.y = touchStartCameraRotX + (pageX - touchRotX) / 2.3;
-          camera_rotation.x = touchStartCameraRotY + (pageY - touchRotY) / 2.3;
-          touchRotMoved = 1;
-        }
-        if (touchPosIdentifier === identifier) {
-          const deltaX = (touchPosStartX - pageX) / TOUCH_SIZE;
-          const deltaY = (touchPosStartY - pageY) / TOUCH_SIZE;
-          const absDeltaX = abs(deltaX);
-          const absDeltaY = abs(deltaY);
-          const angle = /* @__PURE__ */ Math.atan2(deltaY, deltaX);
-          const speed = clamp(/* @__PURE__ */ Math.hypot(deltaY, deltaX) - TOUCH_MOVE_THRESHOLD);
-          touch_movementX = absDeltaX > TOUCH_MOVE_SNAP ? /* @__PURE__ */ Math.cos(angle) * speed : 0;
-          touch_movementY = absDeltaY > TOUCH_MOVE_SNAP ? /* @__PURE__ */ Math.sin(angle) * speed : 0;
-          if (touch_movementX || touch_movementY) {
-            touchPosMoved = 1;
-          }
-          if (absDeltaX > 2) {
-            touchPosStartX = pageX + /* @__PURE__ */ Math.sign(deltaX) * TOUCH_SIZE;
-          }
-          if (absDeltaY > 2) {
-            touchPosStartY = pageY + /* @__PURE__ */ Math.sign(deltaY) * TOUCH_SIZE;
-          }
-        }
-      }
-    }
-  };
-  hC.ontouchend = (e) => {
-    let click;
-    if (document.activeElement === document.body) {
-      e.preventDefault();
-    }
-    for (const touch of e.changedTouches) {
-      if (touch.identifier === touchRotIdentifier) {
-        touchRotIdentifier = void 0;
-        if (!touchRotMoved) {
-          click = 1;
-        }
-        touchRotMoved = 0;
-      } else if (touch.identifier === touchPosIdentifier) {
-        touchPosIdentifier = void 0;
-        touch_movementY = touch_movementX = 0;
-        if (!touchPosMoved) {
-          click = 1;
-        }
-        touchPosMoved = 0;
-      } else {
-        click = 1;
-      }
-    }
-    if (click && e.target === hC && touchStartTime) {
-      const diff = absoluteTime - touchStartTime;
-      if (diff > 0.02 && diff < 0.7) {
-        keyboard_downKeys[KEY_INTERACT] = true;
-      }
-    }
-  };
-  updateInput = () => {
-    let input_forward = touch_movementY + (keyboard_downKeys[KEY_FRONT] ? 1 : 0)
-      - (keyboard_downKeys[KEY_BACK] ? 1 : 0);
-    let input_strafe = touch_movementX + (keyboard_downKeys[KEY_LEFT] ? 1 : 0) - (keyboard_downKeys[KEY_RIGHT] ? 1 : 0);
-    const gamepad = navigator.getGamepads()[0];
-    if (gamepad) {
-      const getGamepadButtonState = (index) => buttons[index]?.pressed || buttons[index]?.value > 0 ? 1 : 0;
-      const { buttons, axes } = gamepad;
-      const interactButtonPressed = getGamepadButtonState(GAMEPAD_BUTTON_X) || getGamepadButtonState(GAMEPAD_BUTTON_Y)
-        || getGamepadButtonState(GAMEPAD_BUTTON_A) || getGamepadButtonState(GAMEPAD_BUTTON_B);
-      input_forward += getGamepadButtonState(GAMEPAD_BUTTON_UP) - getGamepadButtonState(GAMEPAD_BUTTON_DOWN)
-        - threshold(axes[1], 0.2);
-      input_strafe += getGamepadButtonState(GAMEPAD_BUTTON_LEFT) - getGamepadButtonState(GAMEPAD_BUTTON_RIGHT)
-        - threshold(axes[0], 0.2);
-      if (player_first_person) {
-        camera_rotation.x += gameTimeDelta * threshold(axes[3], 0.3) * 80;
-        camera_rotation.y += gameTimeDelta * threshold(axes[2], 0.3) * 80;
-      }
-      if (interactButtonPressed && !gamepadInteractPressed) {
-        keyboard_downKeys[KEY_INTERACT] = 1;
-      }
-      gamepadInteractPressed = interactButtonPressed;
-    }
-    movAngle = /* @__PURE__ */ Math.atan2(input_forward, input_strafe);
-    movAmount = threshold(clamp(/* @__PURE__ */ Math.hypot(input_forward, input_strafe)), 0.05);
-  };
-  document.onvisibilitychange = onblur = onresize = handleResize;
-  handleResize();
-  mainMenu(true);
-};
 const gl = hC.getContext("webgl2", {
   powerPreference: "high-performance",
 });
@@ -2404,7 +2408,7 @@ const startMainLoop = (groundTextureImage) => {
       renderModels(collisionShader(uniformName_worldMatrices), 0, MODEL_ID_SOUL_COLLISION, 0);
       gl["f1s"]();
     }
-    keyboard_downKeys[KEY_INTERACT] = 0;
+    resetInteractPressed();
     const camera_view = mainMenuVisible
       ? rotation(-20, -90).invertSelf().translateSelf(5, -2, -3.4)
       : rotation(-camera_rotation.x, -camera_rotation.y).invertSelf().translateSelf(
