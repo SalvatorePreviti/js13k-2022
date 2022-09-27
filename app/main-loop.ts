@@ -31,9 +31,16 @@ import {
   zNear,
 } from "./math";
 import { MODEL_ID_SOUL, MODEL_ID_SOUL_COLLISION, player_position_final } from "./game/models";
-import { absoluteTime, gameTimeDelta, gameTimeUpdate, mainMenuVisible, worldStateUpdate } from "./game/world-state";
+import {
+  absoluteTime,
+  camera_rotation,
+  gameTimeDelta,
+  gameTimeUpdate,
+  mainMenuVisible,
+  worldStateUpdate,
+} from "./game/world-state";
 import { csm_buildMatrix } from "./csm";
-import { camera_rotation, initPage, player_first_person, resetInteractPressed, updateInput } from "./page";
+import { initPage, player_first_person, resetInteractPressed, updateInput } from "./page";
 import { gl } from "./gl";
 import {
   player_update,

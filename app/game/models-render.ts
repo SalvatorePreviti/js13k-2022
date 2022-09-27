@@ -1,6 +1,5 @@
 import { matrixToArray, rotation } from "../math";
 import { absoluteTime, mainMenuVisible } from "./world-state";
-import type { MODEL_ID_SOUL } from "./models";
 import {
   allModels,
   levers,
@@ -10,6 +9,7 @@ import {
   MODEL_ID_PLAYER_LEG1,
   souls,
   SOULS_COUNT,
+  type MODEL_ID_SOUL,
   type MODEL_ID_SOUL_COLLISION,
 } from "./models";
 import { gl } from "../gl";

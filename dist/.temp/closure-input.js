@@ -26,66 +26,6 @@ let gameTimeDelta = 0.066;
 const allModels = [];
 const levers = [];
 const souls = [];
-const song_columns = [
-  [
-    "(.15:15:=5:=A:=AF=AFIFIMRMRUY(Y(((((((((((((((((((((((((((((M(M(((((((((((((((((((((((((((((R(R(((((((((((((((((((((((((((((U(U",
-    "(059<59<A9<AE<AEHAEHMEHMQMQTY(Y",
-    "(5:>A:>AF>AFJAFJMFJMRJMRVMRVY(Y",
-    "(:?BFFKNRRWZ^(^((:=@FFILRRUX^(^",
-    "Q(M(M(O(Q(R(T(Q(T(R(W(U(T(R(Q(N(W((Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(X]",
-    "QN(M(N(M(N(M(N(M((((((((((((((((W(Y(Y(Y(Y(Y(Y(Y(Y(((((((((((((((]",
-  ],
-  [
-    ".(5(.(5(.(5(.(5(.(5(.(5(.(5(.(5",
-    "-(5(-(5(-(5(-(5(-(5(-(5(-(5(-(5",
-    ",(5(,(5(,(5(,(5(,(5(,(5(,(5(,(5",
-    "*(6(*(6(*(6(*(6(*(6(*(6(*(6(*(6",
-    "5(E(E(F(H(I(K(H(K(I(N(M(K(I(H(F(A(((((((((((((((((((((((((((((((5(((5(((5(((5(((5(((5(((5(((5",
-    "5(6(5(6(5(6(5(6(5((()(((((((((((A(B(A(B(A(B(A(B(A(((5",
-  ],
-  [
-    "9(((9(((9(((9(((9(((9(((9(((9",
-    "9(((Q(((Q(((Q",
-  ],
-  [
-    "9(9(9(9(9(9(9(999(9(9(9(999(9(9",
-    "9(9(9(9(9(999(9(((((Q",
-  ],
-  [
-    "((((Q(((((((Q(((((((Q(((((((Q",
-    "Q((Q((Q((Q((Q((Q((((Q",
-  ],
-];
-const player_position_final = {
-  x: 0,
-  y: 0,
-  z: 0,
-};
-const camera_rotation = {
-  x: 0,
-  y: 180,
-};
-const integers_map = (n, fn) => Array.from(Array(n), (_, i) => fn(i));
-const DEG_TO_RAD = Math.PI / 180;
-const fieldOfViewAmount = 1.732051;
-const GQuad = [
-  {
-    x: -1,
-    z: 1,
-  },
-  {
-    x: 1,
-    z: 1,
-  },
-  {
-    x: 1,
-    z: -1,
-  },
-  {
-    x: -1,
-    z: -1,
-  },
-];
 const song_instruments = [
   [
     69,
@@ -196,6 +136,66 @@ const song_instruments = [
     9,
     3,
     64,
+  ],
+];
+const player_position_final = {
+  x: 0,
+  y: 0,
+  z: 0,
+};
+const camera_rotation = {
+  x: 0,
+  y: 180,
+};
+const integers_map = (n, fn) => Array.from(Array(n), (_, i) => fn(i));
+const DEG_TO_RAD = Math.PI / 180;
+const fieldOfViewAmount = 1.732051;
+const GQuad = [
+  {
+    x: -1,
+    z: 1,
+  },
+  {
+    x: 1,
+    z: 1,
+  },
+  {
+    x: 1,
+    z: -1,
+  },
+  {
+    x: -1,
+    z: -1,
+  },
+];
+const song_columns = [
+  [
+    "(.15:15:=5:=A:=AF=AFIFIMRMRUY(Y(((((((((((((((((((((((((((((M(M(((((((((((((((((((((((((((((R(R(((((((((((((((((((((((((((((U(U",
+    "(059<59<A9<AE<AEHAEHMEHMQMQTY(Y",
+    "(5:>A:>AF>AFJAFJMFJMRJMRVMRVY(Y",
+    "(:?BFFKNRRWZ^(^((:=@FFILRRUX^(^",
+    "Q(M(M(O(Q(R(T(Q(T(R(W(U(T(R(Q(N(W((Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(X]",
+    "QN(M(N(M(N(M(N(M((((((((((((((((W(Y(Y(Y(Y(Y(Y(Y(Y(((((((((((((((]",
+  ],
+  [
+    ".(5(.(5(.(5(.(5(.(5(.(5(.(5(.(5",
+    "-(5(-(5(-(5(-(5(-(5(-(5(-(5(-(5",
+    ",(5(,(5(,(5(,(5(,(5(,(5(,(5(,(5",
+    "*(6(*(6(*(6(*(6(*(6(*(6(*(6(*(6",
+    "5(E(E(F(H(I(K(H(K(I(N(M(K(I(H(F(A(((((((((((((((((((((((((((((((5(((5(((5(((5(((5(((5(((5(((5",
+    "5(6(5(6(5(6(5(6(5((()(((((((((((A(B(A(B(A(B(A(B(A(((5",
+  ],
+  [
+    "9(((9(((9(((9(((9(((9(((9(((9",
+    "9(((Q(((Q(((Q",
+  ],
+  [
+    "9(9(9(9(9(9(9(999(9(9(9(999(9(9",
+    "9(9(9(9(9(999(9(((((Q",
+  ],
+  [
+    "((((Q(((((((Q(((((((Q(((((((Q",
+    "Q((Q((Q((Q((Q((Q((((Q",
   ],
 ];
 const player_position_global = {

@@ -1,3 +1,4 @@
+import type { Vec2 } from "../math";
 import { lerp, angle_wrap_degrees, lerpneg, clamp, min, abs } from "../math";
 import { allModels, levers, souls, SOULS_COUNT } from "./models";
 
@@ -11,6 +12,8 @@ export let absoluteTime = 0;
 export let gameTime = 0;
 
 export let gameTimeDelta: number = GAME_TIME_MAX_DELTA_TIME;
+
+export const camera_rotation: Vec2 = { x: 0, y: 180 } as Vec2;
 
 export const resetGameTime = () => {
   gameTime = 0;

@@ -53,7 +53,7 @@ loadStep(() => {
     build_life_the_universe_and_everything();
   };
 
-  if (DEBUG && DEBUG_FLAG1) {
+  if (DEBUG_FLAG1) {
     songLoaded();
   } else {
     NO_INLINE(loadSong)(songLoaded);

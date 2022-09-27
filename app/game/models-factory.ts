@@ -4,6 +4,7 @@ import {
   levers,
   souls,
   allModels,
+  player_position_final,
   MODEL_ID_FIRST_BOAT,
   MODEL_KIND_GAME,
   type Circle,
@@ -11,7 +12,6 @@ import {
   type Model,
   type Soul,
   type MODEL_KIND,
-  player_position_final,
 } from "./models";
 import { onPlayerPullLever, lerpDamp, gameTime, onSoulCollected, damp } from "./world-state";
 import { interact_pressed } from "../page";

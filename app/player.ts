@@ -27,8 +27,9 @@ import {
   firstBoatLerp,
   damp,
   shouldRotatePlatforms,
+  camera_rotation,
 } from "./game/world-state";
-import { camera_rotation, movAmount, movAngle, player_first_person } from "./page";
+import { movAmount, movAngle, player_first_person } from "./page";
 import { gl } from "./gl";
 
 export const CAMERA_PLAYER_Y_DIST = 13;
