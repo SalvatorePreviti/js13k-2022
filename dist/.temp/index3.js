@@ -650,7 +650,7 @@ const m = (c, b) => Array.from(Array(c), (g, k) => b(k)),
       v = t(v, Ba, 1 - Math.exp(-10 * d));
       Ba && (p = 90 - Aa / Pa);
       D = 0;
-      e[37].j = I(M, f, G).rotateSelf(0, l);
+      e[37].j = I(M, f + 0.124, G).rotateSelf(0, l);
       for (E = 0; 2 > E; ++E) {
         e[38 + E].j = e[37].j.translate(0, v * Ta(0.45 * Math.sin(9.1 * a + Math.PI * (E - 1) - Math.PI / 2)))
           .rotateSelf(v * Math.sin(9.1 * a + Math.PI * (E - 1)) * 0.25 / Pa, 0);
@@ -839,7 +839,7 @@ Qb(() => {
             Z.b6o(36160, O);
             Z.v5y(0, 0, 2048, 2048);
             C[0](Gb(x, 0.3, 55, 10));
-            C[1](Gb(x, 55, 186, 11));
+            C[1](Gb(x, 55, 181, 11));
             y();
             Z.b6o(36160, null);
             Z.v5y(0, 0, Z.drawingBufferWidth, Z.drawingBufferHeight);
@@ -847,7 +847,7 @@ Qb(() => {
             Z.c4s(16640);
             C[0]();
             C[1]();
-            Z.uae(y("a"), !1, db(hC.clientHeight / hC.clientWidth * 1.732051, 1.732051, 0.3, 186));
+            Z.uae(y("a"), !1, db(hC.clientHeight / hC.clientWidth * 1.732051, 1.732051, 0.3, 181));
             Z.uae(y("b"), !1, cb(x));
             Z.ubu(y("k"), Ca, Da, Ea);
             Pb(y("c"), !ja, 42, 0);
@@ -1483,14 +1483,14 @@ Qb(() => {
     R(() => {
       [0, 180].map(v => S(p, Eb(0, v).translate(0.2, 1.32).rotate(-30).scale(0.2, 0.6, 0.2), U(1, 1, 0.8)));
       S(ib(20), I(0, 1).scale(0.5, 0.5, 0.5), U(1, 0.3, 0.4));
+      S(ib(30), X(0.7, 0.8, 0.55), U(1, 0.3, 0.4));
       const l = H(P(J(15, 1), H(J(), I(0, 0, 1).scale(2, 2, 0.5))), Eb(-90, 0).scale(0.1, 0.05, 0.1), U(0.3, 0.3, 0.3));
       [-1, 1].map(v => S(l, I(0.2 * v, 1.2, 0.4).rotate(0, 20 * v, 20 * v)));
       S(J(), I(0, 0.9, 0.45).scale(0.15, 0.02, 0.06), U(0.3, 0.3, 0.3));
-      S(ib(20), X(0.7, 0.8, 0.55), U(1, 0.3, 0.4));
     });
     [-1, 1].map(l =>
       R(() => {
-        S(J(10, 1), I(0.3 * l, -0.8).scale(0.2, 0.7, 0.24), U(1, 0.3, 0.4));
+        S(J(20, 1), I(0.3 * l, -0.8).scale(0.2, 0.7, 0.24), U(1, 0.3, 0.4));
       })
     );
     R(() => {

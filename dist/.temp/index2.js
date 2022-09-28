@@ -1099,10 +1099,8 @@ const player_init = () => {
       player_legs_speed = lerpDamp(player_legs_speed, movAmount, 10),
       movAmount && (player_look_angle_target = 90 - movAngle / DEG_TO_RAD),
       boot = 0,
-      allModels[37].$matrix = translation(inverseReferenceRotationMatrix, player_model_y, movementRadians).rotateSelf(
-        0,
-        player_look_angle,
-      );
+      allModels[37].$matrix = translation(inverseReferenceRotationMatrix, player_model_y + 0.124, movementRadians)
+        .rotateSelf(0, player_look_angle);
     for (let i = 0; i < 2; ++i) {
       allModels[38 + i].$matrix = allModels[37].$matrix.translate(
         0,
@@ -1353,7 +1351,7 @@ loadStep(() => {
           gl["b6o"](36160, csm_framebuffer),
           gl["v5y"](0, 0, 2048, 2048),
           csm_render[0](csm_buildMatrix(dt, 0.3, 55, 10)),
-          csm_render[1](csm_buildMatrix(dt, 55, 186, 11)),
+          csm_render[1](csm_buildMatrix(dt, 55, 181, 11)),
           mainShader(),
           gl["b6o"](36160, null),
           gl["v5y"](0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight),
@@ -1361,7 +1359,7 @@ loadStep(() => {
           gl["c4s"](16640),
           csm_render[0](),
           csm_render[1](),
-          gl["uae"](mainShader("a"), !1, mat_perspective(0.3, 186)),
+          gl["uae"](mainShader("a"), !1, mat_perspective(0.3, 181)),
           gl["uae"](mainShader("b"), !1, matrixToArray(dt)),
           gl["ubu"](mainShader("k"), camera_position_x, camera_position_y, camera_position_z),
           renderModels(mainShader("c"), !player_first_person, 42, 0),
@@ -2696,7 +2694,9 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 rotation(0, r).translate(0.2, 1.32).rotate(-30).scale(0.2, 0.6, 0.2),
                 material(1, 1, 0.8),
               )
-            ), meshAdd(sphere(20), translation(0, 1).scale(0.5, 0.5, 0.5), material(1, 0.3, 0.4));
+            ),
+              meshAdd(sphere(20), translation(0, 1).scale(0.5, 0.5, 0.5), material(1, 0.3, 0.4)),
+              meshAdd(sphere(30), scaling(0.7, 0.8, 0.55), material(1, 0.3, 0.4));
             const eye = polygons_transform(
               csg_polygons_subtract(
                 cylinder(15, 1),
@@ -2709,15 +2709,14 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               -1,
               1,
             ].map((i) => meshAdd(eye, translation(0.2 * i, 1.2, 0.4).rotate(0, 20 * i, 20 * i))),
-              meshAdd(cylinder(), translation(0, 0.9, 0.45).scale(0.15, 0.02, 0.06), material(0.3, 0.3, 0.3)),
-              meshAdd(sphere(20), scaling(0.7, 0.8, 0.55), material(1, 0.3, 0.4));
+              meshAdd(cylinder(), translation(0, 0.9, 0.45).scale(0.15, 0.02, 0.06), material(0.3, 0.3, 0.3));
           }),
           [
             -1,
             1,
           ].map((x) =>
             newModel(() => {
-              meshAdd(cylinder(10, 1), translation(0.3 * x, -0.8).scale(0.2, 0.7, 0.24), material(1, 0.3, 0.4));
+              meshAdd(cylinder(20, 1), translation(0.3 * x, -0.8).scale(0.2, 0.7, 0.24), material(1, 0.3, 0.4));
             })
           ),
           newModel(() => {

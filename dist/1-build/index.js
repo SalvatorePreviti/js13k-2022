@@ -9,7 +9,7 @@ const uniformName_viewPos = "k";
 const constDef_CSM_TEXTURE_SIZE = 2048;
 const constDef_zNear = 0.3;
 const constDef_CSM_PLANE_DISTANCE = 55;
-const constDef_zFar = 186;
+const constDef_zFar = 181;
 const integers_map = (n, fn) => Array.from(/* @__PURE__ */ Array(n), (_, i) => fn(i));
 const DEG_TO_RAD = Math.PI / 180;
 const fieldOfViewDegrees = 60;
@@ -1304,19 +1304,19 @@ const build_life_the_universe_and_everything = () => {
       180
     ].map((r) => meshAdd(hornPolygons, rotation(0, r).translate(0.2, 1.32).rotate(-30).scale(0.2, 0.6, 0.2), material(1, 1, 0.8)));
     meshAdd(sphere(20), translation(0, 1).scale(0.5, 0.5, 0.5), material(1, 0.3, 0.4));
+    meshAdd(sphere(30), scaling(0.7, 0.8, 0.55), material(1, 0.3, 0.4));
     const eye = polygons_transform(csg_polygons_subtract(cylinder(15, 1), polygons_transform(cylinder(), translation(0, 0, 1).scale(2, 2, 0.5))), rotation(-90, 0).scale(0.1, 0.05, 0.1), material(0.3, 0.3, 0.3));
     [
       -1,
       1
     ].map((i) => meshAdd(eye, translation(i * 0.2, 1.2, 0.4).rotate(0, i * 20, i * 20)));
     meshAdd(cylinder(), translation(0, 0.9, 0.45).scale(0.15, 0.02, 0.06), material(0.3, 0.3, 0.3));
-    meshAdd(sphere(20), scaling(0.7, 0.8, 0.55), material(1, 0.3, 0.4));
   });
   [
     -1,
     1
   ].map((x) => newModel(() => {
-    meshAdd(cylinder(10, 1), translation(x * 0.3, -0.8).scale(0.2, 0.7, 0.24), material(1, 0.3, 0.4));
+    meshAdd(cylinder(20, 1), translation(x * 0.3, -0.8).scale(0.2, 0.7, 0.24), material(1, 0.3, 0.4));
   }));
   newModel(() => {
     meshAdd(cylinder(6, 1), scaling(0.13, 1.4, 0.13), material(0.3, 0.3, 0.5, 0.1));
@@ -1610,7 +1610,7 @@ const player_init = () => {
     if (movAmount)
       player_look_angle_target = 90 - movAngle / DEG_TO_RAD;
     boot = 0;
-    allModels[MODEL_ID_PLAYER_BODY].$matrix = translation(x, player_model_y, z).rotateSelf(0, player_look_angle);
+    allModels[MODEL_ID_PLAYER_BODY].$matrix = translation(x, player_model_y + 0.124, z).rotateSelf(0, player_look_angle);
     for (let i = 0; i < 2; ++i)
       allModels[MODEL_ID_PLAYER_LEG0 + i].$matrix = allModels[MODEL_ID_PLAYER_BODY].$matrix.translate(0, player_legs_speed * clamp(/* @__PURE__ */ Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI * (i - 1) - Math.PI / 2) * 0.45)).rotateSelf(player_legs_speed * /* @__PURE__ */ Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI * (i - 1)) * (0.25 / DEG_TO_RAD), 0);
   };

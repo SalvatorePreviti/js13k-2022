@@ -1139,6 +1139,9 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     // head
     meshAdd(sphere(20), translation(0, 1).scale(0.5, 0.5, 0.5), material(1, 0.3, 0.4));
 
+    // body
+    meshAdd(sphere(30), scaling(0.7, 0.8, 0.55), material(1, 0.3, 0.4));
+
     const eye = polygons_transform(
       csg_polygons_subtract(cylinder(15, 1), polygons_transform(cylinder(), translation(0, 0, 1).scale(2, 2, 0.5))),
       rotation(-90, 0).scale(0.1, 0.05, 0.1),
@@ -1149,15 +1152,12 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
     // mouth
     meshAdd(cylinder(), translation(0, 0.9, 0.45).scale(0.15, 0.02, 0.06), material(0.3, 0.3, 0.3));
-
-    // body
-    meshAdd(sphere(20), scaling(0.7, 0.8, 0.55), material(1, 0.3, 0.4));
   });
 
   [-1, 1].map((x) =>
     newModel(() => {
       checkModelId("PLAYER_LEG" + (x < 0 ? 0 : 1), x < 0 ? MODEL_ID_PLAYER_LEG0 : MODEL_ID_PLAYER_LEG1);
-      meshAdd(cylinder(10, 1), translation(x * 0.3, -0.8).scale(0.2, 0.7, 0.24), material(1, 0.3, 0.4));
+      meshAdd(cylinder(20, 1), translation(x * 0.3, -0.8).scale(0.2, 0.7, 0.24), material(1, 0.3, 0.4));
     }),
   );
 

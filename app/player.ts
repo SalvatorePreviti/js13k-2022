@@ -359,7 +359,10 @@ export const player_init = () => {
 
     boot = 0;
 
-    allModels[MODEL_ID_PLAYER_BODY]!.$matrix = translation(x, player_model_y, z).rotateSelf(0, player_look_angle);
+    allModels[MODEL_ID_PLAYER_BODY]!.$matrix = translation(x, player_model_y + 0.124, z).rotateSelf(
+      0,
+      player_look_angle,
+    );
 
     for (let i = 0; i < 2; ++i) {
       allModels[MODEL_ID_PLAYER_LEG0 + i]!.$matrix = allModels[MODEL_ID_PLAYER_BODY]!.$matrix.translate(

@@ -437,7 +437,7 @@ F1(() => {
               _.b6o(36160, n),
               _.v5y(0, 0, 2048, 2048),
               i[0](Y1(a, .3, 55, 10)),
-              i[1](Y1(a, 55, 186, 11)),
+              i[1](Y1(a, 55, 181, 11)),
               c(),
               _.b6o(36160, null),
               _.v5y(0, 0, _.drawingBufferWidth, _.drawingBufferHeight),
@@ -445,7 +445,7 @@ F1(() => {
               _.c4s(16640),
               i[0](),
               i[1](),
-              _.uae(c("a"), !1, y1(hC.clientHeight / hC.clientWidth * 1.732051, 1.732051, .3, 186)),
+              _.uae(c("a"), !1, y1(hC.clientHeight / hC.clientWidth * 1.732051, 1.732051, .3, 181)),
               _.uae(c("b"), !1, m(a)),
               _.ubu(c("k"), Q, c1, w),
               S1(c("c"), !T, 42, 0),
@@ -793,7 +793,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   f = N(f, H, 1 - G(-10 * P)),
                   H && (o = 90 - z / q1),
                   M = 0,
-                  R[37].j = U(e, p, l).rotateSelf(0, n),
+                  R[37].j = U(e, p + .124, l).rotateSelf(0, n),
                   t = 0;
                 t < 2;
                 ++t
@@ -1437,15 +1437,15 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
         }),
         p(() => {
           [0, 180].map(e => b(i, Y(0, e).translate(.2, 1.32).rotate(-30).scale(.2, .6, .2), C(1, 1, .8))),
-            b(s(20), U(0, 1).scale(.5, .5, .5), C(1, .3, .4));
+            b(s(20), U(0, 1).scale(.5, .5, .5), C(1, .3, .4)),
+            b(s(30), j(.7, .8, .55), C(1, .3, .4));
           let t = f(d(u(15, 1), f(u(), U(0, 0, 1).scale(2, 2, .5))), Y(-90, 0).scale(.1, .05, .1), C(.3, .3, .3));
           [-1, 1].map(e => b(t, U(.2 * e, 1.2, .4).rotate(0, 20 * e, 20 * e))),
-            b(u(), U(0, .9, .45).scale(.15, .02, .06), C(.3, .3, .3)),
-            b(s(20), j(.7, .8, .55), C(1, .3, .4));
+            b(u(), U(0, .9, .45).scale(.15, .02, .06), C(.3, .3, .3));
         }),
         [-1, 1].map(e =>
           p(() => {
-            b(u(10, 1), U(.3 * e, -.8).scale(.2, .7, .24), C(1, .3, .4));
+            b(u(20, 1), U(.3 * e, -.8).scale(.2, .7, .24), C(1, .3, .4));
           })
         ),
         p(() => {
