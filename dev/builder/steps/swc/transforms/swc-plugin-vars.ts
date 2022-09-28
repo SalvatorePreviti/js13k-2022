@@ -85,6 +85,9 @@ function isConstantExpr(expression?: Expression): boolean {
       return isConstantExpr(expression.left) && isConstantExpr(expression.right);
 
     case "CallExpression":
+      if (expression.callee.type === "Identifier" && expression.callee.value === "NO_INLINE") {
+        return isConstantExpr(expression.arguments[0]?.expression);
+      }
       if (expression.callee.type !== "MemberExpression") {
         return false;
       }
@@ -234,6 +237,14 @@ function variableDeclarationSortCompare(da: VariableDeclaration, db: VariableDec
 function compareExpressions(a: Expression, b: Expression): number {
   if (a === b) {
     return 0;
+  }
+
+  if (a.type === "CallExpression" && a.callee.type === "Identifier" && a.callee.value === "NO_INLINE") {
+    a = a.arguments[0]!.expression;
+  }
+
+  if (b.type === "CallExpression" && b.callee.type === "Identifier" && b.callee.value === "NO_INLINE") {
+    b = b.arguments[0]!.expression;
   }
 
   const ta = exprTypeOrdering(a);

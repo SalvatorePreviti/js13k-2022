@@ -62,35 +62,6 @@ const song_columns = [
     "Q((Q((Q((Q((Q((Q((((Q",
   ],
 ];
-const player_position_final = {
-  x: 0,
-  y: 0,
-  z: 0,
-};
-const camera_rotation = {
-  x: 0,
-  y: 180,
-};
-const integers_map = (n, fn) => Array.from(Array(n), (_, i) => fn(i));
-const DEG_TO_RAD = Math.PI / 180;
-const GQuad = [
-  {
-    x: -1,
-    z: 1,
-  },
-  {
-    x: 1,
-    z: 1,
-  },
-  {
-    x: 1,
-    z: -1,
-  },
-  {
-    x: -1,
-    z: -1,
-  },
-];
 const song_instruments = [
   [
     69,
@@ -203,12 +174,43 @@ const song_instruments = [
     64,
   ],
 ];
+const player_position_final = {
+  x: 0,
+  y: 0,
+  z: 0,
+};
+const camera_rotation = {
+  x: 0,
+  y: 180,
+};
+const integers_map = (n, fn) => Array.from(Array(n), (_, i) => fn(i));
+const DEG_TO_RAD = Math.PI / 180;
+const GQuad = [
+  {
+    x: -1,
+    z: 1,
+  },
+  {
+    x: 1,
+    z: 1,
+  },
+  {
+    x: 1,
+    z: -1,
+  },
+  {
+    x: -1,
+    z: -1,
+  },
+];
 const _frustumPoint = {};
 const player_position_global = {
   x: 0,
   y: 0,
   z: 0,
 };
+const damp = (speed) => 1 - Math.exp(-speed * gameTimeDelta);
+const lerpDamp = (from, to, speed) => lerp(from, to, damp(speed));
 const showMessage = (message, duration) => {
   1 / 0 > _messageEndTime && (_messageEndTime = gameTime + duration, h4.innerHTML = message);
 };
@@ -267,6 +269,26 @@ const saveGame = () => {
     secondBoatLerp,
   ]);
 };
+const mat_perspective = NO_INLINE((near, far, mx, my) =>
+  new DOMMatrix([
+    mx,
+    0,
+    0,
+    0,
+    0,
+    my,
+    0,
+    0,
+    0,
+    0,
+    (far + near) / (near - far),
+    -1,
+    0,
+    0,
+    2 * far * near / (near - far),
+    0,
+  ])
+);
 const initPage = () => {
   let touchStartTime;
   let touchPosStartX;
@@ -438,6 +460,7 @@ const initPage = () => {
     document.onvisibilitychange = onblur = onresize = handleResize,
     mainMenu(!0);
 };
+const material = NO_INLINE((r, g, b, a = 0) => 255 * a << 24 | 255 * b << 16 | 255 * g << 8 | 255 * r);
 const newModel = (fn, $kind = 1) => {
   const previousModel = currentEditModel;
   var $kind = {
@@ -623,6 +646,9 @@ const csm_buildMatrix = (camera_view, projection2, roundingRadius, zMultiplier) 
       (near + far) / 2,
     ).multiplySelf(tempMatrix);
 };
+const min = NO_INLINE((a, b) => a < b ? a : b);
+const max = NO_INLINE((a, b) => b < a ? a : b);
+const abs = NO_INLINE((a) => a < 0 ? -a : a);
 const clamp = (value, minValue = 0, maxValue = 1) => value < minValue ? minValue : maxValue < value ? maxValue : value;
 const threshold = (value, amount) => abs(value) > amount ? value : 0;
 const lerp = (a, b, t) => (0 < t ? t < 1 ? a + (b - a) * t : b : a) || 0;
@@ -689,6 +715,9 @@ const matrixCopy = (
   target.m43 = source.m43,
   target.m44 = source.m44,
   target);
+const translation = NO_INLINE((x, y, z) => identity.translate(x, y, z));
+const rotation = NO_INLINE((x, y, z) => identity.rotate(x, y, z));
+const scaling = NO_INLINE((x, y, z) => identity.scale(x, y, z));
 const polygon_color = (polygon, color, smooth) => (polygon.$smooth = smooth, polygon.$color = color, polygon);
 const polygon_transform = (polygon, m, color = polygon.$color) =>
   polygon_color(
@@ -915,8 +944,6 @@ const csg_polygons_subtract = (...input) => {
 const setMainMenuVisible = (visible) => {
   mainMenuVisible = visible;
 };
-const damp = (speed) => 1 - Math.exp(-speed * gameTimeDelta);
-const lerpDamp = (from, to, speed) => lerp(from, to, damp(speed));
 const player_init = () => {
   let currentModelId;
   let currentModelIdTMinus1;
@@ -1299,34 +1326,7 @@ const groundTextureSvg = "data:image/svg+xml;base64,"
   + btoa(
     "<svg color-interpolation-filters=\"sRGB\" height=\"1024\" width=\"1024\" xmlns=\"http://www.w3.org/2000/svg\"><filter filterUnits=\"userSpaceOnUse\" height=\"1026\" id=\"a\" width=\"1026\" x=\"0\" y=\"0\"><feTurbulence baseFrequency=\".007\" height=\"1025\" numOctaves=\"6\" stitchTiles=\"stitch\" width=\"1025\" result=\"z\" type=\"fractalNoise\" x=\"1\" y=\"1\"/><feTile height=\"1024\" width=\"1024\" x=\"-1\" y=\"-1\"/><feTile/><feDiffuseLighting diffuseConstant=\"4\" lighting-color=\"red\" surfaceScale=\"5\"><feDistantLight azimuth=\"270\" elevation=\"5\"/></feDiffuseLighting><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"x\"/><feColorMatrix values=\"0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 1\" in=\"z\"/><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"z\"/><feTurbulence baseFrequency=\".01\" height=\"1024\" numOctaves=\"5\" stitchTiles=\"stitch\" width=\"1024\"/><feColorMatrix values=\"0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1\"/><feBlend in2=\"x\" mode=\"screen\"/><feBlend in2=\"z\" mode=\"screen\"/></filter><rect filter=\"url(#a)\" height=\"100%\" width=\"100%\"/></svg>",
   );
-const min = NO_INLINE((a, b) => a < b ? a : b);
-const max = NO_INLINE((a, b) => b < a ? a : b);
-const abs = NO_INLINE((a) => a < 0 ? -a : a);
-const translation = NO_INLINE((x, y, z) => identity.translate(x, y, z));
-const rotation = NO_INLINE((x, y, z) => identity.rotate(x, y, z));
-const scaling = NO_INLINE((x, y, z) => identity.scale(x, y, z));
 const songAudioSource = audioContext.createBufferSource();
-const mat_perspective = NO_INLINE((near, far, mx, my) =>
-  new DOMMatrix([
-    mx,
-    0,
-    0,
-    0,
-    0,
-    my,
-    0,
-    0,
-    0,
-    0,
-    (far + near) / (near - far),
-    -1,
-    0,
-    0,
-    2 * far * near / (near - far),
-    0,
-  ])
-);
-const material = NO_INLINE((r, g, b, a = 0) => 255 * a << 24 | 255 * b << 16 | 255 * g << 8 | 255 * r);
 const _frustumCorners = integers_map(8, () => ({}));
 const gl = hC.getContext("webgl2", {
   powerPreference: "high-performance",

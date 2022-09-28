@@ -13,6 +13,9 @@ const constDef_zFar = 181;
 const integers_map = (n, fn) => Array.from(/* @__PURE__ */ Array(n), (_, i) => fn(i));
 const DEG_TO_RAD = Math.PI / 180;
 const fieldOfViewDegrees = 60;
+const min = NO_INLINE((a, b) => a < b ? a : b);
+const max = NO_INLINE((a, b) => a > b ? a : b);
+const abs = NO_INLINE((a) => a < 0 ? -a : a);
 const clamp = (value, minValue = 0, maxValue = 1) => value < minValue ? minValue : value > maxValue ? maxValue : value;
 const threshold = (value, amount) => abs(value) > amount ? value : 0;
 const lerp = (a, b, t) => (t <= 0 ? a : t >= 1 ? b : a + (b - a) * t) || 0;
@@ -90,15 +93,12 @@ const matrixCopy = (source = identity, target = tempMatrix) => {
   target.m44 = source.m44;
   return target;
 };
-const identity = new DOMMatrix();
-const tempMatrix = new DOMMatrix();
-const float32Array16Temp = new Float32Array(16);
-const min = NO_INLINE((a, b) => a < b ? a : b);
-const max = NO_INLINE((a, b) => a > b ? a : b);
-const abs = NO_INLINE((a) => a < 0 ? -a : a);
 const translation = NO_INLINE((x, y, z) => identity.translate(x, y, z));
 const rotation = NO_INLINE((x, y, z) => identity.rotate(x, y, z));
 const scaling = NO_INLINE((x, y, z) => identity.scale(x, y, z));
+const identity = new DOMMatrix();
+const tempMatrix = new DOMMatrix();
+const float32Array16Temp = new Float32Array(16);
 const zNear = constDef_zNear;
 const zFar = constDef_zFar;
 const fieldOfViewRadians = fieldOfViewDegrees * DEG_TO_RAD;
@@ -530,6 +530,24 @@ let movAmount = 0;
 const resetInteractPressed = () => {
   interact_pressed = 0;
 };
+const mat_perspective = NO_INLINE((near, far, mx, my) => new DOMMatrix([
+  mx,
+  0,
+  0,
+  0,
+  0,
+  my,
+  0,
+  0,
+  0,
+  0,
+  (far + near) / (near - far),
+  -1,
+  0,
+  0,
+  2 * far * near / (near - far),
+  0
+]));
 const initPage = () => {
   let touchStartTime;
   let touchPosStartX;
@@ -750,27 +768,10 @@ const initPage = () => {
   mainMenu(true);
 };
 const fieldOfViewAmount = 1 / /* @__PURE__ */ Math.tan(fieldOfViewRadians / 2);
-const mat_perspective = NO_INLINE((near, far, mx, my) => new DOMMatrix([
-  mx,
-  0,
-  0,
-  0,
-  0,
-  my,
-  0,
-  0,
-  0,
-  0,
-  (far + near) / (near - far),
-  -1,
-  0,
-  0,
-  2 * far * near / (near - far),
-  0
-]));
 let currentEditModel;
 const LEVER_SENSITIVITY_RADIUS = 3;
 const SOUL_SENSITIVITY_RADIUS = 1.6;
+const material = NO_INLINE((r, g, b, a = 0) => a * 255 << 24 | b * 255 << 16 | g * 255 << 8 | r * 255);
 const newModel = (fn, $kind = MODEL_KIND_GAME) => {
   const previousModel = currentEditModel;
   const model = {
@@ -895,7 +896,6 @@ const newSoul = (transform, ...walkingPath) => {
   };
   souls.push(soul);
 };
-const material = NO_INLINE((r, g, b, a = 0) => a * 255 << 24 | b * 255 << 16 | g * 255 << 8 | r * 255);
 const build_life_the_universe_and_everything = () => {
   const HORN_STACKS = 10;
   const hornsMatrices = integers_map(HORN_STACKS + 1, (i) => translation(/* @__PURE__ */ Math.sin(i / HORN_STACKS * Math.PI), i / HORN_STACKS).rotate(10 * (i / HORN_STACKS)).scale(1.0001 - i / HORN_STACKS, 0, 1 - i / HORN_STACKS));
