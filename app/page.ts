@@ -10,7 +10,7 @@ import {
   GAMEPAD_BUTTON_START,
   type KEY_CODE,
 } from "./utils/keycodes";
-import { abs, clamp, CSM_PLANE_DISTANCE, fieldOfViewRadians, threshold, zFar, zNear } from "./math";
+import { abs, clamp, CSM_PLANE_DISTANCE, fieldOfViewAmount, mat_perspective, threshold, zFar, zNear } from "./math";
 import {
   absoluteTime,
   camera_rotation,
@@ -38,33 +38,7 @@ export let updateInput: () => void;
 
 export let projection: DOMMatrix;
 
-export let csm0_projection: DOMMatrix;
-
-export let csm1_projection: DOMMatrix;
-
-const fieldOfViewAmount = 1 / Math.tan(fieldOfViewRadians / 2);
-
-export const mat_perspective = NO_INLINE(
-  (near: number, far: number, mx: number, my: number) =>
-    new DOMMatrix([
-      mx,
-      0,
-      0,
-      0,
-      0,
-      my,
-      0,
-      0,
-      0,
-      0,
-      (far + near) / (near - far),
-      -1,
-      0,
-      0,
-      (2 * far * near) / (near - far),
-      0,
-    ]),
-);
+export let csm_projections: DOMMatrix[];
 
 export const initPage = () => {
   let touchStartTime: number | undefined;
@@ -110,8 +84,10 @@ export const initPage = () => {
   const handleResize = () => {
     const mx = ((hC.height = innerHeight) / (hC.width = innerWidth)) * fieldOfViewAmount;
     projection = mat_perspective(zNear, zFar, mx, fieldOfViewAmount);
-    csm0_projection = mat_perspective(zNear, CSM_PLANE_DISTANCE, mx, fieldOfViewAmount);
-    csm1_projection = mat_perspective(CSM_PLANE_DISTANCE, zFar, mx, fieldOfViewAmount);
+    csm_projections = [
+      mat_perspective(zNear, CSM_PLANE_DISTANCE, mx, fieldOfViewAmount),
+      mat_perspective(CSM_PLANE_DISTANCE, zFar, mx, fieldOfViewAmount),
+    ];
 
     touchPosIdentifier = touchRotIdentifier = undefined;
     keyboard_downKeys.length =

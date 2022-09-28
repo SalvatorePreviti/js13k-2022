@@ -117,11 +117,43 @@ export const plane_fromPolygon = /* @__PURE__ */ (polygon: readonly Vec3In[]): P
   return { x, y, z, w: x * a.x + y * a.y + z * a.z };
 };
 
+export const float32Array16Temp = new Float32Array(16);
+
 export const identity: DOMMatrixReadOnly = new DOMMatrix();
 
 export const tempMatrix = new DOMMatrix();
 
-export const float32Array16Temp = new Float32Array(16);
+export const zNear = constDef_zNear;
+
+export { CSM_PLANE_DISTANCE };
+
+export const zFar = constDef_zFar;
+
+export const fieldOfViewDegrees = 60;
+
+export const fieldOfViewRadians = /* @__PURE__ */ fieldOfViewDegrees * DEG_TO_RAD; // in radians
+
+export const fieldOfViewAmount = /* @__PURE__ */ 1 / Math.tan(fieldOfViewRadians / 2);
+
+export const mat_perspective = /* @__PURE__ */ (near: number, far: number, mx: number, my: number) =>
+  new DOMMatrix([
+    mx,
+    0,
+    0,
+    0,
+    0,
+    my,
+    0,
+    0,
+    0,
+    0,
+    (far + near) / (near - far),
+    -1,
+    0,
+    0,
+    (2 * far * near) / (near - far),
+    0,
+  ]);
 
 export const matrixToArray = (
   $matrix: DOMMatrixReadOnly,
@@ -173,13 +205,3 @@ export const translation = NO_INLINE((x: number, y?: number, z?: number) => iden
 export const rotation = NO_INLINE((x: number, y?: number, z?: number) => identity.rotate(x, y, z));
 
 export const scaling = NO_INLINE((x: number, y?: number, z?: number) => identity.scale(x, y, z));
-
-export const zNear = constDef_zNear;
-
-export { CSM_PLANE_DISTANCE };
-
-export const zFar = constDef_zFar;
-
-export const fieldOfViewDegrees = 60;
-
-export const fieldOfViewRadians = /* @__PURE__ */ fieldOfViewDegrees * DEG_TO_RAD; // in radians

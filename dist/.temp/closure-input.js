@@ -4,8 +4,7 @@ let interact_pressed;
 let player_first_person;
 let updateInput;
 let projection;
-let csm0_projection;
-let csm1_projection;
+let csm_projections;
 let currentEditModel;
 let player_update;
 let souls_collected_count = 0;
@@ -32,6 +31,24 @@ const fieldOfViewAmount = 1.732051;
 const allModels = [];
 const levers = [];
 const souls = [];
+const GQuad = [
+  {
+    x: -1,
+    z: 1,
+  },
+  {
+    x: 1,
+    z: 1,
+  },
+  {
+    x: 1,
+    z: -1,
+  },
+  {
+    x: -1,
+    z: -1,
+  },
+];
 const song_columns = [
   [
     "(.15:15:=5:=A:=AF=AFIFIMRMRUY(Y(((((((((((((((((((((((((((((M(M(((((((((((((((((((((((((((((R(R(((((((((((((((((((((((((((((U(U",
@@ -183,31 +200,326 @@ const camera_rotation = {
   x: 0,
   y: 180,
 };
-const integers_map = (n, fn) => Array.from(Array(n), (_, i) => fn(i));
-const DEG_TO_RAD = Math.PI / 180;
-const GQuad = [
-  {
-    x: -1,
-    z: 1,
-  },
-  {
-    x: 1,
-    z: 1,
-  },
-  {
-    x: 1,
-    z: -1,
-  },
-  {
-    x: -1,
-    z: -1,
-  },
-];
-const _frustumPoint = {};
 const player_position_global = {
   x: 0,
   y: 0,
   z: 0,
+};
+const integers_map = (n, fn) => Array.from(Array(n), (_, i) => fn(i));
+const DEG_TO_RAD = Math.PI / 180;
+const min = NO_INLINE((a, b) => a < b ? a : b);
+const max = NO_INLINE((a, b) => b < a ? a : b);
+const abs = NO_INLINE((a) => a < 0 ? -a : a);
+const clamp = (value, minValue = 0, maxValue = 1) => value < minValue ? minValue : maxValue < value ? maxValue : value;
+const threshold = (value, amount) => abs(value) > amount ? value : 0;
+const lerp = (a, b, t) => (0 < t ? t < 1 ? a + (b - a) * t : b : a) || 0;
+const lerpneg = (v, t) => (v = clamp(v), lerp(v, 1 - v, t));
+const angle_wrap_degrees = (degrees) => Math.atan2(Math.sin(degrees *= DEG_TO_RAD), Math.cos(degrees)) / DEG_TO_RAD;
+const angle_lerp_degrees = (a0, a1, t) => a0 + (2 * (a1 = (a1 - a0) % 360) % 360 - a1) * clamp(t) || 0;
+const vec3_distance = ({ x, y, z }, b) => Math.hypot(x - b.x, y - b.y, z - b.z);
+const vec3_dot = ({ x, y, z }, b) => x * b.x + y * b.y + z * b.z;
+const plane_fromPolygon = (polygon) => {
+  let b;
+  let x = 0;
+  let y = 0;
+  let z = 0;
+  let a = polygon.at(-1);
+  for (b of polygon) {
+    x += (a.y - b.y) * (a.z + b.z), y += (a.z - b.z) * (a.x + b.x), z += (a.x - b.x) * (a.y + b.y), a = b;
+  }
+  return b = Math.hypot(x, y, z), x /= b, y /= b, z /= b, {
+    x,
+    y,
+    z,
+    w: x * a.x + y * a.y + z * a.z,
+  };
+};
+const mat_perspective = (near, far, mx, my) =>
+  new DOMMatrix([
+    mx,
+    0,
+    0,
+    0,
+    0,
+    my,
+    0,
+    0,
+    0,
+    0,
+    (far + near) / (near - far),
+    -1,
+    0,
+    0,
+    2 * far * near / (near - far),
+    0,
+  ]);
+const matrixToArray = (
+  $matrix,
+  output = float32Array16Temp,
+  index = 0,
+) => (index *= 16,
+  output[index++] = $matrix.m11,
+  output[index++] = $matrix.m12,
+  output[index++] = $matrix.m13,
+  output[index++] = $matrix.m14,
+  output[index++] = $matrix.m21,
+  output[index++] = $matrix.m22,
+  output[index++] = $matrix.m23,
+  output[index++] = $matrix.m24,
+  output[index++] = $matrix.m31,
+  output[index++] = $matrix.m32,
+  output[index++] = $matrix.m33,
+  output[index++] = $matrix.m34,
+  output[index++] = $matrix.m41,
+  output[index++] = $matrix.m42,
+  output[index++] = $matrix.m43,
+  output[index] = $matrix.m44,
+  output);
+const matrixCopy = (
+  source = identity,
+  target = tempMatrix,
+) => (target.m11 = source.m11,
+  target.m12 = source.m12,
+  target.m13 = source.m13,
+  target.m14 = source.m14,
+  target.m21 = source.m21,
+  target.m22 = source.m22,
+  target.m23 = source.m23,
+  target.m24 = source.m24,
+  target.m31 = source.m31,
+  target.m32 = source.m32,
+  target.m33 = source.m33,
+  target.m34 = source.m34,
+  target.m41 = source.m41,
+  target.m42 = source.m42,
+  target.m43 = source.m43,
+  target.m44 = source.m44,
+  target);
+const translation = NO_INLINE((x, y, z) => identity.translate(x, y, z));
+const rotation = NO_INLINE((x, y, z) => identity.rotate(x, y, z));
+const scaling = NO_INLINE((x, y, z) => identity.scale(x, y, z));
+const polygon_color = (polygon, color, smooth) => (polygon.$smooth = smooth, polygon.$color = color, polygon);
+const polygon_transform = (polygon, m, color = polygon.$color) =>
+  polygon_color(
+    polygon.map((p) => {
+      let y;
+      let z;
+      return { x: p, y, z } = p,
+        { x: p, y, z } = m.transformPoint({
+          x: p,
+          y,
+          z,
+        }),
+        {
+          x: p,
+          y,
+          z,
+        };
+    }),
+    color,
+    polygon.$smooth,
+  );
+const polygons_transform = (polygons, m, color) => polygons.map((polygon) => polygon_transform(polygon, m, color));
+const polygon_regular = (segments, elongate = 0) =>
+  integers_map(segments, (i) => {
+    const z = Math.cos(2 * Math.PI * i / segments);
+    return {
+      x: Math.sin(2 * Math.PI * i / segments),
+      y: 0,
+      z: abs(z) < 0.01 ? z : z < 0 ? z - elongate : z + elongate,
+    };
+  });
+const cylinder_sides = (btm, top, smooth) =>
+  btm.map((btmi, i, { length }) =>
+    polygon_color(
+      [
+        btmi,
+        top[length - i - 1],
+        top[length - (i + 1) % length - 1],
+        btm[(i + 1) % length],
+      ],
+      btm.$color,
+      smooth,
+    )
+  );
+const cylinder = (
+  segments,
+  smooth,
+  topSize = 0,
+  elongate,
+) => (segments = segments ? polygon_regular(segments, elongate) : GQuad,
+  elongate = polygon_transform(segments, translation(0, 1).scale3d(0 < topSize ? topSize : 1)),
+  segments = polygon_transform(segments, translation(0, -1).scale3d(topSize < 0 ? -topSize : 1)).reverse(),
+  [
+    ...cylinder_sides(segments, elongate, smooth),
+    elongate,
+    segments,
+  ]);
+const sphere = (slices, stacks = slices, vertexFunc = (x, y) => (y *= Math.PI / stacks, {
+  x: Math.cos(x *= 2 * Math.PI / slices) * Math.sin(y),
+  y: Math.cos(y),
+  z: Math.sin(x) * Math.sin(y),
+})) => {
+  const polygons = [];
+  for (let i = 0; slices > i; i++) {
+    for (let j = 0; stacks > j; j++) {
+      const vertex = (x, y) => polygon.push(vertexFunc(x, y, polygon));
+      const polygon = polygon_color([], 0, 1);
+      polygons.push(polygon),
+        vertex(i, j),
+        j && vertex((i + 1) % slices, j),
+        stacks - 1 > j && vertex((i + 1) % slices, j + 1 % stacks),
+        vertex(i, j + 1 % stacks);
+    }
+  }
+  return polygons;
+};
+const CSGPolygon_split = (plane, polygon) => {
+  let d;
+  let $front;
+  let $back;
+  const $polygon = polygon.$polygon;
+  for (let i = 0; $polygon.length > i; ++i) {
+    if (
+      (d = vec3_dot(plane, $polygon[i]) - plane.w) < -0.00008 ? $back = polygon : 8e-5 < d && ($front = polygon),
+        $back && $front
+    ) {
+      return ((plane2, polygon2) => {
+        let jd;
+        const fpoints = [];
+        const bpoints = [];
+        const { $polygon: $polygon2, $flipped } = polygon2;
+        let iv = $polygon2.at(-1);
+        let id = vec3_dot(plane2, iv) - plane2.w;
+        for (const jv of $polygon2) {
+          jd = vec3_dot(plane2, jv) - plane2.w,
+            id < 8e-5 && bpoints.push(iv),
+            -0.00008 < id && fpoints.push(iv),
+            (8e-5 < id && jd < -0.00008 || id < -0.00008 && 8e-5 < jd) && (id /= jd - id,
+              iv = {
+                x: iv.x + (iv.x - jv.x) * id,
+                y: iv.y + (iv.y - jv.y) * id,
+                z: iv.z + (iv.z - jv.z) * id,
+              },
+              fpoints.push(iv),
+              bpoints.push(iv)),
+            iv = jv,
+            id = jd;
+        }
+        return {
+          $front: 2 < fpoints.length && {
+            $polygon: polygon_color(fpoints, $polygon2.$color, $polygon2.$smooth),
+            $flipped,
+            $parent: polygon2,
+          },
+          $back: 2 < bpoints.length && {
+            $polygon: polygon_color(bpoints, $polygon2.$color, $polygon2.$smooth),
+            $flipped,
+            $parent: polygon2,
+          },
+        };
+      })(plane, polygon);
+    }
+  }
+  return {
+    $front,
+    $back,
+  };
+};
+const csg_tree_addPolygon = (node, polygon, plane = plane_fromPolygon(polygon.$polygon)) => {
+  let $front;
+  let $back;
+  let w;
+  return node
+    ? ({ $front, $back } = CSGPolygon_split(node, polygon),
+      $front || $back || node.$polygons.push(polygon),
+      $front && (node.$front = csg_tree_addPolygon(node.$front, $front, plane)),
+      $back && (node.$back = csg_tree_addPolygon(node.$back, $back, plane)))
+    : ({ x: $front, y: $back, z: plane, w } = plane,
+      node = {
+        x: $front,
+        y: $back,
+        z: plane,
+        w,
+        $polygons: [
+          polygon,
+        ],
+        $front: 0,
+        $back: 0,
+      }),
+    node;
+};
+const csg_tree_clipNode = (anode, bnode, polygonPlaneFlipped) => {
+  const result = [];
+  const recursion = (node, polygon) => {
+    let { $front, $back } = CSGPolygon_split(node, polygon);
+    $front || $back || (0 < polygonPlaneFlipped * vec3_dot(node, bnode) ? $front = polygon : $back = polygon),
+      $front && (node.$front ? recursion(node.$front, $front) : result.push($front)),
+      $back && node.$back && recursion(node.$back, $back);
+  };
+  for (const polygon of bnode.$polygons) recursion(anode, polygon);
+  return result;
+};
+const csg_tree_each = (node, fn) => node && (fn(node), csg_tree_each(node.$front, fn), csg_tree_each(node.$back, fn));
+const csg_tree = (n) =>
+  n.length
+    ? n.reduce((prev, $polygon) =>
+      csg_tree_addPolygon(prev, {
+        $polygon,
+        $flipped: 0,
+        $parent: 0,
+      }), 0)
+    : n;
+const csg_tree_flip = (root) => (csg_tree_each(root, (node) => {
+  const { $front, $back } = node;
+  node.$back = $front, node.$front = $back, node.x *= -1, node.y *= -1, node.z *= -1, node.w *= -1;
+  for (const polygon of node.$polygons) polygon.$flipped = !polygon.$flipped;
+}),
+  root);
+const csg_union = (...inputs) =>
+  inputs.reduce((a, b) => {
+    const polygonsToAdd = [];
+    if (a = csg_tree(a), b) {
+      b = csg_tree(b),
+        csg_tree_each(a, (node) => node.$polygons = csg_tree_clipNode(b, node, 1)),
+        csg_tree_each(b, (node) =>
+          polygonsToAdd.push([
+            node,
+            csg_tree_clipNode(a, node, -1),
+          ]));
+      for (let [plane, polygons] of polygonsToAdd) for (const pp of polygons) csg_tree_addPolygon(a, pp, plane);
+    }
+    return a;
+  });
+const csg_polygons_subtract = (...input) => {
+  let b;
+  {
+    const add = (polygon) => {
+      let found;
+      return polygon.$parent
+        && ((found = byParent.get(polygon.$parent))
+          ? (allPolygons.delete(found), polygon = add(polygon.$parent))
+          : byParent.set(polygon.$parent, polygon)),
+        polygon;
+    };
+    const byParent = new Map();
+    const allPolygons = new Map();
+    return [input, ...b] = [
+      ...input,
+    ],
+      input = csg_tree_flip(csg_union(csg_tree_flip(csg_tree(input)), ...b)),
+      csg_tree_each(input, (node) => {
+        for (const polygon of node.$polygons) allPolygons.set(add(polygon), polygon.$flipped);
+      }),
+      Array.from(allPolygons, ([{ $polygon }, flipped]) => {
+        const polygon = $polygon.map(({ x, y, z }) => ({
+          x,
+          y,
+          z,
+        }));
+        return polygon_color(flipped ? polygon.reverse() : polygon, $polygon.$color, $polygon.$smooth);
+      });
+  }
 };
 const damp = (speed) => 1 - Math.exp(-speed * gameTimeDelta);
 const lerpDamp = (from, to, speed) => lerp(from, to, damp(speed));
@@ -269,26 +581,6 @@ const saveGame = () => {
     secondBoatLerp,
   ]);
 };
-const mat_perspective = NO_INLINE((near, far, mx, my) =>
-  new DOMMatrix([
-    mx,
-    0,
-    0,
-    0,
-    0,
-    my,
-    0,
-    0,
-    0,
-    0,
-    (far + near) / (near - far),
-    -1,
-    0,
-    0,
-    2 * far * near / (near - far),
-    0,
-  ])
-);
 const initPage = () => {
   let touchStartTime;
   let touchPosStartX;
@@ -313,8 +605,10 @@ const initPage = () => {
   const handleResize = () => {
     const mx = (hC.height = innerHeight) / (hC.width = innerWidth) * fieldOfViewAmount;
     projection = mat_perspective(zNear, zFar, mx, fieldOfViewAmount),
-      csm0_projection = mat_perspective(zNear, 55, mx, fieldOfViewAmount),
-      csm1_projection = mat_perspective(55, zFar, mx, fieldOfViewAmount),
+      csm_projections = [
+        mat_perspective(zNear, 55, mx, fieldOfViewAmount),
+        mat_perspective(55, zFar, mx, fieldOfViewAmount),
+      ],
       touchPosIdentifier = touchRotIdentifier = void 0,
       keyboard_downKeys.length =
         interact_pressed =
@@ -327,7 +621,7 @@ const initPage = () => {
   };
   const mainMenu = (value, firstPerson = 0) => {
     if (mainMenuVisible !== value) {
-      setMainMenuVisible(value),
+      mainMenuVisible = value,
         player_first_person = firstPerson,
         handleResize(),
         updateCollectedSoulsCounter(),
@@ -608,341 +902,6 @@ const newSoul = (transform, ...walkingPath) => {
     },
   };
   souls.push(soul);
-};
-const csm_buildMatrix = (camera_view, projection2, roundingRadius, zMultiplier) => {
-  let tx = 0;
-  let ty = 0;
-  let tz = 0;
-  let left = 1 / 0;
-  let right = -1 / 0;
-  let bottom = 1 / 0;
-  let top = -1 / 0;
-  let near = 1 / 0;
-  let far = -1 / 0;
-  matrixCopy().scale3dSelf(roundingRadius).multiplySelf(projection2.multiply(camera_view).invertSelf());
-  for (let i = 0; i < 8; ++i) {
-    _frustumPoint.x = 4 & i ? 1 : -1, _frustumPoint.y = 2 & i ? 1 : -1, _frustumPoint.z = 1 & i ? 1 : -1;
-    const v = tempMatrix.transformPoint(_frustumPoint);
-    const w = roundingRadius * v.w;
-    tx -= _frustumCorners[i].x = (0 | v.x) / w,
-      ty -= _frustumCorners[i].y = (0 | v.y) / w,
-      tz -= _frustumCorners[i].z = (0 | v.z) / w;
-  }
-  matrixCopy().rotateSelf(298, 139).translateSelf(tx / 8, ty / 8, tz / 8);
-  for (let i1 = 0; i1 < 8; ++i1) {
-    const { x, y, z } = tempMatrix.transformPoint(_frustumCorners[i1]);
-    left = min(left, x),
-      right = max(right, x),
-      bottom = min(bottom, y),
-      top = max(top, y),
-      near = min(near, z),
-      far = max(far, z);
-  }
-  return near *= near < 0 ? zMultiplier : 1 / zMultiplier,
-    far *= 0 < far ? zMultiplier : 1 / zMultiplier,
-    scaling(2 / (right - left), 2 / (top - bottom), 2 / (near - far)).translateSelf(
-      (right + left) / -2,
-      (top + bottom) / -2,
-      (near + far) / 2,
-    ).multiplySelf(tempMatrix);
-};
-const min = NO_INLINE((a, b) => a < b ? a : b);
-const max = NO_INLINE((a, b) => b < a ? a : b);
-const abs = NO_INLINE((a) => a < 0 ? -a : a);
-const clamp = (value, minValue = 0, maxValue = 1) => value < minValue ? minValue : maxValue < value ? maxValue : value;
-const threshold = (value, amount) => abs(value) > amount ? value : 0;
-const lerp = (a, b, t) => (0 < t ? t < 1 ? a + (b - a) * t : b : a) || 0;
-const lerpneg = (v, t) => (v = clamp(v), lerp(v, 1 - v, t));
-const angle_wrap_degrees = (degrees) => Math.atan2(Math.sin(degrees *= DEG_TO_RAD), Math.cos(degrees)) / DEG_TO_RAD;
-const angle_lerp_degrees = (a0, a1, t) => a0 + (2 * (a1 = (a1 - a0) % 360) % 360 - a1) * clamp(t) || 0;
-const vec3_distance = ({ x, y, z }, b) => Math.hypot(x - b.x, y - b.y, z - b.z);
-const vec3_dot = ({ x, y, z }, b) => x * b.x + y * b.y + z * b.z;
-const plane_fromPolygon = (polygon) => {
-  let b;
-  let x = 0;
-  let y = 0;
-  let z = 0;
-  let a = polygon.at(-1);
-  for (b of polygon) {
-    x += (a.y - b.y) * (a.z + b.z), y += (a.z - b.z) * (a.x + b.x), z += (a.x - b.x) * (a.y + b.y), a = b;
-  }
-  return b = Math.hypot(x, y, z), x /= b, y /= b, z /= b, {
-    x,
-    y,
-    z,
-    w: x * a.x + y * a.y + z * a.z,
-  };
-};
-const matrixToArray = (
-  $matrix,
-  output = float32Array16Temp,
-  index = 0,
-) => (index *= 16,
-  output[index++] = $matrix.m11,
-  output[index++] = $matrix.m12,
-  output[index++] = $matrix.m13,
-  output[index++] = $matrix.m14,
-  output[index++] = $matrix.m21,
-  output[index++] = $matrix.m22,
-  output[index++] = $matrix.m23,
-  output[index++] = $matrix.m24,
-  output[index++] = $matrix.m31,
-  output[index++] = $matrix.m32,
-  output[index++] = $matrix.m33,
-  output[index++] = $matrix.m34,
-  output[index++] = $matrix.m41,
-  output[index++] = $matrix.m42,
-  output[index++] = $matrix.m43,
-  output[index] = $matrix.m44,
-  output);
-const matrixCopy = (
-  source = identity,
-  target = tempMatrix,
-) => (target.m11 = source.m11,
-  target.m12 = source.m12,
-  target.m13 = source.m13,
-  target.m14 = source.m14,
-  target.m21 = source.m21,
-  target.m22 = source.m22,
-  target.m23 = source.m23,
-  target.m24 = source.m24,
-  target.m31 = source.m31,
-  target.m32 = source.m32,
-  target.m33 = source.m33,
-  target.m34 = source.m34,
-  target.m41 = source.m41,
-  target.m42 = source.m42,
-  target.m43 = source.m43,
-  target.m44 = source.m44,
-  target);
-const translation = NO_INLINE((x, y, z) => identity.translate(x, y, z));
-const rotation = NO_INLINE((x, y, z) => identity.rotate(x, y, z));
-const scaling = NO_INLINE((x, y, z) => identity.scale(x, y, z));
-const polygon_color = (polygon, color, smooth) => (polygon.$smooth = smooth, polygon.$color = color, polygon);
-const polygon_transform = (polygon, m, color = polygon.$color) =>
-  polygon_color(
-    polygon.map((p) => {
-      let y;
-      let z;
-      return { x: p, y, z } = p,
-        { x: p, y, z } = m.transformPoint({
-          x: p,
-          y,
-          z,
-        }),
-        {
-          x: p,
-          y,
-          z,
-        };
-    }),
-    color,
-    polygon.$smooth,
-  );
-const polygons_transform = (polygons, m, color) => polygons.map((polygon) => polygon_transform(polygon, m, color));
-const polygon_regular = (segments, elongate = 0) =>
-  integers_map(segments, (i) => {
-    const z = Math.cos(2 * Math.PI * i / segments);
-    return {
-      x: Math.sin(2 * Math.PI * i / segments),
-      y: 0,
-      z: abs(z) < 0.01 ? z : z < 0 ? z - elongate : z + elongate,
-    };
-  });
-const cylinder_sides = (btm, top, smooth) =>
-  btm.map((btmi, i, { length }) =>
-    polygon_color(
-      [
-        btmi,
-        top[length - i - 1],
-        top[length - (i + 1) % length - 1],
-        btm[(i + 1) % length],
-      ],
-      btm.$color,
-      smooth,
-    )
-  );
-const cylinder = (
-  segments,
-  smooth,
-  topSize = 0,
-  elongate,
-) => (segments = segments ? polygon_regular(segments, elongate) : GQuad,
-  elongate = polygon_transform(segments, translation(0, 1).scale3d(0 < topSize ? topSize : 1)),
-  segments = polygon_transform(segments, translation(0, -1).scale3d(topSize < 0 ? -topSize : 1)).reverse(),
-  [
-    ...cylinder_sides(segments, elongate, smooth),
-    elongate,
-    segments,
-  ]);
-const sphere = (slices, stacks = slices, vertexFunc = (x, y) => (y *= Math.PI / stacks, {
-  x: Math.cos(x *= 2 * Math.PI / slices) * Math.sin(y),
-  y: Math.cos(y),
-  z: Math.sin(x) * Math.sin(y),
-})) => {
-  const polygons = [];
-  for (let i = 0; slices > i; i++) {
-    for (let j = 0; stacks > j; j++) {
-      const vertex = (x, y) => polygon.push(vertexFunc(x, y, polygon));
-      const polygon = polygon_color([], 0, 1);
-      polygons.push(polygon),
-        vertex(i, j),
-        j && vertex((i + 1) % slices, j),
-        stacks - 1 > j && vertex((i + 1) % slices, j + 1 % stacks),
-        vertex(i, j + 1 % stacks);
-    }
-  }
-  return polygons;
-};
-const CSGPolygon_split = (plane, polygon) => {
-  let d;
-  let $front;
-  let $back;
-  const $polygon = polygon.$polygon;
-  for (let i = 0; $polygon.length > i; ++i) {
-    if (
-      (d = vec3_dot(plane, $polygon[i]) - plane.w) < -0.00008 ? $back = polygon : 8e-5 < d && ($front = polygon),
-        $back && $front
-    ) {
-      return ((plane2, polygon2) => {
-        let jd;
-        const fpoints = [];
-        const bpoints = [];
-        const { $polygon: $polygon2, $flipped } = polygon2;
-        let iv = $polygon2.at(-1);
-        let id = vec3_dot(plane2, iv) - plane2.w;
-        for (const jv of $polygon2) {
-          jd = vec3_dot(plane2, jv) - plane2.w,
-            id < 8e-5 && bpoints.push(iv),
-            -0.00008 < id && fpoints.push(iv),
-            (8e-5 < id && jd < -0.00008 || id < -0.00008 && 8e-5 < jd) && (id /= jd - id,
-              iv = {
-                x: iv.x + (iv.x - jv.x) * id,
-                y: iv.y + (iv.y - jv.y) * id,
-                z: iv.z + (iv.z - jv.z) * id,
-              },
-              fpoints.push(iv),
-              bpoints.push(iv)),
-            iv = jv,
-            id = jd;
-        }
-        return {
-          $front: 2 < fpoints.length && {
-            $polygon: polygon_color(fpoints, $polygon2.$color, $polygon2.$smooth),
-            $flipped,
-            $parent: polygon2,
-          },
-          $back: 2 < bpoints.length && {
-            $polygon: polygon_color(bpoints, $polygon2.$color, $polygon2.$smooth),
-            $flipped,
-            $parent: polygon2,
-          },
-        };
-      })(plane, polygon);
-    }
-  }
-  return {
-    $front,
-    $back,
-  };
-};
-const csg_tree_addPolygon = (node, polygon, plane = plane_fromPolygon(polygon.$polygon)) => {
-  let $front;
-  let $back;
-  let w;
-  return node
-    ? ({ $front, $back } = CSGPolygon_split(node, polygon),
-      $front || $back || node.$polygons.push(polygon),
-      $front && (node.$front = csg_tree_addPolygon(node.$front, $front, plane)),
-      $back && (node.$back = csg_tree_addPolygon(node.$back, $back, plane)))
-    : ({ x: $front, y: $back, z: plane, w } = plane,
-      node = {
-        x: $front,
-        y: $back,
-        z: plane,
-        w,
-        $polygons: [
-          polygon,
-        ],
-        $front: 0,
-        $back: 0,
-      }),
-    node;
-};
-const csg_tree_clipNode = (anode, bnode, polygonPlaneFlipped) => {
-  const result = [];
-  const recursion = (node, polygon) => {
-    let { $front, $back } = CSGPolygon_split(node, polygon);
-    $front || $back || (0 < polygonPlaneFlipped * vec3_dot(node, bnode) ? $front = polygon : $back = polygon),
-      $front && (node.$front ? recursion(node.$front, $front) : result.push($front)),
-      $back && node.$back && recursion(node.$back, $back);
-  };
-  for (const polygon of bnode.$polygons) recursion(anode, polygon);
-  return result;
-};
-const csg_tree_each = (node, fn) => node && (fn(node), csg_tree_each(node.$front, fn), csg_tree_each(node.$back, fn));
-const csg_tree = (n) =>
-  n.length
-    ? n.reduce((prev, $polygon) =>
-      csg_tree_addPolygon(prev, {
-        $polygon,
-        $flipped: 0,
-        $parent: 0,
-      }), 0)
-    : n;
-const csg_tree_flip = (root) => (csg_tree_each(root, (node) => {
-  const { $front, $back } = node;
-  node.$back = $front, node.$front = $back, node.x *= -1, node.y *= -1, node.z *= -1, node.w *= -1;
-  for (const polygon of node.$polygons) polygon.$flipped = !polygon.$flipped;
-}),
-  root);
-const csg_union = (...inputs) =>
-  inputs.reduce((a, b) => {
-    const polygonsToAdd = [];
-    if (a = csg_tree(a), b) {
-      b = csg_tree(b),
-        csg_tree_each(a, (node) => node.$polygons = csg_tree_clipNode(b, node, 1)),
-        csg_tree_each(b, (node) =>
-          polygonsToAdd.push([
-            node,
-            csg_tree_clipNode(a, node, -1),
-          ]));
-      for (let [plane, polygons] of polygonsToAdd) for (const pp of polygons) csg_tree_addPolygon(a, pp, plane);
-    }
-    return a;
-  });
-const csg_polygons_subtract = (...input) => {
-  let b;
-  {
-    const add = (polygon) => {
-      let found;
-      return polygon.$parent
-        && ((found = byParent.get(polygon.$parent))
-          ? (allPolygons.delete(found), polygon = add(polygon.$parent))
-          : byParent.set(polygon.$parent, polygon)),
-        polygon;
-    };
-    const byParent = new Map();
-    const allPolygons = new Map();
-    return [input, ...b] = [
-      ...input,
-    ],
-      input = csg_tree_flip(csg_union(csg_tree_flip(csg_tree(input)), ...b)),
-      csg_tree_each(input, (node) => {
-        for (const polygon of node.$polygons) allPolygons.set(add(polygon), polygon.$flipped);
-      }),
-      Array.from(allPolygons, ([{ $polygon }, flipped]) => {
-        const polygon = $polygon.map(({ x, y, z }) => ({
-          x,
-          y,
-          z,
-        }));
-        return polygon_color(flipped ? polygon.reverse() : polygon, $polygon.$color, $polygon.$smooth);
-      });
-  }
-};
-const setMainMenuVisible = (visible) => {
-  mainMenuVisible = visible;
 };
 const player_init = () => {
   let currentModelId;
@@ -1327,7 +1286,6 @@ const groundTextureSvg = "data:image/svg+xml;base64,"
     "<svg color-interpolation-filters=\"sRGB\" height=\"1024\" width=\"1024\" xmlns=\"http://www.w3.org/2000/svg\"><filter filterUnits=\"userSpaceOnUse\" height=\"1026\" id=\"a\" width=\"1026\" x=\"0\" y=\"0\"><feTurbulence baseFrequency=\".007\" height=\"1025\" numOctaves=\"6\" stitchTiles=\"stitch\" width=\"1025\" result=\"z\" type=\"fractalNoise\" x=\"1\" y=\"1\"/><feTile height=\"1024\" width=\"1024\" x=\"-1\" y=\"-1\"/><feTile/><feDiffuseLighting diffuseConstant=\"4\" lighting-color=\"red\" surfaceScale=\"5\"><feDistantLight azimuth=\"270\" elevation=\"5\"/></feDiffuseLighting><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"x\"/><feColorMatrix values=\"0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 1\" in=\"z\"/><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"z\"/><feTurbulence baseFrequency=\".01\" height=\"1024\" numOctaves=\"5\" stitchTiles=\"stitch\" width=\"1024\"/><feColorMatrix values=\"0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1\"/><feBlend in2=\"x\" mode=\"screen\"/><feBlend in2=\"z\" mode=\"screen\"/></filter><rect filter=\"url(#a)\" height=\"100%\" width=\"100%\"/></svg>",
   );
 const songAudioSource = audioContext.createBufferSource();
-const _frustumCorners = integers_map(8, () => ({}));
 const gl = hC.getContext("webgl2", {
   powerPreference: "high-performance",
 });
@@ -1342,6 +1300,55 @@ loadStep(() => {
   let loadStatus = 0;
   const end = () => {
     if (++loadStatus == 2) {
+      const csm_tempFrustumPoint = {};
+      const csm_render = (split, roundingRadius, zMultiplier) => {
+        let tx = 0;
+        let ty = 0;
+        let tz = 0;
+        let left = 1 / 0;
+        let right = -1 / 0;
+        let bottom = 1 / 0;
+        let top = -1 / 0;
+        let near = 1 / 0;
+        let far = -1 / 0;
+        gl["fas"](36160, 36096, 3553, csm_textures[split], 0),
+          matrixCopy().scale3dSelf(roundingRadius).multiplySelf(
+            matrixCopy(csm_projections[split], csm_tempMatrix).multiplySelf(camera_view).invertSelf(),
+          );
+        for (let i = 0; i < 8; ++i) {
+          csm_tempFrustumPoint.x = 4 & i ? 1 : -1,
+            csm_tempFrustumPoint.y = 2 & i ? 1 : -1,
+            csm_tempFrustumPoint.z = 1 & i ? 1 : -1;
+          const v = tempMatrix.transformPoint(csm_tempFrustumPoint);
+          const w = roundingRadius * v.w;
+          tx -= csm_tempFrustumCorners[i].x = (0 | v.x) / w,
+            ty -= csm_tempFrustumCorners[i].y = (0 | v.y) / w,
+            tz -= csm_tempFrustumCorners[i].z = (0 | v.z) / w;
+        }
+        matrixCopy().rotateSelf(298, 139).translateSelf(tx / 8, ty / 8, tz / 8);
+        for (let i1 = 0; i1 < 8; ++i1) {
+          const { x, y, z } = tempMatrix.transformPoint(csm_tempFrustumCorners[i1]);
+          left = min(left, x),
+            right = max(right, x),
+            bottom = min(bottom, y),
+            top = max(top, y),
+            near = min(near, z),
+            far = max(far, z);
+        }
+        near *= near < 0 ? zMultiplier : 1 / zMultiplier,
+          far *= 0 < far ? zMultiplier : 1 / zMultiplier,
+          gl["uae"](
+            csmShader("b"),
+            !1,
+            matrixToArray(
+              matrixCopy(identity, csm_tempMatrix).scaleSelf(2 / (right - left), 2 / (top - bottom), 2 / (near - far))
+                .translateSelf((right + left) / -2, (top + bottom) / -2, (near + far) / 2).multiplySelf(tempMatrix),
+              csm_lightSpaceMatrices[split],
+            ),
+          ),
+          gl["c4s"](256),
+          renderModels(csmShader("c"), !player_first_person, 42);
+      };
       const mainLoop = (globalTime) => {
         if (
           gl["f1s"](),
@@ -1391,17 +1398,17 @@ loadStep(() => {
           csmShader(),
           gl["b6o"](36160, csm_framebuffer),
           gl["v5y"](0, 0, 2048, 2048),
-          csm_render[0](csm_buildMatrix(camera_view, csm0_projection, 1.1 * (55 - zNear), 10)),
-          csm_render[1](csm_buildMatrix(camera_view, csm1_projection, 1.1 * 126, 11)),
+          csm_render(0, 1.1 * (55 - zNear), 10),
+          csm_render(1, 1.1 * (zFar - 55), 11),
           mainShader(),
           gl["b6o"](36160, null),
           gl["v5y"](0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight),
           gl["cbf"](!0, !0, !0, !0),
           gl["c4s"](16640),
-          csm_render[0](),
-          csm_render[1](),
           gl["uae"](mainShader("a"), !1, matrixToArray(projection)),
           gl["uae"](mainShader("b"), !1, matrixToArray(camera_view)),
+          gl["uae"](mainShader("i"), !1, csm_lightSpaceMatrices[0]),
+          gl["uae"](mainShader("j"), !1, csm_lightSpaceMatrices[1]),
           gl["ubu"](mainShader("k"), camera_position_x, camera_position_y, camera_position_z),
           renderModels(mainShader("c"), !player_first_person, 42),
           skyShader(),
@@ -1413,8 +1420,9 @@ loadStep(() => {
           gl["f1s"]();
       };
       const camera_view = new DOMMatrix();
+      const csm_tempMatrix = new DOMMatrix();
       const groundTextureImage = image;
-      let mainVertexShader = loadShader(`#version 300 es
+      var mainVertexShader = loadShader(`#version 300 es
 layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 a,b,c[39];void main(){mat4 i=c[max(0,abs(int(f.w))-1)+gl_InstanceID];l=mix(d,vec4(.7,1,.2,0),d.w>0.?0.:1.-i[3][3]),i[3][3]=1.,n=f,m=i*vec4(f.xyz,1),gl_Position=a*b*m,m.w=f.w,o=i*vec4(e,0);}`);
       const csmShader = initShaderProgram(
         loadShader(`#version 300 es
@@ -1438,10 +1446,15 @@ precision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b
         `#version 300 es
 precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform highp sampler2DShadow g,h;uniform highp sampler2D q;out vec4 O;void main(){vec4 s=vec4(m.xyz,1);vec3 e=normalize(o.xyz),v=l.w*(texture(q,n.yz*.035)*e.x+texture(q,n.xz*.035)*e.y+texture(q,n.xy*.035)*e.z).xyz;e=normalize(e+v*.5);float a=dot(e,vec3(-.656059,.666369,-.35431468)),t=1.,u=abs((b*s).z);vec4 r=(u<55.?i:j)*s;if(r=r/r.w*.5+.5,r.z<1.){t=0.;for(float e=-1.;e<=1.;++e)for(float a=-1.;a<=1.;++a){vec3 x=vec3(r.xy+vec2(e,a)/2048.,r.z-.00017439);t+=u<55.?texture(g,x):texture(h,x);}t/=9.;}vec3 x=l.xyz*(1.-v.x);float c=max(max(abs(e.x),abs(e.z))*.3-e.y,0.)*pow(max(0.,(8.-m.y)/48.),1.6);O=vec4(vec3(c,c*c*.5,0)+vec3(.09,.05,.11)*x+x*(max(0.,a)*.5+x*a*a*vec3(.5,.45,.3))*(t*.75+.25)+vec3(.6,.6,.5)*pow(max(0.,dot(normalize(m.xyz-k),reflect(vec3(-.656059,.666369,-.35431468),e))),35.)*t,1);}`,
       );
-      const csm_render = integers_map(2, (csmSplit) => {
-        const lightSpaceMatrix = new Float32Array(16);
+      const csm_lightSpaceMatrices = integers_map(2, () => new Float32Array(16));
+      const csm_tempFrustumCorners = integers_map(8, () => ({}));
+      const csm_framebuffer = gl["c5w"]();
+      var mainVertexShader = gl["c25"]();
+      const collision_renderBuffer = gl["c3z"]();
+      const collision_frameBuffer = gl["c5w"]();
+      const csm_textures = integers_map(2, (i) => {
         const texture = gl["c25"]();
-        return gl["a4v"](33984 + csmSplit),
+        return gl["a4v"](33984 + i),
           gl["b9j"](3553, texture),
           gl["t60"](3553, 0, 33190, 2048, 2048, 0, 6402, 5125, null),
           gl["t2z"](3553, 10241, 9729),
@@ -1450,19 +1463,8 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
           gl["t2z"](3553, 34892, 34894),
           gl["t2z"](3553, 10243, 33071),
           gl["t2z"](3553, 10242, 33071),
-          (matrix) => {
-            matrix
-              ? (matrixToArray(matrix, lightSpaceMatrix),
-                gl["uae"](csmShader("b"), !1, lightSpaceMatrix),
-                gl["fas"](36160, 36096, 3553, texture, 0),
-                gl["c4s"](256),
-                renderModels(csmShader("c"), !player_first_person, 42))
-              : gl["uae"](mainShader(csmSplit ? "j" : "i"), !1, lightSpaceMatrix);
-          };
+          texture;
       });
-      const csm_framebuffer = gl["c5w"]();
-      const collision_frameBuffer = (mainVertexShader = gl["c3z"](), gl["c5w"]());
-      const collision_texture = gl["c25"]();
       collisionShader(),
         gl["uae"](collisionShader("a"), !1, matrixToArray(mat_perspective(1e-4, 1, 1.4, 0.59))),
         mainShader(),
@@ -1477,18 +1479,18 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
         ]),
         gl["r9l"](0),
         gl["b6o"](36160, collision_frameBuffer),
-        gl["bb1"](36161, mainVertexShader),
+        gl["bb1"](36161, collision_renderBuffer),
         gl["r4v"](36161, 33189, 128, 128),
-        gl["f8w"](36160, 36096, 36161, mainVertexShader),
+        gl["f8w"](36160, 36096, 36161, collision_renderBuffer),
         gl["a4v"](33986),
-        gl["b9j"](3553, collision_texture),
+        gl["b9j"](3553, mainVertexShader),
         gl["t60"](3553, 0, 6407, 128, 128, 0, 6407, 5121, null),
-        gl["fas"](36160, 36064, 3553, collision_texture, 0),
+        gl["fas"](36160, 36064, 3553, mainVertexShader, 0),
         gl["b9j"](3553, gl["c25"]()),
         gl["t60"](3553, 0, 6408, 1024, 1024, 0, 6408, 5121, groundTextureImage),
-        gl["gbn"](3553),
         gl["t2z"](3553, 10241, 9987),
         gl["t2z"](3553, 10240, 9729),
+        gl["gbn"](3553),
         gl["e8z"](2929),
         gl["e8z"](2884),
         gl["c70"](1),

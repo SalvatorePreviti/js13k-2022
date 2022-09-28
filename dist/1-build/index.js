@@ -54,6 +54,24 @@ const plane_fromPolygon = (polygon) => {
     w: x * a.x + y * a.y + z * a.z
   };
 };
+const mat_perspective = (near, far, mx, my) => new DOMMatrix([
+  mx,
+  0,
+  0,
+  0,
+  0,
+  my,
+  0,
+  0,
+  0,
+  0,
+  (far + near) / (near - far),
+  -1,
+  0,
+  0,
+  2 * far * near / (near - far),
+  0
+]);
 const matrixToArray = ($matrix, output = float32Array16Temp, index = 0) => {
   index *= 16;
   output[index++] = $matrix.m11;
@@ -102,6 +120,7 @@ const float32Array16Temp = new Float32Array(16);
 const zNear = constDef_zNear;
 const zFar = constDef_zFar;
 const fieldOfViewRadians = fieldOfViewDegrees * DEG_TO_RAD;
+const fieldOfViewAmount = 1 / /* @__PURE__ */ Math.tan(fieldOfViewRadians / 2);
 const GQuad = [
   {
     x: -1,
@@ -523,31 +542,12 @@ let interact_pressed;
 let player_first_person;
 let updateInput;
 let projection;
-let csm0_projection;
-let csm1_projection;
+let csm_projections;
 let movAngle = 0;
 let movAmount = 0;
 const resetInteractPressed = () => {
   interact_pressed = 0;
 };
-const mat_perspective = NO_INLINE((near, far, mx, my) => new DOMMatrix([
-  mx,
-  0,
-  0,
-  0,
-  0,
-  my,
-  0,
-  0,
-  0,
-  0,
-  (far + near) / (near - far),
-  -1,
-  0,
-  0,
-  2 * far * near / (near - far),
-  0
-]));
 const initPage = () => {
   let touchStartTime;
   let touchPosStartX;
@@ -584,8 +584,10 @@ const initPage = () => {
   const handleResize = () => {
     const mx = (hC.height = innerHeight) / (hC.width = innerWidth) * fieldOfViewAmount;
     projection = mat_perspective(zNear, zFar, mx, fieldOfViewAmount);
-    csm0_projection = mat_perspective(zNear, constDef_CSM_PLANE_DISTANCE, mx, fieldOfViewAmount);
-    csm1_projection = mat_perspective(constDef_CSM_PLANE_DISTANCE, zFar, mx, fieldOfViewAmount);
+    csm_projections = [
+      mat_perspective(zNear, constDef_CSM_PLANE_DISTANCE, mx, fieldOfViewAmount),
+      mat_perspective(constDef_CSM_PLANE_DISTANCE, zFar, mx, fieldOfViewAmount)
+    ];
     touchPosIdentifier = touchRotIdentifier = void 0;
     keyboard_downKeys.length = interact_pressed = gamepadInteractPressed = movAmount = touch_movementX = touch_movementY = 0;
     if (document.hidden)
@@ -767,7 +769,6 @@ const initPage = () => {
   document.onvisibilitychange = onblur = onresize = handleResize;
   mainMenu(true);
 };
-const fieldOfViewAmount = 1 / /* @__PURE__ */ Math.tan(fieldOfViewRadians / 2);
 let currentEditModel;
 const LEVER_SENSITIVITY_RADIUS = 3;
 const SOUL_SENSITIVITY_RADIUS = 1.6;
@@ -1384,45 +1385,6 @@ const code$2 = "#version 300 es\nvoid main(){}";
 const code$1 = "#version 300 es\nin vec4 f;void main(){gl_Position=vec4(f.xy,1,1);}";
 const code = "#version 300 es\nprecision highp float;uniform vec3 j,k;uniform mat4 b;uniform highp sampler2D q;out vec4 O;void main(){vec2 t=gl_FragCoord.xy/j.xy*2.-1.;vec3 e=(normalize(b*vec4(t.x*-(j.x/j.y),-t.y,1.73205,0.))).xyz;float i=(-32.-k.y)/e.y,o=1.-clamp(abs(i/9999.),0.,1.);if(O=vec4(0,0,0,1),o>.01){if(i>0.){float o=cos(j.z/30.),i=sin(j.z/30.);e.xz*=mat2(o,i,-i,o);vec3 t=abs(e);O.xyz=vec3(dot(vec2(texture(q,e.xy).z,texture(q,e.yz*2.).z),t.zx)*t.y);}else e=k+e*i,O.x=(o*=.9-texture(q,e.xz/150.+vec2(sin(e.z/35.+j.z),cos(e.x/25.+j.z))/80.).y),O.y=o*o*o;}}";
 const uniformName_iResolution = "j";
-const LIGHT_ROT_Y = 139;
-const LIGHT_ROT_X = 298;
-const _frustumPoint = {};
-const csm_buildMatrix = (camera_view, projection2, roundingRadius, zMultiplier) => {
-  let tx = 0;
-  let ty = 0;
-  let tz = 0;
-  matrixCopy().scale3dSelf(roundingRadius).multiplySelf(projection2.multiply(camera_view).invertSelf());
-  for (let i = 0; i < 8; ++i) {
-    _frustumPoint.x = 4 & i ? 1 : -1;
-    _frustumPoint.y = 2 & i ? 1 : -1;
-    _frustumPoint.z = 1 & i ? 1 : -1;
-    const v = tempMatrix.transformPoint(_frustumPoint);
-    const w = roundingRadius * v.w;
-    tx -= _frustumCorners[i].x = (v.x | 0) / w;
-    ty -= _frustumCorners[i].y = (v.y | 0) / w;
-    tz -= _frustumCorners[i].z = (v.z | 0) / w;
-  }
-  matrixCopy().rotateSelf(LIGHT_ROT_X, LIGHT_ROT_Y).translateSelf(tx / 8, ty / 8, tz / 8);
-  let left = Infinity;
-  let right = -Infinity;
-  let bottom = Infinity;
-  let top = -Infinity;
-  let near = Infinity;
-  let far = -Infinity;
-  for (let i1 = 0; i1 < 8; ++i1) {
-    const { x, y, z } = tempMatrix.transformPoint(_frustumCorners[i1]);
-    left = min(left, x);
-    right = max(right, x);
-    bottom = min(bottom, y);
-    top = max(top, y);
-    near = min(near, z);
-    far = max(far, z);
-  }
-  near *= near < 0 ? zMultiplier : 1 / zMultiplier;
-  far *= far > 0 ? zMultiplier : 1 / zMultiplier;
-  return scaling(2 / (right - left), 2 / (top - bottom), 2 / (near - far)).translateSelf((right + left) / -2, (top + bottom) / -2, (near + far) / 2).multiplySelf(tempMatrix);
-};
-const _frustumCorners = integers_map(8, () => ({}));
 const gl = hC.getContext("webgl2", {
   powerPreference: "high-performance"
 });
@@ -1682,7 +1644,48 @@ const renderModels = (worldMatrixLoc, renderPlayer, soulModelId) => {
 };
 const worldMatricesBuffer = new Float32Array(624);
 const objectsMatricesBuffer = new Float32Array(624);
+const LIGHT_ROT_Y = 139;
+const LIGHT_ROT_X = 298;
 const startMainLoop = (groundTextureImage) => {
+  const csm_tempFrustumPoint = {};
+  const csm_render = (split, roundingRadius, zMultiplier) => {
+    let tx = 0;
+    let ty = 0;
+    let tz = 0;
+    gl["fas"](36160, 36096, 3553, csm_textures[split], 0);
+    matrixCopy().scale3dSelf(roundingRadius).multiplySelf(matrixCopy(csm_projections[split], csm_tempMatrix).multiplySelf(camera_view).invertSelf());
+    for (let i = 0; i < 8; ++i) {
+      csm_tempFrustumPoint.x = 4 & i ? 1 : -1;
+      csm_tempFrustumPoint.y = 2 & i ? 1 : -1;
+      csm_tempFrustumPoint.z = 1 & i ? 1 : -1;
+      const v = tempMatrix.transformPoint(csm_tempFrustumPoint);
+      const w = roundingRadius * v.w;
+      tx -= csm_tempFrustumCorners[i].x = (v.x | 0) / w;
+      ty -= csm_tempFrustumCorners[i].y = (v.y | 0) / w;
+      tz -= csm_tempFrustumCorners[i].z = (v.z | 0) / w;
+    }
+    matrixCopy().rotateSelf(LIGHT_ROT_X, LIGHT_ROT_Y).translateSelf(tx / 8, ty / 8, tz / 8);
+    let left = Infinity;
+    let right = -Infinity;
+    let bottom = Infinity;
+    let top = -Infinity;
+    let near = Infinity;
+    let far = -Infinity;
+    for (let i1 = 0; i1 < 8; ++i1) {
+      const { x, y, z } = tempMatrix.transformPoint(csm_tempFrustumCorners[i1]);
+      left = min(left, x);
+      right = max(right, x);
+      bottom = min(bottom, y);
+      top = max(top, y);
+      near = min(near, z);
+      far = max(far, z);
+    }
+    near *= near < 0 ? zMultiplier : 1 / zMultiplier;
+    far *= far > 0 ? zMultiplier : 1 / zMultiplier;
+    gl["uae"](csmShader(uniformName_viewMatrix), false, matrixToArray(matrixCopy(identity, csm_tempMatrix).scaleSelf(2 / (right - left), 2 / (top - bottom), 2 / (near - far)).translateSelf((right + left) / -2, (top + bottom) / -2, (near + far) / 2).multiplySelf(tempMatrix), csm_lightSpaceMatrices[split]));
+    gl["c4s"](256);
+    renderModels(csmShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL);
+  };
   const mainLoop = (globalTime) => {
     gl["f1s"]();
     requestAnimationFrame(mainLoop);
@@ -1715,17 +1718,17 @@ const startMainLoop = (groundTextureImage) => {
     csmShader();
     gl["b6o"](36160, csm_framebuffer);
     gl["v5y"](0, 0, constDef_CSM_TEXTURE_SIZE, constDef_CSM_TEXTURE_SIZE);
-    csm_render[0](csm_buildMatrix(camera_view, csm0_projection, (constDef_CSM_PLANE_DISTANCE - zNear) * 1.1, 10));
-    csm_render[1](csm_buildMatrix(camera_view, csm1_projection, (zFar - constDef_CSM_PLANE_DISTANCE) * 1.1, 11));
+    csm_render(0, (constDef_CSM_PLANE_DISTANCE - zNear) * 1.1, 10);
+    csm_render(1, (zFar - constDef_CSM_PLANE_DISTANCE) * 1.1, 11);
     mainShader();
     gl["b6o"](36160, null);
     gl["v5y"](0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
     gl["cbf"](true, true, true, true);
     gl["c4s"](16640);
-    csm_render[0]();
-    csm_render[1]();
     gl["uae"](mainShader(uniformName_projectionMatrix), false, matrixToArray(projection));
     gl["uae"](mainShader(uniformName_viewMatrix), false, matrixToArray(camera_view));
+    gl["uae"](mainShader(uniformName_csm_matrix0), false, csm_lightSpaceMatrices[0]);
+    gl["uae"](mainShader(uniformName_csm_matrix1), false, csm_lightSpaceMatrices[1]);
     gl["ubu"](mainShader(uniformName_viewPos), camera_position_x, camera_position_y, camera_position_z);
     renderModels(mainShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL);
     skyShader();
@@ -1737,15 +1740,21 @@ const startMainLoop = (groundTextureImage) => {
     gl["f1s"]();
   };
   const camera_view = new DOMMatrix();
+  const csm_tempMatrix = new DOMMatrix();
   const mainVertexShader = loadShader(code$4);
   const csmShader = initShaderProgram(loadShader(code$5), code$2);
   const skyShader = initShaderProgram(loadShader(code$1), code);
   const collisionShader = initShaderProgram(mainVertexShader, code$3);
   const mainShader = initShaderProgram(mainVertexShader, code$6);
-  const csm_render = integers_map(2, (csmSplit) => {
-    const lightSpaceMatrix = new Float32Array(16);
+  const csm_lightSpaceMatrices = integers_map(2, () => new Float32Array(16));
+  const csm_tempFrustumCorners = integers_map(8, () => ({}));
+  const csm_framebuffer = gl["c5w"]();
+  const collision_texture = gl["c25"]();
+  const collision_renderBuffer = gl["c3z"]();
+  const collision_frameBuffer = gl["c5w"]();
+  const csm_textures = integers_map(2, (i) => {
     const texture = gl["c25"]();
-    gl["a4v"](33984 + csmSplit);
+    gl["a4v"](33984 + i);
     gl["b9j"](3553, texture);
     gl["t60"](3553, 0, 33190, constDef_CSM_TEXTURE_SIZE, constDef_CSM_TEXTURE_SIZE, 0, 6402, 5125, null);
     gl["t2z"](3553, 10241, 9729);
@@ -1754,21 +1763,8 @@ const startMainLoop = (groundTextureImage) => {
     gl["t2z"](3553, 34892, 34894);
     gl["t2z"](3553, 10243, 33071);
     gl["t2z"](3553, 10242, 33071);
-    return (matrix) => {
-      if (matrix) {
-        matrixToArray(matrix, lightSpaceMatrix);
-        gl["uae"](csmShader(uniformName_viewMatrix), false, lightSpaceMatrix);
-        gl["fas"](36160, 36096, 3553, texture, 0);
-        gl["c4s"](256);
-        renderModels(csmShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL);
-      } else
-        gl["uae"](mainShader(csmSplit ? uniformName_csm_matrix1 : uniformName_csm_matrix0), false, lightSpaceMatrix);
-    };
+    return texture;
   });
-  const csm_framebuffer = gl["c5w"]();
-  const collision_renderBuffer = gl["c3z"]();
-  const collision_frameBuffer = gl["c5w"]();
-  const collision_texture = gl["c25"]();
   collisionShader();
   gl["uae"](collisionShader(uniformName_projectionMatrix), false, matrixToArray(mat_perspective(1e-4, 1, 1.4, 0.59)));
   mainShader();
@@ -1792,9 +1788,9 @@ const startMainLoop = (groundTextureImage) => {
   gl["fas"](36160, 36064, 3553, collision_texture, 0);
   gl["b9j"](3553, gl["c25"]());
   gl["t60"](3553, 0, 6408, 1024, 1024, 0, 6408, 5121, groundTextureImage);
-  gl["gbn"](3553);
   gl["t2z"](3553, 10241, 9987);
   gl["t2z"](3553, 10240, 9729);
+  gl["gbn"](3553);
   gl["e8z"](2929);
   gl["e8z"](2884);
   gl["c70"](1);

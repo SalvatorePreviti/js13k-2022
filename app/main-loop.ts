@@ -20,7 +20,19 @@ import void_fsSource from "./shaders/void-fragment.frag";
 import sky_vsSource from "./shaders/sky-vertex.vert";
 import sky_fsSource, { uniformName_iResolution } from "./shaders/sky-fragment.frag";
 
-import { integers_map, matrixToArray, zFar, zNear, matrixCopy, identity } from "./math";
+import type { Vec3 } from "./math";
+import {
+  max,
+  min,
+  integers_map,
+  matrixToArray,
+  zFar,
+  zNear,
+  mat_perspective,
+  matrixCopy,
+  identity,
+  tempMatrix,
+} from "./math";
 import { MODEL_ID_SOUL, MODEL_ID_SOUL_COLLISION, player_position_final } from "./game/models";
 import {
   absoluteTime,
@@ -30,17 +42,8 @@ import {
   mainMenuVisible,
   worldStateUpdate,
 } from "./game/world-state";
-import { csm_buildMatrix } from "./csm";
-import {
-  csm0_projection,
-  csm1_projection,
-  initPage,
-  mat_perspective,
-  player_first_person,
-  projection,
-  resetInteractPressed,
-  updateInput,
-} from "./page";
+// import { csm_buildMatrix } from "./csm";
+import { initPage, csm_projections, player_first_person, projection, resetInteractPressed, updateInput } from "./page";
 import { gl } from "./gl";
 import {
   player_update,
@@ -53,6 +56,9 @@ import {
 import { loadShader, initShaderProgram } from "./shaders-utils";
 import { renderModels, updateWorldMatrices } from "./game/models-render";
 
+const LIGHT_ROT_X = 298;
+const LIGHT_ROT_Y = 139;
+
 export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   const camera_view = new DOMMatrix();
   const mainVertexShader = loadShader(main_vsSource);
@@ -61,10 +67,21 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   const collisionShader = initShaderProgram(mainVertexShader, collider_fsSource);
   const mainShader = initShaderProgram(mainVertexShader, main_fsSource);
 
-  const csm_render = integers_map(2, (csmSplit: number) => {
-    const texture = gl.createTexture()!;
+  const csm_lightSpaceMatrices = integers_map(2, () => new Float32Array(16));
 
-    gl.activeTexture(gl.TEXTURE0 + csmSplit);
+  const csm_tempMatrix = new DOMMatrix();
+  const csm_tempFrustumPoint: Vec3 = {} as Vec3;
+  const csm_tempFrustumCorners: Vec3[] = integers_map(8, () => ({} as Vec3));
+
+  const csm_framebuffer = gl.createFramebuffer();
+
+  const collision_texture = gl.createTexture()!;
+  const collision_renderBuffer = gl.createRenderbuffer();
+  const collision_frameBuffer = gl.createFramebuffer()!;
+
+  const csm_textures = integers_map(2, (i: number) => {
+    const texture = gl.createTexture()!;
+    gl.activeTexture(gl.TEXTURE0 + i);
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texImage2D(
       gl.TEXTURE_2D,
@@ -83,29 +100,75 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_MODE, gl.COMPARE_REF_TO_TEXTURE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-
-    const lightSpaceMatrix: Float32Array = new Float32Array(16);
-    return (matrix?: DOMMatrix) => {
-      if (matrix) {
-        matrixToArray(matrix, lightSpaceMatrix);
-        gl.uniformMatrix4fv(csmShader(uniformName_viewMatrix), false, lightSpaceMatrix);
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, texture, 0);
-        gl.clear(gl.DEPTH_BUFFER_BIT);
-        renderModels(csmShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL);
-      } else {
-        gl.uniformMatrix4fv(
-          mainShader(csmSplit ? uniformName_csm_matrix1 : uniformName_csm_matrix0),
-          false,
-          lightSpaceMatrix,
-        );
-      }
-    };
+    return texture;
   });
 
-  const csm_framebuffer = gl.createFramebuffer();
-  const collision_renderBuffer = gl.createRenderbuffer();
-  const collision_frameBuffer = gl.createFramebuffer()!;
-  const collision_texture = gl.createTexture()!;
+  const csm_render = (split: 0 | 1, roundingRadius: number, zMultiplier: number) => {
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, csm_textures[split]!, 0);
+
+    matrixCopy()
+      .scale3dSelf(roundingRadius)
+      .multiplySelf(matrixCopy(csm_projections[split], csm_tempMatrix).multiplySelf(camera_view).invertSelf());
+
+    let tx = 0;
+    let ty = 0;
+    let tz = 0;
+
+    for (let i = 0; i < 8; ++i) {
+      csm_tempFrustumPoint.x = 4 & i ? 1 : -1;
+      csm_tempFrustumPoint.y = 2 & i ? 1 : -1;
+      csm_tempFrustumPoint.z = 1 & i ? 1 : -1;
+      const v = tempMatrix.transformPoint(csm_tempFrustumPoint);
+      const w = roundingRadius * v.w;
+      // Round to reduce shimmering
+      tx -= csm_tempFrustumCorners[i]!.x = (v.x | 0) / w;
+      ty -= csm_tempFrustumCorners[i]!.y = (v.y | 0) / w;
+      tz -= csm_tempFrustumCorners[i]!.z = (v.z | 0) / w;
+    }
+
+    matrixCopy()
+      .rotateSelf(LIGHT_ROT_X, LIGHT_ROT_Y)
+      .translateSelf(tx / 8, ty / 8, tz / 8);
+
+    let left = Infinity;
+    let right = -Infinity;
+    let bottom = Infinity;
+    let top = -Infinity;
+    let near = Infinity;
+    let far = -Infinity;
+
+    // Compute the frustum bouding box
+    for (let i = 0; i < 8; ++i) {
+      const { x, y, z } = tempMatrix.transformPoint(csm_tempFrustumCorners[i]);
+      left = min(left, x);
+      right = max(right, x);
+      bottom = min(bottom, y);
+      top = max(top, y);
+      near = min(near, z);
+      far = max(far, z);
+    }
+
+    near *= near < 0 ? zMultiplier : 1 / zMultiplier;
+    far *= far > 0 ? zMultiplier : 1 / zMultiplier;
+
+    // Build the ortographic matrix, multiply it with the light space view matrix.
+
+    gl.uniformMatrix4fv(
+      csmShader(uniformName_viewMatrix),
+      false,
+      matrixToArray(
+        matrixCopy(identity, csm_tempMatrix)
+          .scaleSelf(2 / (right - left), 2 / (top - bottom), 2 / (near - far))
+          .translateSelf((right + left) / -2, (top + bottom) / -2, (near + far) / 2)
+          .multiplySelf(tempMatrix),
+        csm_lightSpaceMatrices[split],
+      ),
+    );
+
+    gl.clear(gl.DEPTH_BUFFER_BIT);
+
+    renderModels(csmShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL);
+  };
 
   const mainLoop = (globalTime: number) => {
     gl.flush();
@@ -187,8 +250,8 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     gl.bindFramebuffer(gl.FRAMEBUFFER, csm_framebuffer);
     gl.viewport(0, 0, CSM_TEXTURE_SIZE, CSM_TEXTURE_SIZE);
 
-    csm_render[0]!(csm_buildMatrix(camera_view, csm0_projection, (CSM_PLANE_DISTANCE - zNear) * 1.1, 10));
-    csm_render[1]!(csm_buildMatrix(camera_view, csm1_projection, (zFar - CSM_PLANE_DISTANCE) * 1.1, 11));
+    csm_render(0, (CSM_PLANE_DISTANCE - zNear) * 1.1, 10);
+    csm_render(1, (zFar - CSM_PLANE_DISTANCE) * 1.1, 11);
 
     // *** MAIN RENDER ***
 
@@ -196,14 +259,14 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+
     gl.colorMask(true, true, true, true);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    csm_render[0]!();
-    csm_render[1]!();
-
     gl.uniformMatrix4fv(mainShader(uniformName_projectionMatrix), false, matrixToArray(projection));
     gl.uniformMatrix4fv(mainShader(uniformName_viewMatrix), false, matrixToArray(camera_view));
+    gl.uniformMatrix4fv(mainShader(uniformName_csm_matrix0), false, csm_lightSpaceMatrices[0]!);
+    gl.uniformMatrix4fv(mainShader(uniformName_csm_matrix1), false, csm_lightSpaceMatrices[1]!);
     gl.uniform3f(mainShader(uniformName_viewPos), camera_position_x, camera_position_y, camera_position_z);
 
     renderModels(mainShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL);
@@ -269,15 +332,16 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     gl.UNSIGNED_BYTE,
     null,
   );
+
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, collision_texture, 0);
 
   // Ground texture
 
   gl.bindTexture(gl.TEXTURE_2D, gl.createTexture());
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1024, 1024, 0, gl.RGBA, gl.UNSIGNED_BYTE, groundTextureImage);
-  gl.generateMipmap(gl.TEXTURE_2D);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.generateMipmap(gl.TEXTURE_2D);
 
   // GL Setup
 
