@@ -184,7 +184,7 @@ export const onSoulCollected = () => {
     [
       ,
       "Mark Zuckemberg<br>made the world worse",
-      ,
+      "Giorgia Meloni<br>fascist",
       "Andrzej Mazur<br>for the js13k competition",
       "Donald Trump<br>lies",
       "Kim Jong-un<br>Dictator, liked pineapple on pizza",
