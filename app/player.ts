@@ -2,13 +2,13 @@ import {
   max,
   clamp,
   DEG_TO_RAD,
-  identity,
   angle_lerp_degrees,
   lerp,
   angle_wrap_degrees,
   min,
-  translation,
   abs,
+  tempMatrix,
+  matrixSetIdentity,
 } from "./math";
 import {
   levers,
@@ -181,7 +181,7 @@ export const player_init = () => {
   const getReferenceMatrix = () =>
     player_respawned
       ? levers[player_last_pulled_lever]!.$parent.$matrix
-      : (oldModelId && allModels[oldModelId]!.$kind === MODEL_KIND_GAME && allModels[oldModelId]!.$matrix) || identity;
+      : allModels[(oldModelId && allModels[oldModelId]!.$kind === MODEL_KIND_GAME && oldModelId) || 0]!.$matrix;
 
   const interpolate_with_hysteresis = /* @__PURE__ */ (
     previous: number,
@@ -192,13 +192,9 @@ export const player_init = () => {
     lerp(previous, desired, boot || (clamp(abs(desired - previous) ** 0.9 - hysteresis) + 1 / 7) * damp(speed * 1.5));
 
   const playerMovedGlobalPos = (referenceMatrix: DOMMatrixReadOnly) => {
-    const inverseReferenceRotationMatrix = referenceMatrix.inverse();
-    inverseReferenceRotationMatrix.m41 = inverseReferenceRotationMatrix.m42 = inverseReferenceRotationMatrix.m43 = 0;
-    const v = inverseReferenceRotationMatrix.transformPoint({
-      x: player_mov_x,
-      z: player_mov_z,
-      w: 0,
-    });
+    matrixSetIdentity(tempMatrix).multiplySelf(referenceMatrix).invertSelf();
+    tempMatrix.m41 = tempMatrix.m42 = tempMatrix.m43 = 0;
+    const v = tempMatrix.transformPoint({ x: player_mov_x, z: player_mov_z, w: 0 });
     player_position_global.x += v.x;
     player_position_global.z += v.z;
     return referenceMatrix.transformPoint(player_position_global);
@@ -242,7 +238,7 @@ export const player_init = () => {
 
     const { x, y, z } =
       player_respawned > 1
-        ? levers[player_last_pulled_lever]!.$locMatrix!.transformPoint({
+        ? levers[player_last_pulled_lever]!.$locMatrix.transformPoint({
             x: 0,
             y: player_last_pulled_lever || firstBoatLerp > 0.9 ? 15 : 1,
             z: PLAYER_RESPAWN_Z,
@@ -359,19 +355,21 @@ export const player_init = () => {
 
     boot = 0;
 
-    allModels[MODEL_ID_PLAYER_BODY]!.$matrix = translation(x, player_model_y + 0.124, z).rotateSelf(
+    allModels[MODEL_ID_PLAYER_BODY]!.$matrix.translateSelf(x, player_model_y + 0.124, z).rotateSelf(
       0,
       player_look_angle,
     );
 
     for (let i = 0; i < 2; ++i) {
-      allModels[MODEL_ID_PLAYER_LEG0 + i]!.$matrix = allModels[MODEL_ID_PLAYER_BODY]!.$matrix.translate(
-        0,
-        player_legs_speed * clamp(Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI * (i - 1) - Math.PI / 2) * 0.45),
-      ).rotateSelf(
-        player_legs_speed * Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI * (i - 1)) * (0.25 / DEG_TO_RAD),
-        0,
-      );
+      allModels[MODEL_ID_PLAYER_LEG0 + i]!.$matrix.multiplySelf(allModels[MODEL_ID_PLAYER_BODY]!.$matrix)
+        .translateSelf(
+          0,
+          player_legs_speed * clamp(Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI * (i - 1) - Math.PI / 2) * 0.45),
+        )
+        .rotateSelf(
+          player_legs_speed * Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI * (i - 1)) * (0.25 / DEG_TO_RAD),
+          0,
+        );
     }
   };
 };

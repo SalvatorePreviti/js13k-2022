@@ -1,4 +1,13 @@
-import { min, angle_lerp_degrees, DEG_TO_RAD, identity, type Vec3Optional, vec3_distance, clamp, abs } from "../math";
+import {
+  min,
+  angle_lerp_degrees,
+  DEG_TO_RAD,
+  type Vec3Optional,
+  vec3_distance,
+  clamp,
+  abs,
+  matrixSetIdentity,
+} from "../math";
 import { cylinder, polygons_transform, type Polygon } from "../geometry/geometry";
 import {
   levers,
@@ -29,12 +38,14 @@ export let currentEditModel: Model;
 export const newModel = (fn: (model: Model) => void, $kind: MODEL_KIND = MODEL_KIND_GAME) => {
   const previousModel = currentEditModel;
   const model: Model = {
-    $matrix: identity,
+    $matrix: new DOMMatrix(),
     $modelId: allModels.length,
     $kind,
     $polygons: [],
+    _update: () => {},
   };
-  allModels.push((currentEditModel = model));
+  allModels.push(model);
+  currentEditModel = model;
   fn(model);
   currentEditModel = previousModel;
   return model;
@@ -42,11 +53,13 @@ export const newModel = (fn: (model: Model) => void, $kind: MODEL_KIND = MODEL_K
 
 export const meshAdd = (
   polygons: Polygon<Readonly<Vec3Optional>>[],
-  transform: DOMMatrixReadOnly = identity,
+  transform: DOMMatrixReadOnly = new DOMMatrix(),
   color?: number | undefined,
 ) => currentEditModel.$polygons!.push(...polygons_transform(polygons, transform, color));
 
 export const newLever = (transform: DOMMatrixReadOnly): void => {
+  const $locMatrix = new DOMMatrix();
+  const $matrix = new DOMMatrix();
   const $parent = currentEditModel;
   const index = levers.length;
   const lever: Lever = {
@@ -54,24 +67,26 @@ export const newLever = (transform: DOMMatrixReadOnly): void => {
     $lerpValue: 0,
     $lerpValue2: 0,
     $parent,
+    $locMatrix,
+    $matrix,
     _update: () => {
-      const { $value, $lerpValue, $lerpValue2 } = lever;
-      const locMatrix = $parent.$matrix.multiply(transform);
-      lever.$locMatrix = locMatrix;
+      matrixSetIdentity($matrix)
+        .multiplySelf(matrixSetIdentity($locMatrix).multiplySelf($parent.$matrix).multiplySelf(transform))
+        .rotateSelf(lever.$lerpValue * 60 - 30, 0)
+        .translateSelf(0, 1);
+
+      lever.$lerpValue = lerpDamp(lever.$lerpValue, lever.$value, 4);
+      lever.$lerpValue2 = lerpDamp(lever.$lerpValue2, lever.$value, 1);
 
       if (
-        vec3_distance(locMatrix.transformPoint(), player_position_final) < LEVER_SENSITIVITY_RADIUS &&
-        interact_pressed
+        interact_pressed &&
+        vec3_distance($locMatrix.transformPoint(), player_position_final) < LEVER_SENSITIVITY_RADIUS
       ) {
-        if ($lerpValue < 0.3 || $lerpValue > 0.7) {
-          lever.$value = $value ? 0 : 1;
+        if (lever.$lerpValue < 0.3 || lever.$lerpValue > 0.7) {
+          lever.$value = lever.$value ? 0 : 1;
           onPlayerPullLever(index);
         }
       }
-
-      lever.$lerpValue = lerpDamp($lerpValue, $value, 4);
-      lever.$lerpValue2 = lerpDamp($lerpValue2, $value, 1);
-      lever.$matrix = locMatrix.rotate(lever.$lerpValue * 60 - 30, 0).translateSelf(0, 1);
     },
   };
   levers.push(lever);
@@ -82,6 +97,7 @@ export const newLever = (transform: DOMMatrixReadOnly): void => {
 };
 
 export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]) => {
+  const $matrix = new DOMMatrix();
   const parentModel = currentEditModel;
   const index = souls.length;
   const circles = (walkingPath as Circle[]).map(([x, z, w]) => ({ x, z, w }));
@@ -100,7 +116,10 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]
 
   const soul: Soul = {
     $value: 0,
+    $matrix,
     _update: () => {
+      matrixSetIdentity($matrix);
+
       if (!soul.$value) {
         let isInside: boolean | undefined;
         let contextualVelocity = 1;
@@ -150,9 +169,12 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]
         prevX = soulX;
         prevZ = soulZ;
 
-        const soulPos = (soul.$matrix = parentModel.$matrix.multiply(
-          transform.translate(soulX, 0, soulZ).rotateSelf(0, lookAngle, Math.sin(gameTime * 1.7) * 7),
-        )).transformPoint();
+        const soulPos = $matrix
+          .multiplySelf(parentModel.$matrix)
+          .multiplySelf(transform)
+          .translateSelf(soulX, 0, soulZ)
+          .rotateSelf(0, lookAngle, Math.sin(gameTime * 1.7) * 7)
+          .transformPoint();
 
         if (vec3_distance(soulPos, player_position_final) < SOUL_SENSITIVITY_RADIUS) {
           soul.$value = 1;
@@ -161,11 +183,13 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]
       }
 
       if (soul.$value) {
-        soul.$matrix = allModels[MODEL_ID_FIRST_BOAT]!.$matrix.translate(
-          (index % 4) * 1.2 - 1.7 + Math.sin(gameTime + index) / 7,
-          -2,
-          -5.5 + ((index / 4) | 0) * 1.7 + abs((index % 4) - 2) + Math.cos(gameTime / 1.5 + index) / 6,
-        );
+        $matrix
+          .multiplySelf(allModels[MODEL_ID_FIRST_BOAT]!.$matrix)
+          .translateSelf(
+            (index % 4) * 1.2 - 1.7 + Math.sin(gameTime + index) / 7,
+            -2,
+            -5.5 + ((index / 4) | 0) * 1.7 + abs((index % 4) - 2) + Math.cos(gameTime / 1.5 + index) / 6,
+          );
       }
     },
   };

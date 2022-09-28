@@ -68,12 +68,10 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
   newModel(() => meshAdd([GQuad.slice(1)], translation(-2).scale3d(3).rotate(90, 0)), MODEL_KIND_MESH);
 
   newModel(() => {
-    const getBoatAnimationMatrix = (x: number, y: number, z: number) =>
-      translation(x + Math.sin(gameTime + 2) / 5, y + Math.sin(gameTime * 0.8) / 3, z).rotateSelf(
-        Math.sin(gameTime) * 2,
-        Math.sin(gameTime * 0.7),
-        Math.sin(gameTime * 0.9),
-      );
+    const boatAnimationMatrix = (matrix: DOMMatrix, x: number, y: number, z: number) =>
+      matrix
+        .translateSelf(x + Math.sin(gameTime + 2) / 5, y + Math.sin(gameTime * 0.8) / 3, z)
+        .rotateSelf(Math.sin(gameTime) * 2, Math.sin(gameTime * 0.7), Math.sin(gameTime * 0.9));
 
     const makeBigArcPolygons = (height: number) =>
       csg_polygons_subtract(
@@ -109,7 +107,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
     newModel((model) => {
       checkModelId("FIRST_BOAT", MODEL_ID_FIRST_BOAT);
-      model._update = () => getBoatAnimationMatrix(-12, 4.2, -66 + firstBoatLerp * 40);
+      model._update = (matrix) => boatAnimationMatrix(matrix, -12, 4.2, -66 + firstBoatLerp * 40);
       meshAdd(boatPolygons);
 
       // LEVER 0 - lever over the first boat
@@ -152,7 +150,8 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
       meshAdd(cylinder(), translation(0, 1, z).scale(3, 0.2, 0.35), material(0.5, 0.5, 0.5, 0.3));
       // in and out gate bars
       newModel((model) => {
-        model._update = () => translation(0, 0, z).scale(1, clamp(1.22 - levers[i + 1]!.$lerpValue), 1);
+        model._update = (matrix) =>
+          matrix.translateSelf(0, 0, z).scaleSelf(1, clamp(1.22 - levers[i + 1]!.$lerpValue), 1);
         meshAdd(gateBarsPolygons);
       });
     });
@@ -228,8 +227,8 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     // moving central platform in the first level
 
     newModel((model) => {
-      model._update = () =>
-        translation(
+      model._update = (matrix) =>
+        matrix.translateSelf(
           0,
           levers[3]!.$lerpValue > 0.01
             ? (Math.cos(gameTime * 1.5) * 5 + 2) * levers[3]!.$lerpValue2 * (1 - levers[2]!.$lerpValue) +
@@ -253,7 +252,8 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
     const blackPlatform = (freq: number, amplitude: number, pz: number) =>
       newModel((model) => {
-        model._update = () => translation(level2Oscillation() * Math.sin(freq * 3 + gameTime * freq) * amplitude);
+        model._update = (matrix) =>
+          matrix.translateSelf(level2Oscillation() * Math.sin(freq * 3 + gameTime * freq) * amplitude);
         GQuad.map(({ x, z }) => {
           // column body
           meshAdd(cylinder(11, 1), translation(x * 4, 4, pz + z * 4).scale(0.8, 3, 0.8), material(0.5, 0.3, 0.7, 0.6));
@@ -284,7 +284,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
     // central oscillating platform
     newModel((model) => {
-      model._update = () => translation(level2Oscillation() * Math.sin(gameTime / 1.5 + 2) * 12);
+      model._update = (matrix) => matrix.translateSelf(level2Oscillation() * Math.sin(gameTime / 1.5 + 2) * 12);
       meshAdd(
         csg_polygons_subtract(
           csg_union(
@@ -312,7 +312,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     // triangle platform
 
     newModel((model) => {
-      model._update = () => translation((1 - level2Oscillation()) * 9.8);
+      model._update = (matrix) => matrix.translateSelf((1 - level2Oscillation()) * 9.8);
 
       meshAdd(cylinder(3), translation(-23, -1.7, 55.8).scale(5, 0.7, 8.3), material(0.3, 0.6, 0.6, 0.2));
       meshAdd(cylinder(8), translation(-23, -2.2, 66.5).scale(1.5, 1.2, 1.5), material(0.8, 0.8, 0.8, 0.2));
@@ -325,7 +325,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     // vertically oscillating mini platforms
 
     newModel((model) => {
-      model._update = () => translation(0, level3Oscillation() * Math.sin(gameTime * (1.5 * 0.9)) * 4);
+      model._update = (matrix) => matrix.translateSelf(0, level3Oscillation() * Math.sin(gameTime * (1.5 * 0.9)) * 4);
 
       meshAdd(cylinder(), translation(-21.1 - 1.45, -3, 55).scale(1.45, 1.4, 2.7), material(0.7, 0.7, 0.7, 0.2));
 
@@ -342,7 +342,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     // horizontaly oscillating mini platforms
 
     newModel((model) => {
-      model._update = () => translation(0, 0, level3Oscillation() * Math.sin(gameTime * 0.9) * 8);
+      model._update = (matrix) => matrix.translateSelf(0, 0, level3Oscillation() * Math.sin(gameTime * 0.9) * 8);
       meshAdd(
         csg_polygons_subtract(
           polygons_transform(cylinder(), translation(-27, -3, 55).scale(3, 1.4, 2.7), material(0.9, 0.9, 0.9, 0.2)),
@@ -356,7 +356,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     // hex corridor door
 
     newModel((model) => {
-      model._update = () => translation(0, levers[4]!.$lerpValue2 * -6.5);
+      model._update = (matrix) => matrix.translateSelf(0, levers[4]!.$lerpValue2 * -6.5);
       meshAdd(
         cylinder(6),
         translation(-44.5, 0, 55).rotate(90, 90).rotate(0, 90).scale(5.9, 0.5, 5.9),
@@ -396,12 +396,10 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     // rotating hex corridor
 
     newModel((model) => {
-      model._update = () => {
-        return translation(-75, (1 - levers[5]!.$lerpValue2) * (1 - levers[6]!.$lerpValue) * 3, 55).rotate(
-          180 * (1 - levers[5]!.$lerpValue2) + rotatingHexCorridorRotation,
-          0,
-        );
-      };
+      model._update = (matrix) =>
+        matrix
+          .translateSelf(-75, (1 - levers[5]!.$lerpValue2) * (1 - levers[6]!.$lerpValue) * 3, 55)
+          .rotate(180 * (1 - levers[5]!.$lerpValue2) + rotatingHexCorridorRotation, 0);
       meshAdd(hexCorridorPolygons);
     }, MODEL_KIND_GAME_NO_ATTACH_PLAYER);
 
@@ -482,7 +480,8 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
     // gate bars
     newModel((model) => {
-      model._update = () => translation(-99.7, -1.9, 63.5).scale(1, clamp(1.1 - levers[6]!.$lerpValue), 1);
+      model._update = (matrix) =>
+        matrix.translateSelf(-99.7, -1.9, 63.5).scale(1, clamp(1.1 - levers[6]!.$lerpValue), 1);
       meshAdd(gateBarsPolygons);
     });
 
@@ -526,8 +525,8 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     const shouldOscillate = () => lerpneg(levers[7]!.$lerpValue2, levers[6]!.$lerpValue2);
 
     newModel((model) => {
-      model._update = () =>
-        translation(
+      model._update = (matrix) =>
+        matrix.translateSelf(
           0,
           (1 - max(levers[6]!.$lerpValue, levers[7]!.$lerpValue)) * 3.5 + shouldOscillate() * Math.sin(gameTime) * 5,
         );
@@ -537,8 +536,8 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     });
 
     newModel((model) => {
-      model._update = () =>
-        translation(
+      model._update = (matrix) =>
+        matrix.translateSelf(
           0,
           shouldOscillate() * Math.sin(gameTime + 3) * 6,
           Math.sin(gameTime * 0.6 + 1) * 6 * shouldOscillate(),
@@ -570,7 +569,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     // central sculpture/monument
 
     newModel((model) => {
-      model._update = () => translation(0, levers[7]!.$lerpValue2 * -7.3);
+      model._update = (matrix) => matrix.translateSelf(0, levers[7]!.$lerpValue2 * -7.3);
 
       meshAdd(
         csg_polygons_subtract(
@@ -648,7 +647,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     // ******** SECOND BOAT ********
 
     newModel((model) => {
-      model._update = () => getBoatAnimationMatrix(-123, 1.4, 55 + secondBoatLerp * -65);
+      model._update = (matrix) => boatAnimationMatrix(matrix, -123, 1.4, 55 + secondBoatLerp * -65);
       meshAdd(boatPolygons);
       newLever(translation(0, -3, -4).rotate(0, 180));
     });
@@ -669,18 +668,24 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     );
 
     newModel((model) => {
-      model._update = () => translation(0, -2, shouldPushRods() * abs(Math.sin(gameTime * 1.1)) * -8.5 + 10);
+      model._update = (matrix) =>
+        matrix.translateSelf(0, -2, shouldPushRods() * abs(Math.sin(gameTime * 1.1)) * -8.5 + 10);
       integers_map(2, (x) => meshAdd(pushingRod, translation(-110 + x * 9 + (x & 1), 1.7, -12)));
     });
 
     newModel((model) => {
-      model._update = () => translation(0, -2, shouldPushRods() * abs(Math.sin(gameTime * 2.1)) * -8.5 + 10);
+      model._update = (matrix) =>
+        matrix.translateSelf(0, -2, shouldPushRods() * abs(Math.sin(gameTime * 2.1)) * -8.5 + 10);
       integers_map(2, (x) => meshAdd(pushingRod, translation(-110 + (x + 2) * 9 + (x & 1), 1.7, -12)));
     });
 
     newModel((model) => {
-      model._update = () =>
-        translation(0, -2, max(shouldBlockRods(), shouldPushRods() * abs(Math.sin(gameTime * 1.5))) * -8.5 + 10);
+      model._update = (matrix) =>
+        matrix.translateSelf(
+          0,
+          -2,
+          max(shouldBlockRods(), shouldPushRods() * abs(Math.sin(gameTime * 1.5))) * -8.5 + 10,
+        );
       integers_map(3, (x) => meshAdd(pushingRod, translation(-106 + x * 9, 1.7, -12)));
     });
 
@@ -788,9 +793,9 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
     integers_map(4, (i) =>
       newModel((model) => {
-        model._update = () => {
+        model._update = (matrix) => {
           const osc = hexPadShouldOscillate();
-          return translation(
+          matrix.translateSelf(
             (i > 2 ? (1 - osc) * 2 + osc : 0) - 100,
             osc * Math.sin(gameTime * 1.3 + i * 1.7) * (3 + i / 3) + 0.7,
             (i & 1 ? -1 : 1) * (1 - levers[8]!.$lerpValue2) * (1 - levers[12]!.$lerpValue2) * -7 +
@@ -810,13 +815,15 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
     // donut pad
     newModel((model) => {
-      model._update = () => {
+      model._update = (matrix) => {
         const osc = hexPadShouldOscillate();
-        return translation(
-          (1 - osc) * 2.5 - 139.7,
-          (1 - levers[8]!.$lerpValue) * -3 + osc * Math.sin(gameTime * 0.8) * -1 - 1.8,
-          93.5,
-        ).rotateSelf(Math.cos(gameTime * 1.3) * (osc * 3 + 3), 0);
+        matrix
+          .translateSelf(
+            (1 - osc) * 2.5 - 139.7,
+            (1 - levers[8]!.$lerpValue) * -3 + osc * Math.sin(gameTime * 0.8) * -1 - 1.8,
+            93.5,
+          )
+          .rotateSelf(Math.cos(gameTime * 1.3) * (osc * 3 + 3), 0);
       };
       meshAdd(
         csg_polygons_subtract(
@@ -897,10 +904,8 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
     // far arc gate door
 
-    // model._update = () => translation(-99.7, -1.9, 63.5).scale(1, clamp01(1.1 - levers[6]!.$lerpValue), 1);
-
     newModel((model) => {
-      model._update = () => translation(-100, 0.6, 96.5).scale(0.88, 1.2 - levers[12]!.$lerpValue);
+      model._update = (matrix) => matrix.translateSelf(-100, 0.6, 96.5).scaleSelf(0.88, 1.2 - levers[12]!.$lerpValue);
       meshAdd(gateBarsPolygons);
     });
 
@@ -917,7 +922,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     // First rotating platform (with hole)
     newModel((model) => {
       checkModelId("ROTATING_PLATFORM", MODEL_ID_ROTATING_PLATFORM);
-      model._update = () => translation(-81, 0.6, 106).rotate(0, 40 + rotatingPlatform1Rotation);
+      model._update = (matrix) => matrix.translateSelf(-81, 0.6, 106).rotateSelf(0, 40 + rotatingPlatform1Rotation);
       meshAdd(
         csg_polygons_subtract(
           polygons_transform(cylinder(45, 1), scaling(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2)),
@@ -933,7 +938,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
     // Second rotating platform
     newModel((model) => {
-      model._update = () => translation(-65.8, 0.8, 106).rotate(0, rotatingPlatform2Rotation);
+      model._update = (matrix) => matrix.translateSelf(-65.8, 0.8, 106).rotateSelf(0, rotatingPlatform2Rotation);
 
       // rotating platform horns
       [-1, 1].map((x) =>
@@ -960,7 +965,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
     // Third rotating platform
     newModel((model) => {
-      model._update = () => translation(-50.7, 0.8, 106).rotate(0, 180 - rotatingPlatform2Rotation);
+      model._update = (matrix) => matrix.translateSelf(-50.7, 0.8, 106).rotateSelf(0, 180 - rotatingPlatform2Rotation);
       meshAdd(
         csg_polygons_subtract(
           polygons_transform(cylinder(28, 1), translation(0, 2).scale(7.5, 1, 7.5), material(0.35, 0, 0, 0.3)),
@@ -974,7 +979,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
     // Fourth rotating platform
     newModel((model) => {
-      model._update = () => translation(-50.7, 0.8, 91).rotate(0, 270 + rotatingPlatform2Rotation);
+      model._update = (matrix) => matrix.translateSelf(-50.7, 0.8, 91).rotateSelf(0, 270 + rotatingPlatform2Rotation);
       meshAdd(
         csg_polygons_subtract(
           polygons_transform(cylinder(28, 1), translation(0, 2).scale(7.5, 1, 7.5), material(0.35, 0, 0, 0.3)),
@@ -1005,9 +1010,9 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
     [material(0.1, 0.55, 0.45, 0.2), material(0.2, 0.5, 0.5, 0.3), material(0.3, 0.45, 0.55, 0.4)].map((m, i) =>
       newModel((model) => {
-        model._update = () => {
+        model._update = (matrix) => {
           const v = lerpneg(levers[13]!.$lerpValue2, levers[14]!.$lerpValue2);
-          return translation(
+          matrix.translateSelf(
             0,
             (1 - levers[13]!.$lerpValue2) * (1 - levers[14]!.$lerpValue2) * (i ? 0 : 3) +
               v * Math.sin(gameTime * 1.5 + i * 1.5) * 4,
@@ -1082,10 +1087,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     );
 
     newModel((model) => {
-      model._update = () => {
-        const k = Math.sin(gameTime);
-        return translation(k * -2).rotate(k * 25);
-      };
+      model._update = (matrix) => matrix.translateSelf(Math.sin(gameTime) * -2).rotate(Math.sin(gameTime) * 25);
       meshAdd(
         cylinder(3),
         translation(0, -3, 118.8).scale(0.8, 0.8, 18).rotate(90, 0, 60),
@@ -1105,12 +1107,12 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
     // floating elevator pad
     newModel((model) => {
-      model._update = () => {
+      model._update = (matrix) => {
         const v = lerpneg(
           lerpneg((levers[14]!.$lerpValue + levers[14]!.$lerpValue2) / 2, levers[13]!.$lerpValue2),
           (levers[15]!.$lerpValue + levers[15]!.$lerpValue2) / 2,
         );
-        return translation(0, v * 16, clamp(v * 2 - 1) * 8.5 + 95);
+        matrix.translateSelf(0, v * 16, clamp(v * 2 - 1) * 8.5 + 95);
       };
       meshAdd(cylinder(5), scaling(5, 1.1, 5), material(0.5, 0.3, 0.3, 0.4));
       meshAdd(cylinder(5), scaling(5.5, 0.9, 5.5), material(0.25, 0.25, 0.25, 0.4));

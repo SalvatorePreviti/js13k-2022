@@ -1,4 +1,4 @@
-import { integers_map, max, min, scaling, rotation } from "./math";
+import { integers_map, max, min, scaling, rotation, matrixSetIdentity, tempMatrix } from "./math";
 import { polygon_transform } from "./geometry/geometry";
 import { mat_perspective } from "./page";
 
@@ -37,7 +37,9 @@ export const csm_buildMatrix = /* @__PURE__ */ (
     return v;
   });
 
-  const lightViewTranslated = rotation(LIGHT_ROT_X, LIGHT_ROT_Y).translateSelf(tx / 8, ty / 8, tz / 8);
+  const lightViewTranslated = matrixSetIdentity(tempMatrix)
+    .rotateSelf(LIGHT_ROT_X, LIGHT_ROT_Y)
+    .translateSelf(tx / 8, ty / 8, tz / 8);
 
   let left = Infinity;
   let right = -Infinity;

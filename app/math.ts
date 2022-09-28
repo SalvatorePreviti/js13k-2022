@@ -113,9 +113,6 @@ export const plane_fromPolygon = /* @__PURE__ */ (polygon: readonly Vec3In[]): P
   return { x, y, z, w: x * a.x + y * a.y + z * a.z };
 };
 
-/** The identity matrix */
-export const identity: DOMMatrixReadOnly = /* @__PURE__ */ new DOMMatrix();
-
 export const float32Array16Temp = new Float32Array(16);
 
 export const matrixToArray = (
@@ -143,11 +140,33 @@ export const matrixToArray = (
   return output;
 };
 
-export const translation = NO_INLINE((x: number, y?: number, z?: number) => identity.translate(x, y, z));
+export const matrixSetIdentity = ($matrix: DOMMatrix) => {
+  $matrix.m11 = 1;
+  $matrix.m12 = 0;
+  $matrix.m13 = 0;
+  $matrix.m14 = 0;
+  $matrix.m21 = 0;
+  $matrix.m22 = 1;
+  $matrix.m23 = 0;
+  $matrix.m24 = 0;
+  $matrix.m31 = 0;
+  $matrix.m32 = 0;
+  $matrix.m33 = 1;
+  $matrix.m34 = 0;
+  $matrix.m41 = 0;
+  $matrix.m42 = 0;
+  $matrix.m43 = 0;
+  $matrix.m44 = 1;
+  return $matrix;
+};
 
-export const rotation = NO_INLINE((x: number, y?: number, z?: number) => identity.rotate(x, y, z));
+export const tempMatrix = new DOMMatrix();
 
-export const scaling = NO_INLINE((x: number, y?: number, z?: number) => identity.scale(x, y, z));
+export const translation = NO_INLINE((x: number, y?: number, z?: number) => new DOMMatrix().translateSelf(x, y, z));
+
+export const rotation = NO_INLINE((x: number, y?: number, z?: number) => new DOMMatrix().rotateSelf(x, y, z));
+
+export const scaling = NO_INLINE((x: number, y?: number, z?: number) => new DOMMatrix().scaleSelf(x, y, z));
 
 export const zNear = constDef_zNear;
 

@@ -2,11 +2,11 @@ import type { Vec3 } from "../math";
 import type { Polygon } from "../geometry/geometry";
 
 export interface Model {
-  $matrix: DOMMatrixReadOnly;
+  readonly $matrix: DOMMatrix;
   $modelId: number;
   $kind: MODEL_KIND;
   $polygons: Polygon[] | null;
-  _update?: () => DOMMatrixReadOnly;
+  _update: (matrix: DOMMatrix) => void;
   $vertexBegin?: number;
   $vertexEnd?: number;
 }
@@ -16,15 +16,15 @@ export interface Lever {
   $lerpValue: number;
   $lerpValue2: number;
   $parent: Model;
+  readonly $matrix: DOMMatrix;
+  readonly $locMatrix: DOMMatrix;
   _update: () => void;
-  $matrix?: DOMMatrixReadOnly;
-  $locMatrix?: DOMMatrixReadOnly;
 }
 
 export interface Soul {
   $value: 0 | 1;
-  _update: () => void;
-  $matrix?: DOMMatrixReadOnly;
+  readonly $matrix: DOMMatrix;
+  readonly _update: () => void;
 }
 
 export type Circle = [number, number, number];
