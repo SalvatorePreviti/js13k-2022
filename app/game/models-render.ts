@@ -15,12 +15,34 @@ import {
 import { gl } from "../gl";
 
 const worldMatricesBuffer = new Float32Array(39 * 16);
+const objectsMatricesBuffer = new Float32Array(39 * 16);
+
+export const updateWorldMatrices = () => {
+  // Setup world matrices
+
+  for (let i = 0; i < allModels.length; ++i) {
+    if (allModels[i]!.$kind) {
+      matrixToArray(allModels[i]!.$matrix, worldMatricesBuffer, i - 1);
+    }
+  }
+
+  // Setup souls and levers matrices
+
+  for (let i = 0; i < SOULS_COUNT; ++i) {
+    matrixToArray(souls[i]!.$matrix, objectsMatricesBuffer, i);
+  }
+
+  for (let i = 0; i < levers.length; ++i) {
+    matrixToArray(levers[i]!.$matrix, objectsMatricesBuffer, i + SOULS_COUNT);
+    // Encode lerp value in matrix m44 so fragmemt shader can change the lever handle color
+    objectsMatricesBuffer[(i + SOULS_COUNT) * 16 + 15] = 1 - levers[i]!.$lerpValue;
+  }
+};
 
 export const renderModels = (
   worldMatrixLoc: WebGLUniformLocation,
   renderPlayer: 0 | 1 | boolean,
   soulModelId: typeof MODEL_ID_SOUL | typeof MODEL_ID_SOUL_COLLISION,
-  isShadowRender: 0 | 1,
 ) => {
   if (mainMenuVisible) {
     const matrix = rotation(0, Math.sin(absoluteTime) * 40 - 70);
@@ -39,16 +61,9 @@ export const renderModels = (
     return;
   }
 
-  // Setup world matrices
-
-  for (let i = 0; i < allModels.length; ++i) {
-    if (allModels[i]!.$kind) {
-      matrixToArray(allModels[i]!.$matrix, worldMatricesBuffer, i - 1);
-    }
-  }
-  gl.uniformMatrix4fv(worldMatrixLoc, false, worldMatricesBuffer);
-
   // Render world
+
+  gl.uniformMatrix4fv(worldMatrixLoc, false, worldMatricesBuffer);
 
   gl.drawElements(
     gl.TRIANGLES,
@@ -57,21 +72,7 @@ export const renderModels = (
     3 * 2,
   );
 
-  // Setup souls and levers matrices
-
-  for (let i = 0; i < SOULS_COUNT; ++i) {
-    matrixToArray(souls[i]!.$matrix!, worldMatricesBuffer, i);
-  }
-
-  for (let i = 0; i < levers.length; ++i) {
-    matrixToArray(levers[i]!.$matrix!, worldMatricesBuffer, i + SOULS_COUNT);
-    // Encode lerp value in matrix m44 so fragmemt shader can change the lever handle color
-    if (!isShadowRender) {
-      worldMatricesBuffer[(i + SOULS_COUNT) * 16 + 15] = 1 - levers[i]!.$lerpValue;
-    }
-  }
-
-  gl.uniformMatrix4fv(worldMatrixLoc, false, worldMatricesBuffer);
+  gl.uniformMatrix4fv(worldMatrixLoc, false, objectsMatricesBuffer);
 
   // Render souls
 

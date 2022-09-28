@@ -25,9 +25,40 @@ let camera_position_y = 0;
 let camera_position_z = 0;
 let _messageEndTime = 1;
 let gameTimeDelta = 0.066;
+const LOCAL_STORAGE_SAVED_GAME_KEY = "DanteSP22";
 const allModels = [];
 const levers = [];
 const souls = [];
+const song_columns = [
+  [
+    "(.15:15:=5:=A:=AF=AFIFIMRMRUY(Y(((((((((((((((((((((((((((((M(M(((((((((((((((((((((((((((((R(R(((((((((((((((((((((((((((((U(U",
+    "(059<59<A9<AE<AEHAEHMEHMQMQTY(Y",
+    "(5:>A:>AF>AFJAFJMFJMRJMRVMRVY(Y",
+    "(:?BFFKNRRWZ^(^((:=@FFILRRUX^(^",
+    "Q(M(M(O(Q(R(T(Q(T(R(W(U(T(R(Q(N(W((Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(X]",
+    "QN(M(N(M(N(M(N(M((((((((((((((((W(Y(Y(Y(Y(Y(Y(Y(Y(((((((((((((((]",
+  ],
+  [
+    ".(5(.(5(.(5(.(5(.(5(.(5(.(5(.(5",
+    "-(5(-(5(-(5(-(5(-(5(-(5(-(5(-(5",
+    ",(5(,(5(,(5(,(5(,(5(,(5(,(5(,(5",
+    "*(6(*(6(*(6(*(6(*(6(*(6(*(6(*(6",
+    "5(E(E(F(H(I(K(H(K(I(N(M(K(I(H(F(A(((((((((((((((((((((((((((((((5(((5(((5(((5(((5(((5(((5(((5",
+    "5(6(5(6(5(6(5(6(5((()(((((((((((A(B(A(B(A(B(A(B(A(((5",
+  ],
+  [
+    "9(((9(((9(((9(((9(((9(((9(((9",
+    "9(((Q(((Q(((Q",
+  ],
+  [
+    "9(9(9(9(9(9(9(999(9(9(9(999(9(9",
+    "9(9(9(9(9(999(9(((((Q",
+  ],
+  [
+    "((((Q(((((((Q(((((((Q(((((((Q",
+    "Q((Q((Q((Q((Q((Q((((Q",
+  ],
+];
 const song_instruments = [
   [
     69,
@@ -140,6 +171,7 @@ const song_instruments = [
     64,
   ],
 ];
+const _frustumPoint = {};
 const player_position_final = {
   x: 0,
   y: 0,
@@ -149,9 +181,448 @@ const camera_rotation = {
   x: 0,
   y: 180,
 };
+const player_position_global = {
+  x: 0,
+  y: 0,
+  z: 0,
+};
+const showMessage = (message, duration) => {
+  1 / 0 > _messageEndTime && (_messageEndTime = gameTime + duration, h4.innerHTML = message);
+};
+const worldStateUpdate = () => {
+  shouldRotatePlatforms = lerpneg(levers[12].$lerpValue, levers[13].$lerpValue),
+    rotatingHexCorridorRotation = lerp(
+      lerpDamp(rotatingHexCorridorRotation, 0, 1),
+      angle_wrap_degrees(rotatingHexCorridorRotation + 60 * gameTimeDelta),
+      levers[5].$lerpValue - levers[6].$lerpValue2,
+    ),
+    rotatingPlatform1Rotation = lerp(
+      lerpDamp(rotatingPlatform1Rotation, 0, 5),
+      angle_wrap_degrees(rotatingPlatform1Rotation + 56 * gameTimeDelta),
+      shouldRotatePlatforms,
+    ),
+    rotatingPlatform2Rotation = lerp(
+      lerpDamp(rotatingPlatform2Rotation, 0, 4),
+      angle_wrap_degrees(rotatingPlatform2Rotation + 48 * gameTimeDelta),
+      shouldRotatePlatforms,
+    ),
+    secondBoatLerp = lerpDamp(secondBoatLerp, levers[9].$lerpValue2, 0.2 + 0.3 * abs(2 * levers[9].$lerpValue2 - 1)),
+    firstBoatLerp = lerpDamp(firstBoatLerp, game_completed ? lerpDamp(firstBoatLerp, -9, 1.5) : clamp(gameTime / 3), 1),
+    _messageEndTime && gameTime > _messageEndTime && (_messageEndTime = 0, h4.innerHTML = ""),
+    levers[0].$value && 0.8 < levers[0].$lerpValue && (souls_collected_count < 13
+      ? (showMessage("Not leaving now, there are souls to catch!", 3), levers[0].$value = 0)
+      : game_completed
+        || (showMessage("Well done. They will be punished.<br>Thanks for playing", 1 / 0), game_completed = 1));
+  for (const model of allModels) model._update(matrixSetIdentity(model.$matrix));
+  for (const lever of levers) lever._update();
+  for (const soul of souls) soul._update();
+};
+const updateCollectedSoulsCounter = () => {
+  h3.innerHTML = "Souls: " + [
+    0,
+    "I",
+    "II",
+    "III",
+    "IV",
+    "V",
+    "VI",
+    "VII",
+    "VIII",
+    "IX",
+    "X",
+    "XI",
+    "XII",
+    "XIII",
+  ][souls_collected_count = souls.reduce((acc, { $value }) => acc + $value, 0)] + " / XIII";
+};
+const saveGame = () => {
+  localStorage[LOCAL_STORAGE_SAVED_GAME_KEY] = JSON.stringify([
+    levers.map(({ $value }) => $value),
+    souls.map(({ $value }) => $value),
+    player_last_pulled_lever,
+    gameTime,
+    secondBoatLerp,
+  ]);
+};
+const mat_perspective = (near, far, mx = pheight / pwidth * fieldOfViewAmount, my = fieldOfViewAmount) => [
+  mx,
+  0,
+  0,
+  0,
+  0,
+  my,
+  0,
+  0,
+  0,
+  0,
+  (far + near) / (near - far),
+  -1,
+  0,
+  0,
+  2 * far * near / (near - far),
+  0,
+];
+const initPage = () => {
+  let touchStartTime;
+  let touchPosStartX;
+  let touchPosStartY;
+  let touchPosIdentifier;
+  let touchPosMoved;
+  let touchRotX;
+  let touchRotY;
+  let touchRotIdentifier;
+  let touchRotMoved;
+  let touchStartCameraRotX;
+  let touchStartCameraRotY;
+  let gamepadInteractPressed;
+  let touch_movementX;
+  let touch_movementY;
+  let music_on = !0;
+  const keyboard_downKeys = [];
+  const updateMusicOnState = () => {
+    mainMenuVisible || !music_on ? songAudioSource.disconnect() : songAudioSource.connect(audioContext.destination),
+      b4.innerHTML = "Music: " + music_on;
+  };
+  const handleResize = () => {
+    touchPosIdentifier = touchRotIdentifier = void 0,
+      keyboard_downKeys.length =
+        interact_pressed =
+        gamepadInteractPressed =
+        movAmount =
+        touch_movementX =
+        touch_movementY =
+          0,
+      hC.width = pwidth = innerWidth,
+      hC.height = pheight = innerHeight,
+      document.hidden && mainMenu(!0);
+  };
+  const mainMenu = (value, firstPerson = 0) => {
+    if (mainMenuVisible !== value) {
+      setMainMenuVisible(value),
+        player_first_person = firstPerson,
+        handleResize(),
+        updateCollectedSoulsCounter(),
+        document.body.className = value ? "l m" : "l";
+      try {
+        value
+          ? (document.exitFullscreen().catch(() => 0), document.exitPointerLock())
+          : (document.body.requestFullscreen().catch(() => 0), songAudioSource.start());
+      } catch {}
+      updateMusicOnState();
+    }
+  };
+  oncontextmenu = () => !1,
+    b1.onclick = () => mainMenu(!1),
+    b2.onclick = () => mainMenu(!1, 1),
+    b5.onclick = () => mainMenu(!0),
+    b4.onclick = () => {
+      music_on = !music_on, updateMusicOnState();
+    },
+    b3.onclick = () => {
+      confirm("Restart game?") && (localStorage[LOCAL_STORAGE_SAVED_GAME_KEY] = "", location.reload());
+    },
+    onclick = (e) => {
+      if (!mainMenuVisible && (e.target === hC && (interact_pressed = 1), player_first_person)) {try {
+          hC.requestPointerLock();
+        } catch {}}
+    },
+    onkeyup = onkeydown = (e) => {
+      let pressed;
+      e.repeat || (pressed = !!e.type[5] && !0,
+        e = ({
+          "KeyA": 1,
+          "ArrowLeft": 1,
+          "KeyW": 3,
+          "ArrowUp": 3,
+          "KeyD": 2,
+          "ArrowRight": 2,
+          "KeyS": 4,
+          "ArrowDown": 4,
+          "KeyE": 0,
+          "Space": 0,
+          "Enter": 0,
+          "Escape": 5,
+        })[e.code],
+        (keyboard_downKeys[e] = pressed) && (e === 0 && (interact_pressed = 1), e === 5 && mainMenu(!0)));
+    },
+    onmousemove = ({ movementX, movementY }) => {
+      player_first_person && (movementX || movementY)
+        && (camera_rotation.y += 0.1 * movementX, camera_rotation.x += 0.1 * movementY);
+    },
+    hC.ontouchstart = (e) => {
+      if (!mainMenuVisible) {
+        for (let { pageX, pageY, identifier } of e.changedTouches) {
+          player_first_person && pageX > hC.clientWidth / 2
+            ? touchRotIdentifier === void 0
+              && (touchRotMoved = 0,
+                touchRotX = pageX,
+                touchRotY = pageY,
+                touchRotIdentifier = identifier,
+                touchStartCameraRotX = camera_rotation.y,
+                touchStartCameraRotY = camera_rotation.x)
+            : touchPosIdentifier === void 0
+              && (touchPosMoved = 0, touchPosStartX = pageX, touchPosStartY = pageY, touchPosIdentifier = identifier);
+        }
+        touchStartTime = absoluteTime;
+      }
+    },
+    hC.ontouchmove = (e) => {
+      if (!mainMenuVisible) {
+        for (let { pageX, pageY, identifier } of e.changedTouches) {
+          var deltaY;
+          var absDeltaX;
+          var absDeltaY;
+          var angle;
+          var speed;
+          touchRotIdentifier === identifier
+          && (camera_rotation.y = touchStartCameraRotX + (pageX - touchRotX) / 2.3,
+            camera_rotation.x = touchStartCameraRotY + (pageY - touchRotY) / 2.3,
+            touchRotMoved = 1),
+            touchPosIdentifier === identifier
+            && (identifier = (touchPosStartX - pageX) / 20,
+              deltaY = (touchPosStartY - pageY) / 20,
+              absDeltaX = abs(identifier),
+              absDeltaY = abs(deltaY),
+              angle = Math.atan2(deltaY, identifier),
+              speed = clamp(Math.hypot(deltaY, identifier) - 0.5),
+              touch_movementX = 0.2 < absDeltaX ? Math.cos(angle) * speed : 0,
+              touch_movementY = 0.2 < absDeltaY ? Math.sin(angle) * speed : 0,
+              (touch_movementX || touch_movementY) && (touchPosMoved = 1),
+              2 < absDeltaX && (touchPosStartX = pageX + 20 * (identifier < 0 ? -1 : 1)),
+              2 < absDeltaY && (touchPosStartY = pageY + 20 * (deltaY < 0 ? -1 : 1)));
+        }
+      }
+    },
+    hC.ontouchend = (e) => {
+      let click;
+      document.activeElement === document.body && e.preventDefault();
+      for (const touch of e.changedTouches) {touch.identifier === touchRotIdentifier
+          ? (touchRotIdentifier = void 0, touchRotMoved || (click = 1), touchRotMoved = 0)
+          : touch.identifier === touchPosIdentifier
+          ? (touchPosIdentifier = void 0,
+            touch_movementY = touch_movementX = 0,
+            touchPosMoved || (click = 1),
+            touchPosMoved = 0)
+          : click = 1;}
+      e.target === hC && click && touchStartTime && 0.02 < (e = absoluteTime - touchStartTime) && e < 0.7
+        && (keyboard_downKeys[0] = !0);
+    },
+    updateInput = () => {
+      let input_forward = touch_movementY + (keyboard_downKeys[3] ? 1 : 0) - (keyboard_downKeys[4] ? 1 : 0);
+      let input_strafe = touch_movementX + (keyboard_downKeys[1] ? 1 : 0) - (keyboard_downKeys[2] ? 1 : 0);
+      let gamepad = navigator.getGamepads()[0];
+      if (gamepad) {
+        const getGamepadButtonState = (index) => buttons[index]?.pressed || 0 < buttons[index]?.value ? 1 : 0;
+        const { buttons, axes } = gamepad;
+        gamepad = getGamepadButtonState(3) || getGamepadButtonState(2) || getGamepadButtonState(1)
+          || getGamepadButtonState(0),
+          input_forward += getGamepadButtonState(12) - getGamepadButtonState(13) - threshold(axes[1], 0.2),
+          input_strafe += getGamepadButtonState(14) - getGamepadButtonState(15) - threshold(axes[0], 0.2),
+          getGamepadButtonState(9) && mainMenu(!0),
+          player_first_person
+          && (camera_rotation.x += gameTimeDelta * threshold(axes[3], 0.3) * 80,
+            camera_rotation.y += gameTimeDelta * threshold(axes[2], 0.3) * 80),
+          gamepad && !gamepadInteractPressed && (interact_pressed = 1),
+          gamepadInteractPressed = gamepad;
+      }
+      movAngle = Math.atan2(input_forward, input_strafe),
+        movAmount = threshold(clamp(Math.hypot(input_forward, input_strafe)), 0.05);
+    },
+    document.onvisibilitychange = onblur = onresize = handleResize,
+    mainMenu(!0);
+};
+const newModel = (fn, $kind = 1) => {
+  const previousModel = currentEditModel;
+  var $kind = {
+    $matrix: new DOMMatrix(),
+    $modelId: allModels.length,
+    $kind,
+    $polygons: [],
+    _update() {},
+  };
+  return allModels.push($kind), fn(currentEditModel = $kind), currentEditModel = previousModel, $kind;
+};
+const meshAdd = (polygons, transform = new DOMMatrix(), color) =>
+  currentEditModel.$polygons.push(...polygons_transform(polygons, transform, color));
+const newLever = (transform) => {
+  const $locMatrix = new DOMMatrix();
+  const $matrix = new DOMMatrix();
+  const $parent = currentEditModel;
+  const index = levers.length;
+  const lever = {
+    $value: 0,
+    $lerpValue: 0,
+    $lerpValue2: 0,
+    $parent,
+    $locMatrix,
+    $matrix,
+    _update() {
+      let leverIndex;
+      matrixSetIdentity($matrix).multiplySelf(
+        matrixSetIdentity($locMatrix).multiplySelf($parent.$matrix).multiplySelf(transform),
+      ).rotateSelf(60 * lever.$lerpValue - 30, 0).translateSelf(0, 1),
+        lever.$lerpValue = lerpDamp(lever.$lerpValue, lever.$value, 4),
+        lever.$lerpValue2 = lerpDamp(lever.$lerpValue2, lever.$value, 1),
+        interact_pressed && vec3_distance($locMatrix.transformPoint(), player_position_final) < 3
+        && (lever.$lerpValue < 0.3 || 0.7 < lever.$lerpValue)
+        && (lever.$value = lever.$value ? 0 : 1,
+          (leverIndex = index) && showMessage("* click *", 1),
+          player_last_pulled_lever = leverIndex,
+          saveGame());
+    },
+  };
+  levers.push(lever),
+    meshAdd(cylinder(5), transform.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5)),
+    meshAdd(cylinder(5), transform.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5)),
+    meshAdd(cylinder(), transform.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
+};
+const newSoul = (transform, ...walkingPath) => {
+  let dirX = -1;
+  let dirZ = 0;
+  let randAngle = 0;
+  let lookAngle = 0;
+  let prevX = 0;
+  let prevZ = 0;
+  let wasInside = 1;
+  let velocity = 3;
+  const $matrix = new DOMMatrix();
+  const parentModel = currentEditModel;
+  const index = souls.length;
+  const circles = walkingPath.map(([x, z, w]) => ({
+    x,
+    z,
+    w,
+  }));
+  let circle = circles[0];
+  let { x: targetX, z: targetZ } = circle;
+  let soulX = targetX;
+  let soulZ = targetZ;
+  const soul = {
+    $value: 0,
+    $matrix,
+    _update() {
+      if (!soul.$value) {
+        let x1;
+        let z1;
+        let w1;
+        let ax;
+        let az;
+        let magnitude;
+        let isInside;
+        let contextualVelocity = 1;
+        let mindist = 1 / 0;
+        for (const c of circles) {
+          var { x, z, w } = c;
+          var z = (x = Math.hypot(targetX - x, targetZ - z)) - w;
+          isInside ||= x < w,
+            0 < z && mindist > z && (mindist = z, circle = c),
+            contextualVelocity = min(contextualVelocity, x / w);
+        }
+        isInside
+        || ({ x: x1, z: z1, w: w1 } = circle,
+          ax = targetX - x1,
+          az = targetZ - z1,
+          magnitude = Math.hypot(ax, az),
+          angle = Math.atan2(-az, ax),
+          wasInside
+          && (randAngle = (Math.random() - 0.5) * Math.PI / 2, velocity = clamp(velocity / (1 + Math.random()))),
+          angle += randAngle,
+          dirX = -Math.cos(angle),
+          dirZ = Math.sin(angle),
+          0.1 < magnitude
+          && (magnitude = min(magnitude, w1) / (magnitude || 1),
+            targetX = ax * magnitude + x1,
+            targetZ = az * magnitude + z1)),
+          wasInside = isInside,
+          velocity = lerpDamp(velocity, 6 * (1 - contextualVelocity) + 3, contextualVelocity + 3),
+          soulX = lerpDamp(soulX, targetX = lerpDamp(targetX, targetX + dirX, velocity), velocity),
+          soulZ = lerpDamp(soulZ, targetZ = lerpDamp(targetZ, targetZ + dirZ, velocity), velocity),
+          lookAngle = angle_lerp_degrees(
+            lookAngle,
+            Math.atan2(soulX - prevX, soulZ - prevZ) / DEG_TO_RAD - 180,
+            damp(3),
+          ),
+          prevX = soulX,
+          prevZ = soulZ;
+        var angle = matrixSetIdentity($matrix).multiplySelf(parentModel.$matrix).multiplySelf(transform).translateSelf(
+          soulX,
+          0,
+          soulZ,
+        ).rotateSelf(0, lookAngle, 7 * Math.sin(1.7 * gameTime)).transformPoint();
+        vec3_distance(angle, player_position_final) < 1.6 && (soul.$value = 1,
+          showMessage(
+            [
+              ,
+              "Mark Zuckemberg<br>made the world worse",
+              "Giorgia Meloni<br>fascist",
+              "Andrzej Mazur<br>for the js13k competition",
+              "Donald Trump<br>lies",
+              "Kim Jong-un<br>Dictator, liked pineapple on pizza",
+              "Maxime Euziere<br>forced me to finish this game",
+              "She traded NFTs apes",
+              ,
+              "Vladimir Putin<br>evil war",
+              "He was not a good person",
+              ,
+              "Salvatore Previti<br>made this evil game<br><br>Done. Go back to the boat",
+            ][souls_collected_count] || "Catched a \"crypto bro\".<br>\"Web3\" is all scam, lies and grift",
+            souls_collected_count && souls_collected_count < 12 ? 5 : 7,
+          ),
+          updateCollectedSoulsCounter(),
+          saveGame());
+      }
+      soul.$value
+        && matrixSetIdentity($matrix).multiplySelf(allModels[2].$matrix).translateSelf(
+          index % 4 * 1.2 - 1.7 + Math.sin(gameTime + index) / 7,
+          -2,
+          1.7 * (index / 4 | 0) - 5.5 + abs(index % 4 - 2) + Math.cos(gameTime / 1.5 + index) / 6,
+        );
+    },
+  };
+  souls.push(soul);
+};
+const csm_buildMatrix = (camera_view, nearPlane, farPlane, zMultiplier) => {
+  let tx = 0;
+  let ty = 0;
+  let tz = 0;
+  let left = 1 / 0;
+  let right = -1 / 0;
+  let bottom = 1 / 0;
+  let top = -1 / 0;
+  let near = 1 / 0;
+  let far = -1 / 0;
+  const roundingRadius = 1.1 * (farPlane - nearPlane);
+  matrixSetIdentity(tempMatrix).scale3dSelf(roundingRadius).multiplySelf(
+    new DOMMatrix(mat_perspective(nearPlane, farPlane)).multiplySelf(camera_view).invertSelf(),
+  );
+  for (let i = 0; i < 8; ++i) {
+    _frustumPoint.x = 4 & i ? 1 : -1, _frustumPoint.y = 2 & i ? 1 : -1, _frustumPoint.z = 1 & i ? 1 : -1;
+    let { x, y, z, w } = tempMatrix.transformPoint(_frustumPoint);
+    w *= roundingRadius,
+      tx -= _frustumCorners[i].x = (0 | x) / w,
+      ty -= _frustumCorners[i].y = (0 | y) / w,
+      tz -= _frustumCorners[i].z = (0 | z) / w;
+  }
+  matrixSetIdentity(tempMatrix).rotateSelf(298, 139).translateSelf(tx / 8, ty / 8, tz / 8);
+  for (let i1 = 0; i1 < 8; ++i1) {
+    const { x: x1, y: y1, z: z1 } = tempMatrix.transformPoint(_frustumCorners[i1]);
+    left = min(left, x1),
+      right = max(right, x1),
+      bottom = min(bottom, y1),
+      top = max(top, y1),
+      near = min(near, z1),
+      far = max(far, z1);
+  }
+  return near *= near < 0 ? zMultiplier : 1 / zMultiplier,
+    far *= 0 < far ? zMultiplier : 1 / zMultiplier,
+    scaling(2 / (right - left), 2 / (top - bottom), 2 / (near - far)).translateSelf(
+      (right + left) / -2,
+      (top + bottom) / -2,
+      (near + far) / 2,
+    ).multiplySelf(tempMatrix);
+};
 const integers_map = (n, fn) => Array.from(Array(n), (_, i) => fn(i));
 const DEG_TO_RAD = Math.PI / 180;
-const fieldOfViewAmount = 1.732051;
 const GQuad = [
   {
     x: -1,
@@ -170,41 +641,6 @@ const GQuad = [
     z: -1,
   },
 ];
-const song_columns = [
-  [
-    "(.15:15:=5:=A:=AF=AFIFIMRMRUY(Y(((((((((((((((((((((((((((((M(M(((((((((((((((((((((((((((((R(R(((((((((((((((((((((((((((((U(U",
-    "(059<59<A9<AE<AEHAEHMEHMQMQTY(Y",
-    "(5:>A:>AF>AFJAFJMFJMRJMRVMRVY(Y",
-    "(:?BFFKNRRWZ^(^((:=@FFILRRUX^(^",
-    "Q(M(M(O(Q(R(T(Q(T(R(W(U(T(R(Q(N(W((Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(X]",
-    "QN(M(N(M(N(M(N(M((((((((((((((((W(Y(Y(Y(Y(Y(Y(Y(Y(((((((((((((((]",
-  ],
-  [
-    ".(5(.(5(.(5(.(5(.(5(.(5(.(5(.(5",
-    "-(5(-(5(-(5(-(5(-(5(-(5(-(5(-(5",
-    ",(5(,(5(,(5(,(5(,(5(,(5(,(5(,(5",
-    "*(6(*(6(*(6(*(6(*(6(*(6(*(6(*(6",
-    "5(E(E(F(H(I(K(H(K(I(N(M(K(I(H(F(A(((((((((((((((((((((((((((((((5(((5(((5(((5(((5(((5(((5(((5",
-    "5(6(5(6(5(6(5(6(5((()(((((((((((A(B(A(B(A(B(A(B(A(((5",
-  ],
-  [
-    "9(((9(((9(((9(((9(((9(((9(((9",
-    "9(((Q(((Q(((Q",
-  ],
-  [
-    "9(9(9(9(9(9(9(999(9(9(9(999(9(9",
-    "9(9(9(9(9(999(9(((((Q",
-  ],
-  [
-    "((((Q(((((((Q(((((((Q(((((((Q",
-    "Q((Q((Q((Q((Q((Q((((Q",
-  ],
-];
-const player_position_global = {
-  x: 0,
-  y: 0,
-  z: 0,
-};
 const clamp = (value, minValue = 0, maxValue = 1) => value < minValue ? minValue : maxValue < value ? maxValue : value;
 const threshold = (value, amount) => abs(value) > amount ? value : 0;
 const lerp = (a, b, t) => (0 < t ? t < 1 ? a + (b - a) * t : b : a) || 0;
@@ -493,441 +929,11 @@ const csg_polygons_subtract = (...input) => {
       });
   }
 };
+const setMainMenuVisible = (visible) => {
+  mainMenuVisible = visible;
+};
 const damp = (speed) => 1 - Math.exp(-speed * gameTimeDelta);
 const lerpDamp = (from, to, speed) => lerp(from, to, damp(speed));
-const showMessage = (message, duration) => {
-  1 / 0 > _messageEndTime && (_messageEndTime = gameTime + duration, h4.innerHTML = message);
-};
-const worldStateUpdate = () => {
-  shouldRotatePlatforms = lerpneg(levers[12].$lerpValue, levers[13].$lerpValue),
-    rotatingHexCorridorRotation = lerp(
-      lerpDamp(rotatingHexCorridorRotation, 0, 1),
-      angle_wrap_degrees(rotatingHexCorridorRotation + 60 * gameTimeDelta),
-      levers[5].$lerpValue - levers[6].$lerpValue2,
-    ),
-    rotatingPlatform1Rotation = lerp(
-      lerpDamp(rotatingPlatform1Rotation, 0, 5),
-      angle_wrap_degrees(rotatingPlatform1Rotation + 56 * gameTimeDelta),
-      shouldRotatePlatforms,
-    ),
-    rotatingPlatform2Rotation = lerp(
-      lerpDamp(rotatingPlatform2Rotation, 0, 4),
-      angle_wrap_degrees(rotatingPlatform2Rotation + 48 * gameTimeDelta),
-      shouldRotatePlatforms,
-    ),
-    secondBoatLerp = lerpDamp(secondBoatLerp, levers[9].$lerpValue2, 0.2 + 0.3 * abs(2 * levers[9].$lerpValue2 - 1)),
-    firstBoatLerp = lerpDamp(firstBoatLerp, game_completed ? lerpDamp(firstBoatLerp, -9, 1.5) : clamp(gameTime / 3), 1),
-    _messageEndTime && gameTime > _messageEndTime && (_messageEndTime = 0, h4.innerHTML = ""),
-    levers[0].$value && 0.8 < levers[0].$lerpValue && (souls_collected_count < 13
-      ? (showMessage("Not leaving now, there are souls to catch!", 3), levers[0].$value = 0)
-      : game_completed
-        || (showMessage("Well done. They will be punished.<br>Thanks for playing", 1 / 0), game_completed = 1));
-  for (const model of allModels) model._update(matrixSetIdentity(model.$matrix));
-  for (const lever of levers) lever._update();
-  for (const soul of souls) soul._update();
-};
-const updateCollectedSoulsCounter = () => {
-  h3.innerHTML = "Souls: " + [
-    0,
-    "I",
-    "II",
-    "III",
-    "IV",
-    "V",
-    "VI",
-    "VII",
-    "VIII",
-    "IX",
-    "X",
-    "XI",
-    "XII",
-    "XIII",
-  ][souls_collected_count = souls.reduce((acc, { $value }) => acc + $value, 0)] + " / XIII";
-};
-const saveGame = () => {
-  localStorage.DanteSP22 = JSON.stringify([
-    levers.map(({ $value }) => $value),
-    souls.map(({ $value }) => $value),
-    player_last_pulled_lever,
-    gameTime,
-    secondBoatLerp,
-  ]);
-};
-const mat_perspective = (near, far, mx = pheight / pwidth * fieldOfViewAmount, my = fieldOfViewAmount) => [
-  mx,
-  0,
-  0,
-  0,
-  0,
-  my,
-  0,
-  0,
-  0,
-  0,
-  (far + near) / (near - far),
-  -1,
-  0,
-  0,
-  2 * far * near / (near - far),
-  0,
-];
-const initPage = () => {
-  let touchStartTime;
-  let touchPosStartX;
-  let touchPosStartY;
-  let touchPosIdentifier;
-  let touchPosMoved;
-  let touchRotX;
-  let touchRotY;
-  let touchRotIdentifier;
-  let touchRotMoved;
-  let touchStartCameraRotX;
-  let touchStartCameraRotY;
-  let gamepadInteractPressed;
-  let touch_movementX;
-  let touch_movementY;
-  let music_on = !0;
-  const keyboard_downKeys = [];
-  const updateMusicOnState = () => {
-    mainMenuVisible || !music_on ? songAudioSource.disconnect() : songAudioSource.connect(audioContext.destination),
-      b4.innerHTML = "Music: " + music_on;
-  };
-  const handleResize = () => {
-    touchPosIdentifier = touchRotIdentifier = void 0,
-      keyboard_downKeys.length =
-        interact_pressed =
-        gamepadInteractPressed =
-        movAmount =
-        touch_movementX =
-        touch_movementY =
-          0,
-      hC.width = pwidth = innerWidth,
-      hC.height = pheight = innerHeight,
-      document.hidden && mainMenu(!0);
-  };
-  const mainMenu = (value, firstPerson = 0) => {
-    if (mainMenuVisible !== value) {
-      mainMenuVisible = value,
-        player_first_person = firstPerson,
-        handleResize(),
-        updateCollectedSoulsCounter(),
-        document.body.className = value ? "l m" : "l";
-      try {
-        value
-          ? (document.exitFullscreen().catch(() => 0), document.exitPointerLock())
-          : (document.body.requestFullscreen().catch(() => 0), songAudioSource.start());
-      } catch {}
-      updateMusicOnState();
-    }
-  };
-  oncontextmenu = () => !1,
-    b1.onclick = () => mainMenu(!1),
-    b2.onclick = () => mainMenu(!1, 1),
-    b5.onclick = () => mainMenu(!0),
-    b4.onclick = () => {
-      music_on = !music_on, updateMusicOnState();
-    },
-    b3.onclick = () => {
-      confirm("Restart game?") && (localStorage.DanteSP22 = "", location.reload());
-    },
-    onclick = (e) => {
-      if (!mainMenuVisible && (e.target === hC && (interact_pressed = 1), player_first_person)) {try {
-          hC.requestPointerLock();
-        } catch {}}
-    },
-    onkeyup = onkeydown = (e) => {
-      let pressed;
-      e.repeat || (pressed = !!e.type[5] && !0,
-        e = ({
-          "KeyA": 1,
-          "ArrowLeft": 1,
-          "KeyW": 3,
-          "ArrowUp": 3,
-          "KeyD": 2,
-          "ArrowRight": 2,
-          "KeyS": 4,
-          "ArrowDown": 4,
-          "KeyE": 0,
-          "Space": 0,
-          "Enter": 0,
-          "Escape": 5,
-        })[e.code],
-        (keyboard_downKeys[e] = pressed) && (e === 0 && (interact_pressed = 1), e === 5 && mainMenu(!0)));
-    },
-    onmousemove = ({ movementX, movementY }) => {
-      player_first_person && (movementX || movementY)
-        && (camera_rotation.y += 0.1 * movementX, camera_rotation.x += 0.1 * movementY);
-    },
-    hC.ontouchstart = (e) => {
-      if (!mainMenuVisible) {
-        for (let { pageX, pageY, identifier } of e.changedTouches) {
-          player_first_person && pageX > hC.clientWidth / 2
-            ? touchRotIdentifier === void 0
-              && (touchRotMoved = 0,
-                touchRotX = pageX,
-                touchRotY = pageY,
-                touchRotIdentifier = identifier,
-                touchStartCameraRotX = camera_rotation.y,
-                touchStartCameraRotY = camera_rotation.x)
-            : touchPosIdentifier === void 0
-              && (touchPosMoved = 0, touchPosStartX = pageX, touchPosStartY = pageY, touchPosIdentifier = identifier);
-        }
-        touchStartTime = absoluteTime;
-      }
-    },
-    hC.ontouchmove = (e) => {
-      if (!mainMenuVisible) {
-        for (let { pageX, pageY, identifier } of e.changedTouches) {
-          var deltaY;
-          var absDeltaX;
-          var absDeltaY;
-          var angle;
-          var speed;
-          touchRotIdentifier === identifier
-          && (camera_rotation.y = touchStartCameraRotX + (pageX - touchRotX) / 2.3,
-            camera_rotation.x = touchStartCameraRotY + (pageY - touchRotY) / 2.3,
-            touchRotMoved = 1),
-            touchPosIdentifier === identifier
-            && (identifier = (touchPosStartX - pageX) / 20,
-              deltaY = (touchPosStartY - pageY) / 20,
-              absDeltaX = abs(identifier),
-              absDeltaY = abs(deltaY),
-              angle = Math.atan2(deltaY, identifier),
-              speed = clamp(Math.hypot(deltaY, identifier) - 0.5),
-              touch_movementX = 0.2 < absDeltaX ? Math.cos(angle) * speed : 0,
-              touch_movementY = 0.2 < absDeltaY ? Math.sin(angle) * speed : 0,
-              (touch_movementX || touch_movementY) && (touchPosMoved = 1),
-              2 < absDeltaX && (touchPosStartX = pageX + 20 * (identifier < 0 ? -1 : 1)),
-              2 < absDeltaY && (touchPosStartY = pageY + 20 * (deltaY < 0 ? -1 : 1)));
-        }
-      }
-    },
-    hC.ontouchend = (e) => {
-      let click;
-      document.activeElement === document.body && e.preventDefault();
-      for (const touch of e.changedTouches) {touch.identifier === touchRotIdentifier
-          ? (touchRotIdentifier = void 0, touchRotMoved || (click = 1), touchRotMoved = 0)
-          : touch.identifier === touchPosIdentifier
-          ? (touchPosIdentifier = void 0,
-            touch_movementY = touch_movementX = 0,
-            touchPosMoved || (click = 1),
-            touchPosMoved = 0)
-          : click = 1;}
-      e.target === hC && click && touchStartTime && 0.02 < (e = absoluteTime - touchStartTime) && e < 0.7
-        && (keyboard_downKeys[0] = !0);
-    },
-    updateInput = () => {
-      let input_forward = touch_movementY + (keyboard_downKeys[3] ? 1 : 0) - (keyboard_downKeys[4] ? 1 : 0);
-      let input_strafe = touch_movementX + (keyboard_downKeys[1] ? 1 : 0) - (keyboard_downKeys[2] ? 1 : 0);
-      let gamepad = navigator.getGamepads()[0];
-      if (gamepad) {
-        const getGamepadButtonState = (index) => buttons[index]?.pressed || 0 < buttons[index]?.value ? 1 : 0;
-        const { buttons, axes } = gamepad;
-        gamepad = getGamepadButtonState(3) || getGamepadButtonState(2) || getGamepadButtonState(1)
-          || getGamepadButtonState(0),
-          input_forward += getGamepadButtonState(12) - getGamepadButtonState(13) - threshold(axes[1], 0.2),
-          input_strafe += getGamepadButtonState(14) - getGamepadButtonState(15) - threshold(axes[0], 0.2),
-          getGamepadButtonState(9) && mainMenu(!0),
-          player_first_person
-          && (camera_rotation.x += gameTimeDelta * threshold(axes[3], 0.3) * 80,
-            camera_rotation.y += gameTimeDelta * threshold(axes[2], 0.3) * 80),
-          gamepad && !gamepadInteractPressed && (interact_pressed = 1),
-          gamepadInteractPressed = gamepad;
-      }
-      movAngle = Math.atan2(input_forward, input_strafe),
-        movAmount = threshold(clamp(Math.hypot(input_forward, input_strafe)), 0.05);
-    },
-    document.onvisibilitychange = onblur = onresize = handleResize,
-    mainMenu(!0);
-};
-const newModel = (fn, $kind = 1) => {
-  const previousModel = currentEditModel;
-  var $kind = {
-    $matrix: new DOMMatrix(),
-    $modelId: allModels.length,
-    $kind,
-    $polygons: [],
-    _update() {},
-  };
-  return allModels.push($kind), fn(currentEditModel = $kind), currentEditModel = previousModel, $kind;
-};
-const meshAdd = (polygons, transform = new DOMMatrix(), color) =>
-  currentEditModel.$polygons.push(...polygons_transform(polygons, transform, color));
-const newLever = (transform) => {
-  const $locMatrix = new DOMMatrix();
-  const $matrix = new DOMMatrix();
-  const $parent = currentEditModel;
-  const index = levers.length;
-  const lever = {
-    $value: 0,
-    $lerpValue: 0,
-    $lerpValue2: 0,
-    $parent,
-    $locMatrix,
-    $matrix,
-    _update() {
-      let leverIndex;
-      matrixSetIdentity($matrix).multiplySelf(
-        matrixSetIdentity($locMatrix).multiplySelf($parent.$matrix).multiplySelf(transform),
-      ).rotateSelf(60 * lever.$lerpValue - 30, 0).translateSelf(0, 1),
-        lever.$lerpValue = lerpDamp(lever.$lerpValue, lever.$value, 4),
-        lever.$lerpValue2 = lerpDamp(lever.$lerpValue2, lever.$value, 1),
-        interact_pressed && vec3_distance($locMatrix.transformPoint(), player_position_final) < 3
-        && (lever.$lerpValue < 0.3 || 0.7 < lever.$lerpValue)
-        && (lever.$value = lever.$value ? 0 : 1,
-          (leverIndex = index) && showMessage("* click *", 1),
-          player_last_pulled_lever = leverIndex,
-          saveGame());
-    },
-  };
-  levers.push(lever),
-    meshAdd(cylinder(5), transform.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5)),
-    meshAdd(cylinder(5), transform.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5)),
-    meshAdd(cylinder(), transform.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
-};
-const newSoul = (transform, ...walkingPath) => {
-  let dirX = -1;
-  let dirZ = 0;
-  let randAngle = 0;
-  let lookAngle = 0;
-  let prevX = 0;
-  let prevZ = 0;
-  let wasInside = 1;
-  let velocity = 3;
-  const $matrix = new DOMMatrix();
-  const parentModel = currentEditModel;
-  const index = souls.length;
-  const circles = walkingPath.map(([x, z, w]) => ({
-    x,
-    z,
-    w,
-  }));
-  let circle = circles[0];
-  let { x: targetX, z: targetZ } = circle;
-  let soulX = targetX;
-  let soulZ = targetZ;
-  const soul = {
-    $value: 0,
-    $matrix,
-    _update() {
-      if (!soul.$value) {
-        let x1;
-        let z1;
-        let w1;
-        let ax;
-        let az;
-        let magnitude;
-        let isInside;
-        let contextualVelocity = 1;
-        let mindist = 1 / 0;
-        for (const c of circles) {
-          var { x, z, w } = c;
-          var z = (x = Math.hypot(targetX - x, targetZ - z)) - w;
-          isInside ||= x < w,
-            0 < z && mindist > z && (mindist = z, circle = c),
-            contextualVelocity = min(contextualVelocity, x / w);
-        }
-        isInside
-        || ({ x: x1, z: z1, w: w1 } = circle,
-          ax = targetX - x1,
-          az = targetZ - z1,
-          magnitude = Math.hypot(ax, az),
-          angle = Math.atan2(-az, ax),
-          wasInside
-          && (randAngle = (Math.random() - 0.5) * Math.PI / 2, velocity = clamp(velocity / (1 + Math.random()))),
-          angle += randAngle,
-          dirX = -Math.cos(angle),
-          dirZ = Math.sin(angle),
-          0.1 < magnitude
-          && (magnitude = min(magnitude, w1) / (magnitude || 1),
-            targetX = ax * magnitude + x1,
-            targetZ = az * magnitude + z1)),
-          wasInside = isInside,
-          velocity = lerpDamp(velocity, 6 * (1 - contextualVelocity) + 3, contextualVelocity + 3),
-          soulX = lerpDamp(soulX, targetX = lerpDamp(targetX, targetX + dirX, velocity), velocity),
-          soulZ = lerpDamp(soulZ, targetZ = lerpDamp(targetZ, targetZ + dirZ, velocity), velocity),
-          lookAngle = angle_lerp_degrees(
-            lookAngle,
-            Math.atan2(soulX - prevX, soulZ - prevZ) / DEG_TO_RAD - 180,
-            damp(3),
-          ),
-          prevX = soulX,
-          prevZ = soulZ;
-        var angle = matrixSetIdentity($matrix).multiplySelf(parentModel.$matrix).multiplySelf(transform).translateSelf(
-          soulX,
-          0,
-          soulZ,
-        ).rotateSelf(0, lookAngle, 7 * Math.sin(1.7 * gameTime)).transformPoint();
-        vec3_distance(angle, player_position_final) < 1.6 && (soul.$value = 1,
-          showMessage(
-            [
-              ,
-              "Mark Zuckemberg<br>made the world worse",
-              "Giorgia Meloni<br>fascist",
-              "Andrzej Mazur<br>for the js13k competition",
-              "Donald Trump<br>lies",
-              "Kim Jong-un<br>Dictator, liked pineapple on pizza",
-              "Maxime Euziere<br>forced me to finish this game",
-              "She traded NFTs apes",
-              ,
-              "Vladimir Putin<br>evil war",
-              "He was not a good person",
-              ,
-              "Salvatore Previti<br>made this evil game<br><br>Done. Go back to the boat",
-            ][souls_collected_count] || "Catched a \"crypto bro\".<br>\"Web3\" is all scam, lies and grift",
-            souls_collected_count && souls_collected_count < 12 ? 5 : 7,
-          ),
-          updateCollectedSoulsCounter(),
-          saveGame());
-      }
-      soul.$value
-        && matrixSetIdentity($matrix).multiplySelf(allModels[2].$matrix).translateSelf(
-          index % 4 * 1.2 - 1.7 + Math.sin(gameTime + index) / 7,
-          -2,
-          1.7 * (index / 4 | 0) - 5.5 + abs(index % 4 - 2) + Math.cos(gameTime / 1.5 + index) / 6,
-        );
-    },
-  };
-  souls.push(soul);
-};
-const csm_buildMatrix = (camera_view, nearPlane, farPlane, zMultiplier) => {
-  let tx = 0;
-  let ty = 0;
-  let tz = 0;
-  let left = 1 / 0;
-  let right = -1 / 0;
-  let bottom = 1 / 0;
-  let top = -1 / 0;
-  let near = 1 / 0;
-  let far = -1 / 0;
-  const roundingRadius = 1.1 * (farPlane - nearPlane);
-  const projViewInverse = new DOMMatrix(mat_perspective(nearPlane, farPlane)).multiplySelf(camera_view).invertSelf();
-  return nearPlane = integers_map(8, (i) => (i = projViewInverse.transformPoint({
-    x: 4 & i ? 1 : -1,
-    y: 2 & i ? 1 : -1,
-    z: 1 & i ? 1 : -1,
-  }),
-    tx -= i.x = (roundingRadius * i.x | 0) / roundingRadius / i.w,
-    ty -= i.y = (roundingRadius * i.y | 0) / roundingRadius / i.w,
-    tz -= i.z = (roundingRadius * i.z | 0) / roundingRadius / i.w,
-    i)),
-    farPlane = matrixSetIdentity(tempMatrix).rotateSelf(298, 139).translateSelf(tx / 8, ty / 8, tz / 8),
-    polygon_transform(nearPlane, farPlane).map(({ x, y, z }) => {
-      left = min(left, x),
-        right = max(right, x),
-        bottom = min(bottom, y),
-        top = max(top, y),
-        near = min(near, z),
-        far = max(far, z);
-    }),
-    near *= near < 0 ? zMultiplier : 1 / zMultiplier,
-    far *= 0 < far ? zMultiplier : 1 / zMultiplier,
-    scaling(2 / (right - left), 2 / (top - bottom), 2 / (near - far)).translateSelf(
-      (right + left) / -2,
-      (top + bottom) / -2,
-      (near + far) / 2,
-    ).multiplySelf(farPlane);
-};
 const player_init = () => {
   let currentModelId;
   let currentModelIdTMinus1;
@@ -1146,7 +1152,7 @@ const initShaderProgram = (vertexShader, sfsSource) => {
     gl["l8l"](program),
     (name) => name ? uniforms[name] || (uniforms[name] = gl["gan"](program, name)) : gl["u7y"](program);
 };
-const renderModels = (worldMatrixLoc, renderPlayer, soulModelId, isShadowRender) => {
+const renderModels = (worldMatrixLoc, renderPlayer, soulModelId) => {
   if (mainMenuVisible) {
     const matrix = rotation(0, 40 * Math.sin(absoluteTime) - 70);
     for (
@@ -1161,17 +1167,9 @@ const renderModels = (worldMatrixLoc, renderPlayer, soulModelId, isShadowRender)
     gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer),
       gl["d97"](4, allModels[39].$vertexEnd - allModels[37].$vertexBegin, 5123, 2 * allModels[37].$vertexBegin);
   } else {
-    for (let i = 0; allModels.length > i; ++i) {
-      allModels[i].$kind && matrixToArray(allModels[i].$matrix, worldMatricesBuffer, i - 1);
-    }
     gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer),
-      gl["d97"](4, (renderPlayer ? allModels[39].$vertexEnd : allModels[37].$vertexBegin) - 3, 5123, 6);
-    for (let i1 = 0; i1 < 13; ++i1) matrixToArray(souls[i1].$matrix, worldMatricesBuffer, i1);
-    for (let i2 = 0; levers.length > i2; ++i2) {
-      matrixToArray(levers[i2].$matrix, worldMatricesBuffer, i2 + 13),
-        isShadowRender || (worldMatricesBuffer[16 * (i2 + 13) + 15] = 1 - levers[i2].$lerpValue);
-    }
-    gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer),
+      gl["d97"](4, (renderPlayer ? allModels[39].$vertexEnd : allModels[37].$vertexBegin) - 3, 5123, 6),
+      gl["uae"](worldMatrixLoc, !1, objectsMatricesBuffer),
       gl["das"](
         4,
         allModels[soulModelId].$vertexEnd - allModels[soulModelId].$vertexBegin,
@@ -1312,6 +1310,7 @@ const audioContext = new AudioContext();
 const tempMatrix = new DOMMatrix();
 const float32Array16Temp = new Float32Array(16);
 const worldMatricesBuffer = new Float32Array(624);
+const objectsMatricesBuffer = new Float32Array(624);
 const groundTextureSvg = "data:image/svg+xml;base64,"
   + btoa(
     "<svg color-interpolation-filters=\"sRGB\" height=\"1024\" width=\"1024\" xmlns=\"http://www.w3.org/2000/svg\"><filter filterUnits=\"userSpaceOnUse\" height=\"1026\" id=\"a\" width=\"1026\" x=\"0\" y=\"0\"><feTurbulence baseFrequency=\".007\" height=\"1025\" numOctaves=\"6\" stitchTiles=\"stitch\" width=\"1025\" result=\"z\" type=\"fractalNoise\" x=\"1\" y=\"1\"/><feTile height=\"1024\" width=\"1024\" x=\"-1\" y=\"-1\"/><feTile/><feDiffuseLighting diffuseConstant=\"4\" lighting-color=\"red\" surfaceScale=\"5\"><feDistantLight azimuth=\"270\" elevation=\"5\"/></feDiffuseLighting><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"x\"/><feColorMatrix values=\"0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 1\" in=\"z\"/><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"z\"/><feTurbulence baseFrequency=\".01\" height=\"1024\" numOctaves=\"5\" stitchTiles=\"stitch\" width=\"1024\"/><feColorMatrix values=\"0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1\"/><feBlend in2=\"x\" mode=\"screen\"/><feBlend in2=\"z\" mode=\"screen\"/></filter><rect filter=\"url(#a)\" height=\"100%\" width=\"100%\"/></svg>",
@@ -1323,7 +1322,9 @@ const translation = NO_INLINE((x, y, z) => new DOMMatrix().translateSelf(x, y, z
 const rotation = NO_INLINE((x, y, z) => new DOMMatrix().rotateSelf(x, y, z));
 const scaling = NO_INLINE((x, y, z) => new DOMMatrix().scaleSelf(x, y, z));
 const songAudioSource = audioContext.createBufferSource();
+const fieldOfViewAmount = 1 / Math.tan(60 * DEG_TO_RAD / 2);
 const material = NO_INLINE((r, g, b, a = 0) => 255 * a << 24 | 255 * b << 16 | 255 * g << 8 | 255 * r);
+const _frustumCorners = integers_map(8, () => ({}));
 const gl = hC.getContext("webgl2", {
   powerPreference: "high-performance",
 });
@@ -1339,32 +1340,38 @@ loadStep(() => {
   const end = () => {
     if (++loadStatus == 2) {
       const mainLoop = (globalTime) => {
-        let z;
-        let dt;
-        gl["f1s"](),
-          requestAnimationFrame(mainLoop),
-          dt = (globalTime - (_globalTime || globalTime)) / 1e3,
-          absoluteTime += dt,
-          gameTime += gameTimeDelta = mainMenuVisible ? 0 : min(0.066, dt),
-          _globalTime = globalTime,
-          0 < gameTimeDelta
-          && (updateInput(),
-            worldStateUpdate(),
-            player_update(),
-            collisionShader(),
+        if (
+          gl["f1s"](),
+            requestAnimationFrame(mainLoop),
+            dt = (globalTime - (_globalTime || globalTime)) / 1e3,
+            absoluteTime += dt,
+            gameTime += gameTimeDelta = mainMenuVisible ? 0 : min(0.066, dt),
+            _globalTime = globalTime,
+            0 < gameTimeDelta
+        ) {
+          updateInput(), worldStateUpdate(), player_update();
+          for (let i = 0; allModels.length > i; ++i) {
+            allModels[i].$kind && matrixToArray(allModels[i].$matrix, worldMatricesBuffer, i - 1);
+          }
+          for (let i1 = 0; i1 < 13; ++i1) matrixToArray(souls[i1].$matrix, objectsMatricesBuffer, i1);
+          for (let i2 = 0; levers.length > i2; ++i2) {
+            matrixToArray(levers[i2].$matrix, objectsMatricesBuffer, i2 + 13),
+              objectsMatricesBuffer[16 * (i2 + 13) + 15] = 1 - levers[i2].$lerpValue;
+          }
+          collisionShader(),
             gl["b6o"](36160, collision_frameBuffer),
             gl["v5y"](0, 0, 128, 128),
             gl["c4s"](16640),
-            gl["cbf"](!0, !1, !0, !1),
-            { x: dt, y: globalTime, z } = player_position_final,
-            gl["uae"](
-              collisionShader("b"),
-              !1,
-              matrixToArray(
-                matrixSetIdentity(tempMatrix).rotateSelf(0, 180).invertSelf().translateSelf(-dt, -globalTime, 0.3 - z),
-              ),
+            gl["cbf"](!0, !1, !0, !1);
+          var { x: dt, y: globalTime, z } = player_position_final;
+          gl["uae"](
+            collisionShader("b"),
+            !1,
+            matrixToArray(
+              matrixSetIdentity(tempMatrix).rotateSelf(0, 180).invertSelf().translateSelf(-dt, -globalTime, 0.3 - z),
             ),
-            renderModels(collisionShader("c"), 0, 41, 0),
+          ),
+            renderModels(collisionShader("c"), 0, 41),
             gl["c4s"](256),
             gl["cbf"](!1, !0, !0, !1),
             gl["uae"](
@@ -1372,9 +1379,10 @@ loadStep(() => {
               !1,
               matrixToArray(matrixSetIdentity(tempMatrix).translateSelf(-dt, -globalTime, -z - 0.3)),
             ),
-            renderModels(collisionShader("c"), 0, 41, 0),
-            gl["f1s"]()),
-          interact_pressed = 0,
+            renderModels(collisionShader("c"), 0, 41),
+            gl["f1s"]();
+        }
+        interact_pressed = 0,
           matrixSetIdentity(camera_view),
           mainMenuVisible
             ? camera_view.rotateSelf(-20, -90).invertSelf().translateSelf(5, -2, -3.4)
@@ -1398,7 +1406,7 @@ loadStep(() => {
           gl["uae"](mainShader("a"), !1, mat_perspective(0.3, 181)),
           gl["uae"](mainShader("b"), !1, matrixToArray(camera_view)),
           gl["ubu"](mainShader("k"), camera_position_x, camera_position_y, camera_position_z),
-          renderModels(mainShader("c"), !player_first_person, 42, 0),
+          renderModels(mainShader("c"), !player_first_person, 42),
           skyShader(),
           gl["ubu"](skyShader("j"), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime),
           gl["ubu"](skyShader("k"), camera_position_x, camera_position_y, camera_position_z),
@@ -1417,7 +1425,7 @@ loadStep(() => {
 layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 a,b,c[39];void main(){mat4 i=c[max(0,abs(int(f.w))-1)+gl_InstanceID];l=mix(d,vec4(.7,1,.2,0),d.w>0.?0.:1.-i[3][3]),i[3][3]=1.,n=f,m=i*vec4(f.xyz,1),gl_Position=a*b*m,m.w=f.w,o=i*vec4(e,0);}`);
       const csmShader = initShaderProgram(
         loadShader(`#version 300 es
-in vec4 f;uniform mat4 b,c[39];void main(){gl_Position=b*c[max(0,abs(int(f.w))-1)+gl_InstanceID]*vec4(f.xyz,1);}`),
+in vec4 f;uniform mat4 b,c[39];void main(){mat4 i=c[max(0,abs(int(f.w))-1)+gl_InstanceID];i[3][3]=1.,gl_Position=b*i*vec4(f.xyz,1);}`),
         `#version 300 es
 void main(){}`,
       );
@@ -1455,7 +1463,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 gl["uae"](csmShader("b"), !1, lightSpaceMatrix),
                 gl["fas"](36160, 36096, 3553, texture, 0),
                 gl["c4s"](256),
-                renderModels(csmShader("c"), !player_first_person, 42, 1))
+                renderModels(csmShader("c"), !player_first_person, 42))
               : gl["uae"](mainShader(csmSplit ? "j" : "i"), !1, lightSpaceMatrix);
           };
       });
@@ -1571,7 +1579,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
         loadStep(end);
         try {
           const [savedLevers, savedSouls, savedLastPulledLever, savedGameTime, savedSecondBoatLerp] = JSON.parse(
-            localStorage.DanteSP22,
+            localStorage[LOCAL_STORAGE_SAVED_GAME_KEY],
           );
           levers.map((lever, index) =>
             lever.$lerpValue = lever.$lerpValue2 = lever.$value = index ? 0 | savedLevers[index] : 0

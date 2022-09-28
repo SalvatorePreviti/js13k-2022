@@ -357,7 +357,7 @@ export const initPage = () => {
 
   document.onvisibilitychange = onblur = onresize = handleResize;
 
-  mainMenu(!DEBUG || DEBUG_FLAG2);
+  mainMenu(!DEBUG || !!DEBUG_FLAG2);
 
   if (DEBUG) {
     console.log("fieldOfViewAmount:", fieldOfViewAmount);

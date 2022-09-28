@@ -1370,7 +1370,7 @@ const build_life_the_universe_and_everything = () => {
     ].map((x) => meshAdd(sphere(12), translation(x * 0.16, 0.4, -0.36).scale3d(0.09)));
   }, MODEL_KIND_MESH);
 };
-const code$5 = "#version 300 es\nin vec4 f;uniform mat4 b,c[39];void main(){gl_Position=b*c[max(0,abs(int(f.w))-1)+gl_InstanceID]*vec4(f.xyz,1);}";
+const code$5 = "#version 300 es\nin vec4 f;uniform mat4 b,c[39];void main(){mat4 i=c[max(0,abs(int(f.w))-1)+gl_InstanceID];i[3][3]=1.,gl_Position=b*i*vec4(f.xyz,1);}";
 const code$4 = "#version 300 es\nlayout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 a,b,c[39];void main(){mat4 i=c[max(0,abs(int(f.w))-1)+gl_InstanceID];l=mix(d,vec4(.7,1,.2,0),d.w>0.?0.:1.-i[3][3]),i[3][3]=1.,n=f,m=i*vec4(f.xyz,1),gl_Position=a*b*m,m.w=f.w,o=i*vec4(e,0);}";
 const uniformName_projectionMatrix = "a";
 const uniformName_viewMatrix = "b";
@@ -1382,42 +1382,44 @@ const code = "#version 300 es\nprecision highp float;uniform vec3 j,k;uniform ma
 const uniformName_iResolution = "j";
 const LIGHT_ROT_Y = 139;
 const LIGHT_ROT_X = 298;
+const _frustumPoint = {};
 const csm_buildMatrix = (camera_view, nearPlane, farPlane, zMultiplier) => {
   let tx = 0;
   let ty = 0;
   let tz = 0;
   const roundingRadius = (farPlane - nearPlane) * 1.1;
-  const projViewInverse = new DOMMatrix(mat_perspective(nearPlane, farPlane)).multiplySelf(camera_view).invertSelf();
-  const frustumCorners = integers_map(8, (i) => {
-    const v = projViewInverse.transformPoint({
-      x: 4 & i ? 1 : -1,
-      y: 2 & i ? 1 : -1,
-      z: 1 & i ? 1 : -1
-    });
-    tx -= v.x = (roundingRadius * v.x | 0) / (roundingRadius * v.w);
-    ty -= v.y = (roundingRadius * v.y | 0) / (roundingRadius * v.w);
-    tz -= v.z = (roundingRadius * v.z | 0) / (roundingRadius * v.w);
-    return v;
-  });
-  const lightViewTranslated = matrixSetIdentity(tempMatrix).rotateSelf(LIGHT_ROT_X, LIGHT_ROT_Y).translateSelf(tx / 8, ty / 8, tz / 8);
+  matrixSetIdentity(tempMatrix).scale3dSelf(roundingRadius).multiplySelf(new DOMMatrix(mat_perspective(nearPlane, farPlane)).multiplySelf(camera_view).invertSelf());
+  for (let i = 0; i < 8; ++i) {
+    _frustumPoint.x = 4 & i ? 1 : -1;
+    _frustumPoint.y = 2 & i ? 1 : -1;
+    _frustumPoint.z = 1 & i ? 1 : -1;
+    let { x, y, z, w } = tempMatrix.transformPoint(_frustumPoint);
+    w *= roundingRadius;
+    tx -= _frustumCorners[i].x = (x | 0) / w;
+    ty -= _frustumCorners[i].y = (y | 0) / w;
+    tz -= _frustumCorners[i].z = (z | 0) / w;
+  }
+  matrixSetIdentity(tempMatrix).rotateSelf(LIGHT_ROT_X, LIGHT_ROT_Y).translateSelf(tx / 8, ty / 8, tz / 8);
   let left = Infinity;
   let right = -Infinity;
   let bottom = Infinity;
   let top = -Infinity;
   let near = Infinity;
   let far = -Infinity;
-  polygon_transform(frustumCorners, lightViewTranslated).map(({ x, y, z }) => {
-    left = min(left, x);
-    right = max(right, x);
-    bottom = min(bottom, y);
-    top = max(top, y);
-    near = min(near, z);
-    far = max(far, z);
-  });
+  for (let i1 = 0; i1 < 8; ++i1) {
+    const { x: x1, y: y1, z: z1 } = tempMatrix.transformPoint(_frustumCorners[i1]);
+    left = min(left, x1);
+    right = max(right, x1);
+    bottom = min(bottom, y1);
+    top = max(top, y1);
+    near = min(near, z1);
+    far = max(far, z1);
+  }
   near *= near < 0 ? zMultiplier : 1 / zMultiplier;
   far *= far > 0 ? zMultiplier : 1 / zMultiplier;
-  return scaling(2 / (right - left), 2 / (top - bottom), 2 / (near - far)).translateSelf((right + left) / -2, (top + bottom) / -2, (near + far) / 2).multiplySelf(lightViewTranslated);
+  return scaling(2 / (right - left), 2 / (top - bottom), 2 / (near - far)).translateSelf((right + left) / -2, (top + bottom) / -2, (near + far) / 2).multiplySelf(tempMatrix);
 };
+const _frustumCorners = integers_map(8, () => ({}));
 const gl = hC.getContext("webgl2", {
   powerPreference: "high-performance"
 });
@@ -1645,7 +1647,18 @@ const initShaderProgram = (vertexShader, sfsSource) => {
   gl["l8l"](program);
   return (name) => name ? uniforms[name] || (uniforms[name] = gl["gan"](program, name)) : gl["u7y"](program);
 };
-const renderModels = (worldMatrixLoc, renderPlayer, soulModelId, isShadowRender) => {
+const updateWorldMatrices = () => {
+  for (let i = 0; i < allModels.length; ++i)
+    if (allModels[i].$kind)
+      matrixToArray(allModels[i].$matrix, worldMatricesBuffer, i - 1);
+  for (let i1 = 0; i1 < SOULS_COUNT; ++i1)
+    matrixToArray(souls[i1].$matrix, objectsMatricesBuffer, i1);
+  for (let i2 = 0; i2 < levers.length; ++i2) {
+    matrixToArray(levers[i2].$matrix, objectsMatricesBuffer, i2 + SOULS_COUNT);
+    objectsMatricesBuffer[(i2 + SOULS_COUNT) * 16 + 15] = 1 - levers[i2].$lerpValue;
+  }
+};
+const renderModels = (worldMatrixLoc, renderPlayer, soulModelId) => {
   if (mainMenuVisible) {
     const matrix = rotation(0, /* @__PURE__ */ Math.sin(absoluteTime) * 40 - 70);
     for (const modelId of [
@@ -1658,23 +1671,14 @@ const renderModels = (worldMatrixLoc, renderPlayer, soulModelId, isShadowRender)
     gl["d97"](4, allModels[MODEL_ID_PLAYER_LEG1].$vertexEnd - allModels[MODEL_ID_PLAYER_BODY].$vertexBegin, 5123, allModels[MODEL_ID_PLAYER_BODY].$vertexBegin * 2);
     return;
   }
-  for (let i = 0; i < allModels.length; ++i)
-    if (allModels[i].$kind)
-      matrixToArray(allModels[i].$matrix, worldMatricesBuffer, i - 1);
   gl["uae"](worldMatrixLoc, false, worldMatricesBuffer);
   gl["d97"](4, (renderPlayer ? allModels[MODEL_ID_PLAYER_LEG1].$vertexEnd : allModels[MODEL_ID_PLAYER_BODY].$vertexBegin) - 3, 5123, 6);
-  for (let i1 = 0; i1 < SOULS_COUNT; ++i1)
-    matrixToArray(souls[i1].$matrix, worldMatricesBuffer, i1);
-  for (let i2 = 0; i2 < levers.length; ++i2) {
-    matrixToArray(levers[i2].$matrix, worldMatricesBuffer, i2 + SOULS_COUNT);
-    if (!isShadowRender)
-      worldMatricesBuffer[(i2 + SOULS_COUNT) * 16 + 15] = 1 - levers[i2].$lerpValue;
-  }
-  gl["uae"](worldMatrixLoc, false, worldMatricesBuffer);
+  gl["uae"](worldMatrixLoc, false, objectsMatricesBuffer);
   gl["das"](4, allModels[soulModelId].$vertexEnd - allModels[soulModelId].$vertexBegin, 5123, allModels[soulModelId].$vertexBegin * 2, 13);
   gl["das"](4, allModels[MODEL_ID_LEVER].$vertexEnd - allModels[MODEL_ID_LEVER].$vertexBegin, 5123, allModels[MODEL_ID_LEVER].$vertexBegin * 2, levers.length);
 };
 const worldMatricesBuffer = new Float32Array(624);
+const objectsMatricesBuffer = new Float32Array(624);
 const startMainLoop = (groundTextureImage) => {
   const mainLoop = (globalTime) => {
     gl["f1s"]();
@@ -1684,6 +1688,7 @@ const startMainLoop = (groundTextureImage) => {
       updateInput();
       worldStateUpdate();
       player_update();
+      updateWorldMatrices();
       collisionShader();
       gl["b6o"](36160, collision_frameBuffer);
       gl["v5y"](0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
@@ -1691,11 +1696,11 @@ const startMainLoop = (groundTextureImage) => {
       gl["cbf"](true, false, true, false);
       const { x, y, z } = player_position_final;
       gl["uae"](collisionShader(uniformName_viewMatrix), false, matrixToArray(matrixSetIdentity(tempMatrix).rotateSelf(0, 180).invertSelf().translateSelf(-x, -y, 0.3 - z)));
-      renderModels(collisionShader(uniformName_worldMatrices), 0, MODEL_ID_SOUL_COLLISION, 0);
+      renderModels(collisionShader(uniformName_worldMatrices), 0, MODEL_ID_SOUL_COLLISION);
       gl["c4s"](256);
       gl["cbf"](false, true, true, false);
       gl["uae"](collisionShader(uniformName_viewMatrix), false, matrixToArray(matrixSetIdentity(tempMatrix).translateSelf(-x, -y, -z - 0.3)));
-      renderModels(collisionShader(uniformName_worldMatrices), 0, MODEL_ID_SOUL_COLLISION, 0);
+      renderModels(collisionShader(uniformName_worldMatrices), 0, MODEL_ID_SOUL_COLLISION);
       gl["f1s"]();
     }
     resetInteractPressed();
@@ -1719,7 +1724,7 @@ const startMainLoop = (groundTextureImage) => {
     gl["uae"](mainShader(uniformName_projectionMatrix), false, mat_perspective(zNear, zFar));
     gl["uae"](mainShader(uniformName_viewMatrix), false, matrixToArray(camera_view));
     gl["ubu"](mainShader(uniformName_viewPos), camera_position_x, camera_position_y, camera_position_z);
-    renderModels(mainShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL, 0);
+    renderModels(mainShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL);
     skyShader();
     gl["ubu"](skyShader(uniformName_iResolution), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime);
     gl["ubu"](skyShader(uniformName_viewPos), camera_position_x, camera_position_y, camera_position_z);
@@ -1752,7 +1757,7 @@ const startMainLoop = (groundTextureImage) => {
         gl["uae"](csmShader(uniformName_viewMatrix), false, lightSpaceMatrix);
         gl["fas"](36160, 36096, 3553, texture, 0);
         gl["c4s"](256);
-        renderModels(csmShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL, 1);
+        renderModels(csmShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL);
       } else
         gl["uae"](mainShader(csmSplit ? uniformName_csm_matrix1 : uniformName_csm_matrix0), false, lightSpaceMatrix);
     };

@@ -42,7 +42,7 @@ import {
   camera_position_z,
 } from "./player";
 import { loadShader, initShaderProgram } from "./shaders-utils";
-import { renderModels } from "./game/models-render";
+import { renderModels, updateWorldMatrices } from "./game/models-render";
 
 export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   const camera_view = new DOMMatrix();
@@ -82,7 +82,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
         gl.uniformMatrix4fv(csmShader(uniformName_viewMatrix), false, lightSpaceMatrix);
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, texture, 0);
         gl.clear(gl.DEPTH_BUFFER_BIT);
-        renderModels(csmShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL, 1);
+        renderModels(csmShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL);
       } else {
         gl.uniformMatrix4fv(
           mainShader(csmSplit ? uniformName_csm_matrix1 : uniformName_csm_matrix0),
@@ -112,6 +112,8 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
       player_update();
 
+      updateWorldMatrices();
+
       // *** COLLISION RENDERER ***
 
       collisionShader();
@@ -136,7 +138,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
             .translateSelf(-x, -y, 0.3 - z),
         ),
       );
-      renderModels(collisionShader(uniformName_worldMatrices), 0, MODEL_ID_SOUL_COLLISION, 0);
+      renderModels(collisionShader(uniformName_worldMatrices), 0, MODEL_ID_SOUL_COLLISION);
 
       // second collision render
 
@@ -147,7 +149,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
         false,
         matrixToArray(matrixSetIdentity(tempMatrix).translateSelf(-x, -y, -z - 0.3)),
       );
-      renderModels(collisionShader(uniformName_worldMatrices), 0, MODEL_ID_SOUL_COLLISION, 0);
+      renderModels(collisionShader(uniformName_worldMatrices), 0, MODEL_ID_SOUL_COLLISION);
 
       // Flushing collision render
       gl.flush();
@@ -195,7 +197,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     gl.uniformMatrix4fv(mainShader(uniformName_viewMatrix), false, matrixToArray(camera_view));
     gl.uniform3f(mainShader(uniformName_viewPos), camera_position_x, camera_position_y, camera_position_z);
 
-    renderModels(mainShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL, 0);
+    renderModels(mainShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL);
 
     // *** SKY RENDER ***
 
