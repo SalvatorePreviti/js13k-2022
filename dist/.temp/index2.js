@@ -1302,51 +1302,6 @@ loadStep(() => {
         new Float32Array(16),
         new Float32Array(16),
       ];
-      const csm_render = (split, roundingRadius, zMultiplier) => {
-        let tx = 0;
-        let ty = 0;
-        let tz = 0;
-        let left = 1 / 0;
-        let right = -1 / 0;
-        let bottom = 1 / 0;
-        let top = -1 / 0;
-        let near = 1 / 0;
-        let far = -1 / 0;
-        gl["fas"](36160, 36096, 3553, csm_textures[split], 0),
-          gl["c4s"](256),
-          matrixCopy().scale3dSelf(roundingRadius).multiplySelf(
-            matrixCopy(csm_projections[split], csm_tempMatrix).multiplySelf(camera_view).invertSelf(),
-          );
-        for (let i = 0; i < 8; ++i) {
-          const p = csm_tempFrustumCorners[i];
-          const v = (p.x = 4 & i ? 1 : -1, p.y = 2 & i ? 1 : -1, p.z = 1 & i ? 1 : -1, tempMatrix.transformPoint(p));
-          tx -= p.x = (0 | v.x) / roundingRadius / v.w,
-            ty -= p.y = (0 | v.y) / roundingRadius / v.w,
-            tz -= p.z = (0 | v.z) / roundingRadius / v.w;
-        }
-        matrixCopy().rotateSelf(298, 139).translateSelf(tx / 8, ty / 8, tz / 8);
-        for (let i1 = 0; i1 < 8; ++i1) {
-          const { x, y, z } = tempMatrix.transformPoint(csm_tempFrustumCorners[i1]);
-          left = min(left, x),
-            right = max(right, x),
-            bottom = min(bottom, y),
-            top = max(top, y),
-            near = min(near, z),
-            far = max(far, z);
-        }
-        near *= near < 0 ? zMultiplier : 1 / zMultiplier,
-          far *= 0 < far ? zMultiplier : 1 / zMultiplier,
-          gl["uae"](
-            csmShader("b"),
-            !1,
-            matrixToArray(
-              matrixCopy(identity, csm_tempMatrix).scaleSelf(2 / (right - left), 2 / (top - bottom), 2 / (near - far))
-                .translateSelf((right + left) / -2, (top + bottom) / -2, (near + far) / 2).multiplySelf(tempMatrix),
-              csm_lightSpaceMatrices[split],
-            ),
-          ),
-          renderModels(csmShader("c"), !player_first_person, 42);
-      };
       const mainLoop = (globalTime) => {
         if (
           gl["f1s"](),
@@ -1396,8 +1351,8 @@ loadStep(() => {
           csmShader(),
           gl["b6o"](36160, csm_framebuffer),
           gl["v5y"](0, 0, 2048, 2048),
-          csm_render(0, 1.1 * (55 - zNear), 10),
-          csm_render(1, 1.1 * 126, 11),
+          csm_render[0](1.1 * (55 - zNear)),
+          csm_render[1](1.1 * 126),
           mainShader(),
           gl["b6o"](36160, null),
           gl["v5y"](0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight),
@@ -1445,12 +1400,9 @@ precision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b
 precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform highp sampler2DShadow g,h;uniform highp sampler2D q;out vec4 O;void main(){vec4 s=vec4(m.xyz,1);vec3 e=normalize(o.xyz),v=l.w*(texture(q,n.yz*.035)*e.x+texture(q,n.xz*.035)*e.y+texture(q,n.xy*.035)*e.z).xyz;e=normalize(e+v*.5);float a=dot(e,vec3(-.656059,.666369,-.35431468)),t=1.,u=abs((b*s).z);vec4 r=(u<55.?i:j)*s;if(r=r/r.w*.5+.5,r.z<1.){t=0.;for(float e=-1.;e<=1.;++e)for(float a=-1.;a<=1.;++a){vec3 x=vec3(r.xy+vec2(e,a)/2048.,r.z-.00017439);t+=u<55.?texture(g,x):texture(h,x);}t/=9.;}vec3 x=l.xyz*(1.-v.x);float c=max(max(abs(e.x),abs(e.z))*.3-e.y,0.)*pow(max(0.,(8.-m.y)/48.),1.6);O=vec4(vec3(c,c*c*.5,0)+vec3(.09,.05,.11)*x+x*(max(0.,a)*.5+x*a*a*vec3(.5,.45,.3))*(t*.75+.25)+vec3(.6,.6,.5)*pow(max(0.,dot(normalize(m.xyz-k),reflect(vec3(-.656059,.666369,-.35431468),e))),35.)*t,1);}`,
       );
       const csm_tempFrustumCorners = integers_map(8, () => ({}));
-      const csm_textures = [
-        0,
-        1,
-      ].map((i) => {
+      const csm_render = integers_map(2, (split) => {
         const texture = gl["c25"]();
-        return gl["a4v"](33984 + i),
+        return gl["a4v"](33984 + split),
           gl["b9j"](3553, texture),
           gl["t60"](3553, 0, 33190, 2048, 2048, 0, 6402, 5125, null),
           gl["t2z"](3553, 10241, 9729),
@@ -1459,7 +1411,56 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
           gl["t2z"](3553, 34892, 34894),
           gl["t2z"](3553, 10243, 33071),
           gl["t2z"](3553, 10242, 33071),
-          texture;
+          (roundingRadius) => {
+            let tx = 0;
+            let ty = 0;
+            let tz = 0;
+            let left = 1 / 0;
+            let right = -1 / 0;
+            let bottom = 1 / 0;
+            let top = -1 / 0;
+            let near = 1 / 0;
+            let far = -1 / 0;
+            gl["fas"](36160, 36096, 3553, texture, 0),
+              gl["c4s"](256),
+              matrixCopy().scale3dSelf(roundingRadius).multiplySelf(
+                matrixCopy(csm_projections[split], csm_tempMatrix).multiplySelf(camera_view).invertSelf(),
+              );
+            for (let i = 0; i < 8; ++i) {
+              const p = csm_tempFrustumCorners[i];
+              const v =
+                (p.x = 4 & i ? 1 : -1, p.y = 2 & i ? 1 : -1, p.z = 1 & i ? 1 : -1, tempMatrix.transformPoint(p));
+              tx -= p.x = (0 | v.x) / roundingRadius / v.w,
+                ty -= p.y = (0 | v.y) / roundingRadius / v.w,
+                tz -= p.z = (0 | v.z) / roundingRadius / v.w;
+            }
+            matrixCopy().rotateSelf(298, 139).translateSelf(tx / 8, ty / 8, tz / 8);
+            for (let i1 = 0; i1 < 8; ++i1) {
+              const { x, y, z } = tempMatrix.transformPoint(csm_tempFrustumCorners[i1]);
+              left = min(left, x),
+                right = max(right, x),
+                bottom = min(bottom, y),
+                top = max(top, y),
+                near = min(near, z),
+                far = max(far, z);
+            }
+            const zMultiplier = 10 + split;
+            near *= near < 0 ? zMultiplier : 1 / zMultiplier,
+              far *= 0 < far ? zMultiplier : 1 / zMultiplier,
+              gl["uae"](
+                csmShader("b"),
+                !1,
+                matrixToArray(
+                  matrixCopy(identity, csm_tempMatrix).scaleSelf(
+                    2 / (right - left),
+                    2 / (top - bottom),
+                    2 / (near - far),
+                  ).translateSelf((right + left) / -2, (top + bottom) / -2, (near + far) / 2).multiplySelf(tempMatrix),
+                  csm_lightSpaceMatrices[split],
+                ),
+              ),
+              renderModels(csmShader("c"), !player_first_person, 42);
+          };
       });
       const csm_framebuffer = gl["c5w"]();
       var mainVertexShader = gl["c25"]();

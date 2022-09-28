@@ -1644,44 +1644,6 @@ const startMainLoop = (groundTextureImage) => {
     new Float32Array(16),
     new Float32Array(16)
   ];
-  const csm_render = (split, roundingRadius, zMultiplier) => {
-    let tx = 0;
-    let ty = 0;
-    let tz = 0;
-    gl["fas"](36160, 36096, 3553, csm_textures[split], 0);
-    gl["c4s"](256);
-    matrixCopy().scale3dSelf(roundingRadius).multiplySelf(matrixCopy(csm_projections[split], csm_tempMatrix).multiplySelf(camera_view).invertSelf());
-    for (let i = 0; i < 8; ++i) {
-      const p = csm_tempFrustumCorners[i];
-      p.x = 4 & i ? 1 : -1;
-      p.y = 2 & i ? 1 : -1;
-      p.z = 1 & i ? 1 : -1;
-      const v = tempMatrix.transformPoint(p);
-      tx -= p.x = (v.x | 0) / (roundingRadius * v.w);
-      ty -= p.y = (v.y | 0) / (roundingRadius * v.w);
-      tz -= p.z = (v.z | 0) / (roundingRadius * v.w);
-    }
-    matrixCopy().rotateSelf(LIGHT_ROT_X, LIGHT_ROT_Y).translateSelf(tx / 8, ty / 8, tz / 8);
-    let left = Infinity;
-    let right = -Infinity;
-    let bottom = Infinity;
-    let top = -Infinity;
-    let near = Infinity;
-    let far = -Infinity;
-    for (let i1 = 0; i1 < 8; ++i1) {
-      const { x, y, z } = tempMatrix.transformPoint(csm_tempFrustumCorners[i1]);
-      left = min(left, x);
-      right = max(right, x);
-      bottom = min(bottom, y);
-      top = max(top, y);
-      near = min(near, z);
-      far = max(far, z);
-    }
-    near *= near < 0 ? zMultiplier : 1 / zMultiplier;
-    far *= far > 0 ? zMultiplier : 1 / zMultiplier;
-    gl["uae"](csmShader(uniformName_viewMatrix), false, matrixToArray(matrixCopy(identity, csm_tempMatrix).scaleSelf(2 / (right - left), 2 / (top - bottom), 2 / (near - far)).translateSelf((right + left) / -2, (top + bottom) / -2, (near + far) / 2).multiplySelf(tempMatrix), csm_lightSpaceMatrices[split]));
-    renderModels(csmShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL);
-  };
   const mainLoop = (globalTime) => {
     gl["f1s"]();
     requestAnimationFrame(mainLoop);
@@ -1714,8 +1676,8 @@ const startMainLoop = (groundTextureImage) => {
     csmShader();
     gl["b6o"](36160, csm_framebuffer);
     gl["v5y"](0, 0, constDef_CSM_TEXTURE_SIZE, constDef_CSM_TEXTURE_SIZE);
-    csm_render(0, (constDef_CSM_PLANE_DISTANCE - zNear) * 1.1, 10);
-    csm_render(1, (zFar - constDef_CSM_PLANE_DISTANCE) * 1.1, 11);
+    csm_render[0]((constDef_CSM_PLANE_DISTANCE - zNear) * 1.1);
+    csm_render[1]((zFar - constDef_CSM_PLANE_DISTANCE) * 1.1);
     mainShader();
     gl["b6o"](36160, null);
     gl["v5y"](0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
@@ -1743,12 +1705,9 @@ const startMainLoop = (groundTextureImage) => {
   const collisionShader = initShaderProgram(mainVertexShader, code$3);
   const mainShader = initShaderProgram(mainVertexShader, code$6);
   const csm_tempFrustumCorners = integers_map(8, () => ({}));
-  const csm_textures = [
-    0,
-    1
-  ].map((i) => {
+  const csm_render = integers_map(2, (split) => {
     const texture = gl["c25"]();
-    gl["a4v"](33984 + i);
+    gl["a4v"](33984 + split);
     gl["b9j"](3553, texture);
     gl["t60"](3553, 0, 33190, constDef_CSM_TEXTURE_SIZE, constDef_CSM_TEXTURE_SIZE, 0, 6402, 5125, null);
     gl["t2z"](3553, 10241, 9729);
@@ -1757,7 +1716,45 @@ const startMainLoop = (groundTextureImage) => {
     gl["t2z"](3553, 34892, 34894);
     gl["t2z"](3553, 10243, 33071);
     gl["t2z"](3553, 10242, 33071);
-    return texture;
+    return (roundingRadius) => {
+      let tx = 0;
+      let ty = 0;
+      let tz = 0;
+      gl["fas"](36160, 36096, 3553, texture, 0);
+      gl["c4s"](256);
+      matrixCopy().scale3dSelf(roundingRadius).multiplySelf(matrixCopy(csm_projections[split], csm_tempMatrix).multiplySelf(camera_view).invertSelf());
+      for (let i = 0; i < 8; ++i) {
+        const p = csm_tempFrustumCorners[i];
+        p.x = 4 & i ? 1 : -1;
+        p.y = 2 & i ? 1 : -1;
+        p.z = 1 & i ? 1 : -1;
+        const v = tempMatrix.transformPoint(p);
+        tx -= p.x = (v.x | 0) / (roundingRadius * v.w);
+        ty -= p.y = (v.y | 0) / (roundingRadius * v.w);
+        tz -= p.z = (v.z | 0) / (roundingRadius * v.w);
+      }
+      matrixCopy().rotateSelf(LIGHT_ROT_X, LIGHT_ROT_Y).translateSelf(tx / 8, ty / 8, tz / 8);
+      let left = Infinity;
+      let right = -Infinity;
+      let bottom = Infinity;
+      let top = -Infinity;
+      let near = Infinity;
+      let far = -Infinity;
+      for (let i1 = 0; i1 < 8; ++i1) {
+        const { x, y, z } = tempMatrix.transformPoint(csm_tempFrustumCorners[i1]);
+        left = min(left, x);
+        right = max(right, x);
+        bottom = min(bottom, y);
+        top = max(top, y);
+        near = min(near, z);
+        far = max(far, z);
+      }
+      const zMultiplier = 10 + split;
+      near *= near < 0 ? zMultiplier : 1 / zMultiplier;
+      far *= far > 0 ? zMultiplier : 1 / zMultiplier;
+      gl["uae"](csmShader(uniformName_viewMatrix), false, matrixToArray(matrixCopy(identity, csm_tempMatrix).scaleSelf(2 / (right - left), 2 / (top - bottom), 2 / (near - far)).translateSelf((right + left) / -2, (top + bottom) / -2, (near + far) / 2).multiplySelf(tempMatrix), csm_lightSpaceMatrices[split]));
+      renderModels(csmShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL);
+    };
   });
   const csm_framebuffer = gl["c5w"]();
   const collision_texture = gl["c25"]();

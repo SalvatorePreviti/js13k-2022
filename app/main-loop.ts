@@ -72,9 +72,9 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   const csm_tempMatrix = new DOMMatrix();
   const csm_tempFrustumCorners: Vec3[] = integers_map(8, () => ({} as Vec3));
 
-  const csm_textures = [0, 1].map((i: number) => {
+  const csm_render = integers_map(2, (split: number) => {
     const texture = gl.createTexture()!;
-    gl.activeTexture(gl.TEXTURE0 + i);
+    gl.activeTexture(gl.TEXTURE0 + split);
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texImage2D(
       gl.TEXTURE_2D,
@@ -93,7 +93,73 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_MODE, gl.COMPARE_REF_TO_TEXTURE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    return texture;
+
+    return (roundingRadius: number) => {
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, texture, 0);
+      gl.clear(gl.DEPTH_BUFFER_BIT);
+
+      matrixCopy()
+        .scale3dSelf(roundingRadius)
+        .multiplySelf(matrixCopy(csm_projections[split], csm_tempMatrix).multiplySelf(camera_view).invertSelf());
+
+      let tx = 0;
+      let ty = 0;
+      let tz = 0;
+
+      for (let i = 0; i < 8; ++i) {
+        const p = csm_tempFrustumCorners[i]!;
+        p.x = 4 & i ? 1 : -1;
+        p.y = 2 & i ? 1 : -1;
+        p.z = 1 & i ? 1 : -1;
+        const v = tempMatrix.transformPoint(p);
+        // Round to reduce shimmering
+        tx -= p.x = (v.x | 0) / (roundingRadius * v.w);
+        ty -= p.y = (v.y | 0) / (roundingRadius * v.w);
+        tz -= p.z = (v.z | 0) / (roundingRadius * v.w);
+      }
+
+      matrixCopy()
+        .rotateSelf(LIGHT_ROT_X, LIGHT_ROT_Y)
+        .translateSelf(tx / 8, ty / 8, tz / 8);
+
+      let left = Infinity;
+      let right = -Infinity;
+      let bottom = Infinity;
+      let top = -Infinity;
+      let near = Infinity;
+      let far = -Infinity;
+
+      // Compute the frustum bouding box
+      for (let i = 0; i < 8; ++i) {
+        const { x, y, z } = tempMatrix.transformPoint(csm_tempFrustumCorners[i]);
+        left = min(left, x);
+        right = max(right, x);
+        bottom = min(bottom, y);
+        top = max(top, y);
+        near = min(near, z);
+        far = max(far, z);
+      }
+
+      const zMultiplier = 10 + split;
+      near *= near < 0 ? zMultiplier : 1 / zMultiplier;
+      far *= far > 0 ? zMultiplier : 1 / zMultiplier;
+
+      // Build the ortographic matrix, multiply it with the light space view matrix.
+
+      gl.uniformMatrix4fv(
+        csmShader(uniformName_viewMatrix),
+        false,
+        matrixToArray(
+          matrixCopy(identity, csm_tempMatrix)
+            .scaleSelf(2 / (right - left), 2 / (top - bottom), 2 / (near - far))
+            .translateSelf((right + left) / -2, (top + bottom) / -2, (near + far) / 2)
+            .multiplySelf(tempMatrix),
+          csm_lightSpaceMatrices[split],
+        ),
+      );
+
+      renderModels(csmShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL);
+    };
   });
 
   const csm_framebuffer = gl.createFramebuffer();
@@ -101,72 +167,6 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   const collision_texture = gl.createTexture()!;
   const collision_renderBuffer = gl.createRenderbuffer();
   const collision_frameBuffer = gl.createFramebuffer()!;
-
-  const csm_render = (split: 0 | 1, roundingRadius: number, zMultiplier: number) => {
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, csm_textures[split]!, 0);
-    gl.clear(gl.DEPTH_BUFFER_BIT);
-
-    matrixCopy()
-      .scale3dSelf(roundingRadius)
-      .multiplySelf(matrixCopy(csm_projections[split], csm_tempMatrix).multiplySelf(camera_view).invertSelf());
-
-    let tx = 0;
-    let ty = 0;
-    let tz = 0;
-
-    for (let i = 0; i < 8; ++i) {
-      const p = csm_tempFrustumCorners[i]!;
-      p.x = 4 & i ? 1 : -1;
-      p.y = 2 & i ? 1 : -1;
-      p.z = 1 & i ? 1 : -1;
-      const v = tempMatrix.transformPoint(p);
-      // Round to reduce shimmering
-      tx -= p.x = (v.x | 0) / (roundingRadius * v.w);
-      ty -= p.y = (v.y | 0) / (roundingRadius * v.w);
-      tz -= p.z = (v.z | 0) / (roundingRadius * v.w);
-    }
-
-    matrixCopy()
-      .rotateSelf(LIGHT_ROT_X, LIGHT_ROT_Y)
-      .translateSelf(tx / 8, ty / 8, tz / 8);
-
-    let left = Infinity;
-    let right = -Infinity;
-    let bottom = Infinity;
-    let top = -Infinity;
-    let near = Infinity;
-    let far = -Infinity;
-
-    // Compute the frustum bouding box
-    for (let i = 0; i < 8; ++i) {
-      const { x, y, z } = tempMatrix.transformPoint(csm_tempFrustumCorners[i]);
-      left = min(left, x);
-      right = max(right, x);
-      bottom = min(bottom, y);
-      top = max(top, y);
-      near = min(near, z);
-      far = max(far, z);
-    }
-
-    near *= near < 0 ? zMultiplier : 1 / zMultiplier;
-    far *= far > 0 ? zMultiplier : 1 / zMultiplier;
-
-    // Build the ortographic matrix, multiply it with the light space view matrix.
-
-    gl.uniformMatrix4fv(
-      csmShader(uniformName_viewMatrix),
-      false,
-      matrixToArray(
-        matrixCopy(identity, csm_tempMatrix)
-          .scaleSelf(2 / (right - left), 2 / (top - bottom), 2 / (near - far))
-          .translateSelf((right + left) / -2, (top + bottom) / -2, (near + far) / 2)
-          .multiplySelf(tempMatrix),
-        csm_lightSpaceMatrices[split],
-      ),
-    );
-
-    renderModels(csmShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL);
-  };
 
   const mainLoop = (globalTime: number) => {
     gl.flush();
@@ -248,8 +248,8 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     gl.bindFramebuffer(gl.FRAMEBUFFER, csm_framebuffer);
     gl.viewport(0, 0, CSM_TEXTURE_SIZE, CSM_TEXTURE_SIZE);
 
-    csm_render(0, (CSM_PLANE_DISTANCE - zNear) * 1.1, 10);
-    csm_render(1, (zFar - CSM_PLANE_DISTANCE) * 1.1, 11);
+    csm_render[0]!((CSM_PLANE_DISTANCE - zNear) * 1.1);
+    csm_render[1]!((zFar - CSM_PLANE_DISTANCE) * 1.1);
 
     // *** MAIN RENDER ***
 
