@@ -12,6 +12,7 @@ import {
 import { csg_union, csg_polygons_subtract } from "../geometry/csg";
 import {
   levers,
+  souls,
   MODEL_KIND_MESH,
   MODEL_KIND_GAME_NO_ATTACH_PLAYER,
   MODEL_ID_FIRST_BOAT,
@@ -21,7 +22,6 @@ import {
   MODEL_ID_LEVER,
   MODEL_ID_SOUL_COLLISION,
   MODEL_ID_SOUL,
-  souls,
   MODEL_ID_ROTATING_PLATFORM,
 } from "./models";
 import { currentEditModel, material, meshAdd, newLever, newModel, newSoul } from "./models-factory";
@@ -142,7 +142,8 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     );
 
     // in and out
-    [-23, 22].map((z) => meshAdd(cylinder(), translation(0, 0, z).scale(3, 1, 8), material(0.9, 0.9, 0.9, 0.2)));
+    meshAdd(cylinder(), translation(0, 0, -23).scale(3, 1, 8), material(0.9, 0.9, 0.9, 0.2));
+    meshAdd(cylinder(), translation(0, 0, 22).scale(3, 1, 8), material(0.9, 0.9, 0.9, 0.2));
 
     [-15, 15].map((z, i) => {
       //  gate top

@@ -26,6 +26,66 @@ let gameTimeDelta = 0.066;
 const allModels = [];
 const levers = [];
 const souls = [];
+const song_columns = [
+  [
+    "(.15:15:=5:=A:=AF=AFIFIMRMRUY(Y(((((((((((((((((((((((((((((M(M(((((((((((((((((((((((((((((R(R(((((((((((((((((((((((((((((U(U",
+    "(059<59<A9<AE<AEHAEHMEHMQMQTY(Y",
+    "(5:>A:>AF>AFJAFJMFJMRJMRVMRVY(Y",
+    "(:?BFFKNRRWZ^(^((:=@FFILRRUX^(^",
+    "Q(M(M(O(Q(R(T(Q(T(R(W(U(T(R(Q(N(W((Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(X]",
+    "QN(M(N(M(N(M(N(M((((((((((((((((W(Y(Y(Y(Y(Y(Y(Y(Y(((((((((((((((]",
+  ],
+  [
+    ".(5(.(5(.(5(.(5(.(5(.(5(.(5(.(5",
+    "-(5(-(5(-(5(-(5(-(5(-(5(-(5(-(5",
+    ",(5(,(5(,(5(,(5(,(5(,(5(,(5(,(5",
+    "*(6(*(6(*(6(*(6(*(6(*(6(*(6(*(6",
+    "5(E(E(F(H(I(K(H(K(I(N(M(K(I(H(F(A(((((((((((((((((((((((((((((((5(((5(((5(((5(((5(((5(((5(((5",
+    "5(6(5(6(5(6(5(6(5((()(((((((((((A(B(A(B(A(B(A(B(A(((5",
+  ],
+  [
+    "9(((9(((9(((9(((9(((9(((9(((9",
+    "9(((Q(((Q(((Q",
+  ],
+  [
+    "9(9(9(9(9(9(9(999(9(9(9(999(9(9",
+    "9(9(9(9(9(999(9(((((Q",
+  ],
+  [
+    "((((Q(((((((Q(((((((Q(((((((Q",
+    "Q((Q((Q((Q((Q((Q((((Q",
+  ],
+];
+const player_position_final = {
+  x: 0,
+  y: 0,
+  z: 0,
+};
+const camera_rotation = {
+  x: 0,
+  y: 180,
+};
+const integers_map = (n, fn) => Array.from(Array(n), (_, i) => fn(i));
+const DEG_TO_RAD = Math.PI / 180;
+const fieldOfViewAmount = 1.732051;
+const GQuad = [
+  {
+    x: -1,
+    z: 1,
+  },
+  {
+    x: 1,
+    z: 1,
+  },
+  {
+    x: 1,
+    z: -1,
+  },
+  {
+    x: -1,
+    z: -1,
+  },
+];
 const song_instruments = [
   [
     69,
@@ -136,66 +196,6 @@ const song_instruments = [
     9,
     3,
     64,
-  ],
-];
-const player_position_final = {
-  x: 0,
-  y: 0,
-  z: 0,
-};
-const camera_rotation = {
-  x: 0,
-  y: 180,
-};
-const integers_map = (n, fn) => Array.from(Array(n), (_, i) => fn(i));
-const DEG_TO_RAD = Math.PI / 180;
-const fieldOfViewAmount = 1.732051;
-const GQuad = [
-  {
-    x: -1,
-    z: 1,
-  },
-  {
-    x: 1,
-    z: 1,
-  },
-  {
-    x: 1,
-    z: -1,
-  },
-  {
-    x: -1,
-    z: -1,
-  },
-];
-const song_columns = [
-  [
-    "(.15:15:=5:=A:=AF=AFIFIMRMRUY(Y(((((((((((((((((((((((((((((M(M(((((((((((((((((((((((((((((R(R(((((((((((((((((((((((((((((U(U",
-    "(059<59<A9<AE<AEHAEHMEHMQMQTY(Y",
-    "(5:>A:>AF>AFJAFJMFJMRJMRVMRVY(Y",
-    "(:?BFFKNRRWZ^(^((:=@FFILRRUX^(^",
-    "Q(M(M(O(Q(R(T(Q(T(R(W(U(T(R(Q(N(W((Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(X]",
-    "QN(M(N(M(N(M(N(M((((((((((((((((W(Y(Y(Y(Y(Y(Y(Y(Y(((((((((((((((]",
-  ],
-  [
-    ".(5(.(5(.(5(.(5(.(5(.(5(.(5(.(5",
-    "-(5(-(5(-(5(-(5(-(5(-(5(-(5(-(5",
-    ",(5(,(5(,(5(,(5(,(5(,(5(,(5(,(5",
-    "*(6(*(6(*(6(*(6(*(6(*(6(*(6(*(6",
-    "5(E(E(F(H(I(K(H(K(I(N(M(K(I(H(F(A(((((((((((((((((((((((((((((((5(((5(((5(((5(((5(((5(((5(((5",
-    "5(6(5(6(5(6(5(6(5((()(((((((((((A(B(A(B(A(B(A(B(A(((5",
-  ],
-  [
-    "9(((9(((9(((9(((9(((9(((9(((9",
-    "9(((Q(((Q(((Q",
-  ],
-  [
-    "9(9(9(9(9(9(9(999(9(9(9(999(9(9",
-    "9(9(9(9(9(999(9(((((Q",
-  ],
-  [
-    "((((Q(((((((Q(((((((Q(((((((Q",
-    "Q((Q((Q((Q((Q((Q((((Q",
   ],
 ];
 const player_position_global = {
@@ -1672,10 +1672,8 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               GQuad.map(({ x, z }) =>
                 meshAdd(cylinder(6), translation(3 * x, 3, 15 * z).scale(0.7, 4, 0.7), material(0.6, 0.3, 0.3, 0.4))
               ),
-              [
-                -23,
-                22,
-              ].map((z) => meshAdd(cylinder(), translation(0, 0, z).scale(3, 1, 8), material(0.9, 0.9, 0.9, 0.2))),
+              meshAdd(cylinder(), translation(0, 0, -23).scale(3, 1, 8), material(0.9, 0.9, 0.9, 0.2)),
+              meshAdd(cylinder(), translation(0, 0, 22).scale(3, 1, 8), material(0.9, 0.9, 0.9, 0.2)),
               [
                 -15,
                 15,
@@ -1687,13 +1685,16 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                       meshAdd(gateBarsPolygons);
                   });
               }),
-              integers_map(5, (i) =>
-                integers_map(2, (j) =>
-                  meshAdd(
-                    hornPolygons,
-                    translation(18.5 * (j - 0.5), 0, 4.8 * i - 9.5).rotate(0, 180 - 180 * j).scale(1.2, 10, 1.2),
-                    material(1, 1, 0.8, 0.2),
-                  ))),
+              integers_map(
+                5,
+                (i) =>
+                  integers_map(2, (j) =>
+                    meshAdd(
+                      hornPolygons,
+                      translation(18.5 * (j - 0.5), 0, 4.8 * i - 9.5).rotate(0, 180 - 180 * j).scale(1.2, 10, 1.2),
+                      material(1, 1, 0.8, 0.2),
+                    )),
+              ),
               meshAdd(cylinder(), translation(3, 1.5, -20).scale(0.5, 2, 5), material(0.7, 0.7, 0.7, 0.2)),
               meshAdd(
                 cylinder(),

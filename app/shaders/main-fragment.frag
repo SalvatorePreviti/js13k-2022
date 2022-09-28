@@ -8,7 +8,7 @@ const vec3 lightDir = vec3(-0.6560590289905073, 0.6663690071652679, -0.354314686
 
 #define zNear 0.3
 #define CSM_PLANE_DISTANCE 55.
-#define zFar 186.
+#define zFar 181.
 
 in highp vec4 VNormal;
 in highp vec4 FragPos;
