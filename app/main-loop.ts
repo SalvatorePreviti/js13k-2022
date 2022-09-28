@@ -20,16 +20,7 @@ import void_fsSource from "./shaders/void-fragment.frag";
 import sky_vsSource from "./shaders/sky-vertex.vert";
 import sky_fsSource, { uniformName_iResolution } from "./shaders/sky-fragment.frag";
 
-import {
-  integers_map,
-  matrixToArray,
-  mat_perspectiveXY,
-  translation,
-  rotation,
-  mat_perspective,
-  zFar,
-  zNear,
-} from "./math";
+import { integers_map, matrixToArray, translation, rotation, zFar, zNear } from "./math";
 import { MODEL_ID_SOUL, MODEL_ID_SOUL_COLLISION, player_position_final } from "./game/models";
 import {
   absoluteTime,
@@ -40,7 +31,7 @@ import {
   worldStateUpdate,
 } from "./game/world-state";
 import { csm_buildMatrix } from "./csm";
-import { initPage, player_first_person, resetInteractPressed, updateInput } from "./page";
+import { initPage, mat_perspective, player_first_person, resetInteractPressed, updateInput } from "./page";
 import { gl } from "./gl";
 import {
   player_update,
@@ -213,7 +204,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   };
 
   collisionShader();
-  gl.uniformMatrix4fv(collisionShader(uniformName_projectionMatrix), false, mat_perspectiveXY(1.4, 0.59, 0.0001, 1));
+  gl.uniformMatrix4fv(collisionShader(uniformName_projectionMatrix), false, mat_perspective(0.0001, 1, 1.4, 0.59));
 
   mainShader();
   gl.uniform1i(mainShader(uniformName_groundTexture), 2);

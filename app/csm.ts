@@ -1,5 +1,6 @@
-import { integers_map, max, min, scaling, rotation, mat_perspective } from "./math";
+import { integers_map, max, min, scaling, rotation } from "./math";
 import { polygon_transform } from "./geometry/geometry";
+import { mat_perspective } from "./page";
 
 const LIGHT_ROT_X = 298;
 const LIGHT_ROT_Y = 139;

@@ -2,6 +2,8 @@ let mainMenuVisible;
 let _globalTime;
 let interact_pressed;
 let player_first_person;
+let pwidth;
+let pheight;
 let updateInput;
 let currentEditModel;
 let player_update;
@@ -26,66 +28,6 @@ let gameTimeDelta = 0.066;
 const allModels = [];
 const levers = [];
 const souls = [];
-const song_columns = [
-  [
-    "(.15:15:=5:=A:=AF=AFIFIMRMRUY(Y(((((((((((((((((((((((((((((M(M(((((((((((((((((((((((((((((R(R(((((((((((((((((((((((((((((U(U",
-    "(059<59<A9<AE<AEHAEHMEHMQMQTY(Y",
-    "(5:>A:>AF>AFJAFJMFJMRJMRVMRVY(Y",
-    "(:?BFFKNRRWZ^(^((:=@FFILRRUX^(^",
-    "Q(M(M(O(Q(R(T(Q(T(R(W(U(T(R(Q(N(W((Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(X]",
-    "QN(M(N(M(N(M(N(M((((((((((((((((W(Y(Y(Y(Y(Y(Y(Y(Y(((((((((((((((]",
-  ],
-  [
-    ".(5(.(5(.(5(.(5(.(5(.(5(.(5(.(5",
-    "-(5(-(5(-(5(-(5(-(5(-(5(-(5(-(5",
-    ",(5(,(5(,(5(,(5(,(5(,(5(,(5(,(5",
-    "*(6(*(6(*(6(*(6(*(6(*(6(*(6(*(6",
-    "5(E(E(F(H(I(K(H(K(I(N(M(K(I(H(F(A(((((((((((((((((((((((((((((((5(((5(((5(((5(((5(((5(((5(((5",
-    "5(6(5(6(5(6(5(6(5((()(((((((((((A(B(A(B(A(B(A(B(A(((5",
-  ],
-  [
-    "9(((9(((9(((9(((9(((9(((9(((9",
-    "9(((Q(((Q(((Q",
-  ],
-  [
-    "9(9(9(9(9(9(9(999(9(9(9(999(9(9",
-    "9(9(9(9(9(999(9(((((Q",
-  ],
-  [
-    "((((Q(((((((Q(((((((Q(((((((Q",
-    "Q((Q((Q((Q((Q((Q((((Q",
-  ],
-];
-const player_position_final = {
-  x: 0,
-  y: 0,
-  z: 0,
-};
-const camera_rotation = {
-  x: 0,
-  y: 180,
-};
-const integers_map = (n, fn) => Array.from(Array(n), (_, i) => fn(i));
-const DEG_TO_RAD = Math.PI / 180;
-const fieldOfViewAmount = 1.732051;
-const GQuad = [
-  {
-    x: -1,
-    z: 1,
-  },
-  {
-    x: 1,
-    z: 1,
-  },
-  {
-    x: 1,
-    z: -1,
-  },
-  {
-    x: -1,
-    z: -1,
-  },
-];
 const song_instruments = [
   [
     69,
@@ -198,6 +140,66 @@ const song_instruments = [
     64,
   ],
 ];
+const player_position_final = {
+  x: 0,
+  y: 0,
+  z: 0,
+};
+const camera_rotation = {
+  x: 0,
+  y: 180,
+};
+const integers_map = (n, fn) => Array.from(Array(n), (_, i) => fn(i));
+const DEG_TO_RAD = Math.PI / 180;
+const fieldOfViewAmount = 1.732051;
+const GQuad = [
+  {
+    x: -1,
+    z: 1,
+  },
+  {
+    x: 1,
+    z: 1,
+  },
+  {
+    x: 1,
+    z: -1,
+  },
+  {
+    x: -1,
+    z: -1,
+  },
+];
+const song_columns = [
+  [
+    "(.15:15:=5:=A:=AF=AFIFIMRMRUY(Y(((((((((((((((((((((((((((((M(M(((((((((((((((((((((((((((((R(R(((((((((((((((((((((((((((((U(U",
+    "(059<59<A9<AE<AEHAEHMEHMQMQTY(Y",
+    "(5:>A:>AF>AFJAFJMFJMRJMRVMRVY(Y",
+    "(:?BFFKNRRWZ^(^((:=@FFILRRUX^(^",
+    "Q(M(M(O(Q(R(T(Q(T(R(W(U(T(R(Q(N(W((Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(X]",
+    "QN(M(N(M(N(M(N(M((((((((((((((((W(Y(Y(Y(Y(Y(Y(Y(Y(((((((((((((((]",
+  ],
+  [
+    ".(5(.(5(.(5(.(5(.(5(.(5(.(5(.(5",
+    "-(5(-(5(-(5(-(5(-(5(-(5(-(5(-(5",
+    ",(5(,(5(,(5(,(5(,(5(,(5(,(5(,(5",
+    "*(6(*(6(*(6(*(6(*(6(*(6(*(6(*(6",
+    "5(E(E(F(H(I(K(H(K(I(N(M(K(I(H(F(A(((((((((((((((((((((((((((((((5(((5(((5(((5(((5(((5(((5(((5",
+    "5(6(5(6(5(6(5(6(5((()(((((((((((A(B(A(B(A(B(A(B(A(((5",
+  ],
+  [
+    "9(((9(((9(((9(((9(((9(((9(((9",
+    "9(((Q(((Q(((Q",
+  ],
+  [
+    "9(9(9(9(9(9(9(999(9(9(9(999(9(9",
+    "9(9(9(9(9(999(9(((((Q",
+  ],
+  [
+    "((((Q(((((((Q(((((((Q(((((((Q",
+    "Q((Q((Q((Q((Q((Q((((Q",
+  ],
+];
 const player_position_global = {
   x: 0,
   y: 0,
@@ -249,26 +251,6 @@ const matrixToArray = (
   output[index++] = $matrix.m43,
   output[index] = $matrix.m44,
   output);
-const mat_perspectiveXY = (mx, my, near, far) => [
-  mx,
-  0,
-  0,
-  0,
-  0,
-  my,
-  0,
-  0,
-  0,
-  0,
-  (far + near) / (near - far),
-  -1,
-  0,
-  0,
-  2 * far * near / (near - far),
-  0,
-];
-const mat_perspective = (near, far) =>
-  mat_perspectiveXY(hC.clientHeight / hC.clientWidth * fieldOfViewAmount, fieldOfViewAmount, near, far);
 const polygon_color = (polygon, color, smooth) => (polygon.$smooth = smooth, polygon.$color = color, polygon);
 const polygon_transform = (polygon, m, color = polygon.$color) =>
   polygon_color(
@@ -552,6 +534,24 @@ const saveGame = () => {
     secondBoatLerp,
   ]);
 };
+const mat_perspective = (near, far, mx = pheight / pwidth * fieldOfViewAmount, my = fieldOfViewAmount) => [
+  mx,
+  0,
+  0,
+  0,
+  0,
+  my,
+  0,
+  0,
+  0,
+  0,
+  (far + near) / (near - far),
+  -1,
+  0,
+  0,
+  2 * far * near / (near - far),
+  0,
+];
 const initPage = () => {
   let touchStartTime;
   let touchPosStartX;
@@ -582,8 +582,8 @@ const initPage = () => {
         touch_movementX =
         touch_movementY =
           0,
-      hC.width = innerWidth,
-      hC.height = innerHeight,
+      hC.width = pwidth = innerWidth,
+      hC.height = pheight = innerHeight,
       document.hidden && mainMenu(!0);
   };
   const mainMenu = (value, firstPerson = 0) => {
@@ -825,7 +825,7 @@ const newSoul = (transform, ...walkingPath) => {
             [
               ,
               "Mark Zuckemberg<br>made the world worse",
-              ,
+              "Giorgia Meloni<br>fascist",
               "Andrzej Mazur<br>for the js13k competition",
               "Donald Trump<br>lies",
               "Kim Jong-un<br>Dictator, liked pineapple on pizza",
@@ -1422,7 +1422,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
       const collision_frameBuffer = (mainVertexShader = gl["c3z"](), gl["c5w"]());
       const collision_texture = gl["c25"]();
       collisionShader(),
-        gl["uae"](collisionShader("a"), !1, mat_perspectiveXY(1.4, 0.59, 1e-4, 1)),
+        gl["uae"](collisionShader("a"), !1, mat_perspective(1e-4, 1, 1.4, 0.59)),
         mainShader(),
         gl["ubh"](mainShader("q"), 2),
         gl["ubh"](mainShader("h"), 1),

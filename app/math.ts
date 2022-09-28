@@ -143,25 +143,6 @@ export const matrixToArray = (
   return output;
 };
 
-export const mat_perspectiveXY = /* @__PURE__ */ (mx: number, my: number, near: number, far: number) => [
-  mx,
-  0,
-  0,
-  0,
-  0,
-  my,
-  0,
-  0,
-  0,
-  0,
-  (far + near) / (near - far),
-  -1,
-  0,
-  0,
-  (2 * far * near) / (near - far),
-  0,
-];
-
 export const translation = NO_INLINE((x: number, y?: number, z?: number) => identity.translate(x, y, z));
 
 export const rotation = NO_INLINE((x: number, y?: number, z?: number) => identity.rotate(x, y, z));
@@ -175,12 +156,3 @@ export const zFar = constDef_zFar;
 export const fieldOfViewDegrees = 60;
 
 export const fieldOfViewRadians = /* @__PURE__ */ fieldOfViewDegrees * DEG_TO_RAD; // in radians
-
-const fieldOfViewAmount = 1 / Math.tan(fieldOfViewRadians / 2);
-
-export const mat_perspective = (near: number, far: number) =>
-  mat_perspectiveXY((hC.clientHeight / hC.clientWidth) * fieldOfViewAmount, fieldOfViewAmount, near, far);
-
-if (DEBUG) {
-  console.log("fieldOfViewAmount:", fieldOfViewAmount);
-}

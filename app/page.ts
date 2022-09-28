@@ -10,7 +10,7 @@ import {
   GAMEPAD_BUTTON_START,
   type KEY_CODE,
 } from "./utils/keycodes";
-import { abs, clamp, threshold } from "./math";
+import { abs, clamp, fieldOfViewRadians, threshold } from "./math";
 import {
   absoluteTime,
   camera_rotation,
@@ -34,7 +34,20 @@ export let movAngle = 0;
 
 export let movAmount = 0;
 
+export let pwidth: number;
+
+export let pheight: number;
+
 export let updateInput: () => void;
+
+const fieldOfViewAmount = 1 / Math.tan(fieldOfViewRadians / 2);
+
+export const mat_perspective = /* @__PURE__ */ (
+  near: number,
+  far: number,
+  mx: number = (pheight / pwidth) * fieldOfViewAmount,
+  my: number = fieldOfViewAmount,
+) => [mx, 0, 0, 0, 0, my, 0, 0, 0, 0, (far + near) / (near - far), -1, 0, 0, (2 * far * near) / (near - far), 0];
 
 export const initPage = () => {
   let touchStartTime: number | undefined;
@@ -86,8 +99,8 @@ export const initPage = () => {
       touch_movementX =
       touch_movementY =
         0;
-    hC.width = innerWidth;
-    hC.height = innerHeight;
+    hC.width = pwidth = innerWidth;
+    hC.height = pheight = innerHeight;
     if (document.hidden) {
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
       mainMenu(true);
@@ -345,4 +358,8 @@ export const initPage = () => {
   document.onvisibilitychange = onblur = onresize = handleResize;
 
   mainMenu(!DEBUG || DEBUG_FLAG2);
+
+  if (DEBUG) {
+    console.log("fieldOfViewAmount:", fieldOfViewAmount);
+  }
 };

@@ -71,25 +71,6 @@ const matrixToArray = ($matrix, output = float32Array16Temp, index = 0) => {
   output[index] = $matrix.m44;
   return output;
 };
-const mat_perspectiveXY = (mx, my, near, far) => [
-  mx,
-  0,
-  0,
-  0,
-  0,
-  my,
-  0,
-  0,
-  0,
-  0,
-  (far + near) / (near - far),
-  -1,
-  0,
-  0,
-  2 * far * near / (near - far),
-  0
-];
-const mat_perspective = (near, far) => mat_perspectiveXY(hC.clientHeight / hC.clientWidth * fieldOfViewAmount, fieldOfViewAmount, near, far);
 const identity = new DOMMatrix();
 const float32Array16Temp = new Float32Array(16);
 const min = NO_INLINE((a, b) => a < b ? a : b);
@@ -101,7 +82,6 @@ const scaling = NO_INLINE((x, y, z) => identity.scale(x, y, z));
 const zNear = constDef_zNear;
 const zFar = constDef_zFar;
 const fieldOfViewRadians = fieldOfViewDegrees * DEG_TO_RAD;
-const fieldOfViewAmount = 1 / /* @__PURE__ */ Math.tan(fieldOfViewRadians / 2);
 const GQuad = [
   {
     x: -1,
@@ -487,7 +467,7 @@ const onSoulCollected = () => {
   showMessage([
     ,
     "Mark Zuckemberg<br>made the world worse",
-    ,
+    "Giorgia Meloni<br>fascist",
     "Andrzej Mazur<br>for the js13k competition",
     "Donald Trump<br>lies",
     "Kim Jong-un<br>Dictator, liked pineapple on pizza",
@@ -522,12 +502,32 @@ const audioContext = new AudioContext();
 const songAudioSource = audioContext.createBufferSource();
 let interact_pressed;
 let player_first_person;
+let pwidth;
+let pheight;
 let updateInput;
 let movAngle = 0;
 let movAmount = 0;
 const resetInteractPressed = () => {
   interact_pressed = 0;
 };
+const mat_perspective = (near, far, mx = pheight / pwidth * fieldOfViewAmount, my = fieldOfViewAmount) => [
+  mx,
+  0,
+  0,
+  0,
+  0,
+  my,
+  0,
+  0,
+  0,
+  0,
+  (far + near) / (near - far),
+  -1,
+  0,
+  0,
+  2 * far * near / (near - far),
+  0
+];
 const initPage = () => {
   let touchStartTime;
   let touchPosStartX;
@@ -564,8 +564,8 @@ const initPage = () => {
   const handleResize = () => {
     touchPosIdentifier = touchRotIdentifier = void 0;
     keyboard_downKeys.length = interact_pressed = gamepadInteractPressed = movAmount = touch_movementX = touch_movementY = 0;
-    hC.width = innerWidth;
-    hC.height = innerHeight;
+    hC.width = pwidth = innerWidth;
+    hC.height = pheight = innerHeight;
     if (document.hidden)
       mainMenu(true);
   };
@@ -745,6 +745,7 @@ const initPage = () => {
   document.onvisibilitychange = onblur = onresize = handleResize;
   mainMenu(true);
 };
+const fieldOfViewAmount = 1 / /* @__PURE__ */ Math.tan(fieldOfViewRadians / 2);
 let currentEditModel;
 const LEVER_SENSITIVITY_RADIUS = 3;
 const SOUL_SENSITIVITY_RADIUS = 1.6;
@@ -1741,7 +1742,7 @@ const startMainLoop = (groundTextureImage) => {
   const collision_frameBuffer = gl["c5w"]();
   const collision_texture = gl["c25"]();
   collisionShader();
-  gl["uae"](collisionShader(uniformName_projectionMatrix), false, mat_perspectiveXY(1.4, 0.59, 1e-4, 1));
+  gl["uae"](collisionShader(uniformName_projectionMatrix), false, mat_perspective(1e-4, 1, 1.4, 0.59));
   mainShader();
   gl["ubh"](mainShader(uniformName_groundTexture), 2);
   gl["ubh"](mainShader(uniformName_csm_texture1), 1);
