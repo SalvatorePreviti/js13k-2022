@@ -1,6 +1,4 @@
-import type { Vec3 } from "./math";
-import { integers_map, max, min, scaling, rotation, matrixSetIdentity, tempMatrix } from "./math";
-import { mat_perspective } from "./page";
+import { integers_map, max, min, scaling, rotation, matrixSetIdentity, tempMatrix, type Vec3 } from "./math";
 
 const LIGHT_ROT_X = 298;
 const LIGHT_ROT_Y = 139;
@@ -15,15 +13,11 @@ const _frustumCorners: Vec3[] = integers_map(8, () => ({} as Vec3));
 
 export const csm_buildMatrix = /* @__PURE__ */ (
   camera_view: DOMMatrixReadOnly,
-  nearPlane: number,
-  farPlane: number,
+  projection: DOMMatrixReadOnly,
+  roundingRadius: number,
   zMultiplier: number,
 ) => {
-  const roundingRadius = (farPlane - nearPlane) * 1.1;
-
-  matrixSetIdentity(tempMatrix)
-    .scale3dSelf(roundingRadius)
-    .multiplySelf(new DOMMatrix(mat_perspective(nearPlane, farPlane)).multiplySelf(camera_view).invertSelf());
+  matrixSetIdentity(tempMatrix).scale3dSelf(roundingRadius).multiplySelf(projection.multiply(camera_view).invertSelf());
 
   let tx = 0;
   let ty = 0;
@@ -33,12 +27,12 @@ export const csm_buildMatrix = /* @__PURE__ */ (
     _frustumPoint.x = 4 & i ? 1 : -1;
     _frustumPoint.y = 2 & i ? 1 : -1;
     _frustumPoint.z = 1 & i ? 1 : -1;
-    let { x, y, z, w } = tempMatrix.transformPoint(_frustumPoint);
-    w *= roundingRadius;
+    const v = tempMatrix.transformPoint(_frustumPoint);
+    const w = roundingRadius * v.w;
     // Round to reduce shimmering
-    tx -= _frustumCorners[i]!.x = (x | 0) / w;
-    ty -= _frustumCorners[i]!.y = (y | 0) / w;
-    tz -= _frustumCorners[i]!.z = (z | 0) / w;
+    tx -= _frustumCorners[i]!.x = (v.x | 0) / w;
+    ty -= _frustumCorners[i]!.y = (v.y | 0) / w;
+    tz -= _frustumCorners[i]!.z = (v.z | 0) / w;
   }
 
   matrixSetIdentity(tempMatrix)

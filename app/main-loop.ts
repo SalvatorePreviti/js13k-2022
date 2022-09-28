@@ -31,7 +31,16 @@ import {
   worldStateUpdate,
 } from "./game/world-state";
 import { csm_buildMatrix } from "./csm";
-import { initPage, mat_perspective, player_first_person, resetInteractPressed, updateInput } from "./page";
+import {
+  csm0_projection,
+  csm1_projection,
+  initPage,
+  mat_perspective,
+  player_first_person,
+  projection,
+  resetInteractPressed,
+  updateInput,
+} from "./page";
 import { gl } from "./gl";
 import {
   player_update,
@@ -178,8 +187,8 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     gl.bindFramebuffer(gl.FRAMEBUFFER, csm_framebuffer);
     gl.viewport(0, 0, CSM_TEXTURE_SIZE, CSM_TEXTURE_SIZE);
 
-    csm_render[0]!(csm_buildMatrix(camera_view, zNear, CSM_PLANE_DISTANCE, 10));
-    csm_render[1]!(csm_buildMatrix(camera_view, CSM_PLANE_DISTANCE, zFar, 11));
+    csm_render[0]!(csm_buildMatrix(camera_view, csm0_projection, (CSM_PLANE_DISTANCE - zNear) * 1.1, 10));
+    csm_render[1]!(csm_buildMatrix(camera_view, csm1_projection, (zFar - CSM_PLANE_DISTANCE) * 1.1, 11));
 
     // *** MAIN RENDER ***
 
@@ -193,7 +202,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     csm_render[0]!();
     csm_render[1]!();
 
-    gl.uniformMatrix4fv(mainShader(uniformName_projectionMatrix), false, mat_perspective(zNear, zFar));
+    gl.uniformMatrix4fv(mainShader(uniformName_projectionMatrix), false, matrixToArray(projection));
     gl.uniformMatrix4fv(mainShader(uniformName_viewMatrix), false, matrixToArray(camera_view));
     gl.uniform3f(mainShader(uniformName_viewPos), camera_position_x, camera_position_y, camera_position_z);
 
@@ -221,7 +230,11 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   };
 
   collisionShader();
-  gl.uniformMatrix4fv(collisionShader(uniformName_projectionMatrix), false, mat_perspective(0.0001, 1, 1.4, 0.59));
+  gl.uniformMatrix4fv(
+    collisionShader(uniformName_projectionMatrix),
+    false,
+    matrixToArray(mat_perspective(0.0001, 1, 1.4, 0.59)),
+  );
 
   mainShader();
   gl.uniform1i(mainShader(uniformName_groundTexture), 2);

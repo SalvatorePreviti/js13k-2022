@@ -1,4 +1,8 @@
-import { constDef_zNear, constDef_zFar } from "./shaders/main-fragment.frag";
+import {
+  constDef_zNear,
+  constDef_CSM_PLANE_DISTANCE as CSM_PLANE_DISTANCE,
+  constDef_zFar,
+} from "./shaders/main-fragment.frag";
 
 if (DEBUG) {
   window.NO_INLINE = (fn) => fn;
@@ -140,24 +144,44 @@ export const matrixToArray = (
   return output;
 };
 
-export const matrixSetIdentity = ($matrix: DOMMatrix) => {
-  $matrix.m11 = 1;
-  $matrix.m12 = 0;
-  $matrix.m13 = 0;
-  $matrix.m14 = 0;
-  $matrix.m21 = 0;
-  $matrix.m22 = 1;
-  $matrix.m23 = 0;
-  $matrix.m24 = 0;
-  $matrix.m31 = 0;
-  $matrix.m32 = 0;
-  $matrix.m33 = 1;
-  $matrix.m34 = 0;
-  $matrix.m41 = 0;
-  $matrix.m42 = 0;
-  $matrix.m43 = 0;
-  $matrix.m44 = 1;
-  return $matrix;
+export const matrixSetIdentity = (matrix: DOMMatrix) => {
+  matrix.m11 = 1;
+  matrix.m12 = 0;
+  matrix.m13 = 0;
+  matrix.m14 = 0;
+  matrix.m21 = 0;
+  matrix.m22 = 1;
+  matrix.m23 = 0;
+  matrix.m24 = 0;
+  matrix.m31 = 0;
+  matrix.m32 = 0;
+  matrix.m33 = 1;
+  matrix.m34 = 0;
+  matrix.m41 = 0;
+  matrix.m42 = 0;
+  matrix.m43 = 0;
+  matrix.m44 = 1;
+  return matrix;
+};
+
+export const matrixCopy = (matrix: DOMMatrix, source: DOMMatrix) => {
+  matrix.m11 = source.m11;
+  matrix.m12 = source.m12;
+  matrix.m13 = source.m13;
+  matrix.m14 = source.m14;
+  matrix.m21 = source.m21;
+  matrix.m22 = source.m22;
+  matrix.m23 = source.m23;
+  matrix.m24 = source.m24;
+  matrix.m31 = source.m31;
+  matrix.m32 = source.m32;
+  matrix.m33 = source.m33;
+  matrix.m34 = source.m34;
+  matrix.m41 = source.m41;
+  matrix.m42 = source.m42;
+  matrix.m43 = source.m43;
+  matrix.m44 = source.m44;
+  return matrix;
 };
 
 export const tempMatrix = new DOMMatrix();
@@ -169,6 +193,8 @@ export const rotation = NO_INLINE((x: number, y?: number, z?: number) => new DOM
 export const scaling = NO_INLINE((x: number, y?: number, z?: number) => new DOMMatrix().scaleSelf(x, y, z));
 
 export const zNear = constDef_zNear;
+
+export { CSM_PLANE_DISTANCE };
 
 export const zFar = constDef_zFar;
 

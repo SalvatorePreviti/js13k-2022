@@ -520,32 +520,15 @@ const audioContext = new AudioContext();
 const songAudioSource = audioContext.createBufferSource();
 let interact_pressed;
 let player_first_person;
-let pwidth;
-let pheight;
 let updateInput;
+let projection;
+let csm0_projection;
+let csm1_projection;
 let movAngle = 0;
 let movAmount = 0;
 const resetInteractPressed = () => {
   interact_pressed = 0;
 };
-const mat_perspective = (near, far, mx = pheight / pwidth * fieldOfViewAmount, my = fieldOfViewAmount) => [
-  mx,
-  0,
-  0,
-  0,
-  0,
-  my,
-  0,
-  0,
-  0,
-  0,
-  (far + near) / (near - far),
-  -1,
-  0,
-  0,
-  2 * far * near / (near - far),
-  0
-];
 const initPage = () => {
   let touchStartTime;
   let touchPosStartX;
@@ -573,17 +556,19 @@ const initPage = () => {
   const TOUCH_MOVE_THRESHOLD = 0.5;
   const keyboard_downKeys = [];
   const updateMusicOnState = () => {
+    b4.innerHTML = "Music: " + music_on;
     if (mainMenuVisible || !music_on)
       songAudioSource.disconnect();
     else
       songAudioSource.connect(audioContext.destination);
-    b4.innerHTML = "Music: " + music_on;
   };
   const handleResize = () => {
+    const mx = (hC.height = innerHeight) / (hC.width = innerWidth) * fieldOfViewAmount;
+    projection = mat_perspective(zNear, zFar, mx, fieldOfViewAmount);
+    csm0_projection = mat_perspective(zNear, constDef_CSM_PLANE_DISTANCE, mx, fieldOfViewAmount);
+    csm1_projection = mat_perspective(constDef_CSM_PLANE_DISTANCE, zFar, mx, fieldOfViewAmount);
     touchPosIdentifier = touchRotIdentifier = void 0;
     keyboard_downKeys.length = interact_pressed = gamepadInteractPressed = movAmount = touch_movementX = touch_movementY = 0;
-    hC.width = pwidth = innerWidth;
-    hC.height = pheight = innerHeight;
     if (document.hidden)
       mainMenu(true);
   };
@@ -764,6 +749,24 @@ const initPage = () => {
   mainMenu(true);
 };
 const fieldOfViewAmount = 1 / /* @__PURE__ */ Math.tan(fieldOfViewRadians / 2);
+const mat_perspective = NO_INLINE((near, far, mx, my) => new DOMMatrix([
+  mx,
+  0,
+  0,
+  0,
+  0,
+  my,
+  0,
+  0,
+  0,
+  0,
+  (far + near) / (near - far),
+  -1,
+  0,
+  0,
+  2 * far * near / (near - far),
+  0
+]));
 let currentEditModel;
 const LEVER_SENSITIVITY_RADIUS = 3;
 const SOUL_SENSITIVITY_RADIUS = 1.6;
@@ -1383,21 +1386,20 @@ const uniformName_iResolution = "j";
 const LIGHT_ROT_Y = 139;
 const LIGHT_ROT_X = 298;
 const _frustumPoint = {};
-const csm_buildMatrix = (camera_view, nearPlane, farPlane, zMultiplier) => {
+const csm_buildMatrix = (camera_view, projection2, roundingRadius, zMultiplier) => {
   let tx = 0;
   let ty = 0;
   let tz = 0;
-  const roundingRadius = (farPlane - nearPlane) * 1.1;
-  matrixSetIdentity(tempMatrix).scale3dSelf(roundingRadius).multiplySelf(new DOMMatrix(mat_perspective(nearPlane, farPlane)).multiplySelf(camera_view).invertSelf());
+  matrixSetIdentity(tempMatrix).scale3dSelf(roundingRadius).multiplySelf(projection2.multiply(camera_view).invertSelf());
   for (let i = 0; i < 8; ++i) {
     _frustumPoint.x = 4 & i ? 1 : -1;
     _frustumPoint.y = 2 & i ? 1 : -1;
     _frustumPoint.z = 1 & i ? 1 : -1;
-    let { x, y, z, w } = tempMatrix.transformPoint(_frustumPoint);
-    w *= roundingRadius;
-    tx -= _frustumCorners[i].x = (x | 0) / w;
-    ty -= _frustumCorners[i].y = (y | 0) / w;
-    tz -= _frustumCorners[i].z = (z | 0) / w;
+    const v = tempMatrix.transformPoint(_frustumPoint);
+    const w = roundingRadius * v.w;
+    tx -= _frustumCorners[i].x = (v.x | 0) / w;
+    ty -= _frustumCorners[i].y = (v.y | 0) / w;
+    tz -= _frustumCorners[i].z = (v.z | 0) / w;
   }
   matrixSetIdentity(tempMatrix).rotateSelf(LIGHT_ROT_X, LIGHT_ROT_Y).translateSelf(tx / 8, ty / 8, tz / 8);
   let left = Infinity;
@@ -1407,13 +1409,13 @@ const csm_buildMatrix = (camera_view, nearPlane, farPlane, zMultiplier) => {
   let near = Infinity;
   let far = -Infinity;
   for (let i1 = 0; i1 < 8; ++i1) {
-    const { x: x1, y: y1, z: z1 } = tempMatrix.transformPoint(_frustumCorners[i1]);
-    left = min(left, x1);
-    right = max(right, x1);
-    bottom = min(bottom, y1);
-    top = max(top, y1);
-    near = min(near, z1);
-    far = max(far, z1);
+    const { x, y, z } = tempMatrix.transformPoint(_frustumCorners[i1]);
+    left = min(left, x);
+    right = max(right, x);
+    bottom = min(bottom, y);
+    top = max(top, y);
+    near = min(near, z);
+    far = max(far, z);
   }
   near *= near < 0 ? zMultiplier : 1 / zMultiplier;
   far *= far > 0 ? zMultiplier : 1 / zMultiplier;
@@ -1712,8 +1714,8 @@ const startMainLoop = (groundTextureImage) => {
     csmShader();
     gl["b6o"](36160, csm_framebuffer);
     gl["v5y"](0, 0, constDef_CSM_TEXTURE_SIZE, constDef_CSM_TEXTURE_SIZE);
-    csm_render[0](csm_buildMatrix(camera_view, zNear, constDef_CSM_PLANE_DISTANCE, 10));
-    csm_render[1](csm_buildMatrix(camera_view, constDef_CSM_PLANE_DISTANCE, zFar, 11));
+    csm_render[0](csm_buildMatrix(camera_view, csm0_projection, (constDef_CSM_PLANE_DISTANCE - zNear) * 1.1, 10));
+    csm_render[1](csm_buildMatrix(camera_view, csm1_projection, (zFar - constDef_CSM_PLANE_DISTANCE) * 1.1, 11));
     mainShader();
     gl["b6o"](36160, null);
     gl["v5y"](0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
@@ -1721,7 +1723,7 @@ const startMainLoop = (groundTextureImage) => {
     gl["c4s"](16640);
     csm_render[0]();
     csm_render[1]();
-    gl["uae"](mainShader(uniformName_projectionMatrix), false, mat_perspective(zNear, zFar));
+    gl["uae"](mainShader(uniformName_projectionMatrix), false, matrixToArray(projection));
     gl["uae"](mainShader(uniformName_viewMatrix), false, matrixToArray(camera_view));
     gl["ubu"](mainShader(uniformName_viewPos), camera_position_x, camera_position_y, camera_position_z);
     renderModels(mainShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL);
@@ -1767,7 +1769,7 @@ const startMainLoop = (groundTextureImage) => {
   const collision_frameBuffer = gl["c5w"]();
   const collision_texture = gl["c25"]();
   collisionShader();
-  gl["uae"](collisionShader(uniformName_projectionMatrix), false, mat_perspective(1e-4, 1, 1.4, 0.59));
+  gl["uae"](collisionShader(uniformName_projectionMatrix), false, matrixToArray(mat_perspective(1e-4, 1, 1.4, 0.59)));
   mainShader();
   gl["ubh"](mainShader(uniformName_groundTexture), 2);
   gl["ubh"](mainShader(uniformName_csm_texture1), 1);

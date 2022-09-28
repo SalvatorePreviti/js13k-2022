@@ -10,7 +10,7 @@ import {
   GAMEPAD_BUTTON_START,
   type KEY_CODE,
 } from "./utils/keycodes";
-import { abs, clamp, fieldOfViewRadians, threshold } from "./math";
+import { abs, clamp, CSM_PLANE_DISTANCE, fieldOfViewRadians, threshold, zFar, zNear } from "./math";
 import {
   absoluteTime,
   camera_rotation,
@@ -34,20 +34,37 @@ export let movAngle = 0;
 
 export let movAmount = 0;
 
-export let pwidth: number;
-
-export let pheight: number;
-
 export let updateInput: () => void;
+
+export let projection: DOMMatrix;
+
+export let csm0_projection: DOMMatrix;
+
+export let csm1_projection: DOMMatrix;
 
 const fieldOfViewAmount = 1 / Math.tan(fieldOfViewRadians / 2);
 
-export const mat_perspective = /* @__PURE__ */ (
-  near: number,
-  far: number,
-  mx: number = (pheight / pwidth) * fieldOfViewAmount,
-  my: number = fieldOfViewAmount,
-) => [mx, 0, 0, 0, 0, my, 0, 0, 0, 0, (far + near) / (near - far), -1, 0, 0, (2 * far * near) / (near - far), 0];
+export const mat_perspective = NO_INLINE(
+  (near: number, far: number, mx: number, my: number) =>
+    new DOMMatrix([
+      mx,
+      0,
+      0,
+      0,
+      0,
+      my,
+      0,
+      0,
+      0,
+      0,
+      (far + near) / (near - far),
+      -1,
+      0,
+      0,
+      (2 * far * near) / (near - far),
+      0,
+    ]),
+);
 
 export const initPage = () => {
   let touchStartTime: number | undefined;
@@ -81,16 +98,21 @@ export const initPage = () => {
   const KEY_MENU = 5;
 
   const updateMusicOnState = () => {
+    b4.innerHTML = "Music: " + music_on;
     if (mainMenuVisible || !music_on) {
       songAudioSource.disconnect();
     } else {
       // connect the AudioBufferSourceNode to the  destination so we can hear the sound
       songAudioSource.connect(audioContext.destination);
     }
-    b4.innerHTML = "Music: " + music_on;
   };
 
   const handleResize = () => {
+    const mx = ((hC.height = innerHeight) / (hC.width = innerWidth)) * fieldOfViewAmount;
+    projection = mat_perspective(zNear, zFar, mx, fieldOfViewAmount);
+    csm0_projection = mat_perspective(zNear, CSM_PLANE_DISTANCE, mx, fieldOfViewAmount);
+    csm1_projection = mat_perspective(CSM_PLANE_DISTANCE, zFar, mx, fieldOfViewAmount);
+
     touchPosIdentifier = touchRotIdentifier = undefined;
     keyboard_downKeys.length =
       interact_pressed =
@@ -99,8 +121,7 @@ export const initPage = () => {
       touch_movementX =
       touch_movementY =
         0;
-    hC.width = pwidth = innerWidth;
-    hC.height = pheight = innerHeight;
+
     if (document.hidden) {
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
       mainMenu(true);

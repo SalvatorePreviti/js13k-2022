@@ -2,9 +2,10 @@ let mainMenuVisible;
 let _globalTime;
 let interact_pressed;
 let player_first_person;
-let pwidth;
-let pheight;
 let updateInput;
+let projection;
+let csm0_projection;
+let csm1_projection;
 let currentEditModel;
 let player_update;
 let souls_collected_count = 0;
@@ -29,6 +30,24 @@ const LOCAL_STORAGE_SAVED_GAME_KEY = "DanteSP22";
 const allModels = [];
 const levers = [];
 const souls = [];
+const GQuad = [
+  {
+    x: -1,
+    z: 1,
+  },
+  {
+    x: 1,
+    z: 1,
+  },
+  {
+    x: 1,
+    z: -1,
+  },
+  {
+    x: -1,
+    z: -1,
+  },
+];
 const song_columns = [
   [
     "(.15:15:=5:=A:=AF=AFIFIMRMRUY(Y(((((((((((((((((((((((((((((M(M(((((((((((((((((((((((((((((R(R(((((((((((((((((((((((((((((U(U",
@@ -244,24 +263,6 @@ const saveGame = () => {
     secondBoatLerp,
   ]);
 };
-const mat_perspective = (near, far, mx = pheight / pwidth * fieldOfViewAmount, my = fieldOfViewAmount) => [
-  mx,
-  0,
-  0,
-  0,
-  0,
-  my,
-  0,
-  0,
-  0,
-  0,
-  (far + near) / (near - far),
-  -1,
-  0,
-  0,
-  2 * far * near / (near - far),
-  0,
-];
 const initPage = () => {
   let touchStartTime;
   let touchPosStartX;
@@ -280,11 +281,15 @@ const initPage = () => {
   let music_on = !0;
   const keyboard_downKeys = [];
   const updateMusicOnState = () => {
-    mainMenuVisible || !music_on ? songAudioSource.disconnect() : songAudioSource.connect(audioContext.destination),
-      b4.innerHTML = "Music: " + music_on;
+    b4.innerHTML = "Music: " + music_on,
+      mainMenuVisible || !music_on ? songAudioSource.disconnect() : songAudioSource.connect(audioContext.destination);
   };
   const handleResize = () => {
-    touchPosIdentifier = touchRotIdentifier = void 0,
+    const mx = (hC.height = innerHeight) / (hC.width = innerWidth) * fieldOfViewAmount;
+    projection = mat_perspective(zNear, zFar, mx, fieldOfViewAmount),
+      csm0_projection = mat_perspective(zNear, 55, mx, fieldOfViewAmount),
+      csm1_projection = mat_perspective(55, zFar, mx, fieldOfViewAmount),
+      touchPosIdentifier = touchRotIdentifier = void 0,
       keyboard_downKeys.length =
         interact_pressed =
         gamepadInteractPressed =
@@ -292,8 +297,6 @@ const initPage = () => {
         touch_movementX =
         touch_movementY =
           0,
-      hC.width = pwidth = innerWidth,
-      hC.height = pheight = innerHeight,
       document.hidden && mainMenu(!0);
   };
   const mainMenu = (value, firstPerson = 0) => {
@@ -581,7 +584,7 @@ const newSoul = (transform, ...walkingPath) => {
   };
   souls.push(soul);
 };
-const csm_buildMatrix = (camera_view, nearPlane, farPlane, zMultiplier) => {
+const csm_buildMatrix = (camera_view, projection2, roundingRadius, zMultiplier) => {
   let tx = 0;
   let ty = 0;
   let tz = 0;
@@ -591,27 +594,26 @@ const csm_buildMatrix = (camera_view, nearPlane, farPlane, zMultiplier) => {
   let top = -1 / 0;
   let near = 1 / 0;
   let far = -1 / 0;
-  const roundingRadius = 1.1 * (farPlane - nearPlane);
   matrixSetIdentity(tempMatrix).scale3dSelf(roundingRadius).multiplySelf(
-    new DOMMatrix(mat_perspective(nearPlane, farPlane)).multiplySelf(camera_view).invertSelf(),
+    projection2.multiply(camera_view).invertSelf(),
   );
   for (let i = 0; i < 8; ++i) {
     _frustumPoint.x = 4 & i ? 1 : -1, _frustumPoint.y = 2 & i ? 1 : -1, _frustumPoint.z = 1 & i ? 1 : -1;
-    let { x, y, z, w } = tempMatrix.transformPoint(_frustumPoint);
-    w *= roundingRadius,
-      tx -= _frustumCorners[i].x = (0 | x) / w,
-      ty -= _frustumCorners[i].y = (0 | y) / w,
-      tz -= _frustumCorners[i].z = (0 | z) / w;
+    const v = tempMatrix.transformPoint(_frustumPoint);
+    const w = roundingRadius * v.w;
+    tx -= _frustumCorners[i].x = (0 | v.x) / w,
+      ty -= _frustumCorners[i].y = (0 | v.y) / w,
+      tz -= _frustumCorners[i].z = (0 | v.z) / w;
   }
   matrixSetIdentity(tempMatrix).rotateSelf(298, 139).translateSelf(tx / 8, ty / 8, tz / 8);
   for (let i1 = 0; i1 < 8; ++i1) {
-    const { x: x1, y: y1, z: z1 } = tempMatrix.transformPoint(_frustumCorners[i1]);
-    left = min(left, x1),
-      right = max(right, x1),
-      bottom = min(bottom, y1),
-      top = max(top, y1),
-      near = min(near, z1),
-      far = max(far, z1);
+    const { x, y, z } = tempMatrix.transformPoint(_frustumCorners[i1]);
+    left = min(left, x),
+      right = max(right, x),
+      bottom = min(bottom, y),
+      top = max(top, y),
+      near = min(near, z),
+      far = max(far, z);
   }
   return near *= near < 0 ? zMultiplier : 1 / zMultiplier,
     far *= 0 < far ? zMultiplier : 1 / zMultiplier,
@@ -623,24 +625,8 @@ const csm_buildMatrix = (camera_view, nearPlane, farPlane, zMultiplier) => {
 };
 const integers_map = (n, fn) => Array.from(Array(n), (_, i) => fn(i));
 const DEG_TO_RAD = Math.PI / 180;
-const GQuad = [
-  {
-    x: -1,
-    z: 1,
-  },
-  {
-    x: 1,
-    z: 1,
-  },
-  {
-    x: 1,
-    z: -1,
-  },
-  {
-    x: -1,
-    z: -1,
-  },
-];
+const zFar = 181;
+const zNear = 0.3;
 const clamp = (value, minValue = 0, maxValue = 1) => value < minValue ? minValue : maxValue < value ? maxValue : value;
 const threshold = (value, amount) => abs(value) > amount ? value : 0;
 const lerp = (a, b, t) => (0 < t ? t < 1 ? a + (b - a) * t : b : a) || 0;
@@ -1323,6 +1309,26 @@ const rotation = NO_INLINE((x, y, z) => new DOMMatrix().rotateSelf(x, y, z));
 const scaling = NO_INLINE((x, y, z) => new DOMMatrix().scaleSelf(x, y, z));
 const songAudioSource = audioContext.createBufferSource();
 const fieldOfViewAmount = 1 / Math.tan(60 * DEG_TO_RAD / 2);
+const mat_perspective = NO_INLINE((near, far, mx, my) =>
+  new DOMMatrix([
+    mx,
+    0,
+    0,
+    0,
+    0,
+    my,
+    0,
+    0,
+    0,
+    0,
+    (far + near) / (near - far),
+    -1,
+    0,
+    0,
+    2 * far * near / (near - far),
+    0,
+  ])
+);
 const material = NO_INLINE((r, g, b, a = 0) => 255 * a << 24 | 255 * b << 16 | 255 * g << 8 | 255 * r);
 const _frustumCorners = integers_map(8, () => ({}));
 const gl = hC.getContext("webgl2", {
@@ -1394,8 +1400,8 @@ loadStep(() => {
           csmShader(),
           gl["b6o"](36160, csm_framebuffer),
           gl["v5y"](0, 0, 2048, 2048),
-          csm_render[0](csm_buildMatrix(camera_view, 0.3, 55, 10)),
-          csm_render[1](csm_buildMatrix(camera_view, 55, 181, 11)),
+          csm_render[0](csm_buildMatrix(camera_view, csm0_projection, 1.1 * (55 - zNear), 10)),
+          csm_render[1](csm_buildMatrix(camera_view, csm1_projection, 1.1 * 126, 11)),
           mainShader(),
           gl["b6o"](36160, null),
           gl["v5y"](0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight),
@@ -1403,7 +1409,7 @@ loadStep(() => {
           gl["c4s"](16640),
           csm_render[0](),
           csm_render[1](),
-          gl["uae"](mainShader("a"), !1, mat_perspective(0.3, 181)),
+          gl["uae"](mainShader("a"), !1, matrixToArray(projection)),
           gl["uae"](mainShader("b"), !1, matrixToArray(camera_view)),
           gl["ubu"](mainShader("k"), camera_position_x, camera_position_y, camera_position_z),
           renderModels(mainShader("c"), !player_first_person, 42),
@@ -1471,7 +1477,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
       const collision_frameBuffer = (mainVertexShader = gl["c3z"](), gl["c5w"]());
       const collision_texture = gl["c25"]();
       collisionShader(),
-        gl["uae"](collisionShader("a"), !1, mat_perspective(1e-4, 1, 1.4, 0.59)),
+        gl["uae"](collisionShader("a"), !1, matrixToArray(mat_perspective(1e-4, 1, 1.4, 0.59))),
         mainShader(),
         gl["ubh"](mainShader("q"), 2),
         gl["ubh"](mainShader("h"), 1),
