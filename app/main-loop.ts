@@ -104,6 +104,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
   const csm_render = (split: 0 | 1, roundingRadius: number, zMultiplier: number) => {
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, csm_textures[split]!, 0);
+    gl.clear(gl.DEPTH_BUFFER_BIT);
 
     matrixCopy()
       .scale3dSelf(roundingRadius)
@@ -163,8 +164,6 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
         csm_lightSpaceMatrices[split],
       ),
     );
-
-    gl.clear(gl.DEPTH_BUFFER_BIT);
 
     renderModels(csmShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL);
   };

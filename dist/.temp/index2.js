@@ -1313,6 +1313,7 @@ loadStep(() => {
         let near = 1 / 0;
         let far = -1 / 0;
         gl["fas"](36160, 36096, 3553, csm_textures[split], 0),
+          gl["c4s"](256),
           matrixCopy().scale3dSelf(roundingRadius).multiplySelf(
             matrixCopy(csm_projections[split], csm_tempMatrix).multiplySelf(camera_view).invertSelf(),
           );
@@ -1344,7 +1345,6 @@ loadStep(() => {
               csm_lightSpaceMatrices[split],
             ),
           ),
-          gl["c4s"](256),
           renderModels(csmShader("c"), !player_first_person, 42);
       };
       const mainLoop = (globalTime) => {

@@ -410,6 +410,7 @@ O1(() => {
           l = (e, l, t) => {
             let r = 0, s = 0, o = 0, c = 1 / 0, n = -1 / 0, i = 1 / 0, f = -1 / 0, m = 1 / 0, h = -1 / 0;
             _.fas(36160, 36096, 3553, p[e], 0),
+              _.c4s(256),
               W().scale3dSelf(l).multiplySelf(W(e1[e], a).multiplySelf(g).invertSelf());
             for (let a = 0; a < 8; ++a) {
               let e = d[a],
@@ -434,7 +435,6 @@ O1(() => {
                   u[e],
                 ),
               ),
-              _.c4s(256),
               C1(v("c"), !T, 42);
           },
           r = e => {

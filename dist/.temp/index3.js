@@ -814,6 +814,7 @@ Ub(() => {
           k = (r, u, D) => {
             let H = 0, R = 0, Z = 0, V = 1 / 0, B = -1 / 0, C = 1 / 0, Q = -1 / 0, K = 1 / 0, L = -1 / 0;
             X.fas(36160, 36096, 3553, w[r], 0);
+            X.c4s(256);
             kb().scale3dSelf(u).multiplySelf(kb(la[r], z).multiplySelf(v).invertSelf());
             for (let P = 0; 8 > P; ++P) {
               const N = l[P],
@@ -846,7 +847,6 @@ Ub(() => {
                 q[r],
               ),
             );
-            X.c4s(256);
             Tb(M("c"), !fa, 42);
           },
           x = r => {

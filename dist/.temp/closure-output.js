@@ -416,6 +416,7 @@ Ub(() => {
       const q = [new Float32Array(16), new Float32Array(16),], k = (r, u, D) => {
         let H = 0, R = 0, Z = 0, V = 1 / 0, B = -1 / 0, C = 1 / 0, Q = -1 / 0, K = 1 / 0, L = -1 / 0;
         X.fas(36160, 36096, 3553, w[r], 0);
+        X.c4s(256);
         kb().scale3dSelf(u).multiplySelf(kb(la[r], z).multiplySelf(v).invertSelf(),);
         for (let P = 0; 8 > P; ++P) {
           const N = l[P], ba = (N.x = 4 & P ? 1 : -1, N.y = 2 & P ? 1 : -1, N.z = 1 & P ? 1 : -1, jb.transformPoint(N));
@@ -436,7 +437,6 @@ Ub(() => {
         K *= 0 > K ? D : 1 / D;
         L *= 0 < L ? D : 1 / D;
         X.uae(M("b"), !1, hb(kb(ib, z).scaleSelf(2 / (B - V), 2 / (Q - C), 2 / (K - L)).translateSelf((B + V) / -2, (Q + C) / -2, (K + L) / 2).multiplySelf(jb), q[r],),);
-        X.c4s(256);
         Tb(M("c"), !fa, 42);
       }, x = r => {
         if (X.f1s(), requestAnimationFrame(x), u = (r - (ca || r)) / 1e3, pa += u, c += d = aa ? 0 : Ua(0.066, u), ca = r, 0 < d) {

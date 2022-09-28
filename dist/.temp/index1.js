@@ -2381,6 +2381,7 @@ const startMainLoop = (groundTextureImage) => {
     let ty = 0;
     let tz = 0;
     gl["fas"](36160, 36096, 3553, csm_textures[split], 0);
+    gl["c4s"](256);
     matrixCopy().scale3dSelf(roundingRadius).multiplySelf(
       matrixCopy(csm_projections[split], csm_tempMatrix).multiplySelf(camera_view).invertSelf(),
     );
@@ -2421,7 +2422,6 @@ const startMainLoop = (groundTextureImage) => {
         csm_lightSpaceMatrices[split],
       ),
     );
-    gl["c4s"](256);
     renderModels(csmShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL);
   };
   const mainLoop = (globalTime) => {

@@ -1649,6 +1649,7 @@ const startMainLoop = (groundTextureImage) => {
     let ty = 0;
     let tz = 0;
     gl["fas"](36160, 36096, 3553, csm_textures[split], 0);
+    gl["c4s"](256);
     matrixCopy().scale3dSelf(roundingRadius).multiplySelf(matrixCopy(csm_projections[split], csm_tempMatrix).multiplySelf(camera_view).invertSelf());
     for (let i = 0; i < 8; ++i) {
       const p = csm_tempFrustumCorners[i];
@@ -1679,7 +1680,6 @@ const startMainLoop = (groundTextureImage) => {
     near *= near < 0 ? zMultiplier : 1 / zMultiplier;
     far *= far > 0 ? zMultiplier : 1 / zMultiplier;
     gl["uae"](csmShader(uniformName_viewMatrix), false, matrixToArray(matrixCopy(identity, csm_tempMatrix).scaleSelf(2 / (right - left), 2 / (top - bottom), 2 / (near - far)).translateSelf((right + left) / -2, (top + bottom) / -2, (near + far) / 2).multiplySelf(tempMatrix), csm_lightSpaceMatrices[split]));
-    gl["c4s"](256);
     renderModels(csmShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL);
   };
   const mainLoop = (globalTime) => {
