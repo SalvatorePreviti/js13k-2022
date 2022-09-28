@@ -842,10 +842,10 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
       [-1, 1].map((i) =>
         meshAdd(
           hornPolygons,
-          rotation(-i * 90, 180, 90) //
+          rotation(i * 90, 180, 90)
             .translate(0, 5)
-            .rotate(40) //
-            .scale(1.3, 10, 1.3), //
+            .rotate(40)
+            .scale(1.3, 10, 1.3),
           material(1, 1, 0.8, 0.2),
         ),
       );
@@ -854,10 +854,15 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
       newSoul(translation(-5, 4), [0, -1.2, 1.7], [0, 1.2, 1.7]);
     });
 
+    // far arc gate door
+
+    newModel((model) => {
+      model._update = (matrix) => matrix.translateSelf(-100, 0.6, 96.5).scaleSelf(0.88, 1.2 - levers[12]!.$lerpValue);
+      meshAdd(gateBarsPolygons);
+    });
+
     // far arc gate
     [-1, 1].map((x) => {
-      meshAdd(cylinder(12, 1), translation(-7.5 * x - 100, 3.7, 96).scale(0.8, 4, 0.8), material(0.6, 0.24, 0.2, 0.5));
-
       [7.2, 1.5].map((y) =>
         meshAdd(
           cylinder(15, 1),
@@ -873,6 +878,8 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
           .rotate(0, 90 * x - 90),
         material(1, 1, 0.8),
       );
+
+      meshAdd(cylinder(12, 1), translation(-7.5 * x - 100, 3.7, 96).scale(0.8, 4, 0.8), material(0.6, 0.24, 0.2, 0.5));
 
       meshAdd(
         csg_polygons_subtract(
@@ -900,13 +907,6 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
         ),
         translation(x - 100, 0.7, 97),
       );
-    });
-
-    // far arc gate door
-
-    newModel((model) => {
-      model._update = (matrix) => matrix.translateSelf(-100, 0.6, 96.5).scaleSelf(0.88, 1.2 - levers[12]!.$lerpValue);
-      meshAdd(gateBarsPolygons);
     });
 
     // left continuation with hole for rotating corridor
@@ -1133,10 +1133,6 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
   newModel(() => {
     checkModelId("PLAYER_BODY", MODEL_ID_PLAYER_BODY);
-    // horns
-    [0, 180].map((r) =>
-      meshAdd(hornPolygons, rotation(0, r).translate(0.2, 1.32).rotate(-30).scale(0.2, 0.6, 0.2), material(1, 1, 0.8)),
-    );
 
     // head
     meshAdd(sphere(20), translation(0, 1).scale(0.5, 0.5, 0.5), material(1, 0.3, 0.4));
@@ -1144,24 +1140,37 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     // body
     meshAdd(sphere(30), scaling(0.7, 0.8, 0.55), material(1, 0.3, 0.4));
 
-    const eye = polygons_transform(
-      csg_polygons_subtract(cylinder(15, 1), polygons_transform(cylinder(), translation(0, 0, 1).scale(2, 2, 0.5))),
-      rotation(-90, 0).scale(0.1, 0.05, 0.1),
-      material(0.3, 0.3, 0.3),
-    );
-
-    [-1, 1].map((i) => meshAdd(eye, translation(i * 0.2, 1.2, 0.4).rotate(0, i * 20, i * 20)));
-
     // mouth
     meshAdd(cylinder(), translation(0, 0.9, 0.45).scale(0.15, 0.02, 0.06), material(0.3, 0.3, 0.3));
-  });
 
-  [-1, 1].map((x) =>
-    newModel(() => {
-      checkModelId("PLAYER_LEG" + (x < 0 ? 0 : 1), x < 0 ? MODEL_ID_PLAYER_LEG0 : MODEL_ID_PLAYER_LEG1);
-      meshAdd(cylinder(20, 1), translation(x * 0.3, -0.8).scale(0.2, 0.7, 0.24), material(1, 0.3, 0.4));
-    }),
-  );
+    [-1, 1].map((i) => {
+      // horns
+      meshAdd(
+        hornPolygons,
+        rotation(0, i > 0 ? 180 : 0)
+          .translate(0.2, 1.32)
+          .rotate(-30)
+          .scale(0.2, 0.6, 0.2),
+        material(1, 1, 0.8),
+      );
+
+      // eyes
+      meshAdd(
+        polygons_transform(
+          csg_polygons_subtract(cylinder(15, 1), polygons_transform(cylinder(), translation(0, 0, 1).scale(2, 2, 0.5))),
+          rotation(-90, 0).scale(0.1, 0.05, 0.1),
+          material(0.3, 0.3, 0.3),
+        ),
+        translation(i * 0.2, 1.2, 0.4).rotate(0, i * 20, i * 20),
+      );
+
+      // legs
+      newModel(() => {
+        checkModelId("PLAYER_LEG" + (i < 0 ? 0 : 1), i < 0 ? MODEL_ID_PLAYER_LEG0 : MODEL_ID_PLAYER_LEG1);
+        meshAdd(cylinder(20, 1), translation(i * 0.3, -0.8).scale(0.2, 0.7, 0.24), material(1, 0.3, 0.4));
+      });
+    });
+  });
 
   newModel(() => {
     checkModelId("LEVER", MODEL_ID_LEVER);

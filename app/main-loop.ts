@@ -67,19 +67,12 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   const collisionShader = initShaderProgram(mainVertexShader, collider_fsSource);
   const mainShader = initShaderProgram(mainVertexShader, main_fsSource);
 
-  const csm_lightSpaceMatrices = integers_map(2, () => new Float32Array(16));
+  const csm_lightSpaceMatrices = [new Float32Array(16), new Float32Array(16)];
 
   const csm_tempMatrix = new DOMMatrix();
-  const csm_tempFrustumPoint: Vec3 = {} as Vec3;
   const csm_tempFrustumCorners: Vec3[] = integers_map(8, () => ({} as Vec3));
 
-  const csm_framebuffer = gl.createFramebuffer();
-
-  const collision_texture = gl.createTexture()!;
-  const collision_renderBuffer = gl.createRenderbuffer();
-  const collision_frameBuffer = gl.createFramebuffer()!;
-
-  const csm_textures = integers_map(2, (i: number) => {
+  const csm_textures = [0, 1].map((i: number) => {
     const texture = gl.createTexture()!;
     gl.activeTexture(gl.TEXTURE0 + i);
     gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -103,6 +96,12 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     return texture;
   });
 
+  const csm_framebuffer = gl.createFramebuffer();
+
+  const collision_texture = gl.createTexture()!;
+  const collision_renderBuffer = gl.createRenderbuffer();
+  const collision_frameBuffer = gl.createFramebuffer()!;
+
   const csm_render = (split: 0 | 1, roundingRadius: number, zMultiplier: number) => {
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, csm_textures[split]!, 0);
 
@@ -115,15 +114,15 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     let tz = 0;
 
     for (let i = 0; i < 8; ++i) {
-      csm_tempFrustumPoint.x = 4 & i ? 1 : -1;
-      csm_tempFrustumPoint.y = 2 & i ? 1 : -1;
-      csm_tempFrustumPoint.z = 1 & i ? 1 : -1;
-      const v = tempMatrix.transformPoint(csm_tempFrustumPoint);
-      const w = roundingRadius * v.w;
+      const p = csm_tempFrustumCorners[i]!;
+      p.x = 4 & i ? 1 : -1;
+      p.y = 2 & i ? 1 : -1;
+      p.z = 1 & i ? 1 : -1;
+      const v = tempMatrix.transformPoint(p);
       // Round to reduce shimmering
-      tx -= csm_tempFrustumCorners[i]!.x = (v.x | 0) / w;
-      ty -= csm_tempFrustumCorners[i]!.y = (v.y | 0) / w;
-      tz -= csm_tempFrustumCorners[i]!.z = (v.z | 0) / w;
+      tx -= p.x = (v.x | 0) / (roundingRadius * v.w);
+      ty -= p.y = (v.y | 0) / (roundingRadius * v.w);
+      tz -= p.z = (v.z | 0) / (roundingRadius * v.w);
     }
 
     matrixCopy()

@@ -1198,7 +1198,7 @@ const build_life_the_universe_and_everything = () => {
       [
         -1,
         1
-      ].map((i) => meshAdd(hornPolygons, rotation(-i * 90, 180, 90).translate(0, 5).rotate(40).scale(1.3, 10, 1.3), material(1, 1, 0.8, 0.2)));
+      ].map((i) => meshAdd(hornPolygons, rotation(i * 90, 180, 90).translate(0, 5).rotate(40).scale(1.3, 10, 1.3), material(1, 1, 0.8, 0.2)));
       newSoul(translation(-5, 4), [
         0,
         -1.2,
@@ -1209,21 +1209,21 @@ const build_life_the_universe_and_everything = () => {
         1.7
       ]);
     });
+    newModel((model) => {
+      model._update = (matrix) => matrix.translateSelf(-100, 0.6, 96.5).scaleSelf(0.88, 1.2 - levers[12].$lerpValue);
+      meshAdd(gateBarsPolygons);
+    });
     [
       -1,
       1
     ].map((x) => {
-      meshAdd(cylinder(12, 1), translation(-7.5 * x - 100, 3.7, 96).scale(0.8, 4, 0.8), material(0.6, 0.24, 0.2, 0.5));
       [
         7.2,
         1.5
       ].map((y) => meshAdd(cylinder(15, 1), translation(-7.5 * x - 100, y + 0.7, 96).scale(1.1, 0.5, 1.1), material(0.5, 0.24, 0.2, 0.4)));
       meshAdd(hornPolygons, translation(x * -5 - 100, 1.7, 114.5).scale(1.2, 10, 1.2).rotate(0, 90 * x - 90), material(1, 1, 0.8));
+      meshAdd(cylinder(12, 1), translation(-7.5 * x - 100, 3.7, 96).scale(0.8, 4, 0.8), material(0.6, 0.24, 0.2, 0.5));
       meshAdd(csg_polygons_subtract(polygons_transform(cylinder(), translation(x * -4, 3.5, -0.5).scale(4, 4, 0.7), material(0.5, 0.5, 0.5, 0.4)), polygons_transform(cylinder(), scaling(3, 3, 10), material(0.6, 0.24, 0.2, 0.5)), polygons_transform(cylinder(28, 1), translation(0, 3, -5).scale(3, 4, 10).rotate(90, 0), material(0.6, 0.24, 0.2, 0.5)), polygons_transform(cylinder(5), translation(x * -5.3, 7).rotate(90, 0).scale(1.7, 5, 1.7), material(0.6, 0.24, 0.2, 0.5)), polygons_transform(cylinder(5), translation(x * -5.3, 3.8).rotate(90, 0, 35).scale(0.75, 5, 0.75), material(0.6, 0.24, 0.2, 0.5))), translation(x - 100, 0.7, 97));
-    });
-    newModel((model) => {
-      model._update = (matrix) => matrix.translateSelf(-100, 0.6, 96.5).scaleSelf(0.88, 1.2 - levers[12].$lerpValue);
-      meshAdd(gateBarsPolygons);
     });
     meshAdd(csg_polygons_subtract(polygons_transform(cylinder(), translation(-82.07, 0.8, 106).scale(11, 0.9, 2.2), material(0.7, 0.7, 0.7, 0.1)), polygons_transform(cylinder(45, 1), translation(-81, 0.7, 106).scale3d(7.7), material(0.7, 0.7, 0.7, 0.1))));
     newModel((model) => {
@@ -1324,25 +1324,20 @@ const build_life_the_universe_and_everything = () => {
     ]);
   });
   newModel(() => {
-    [
-      0,
-      180
-    ].map((r) => meshAdd(hornPolygons, rotation(0, r).translate(0.2, 1.32).rotate(-30).scale(0.2, 0.6, 0.2), material(1, 1, 0.8)));
     meshAdd(sphere(20), translation(0, 1).scale(0.5, 0.5, 0.5), material(1, 0.3, 0.4));
     meshAdd(sphere(30), scaling(0.7, 0.8, 0.55), material(1, 0.3, 0.4));
-    const eye = polygons_transform(csg_polygons_subtract(cylinder(15, 1), polygons_transform(cylinder(), translation(0, 0, 1).scale(2, 2, 0.5))), rotation(-90, 0).scale(0.1, 0.05, 0.1), material(0.3, 0.3, 0.3));
+    meshAdd(cylinder(), translation(0, 0.9, 0.45).scale(0.15, 0.02, 0.06), material(0.3, 0.3, 0.3));
     [
       -1,
       1
-    ].map((i) => meshAdd(eye, translation(i * 0.2, 1.2, 0.4).rotate(0, i * 20, i * 20)));
-    meshAdd(cylinder(), translation(0, 0.9, 0.45).scale(0.15, 0.02, 0.06), material(0.3, 0.3, 0.3));
+    ].map((i) => {
+      meshAdd(hornPolygons, rotation(0, i > 0 ? 180 : 0).translate(0.2, 1.32).rotate(-30).scale(0.2, 0.6, 0.2), material(1, 1, 0.8));
+      meshAdd(polygons_transform(csg_polygons_subtract(cylinder(15, 1), polygons_transform(cylinder(), translation(0, 0, 1).scale(2, 2, 0.5))), rotation(-90, 0).scale(0.1, 0.05, 0.1), material(0.3, 0.3, 0.3)), translation(i * 0.2, 1.2, 0.4).rotate(0, i * 20, i * 20));
+      newModel(() => {
+        meshAdd(cylinder(20, 1), translation(i * 0.3, -0.8).scale(0.2, 0.7, 0.24), material(1, 0.3, 0.4));
+      });
+    });
   });
-  [
-    -1,
-    1
-  ].map((x) => newModel(() => {
-    meshAdd(cylinder(20, 1), translation(x * 0.3, -0.8).scale(0.2, 0.7, 0.24), material(1, 0.3, 0.4));
-  }));
   newModel(() => {
     meshAdd(cylinder(6, 1), scaling(0.13, 1.4, 0.13), material(0.3, 0.3, 0.5, 0.1));
     meshAdd(cylinder(10), translation(0, 1).scale(0.21, 0.3, 0.21), material(1, 0.5, 0.2));
@@ -1449,6 +1444,7 @@ const player_init = () => {
           if (count >= maxModelIdCount) {
             maxModelIdCount = count;
             nextModelId = i;
+            player_has_ground = 1;
           }
         }
       }
@@ -1460,8 +1456,6 @@ const player_init = () => {
         player_has_ground = 1;
       }
     }
-    if (nextModelId)
-      player_has_ground = 1;
     currentModelId = nextModelId || currentModelIdTMinus1;
     currentModelIdTMinus1 = nextModelId;
     player_gravity = lerpDamp(player_gravity, player_has_ground ? 6.5 : player_position_global.y < -20 ? 11 : 8, 4);
@@ -1483,8 +1477,8 @@ const player_init = () => {
         const dist2 = collision_buffer[i2 + 1] / 255;
         const t = 1 - abs(2 * (x / (COLLISION_TEXTURE_SIZE - 1)) - 1);
         if (x > 10 && x < COLLISION_TEXTURE_SIZE - 10) {
-          front = max(max(dist1 * t, dist1 * collision_buffer[i2] / 255), front);
-          back = max(max(dist2 * t, dist2 * collision_buffer[i1 + 1] / 255), back);
+          front = max(front, max(dist1 * t, dist1 * collision_buffer[i2] / 255));
+          back = max(back, max(dist2 * t, dist2 * collision_buffer[i1 + 1] / 255));
         }
         if (x < COLLISION_TEXTURE_SIZE / 2 - 10 || x > COLLISION_TEXTURE_SIZE / 2 + 10) {
           const xdist = (1 - t) * max(dist1, dist2) / 3;
@@ -1516,10 +1510,9 @@ const player_init = () => {
     player_position_global.z += v.z;
     return referenceMatrix.transformPoint(player_position_global);
   };
-  const player_collision_modelIdCounter = new Int32Array(256);
+  const player_collision_modelIdCounter = new Uint8Array(256);
   const collision_buffer = new Uint8Array(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
   player_update = () => {
-    gl["fa7"]();
     gl["r9r"](0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE, 6408, 5121, collision_buffer);
     gl["iay"](36008, [
       36064,
@@ -1647,7 +1640,10 @@ const objectsMatricesBuffer = new Float32Array(624);
 const LIGHT_ROT_Y = 139;
 const LIGHT_ROT_X = 298;
 const startMainLoop = (groundTextureImage) => {
-  const csm_tempFrustumPoint = {};
+  const csm_lightSpaceMatrices = [
+    new Float32Array(16),
+    new Float32Array(16)
+  ];
   const csm_render = (split, roundingRadius, zMultiplier) => {
     let tx = 0;
     let ty = 0;
@@ -1655,14 +1651,14 @@ const startMainLoop = (groundTextureImage) => {
     gl["fas"](36160, 36096, 3553, csm_textures[split], 0);
     matrixCopy().scale3dSelf(roundingRadius).multiplySelf(matrixCopy(csm_projections[split], csm_tempMatrix).multiplySelf(camera_view).invertSelf());
     for (let i = 0; i < 8; ++i) {
-      csm_tempFrustumPoint.x = 4 & i ? 1 : -1;
-      csm_tempFrustumPoint.y = 2 & i ? 1 : -1;
-      csm_tempFrustumPoint.z = 1 & i ? 1 : -1;
-      const v = tempMatrix.transformPoint(csm_tempFrustumPoint);
-      const w = roundingRadius * v.w;
-      tx -= csm_tempFrustumCorners[i].x = (v.x | 0) / w;
-      ty -= csm_tempFrustumCorners[i].y = (v.y | 0) / w;
-      tz -= csm_tempFrustumCorners[i].z = (v.z | 0) / w;
+      const p = csm_tempFrustumCorners[i];
+      p.x = 4 & i ? 1 : -1;
+      p.y = 2 & i ? 1 : -1;
+      p.z = 1 & i ? 1 : -1;
+      const v = tempMatrix.transformPoint(p);
+      tx -= p.x = (v.x | 0) / (roundingRadius * v.w);
+      ty -= p.y = (v.y | 0) / (roundingRadius * v.w);
+      tz -= p.z = (v.z | 0) / (roundingRadius * v.w);
     }
     matrixCopy().rotateSelf(LIGHT_ROT_X, LIGHT_ROT_Y).translateSelf(tx / 8, ty / 8, tz / 8);
     let left = Infinity;
@@ -1746,13 +1742,11 @@ const startMainLoop = (groundTextureImage) => {
   const skyShader = initShaderProgram(loadShader(code$1), code);
   const collisionShader = initShaderProgram(mainVertexShader, code$3);
   const mainShader = initShaderProgram(mainVertexShader, code$6);
-  const csm_lightSpaceMatrices = integers_map(2, () => new Float32Array(16));
   const csm_tempFrustumCorners = integers_map(8, () => ({}));
-  const csm_framebuffer = gl["c5w"]();
-  const collision_texture = gl["c25"]();
-  const collision_renderBuffer = gl["c3z"]();
-  const collision_frameBuffer = gl["c5w"]();
-  const csm_textures = integers_map(2, (i) => {
+  const csm_textures = [
+    0,
+    1
+  ].map((i) => {
     const texture = gl["c25"]();
     gl["a4v"](33984 + i);
     gl["b9j"](3553, texture);
@@ -1765,6 +1759,10 @@ const startMainLoop = (groundTextureImage) => {
     gl["t2z"](3553, 10242, 33071);
     return texture;
   });
+  const csm_framebuffer = gl["c5w"]();
+  const collision_texture = gl["c25"]();
+  const collision_renderBuffer = gl["c3z"]();
+  const collision_frameBuffer = gl["c5w"]();
   collisionShader();
   gl["uae"](collisionShader(uniformName_projectionMatrix), false, matrixToArray(mat_perspective(1e-4, 1, 1.4, 0.59)));
   mainShader();

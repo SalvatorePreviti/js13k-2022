@@ -82,7 +82,7 @@ export const player_init = () => {
   let camera_pos_lookat_y: number;
   let camera_pos_lookat_z: number;
 
-  const player_collision_modelIdCounter = new Int32Array(256);
+  const player_collision_modelIdCounter = new Uint8Array(256);
   const collision_buffer = new Uint8Array(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
 
   const doVerticalCollisions = () => {
@@ -108,6 +108,7 @@ export const player_init = () => {
           if (count >= maxModelIdCount) {
             maxModelIdCount = count;
             nextModelId = i;
+            player_has_ground = 1;
           }
         }
       }
@@ -120,10 +121,6 @@ export const player_init = () => {
         }
         player_has_ground = 1;
       }
-    }
-
-    if (nextModelId) {
-      player_has_ground = 1;
     }
 
     currentModelId = nextModelId || currentModelIdTMinus1;
@@ -153,8 +150,8 @@ export const player_init = () => {
         const t = 1 - abs(2 * (x / (COLLISION_TEXTURE_SIZE - 1)) - 1);
 
         if (x > 10 && x < COLLISION_TEXTURE_SIZE - 10) {
-          front = max(max(dist1 * t, (dist1 * collision_buffer[i2]!) / 255), front);
-          back = max(max(dist2 * t, (dist2 * collision_buffer[i1 + 1]!) / 255), back);
+          front = max(front, max(dist1 * t, (dist1 * collision_buffer[i2]!) / 255));
+          back = max(back, max(dist2 * t, (dist2 * collision_buffer[i1 + 1]!) / 255));
         }
 
         if (x < COLLISION_TEXTURE_SIZE / 2 - 10 || x > COLLISION_TEXTURE_SIZE / 2 + 10) {
@@ -203,7 +200,7 @@ export const player_init = () => {
   player_update = () => {
     // ------- read collision renderBuffer -------
 
-    gl.finish();
+    // gl.finish();
     gl.readPixels(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE, gl.RGBA, gl.UNSIGNED_BYTE, collision_buffer);
     gl.invalidateFramebuffer(gl.READ_FRAMEBUFFER, [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT]);
     gl.invalidateFramebuffer(gl.DRAW_FRAMEBUFFER, [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT]);

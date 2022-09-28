@@ -941,12 +941,11 @@ const player_init = () => {
           i && a
           && (a = player_collision_modelIdCounter[i] + 1,
             player_collision_modelIdCounter[i] = a,
-            maxModelIdCount > a || (maxModelIdCount = a, nextModelId = i));
+            maxModelIdCount > a || (maxModelIdCount = a, nextModelId = i, player_has_ground = 1));
       }
       up < 3 && 5 < y && (grav += y / 32), 3 < up && (7 < y && (lines += y / 15), player_has_ground = 1);
     }
-    nextModelId && (player_has_ground = 1),
-      currentModelId = nextModelId || currentModelIdTMinus1,
+    currentModelId = nextModelId || currentModelIdTMinus1,
       currentModelIdTMinus1 = nextModelId,
       player_gravity = lerpDamp(player_gravity, player_has_ground ? 6.5 : player_position_global.y < -20 ? 11 : 8, 4),
       player_position_global.y += lines / 41
@@ -967,8 +966,8 @@ const player_init = () => {
         const dist2 = collision_buffer[1 + i2] / 255;
         const t = 1 - abs(x / 63.5 - 1);
         10 < x && x < 118
-        && (front = max(max(dist1 * t, dist1 * collision_buffer[i2] / 255), front),
-          back = max(max(dist2 * t, dist2 * collision_buffer[1 + i1] / 255), back)),
+        && (front = max(front, max(dist1 * t, dist1 * collision_buffer[i2] / 255)),
+          back = max(back, max(dist2 * t, dist2 * collision_buffer[1 + i1] / 255))),
           (x < 54 || 74 < x) && 1e-3 < (i2 = (1 - t) * max(dist1, dist2) / 3)
           && (x < 64 && i2 > left ? left = i2 : 64 < x && i2 > right && (right = i2));
       }
@@ -982,11 +981,10 @@ const player_init = () => {
       : allModels[oldModelId && allModels[oldModelId].$kind === 1 && oldModelId || 0]).$matrix;
   const interpolate_with_hysteresis = (previous, desired, hysteresis, speed) =>
     lerp(previous, desired, boot || (clamp(abs(desired - previous) ** 0.9 - hysteresis) + 1 / 7) * damp(1.5 * speed));
-  const player_collision_modelIdCounter = new Int32Array(256);
+  const player_collision_modelIdCounter = new Uint8Array(256);
   const collision_buffer = new Uint8Array(65536);
   player_update = () => {
-    gl["fa7"](),
-      gl["r9r"](0, 0, 128, 128, 6408, 5121, collision_buffer),
+    gl["r9r"](0, 0, 128, 128, 6408, 5121, collision_buffer),
       gl["iay"](36008, [
         36064,
         36096,
@@ -1300,7 +1298,10 @@ loadStep(() => {
   let loadStatus = 0;
   const end = () => {
     if (++loadStatus == 2) {
-      const csm_tempFrustumPoint = {};
+      const csm_lightSpaceMatrices = [
+        new Float32Array(16),
+        new Float32Array(16),
+      ];
       const csm_render = (split, roundingRadius, zMultiplier) => {
         let tx = 0;
         let ty = 0;
@@ -1316,14 +1317,11 @@ loadStep(() => {
             matrixCopy(csm_projections[split], csm_tempMatrix).multiplySelf(camera_view).invertSelf(),
           );
         for (let i = 0; i < 8; ++i) {
-          csm_tempFrustumPoint.x = 4 & i ? 1 : -1,
-            csm_tempFrustumPoint.y = 2 & i ? 1 : -1,
-            csm_tempFrustumPoint.z = 1 & i ? 1 : -1;
-          const v = tempMatrix.transformPoint(csm_tempFrustumPoint);
-          const w = roundingRadius * v.w;
-          tx -= csm_tempFrustumCorners[i].x = (0 | v.x) / w,
-            ty -= csm_tempFrustumCorners[i].y = (0 | v.y) / w,
-            tz -= csm_tempFrustumCorners[i].z = (0 | v.z) / w;
+          const p = csm_tempFrustumCorners[i];
+          const v = (p.x = 4 & i ? 1 : -1, p.y = 2 & i ? 1 : -1, p.z = 1 & i ? 1 : -1, tempMatrix.transformPoint(p));
+          tx -= p.x = (0 | v.x) / roundingRadius / v.w,
+            ty -= p.y = (0 | v.y) / roundingRadius / v.w,
+            tz -= p.z = (0 | v.z) / roundingRadius / v.w;
         }
         matrixCopy().rotateSelf(298, 139).translateSelf(tx / 8, ty / 8, tz / 8);
         for (let i1 = 0; i1 < 8; ++i1) {
@@ -1399,7 +1397,7 @@ loadStep(() => {
           gl["b6o"](36160, csm_framebuffer),
           gl["v5y"](0, 0, 2048, 2048),
           csm_render(0, 1.1 * (55 - zNear), 10),
-          csm_render(1, 1.1 * (zFar - 55), 11),
+          csm_render(1, 1.1 * 126, 11),
           mainShader(),
           gl["b6o"](36160, null),
           gl["v5y"](0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight),
@@ -1446,13 +1444,11 @@ precision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b
         `#version 300 es
 precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform highp sampler2DShadow g,h;uniform highp sampler2D q;out vec4 O;void main(){vec4 s=vec4(m.xyz,1);vec3 e=normalize(o.xyz),v=l.w*(texture(q,n.yz*.035)*e.x+texture(q,n.xz*.035)*e.y+texture(q,n.xy*.035)*e.z).xyz;e=normalize(e+v*.5);float a=dot(e,vec3(-.656059,.666369,-.35431468)),t=1.,u=abs((b*s).z);vec4 r=(u<55.?i:j)*s;if(r=r/r.w*.5+.5,r.z<1.){t=0.;for(float e=-1.;e<=1.;++e)for(float a=-1.;a<=1.;++a){vec3 x=vec3(r.xy+vec2(e,a)/2048.,r.z-.00017439);t+=u<55.?texture(g,x):texture(h,x);}t/=9.;}vec3 x=l.xyz*(1.-v.x);float c=max(max(abs(e.x),abs(e.z))*.3-e.y,0.)*pow(max(0.,(8.-m.y)/48.),1.6);O=vec4(vec3(c,c*c*.5,0)+vec3(.09,.05,.11)*x+x*(max(0.,a)*.5+x*a*a*vec3(.5,.45,.3))*(t*.75+.25)+vec3(.6,.6,.5)*pow(max(0.,dot(normalize(m.xyz-k),reflect(vec3(-.656059,.666369,-.35431468),e))),35.)*t,1);}`,
       );
-      const csm_lightSpaceMatrices = integers_map(2, () => new Float32Array(16));
       const csm_tempFrustumCorners = integers_map(8, () => ({}));
-      const csm_framebuffer = gl["c5w"]();
-      var mainVertexShader = gl["c25"]();
-      const collision_renderBuffer = gl["c3z"]();
-      const collision_frameBuffer = gl["c5w"]();
-      const csm_textures = integers_map(2, (i) => {
+      const csm_textures = [
+        0,
+        1,
+      ].map((i) => {
         const texture = gl["c25"]();
         return gl["a4v"](33984 + i),
           gl["b9j"](3553, texture),
@@ -1465,6 +1461,10 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
           gl["t2z"](3553, 10242, 33071),
           texture;
       });
+      const csm_framebuffer = gl["c5w"]();
+      var mainVertexShader = gl["c25"]();
+      const collision_renderBuffer = gl["c3z"]();
+      const collision_frameBuffer = gl["c5w"]();
       collisionShader(),
         gl["uae"](collisionShader("a"), !1, matrixToArray(mat_perspective(1e-4, 1, 1.4, 0.59))),
         mainShader(),
@@ -2416,7 +2416,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   ].map((i) =>
                     meshAdd(
                       hornPolygons,
-                      rotation(90 * -i, 180, 90).translate(0, 5).rotate(40).scale(1.3, 10, 1.3),
+                      rotation(90 * i, 180, 90).translate(0, 5).rotate(40).scale(1.3, 10, 1.3),
                       material(1, 1, 0.8, 0.2),
                     )
                   ),
@@ -2430,29 +2430,34 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                     1.7,
                   ]);
               }),
+              newModel((model) => {
+                model._update = (matrix) =>
+                  matrix.translateSelf(-100, 0.6, 96.5).scaleSelf(0.88, 1.2 - levers[12].$lerpValue),
+                  meshAdd(gateBarsPolygons);
+              }),
               [
                 -1,
                 1,
               ].map((x) => {
-                meshAdd(
-                  cylinder(12, 1),
-                  translation(-7.5 * x - 100, 3.7, 96).scale(0.8, 4, 0.8),
-                  material(0.6, 0.24, 0.2, 0.5),
+                [
+                  7.2,
+                  1.5,
+                ].map((y) =>
+                  meshAdd(
+                    cylinder(15, 1),
+                    translation(-7.5 * x - 100, y + 0.7, 96).scale(1.1, 0.5, 1.1),
+                    material(0.5, 0.24, 0.2, 0.4),
+                  )
                 ),
-                  [
-                    7.2,
-                    1.5,
-                  ].map((y) =>
-                    meshAdd(
-                      cylinder(15, 1),
-                      translation(-7.5 * x - 100, y + 0.7, 96).scale(1.1, 0.5, 1.1),
-                      material(0.5, 0.24, 0.2, 0.4),
-                    )
-                  ),
                   meshAdd(
                     hornPolygons,
                     translation(-5 * x - 100, 1.7, 114.5).scale(1.2, 10, 1.2).rotate(0, 90 * x - 90),
                     material(1, 1, 0.8),
+                  ),
+                  meshAdd(
+                    cylinder(12, 1),
+                    translation(-7.5 * x - 100, 3.7, 96).scale(0.8, 4, 0.8),
+                    material(0.6, 0.24, 0.2, 0.5),
                   ),
                   meshAdd(
                     csg_polygons_subtract(
@@ -2480,11 +2485,6 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                     ),
                     translation(x - 100, 0.7, 97),
                   );
-              }),
-              newModel((model) => {
-                model._update = (matrix) =>
-                  matrix.translateSelf(-100, 0.6, 96.5).scaleSelf(0.88, 1.2 - levers[12].$lerpValue),
-                  meshAdd(gateBarsPolygons);
               }),
               meshAdd(
                 csg_polygons_subtract(
@@ -2739,40 +2739,34 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               ]);
           }),
           newModel(() => {
-            [
-              0,
-              180,
-            ].map((r) =>
-              meshAdd(
-                hornPolygons,
-                rotation(0, r).translate(0.2, 1.32).rotate(-30).scale(0.2, 0.6, 0.2),
-                material(1, 1, 0.8),
-              )
-            ),
-              meshAdd(sphere(20), translation(0, 1).scale(0.5, 0.5, 0.5), material(1, 0.3, 0.4)),
-              meshAdd(sphere(30), scaling(0.7, 0.8, 0.55), material(1, 0.3, 0.4));
-            const eye = polygons_transform(
-              csg_polygons_subtract(
-                cylinder(15, 1),
-                polygons_transform(cylinder(), translation(0, 0, 1).scale(2, 2, 0.5)),
-              ),
-              rotation(-90, 0).scale(0.1, 0.05, 0.1),
-              material(0.3, 0.3, 0.3),
-            );
-            [
-              -1,
-              1,
-            ].map((i) => meshAdd(eye, translation(0.2 * i, 1.2, 0.4).rotate(0, 20 * i, 20 * i))),
-              meshAdd(cylinder(), translation(0, 0.9, 0.45).scale(0.15, 0.02, 0.06), material(0.3, 0.3, 0.3));
+            meshAdd(sphere(20), translation(0, 1).scale(0.5, 0.5, 0.5), material(1, 0.3, 0.4)),
+              meshAdd(sphere(30), scaling(0.7, 0.8, 0.55), material(1, 0.3, 0.4)),
+              meshAdd(cylinder(), translation(0, 0.9, 0.45).scale(0.15, 0.02, 0.06), material(0.3, 0.3, 0.3)),
+              [
+                -1,
+                1,
+              ].map((i) => {
+                meshAdd(
+                  hornPolygons,
+                  rotation(0, 0 < i ? 180 : 0).translate(0.2, 1.32).rotate(-30).scale(0.2, 0.6, 0.2),
+                  material(1, 1, 0.8),
+                ),
+                  meshAdd(
+                    polygons_transform(
+                      csg_polygons_subtract(
+                        cylinder(15, 1),
+                        polygons_transform(cylinder(), translation(0, 0, 1).scale(2, 2, 0.5)),
+                      ),
+                      rotation(-90, 0).scale(0.1, 0.05, 0.1),
+                      material(0.3, 0.3, 0.3),
+                    ),
+                    translation(0.2 * i, 1.2, 0.4).rotate(0, 20 * i, 20 * i),
+                  ),
+                  newModel(() => {
+                    meshAdd(cylinder(20, 1), translation(0.3 * i, -0.8).scale(0.2, 0.7, 0.24), material(1, 0.3, 0.4));
+                  });
+              });
           }),
-          [
-            -1,
-            1,
-          ].map((x) =>
-            newModel(() => {
-              meshAdd(cylinder(20, 1), translation(0.3 * x, -0.8).scale(0.2, 0.7, 0.24), material(1, 0.3, 0.4));
-            })
-          ),
           newModel(() => {
             meshAdd(cylinder(6, 1), scaling(0.13, 1.4, 0.13), material(0.3, 0.3, 0.5, 0.1)),
               meshAdd(cylinder(10), translation(0, 1).scale(0.21, 0.3, 0.21), material(1, 0.5, 0.2)),
