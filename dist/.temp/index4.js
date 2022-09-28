@@ -303,7 +303,7 @@ let A,
         j: 0,
         l: S,
         h() {
-          if (N(S), !k.j) {
+          if (!k.j) {
             let e, t, a, l, r, s, o, c = 1, n = 1 / 0;
             for (let l of A) {
               let { x: e, z: t, w: a } = l;
@@ -328,7 +328,7 @@ let A,
               g = v1(g, q1(Y - v, F - p) / N1 - 180, 1 - V(-3 * H)),
               v = Y,
               p = F;
-            var i = S.multiplySelf(M.l).multiplySelf(f).translateSelf(Y, 0, F).rotateSelf(0, g, 7 * J(1.7 * C))
+            var i = N(S).multiplySelf(M.l).multiplySelf(f).translateSelf(Y, 0, F).rotateSelf(0, g, 7 * J(1.7 * C))
               .transformPoint();
             p1(i) < 1.6
               && (k.j = 1,
@@ -352,7 +352,7 @@ let A,
                 D1());
           }
           k.j
-            && S.multiplySelf(P[2].l).translateSelf(
+            && N(S).multiplySelf(P[2].l).translateSelf(
               t % 4 * 1.2 - 1.7 + J(C + t) / 7,
               -2,
               1.7 * (t / 4 | 0) - 5.5 + U(t % 4 - 2) + G(C / 1.5 + t) / 6,
@@ -1036,8 +1036,8 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               ),
             r = () => B1(R[2].i, 1 - R[4].i),
             l = p(
-              f(m(20, 1, 1.15, 1), I(0, -3).scale(3.5, 1, 3.5), Y(.7, .4, .25, .7)),
-              f(m(20, 1, 1.3, 1), I(0, -2.5).scale(2.6, 1, 3), Y(.7, .4, .25, .2)),
+              f(m(30, 1, 1.15, 1), I(0, -3).scale(3.5, 1, 3.5), Y(.7, .4, .25, .7)),
+              f(m(30, 1, 1.3, 1), I(0, -2.5).scale(2.6, 1, 3), Y(.7, .4, .25, .2)),
               f(m(), I(4, -1.2).scale3d(2), Y(.7, .4, .25, .3)),
             ),
             s = v(7, e => f(m(6, 1), I(4 * (e / 6 - .5), 3).scale(.2, 3, .2), Y(.3, .3, .38))).flat(),
@@ -1502,11 +1502,11 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
         d(() => {
           b(
             l(30, 24, (e, t, a) => {
-              let l = t / 24, r = e * K * 2 / 30, s = l ** .6 * K / 2;
+              let l = t / 24, r = e * K * 2 / 30, s = J(l ** .6 * K / 2);
               return e = l * l * J(e * K * 14 / 30) / 4,
-                23 === t
+                23 < t
                   ? { x: a.D = 0, y: -.5, z: 0 }
-                  : { x: G(r) * J(s), y: G(l * K) - l - e, z: J(r) * J(s) + J(e * K * 2) / 4 };
+                  : { x: G(r) * s, y: G(l * K) - l - e, z: J(r) * s + J(e * K * 2) / 4 };
             }),
             D(.7, .7, .7),
             Y(1, 1, 1),

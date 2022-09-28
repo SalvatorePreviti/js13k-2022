@@ -810,7 +810,7 @@ const newSoul = (transform, ...walkingPath) => {
     $value: 0,
     $matrix,
     _update() {
-      if (matrixSetIdentity($matrix), !soul.$value) {
+      if (!soul.$value) {
         let x1;
         let z1;
         let w1;
@@ -853,8 +853,11 @@ const newSoul = (transform, ...walkingPath) => {
           ),
           prevX = soulX,
           prevZ = soulZ;
-        var angle = $matrix.multiplySelf(parentModel.$matrix).multiplySelf(transform).translateSelf(soulX, 0, soulZ)
-          .rotateSelf(0, lookAngle, 7 * Math.sin(1.7 * gameTime)).transformPoint();
+        var angle = matrixSetIdentity($matrix).multiplySelf(parentModel.$matrix).multiplySelf(transform).translateSelf(
+          soulX,
+          0,
+          soulZ,
+        ).rotateSelf(0, lookAngle, 7 * Math.sin(1.7 * gameTime)).transformPoint();
         vec3_distance(angle, player_position_final) < 1.6 && (soul.$value = 1,
           showMessage(
             [
@@ -878,7 +881,7 @@ const newSoul = (transform, ...walkingPath) => {
           saveGame());
       }
       soul.$value
-        && $matrix.multiplySelf(allModels[2].$matrix).translateSelf(
+        && matrixSetIdentity($matrix).multiplySelf(allModels[2].$matrix).translateSelf(
           index % 4 * 1.2 - 1.7 + Math.sin(gameTime + index) / 7,
           -2,
           1.7 * (index / 4 | 0) - 5.5 + abs(index % 4 - 2) + Math.cos(gameTime / 1.5 + index) / 6,
@@ -1654,12 +1657,12 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
             const hexPadShouldOscillate = () => lerpneg(levers[8].$lerpValue2, levers[12].$lerpValue2);
             const boatPolygons = csg_polygons_subtract(
               polygons_transform(
-                cylinder(20, 1, 1.15, 1),
+                cylinder(30, 1, 1.15, 1),
                 translation(0, -3).scale(3.5, 1, 3.5),
                 material(0.7, 0.4, 0.25, 0.7),
               ),
               polygons_transform(
-                cylinder(20, 1, 1.3, 1),
+                cylinder(30, 1, 1.3, 1),
                 translation(0, -2.5).scale(2.6, 1, 3),
                 material(0.7, 0.4, 0.25, 0.2),
               ),
@@ -2784,18 +2787,18 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               sphere(30, 24, (a, b, polygon) => {
                 const bm = b / 24;
                 const theta = a * Math.PI * 2 / 30;
-                const phixz = bm ** 0.6 * Math.PI / 2;
+                const phixz = Math.sin(bm ** 0.6 * Math.PI / 2);
                 var a = bm * bm * Math.sin(a * Math.PI * 14 / 30) / 4;
-                return b === 23
+                return 23 < b
                   ? {
                     x: polygon.$smooth = 0,
                     y: -0.5,
                     z: 0,
                   }
                   : {
-                    x: Math.cos(theta) * Math.sin(phixz),
+                    x: Math.cos(theta) * phixz,
                     y: Math.cos(bm * Math.PI) - bm - a,
-                    z: Math.sin(theta) * Math.sin(phixz) + Math.sin(a * Math.PI * 2) / 4,
+                    z: Math.sin(theta) * phixz + Math.sin(a * Math.PI * 2) / 4,
                   };
               }),
               scaling(0.7, 0.7, 0.7),

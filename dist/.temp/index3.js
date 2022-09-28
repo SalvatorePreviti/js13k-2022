@@ -6,7 +6,7 @@ let aa,
   ka,
   la,
   ma,
-  oa,
+  na,
   pa = 0,
   qa = 0,
   c = 0,
@@ -493,7 +493,7 @@ const Qa = (a, b) => Array.from(Array(a), (g, m) => b(m)),
       j: 0,
       l: B,
       h() {
-        if (fb(B), !A.j) {
+        if (!A.j) {
           let ca, Y, F, E, S, N, O, W = 1, U = 1 / 0;
           for (const sa of f) {
             var { x: D, z: J, w: K } = sa;
@@ -522,7 +522,7 @@ const Qa = (a, b) => Array.from(Array(a), (g, m) => b(m)),
           l = $a(l, Math.atan2(y - u, I - v) / Ra - 180, 1 - Math.exp(-3 * d));
           u = y;
           v = I;
-          var R = B.multiplySelf(M.l).multiplySelf(a).translateSelf(y, 0, I).rotateSelf(0, l, 7 * Math.sin(1.7 * c))
+          var R = fb(B).multiplySelf(M.l).multiplySelf(a).translateSelf(y, 0, I).rotateSelf(0, l, 7 * Math.sin(1.7 * c))
             .transformPoint();
           1.6 > ab(R)
             && (A.j = 1,
@@ -546,7 +546,7 @@ const Qa = (a, b) => Array.from(Array(a), (g, m) => b(m)),
               yb());
         }
         A.j
-          && B.multiplySelf(e[2].l).translateSelf(
+          && fb(B).multiplySelf(e[2].l).translateSelf(
             C % 4 * 1.2 - 1.7 + Math.sin(c + C) / 7,
             -2,
             1.7 * (C / 4 | 0) - 5.5 + n(C % 4 - 2) + Math.cos(c / 1.5 + C) / 6,
@@ -612,10 +612,10 @@ const Qa = (a, b) => Array.from(Array(a), (g, m) => b(m)),
           for (let U = 1 & F; 128 > U; U += 2) {
             const sa = W + 4 * U;
             let da = W + 4 * (127 - U);
-            const ia = Y[sa] / 255, Wa = Y[1 + da] / 255, na = 1 - n(U / 63.5 - 1);
+            const ia = Y[sa] / 255, Wa = Y[1 + da] / 255, oa = 1 - n(U / 63.5 - 1);
             10 < U && 118 > U
-              && (E = Hb(Hb(ia * na, ia * Y[da] / 255), E), S = Hb(Hb(Wa * na, Wa * Y[1 + sa] / 255), S));
-            (54 > U || 74 < U) && 1e-3 < (da = (1 - na) * Hb(ia, Wa) / 3)
+              && (E = Hb(Hb(ia * oa, ia * Y[da] / 255), E), S = Hb(Hb(Wa * oa, Wa * Y[1 + sa] / 255), S));
+            (54 > U || 74 < U) && 1e-3 < (da = (1 - oa) * Hb(ia, Wa) / 3)
               && (64 > U && da > N ? N = da : 64 < U && da > O && (O = da));
           }
           n(O - N) > n(w) && (w = O - N);
@@ -626,7 +626,7 @@ const Qa = (a, b) => Array.from(Array(a), (g, m) => b(m)),
       R = (F, E, S, N) => q(F, E, y || (Va(n(E - F) ** 0.9 - S) + 1 / 7) * (1 - Math.exp(-(1.5 * N) * d))),
       ca = new Int32Array(256),
       Y = new Uint8Array(65536);
-    oa = () => {
+    na = () => {
       Z.fa7();
       Z.r9r(0, 0, 128, 128, 6408, 5121, Y);
       Z.iay(36008, [36064, 36096]);
@@ -738,7 +738,7 @@ const Qa = (a, b) => Array.from(Array(a), (g, m) => b(m)),
         const v = O => {
             let W, U, sa, da = 0, ia = 0;
             const Wa = [],
-              na = new Int32Array(768 * O),
+              oa = new Int32Array(768 * O),
               Yb = 2 ** (D - 9) / O,
               Zb = Math.PI * 2 ** (Y - 8) / O,
               ub = E * O & -2;
@@ -773,14 +773,14 @@ const Qa = (a, b) => Array.from(Array(a), (g, m) => b(m)),
                       fa = Wa[fa] = Pb;
                     }
                     for (let X = 0, ta = 2 * Nb; fa.length > X; ++X, ta += 2) {
-                      na[ta] += fa[X];
+                      oa[ta] += fa[X];
                     }
                   }
                 }
                 for (let X, ta = 0; O > ta; ++ta) {
                   La = 0;
                   fa = 2 * (Nb + ta);
-                  var ua = (((X = na[fa]) || sa)
+                  var ua = (((X = oa[fa]) || sa)
                     && (U = 308e-5 * J,
                       1 !== b && 4 !== b || (U *= Math.sin(Yb * fa * Math.PI * 2) * S / 512 + 0.5),
                       U = 1.5 * Math.sin(U),
@@ -794,10 +794,10 @@ const Qa = (a, b) => Array.from(Array(a), (g, m) => b(m)),
                       ua = Math.sin(Zb * fa) * ca / 512 + 0.5,
                       La = X * (1 - ua),
                       X *= ua),
-                    fa < ub || (La += na[1 + fa - ub] * F / 255, X += na[fa - ub] * F / 255),
+                    fa < ub || (La += oa[1 + fa - ub] * F / 255, X += oa[fa - ub] * F / 255),
                     u + fa >> 1);
-                  p[ua] += (na[fa] = La) / 65536;
-                  l[ua] += (na[++fa] = X) / 65536;
+                  p[ua] += (oa[fa] = La) / 65536;
+                  l[ua] += (oa[++fa] = X) / 65536;
                 }
               }
             }
@@ -853,7 +853,7 @@ Tb(() => {
             0 < d
               && (la(),
                 wb(),
-                oa(),
+                na(),
                 z(),
                 Z.b6o(36160, f),
                 Z.v5y(0, 0, 128, 128),
@@ -1072,8 +1072,8 @@ Tb(() => {
           ),
         w = () => Eb(h[2].i, 1 - h[4].i),
         z = L(
-          t(H(20, 1, 1.15, 1), G(0, -3).scale(3.5, 1, 3.5), T(0.7, 0.4, 0.25, 0.7)),
-          t(H(20, 1, 1.3, 1), G(0, -2.5).scale(2.6, 1, 3), T(0.7, 0.4, 0.25, 0.2)),
+          t(H(30, 1, 1.15, 1), G(0, -3).scale(3.5, 1, 3.5), T(0.7, 0.4, 0.25, 0.7)),
+          t(H(30, 1, 1.3, 1), G(0, -2.5).scale(2.6, 1, 3), T(0.7, 0.4, 0.25, 0.2)),
           t(H(), G(4, -1.2).scale3d(2), T(0.7, 0.4, 0.25, 0.3)),
         ),
         B = Qa(7, f => t(H(6, 1), G(4 * (f / 6 - 0.5), 3).scale(0.2, 3, 0.2), T(0.3, 0.3, 0.38))).flat(),
@@ -1552,14 +1552,14 @@ Tb(() => {
     P(() => {
       Q(
         kb(30, 24, (l, u, v) => {
-          const w = u / 24, z = l * Math.PI * 2 / 30, B = w ** 0.6 * Math.PI / 2;
+          const w = u / 24, z = l * Math.PI * 2 / 30, B = Math.sin(w ** 0.6 * Math.PI / 2);
           l = w * w * Math.sin(l * Math.PI * 14 / 30) / 4;
-          return 23 === u
+          return 23 < u
             ? { x: v.D = 0, y: -0.5, z: 0 }
             : {
-              x: Math.cos(z) * Math.sin(B),
+              x: Math.cos(z) * B,
               y: Math.cos(w * Math.PI) - w - l,
-              z: Math.sin(z) * Math.sin(B) + Math.sin(l * Math.PI * 2) / 4,
+              z: Math.sin(z) * B + Math.sin(l * Math.PI * 2) / 4,
             };
         }),
         V(0.7, 0.7, 0.7),

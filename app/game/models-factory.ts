@@ -118,8 +118,6 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]
     $value: 0,
     $matrix,
     _update: () => {
-      matrixSetIdentity($matrix);
-
       if (!soul.$value) {
         let isInside: boolean | undefined;
         let contextualVelocity = 1;
@@ -169,7 +167,7 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]
         prevX = soulX;
         prevZ = soulZ;
 
-        const soulPos = $matrix
+        const soulPos = matrixSetIdentity($matrix)
           .multiplySelf(parentModel.$matrix)
           .multiplySelf(transform)
           .translateSelf(soulX, 0, soulZ)
@@ -183,7 +181,7 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]
       }
 
       if (soul.$value) {
-        $matrix
+        matrixSetIdentity($matrix)
           .multiplySelf(allModels[MODEL_ID_FIRST_BOAT]!.$matrix)
           .translateSelf(
             (index % 4) * 1.2 - 1.7 + Math.sin(gameTime + index) / 7,

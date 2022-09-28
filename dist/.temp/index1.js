@@ -936,7 +936,6 @@ const newSoul = (transform, ...walkingPath) => {
     $value: 0,
     $matrix,
     _update: () => {
-      matrixSetIdentity($matrix);
       if (!soul.$value) {
         let isInside;
         let contextualVelocity = 1;
@@ -982,15 +981,16 @@ const newSoul = (transform, ...walkingPath) => {
         );
         prevX = soulX;
         prevZ = soulZ;
-        const soulPos = $matrix.multiplySelf(parentModel.$matrix).multiplySelf(transform).translateSelf(soulX, 0, soulZ)
-          .rotateSelf(0, lookAngle, /* @__PURE__ */ Math.sin(gameTime * 1.7) * 7).transformPoint();
+        const soulPos = matrixSetIdentity($matrix).multiplySelf(parentModel.$matrix).multiplySelf(transform)
+          .translateSelf(soulX, 0, soulZ).rotateSelf(0, lookAngle, /* @__PURE__ */ Math.sin(gameTime * 1.7) * 7)
+          .transformPoint();
         if (vec3_distance(soulPos, player_position_final) < SOUL_SENSITIVITY_RADIUS) {
           soul.$value = 1;
           onSoulCollected();
         }
       }
       if (soul.$value) {
-        $matrix.multiplySelf(allModels[MODEL_ID_FIRST_BOAT].$matrix).translateSelf(
+        matrixSetIdentity($matrix).multiplySelf(allModels[MODEL_ID_FIRST_BOAT].$matrix).translateSelf(
           index % 4 * 1.2 - 1.7 + /* @__PURE__ */ Math.sin(gameTime + index) / 7,
           -2,
           -5.5 + (index / 4 | 0) * 1.7 + abs(index % 4 - 2) + /* @__PURE__ */ Math.cos(gameTime / 1.5 + index) / 6,
@@ -1073,11 +1073,11 @@ const build_life_the_universe_and_everything = () => {
     const hexPadShouldOscillate = () => lerpneg(levers[8].$lerpValue2, levers[12].$lerpValue2);
     const boatPolygons = csg_polygons_subtract(
       polygons_transform(
-        cylinder(20, 1, 1.15, 1),
+        cylinder(30, 1, 1.15, 1),
         translation(0, -3).scale(3.5, 1, 3.5),
         material(0.7, 0.4, 0.25, 0.7),
       ),
-      polygons_transform(cylinder(20, 1, 1.3, 1), translation(0, -2.5).scale(2.6, 1, 3), material(0.7, 0.4, 0.25, 0.2)),
+      polygons_transform(cylinder(30, 1, 1.3, 1), translation(0, -2.5).scale(2.6, 1, 3), material(0.7, 0.4, 0.25, 0.2)),
       polygons_transform(cylinder(), translation(4, -1.2).scale3d(2), material(0.7, 0.4, 0.25, 0.3)),
     );
     const gateBarsPolygons = integers_map(
@@ -1969,22 +1969,19 @@ const build_life_the_universe_and_everything = () => {
       sphere(GHOST_SLICES, GHOST_STACKS, (a, b, polygon) => {
         const bm = b / GHOST_STACKS;
         const theta = a * (Math.PI * (2 / GHOST_SLICES));
-        const phixz = bm ** 0.6 * Math.PI / 2;
+        const phixz = /* @__PURE__ */ Math.sin(bm ** 0.6 * Math.PI / 2);
         const osc = bm * bm * /* @__PURE__ */ Math.sin(a * Math.PI * (14 / GHOST_SLICES)) / 4;
-        if (b === GHOST_STACKS - 1) {
-          polygon.$smooth = 0;
-          return {
-            x: 0,
+        return b > GHOST_STACKS - 1
+          ? {
+            x: polygon.$smooth = 0,
             y: -0.5,
             z: 0,
+          }
+          : {
+            x: /* @__PURE__ */ Math.cos(theta) * phixz,
+            y: /* @__PURE__ */ Math.cos(bm * Math.PI) - bm - osc,
+            z: /* @__PURE__ */ Math.sin(theta) * phixz + /* @__PURE__ */ Math.sin(osc * Math.PI * 2) / 4,
           };
-        }
-        return {
-          x: /* @__PURE__ */ Math.cos(theta) * /* @__PURE__ */ Math.sin(phixz),
-          y: /* @__PURE__ */ Math.cos(bm * Math.PI) - bm - osc,
-          z: /* @__PURE__ */ Math.sin(theta) * /* @__PURE__ */ Math.sin(phixz)
-            + /* @__PURE__ */ Math.sin(osc * Math.PI * 2) / 4,
-        };
       }),
       scaling(0.7, 0.7, 0.7),
       material(1, 1, 1),

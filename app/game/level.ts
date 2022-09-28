@@ -87,11 +87,11 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
     const boatPolygons = csg_polygons_subtract(
       polygons_transform(
-        cylinder(20, 1, 1.15, 1),
+        cylinder(30, 1, 1.15, 1),
         translation(0, -3).scale(3.5, 1, 3.5),
         material(0.7, 0.4, 0.25, 0.7),
       ),
-      polygons_transform(cylinder(20, 1, 1.3, 1), translation(0, -2.5).scale(2.6, 1, 3), material(0.7, 0.4, 0.25, 0.2)),
+      polygons_transform(cylinder(30, 1, 1.3, 1), translation(0, -2.5).scale(2.6, 1, 3), material(0.7, 0.4, 0.25, 0.2)),
       polygons_transform(cylinder(), translation(4, -1.2).scale3d(2), material(0.7, 0.4, 0.25, 0.3)),
     );
 
@@ -1185,17 +1185,15 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
       sphere(GHOST_SLICES, GHOST_STACKS, (a: number, b: number, polygon: Polygon) => {
         const bm = b / GHOST_STACKS;
         const theta = a * (Math.PI * (2 / GHOST_SLICES));
-        const phixz = (bm ** 0.6 * Math.PI) / 2;
+        const phixz = Math.sin((bm ** 0.6 * Math.PI) / 2);
         const osc = (bm * bm * Math.sin(a * Math.PI * (14 / GHOST_SLICES))) / 4;
-        if (b === GHOST_STACKS - 1) {
-          polygon.$smooth = 0;
-          return { x: 0, y: -0.5, z: 0 };
-        }
-        return {
-          x: Math.cos(theta) * Math.sin(phixz),
-          y: Math.cos(bm * Math.PI) - bm - osc,
-          z: Math.sin(theta) * Math.sin(phixz) + Math.sin(osc * Math.PI * 2) / 4,
-        };
+        return b > GHOST_STACKS - 1
+          ? { x: (polygon.$smooth = 0), y: -0.5, z: 0 }
+          : {
+              x: Math.cos(theta) * phixz,
+              y: Math.cos(bm * Math.PI) - bm - osc,
+              z: Math.sin(theta) * phixz + Math.sin(osc * Math.PI * 2) / 4,
+            };
       }),
       scaling(0.7, 0.7, 0.7),
       material(1, 1, 1),
