@@ -20,7 +20,7 @@ import void_fsSource from "./shaders/void-fragment.frag";
 import sky_vsSource from "./shaders/sky-vertex.vert";
 import sky_fsSource, { uniformName_iResolution } from "./shaders/sky-fragment.frag";
 
-import { integers_map, matrixToArray, zFar, zNear, matrixSetIdentity, tempMatrix } from "./math";
+import { integers_map, matrixToArray, zFar, zNear, matrixCopy, identity } from "./math";
 import { MODEL_ID_SOUL, MODEL_ID_SOUL_COLLISION, player_position_final } from "./game/models";
 import {
   absoluteTime,
@@ -141,7 +141,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
         collisionShader(uniformName_viewMatrix),
         false,
         matrixToArray(
-          matrixSetIdentity(tempMatrix)
+          matrixCopy()
             .rotateSelf(0, 180)
             .invertSelf()
             .translateSelf(-x, -y, 0.3 - z),
@@ -156,7 +156,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       gl.uniformMatrix4fv(
         collisionShader(uniformName_viewMatrix),
         false,
-        matrixToArray(matrixSetIdentity(tempMatrix).translateSelf(-x, -y, -z - 0.3)),
+        matrixToArray(matrixCopy().translateSelf(-x, -y, -z - 0.3)),
       );
       renderModels(collisionShader(uniformName_worldMatrices), 0, MODEL_ID_SOUL_COLLISION);
 
@@ -169,7 +169,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
     // view camera
 
-    matrixSetIdentity(camera_view);
+    matrixCopy(identity, camera_view);
 
     if (mainMenuVisible) {
       camera_view.rotateSelf(-20, -90).invertSelf().translateSelf(5, -2, -3.4);
@@ -214,11 +214,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
     gl.uniform3f(skyShader(uniformName_iResolution), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime);
     gl.uniform3f(skyShader(uniformName_viewPos), camera_position_x, camera_position_y, camera_position_z);
-    gl.uniformMatrix4fv(
-      skyShader(uniformName_viewMatrix),
-      false,
-      matrixToArray(matrixSetIdentity(tempMatrix).multiplySelf(camera_view).invertSelf()),
-    );
+    gl.uniformMatrix4fv(skyShader(uniformName_viewMatrix), false, matrixToArray(matrixCopy(camera_view).invertSelf()));
 
     gl.drawElements(gl.TRIANGLES, 3, gl.UNSIGNED_SHORT, 0);
 

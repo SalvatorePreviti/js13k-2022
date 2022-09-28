@@ -1,13 +1,4 @@
-import {
-  min,
-  angle_lerp_degrees,
-  DEG_TO_RAD,
-  type Vec3Optional,
-  vec3_distance,
-  clamp,
-  abs,
-  matrixSetIdentity,
-} from "../math";
+import { min, angle_lerp_degrees, DEG_TO_RAD, type Vec3Optional, vec3_distance, clamp, abs, matrixCopy } from "../math";
 import { cylinder, polygons_transform, type Polygon } from "../geometry/geometry";
 import {
   levers,
@@ -70,8 +61,7 @@ export const newLever = (transform: DOMMatrixReadOnly): void => {
     $locMatrix,
     $matrix,
     _update: () => {
-      matrixSetIdentity($matrix)
-        .multiplySelf(matrixSetIdentity($locMatrix).multiplySelf($parent.$matrix).multiplySelf(transform))
+      matrixCopy(matrixCopy($parent.$matrix, $locMatrix).multiplySelf(transform), $matrix)
         .rotateSelf(lever.$lerpValue * 60 - 30, 0)
         .translateSelf(0, 1);
 
@@ -167,8 +157,7 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]
         prevX = soulX;
         prevZ = soulZ;
 
-        const soulPos = matrixSetIdentity($matrix)
-          .multiplySelf(parentModel.$matrix)
+        const soulPos = matrixCopy(parentModel.$matrix, $matrix)
           .multiplySelf(transform)
           .translateSelf(soulX, 0, soulZ)
           .rotateSelf(0, lookAngle, Math.sin(gameTime * 1.7) * 7)
@@ -181,13 +170,11 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]
       }
 
       if (soul.$value) {
-        matrixSetIdentity($matrix)
-          .multiplySelf(allModels[MODEL_ID_FIRST_BOAT]!.$matrix)
-          .translateSelf(
-            (index % 4) * 1.2 - 1.7 + Math.sin(gameTime + index) / 7,
-            -2,
-            -5.5 + ((index / 4) | 0) * 1.7 + abs((index % 4) - 2) + Math.cos(gameTime / 1.5 + index) / 6,
-          );
+        matrixCopy(allModels[MODEL_ID_FIRST_BOAT]!.$matrix, $matrix).translateSelf(
+          (index % 4) * 1.2 - 1.7 + Math.sin(gameTime + index) / 7,
+          -2,
+          -5.5 + ((index / 4) | 0) * 1.7 + abs((index % 4) - 2) + Math.cos(gameTime / 1.5 + index) / 6,
+        );
       }
     },
   };

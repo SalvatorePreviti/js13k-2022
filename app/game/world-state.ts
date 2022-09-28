@@ -1,5 +1,5 @@
 import type { Vec2 } from "../math";
-import { lerp, angle_wrap_degrees, lerpneg, clamp, min, abs, matrixSetIdentity } from "../math";
+import { lerp, angle_wrap_degrees, lerpneg, clamp, min, abs, identity, matrixCopy } from "../math";
 import { allModels, levers, souls, SOULS_COUNT } from "./models";
 
 export let souls_collected_count = 0;
@@ -125,7 +125,7 @@ export const worldStateUpdate = () => {
   }
 
   for (const model of allModels) {
-    model._update(matrixSetIdentity(model.$matrix));
+    model._update(matrixCopy(identity, model.$matrix));
   }
 
   for (const lever of levers) {

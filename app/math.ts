@@ -117,6 +117,10 @@ export const plane_fromPolygon = /* @__PURE__ */ (polygon: readonly Vec3In[]): P
   return { x, y, z, w: x * a.x + y * a.y + z * a.z };
 };
 
+export const identity: DOMMatrixReadOnly = new DOMMatrix();
+
+export const tempMatrix = new DOMMatrix();
+
 export const float32Array16Temp = new Float32Array(16);
 
 export const matrixToArray = (
@@ -144,53 +148,31 @@ export const matrixToArray = (
   return output;
 };
 
-export const matrixSetIdentity = (matrix: DOMMatrix) => {
-  matrix.m11 = 1;
-  matrix.m12 = 0;
-  matrix.m13 = 0;
-  matrix.m14 = 0;
-  matrix.m21 = 0;
-  matrix.m22 = 1;
-  matrix.m23 = 0;
-  matrix.m24 = 0;
-  matrix.m31 = 0;
-  matrix.m32 = 0;
-  matrix.m33 = 1;
-  matrix.m34 = 0;
-  matrix.m41 = 0;
-  matrix.m42 = 0;
-  matrix.m43 = 0;
-  matrix.m44 = 1;
-  return matrix;
+export const matrixCopy = (source: DOMMatrixReadOnly = identity, target: DOMMatrix = tempMatrix) => {
+  target.m11 = source.m11;
+  target.m12 = source.m12;
+  target.m13 = source.m13;
+  target.m14 = source.m14;
+  target.m21 = source.m21;
+  target.m22 = source.m22;
+  target.m23 = source.m23;
+  target.m24 = source.m24;
+  target.m31 = source.m31;
+  target.m32 = source.m32;
+  target.m33 = source.m33;
+  target.m34 = source.m34;
+  target.m41 = source.m41;
+  target.m42 = source.m42;
+  target.m43 = source.m43;
+  target.m44 = source.m44;
+  return target;
 };
 
-export const matrixCopy = (matrix: DOMMatrix, source: DOMMatrix) => {
-  matrix.m11 = source.m11;
-  matrix.m12 = source.m12;
-  matrix.m13 = source.m13;
-  matrix.m14 = source.m14;
-  matrix.m21 = source.m21;
-  matrix.m22 = source.m22;
-  matrix.m23 = source.m23;
-  matrix.m24 = source.m24;
-  matrix.m31 = source.m31;
-  matrix.m32 = source.m32;
-  matrix.m33 = source.m33;
-  matrix.m34 = source.m34;
-  matrix.m41 = source.m41;
-  matrix.m42 = source.m42;
-  matrix.m43 = source.m43;
-  matrix.m44 = source.m44;
-  return matrix;
-};
+export const translation = NO_INLINE((x: number, y?: number, z?: number) => identity.translate(x, y, z));
 
-export const tempMatrix = new DOMMatrix();
+export const rotation = NO_INLINE((x: number, y?: number, z?: number) => identity.rotate(x, y, z));
 
-export const translation = NO_INLINE((x: number, y?: number, z?: number) => new DOMMatrix().translateSelf(x, y, z));
-
-export const rotation = NO_INLINE((x: number, y?: number, z?: number) => new DOMMatrix().rotateSelf(x, y, z));
-
-export const scaling = NO_INLINE((x: number, y?: number, z?: number) => new DOMMatrix().scaleSelf(x, y, z));
+export const scaling = NO_INLINE((x: number, y?: number, z?: number) => identity.scale(x, y, z));
 
 export const zNear = constDef_zNear;
 

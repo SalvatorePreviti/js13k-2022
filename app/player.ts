@@ -8,7 +8,7 @@ import {
   min,
   abs,
   tempMatrix,
-  matrixSetIdentity,
+  matrixCopy,
 } from "./math";
 import {
   levers,
@@ -192,7 +192,7 @@ export const player_init = () => {
     lerp(previous, desired, boot || (clamp(abs(desired - previous) ** 0.9 - hysteresis) + 1 / 7) * damp(speed * 1.5));
 
   const playerMovedGlobalPos = (referenceMatrix: DOMMatrixReadOnly) => {
-    matrixSetIdentity(tempMatrix).multiplySelf(referenceMatrix).invertSelf();
+    matrixCopy(referenceMatrix).invertSelf();
     tempMatrix.m41 = tempMatrix.m42 = tempMatrix.m43 = 0;
     const v = tempMatrix.transformPoint({ x: player_mov_x, z: player_mov_z, w: 0 });
     player_position_global.x += v.x;

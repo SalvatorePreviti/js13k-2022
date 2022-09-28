@@ -1,4 +1,4 @@
-import { integers_map, max, min, scaling, rotation, matrixSetIdentity, tempMatrix, type Vec3 } from "./math";
+import { integers_map, max, min, scaling, rotation, matrixCopy, tempMatrix, type Vec3 } from "./math";
 
 const LIGHT_ROT_X = 298;
 const LIGHT_ROT_Y = 139;
@@ -17,7 +17,7 @@ export const csm_buildMatrix = /* @__PURE__ */ (
   roundingRadius: number,
   zMultiplier: number,
 ) => {
-  matrixSetIdentity(tempMatrix).scale3dSelf(roundingRadius).multiplySelf(projection.multiply(camera_view).invertSelf());
+  matrixCopy().scale3dSelf(roundingRadius).multiplySelf(projection.multiply(camera_view).invertSelf());
 
   let tx = 0;
   let ty = 0;
@@ -35,7 +35,7 @@ export const csm_buildMatrix = /* @__PURE__ */ (
     tz -= _frustumCorners[i]!.z = (v.z | 0) / w;
   }
 
-  matrixSetIdentity(tempMatrix)
+  matrixCopy()
     .rotateSelf(LIGHT_ROT_X, LIGHT_ROT_Y)
     .translateSelf(tx / 8, ty / 8, tz / 8);
 

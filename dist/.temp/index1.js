@@ -80,33 +80,34 @@ const matrixToArray = ($matrix, output = float32Array16Temp, index = 0) => {
   output[index] = $matrix.m44;
   return output;
 };
-const matrixSetIdentity = ($matrix) => {
-  $matrix.m11 = 1;
-  $matrix.m12 = 0;
-  $matrix.m13 = 0;
-  $matrix.m14 = 0;
-  $matrix.m21 = 0;
-  $matrix.m22 = 1;
-  $matrix.m23 = 0;
-  $matrix.m24 = 0;
-  $matrix.m31 = 0;
-  $matrix.m32 = 0;
-  $matrix.m33 = 1;
-  $matrix.m34 = 0;
-  $matrix.m41 = 0;
-  $matrix.m42 = 0;
-  $matrix.m43 = 0;
-  $matrix.m44 = 1;
-  return $matrix;
+const matrixCopy = (source = identity, target = tempMatrix) => {
+  target.m11 = source.m11;
+  target.m12 = source.m12;
+  target.m13 = source.m13;
+  target.m14 = source.m14;
+  target.m21 = source.m21;
+  target.m22 = source.m22;
+  target.m23 = source.m23;
+  target.m24 = source.m24;
+  target.m31 = source.m31;
+  target.m32 = source.m32;
+  target.m33 = source.m33;
+  target.m34 = source.m34;
+  target.m41 = source.m41;
+  target.m42 = source.m42;
+  target.m43 = source.m43;
+  target.m44 = source.m44;
+  return target;
 };
+const identity = new DOMMatrix();
 const tempMatrix = new DOMMatrix();
 const float32Array16Temp = new Float32Array(16);
 const min = NO_INLINE((a, b) => a < b ? a : b);
 const max = NO_INLINE((a, b) => a > b ? a : b);
 const abs = NO_INLINE((a) => a < 0 ? -a : a);
-const translation = NO_INLINE((x, y, z) => new DOMMatrix().translateSelf(x, y, z));
-const rotation = NO_INLINE((x, y, z) => new DOMMatrix().rotateSelf(x, y, z));
-const scaling = NO_INLINE((x, y, z) => new DOMMatrix().scaleSelf(x, y, z));
+const translation = NO_INLINE((x, y, z) => identity.translate(x, y, z));
+const rotation = NO_INLINE((x, y, z) => identity.rotate(x, y, z));
+const scaling = NO_INLINE((x, y, z) => identity.scale(x, y, z));
 const zNear = constDef_zNear;
 const zFar = constDef_zFar;
 const fieldOfViewRadians = fieldOfViewDegrees * DEG_TO_RAD;
@@ -491,7 +492,7 @@ const worldStateUpdate = () => {
     }
   }
   for (const model of allModels) {
-    model._update(matrixSetIdentity(model.$matrix));
+    model._update(matrixCopy(identity, model.$matrix));
   }
   for (const lever of levers) {
     lever._update();
@@ -896,9 +897,10 @@ const newLever = (transform) => {
     $locMatrix,
     $matrix,
     _update: () => {
-      matrixSetIdentity($matrix).multiplySelf(
-        matrixSetIdentity($locMatrix).multiplySelf($parent.$matrix).multiplySelf(transform),
-      ).rotateSelf(lever.$lerpValue * 60 - 30, 0).translateSelf(0, 1);
+      matrixCopy(matrixCopy($parent.$matrix, $locMatrix).multiplySelf(transform), $matrix).rotateSelf(
+        lever.$lerpValue * 60 - 30,
+        0,
+      ).translateSelf(0, 1);
       lever.$lerpValue = lerpDamp(lever.$lerpValue, lever.$value, 4);
       lever.$lerpValue2 = lerpDamp(lever.$lerpValue2, lever.$value, 1);
       if (
@@ -986,16 +988,15 @@ const newSoul = (transform, ...walkingPath) => {
         );
         prevX = soulX;
         prevZ = soulZ;
-        const soulPos = matrixSetIdentity($matrix).multiplySelf(parentModel.$matrix).multiplySelf(transform)
-          .translateSelf(soulX, 0, soulZ).rotateSelf(0, lookAngle, /* @__PURE__ */ Math.sin(gameTime * 1.7) * 7)
-          .transformPoint();
+        const soulPos = matrixCopy(parentModel.$matrix, $matrix).multiplySelf(transform).translateSelf(soulX, 0, soulZ)
+          .rotateSelf(0, lookAngle, /* @__PURE__ */ Math.sin(gameTime * 1.7) * 7).transformPoint();
         if (vec3_distance(soulPos, player_position_final) < SOUL_SENSITIVITY_RADIUS) {
           soul.$value = 1;
           onSoulCollected();
         }
       }
       if (soul.$value) {
-        matrixSetIdentity($matrix).multiplySelf(allModels[MODEL_ID_FIRST_BOAT].$matrix).translateSelf(
+        matrixCopy(allModels[MODEL_ID_FIRST_BOAT].$matrix, $matrix).translateSelf(
           index % 4 * 1.2 - 1.7 + /* @__PURE__ */ Math.sin(gameTime + index) / 7,
           -2,
           -5.5 + (index / 4 | 0) * 1.7 + abs(index % 4 - 2) + /* @__PURE__ */ Math.cos(gameTime / 1.5 + index) / 6,
@@ -2018,9 +2019,7 @@ const csm_buildMatrix = (camera_view, projection2, roundingRadius, zMultiplier) 
   let tx = 0;
   let ty = 0;
   let tz = 0;
-  matrixSetIdentity(tempMatrix).scale3dSelf(roundingRadius).multiplySelf(
-    projection2.multiply(camera_view).invertSelf(),
-  );
+  matrixCopy().scale3dSelf(roundingRadius).multiplySelf(projection2.multiply(camera_view).invertSelf());
   for (let i = 0; i < 8; ++i) {
     _frustumPoint.x = 4 & i ? 1 : -1;
     _frustumPoint.y = 2 & i ? 1 : -1;
@@ -2031,7 +2030,7 @@ const csm_buildMatrix = (camera_view, projection2, roundingRadius, zMultiplier) 
     ty -= _frustumCorners[i].y = (v.y | 0) / w;
     tz -= _frustumCorners[i].z = (v.z | 0) / w;
   }
-  matrixSetIdentity(tempMatrix).rotateSelf(LIGHT_ROT_X, LIGHT_ROT_Y).translateSelf(tx / 8, ty / 8, tz / 8);
+  matrixCopy().rotateSelf(LIGHT_ROT_X, LIGHT_ROT_Y).translateSelf(tx / 8, ty / 8, tz / 8);
   let left = Infinity;
   let right = -Infinity;
   let bottom = Infinity;
@@ -2191,7 +2190,7 @@ const player_init = () => {
   const interpolate_with_hysteresis = (previous, desired, hysteresis, speed) =>
     lerp(previous, desired, boot || (clamp(abs(desired - previous) ** 0.9 - hysteresis) + 1 / 7) * damp(speed * 1.5));
   const playerMovedGlobalPos = (referenceMatrix) => {
-    matrixSetIdentity(tempMatrix).multiplySelf(referenceMatrix).invertSelf();
+    matrixCopy(referenceMatrix).invertSelf();
     tempMatrix.m41 = tempMatrix.m42 = tempMatrix.m43 = 0;
     const v = tempMatrix.transformPoint({
       x: player_mov_x,
@@ -2437,7 +2436,7 @@ const startMainLoop = (groundTextureImage) => {
       gl["uae"](
         collisionShader(uniformName_viewMatrix),
         false,
-        matrixToArray(matrixSetIdentity(tempMatrix).rotateSelf(0, 180).invertSelf().translateSelf(-x, -y, 0.3 - z)),
+        matrixToArray(matrixCopy().rotateSelf(0, 180).invertSelf().translateSelf(-x, -y, 0.3 - z)),
       );
       renderModels(collisionShader(uniformName_worldMatrices), 0, MODEL_ID_SOUL_COLLISION);
       gl["c4s"](256);
@@ -2445,13 +2444,13 @@ const startMainLoop = (groundTextureImage) => {
       gl["uae"](
         collisionShader(uniformName_viewMatrix),
         false,
-        matrixToArray(matrixSetIdentity(tempMatrix).translateSelf(-x, -y, -z - 0.3)),
+        matrixToArray(matrixCopy().translateSelf(-x, -y, -z - 0.3)),
       );
       renderModels(collisionShader(uniformName_worldMatrices), 0, MODEL_ID_SOUL_COLLISION);
       gl["f1s"]();
     }
     resetInteractPressed();
-    matrixSetIdentity(camera_view);
+    matrixCopy(identity, camera_view);
     if (mainMenuVisible) {
       camera_view.rotateSelf(-20, -90).invertSelf().translateSelf(5, -2, -3.4);
     } else {
@@ -2480,11 +2479,7 @@ const startMainLoop = (groundTextureImage) => {
     skyShader();
     gl["ubu"](skyShader(uniformName_iResolution), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime);
     gl["ubu"](skyShader(uniformName_viewPos), camera_position_x, camera_position_y, camera_position_z);
-    gl["uae"](
-      skyShader(uniformName_viewMatrix),
-      false,
-      matrixToArray(matrixSetIdentity(tempMatrix).multiplySelf(camera_view).invertSelf()),
-    );
+    gl["uae"](skyShader(uniformName_viewMatrix), false, matrixToArray(matrixCopy(camera_view).invertSelf()));
     gl["d97"](4, 3, 5123, 0);
     gl["b6o"](36160, collision_frameBuffer);
     gl["f1s"]();
