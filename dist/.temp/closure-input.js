@@ -913,26 +913,29 @@ const player_init = () => {
     }
   };
   const doVerticalCollisions = () => {
-    let maxModelIdCount = 0;
-    let nextModelId = 0;
     let grav = 0;
     let lines = 0;
-    player_has_ground = 0, player_collision_modelIdCounter.fill(0);
-    for (let y = 0; y < 31; ++y) {
+    let lineToProcess = -1;
+    let modelACount = 0;
+    let modelB = 0;
+    let modelBCount = 0;
+    for (let y = player_has_ground = 0; y < 31; ++y) {
       let up = 0;
       const yindex = 512 * y;
-      for (let x = 0; x < 128; x++) {
-        var i = yindex + 4 * x;
-        let a = (collision_buffer[i] + collision_buffer[1 + i]) / 255;
-        var i = collision_buffer[2 + i];
-        14 < x && x < 114 && (up += a),
-          i && a
-          && (a = player_collision_modelIdCounter[i] + 1,
-            player_collision_modelIdCounter[i] = a,
-            maxModelIdCount > a || (maxModelIdCount = a, nextModelId = i, player_has_ground = 1));
+      for (let x = 56; x < 456; x += 4) {
+        for (let k = 0; k < 2; ++k) {
+          const v = collision_buffer[yindex + x + k];
+          const m = collision_buffer[yindex + x + k + 2];
+          v && m && m < 255
+            && (up += v / 255,
+              0 <= lineToProcess && lineToProcess !== y
+              || (lineToProcess = y,
+                m === currentModelId ? ++modelACount : modelB && modelB !== m || (modelB = m, ++modelBCount)));
+        }
       }
       up < 3 && 5 < y && (grav += y / 32), 3 < up && (7 < y && (lines += y / 15), player_has_ground = 1);
     }
+    const nextModelId = modelBCount > 2 * modelACount ? modelB : currentModelId;
     currentModelId = nextModelId || currentModelIdTMinus1,
       currentModelIdTMinus1 = nextModelId,
       player_gravity = lerpDamp(player_gravity, player_has_ground ? 6.5 : player_position_global.y < -20 ? 11 : 8, 4),
@@ -945,7 +948,6 @@ const player_init = () => {
       : allModels[oldModelId && allModels[oldModelId].$kind === 1 && oldModelId || 0]).$matrix;
   const interpolate_with_hysteresis = (previous, desired, hysteresis, speed) =>
     lerp(previous, desired, boot || (clamp(abs(desired - previous) ** 0.5 - hysteresis) + 1 / 7) * damp(1.5 * speed));
-  const player_collision_modelIdCounter = new Uint8Array(256);
   const collision_buffer = new Uint8Array(65536);
   allModels[37]._update = (matrix) => {
     var forward = clamp(input_forward, -1);
@@ -1333,7 +1335,7 @@ loadStep(() => {
           ),
             renderModels(collisionShader("c"), 0, 41),
             gl["c4s"](256),
-            gl["cbf"](!1, !0, !0, !1),
+            gl["cbf"](!1, !0, !1, !0),
             gl["uae"](collisionShader("b"), !1, matrixToArray(matrixCopy().translateSelf(-dt, -globalTime, -z - 0.3))),
             renderModels(collisionShader("c"), 0, 41),
             gl["f1s"]();
@@ -1391,7 +1393,7 @@ precision highp float;uniform vec3 j,k;uniform mat4 b;uniform highp sampler2D q;
       const collisionShader = initShaderProgram(
         mainVertexShader,
         `#version 300 es
-precision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(m.xyz,1);float r=1.-min(abs(a.z/a.w),1.);O=vec4(vec2(r*(gl_FragCoord.y>31.?1.:abs(o.y))),r>0.?m.w/255.:0.,1);}`,
+precision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(m.xyz,1);float r=1.-min(abs(a.z/a.w),1.);O=vec4(vec2(r*(gl_FragCoord.y>31.?1.:abs(o.y))),vec2(m.w/255.));}`,
       );
       const mainShader = initShaderProgram(
         mainVertexShader,
@@ -1484,7 +1486,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
         gl["f8w"](36160, 36096, 36161, collision_renderBuffer),
         gl["a4v"](33986),
         gl["b9j"](3553, mainVertexShader),
-        gl["t60"](3553, 0, 6407, 128, 128, 0, 6407, 5121, null),
+        gl["t60"](3553, 0, 6408, 128, 128, 0, 6408, 5121, null),
         gl["fas"](36160, 36064, 3553, mainVertexShader, 0),
         gl["b9j"](3553, gl["c25"]()),
         gl["t60"](3553, 0, 6408, 1024, 1024, 0, 6408, 5121, groundTextureImage),

@@ -1999,7 +1999,7 @@ const uniformName_projectionMatrix = "a";
 const uniformName_viewMatrix = "b";
 const uniformName_worldMatrices = "c";
 const code$3 =
-  "#version 300 es\nprecision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(m.xyz,1);float r=1.-min(abs(a.z/a.w),1.);O=vec4(vec2(r*(gl_FragCoord.y>31.?1.:abs(o.y))),r>0.?m.w/255.:0.,1);}";
+  "#version 300 es\nprecision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(m.xyz,1);float r=1.-min(abs(a.z/a.w),1.);O=vec4(vec2(r*(gl_FragCoord.y>31.?1.:abs(o.y))),vec2(m.w/255.));}";
 const code$2 = "#version 300 es\nvoid main(){}";
 const code$1 = "#version 300 es\nin vec4 f;void main(){gl_Position=vec4(f.xy,1,1);}";
 const code =
@@ -2088,29 +2088,31 @@ const player_init = () => {
     }
   };
   const doVerticalCollisions = () => {
-    let maxModelIdCount = 0;
-    let nextModelId = 0;
     let grav = 0;
     let lines = 0;
+    let lineToProcess = -1;
+    let modelACount = 0;
+    let modelB = 0;
+    let modelBCount = 0;
     player_has_ground = 0;
-    player_collision_modelIdCounter.fill(0);
     for (let y = 0; y < 31; ++y) {
       let up = 0;
       const yindex = y * (COLLISION_TEXTURE_SIZE * 4);
-      for (let x = 0; x < COLLISION_TEXTURE_SIZE - 0; x++) {
-        let i = yindex + x * 4;
-        const a = (collision_buffer[i] + collision_buffer[i + 1]) / 255;
-        i = collision_buffer[i + 2];
-        if (x > 14 && x < COLLISION_TEXTURE_SIZE - 14) {
-          up += a;
-        }
-        if (i && a) {
-          const count = player_collision_modelIdCounter[i] + 1;
-          player_collision_modelIdCounter[i] = count;
-          if (count >= maxModelIdCount) {
-            maxModelIdCount = count;
-            nextModelId = i;
-            player_has_ground = 1;
+      for (let x = 56; x < (COLLISION_TEXTURE_SIZE - 14) * 4; x += 4) {
+        for (let k = 0; k < 2; ++k) {
+          const v = collision_buffer[yindex + x + k];
+          const m = collision_buffer[yindex + x + k + 2];
+          if (v && m && m < 255) {
+            up += v / 255;
+            if (lineToProcess < 0 || lineToProcess === y) {
+              lineToProcess = y;
+              if (m === currentModelId) {
+                ++modelACount;
+              } else if (!modelB || modelB === m) {
+                modelB = m;
+                ++modelBCount;
+              }
+            }
           }
         }
       }
@@ -2124,6 +2126,8 @@ const player_init = () => {
         player_has_ground = 1;
       }
     }
+    const nextModelId = modelBCount > modelACount * 2 ? modelB : currentModelId;
+    console.log(nextModelId);
     currentModelId = nextModelId || currentModelIdTMinus1;
     currentModelIdTMinus1 = nextModelId;
     player_gravity = lerpDamp(player_gravity, player_has_ground ? 6.5 : player_position_global.y < -20 ? 11 : 8, 4);
@@ -2148,7 +2152,6 @@ const player_init = () => {
     player_position_global.z += v.z;
     return referenceMatrix.transformPoint(player_position_global);
   };
-  const player_collision_modelIdCounter = new Uint8Array(256);
   const collision_buffer = new Uint8Array(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
   allModels[MODEL_ID_PLAYER_BODY]._update = (matrix) => {
     let forward = clamp(input_forward, -1);
@@ -2386,7 +2389,7 @@ const startMainLoop = (groundTextureImage) => {
       );
       renderModels(collisionShader(uniformName_worldMatrices), 0, MODEL_ID_SOUL_COLLISION);
       gl["c4s"](256);
-      gl["cbf"](false, true, true, false);
+      gl["cbf"](false, true, false, true);
       gl["uae"](
         collisionShader(uniformName_viewMatrix),
         false,
@@ -2522,7 +2525,7 @@ const startMainLoop = (groundTextureImage) => {
   gl["f8w"](36160, 36096, 36161, collision_renderBuffer);
   gl["a4v"](33986);
   gl["b9j"](3553, collision_texture);
-  gl["t60"](3553, 0, 6407, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE, 0, 6407, 5121, null);
+  gl["t60"](3553, 0, 6408, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE, 0, 6408, 5121, null);
   gl["fas"](36160, 36064, 3553, collision_texture, 0);
   gl["b9j"](3553, gl["c25"]());
   gl["t60"](3553, 0, 6408, 1024, 1024, 0, 6408, 5121, groundTextureImage);

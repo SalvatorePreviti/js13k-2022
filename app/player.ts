@@ -43,7 +43,6 @@ export const set_camera_position = (x: number, y: number, z: number) => {
 
 export const player_init = () => {
   let currentModelId: number;
-  let currentModelIdTMinus1: number;
   let oldModelId: number | undefined;
 
   let boot: 0 | 1 = 1;
@@ -65,7 +64,6 @@ export const player_init = () => {
   let camera_pos_lookat_y: number;
   let camera_pos_lookat_z: number;
 
-  const player_collision_modelIdCounter = new Uint8Array(256);
   const collision_buffer = new Uint8Array(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
 
   const doHorizontalCollisions = () => {
@@ -111,29 +109,34 @@ export const player_init = () => {
   };
 
   const doVerticalCollisions = () => {
-    let maxModelIdCount = 0;
-    let nextModelId = 0;
     let grav = 0;
     let lines = 0;
     player_has_ground = 0;
-    player_collision_modelIdCounter.fill(0);
+
+    let lineToProcess = -1;
+
+    let modelACount = 0;
+    let modelB = 0;
+    let modelBCount = 0;
+
     for (let y = 0; y < 31; ++y) {
       let up = 0;
       const yindex = y * (COLLISION_TEXTURE_SIZE * 4);
-      for (let x = 0; x < COLLISION_TEXTURE_SIZE - 0; x++) {
-        let i = yindex + x * 4;
-        const a = (collision_buffer[i]! + collision_buffer[i + 1]!) / 255;
-        i = collision_buffer[i + 2]!;
-        if (x > 14 && x < COLLISION_TEXTURE_SIZE - 14) {
-          up += a;
-        }
-        if (i && a) {
-          const count = player_collision_modelIdCounter[i]! + 1;
-          player_collision_modelIdCounter[i] = count;
-          if (count >= maxModelIdCount) {
-            maxModelIdCount = count;
-            nextModelId = i;
-            player_has_ground = 1;
+      for (let x = 14 * 4; x < (COLLISION_TEXTURE_SIZE - 14) * 4; x += 4) {
+        for (let k = 0; k < 2; ++k) {
+          const v = collision_buffer[yindex + x + k]!;
+          const m = collision_buffer[yindex + x + k + 2]!;
+          if (v && m && m < 255) {
+            up += v / 255;
+            if (lineToProcess < 0 || lineToProcess === y) {
+              lineToProcess = y;
+              if (m === currentModelId) {
+                ++modelACount;
+              } else if (!modelB || modelB === m) {
+                modelB = m;
+                ++modelBCount;
+              }
+            }
           }
         }
       }
@@ -148,8 +151,9 @@ export const player_init = () => {
       }
     }
 
-    currentModelId = nextModelId || currentModelIdTMinus1;
-    currentModelIdTMinus1 = nextModelId;
+    const nextModelId = modelACount + modelBCount > 10 ? (modelBCount > modelACount * 2 ? modelB : currentModelId) : 0;
+
+    currentModelId = nextModelId;
 
     player_gravity = lerpDamp(player_gravity, player_has_ground ? 6.5 : player_position_global.y < -20 ? 11 : 8, 4);
 

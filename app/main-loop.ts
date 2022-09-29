@@ -206,7 +206,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       // second collision render
 
       gl.clear(gl.DEPTH_BUFFER_BIT);
-      gl.colorMask(false, true, true, false);
+      gl.colorMask(false, true, false, true);
       gl.uniformMatrix4fv(
         collisionShader(uniformName_viewMatrix),
         false,
@@ -315,11 +315,11 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   gl.texImage2D(
     gl.TEXTURE_2D,
     0,
-    gl.RGB,
+    gl.RGBA,
     COLLISION_TEXTURE_SIZE,
     COLLISION_TEXTURE_SIZE,
     0,
-    gl.RGB,
+    gl.RGBA,
     gl.UNSIGNED_BYTE,
     null,
   );
