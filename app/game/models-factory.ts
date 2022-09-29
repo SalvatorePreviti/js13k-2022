@@ -10,16 +10,18 @@ import {
   type Circle,
   type Lever,
   type Soul,
+  SOULS_COUNT,
 } from "./models";
 import { onPlayerPullLever, onSoulCollected } from "./world-state";
 import { interact_pressed } from "../page";
 import type { Vec3Optional } from "../math/vectors";
 import { min, angle_lerp_degrees, DEG_TO_RAD, clamp, abs } from "../math/math";
-import { matrixCopy } from "../math/matrix";
+import { matrixCopy, matrixToArray } from "../math/matrix";
 import { lerpDamp, damp, gameTime } from "./game-time";
 import { polygons_transform, type Polygon } from "../geometry/polygon";
 import { cylinder } from "../geometry/geometry";
 import { material } from "../geometry/material";
+import { objectsMatricesBuffer } from "./models-matrices";
 
 export let currentEditModel: Model;
 
@@ -64,7 +66,6 @@ export const newLever = (transform: DOMMatrixReadOnly): void => {
     $lerpValue2: 0,
     $parent,
     $locMatrix,
-    $matrix,
     _update: () => {
       matrixCopy(matrixCopy($parent.$matrix, $locMatrix).multiplySelf(transform), $matrix)
         .rotateSelf(lever.$lerpValue * 60 - 30, 0)
@@ -79,6 +80,10 @@ export const newLever = (transform: DOMMatrixReadOnly): void => {
           onPlayerPullLever(index);
         }
       }
+
+      matrixToArray($matrix, objectsMatricesBuffer, index + SOULS_COUNT);
+      // Encode lerp value in matrix m44 so fragmemt shader can change the lever handle color
+      objectsMatricesBuffer[index * 16 + (15 + SOULS_COUNT * 16)] = 1 - lever.$lerpValue;
     },
   };
   levers.push(lever);
@@ -108,7 +113,6 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]
 
   const soul: Soul = {
     $value: 0,
-    $matrix,
     _update: () => {
       if (!soul.$value) {
         let isInside: boolean | undefined;
@@ -176,6 +180,8 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]
           -5.5 + ((index / 4) | 0) * 1.7 + abs((index % 4) - 2) + Math.cos(gameTime / 1.5 + index) / 6,
         );
       }
+
+      matrixToArray($matrix, objectsMatricesBuffer, index);
     },
   };
 

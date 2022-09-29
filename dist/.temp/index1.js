@@ -862,6 +862,8 @@ const initPage = () => {
   mainMenu(true);
 };
 const material = NO_INLINE((r, g, b, a = 0) => a * 255 << 24 | b * 255 << 16 | g * 255 << 8 | r * 255);
+const worldMatricesBuffer = new Float32Array(624);
+const objectsMatricesBuffer = new Float32Array(624);
 let currentEditModel;
 const LEVER_SENSITIVITY_RADIUS = 3;
 const SOUL_SENSITIVITY_RADIUS = 1.6;
@@ -902,7 +904,6 @@ const newLever = (transform) => {
     $lerpValue2: 0,
     $parent,
     $locMatrix,
-    $matrix,
     _update: () => {
       matrixCopy(matrixCopy($parent.$matrix, $locMatrix).multiplySelf(transform), $matrix).rotateSelf(
         lever.$lerpValue * 60 - 30,
@@ -916,6 +917,8 @@ const newLever = (transform) => {
           onPlayerPullLever(index);
         }
       }
+      matrixToArray($matrix, objectsMatricesBuffer, index + SOULS_COUNT);
+      objectsMatricesBuffer[index * 16 + (15 + SOULS_COUNT * 16)] = 1 - lever.$lerpValue;
     },
   };
   levers.push(lever);
@@ -932,21 +935,8 @@ const newSoul = (transform, ...walkingPath) => {
   let prevZ = 0;
   let wasInside = 1;
   let velocity = 3;
-  const $matrix = new DOMMatrix();
-  const parentModel = currentEditModel;
-  const index = souls.length;
-  const circles = walkingPath.map(([x, z, w]) => ({
-    x,
-    z,
-    w,
-  }));
-  let circle = circles[0];
-  let { x: targetX, z: targetZ } = circle;
-  let soulX = targetX;
-  let soulZ = targetZ;
   const soul = {
     $value: 0,
-    $matrix,
     _update: () => {
       if (!soul.$value) {
         let isInside;
@@ -1011,8 +1001,21 @@ const newSoul = (transform, ...walkingPath) => {
           -5.5 + (index / 4 | 0) * 1.7 + abs(index % 4 - 2) + /* @__PURE__ */ Math.cos(gameTime / 1.5 + index) / 6,
         );
       }
+      matrixToArray($matrix, objectsMatricesBuffer, index);
     },
   };
+  const $matrix = new DOMMatrix();
+  const parentModel = currentEditModel;
+  const index = souls.length;
+  const circles = walkingPath.map(([x, z, w]) => ({
+    x,
+    z,
+    w,
+  }));
+  let circle = circles[0];
+  let { x: targetX, z: targetZ } = circle;
+  let soulX = targetX;
+  let soulZ = targetZ;
   souls.push(soul);
 };
 const build_life_the_universe_and_everything = () => {
@@ -2319,18 +2322,10 @@ const initShaderProgram = (vertexShader, sfsSource) => {
   return (name) => name ? uniforms[name] || (uniforms[name] = gl["gan"](program, name)) : gl["u7y"](program);
 };
 const updateWorldMatrices = () => {
-  let j;
   for (let i = 0; i < allModels.length; ++i) {
     if (allModels[i].$kind) {
       matrixToArray(allModels[i].$matrix, worldMatricesBuffer, i - 1);
     }
-  }
-  for (j = 0; j < souls.length; ++j) {
-    matrixToArray(souls[j].$matrix, objectsMatricesBuffer, j);
-  }
-  for (let i1 = 0; i1 < levers.length; ++i1) {
-    matrixToArray(levers[i1].$matrix, objectsMatricesBuffer, j);
-    objectsMatricesBuffer[j++ * 16 + 15] = 1 - levers[i1].$lerpValue;
   }
 };
 const renderModels = (worldMatrixLoc, renderPlayer, soulModelId) => {
@@ -2377,8 +2372,6 @@ const renderModels = (worldMatrixLoc, renderPlayer, soulModelId) => {
     levers.length,
   );
 };
-const worldMatricesBuffer = new Float32Array(624);
-const objectsMatricesBuffer = new Float32Array(624);
 const LIGHT_ROT_Y = 139;
 const LIGHT_ROT_X = 298;
 const startMainLoop = (groundTextureImage) => {

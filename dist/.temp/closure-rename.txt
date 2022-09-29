@@ -1,12 +1,12 @@
-$back:m
+$back:l
 $color:A
 $flipped:B
-$front:o
+$front:m
 $kind:G
 $lerpValue:g
 $lerpValue2:i
 $locMatrix:I
-$matrix:l
+$matrix:o
 $modelId:H
 $parent:u
 $polygon:C

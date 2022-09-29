@@ -13,9 +13,7 @@ import { absoluteTime, mainMenuVisible } from "./game-time";
 import { rotation } from "../math/matrix-transforms";
 import { matrixToArray } from "../math/matrix";
 import { gl } from "../gl";
-
-const worldMatricesBuffer = new Float32Array(39 * 16);
-const objectsMatricesBuffer = new Float32Array(39 * 16);
+import { worldMatricesBuffer, objectsMatricesBuffer } from "./models-matrices";
 
 export const updateWorldMatrices = () => {
   // Setup world matrices
@@ -24,19 +22,6 @@ export const updateWorldMatrices = () => {
     if (allModels[i]!.$kind) {
       matrixToArray(allModels[i]!.$matrix, worldMatricesBuffer, i - 1);
     }
-  }
-
-  // Setup souls and levers matrices
-
-  let j: number;
-  for (j = 0; j < souls.length; ++j) {
-    matrixToArray(souls[j]!.$matrix, objectsMatricesBuffer, j);
-  }
-
-  for (let i = 0; i < levers.length; ++i) {
-    matrixToArray(levers[i]!.$matrix, objectsMatricesBuffer, j);
-    // Encode lerp value in matrix m44 so fragmemt shader can change the lever handle color
-    objectsMatricesBuffer[j++ * 16 + 15] = 1 - levers[i]!.$lerpValue;
   }
 };
 

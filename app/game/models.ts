@@ -16,14 +16,12 @@ export interface Lever {
   $lerpValue: number;
   $lerpValue2: number;
   $parent: Model;
-  readonly $matrix: DOMMatrix;
   readonly $locMatrix: DOMMatrix;
   _update: () => void;
 }
 
 export interface Soul {
   $value: 0 | 1;
-  readonly $matrix: DOMMatrix;
   readonly _update: () => void;
 }
 

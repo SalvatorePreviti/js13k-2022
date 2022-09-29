@@ -774,7 +774,6 @@ const newLever = (transform) => {
     $lerpValue2: 0,
     $parent,
     $locMatrix,
-    $matrix,
     _update() {
       let leverIndex;
       matrixCopy(matrixCopy($parent.$matrix, $locMatrix).multiplySelf(transform), $matrix).rotateSelf(
@@ -787,7 +786,9 @@ const newLever = (transform) => {
         && (lever.$value = lever.$value ? 0 : 1,
           (leverIndex = index) && showMessage("* click *", 1),
           player_last_pulled_lever = leverIndex,
-          saveGame());
+          saveGame()),
+        matrixToArray($matrix, objectsMatricesBuffer, index + 13),
+        objectsMatricesBuffer[16 * index + 223] = 1 - lever.$lerpValue;
     },
   };
   levers.push(lever),
@@ -805,20 +806,8 @@ const newSoul = (transform, ...walkingPath) => {
   let wasInside = 1;
   let velocity = 3;
   const $matrix = new DOMMatrix();
-  const parentModel = currentEditModel;
-  const index = souls.length;
-  const circles = walkingPath.map(([x, z, w]) => ({
-    x,
-    z,
-    w,
-  }));
-  let circle = circles[0];
-  let { x: targetX, z: targetZ } = circle;
-  let soulX = targetX;
-  let soulZ = targetZ;
   const soul = {
     $value: 0,
-    $matrix,
     _update() {
       if (!soul.$value) {
         let x1;
@@ -891,13 +880,24 @@ const newSoul = (transform, ...walkingPath) => {
               saveGame());
       }
       soul.$value
-        && matrixCopy(allModels[2].$matrix, $matrix).translateSelf(
-          index % 4 * 1.2 - 1.7 + Math.sin(gameTime + index) / 7,
-          -2,
-          1.7 * (index / 4 | 0) - 5.5 + abs(index % 4 - 2) + Math.cos(gameTime / 1.5 + index) / 6,
-        );
+      && matrixCopy(allModels[2].$matrix, $matrix).translateSelf(
+        index % 4 * 1.2 - 1.7 + Math.sin(gameTime + index) / 7,
+        -2,
+        1.7 * (index / 4 | 0) - 5.5 + abs(index % 4 - 2) + Math.cos(gameTime / 1.5 + index) / 6,
+      ), matrixToArray($matrix, objectsMatricesBuffer, index);
     },
   };
+  const parentModel = currentEditModel;
+  const index = souls.length;
+  const circles = walkingPath.map(([x, z, w]) => ({
+    x,
+    z,
+    w,
+  }));
+  let circle = circles[0];
+  let { x: targetX, z: targetZ } = circle;
+  let soulX = targetX;
+  let soulZ = targetZ;
   souls.push(soul);
 };
 const player_init = () => {
@@ -1306,16 +1306,8 @@ loadStep(() => {
             0 < gameTimeDelta
         ) {
           updateInput(), worldStateUpdate(), player_update();
-          {
-            let j;
-            for (let i = 0; allModels.length > i; ++i) {
-              allModels[i].$kind && matrixToArray(allModels[i].$matrix, worldMatricesBuffer, i - 1);
-            }
-            for (j = 0; souls.length > j; ++j) matrixToArray(souls[j].$matrix, objectsMatricesBuffer, j);
-            for (let i1 = 0; levers.length > i1; ++i1) {
-              matrixToArray(levers[i1].$matrix, objectsMatricesBuffer, j),
-                objectsMatricesBuffer[16 * j++ + 15] = 1 - levers[i1].$lerpValue;
-            }
+          for (let i = 0; allModels.length > i; ++i) {
+            allModels[i].$kind && matrixToArray(allModels[i].$matrix, worldMatricesBuffer, i - 1);
           }
           collisionShader(),
             gl["b6o"](36160, collision_frameBuffer),
