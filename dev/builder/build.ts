@@ -138,10 +138,12 @@ export async function build() {
     js = await jsTerser(js, {
       mangle: false,
       final: false,
-      join_vars: false,
-      sequences: false,
+      join_vars: true,
+      sequences: true,
       computed_props: false,
     });
+
+    js = await jsTransformSwc(js, false, swcPluginVars());
 
     js = await jsBabel(js, {
       minify: false,
@@ -206,12 +208,14 @@ export async function build() {
       inline: true,
     });
 
-    js = await jsTransformSwc(js, false, swcPluginVars({ floatRound: 6 }));
+    js = await jsTransformSwc(js, false, swcPluginVars());
 
     js = await jsBabel(js, {
       minify: false,
-      plugins: [resugarBlockScope, resugarFunctionsArrow],
+      plugins: [resugarBlockScope, resugarFunctionsArrow, "babel-plugin-minify-constant-folding"],
     });
+
+    js = await jsTransformSwc(js, false, swcPluginVars());
 
     js = await jsEsbuildMinify(js, {
       mangle: false,
@@ -220,12 +224,11 @@ export async function build() {
       computed_props: true,
     });
 
-    js = await jsTransformSwc(js, false, swcPluginVars({ floatRound: 6 }));
+    js = await jsTransformSwc(js, false, swcPluginVars());
 
     js = await jsBabel(js, {
       minify: false,
       plugins: [
-        "babel-plugin-minify-constant-folding",
         resugarConcise,
         resugarFunctionsArrow,
         resugarBlockScope,
@@ -325,13 +328,6 @@ export async function build() {
 
     js = await jsTransformSwc(js, false, swcPluginVars({ floatRound: 6 }));
 
-    js = await jsEsbuildMinify(js, {
-      mangle: false,
-      minifySyntax: true,
-      minifyWhitespace: false,
-      computed_props: true,
-    });
-
     // js = await jsTransformSwc(js, false, swcPluginVars({ constToLet: true, floatRound: 6 }));
 
     js = await jsUglify(js, {
@@ -358,6 +354,13 @@ export async function build() {
     });
 
     js = await jsTransformSwc(js, false, swcPluginVars({ constToLet: true, floatRound: 6 }));
+
+    js = await jsEsbuildMinify(js, {
+      mangle: false,
+      minifySyntax: true,
+      minifyWhitespace: true,
+      computed_props: true,
+    });
 
     js = await jsUglify(js, {
       varify: false,

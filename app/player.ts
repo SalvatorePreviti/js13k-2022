@@ -1,16 +1,4 @@
-import {
-  max,
-  clamp,
-  DEG_TO_RAD,
-  angle_lerp_degrees,
-  lerp,
-  angle_wrap_degrees,
-  min,
-  abs,
-  tempMatrix,
-  matrixCopy,
-  threshold,
-} from "./math";
+import { max, clamp, DEG_TO_RAD, angle_lerp_degrees, lerp, angle_wrap_degrees, min, abs, threshold } from "./math/math";
 import {
   levers,
   player_position_final,
@@ -20,18 +8,11 @@ import {
   MODEL_ID_PLAYER_LEG0,
   MODEL_ID_ROTATING_PLATFORM,
 } from "./game/models";
-import {
-  player_last_pulled_lever,
-  lerpDamp,
-  gameTimeDelta,
-  gameTime,
-  firstBoatLerp,
-  damp,
-  shouldRotatePlatforms,
-  camera_rotation,
-} from "./game/world-state";
+import { player_last_pulled_lever, firstBoatLerp, shouldRotatePlatforms, camera_rotation } from "./game/world-state";
 import { input_forward, input_strafe, player_first_person } from "./page";
+import { matrixCopy, tempMatrix } from "./math/matrix";
 import { gl } from "./gl";
+import { lerpDamp, gameTimeDelta, damp, gameTime } from "./game/game-time";
 
 export const CAMERA_PLAYER_Y_DIST = 13;
 
@@ -86,6 +67,48 @@ export const player_init = () => {
   const player_collision_modelIdCounter = new Uint8Array(256);
   const collision_buffer = new Uint8Array(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
 
+  const doHorizontalCollisions = () => {
+    player_mov_x = 0;
+    player_mov_z = 0;
+    for (let y = 32; y < COLLISION_TEXTURE_SIZE; y += 2) {
+      let front = 0;
+      let back = 0;
+      let left = 0;
+      let right = 0;
+      const yindex = y * (COLLISION_TEXTURE_SIZE * 4);
+      for (let x = y & 1; x < COLLISION_TEXTURE_SIZE; x += 2) {
+        const i1 = yindex + x * 4;
+        const i2 = yindex + (COLLISION_TEXTURE_SIZE - 1 - x) * 4;
+        const dist1 = collision_buffer[i1]! / 255;
+        const dist2 = collision_buffer[i2 + 1]! / 255;
+        const t = 1 - abs(2 * (x / (COLLISION_TEXTURE_SIZE - 1)) - 1);
+
+        if (x > 10 && x < COLLISION_TEXTURE_SIZE - 10) {
+          front = max(front, max(dist1 * t, (dist1 * collision_buffer[i2]!) / 255));
+          back = max(back, max(dist2 * t, (dist2 * collision_buffer[i1 + 1]!) / 255));
+        }
+
+        if (x < COLLISION_TEXTURE_SIZE / 2 - 10 || x > COLLISION_TEXTURE_SIZE / 2 + 10) {
+          const xdist = ((1 - t) * max(dist1, dist2)) / 3;
+          if (xdist > 0.001) {
+            if (x < COLLISION_TEXTURE_SIZE / 2 && left < xdist) {
+              left = xdist;
+            } else if (x > COLLISION_TEXTURE_SIZE / 2 && right < xdist) {
+              right = xdist;
+            }
+          }
+        }
+      }
+
+      if (abs(right - left) > abs(player_mov_x)) {
+        player_mov_x = right - left;
+      }
+      if (abs(back - front) > abs(player_mov_z)) {
+        player_mov_z = back - front;
+      }
+    }
+  };
+
   const doVerticalCollisions = () => {
     let maxModelIdCount = 0;
     let nextModelId = 0;
@@ -134,48 +157,6 @@ export const player_init = () => {
       lines / 41 - (player_has_ground || player_gravity) * (grav / 41) * player_gravity * gameTimeDelta;
   };
 
-  const doHorizontalCollisions = () => {
-    player_mov_x = 0;
-    player_mov_z = 0;
-    for (let y = 32; y < COLLISION_TEXTURE_SIZE; y += 2) {
-      let front = 0;
-      let back = 0;
-      let left = 0;
-      let right = 0;
-      const yindex = y * (COLLISION_TEXTURE_SIZE * 4);
-      for (let x = y & 1; x < COLLISION_TEXTURE_SIZE; x += 2) {
-        const i1 = yindex + x * 4;
-        const i2 = yindex + (COLLISION_TEXTURE_SIZE - 1 - x) * 4;
-        const dist1 = collision_buffer[i1]! / 255;
-        const dist2 = collision_buffer[i2 + 1]! / 255;
-        const t = 1 - abs(2 * (x / (COLLISION_TEXTURE_SIZE - 1)) - 1);
-
-        if (x > 10 && x < COLLISION_TEXTURE_SIZE - 10) {
-          front = max(front, max(dist1 * t, (dist1 * collision_buffer[i2]!) / 255));
-          back = max(back, max(dist2 * t, (dist2 * collision_buffer[i1 + 1]!) / 255));
-        }
-
-        if (x < COLLISION_TEXTURE_SIZE / 2 - 10 || x > COLLISION_TEXTURE_SIZE / 2 + 10) {
-          const xdist = ((1 - t) * max(dist1, dist2)) / 3;
-          if (xdist > 0.001) {
-            if (x < COLLISION_TEXTURE_SIZE / 2 && left < xdist) {
-              left = xdist;
-            } else if (x > COLLISION_TEXTURE_SIZE / 2 && right < xdist) {
-              right = xdist;
-            }
-          }
-        }
-      }
-
-      if (abs(right - left) > abs(player_mov_x)) {
-        player_mov_x = right - left;
-      }
-      if (abs(back - front) > abs(player_mov_z)) {
-        player_mov_z = back - front;
-      }
-    }
-  };
-
   const getReferenceMatrix = () =>
     player_respawned
       ? levers[player_last_pulled_lever]!.$parent.$matrix
@@ -187,7 +168,11 @@ export const player_init = () => {
     hysteresis: number,
     speed: number,
   ) =>
-    lerp(previous, desired, boot || (clamp(abs(desired - previous) ** 0.9 - hysteresis) + 1 / 7) * damp(speed * 1.5));
+    lerp(
+      previous,
+      desired,
+      boot || (clamp(Math.sqrt(abs(desired - previous)) - hysteresis) + 1 / 7) * damp(speed * 1.5),
+    );
 
   const playerMovedGlobalPos = (referenceMatrix: DOMMatrixReadOnly) => {
     matrixCopy(referenceMatrix).invertSelf();
@@ -224,8 +209,8 @@ export const player_init = () => {
 
     // ------- process collision renderBuffer -------
 
-    NO_INLINE(doHorizontalCollisions)();
     NO_INLINE(doVerticalCollisions)();
+    NO_INLINE(doHorizontalCollisions)();
 
     let playerSpeedCollision = clamp(1 - max(abs(player_mov_x), abs(player_mov_z)) * 5);
 
@@ -300,7 +285,7 @@ export const player_init = () => {
       2,
     );
 
-    if (y < (x < -25 || z < 109 ? -25 : -9)) {
+    if (y < (x < -20 || z < 109 ? -25 : -9)) {
       // Player fell in lava
       player_collision_velocity_x = player_collision_velocity_z = player_speed = 0;
       player_respawned = 2;
@@ -348,19 +333,23 @@ export const player_init = () => {
           2 + player_on_rotating_platforms,
         );
 
-        const viewDirDiffz = min(4, -abs(camera_pos_lookat_z - camera_position_z));
+        const viewDirDiffz = min(CAMERA_PLAYER_Z_DIST / 3, -abs(camera_pos_lookat_z - camera_position_z));
         const viewDirDiffx = camera_pos_lookat_x - camera_position_x;
+
+        // camera_rotation.y = 90 - angle_wrap_degrees(Math.atan2(viewDirDiffz, viewDirDiffx) / DEG_TO_RAD);
+        // camera_rotation.x =
+        //   90 - Math.atan2(Math.hypot(viewDirDiffz, viewDirDiffx), camera_position_y - camera_pos_lookat_y) / DEG_TO_RAD;
 
         camera_rotation.y = angle_lerp_degrees(
           camera_rotation.y,
           90 - angle_wrap_degrees(Math.atan2(viewDirDiffz, viewDirDiffx) / DEG_TO_RAD),
-          boot + damp(6),
+          boot + damp(10),
         );
 
         camera_rotation.x = angle_lerp_degrees(
           camera_rotation.x,
           90 - Math.atan2(Math.hypot(viewDirDiffz, viewDirDiffx), camera_position_y - camera_pos_lookat_y) / DEG_TO_RAD,
-          boot + damp(6),
+          boot + damp(10),
         );
       }
 

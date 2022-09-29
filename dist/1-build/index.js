@@ -1,18 +1,25 @@
 const groundTextureSvg = `data:image/svg+xml;base64,${/* @__PURE__ */ btoa('<svg color-interpolation-filters="sRGB" height="1024" width="1024" xmlns="http://www.w3.org/2000/svg"><filter filterUnits="userSpaceOnUse" height="1026" id="a" width="1026" x="0" y="0"><feTurbulence baseFrequency=".007" height="1025" numOctaves="6" stitchTiles="stitch" width="1025" result="z" type="fractalNoise" x="1" y="1"/><feTile height="1024" width="1024" x="-1" y="-1"/><feTile/><feDiffuseLighting diffuseConstant="4" lighting-color="red" surfaceScale="5"><feDistantLight azimuth="270" elevation="5"/></feDiffuseLighting><feTile height="1024" width="1024" x="1" y="1"/><feTile result="x"/><feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 1" in="z"/><feTile height="1024" width="1024" x="1" y="1"/><feTile result="z"/><feTurbulence baseFrequency=".01" height="1024" numOctaves="5" stitchTiles="stitch" width="1024"/><feColorMatrix values="0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1"/><feBlend in2="x" mode="screen"/><feBlend in2="z" mode="screen"/></filter><rect filter="url(#a)" height="100%" width="100%"/></svg>')}`;
-const code$6 = "#version 300 es\nprecision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform highp sampler2DShadow g,h;uniform highp sampler2D q;out vec4 O;void main(){vec4 s=vec4(m.xyz,1);vec3 e=normalize(o.xyz),v=l.w*(texture(q,n.yz*.035)*e.x+texture(q,n.xz*.035)*e.y+texture(q,n.xy*.035)*e.z).xyz;e=normalize(e+v*.5);float a=dot(e,vec3(-.656059,.666369,-.35431468)),t=1.,u=abs((b*s).z);vec4 r=(u<55.?i:j)*s;if(r=r/r.w*.5+.5,r.z<1.){t=0.;for(float e=-1.;e<=1.;++e)for(float a=-1.;a<=1.;++a){vec3 x=vec3(r.xy+vec2(e,a)/2048.,r.z-.00017439);t+=u<55.?texture(g,x):texture(h,x);}t/=9.;}vec3 x=l.xyz*(1.-v.x);float c=max(max(abs(e.x),abs(e.z))*.3-e.y,0.)*pow(max(0.,(8.-m.y)/48.),1.6);O=vec4(vec3(c,c*c*.5,0)+vec3(.09,.05,.11)*x+x*(max(0.,a)*.5+x*a*a*vec3(.5,.45,.3))*(t*.75+.25)+vec3(.6,.6,.5)*pow(max(0.,dot(normalize(m.xyz-k),reflect(vec3(-.656059,.666369,-.35431468),e))),35.)*t,1);}";
-const uniformName_csm_matrix0 = "i";
-const uniformName_csm_matrix1 = "j";
-const uniformName_csm_texture0 = "g";
-const uniformName_csm_texture1 = "h";
-const uniformName_groundTexture = "q";
-const uniformName_viewPos = "k";
-const constDef_CSM_TEXTURE_SIZE = 2048;
-const constDef_zNear = 0.3;
-const constDef_CSM_PLANE_DISTANCE = 55;
-const constDef_zFar = 181;
-const integers_map = (n, fn) => Array.from(/* @__PURE__ */ Array(n), (_, i) => fn(i));
+const MODEL_KIND_MESH = 0;
+const MODEL_KIND_GAME = 1;
+const MODEL_KIND_GAME_NO_ATTACH_PLAYER = 2;
+const MODEL_ID_FIRST_BOAT = 2;
+const SOULS_COUNT = 13;
+const MODEL_ID_ROTATING_PLATFORM = 28;
+const MODEL_ID_PLAYER_BODY = 37;
+const MODEL_ID_PLAYER_LEG0 = 38;
+const MODEL_ID_PLAYER_LEG1 = 39;
+const MODEL_ID_LEVER = 40;
+const MODEL_ID_SOUL_COLLISION = 41;
+const MODEL_ID_SOUL = 42;
+const allModels = [];
+const levers = [];
+const souls = [];
+const player_position_final = {
+  x: 0,
+  y: 0,
+  z: 0
+};
 const DEG_TO_RAD = Math.PI / 180;
-const fieldOfViewDegrees = 60;
 const min = NO_INLINE((a, b) => a < b ? a : b);
 const max = NO_INLINE((a, b) => a > b ? a : b);
 const abs = NO_INLINE((a) => a < 0 ? -a : a);
@@ -29,48 +36,6 @@ const angle_lerp_degrees = (a0, a1, t) => {
   const da = (a1 - a0) % 360;
   return a0 + (2 * da % 360 - da) * clamp(t) || 0;
 };
-const vec3_dot = ({ x, y, z }, b) => x * b.x + y * b.y + z * b.z;
-const plane_fromPolygon = (polygon) => {
-  let b;
-  let x = 0;
-  let y = 0;
-  let z = 0;
-  let a = polygon.at(-1);
-  for (b of polygon) {
-    x += (a.y - b.y) * (a.z + b.z);
-    y += (a.z - b.z) * (a.x + b.x);
-    z += (a.x - b.x) * (a.y + b.y);
-    a = b;
-  }
-  b = /* @__PURE__ */ Math.hypot(x, y, z);
-  x /= b;
-  y /= b;
-  z /= b;
-  return {
-    x,
-    y,
-    z,
-    w: x * a.x + y * a.y + z * a.z
-  };
-};
-const mat_perspective = (near, far, mx, my) => new DOMMatrix([
-  mx,
-  0,
-  0,
-  0,
-  0,
-  my,
-  0,
-  0,
-  0,
-  0,
-  (far + near) / (near - far),
-  -1,
-  0,
-  0,
-  2 * far * near / (near - far),
-  0
-]);
 const matrixToArray = ($matrix, output = float32Array16Temp, index = 0) => {
   index *= 16;
   output[index++] = $matrix.m11;
@@ -110,16 +75,32 @@ const matrixCopy = (source = identity, target = tempMatrix) => {
   target.m44 = source.m44;
   return target;
 };
-const translation = NO_INLINE((x, y, z) => identity.translate(x, y, z));
-const rotation = NO_INLINE((x, y, z) => identity.rotate(x, y, z));
-const scaling = NO_INLINE((x, y, z) => identity.scale(x, y, z));
 const identity = new DOMMatrix();
 const tempMatrix = new DOMMatrix();
 const float32Array16Temp = new Float32Array(16);
-const zNear = constDef_zNear;
-const zFar = constDef_zFar;
-const fieldOfViewRadians = fieldOfViewDegrees * DEG_TO_RAD;
-const fieldOfViewAmount = 1 / /* @__PURE__ */ Math.tan(fieldOfViewRadians / 2);
+const translation = NO_INLINE((x, y, z) => identity.translate(x, y, z));
+const rotation = NO_INLINE((x, y, z) => identity.rotate(x, y, z));
+const scaling = NO_INLINE((x, y, z) => identity.scale(x, y, z));
+const integers_map = (n, fn) => Array.from(/* @__PURE__ */ Array(n), (_, i) => fn(i));
+const vec3_transform = ({ x, y, z }, m) => {
+  ({ x, y, z } = m.transformPoint({
+    x,
+    y,
+    z
+  }));
+  return {
+    x,
+    y,
+    z
+  };
+};
+const polygon_color = (polygon, color, smooth) => {
+  polygon.$smooth = smooth;
+  polygon.$color = color;
+  return polygon;
+};
+const polygon_transform = (polygon, m, color = polygon.$color) => polygon_color(polygon.map((p) => vec3_transform(p, m)), color, polygon.$smooth);
+const polygons_transform = (polygons, m, color) => polygons.map((polygon) => polygon_transform(polygon, m, color));
 const GQuad = [
   {
     x: -1,
@@ -138,25 +119,6 @@ const GQuad = [
     z: -1
   }
 ];
-const polygon_color = (polygon, color, smooth) => {
-  polygon.$smooth = smooth;
-  polygon.$color = color;
-  return polygon;
-};
-const vec3_transform = ({ x, y, z }, m) => {
-  ({ x, y, z } = m.transformPoint({
-    x,
-    y,
-    z
-  }));
-  return {
-    x,
-    y,
-    z
-  };
-};
-const polygon_transform = (polygon, m, color = polygon.$color) => polygon_color(polygon.map((p) => vec3_transform(p, m)), color, polygon.$smooth);
-const polygons_transform = (polygons, m, color) => polygons.map((polygon) => polygon_transform(polygon, m, color));
 const polygon_regular = (segments, elongate = 0) => integers_map(segments, (i) => {
   const z = /* @__PURE__ */ Math.cos(Math.PI * 2 * (i / segments));
   return {
@@ -204,6 +166,30 @@ const sphere = (slices, stacks = slices, vertexFunc = (x, y) => {
       vertex(i, j + 1 % stacks);
     }
   return polygons;
+};
+const vec3_dot = ({ x, y, z }, b) => x * b.x + y * b.y + z * b.z;
+const plane_fromPolygon = (polygon) => {
+  let b;
+  let x = 0;
+  let y = 0;
+  let z = 0;
+  let a = polygon.at(-1);
+  for (b of polygon) {
+    x += (a.y - b.y) * (a.z + b.z);
+    y += (a.z - b.z) * (a.x + b.x);
+    z += (a.x - b.x) * (a.y + b.y);
+    a = b;
+  }
+  b = /* @__PURE__ */ Math.hypot(x, y, z);
+  x /= b;
+  y /= b;
+  z /= b;
+  return {
+    x,
+    y,
+    z,
+    w: x * a.x + y * a.y + z * a.z
+  };
 };
 const PLANE_EPSILON = 8e-5;
 const CSGPolygon_splitSpanning = (plane, polygon) => {
@@ -313,16 +299,11 @@ const csg_tree_clipNode = (anode, bnode, polygonPlaneFlipped) => {
   return result;
 };
 const csg_tree_each = (node, fn) => node && (fn(node), csg_tree_each(node.$front, fn), csg_tree_each(node.$back, fn));
-const csg_tree = (n) => n.length ? n.reduce((prev, $polygon) => csg_tree_addPolygon(prev, {
-  $polygon,
-  $flipped: 0,
-  $parent: 0
-}), 0) : n;
 const csg_tree_flip = (root) => {
   csg_tree_each(root, (node) => {
-    const { $front, $back } = node;
-    node.$back = $front;
-    node.$front = $back;
+    const back = node.$back;
+    node.$back = node.$front;
+    node.$front = back;
     node.x *= -1;
     node.y *= -1;
     node.z *= -1;
@@ -332,23 +313,6 @@ const csg_tree_flip = (root) => {
   });
   return root;
 };
-const csg_union = (...inputs) => inputs.reduce((a, b) => {
-  const polygonsToAdd = [];
-  a = csg_tree(a);
-  if (b) {
-    b = csg_tree(b);
-    csg_tree_each(a, (node) => node.$polygons = csg_tree_clipNode(b, node, 1));
-    csg_tree_each(b, (node) => polygonsToAdd.push([
-      node,
-      csg_tree_clipNode(a, node, -1)
-    ]));
-    for (const [plane, polygons] of polygonsToAdd)
-      for (const pp of polygons)
-        csg_tree_addPolygon(a, pp, plane);
-  }
-  return a;
-});
-const csg_subtract = (a, ...b) => csg_tree_flip(csg_union(csg_tree_flip(csg_tree(a)), ...b));
 const csg_polygons = (tree) => {
   const add = (polygon) => {
     if (polygon.$parent) {
@@ -376,32 +340,50 @@ const csg_polygons = (tree) => {
     return polygon_color(flipped ? polygon.reverse() : polygon, $polygon.$color, $polygon.$smooth);
   });
 };
-const csg_polygons_subtract = (...input) => csg_polygons(csg_subtract(...input));
-const MODEL_KIND_MESH = 0;
-const MODEL_KIND_GAME = 1;
-const MODEL_KIND_GAME_NO_ATTACH_PLAYER = 2;
-const MODEL_ID_FIRST_BOAT = 2;
-const SOULS_COUNT = 13;
-const MODEL_ID_ROTATING_PLATFORM = 28;
-const MODEL_ID_PLAYER_BODY = 37;
-const MODEL_ID_PLAYER_LEG0 = 38;
-const MODEL_ID_PLAYER_LEG1 = 39;
-const MODEL_ID_LEVER = 40;
-const MODEL_ID_SOUL_COLLISION = 41;
-const MODEL_ID_SOUL = 42;
-const allModels = [];
-const levers = [];
-const souls = [];
-const player_position_final = {
-  x: 0,
-  y: 0,
-  z: 0
-};
-let mainMenuVisible;
+const csg_tree = (n) => n.length ? n.reduce((prev, $polygon) => csg_tree_addPolygon(prev, {
+  $polygon,
+  $flipped: 0,
+  $parent: 0
+}), 0) : n;
+const csg_union = (...inputs) => inputs.reduce((a, b) => {
+  const polygonsToAdd = [];
+  a = csg_tree(a);
+  if (b) {
+    b = csg_tree(b);
+    csg_tree_each(a, (node) => node.$polygons = csg_tree_clipNode(b, node, 1));
+    csg_tree_each(b, (node) => polygonsToAdd.push([
+      node,
+      csg_tree_clipNode(a, node, -1)
+    ]));
+    for (const [plane, polygons] of polygonsToAdd)
+      for (const pp of polygons)
+        csg_tree_addPolygon(a, pp, plane);
+  }
+  return a;
+});
+const csg_polygons_subtract = (a, ...b) => csg_polygons(csg_tree_flip(csg_union(csg_tree_flip(csg_tree(a)), ...b)));
 let _globalTime;
-let souls_collected_count = 0;
-let absoluteTime = 0;
+let mainMenuVisible;
 let gameTime = 0;
+let absoluteTime = 0;
+const GAME_TIME_MAX_DELTA_TIME = 0.066;
+const gameTimeUpdate = (time) => {
+  const dt = (time - (_globalTime || time)) / 1e3;
+  absoluteTime += dt;
+  gameTime += gameTimeDelta = mainMenuVisible ? 0 : min(GAME_TIME_MAX_DELTA_TIME, dt);
+  _globalTime = time;
+};
+const resetGameTime = (value) => {
+  gameTime = value;
+  gameTimeDelta = 0;
+};
+const damp = (speed) => 1 - /* @__PURE__ */ Math.exp(-speed * gameTimeDelta);
+const lerpDamp = (from, to, speed) => lerp(from, to, damp(speed));
+const setMainMenuVisible = (visible) => {
+  mainMenuVisible = visible;
+};
+let gameTimeDelta = GAME_TIME_MAX_DELTA_TIME;
+let souls_collected_count = 0;
 let player_last_pulled_lever = 0;
 let rotatingPlatform1Rotation = 0;
 let rotatingPlatform2Rotation = 0;
@@ -411,22 +393,10 @@ let firstBoatLerp = 0;
 let secondBoatLerp = 0;
 let shouldRotatePlatforms = 0;
 let _messageEndTime = 1;
-const GAME_TIME_MAX_DELTA_TIME = 0.066;
 const LOCAL_STORAGE_SAVED_GAME_KEY = "DanteSP22";
 const camera_rotation = {
   x: 0,
   y: 180
-};
-const setMainMenuVisible = (visible) => {
-  mainMenuVisible = visible;
-};
-const damp = (speed) => 1 - /* @__PURE__ */ Math.exp(-speed * gameTimeDelta);
-const lerpDamp = (from, to, speed) => lerp(from, to, damp(speed));
-const gameTimeUpdate = (time) => {
-  const dt = (time - (_globalTime || time)) / 1e3;
-  absoluteTime += dt;
-  gameTime += gameTimeDelta = mainMenuVisible ? 0 : min(GAME_TIME_MAX_DELTA_TIME, dt);
-  _globalTime = time;
 };
 const showMessage = (message, duration) => {
   if (_messageEndTime < Infinity) {
@@ -485,8 +455,8 @@ const loadGame = () => {
     levers.map((lever, index) => lever.$lerpValue = lever.$lerpValue2 = lever.$value = index ? savedLevers[index] | 0 : 0);
     souls.map((soul, index) => soul.$value = savedSouls[index] | 0);
     player_last_pulled_lever = savedLastPulledLever;
-    gameTime = savedGameTime;
     secondBoatLerp = savedSecondBoatLerp;
+    resetGameTime(savedGameTime);
   } catch (e) {
   }
   firstBoatLerp = clamp(player_last_pulled_lever);
@@ -525,7 +495,6 @@ const onPlayerPullLever = (leverIndex) => {
   player_last_pulled_lever = leverIndex;
   saveGame();
 };
-let gameTimeDelta = GAME_TIME_MAX_DELTA_TIME;
 const GAMEPAD_BUTTON_B = 0;
 const GAMEPAD_BUTTON_A = 1;
 const GAMEPAD_BUTTON_Y = 2;
@@ -537,6 +506,40 @@ const GAMEPAD_BUTTON_LEFT = 14;
 const GAMEPAD_BUTTON_RIGHT = 15;
 const audioContext = new AudioContext();
 const songAudioSource = audioContext.createBufferSource();
+const code$6 = "#version 300 es\nprecision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform highp sampler2DShadow g,h;uniform highp sampler2D q;out vec4 O;void main(){vec4 s=vec4(m.xyz,1);vec3 e=normalize(o.xyz),v=l.w*(texture(q,n.yz*.035)*e.x+texture(q,n.xz*.035)*e.y+texture(q,n.xy*.035)*e.z).xyz;e=normalize(e+v*.5);float a=dot(e,vec3(-.656059,.666369,-.35431468)),t=1.,u=abs((b*s).z);vec4 r=(u<55.?i:j)*s;if(r=r/r.w*.5+.5,r.z<1.){t=0.;for(float e=-1.;e<=1.;++e)for(float a=-1.;a<=1.;++a){vec3 x=vec3(r.xy+vec2(e,a)/2048.,r.z-.00017439);t+=u<55.?texture(g,x):texture(h,x);}t/=9.;}vec3 x=l.xyz*(1.-v.x);float c=max(max(abs(e.x),abs(e.z))*.3-e.y,0.)*pow(max(0.,(8.-m.y)/48.),1.6);O=vec4(vec3(c,c*c*.5,0)+vec3(.09,.05,.11)*x+x*(max(0.,a)*.5+x*a*a*vec3(.5,.45,.3))*(t*.75+.25)+vec3(.6,.6,.5)*pow(max(0.,dot(normalize(m.xyz-k),reflect(vec3(-.656059,.666369,-.35431468),e))),35.)*t,1);}";
+const uniformName_csm_matrix0 = "i";
+const uniformName_csm_matrix1 = "j";
+const uniformName_csm_texture0 = "g";
+const uniformName_csm_texture1 = "h";
+const uniformName_groundTexture = "q";
+const uniformName_viewPos = "k";
+const constDef_CSM_TEXTURE_SIZE = 2048;
+const constDef_zNear = 0.3;
+const constDef_CSM_PLANE_DISTANCE = 55;
+const constDef_zFar = 181;
+const fieldOfViewDegrees = 60;
+const mat_perspective = (near, far, mx, my) => new DOMMatrix([
+  mx,
+  0,
+  0,
+  0,
+  0,
+  my,
+  0,
+  0,
+  0,
+  0,
+  (far + near) / (near - far),
+  -1,
+  0,
+  0,
+  2 * far * near / (near - far),
+  0
+]);
+const zNear = constDef_zNear;
+const zFar = constDef_zFar;
+const fieldOfViewRadians = fieldOfViewDegrees * DEG_TO_RAD;
+const fieldOfViewAmount = 1 / /* @__PURE__ */ Math.tan(fieldOfViewRadians / 2);
 let interact_pressed;
 let player_first_person;
 let updateInput;
@@ -564,11 +567,11 @@ const initPage = () => {
   let gamepadInteractPressed;
   let music_on = true;
   const KEY_INTERACT = 0;
-  const KEY_LEFT = 1;
-  const KEY_RIGHT = 2;
-  const KEY_FRONT = 3;
-  const KEY_BACK = 4;
-  const KEY_MENU = 5;
+  const KEY_MENU = 1;
+  const KEY_LEFT = 2;
+  const KEY_RIGHT = 3;
+  const KEY_FRONT = 4;
+  const KEY_BACK = 5;
   const TOUCH_SIZE = 20;
   const TOUCH_MOVE_SNAP = 0.2;
   const TOUCH_MOVE_THRESHOLD = 0.5;
@@ -639,18 +642,18 @@ const initPage = () => {
     if (!e.repeat) {
       const pressed = !!e.type[5] && true;
       const mapped = {
-        ["KeyA"]: KEY_LEFT,
-        ["KeyD"]: KEY_RIGHT,
-        ["KeyW"]: KEY_FRONT,
-        ["KeyS"]: KEY_BACK,
         ["KeyE"]: KEY_INTERACT,
         ["Space"]: KEY_INTERACT,
         ["Enter"]: KEY_INTERACT,
+        ["Escape"]: KEY_MENU,
+        ["KeyA"]: KEY_LEFT,
         ["ArrowLeft"]: KEY_LEFT,
+        ["KeyD"]: KEY_RIGHT,
         ["ArrowRight"]: KEY_RIGHT,
+        ["KeyW"]: KEY_FRONT,
         ["ArrowUp"]: KEY_FRONT,
-        ["ArrowDown"]: KEY_BACK,
-        ["Escape"]: KEY_MENU
+        ["KeyS"]: KEY_BACK,
+        ["ArrowDown"]: KEY_BACK
       }[e.code];
       keyboard_downKeys[mapped] = pressed;
       if (pressed) {
@@ -763,10 +766,11 @@ const initPage = () => {
   document.onvisibilitychange = onblur = onresize = handleResize;
   mainMenu(true);
 };
+const material = NO_INLINE((r, g, b, a = 0) => a * 255 << 24 | b * 255 << 16 | g * 255 << 8 | r * 255);
 let currentEditModel;
 const LEVER_SENSITIVITY_RADIUS = 3;
 const SOUL_SENSITIVITY_RADIUS = 1.6;
-const material = NO_INLINE((r, g, b, a = 0) => a * 255 << 24 | b * 255 << 16 | g * 255 << 8 | r * 255);
+const meshAdd = (polygons, transform = new DOMMatrix(), color) => currentEditModel.$polygons.push(...polygons_transform(polygons, transform, color));
 const newModel = (fn, $kind = MODEL_KIND_GAME) => {
   const previousModel = currentEditModel;
   const model = {
@@ -783,7 +787,6 @@ const newModel = (fn, $kind = MODEL_KIND_GAME) => {
   currentEditModel = previousModel;
   return model;
 };
-const meshAdd = (polygons, transform = new DOMMatrix(), color) => currentEditModel.$polygons.push(...polygons_transform(polygons, transform, color));
 const distanceToPlayer = (transform) => {
   const p = transform.transformPoint();
   return /* @__PURE__ */ Math.hypot(player_position_final.x - p.x, player_position_final.y - p.y, player_position_final.z - p.z);
@@ -1417,6 +1420,41 @@ const player_init = () => {
   let boot = 1;
   let player_respawned = 2;
   let player_gravity = 2;
+  const doHorizontalCollisions = () => {
+    player_mov_x = 0;
+    player_mov_z = 0;
+    for (let y = 32; y < COLLISION_TEXTURE_SIZE; y += 2) {
+      let front = 0;
+      let back = 0;
+      let left = 0;
+      let right = 0;
+      const yindex = y * (COLLISION_TEXTURE_SIZE * 4);
+      for (let x = y & 1; x < COLLISION_TEXTURE_SIZE; x += 2) {
+        const i1 = yindex + x * 4;
+        const i2 = yindex + (COLLISION_TEXTURE_SIZE - 1 - x) * 4;
+        const dist1 = collision_buffer[i1] / 255;
+        const dist2 = collision_buffer[i2 + 1] / 255;
+        const t = 1 - abs(2 * (x / (COLLISION_TEXTURE_SIZE - 1)) - 1);
+        if (x > 10 && x < COLLISION_TEXTURE_SIZE - 10) {
+          front = max(front, max(dist1 * t, dist1 * collision_buffer[i2] / 255));
+          back = max(back, max(dist2 * t, dist2 * collision_buffer[i1 + 1] / 255));
+        }
+        if (x < COLLISION_TEXTURE_SIZE / 2 - 10 || x > COLLISION_TEXTURE_SIZE / 2 + 10) {
+          const xdist = (1 - t) * max(dist1, dist2) / 3;
+          if (xdist > 1e-3) {
+            if (x < COLLISION_TEXTURE_SIZE / 2 && left < xdist)
+              left = xdist;
+            else if (x > COLLISION_TEXTURE_SIZE / 2 && right < xdist)
+              right = xdist;
+          }
+        }
+      }
+      if (abs(right - left) > abs(player_mov_x))
+        player_mov_x = right - left;
+      if (abs(back - front) > abs(player_mov_z))
+        player_mov_z = back - front;
+    }
+  };
   const doVerticalCollisions = () => {
     let maxModelIdCount = 0;
     let nextModelId = 0;
@@ -1456,43 +1494,8 @@ const player_init = () => {
     player_gravity = lerpDamp(player_gravity, player_has_ground ? 6.5 : player_position_global.y < -20 ? 11 : 8, 4);
     player_position_global.y += lines / 41 - (player_has_ground || player_gravity) * (grav / 41) * player_gravity * gameTimeDelta;
   };
-  const doHorizontalCollisions = () => {
-    player_mov_x = 0;
-    player_mov_z = 0;
-    for (let y = 32; y < COLLISION_TEXTURE_SIZE; y += 2) {
-      let front = 0;
-      let back = 0;
-      let left = 0;
-      let right = 0;
-      const yindex = y * (COLLISION_TEXTURE_SIZE * 4);
-      for (let x = y & 1; x < COLLISION_TEXTURE_SIZE; x += 2) {
-        const i1 = yindex + x * 4;
-        const i2 = yindex + (COLLISION_TEXTURE_SIZE - 1 - x) * 4;
-        const dist1 = collision_buffer[i1] / 255;
-        const dist2 = collision_buffer[i2 + 1] / 255;
-        const t = 1 - abs(2 * (x / (COLLISION_TEXTURE_SIZE - 1)) - 1);
-        if (x > 10 && x < COLLISION_TEXTURE_SIZE - 10) {
-          front = max(front, max(dist1 * t, dist1 * collision_buffer[i2] / 255));
-          back = max(back, max(dist2 * t, dist2 * collision_buffer[i1 + 1] / 255));
-        }
-        if (x < COLLISION_TEXTURE_SIZE / 2 - 10 || x > COLLISION_TEXTURE_SIZE / 2 + 10) {
-          const xdist = (1 - t) * max(dist1, dist2) / 3;
-          if (xdist > 1e-3) {
-            if (x < COLLISION_TEXTURE_SIZE / 2 && left < xdist)
-              left = xdist;
-            else if (x > COLLISION_TEXTURE_SIZE / 2 && right < xdist)
-              right = xdist;
-          }
-        }
-      }
-      if (abs(right - left) > abs(player_mov_x))
-        player_mov_x = right - left;
-      if (abs(back - front) > abs(player_mov_z))
-        player_mov_z = back - front;
-    }
-  };
   const getReferenceMatrix = () => player_respawned ? levers[player_last_pulled_lever].$parent.$matrix : allModels[oldModelId && allModels[oldModelId].$kind === MODEL_KIND_GAME && oldModelId || 0].$matrix;
-  const interpolate_with_hysteresis = (previous, desired, hysteresis, speed) => lerp(previous, desired, boot || (clamp(abs(desired - previous) ** 0.9 - hysteresis) + 1 / 7) * damp(speed * 1.5));
+  const interpolate_with_hysteresis = (previous, desired, hysteresis, speed) => lerp(previous, desired, boot || (clamp(/* @__PURE__ */ Math.sqrt(abs(desired - previous)) - hysteresis) + 1 / 7) * damp(speed * 1.5));
   const playerMovedGlobalPos = (referenceMatrix) => {
     matrixCopy(referenceMatrix).invertSelf();
     tempMatrix.m41 = tempMatrix.m42 = tempMatrix.m43 = 0;
@@ -1510,7 +1513,7 @@ const player_init = () => {
   player_update = () => {
     let forward = clamp(input_forward, -1);
     let strafe = clamp(input_strafe, -1);
-    const movAmount = threshold(/* @__PURE__ */ Math.sqrt(/* @__PURE__ */ Math.hypot(forward, strafe)), 0.05);
+    const movAmount = threshold(/* @__PURE__ */ Math.sqrt(/* @__PURE__ */ Math.hypot(forward, strafe)), 0.1);
     const movAngle = /* @__PURE__ */ Math.atan2(forward, strafe);
     if (movAmount)
       player_look_angle_target = 90 - movAngle / DEG_TO_RAD;
@@ -1519,8 +1522,8 @@ const player_init = () => {
     forward = movAmount * abs(forward) * /* @__PURE__ */ Math.sin(movAngle);
     strafe = movAmount * abs(strafe) * /* @__PURE__ */ Math.cos(movAngle);
     gl["r9r"](0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE, 6408, 5121, collision_buffer);
-    NO_INLINE(doHorizontalCollisions)();
     NO_INLINE(doVerticalCollisions)();
+    NO_INLINE(doHorizontalCollisions)();
     let playerSpeedCollision = clamp(1 - max(abs(player_mov_x), abs(player_mov_z)) * 5);
     player_speed = lerpDamp(player_speed, player_has_ground * playerSpeedCollision * clamp(2 * movAmount) * 7, player_has_ground ? playerSpeedCollision > 0.1 ? 10 : 5 + 2 * movAmount : 1);
     player_collision_velocity_x = lerpDamp(player_collision_velocity_x, 0, player_has_ground ? 8 : 4);
@@ -1554,7 +1557,7 @@ const player_init = () => {
       player_position_global.z = v.z;
     }
     player_on_rotating_platforms = lerpDamp(player_on_rotating_platforms, shouldRotatePlatforms * (currentModelId > MODEL_ID_ROTATING_PLATFORM - 1 && currentModelId < MODEL_ID_ROTATING_PLATFORM + 4), 2);
-    if (y < (x < -25 || z < 109 ? -25 : -9)) {
+    if (y < (x < -20 || z < 109 ? -25 : -9)) {
       player_collision_velocity_x = player_collision_velocity_z = player_speed = 0;
       player_respawned = 2;
     }
@@ -1574,10 +1577,10 @@ const player_init = () => {
       camera_position_y = interpolate_with_hysteresis(camera_position_y, max(camera_pos_lookat_y + clamp((-60 - z) / 8, 0, 20) + CAMERA_PLAYER_Y_DIST + player_on_rotating_platforms * 9, 6), 4, 2);
       camera_position_z = interpolate_with_hysteresis(camera_position_z, camera_pos_lookat_z + CAMERA_PLAYER_Z_DIST + player_on_rotating_platforms * 5, 1, 2 + player_on_rotating_platforms);
       camera_position_x = interpolate_with_hysteresis(camera_position_x, camera_pos_lookat_x, 1, 2 + player_on_rotating_platforms);
-      const viewDirDiffz = min(4, -abs(camera_pos_lookat_z - camera_position_z));
+      const viewDirDiffz = min(CAMERA_PLAYER_Z_DIST / 3, -abs(camera_pos_lookat_z - camera_position_z));
       const viewDirDiffx = camera_pos_lookat_x - camera_position_x;
-      camera_rotation.y = angle_lerp_degrees(camera_rotation.y, 90 - angle_wrap_degrees(/* @__PURE__ */ Math.atan2(viewDirDiffz, viewDirDiffx) / DEG_TO_RAD), boot + damp(6));
-      camera_rotation.x = angle_lerp_degrees(camera_rotation.x, 90 - /* @__PURE__ */ Math.atan2(/* @__PURE__ */ Math.hypot(viewDirDiffz, viewDirDiffx), camera_position_y - camera_pos_lookat_y) / DEG_TO_RAD, boot + damp(6));
+      camera_rotation.y = angle_lerp_degrees(camera_rotation.y, 90 - angle_wrap_degrees(/* @__PURE__ */ Math.atan2(viewDirDiffz, viewDirDiffx) / DEG_TO_RAD), boot + damp(10));
+      camera_rotation.x = angle_lerp_degrees(camera_rotation.x, 90 - /* @__PURE__ */ Math.atan2(/* @__PURE__ */ Math.hypot(viewDirDiffz, viewDirDiffx), camera_position_y - camera_pos_lookat_y) / DEG_TO_RAD, boot + damp(10));
     }
     camera_rotation.x = clamp(camera_rotation.x, -87, 87);
     boot = 0;

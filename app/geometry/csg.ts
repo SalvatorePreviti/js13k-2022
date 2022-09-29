@@ -1,5 +1,6 @@
-import { plane_fromPolygon, type Vec3, type Vec3In, type Plane, vec3_dot } from "../math";
-import { polygon_color, type Polygon } from "./geometry";
+import type { Plane, Vec3, Vec3In } from "../math/vectors";
+import { vec3_dot, plane_fromPolygon } from "../math/vectors";
+import { polygon_color, type Polygon } from "./polygon";
 
 export const PLANE_EPSILON = 0.00008;
 
@@ -153,27 +154,12 @@ const csg_tree_clipNode = /* @__PURE__ */ (
 const csg_tree_each = (node: CSGNode | 0 | undefined, fn: (node: CSGNode) => void): unknown =>
   node && (fn(node), csg_tree_each(node.$front, fn), csg_tree_each(node.$back, fn));
 
-/**
- * If the given argument is a list of polygons, a new BSP tree built from the list of polygons is returned.
- * If the given argument is already a BSP tree, return it as is.
- * Note that array cannot be empty.
- */
-export const csg_tree = /* @__PURE__ */ (n: CSGInput): CSGNode =>
-  (n as Polygon[]).length
-    ? // Build a BSP tree from a list of polygons
-      ((n as Polygon[]).reduce<CSGNode | 0>(
-        (prev, $polygon) => csg_tree_addPolygon(prev, { $polygon, $flipped: 0, $parent: 0 }),
-        0,
-      ) as CSGNode)
-    : // An object? We assume is a BSP tree.
-      (n as CSGNode);
-
 /** Convert solid space to empty space and empty space to solid space. */
 export const csg_tree_flip = <T extends CSGNode | 0 | undefined>(root: T): T => {
   csg_tree_each(root, (node) => {
-    const { $front, $back } = node;
-    node.$back = $front;
-    node.$front = $back;
+    const back = node.$back;
+    node.$back = node.$front;
+    node.$front = back;
     node.x *= -1;
     node.y *= -1;
     node.z *= -1;
@@ -184,39 +170,6 @@ export const csg_tree_flip = <T extends CSGNode | 0 | undefined>(root: T): T => 
   });
   return root;
 };
-
-/**
- * Union a[0] = a[0] U a[1] U a[2] U ...
- */
-export const csg_union = /* @__PURE__ */ (...inputs: CSGInput[]): CSGNode =>
-  inputs.reduce((a: CSGInput, b: CSGInput | undefined): CSGNode => {
-    const polygonsToAdd: [Plane, CSGPolygon[]][] = [];
-    a = csg_tree(a);
-    if (b) {
-      b = csg_tree(b);
-
-      // clip to a, b
-      csg_tree_each(a, (node) => (node.$polygons = csg_tree_clipNode(b as CSGNode, node, 1)));
-
-      // get the list of polygons to be added from b clipped to a
-      csg_tree_each(b, (node) => polygonsToAdd.push([node, csg_tree_clipNode(a as CSGNode, node, -1)]));
-
-      // add the polygons to a
-      for (const [plane, polygons] of polygonsToAdd) {
-        for (const pp of polygons) {
-          csg_tree_addPolygon(a, pp, plane);
-        }
-      }
-    }
-    return a;
-  }) as CSGNode;
-
-/**
- * Subtraction a = a - (b[0] U b[1] U ...)
- * Note that a will be modified if is a tree.
- */
-export const csg_subtract = /* @__PURE__ */ (a: CSGInput, ...b: CSGInput[]): CSGNode =>
-  csg_tree_flip(csg_union(csg_tree_flip(csg_tree(a)), ...b));
 
 /**
  * Extracts all the polygons from a BSP tree.
@@ -252,6 +205,57 @@ export const csg_polygons = /* @__PURE__ */ (tree: CSGNode): Polygon[] => {
   });
 };
 
-export const csg_polygons_subtract = (...input: CSGInput[]) => csg_polygons((csg_subtract as any)(...input));
+/**
+ * If the given argument is a list of polygons, a new BSP tree built from the list of polygons is returned.
+ * If the given argument is already a BSP tree, return it as is.
+ * Note that array cannot be empty.
+ */
+export const csg_tree = /* @__PURE__ */ (n: CSGInput): CSGNode =>
+  (n as Polygon[]).length
+    ? // Build a BSP tree from a list of polygons
+      ((n as Polygon[]).reduce<CSGNode | 0>(
+        (prev, $polygon) => csg_tree_addPolygon(prev, { $polygon, $flipped: 0, $parent: 0 }),
+        0,
+      ) as CSGNode)
+    : // An object? We assume is a BSP tree.
+      (n as CSGNode);
 
-export const csg_polygons_union = (...input: CSGInput[]) => csg_polygons(csg_union(...input));
+/**
+ * Union a[0] = a[0] U a[1] U a[2] U ...
+ */
+export const csg_union = /* @__PURE__ */ (...inputs: CSGInput[]): CSGNode =>
+  inputs.reduce((a: CSGInput, b: CSGInput | undefined): CSGNode => {
+    const polygonsToAdd: [Plane, CSGPolygon[]][] = [];
+    a = csg_tree(a);
+    if (b) {
+      b = csg_tree(b);
+
+      // clip to a, b
+      csg_tree_each(a, (node) => (node.$polygons = csg_tree_clipNode(b as CSGNode, node, 1)));
+
+      // get the list of polygons to be added from b clipped to a
+      csg_tree_each(b, (node) => polygonsToAdd.push([node, csg_tree_clipNode(a as CSGNode, node, -1)]));
+
+      // add the polygons to a
+      for (const [plane, polygons] of polygonsToAdd) {
+        for (const pp of polygons) {
+          csg_tree_addPolygon(a, pp, plane);
+        }
+      }
+    }
+    return a;
+  }) as CSGNode;
+
+/**
+ * Subtraction a = a - (b[0] U b[1] U ...)
+ * Note that a will be modified if is a tree.
+ */
+export const csg_subtract = /* @__PURE__ */ (a: CSGInput, ...b: CSGInput[]): CSGNode =>
+  csg_tree_flip(csg_union(csg_tree_flip(csg_tree(a)), ...b));
+
+/**
+ * Subtraction a - (b[0] U b[1] U ...)
+ * Note that a will be modified if is a tree.
+ */
+export const csg_polygons_subtract = (a: CSGInput, ...b: CSGInput[]) =>
+  csg_polygons(csg_tree_flip(csg_union(csg_tree_flip(csg_tree(a)), ...b)));

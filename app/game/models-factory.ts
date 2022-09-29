@@ -1,30 +1,33 @@
-import { min, angle_lerp_degrees, DEG_TO_RAD, clamp, abs, matrixCopy, type Vec3Optional } from "../math";
-import { cylinder, polygons_transform, type Polygon } from "../geometry/geometry";
 import {
   levers,
   souls,
   allModels,
   MODEL_ID_FIRST_BOAT,
+  player_position_final,
   MODEL_KIND_GAME,
+  type MODEL_KIND,
+  type Model,
   type Circle,
   type Lever,
-  type Model,
   type Soul,
-  type MODEL_KIND,
-  player_position_final,
 } from "./models";
-import { onPlayerPullLever, lerpDamp, gameTime, onSoulCollected, damp } from "./world-state";
+import { onPlayerPullLever, onSoulCollected } from "./world-state";
 import { interact_pressed } from "../page";
-
-const LEVER_SENSITIVITY_RADIUS = 3;
-const SOUL_SENSITIVITY_RADIUS = 1.6;
-
-export const material = NO_INLINE(
-  (r: number, g: number, b: number, a: number = 0): number =>
-    ((a * 255) << 24) | ((b * 255) << 16) | ((g * 255) << 8) | (r * 255),
-);
+import type { Vec3Optional } from "../math/vectors";
+import { min, angle_lerp_degrees, DEG_TO_RAD, clamp, abs } from "../math/math";
+import { matrixCopy } from "../math/matrix";
+import { lerpDamp, damp, gameTime } from "./game-time";
+import { polygons_transform, type Polygon } from "../geometry/polygon";
+import { cylinder } from "../geometry/geometry";
+import { material } from "../geometry/material";
 
 export let currentEditModel: Model;
+
+export const meshAdd = (
+  polygons: Polygon<Readonly<Vec3Optional>>[],
+  transform: DOMMatrixReadOnly = new DOMMatrix(),
+  color?: number | undefined,
+) => currentEditModel.$polygons!.push(...polygons_transform(polygons, transform, color));
 
 export const newModel = (fn: (model: Model) => void, $kind: MODEL_KIND = MODEL_KIND_GAME) => {
   const previousModel = currentEditModel;
@@ -42,11 +45,8 @@ export const newModel = (fn: (model: Model) => void, $kind: MODEL_KIND = MODEL_K
   return model;
 };
 
-export const meshAdd = (
-  polygons: Polygon<Readonly<Vec3Optional>>[],
-  transform: DOMMatrixReadOnly = new DOMMatrix(),
-  color?: number | undefined,
-) => currentEditModel.$polygons!.push(...polygons_transform(polygons, transform, color));
+const LEVER_SENSITIVITY_RADIUS = 3;
+const SOUL_SENSITIVITY_RADIUS = 1.6;
 
 const distanceToPlayer = (transform: DOMMatrixReadOnly): number => {
   const p = transform.transformPoint();
@@ -187,3 +187,12 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]
 
   souls.push(soul);
 };
+
+export const checkModelId = DEBUG
+  ? (name: string, expectedId: number) => {
+      console.log(`model ${name} id: ${currentEditModel.$modelId}`);
+      if (currentEditModel.$modelId !== expectedId) {
+        throw new Error(`Model ${name} id should be ${expectedId} but is ${currentEditModel.$modelId}`);
+      }
+    }
+  : () => {};

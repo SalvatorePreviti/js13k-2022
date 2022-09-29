@@ -1,16 +1,17 @@
-import { matrixToArray, rotation } from "../math";
-import { absoluteTime, mainMenuVisible } from "./world-state";
 import {
   allModels,
   levers,
+  souls,
   MODEL_ID_LEVER,
   MODEL_ID_PLAYER_BODY,
   MODEL_ID_PLAYER_LEG0,
   MODEL_ID_PLAYER_LEG1,
-  souls,
   type MODEL_ID_SOUL,
   type MODEL_ID_SOUL_COLLISION,
 } from "./models";
+import { absoluteTime, mainMenuVisible } from "./game-time";
+import { rotation } from "../math/matrix-transforms";
+import { matrixToArray } from "../math/matrix";
 import { gl } from "../gl";
 
 const worldMatricesBuffer = new Float32Array(39 * 16);

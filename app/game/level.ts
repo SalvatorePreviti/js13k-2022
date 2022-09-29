@@ -1,15 +1,3 @@
-import { clamp, integers_map, lerpneg, abs, max, min, translation, scaling, rotation } from "../math";
-import {
-  GQuad,
-  cylinder,
-  polygons_transform,
-  polygon_regular,
-  sphere,
-  cylinder_sides,
-  polygon_transform,
-  type Polygon,
-} from "../geometry/geometry";
-import { csg_union, csg_polygons_subtract } from "../geometry/csg";
 import {
   levers,
   souls,
@@ -24,24 +12,22 @@ import {
   MODEL_ID_SOUL,
   MODEL_ID_ROTATING_PLATFORM,
 } from "./models";
-import { currentEditModel, material, meshAdd, newLever, newModel, newSoul } from "./models-factory";
+import { clamp, lerpneg, abs, max, min } from "../math/math";
+import { GQuad, cylinder, polygon_regular, sphere, cylinder_sides } from "../geometry/geometry";
+import { csg_union, csg_polygons_subtract } from "../geometry/csg";
 import {
-  gameTime,
   firstBoatLerp,
   secondBoatLerp,
   rotatingHexCorridorRotation,
   rotatingPlatform1Rotation,
   rotatingPlatform2Rotation,
 } from "./world-state";
-
-const checkModelId = DEBUG
-  ? (name: string, expectedId: number) => {
-      console.log(`model ${name} id: ${currentEditModel.$modelId}`);
-      if (currentEditModel.$modelId !== expectedId) {
-        throw new Error(`Model ${name} id should be ${expectedId} but is ${currentEditModel.$modelId}`);
-      }
-    }
-  : () => {};
+import { translation, rotation, scaling } from "../math/matrix-transforms";
+import { integers_map } from "../math/integers-map";
+import { gameTime } from "./game-time";
+import { checkModelId, meshAdd, newLever, newModel, newSoul } from "./models-factory";
+import { polygon_transform, polygons_transform, type Polygon } from "../geometry/polygon";
+import { material } from "../geometry/material";
 
 export const build_life_the_universe_and_everything = (): 42 | void => {
   if (DEBUG) {

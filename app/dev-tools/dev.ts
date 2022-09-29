@@ -2,7 +2,8 @@ window.NO_INLINE = (fn) => fn;
 window.DEBUG_CAMERA = false;
 
 import { camera_rotation } from "../game/world-state";
-import { angle_wrap_degrees, DEG_TO_RAD, type Vec3 } from "../math";
+import { angle_wrap_degrees, DEG_TO_RAD } from "../math/math";
+import type { Vec3 } from "../math/vectors";
 import { camera_position_x, camera_position_y, camera_position_z, set_camera_position } from "../player";
 import type { KEY_CODE } from "../utils/keycodes";
 

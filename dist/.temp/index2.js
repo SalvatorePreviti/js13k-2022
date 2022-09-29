@@ -1,5 +1,5 @@
-let mainMenuVisible;
 let _globalTime;
+let mainMenuVisible;
 let interact_pressed;
 let player_first_person;
 let updateInput;
@@ -7,9 +7,9 @@ let projection;
 let csm_projections;
 let currentEditModel;
 let player_update;
-let souls_collected_count = 0;
-let absoluteTime = 0;
 let gameTime = 0;
+let absoluteTime = 0;
+let souls_collected_count = 0;
 let player_last_pulled_lever = 0;
 let rotatingPlatform1Rotation = 0;
 let rotatingPlatform2Rotation = 0;
@@ -25,6 +25,27 @@ let camera_position_y = 0;
 let camera_position_z = 0;
 let _messageEndTime = 1;
 let gameTimeDelta = 0.066;
+const allModels = [];
+const levers = [];
+const souls = [];
+const GQuad = [
+  {
+    x: -1,
+    z: 1,
+  },
+  {
+    x: 1,
+    z: 1,
+  },
+  {
+    x: 1,
+    z: -1,
+  },
+  {
+    x: -1,
+    z: -1,
+  },
+];
 const song_columns = [
   [
     "(.15:15:=5:=A:=AF=AFIFIMRMRUY(Y(((((((((((((((((((((((((((((M(M(((((((((((((((((((((((((((((R(R(((((((((((((((((((((((((((((U(U",
@@ -167,39 +188,17 @@ const song_instruments = [
     64,
   ],
 ];
+const player_position_final = {
+  x: 0,
+  y: 0,
+  z: 0,
+};
+const DEG_TO_RAD = Math.PI / 180;
 const camera_rotation = {
   x: 0,
   y: 180,
 };
 const player_position_global = {
-  x: 0,
-  y: 0,
-  z: 0,
-};
-const integers_map = (n, fn) => Array.from(Array(n), (_, i) => fn(i));
-const DEG_TO_RAD = Math.PI / 180;
-const allModels = [];
-const levers = [];
-const souls = [];
-const GQuad = [
-  {
-    x: -1,
-    z: 1,
-  },
-  {
-    x: 1,
-    z: 1,
-  },
-  {
-    x: 1,
-    z: -1,
-  },
-  {
-    x: -1,
-    z: -1,
-  },
-];
-const player_position_final = {
   x: 0,
   y: 0,
   z: 0,
@@ -213,42 +212,6 @@ const lerp = (a, b, t) => (0 < t ? t < 1 ? a + (b - a) * t : b : a) || 0;
 const lerpneg = (v, t) => (v = clamp(v), lerp(v, 1 - v, t));
 const angle_wrap_degrees = (degrees) => Math.atan2(Math.sin(degrees *= DEG_TO_RAD), Math.cos(degrees)) / DEG_TO_RAD;
 const angle_lerp_degrees = (a0, a1, t) => a0 + (2 * (a1 = (a1 - a0) % 360) % 360 - a1) * clamp(t) || 0;
-const vec3_dot = ({ x, y, z }, b) => x * b.x + y * b.y + z * b.z;
-const plane_fromPolygon = (polygon) => {
-  let b;
-  let x = 0;
-  let y = 0;
-  let z = 0;
-  let a = polygon.at(-1);
-  for (b of polygon) {
-    x += (a.y - b.y) * (a.z + b.z), y += (a.z - b.z) * (a.x + b.x), z += (a.x - b.x) * (a.y + b.y), a = b;
-  }
-  return b = Math.hypot(x, y, z), x /= b, y /= b, z /= b, {
-    x,
-    y,
-    z,
-    w: x * a.x + y * a.y + z * a.z,
-  };
-};
-const mat_perspective = (near, far, mx, my) =>
-  new DOMMatrix([
-    mx,
-    0,
-    0,
-    0,
-    0,
-    my,
-    0,
-    0,
-    0,
-    0,
-    (far + near) / (near - far),
-    -1,
-    0,
-    0,
-    2 * far * near / (near - far),
-    0,
-  ]);
 const matrixToArray = (
   $matrix,
   output = float32Array16Temp,
@@ -294,6 +257,7 @@ const matrixCopy = (
 const translation = NO_INLINE((x, y, z) => identity.translate(x, y, z));
 const rotation = NO_INLINE((x, y, z) => identity.rotate(x, y, z));
 const scaling = NO_INLINE((x, y, z) => identity.scale(x, y, z));
+const integers_map = (n, fn) => Array.from(Array(n), (_, i) => fn(i));
 const polygon_color = (polygon, color, smooth) => (polygon.$smooth = smooth, polygon.$color = color, polygon);
 const polygon_transform = (polygon, m, color = polygon.$color) =>
   polygon_color(
@@ -369,6 +333,23 @@ const sphere = (slices, stacks = slices, vertexFunc = (x, y) => (y *= Math.PI / 
     }
   }
   return polygons;
+};
+const vec3_dot = ({ x, y, z }, b) => x * b.x + y * b.y + z * b.z;
+const plane_fromPolygon = (polygon) => {
+  let b;
+  let x = 0;
+  let y = 0;
+  let z = 0;
+  let a = polygon.at(-1);
+  for (b of polygon) {
+    x += (a.y - b.y) * (a.z + b.z), y += (a.z - b.z) * (a.x + b.x), z += (a.x - b.x) * (a.y + b.y), a = b;
+  }
+  return b = Math.hypot(x, y, z), x /= b, y /= b, z /= b, {
+    x,
+    y,
+    z,
+    w: x * a.x + y * a.y + z * a.z,
+  };
 };
 const CSGPolygon_split = (plane, polygon) => {
   let d;
@@ -457,6 +438,12 @@ const csg_tree_clipNode = (anode, bnode, polygonPlaneFlipped) => {
   return result;
 };
 const csg_tree_each = (node, fn) => node && (fn(node), csg_tree_each(node.$front, fn), csg_tree_each(node.$back, fn));
+const csg_tree_flip = (root) => (csg_tree_each(root, (node) => {
+  const back = node.$back;
+  node.$back = node.$front, node.$front = back, node.x *= -1, node.y *= -1, node.z *= -1, node.w *= -1;
+  for (const polygon of node.$polygons) polygon.$flipped = !polygon.$flipped;
+}),
+  root);
 const csg_tree = (n) =>
   n.length
     ? n.reduce((prev, $polygon) =>
@@ -466,12 +453,6 @@ const csg_tree = (n) =>
         $parent: 0,
       }), 0)
     : n;
-const csg_tree_flip = (root) => (csg_tree_each(root, (node) => {
-  const { $front, $back } = node;
-  node.$back = $front, node.$front = $back, node.x *= -1, node.y *= -1, node.z *= -1, node.w *= -1;
-  for (const polygon of node.$polygons) polygon.$flipped = !polygon.$flipped;
-}),
-  root);
 const csg_union = (...inputs) =>
   inputs.reduce((a, b) => {
     const polygonsToAdd = [];
@@ -487,8 +468,7 @@ const csg_union = (...inputs) =>
     }
     return a;
   });
-const csg_polygons_subtract = (...input) => {
-  let b;
+const csg_polygons_subtract = (a, ...b) => {
   {
     const add = (polygon) => {
       let found;
@@ -500,11 +480,8 @@ const csg_polygons_subtract = (...input) => {
     };
     const byParent = new Map();
     const allPolygons = new Map();
-    return [input, ...b] = [
-      ...input,
-    ],
-      input = csg_tree_flip(csg_union(csg_tree_flip(csg_tree(input)), ...b)),
-      csg_tree_each(input, (node) => {
+    return a = csg_tree_flip(csg_union(csg_tree_flip(csg_tree(a)), ...b)),
+      csg_tree_each(a, (node) => {
         for (const polygon of node.$polygons) allPolygons.set(add(polygon), polygon.$flipped);
       }),
       Array.from(allPolygons, ([{ $polygon }, flipped]) => {
@@ -577,6 +554,25 @@ const saveGame = () => {
     secondBoatLerp,
   ]);
 };
+const mat_perspective = (near, far, mx, my) =>
+  new DOMMatrix([
+    mx,
+    0,
+    0,
+    0,
+    0,
+    my,
+    0,
+    0,
+    0,
+    0,
+    (far + near) / (near - far),
+    -1,
+    0,
+    0,
+    2 * far * near / (near - far),
+    0,
+  ]);
 const initPage = () => {
   let touchStartTime;
   let touchPosStartX;
@@ -648,21 +644,21 @@ const initPage = () => {
     onkeyup = onkeydown = (e) => {
       let mapped;
       e.repeat || (mapped = ({
-        "KeyA": 1,
-        "KeyD": 2,
-        "KeyW": 3,
-        "KeyS": 4,
         "KeyE": 0,
         "Space": 0,
         "Enter": 0,
-        "ArrowLeft": 1,
-        "ArrowRight": 2,
-        "ArrowUp": 3,
-        "ArrowDown": 4,
-        "Escape": 5,
+        "Escape": 1,
+        "KeyA": 2,
+        "ArrowLeft": 2,
+        "KeyD": 3,
+        "ArrowRight": 3,
+        "KeyW": 4,
+        "ArrowUp": 4,
+        "KeyS": 5,
+        "ArrowDown": 5,
       })[e.code],
         (keyboard_downKeys[mapped] = !!e.type[5] && !0)
-        && (mapped === 0 && (interact_pressed = 1), mapped === 5 && mainMenu(!0)));
+        && (mapped === 0 && (interact_pressed = 1), mapped === 1 && mainMenu(!0)));
     },
     onmousemove = ({ movementX, movementY }) => {
       player_first_person && (movementX || movementY)
@@ -724,8 +720,8 @@ const initPage = () => {
         && (interact_pressed = 1);
     },
     updateInput = () => {
-      input_forward = touch_movementY + (keyboard_downKeys[3] ? 1 : 0) - (keyboard_downKeys[4] ? 1 : 0),
-        input_strafe = touch_movementX + (keyboard_downKeys[1] ? 1 : 0) - (keyboard_downKeys[2] ? 1 : 0);
+      input_forward = touch_movementY + (keyboard_downKeys[4] ? 1 : 0) - (keyboard_downKeys[5] ? 1 : 0),
+        input_strafe = touch_movementX + (keyboard_downKeys[2] ? 1 : 0) - (keyboard_downKeys[3] ? 1 : 0);
       let gamepad = navigator.getGamepads()[0];
       if (gamepad) {
         const getGamepadButtonState = (index) => buttons[index]?.pressed || 0 < buttons[index]?.value ? 1 : 0;
@@ -745,6 +741,8 @@ const initPage = () => {
     mainMenu(!0);
 };
 const material = NO_INLINE((r, g, b, a = 0) => 255 * a << 24 | 255 * b << 16 | 255 * g << 8 | 255 * r);
+const meshAdd = (polygons, transform = new DOMMatrix(), color) =>
+  currentEditModel.$polygons.push(...polygons_transform(polygons, transform, color));
 const newModel = (fn, $kind = 1) => {
   const previousModel = currentEditModel;
   var $kind = {
@@ -756,8 +754,6 @@ const newModel = (fn, $kind = 1) => {
   };
   return allModels.push($kind), fn(currentEditModel = $kind), currentEditModel = previousModel, $kind;
 };
-const meshAdd = (polygons, transform = new DOMMatrix(), color) =>
-  currentEditModel.$polygons.push(...polygons_transform(polygons, transform, color));
 const distanceToPlayer = (
   transform,
 ) => (transform = transform.transformPoint(),
@@ -924,6 +920,30 @@ const player_init = () => {
   let boot = 1;
   let player_respawned = 2;
   let player_gravity = 2;
+  const doHorizontalCollisions = () => {
+    player_mov_x = 0, player_mov_z = 0;
+    for (let y = 32; y < 128; y += 2) {
+      let front = 0;
+      let back = 0;
+      let left = 0;
+      let right = 0;
+      const yindex = 512 * y;
+      for (let x = 1 & y; x < 128; x += 2) {
+        const i1 = yindex + 4 * x;
+        let i2 = yindex + 4 * (127 - x);
+        const dist1 = collision_buffer[i1] / 255;
+        const dist2 = collision_buffer[1 + i2] / 255;
+        const t = 1 - abs(x / 63.5 - 1);
+        10 < x && x < 118
+        && (front = max(front, max(dist1 * t, dist1 * collision_buffer[i2] / 255)),
+          back = max(back, max(dist2 * t, dist2 * collision_buffer[1 + i1] / 255))),
+          (x < 54 || 74 < x) && 1e-3 < (i2 = (1 - t) * max(dist1, dist2) / 3)
+          && (x < 64 && i2 > left ? left = i2 : 64 < x && i2 > right && (right = i2));
+      }
+      abs(right - left) > abs(player_mov_x) && (player_mov_x = right - left),
+        abs(back - front) > abs(player_mov_z) && (player_mov_z = back - front);
+    }
+  };
   const doVerticalCollisions = () => {
     let maxModelIdCount = 0;
     let nextModelId = 0;
@@ -951,42 +971,22 @@ const player_init = () => {
       player_position_global.y += lines / 41
         - (player_has_ground || player_gravity) * grav / 41 * player_gravity * gameTimeDelta;
   };
-  const doHorizontalCollisions = () => {
-    player_mov_x = 0, player_mov_z = 0;
-    for (let y = 32; y < 128; y += 2) {
-      let front = 0;
-      let back = 0;
-      let left = 0;
-      let right = 0;
-      const yindex = 512 * y;
-      for (let x = 1 & y; x < 128; x += 2) {
-        const i1 = yindex + 4 * x;
-        let i2 = yindex + 4 * (127 - x);
-        const dist1 = collision_buffer[i1] / 255;
-        const dist2 = collision_buffer[1 + i2] / 255;
-        const t = 1 - abs(x / 63.5 - 1);
-        10 < x && x < 118
-        && (front = max(front, max(dist1 * t, dist1 * collision_buffer[i2] / 255)),
-          back = max(back, max(dist2 * t, dist2 * collision_buffer[1 + i1] / 255))),
-          (x < 54 || 74 < x) && 1e-3 < (i2 = (1 - t) * max(dist1, dist2) / 3)
-          && (x < 64 && i2 > left ? left = i2 : 64 < x && i2 > right && (right = i2));
-      }
-      abs(right - left) > abs(player_mov_x) && (player_mov_x = right - left),
-        abs(back - front) > abs(player_mov_z) && (player_mov_z = back - front);
-    }
-  };
   const getReferenceMatrix = () =>
     (player_respawned
       ? levers[player_last_pulled_lever].$parent
       : allModels[oldModelId && allModels[oldModelId].$kind === 1 && oldModelId || 0]).$matrix;
   const interpolate_with_hysteresis = (previous, desired, hysteresis, speed) =>
-    lerp(previous, desired, boot || (clamp(abs(desired - previous) ** 0.9 - hysteresis) + 1 / 7) * damp(1.5 * speed));
+    lerp(
+      previous,
+      desired,
+      boot || (clamp(Math.sqrt(abs(desired - previous)) - hysteresis) + 1 / 7) * damp(1.5 * speed),
+    );
   const player_collision_modelIdCounter = new Uint8Array(256);
   const collision_buffer = new Uint8Array(65536);
   player_update = () => {
     var forward = clamp(input_forward, -1);
     let strafe = clamp(input_strafe, -1);
-    var movAmount = threshold(Math.sqrt(Math.hypot(forward, strafe)), 0.05);
+    var movAmount = threshold(Math.sqrt(Math.hypot(forward, strafe)), 0.1);
     var movAngle = Math.atan2(forward, strafe);
     movAmount && (player_look_angle_target = 90 - movAngle / DEG_TO_RAD),
       player_look_angle = angle_lerp_degrees(player_look_angle, player_look_angle_target, damp(8)),
@@ -994,8 +994,8 @@ const player_init = () => {
       forward = movAmount * abs(forward) * Math.sin(movAngle),
       strafe = movAmount * abs(strafe) * Math.cos(movAngle),
       gl["r9r"](0, 0, 128, 128, 6408, 5121, collision_buffer),
-      NO_INLINE(doHorizontalCollisions)(),
-      NO_INLINE(doVerticalCollisions)();
+      NO_INLINE(doVerticalCollisions)(),
+      NO_INLINE(doHorizontalCollisions)();
     let playerSpeedCollision = clamp(1 - 5 * max(abs(player_mov_x), abs(player_mov_z)));
     player_speed = lerpDamp(
       player_speed,
@@ -1049,7 +1049,7 @@ const player_init = () => {
       shouldRotatePlatforms * (27 < currentModelId && currentModelId < 32),
       2,
     ),
-      movAngle < (forward < -25 || v < 109 ? -25 : -9)
+      movAngle < (forward < -20 || v < 109 ? -25 : -9)
       && (player_collision_velocity_x = player_collision_velocity_z = player_speed = 0, player_respawned = 2),
       currentModelId === 1 && (levers[9].$value = forward < -15 && v < 0 ? 1 : 0),
       player_model_y = lerp(
@@ -1084,17 +1084,17 @@ const player_init = () => {
             1,
             2 + player_on_rotating_platforms,
           ),
-          movAmount = min(4, -abs(camera_pos_lookat_z - camera_position_z)),
+          movAmount = min(-6, -abs(camera_pos_lookat_z - camera_position_z)),
           movAngle = camera_pos_lookat_x - camera_position_x,
           camera_rotation.y = angle_lerp_degrees(
             camera_rotation.y,
             90 - angle_wrap_degrees(Math.atan2(movAmount, movAngle) / DEG_TO_RAD),
-            boot + damp(6),
+            boot + damp(10),
           ),
           camera_rotation.x = angle_lerp_degrees(
             camera_rotation.x,
             90 - Math.atan2(Math.hypot(movAmount, movAngle), camera_position_y - camera_pos_lookat_y) / DEG_TO_RAD,
-            boot + damp(6),
+            boot + damp(10),
           )),
       camera_rotation.x = clamp(camera_rotation.x, -87, 87),
       boot = 0,
@@ -1153,7 +1153,7 @@ const renderModels = (worldMatrixLoc, renderPlayer, soulModelId) => {
 const loadStep = (fn) => {
   h4.innerHTML += ".", setTimeout(fn);
 };
-const getnotefreq = (n) => 396e-5 * 2 ** ((n - 256) / 12);
+const getnotefreq = (n) => 0.00396 * 2 ** ((n - 256) / 12);
 const osc_sin = (value) => Math.sin(value * Math.PI * 2);
 const osc_square = (value) => value % 1 < 0.5 ? 1 : -1;
 const osc_saw = (value) => value % 1 * 2 - 1;
@@ -1200,7 +1200,7 @@ const loadSong = (done) => {
                     j2 < 0
                     || (j2 -= 4 * song_rowLen,
                       o1t = getnotefreq(note + OSC1_SEMI),
-                      o2t = getnotefreq(note + OSC2_SEMI) * (1 + (channelIndex ? 0 : 0.007200))),
+                      o2t = getnotefreq(note + OSC2_SEMI) * (1 + (channelIndex ? 0 : 0.0072))),
                     noteBuf2[j1] = 80
                         * (OSC1_WAVEFORM(c1 += o1t * e ** (OSC1_XENV / 32)) * OSC1_VOL
                           + OSC2_WAVEFORM(c2 += o2t * e ** (OSC2_XENV / 32)) * OSC2_VOL
@@ -1216,7 +1216,7 @@ const loadSong = (done) => {
             let lsample = 0;
             let k = 2 * (rowStartSample + j1);
             var high = (((rsample = chnBuf[k]) || filterActive)
-              && (f = 308e-5 * FX_FREQ,
+              && (f = 0.00308 * FX_FREQ,
                 channelIndex !== 1 && channelIndex !== 4 || (f *= osc_sin(lfoFreq * k) * LFO_AMT / 512 + 0.5),
                 f = 1.5 * Math.sin(f),
                 low += f * band,
@@ -1581,8 +1581,9 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
           ),
             souls.map((soul, index) => soul.$value = 0 | savedSouls[index]),
             player_last_pulled_lever = savedLastPulledLever,
+            secondBoatLerp = savedSecondBoatLerp,
             gameTime = savedGameTime,
-            secondBoatLerp = savedSecondBoatLerp;
+            gameTimeDelta = 0;
         } catch {
         }
         firstBoatLerp = clamp(player_last_pulled_lever);

@@ -1,63 +1,14 @@
-import type { Vec2 } from "../math";
-import { lerp, angle_wrap_degrees, lerpneg, clamp, min, abs, identity, matrixCopy } from "../math";
+import { lerp, angle_wrap_degrees, lerpneg, clamp, abs } from "../math/math";
+import { matrixCopy, identity } from "../math/matrix";
+import type { Vec2 } from "../math/vectors";
+import { gameTime, lerpDamp, gameTimeDelta, resetGameTime } from "./game-time";
 import { allModels, levers, souls, SOULS_COUNT } from "./models";
-
-export let souls_collected_count = 0;
-
-/** Minimum 15.3 frames per second */
-export const GAME_TIME_MAX_DELTA_TIME = 0.066;
-
-export let absoluteTime = 0;
-
-export let gameTime = 0;
-
-export let gameTimeDelta: number = GAME_TIME_MAX_DELTA_TIME;
 
 export const camera_rotation: Vec2 = { x: 0, y: 180 } as Vec2;
 
-export const resetGameTime = () => {
-  gameTime = 0;
-  gameTimeDelta = 0;
-};
-
-export let mainMenuVisible: boolean | undefined;
-
-export const setMainMenuVisible = (visible: boolean) => {
-  mainMenuVisible = visible;
-};
-
-let _globalTime: number | undefined;
+export let souls_collected_count = 0;
 
 let _messageEndTime = 1;
-
-export const damp = (speed: number) => 1 - Math.exp(-speed * gameTimeDelta);
-
-export const lerpDamp = /* @__PURE__ */ (from: number, to: number, speed: number) => lerp(from, to, damp(speed));
-
-export const gameTimeUpdate = (time: number) => {
-  const dt = (time - (_globalTime || time)) / 1000;
-  absoluteTime += dt;
-  gameTime += gameTimeDelta = mainMenuVisible ? 0 : min(GAME_TIME_MAX_DELTA_TIME, dt);
-  _globalTime = time;
-};
-
-// export const gameTimeUpdate = (time: number) => {
-//   if (mainMenuVisible) {
-//     keyboard_downKeys[KEY_INTERACT] = 0;
-//   }
-//   const delta = (time - (_globalTime || time)) / 1000;
-//   if (delta >= 0.06) {
-//     gameTimeDelta = mainMenuVisible ? 0 : Math.min(GAME_TIME_MAX_DELTA_TIME, (time - (_globalTime || time)) / 1000);
-//     gameTime += gameTimeDelta;
-//     _globalTime = time;
-//   } else {
-//     gameTimeDelta = 0;
-//   }
-//   absoluteTime += delta;
-//   if (!_globalTime) {
-//     _globalTime = time;
-//   }
-// };
 
 export const LOCAL_STORAGE_SAVED_GAME_KEY = "DanteSP22";
 
@@ -157,8 +108,8 @@ export const loadGame = () => {
     );
     souls.map((soul, index) => (soul.$value = (savedSouls[index] | 0) as 0 | 1));
     player_last_pulled_lever = savedLastPulledLever;
-    gameTime = savedGameTime;
     secondBoatLerp = savedSecondBoatLerp;
+    resetGameTime(savedGameTime);
   } catch (e) {
     if (DEBUG) {
       console.log(e);

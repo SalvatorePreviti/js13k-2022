@@ -10,27 +10,11 @@ import {
   GAMEPAD_BUTTON_START,
   type KEY_CODE,
 } from "./utils/keycodes";
-import {
-  abs,
-  clamp,
-  CSM_PLANE_DISTANCE,
-  fieldOfViewAmount,
-  mat_perspective,
-  max,
-  threshold,
-  zFar,
-  zNear,
-} from "./math";
-import {
-  absoluteTime,
-  camera_rotation,
-  gameTimeDelta,
-  LOCAL_STORAGE_SAVED_GAME_KEY,
-  mainMenuVisible,
-  setMainMenuVisible,
-  updateCollectedSoulsCounter,
-} from "./game/world-state";
+import { abs, clamp, max, threshold } from "./math/math";
+import { camera_rotation, LOCAL_STORAGE_SAVED_GAME_KEY, updateCollectedSoulsCounter } from "./game/world-state";
 import { songAudioSource, audioContext } from "./music/audio-context";
+import { CSM_PLANE_DISTANCE, fieldOfViewAmount, mat_perspective, zFar, zNear } from "./math/matrix-perspective";
+import { mainMenuVisible, setMainMenuVisible, absoluteTime, gameTimeDelta } from "./game/game-time";
 
 export let interact_pressed: 0 | 1;
 
@@ -74,11 +58,11 @@ export const initPage = () => {
   const keyboard_downKeys: (boolean | 0 | 1 | undefined)[] = [];
 
   const KEY_INTERACT = 0;
-  const KEY_LEFT = 1;
-  const KEY_RIGHT = 2;
-  const KEY_FRONT = 3;
-  const KEY_BACK = 4;
-  const KEY_MENU = 5;
+  const KEY_MENU = 1;
+  const KEY_LEFT = 2;
+  const KEY_RIGHT = 3;
+  const KEY_FRONT = 4;
+  const KEY_BACK = 5;
 
   const updateMusicOnState = () => {
     b4.innerHTML = "Music: " + music_on;
@@ -181,21 +165,23 @@ export const initPage = () => {
 
       const mapped = (
         {
-          ["KeyA"]: KEY_LEFT,
-          ["KeyD"]: KEY_RIGHT,
-          ["KeyW"]: KEY_FRONT,
-          ["KeyS"]: KEY_BACK,
-
           ["KeyE"]: KEY_INTERACT,
           ["Space"]: KEY_INTERACT,
           ["Enter"]: KEY_INTERACT,
 
-          ["ArrowLeft"]: KEY_LEFT,
-          ["ArrowRight"]: KEY_RIGHT,
-          ["ArrowUp"]: KEY_FRONT,
-          ["ArrowDown"]: KEY_BACK,
-
           ["Escape"]: KEY_MENU,
+
+          ["KeyA"]: KEY_LEFT,
+          ["ArrowLeft"]: KEY_LEFT,
+
+          ["KeyD"]: KEY_RIGHT,
+          ["ArrowRight"]: KEY_RIGHT,
+
+          ["KeyW"]: KEY_FRONT,
+          ["ArrowUp"]: KEY_FRONT,
+
+          ["KeyS"]: KEY_BACK,
+          ["ArrowDown"]: KEY_BACK,
         } as Partial<Record<KEY_CODE, number>>
       )[e.code as KEY_CODE]!;
 

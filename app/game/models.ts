@@ -1,5 +1,5 @@
-import type { Vec3 } from "../math";
-import type { Polygon } from "../geometry/geometry";
+import type { Polygon } from "../geometry/polygon";
+import type { Vec3 } from "../math/vectors";
 
 export interface Model {
   readonly $matrix: DOMMatrix;
