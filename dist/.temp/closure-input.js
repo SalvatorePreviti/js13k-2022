@@ -47,12 +47,6 @@ const GQuad = [
     z: -1,
   },
 ];
-const player_position_final = {
-  x: 0,
-  y: 0,
-  z: 0,
-};
-const DEG_TO_RAD = Math.PI / 180;
 const song_columns = [
   [
     "(.15:15:=5:=A:=AF=AFIFIMRMRUY(Y(((((((((((((((((((((((((((((M(M(((((((((((((((((((((((((((((R(R(((((((((((((((((((((((((((((U(U",
@@ -195,6 +189,12 @@ const song_instruments = [
     64,
   ],
 ];
+const player_position_final = {
+  x: 0,
+  y: 0,
+  z: 0,
+};
+const DEG_TO_RAD = Math.PI / 180;
 const camera_rotation = {
   x: 0,
   y: 180,
@@ -501,31 +501,6 @@ const lerpDamp = NO_INLINE((from, to, speed) => lerp(from, to, damp(speed)));
 const showMessage = (message, duration) => {
   1 / 0 > _messageEndTime && (_messageEndTime = gameTime + duration, h4.innerHTML = message);
 };
-const worldStateUpdate = () => {
-  shouldRotatePlatforms = lerpneg(levers[12].$lerpValue, levers[13].$lerpValue),
-    rotatingHexCorridorRotation = lerp(
-      lerpDamp(rotatingHexCorridorRotation, 0, 1),
-      angle_wrap_degrees(rotatingHexCorridorRotation + 60 * gameTimeDelta),
-      levers[5].$lerpValue - levers[6].$lerpValue2,
-    ),
-    rotatingPlatform1Rotation = lerp(
-      lerpDamp(rotatingPlatform1Rotation, 0, 5),
-      angle_wrap_degrees(rotatingPlatform1Rotation + 56 * gameTimeDelta),
-      shouldRotatePlatforms,
-    ),
-    rotatingPlatform2Rotation = lerp(
-      lerpDamp(rotatingPlatform2Rotation, 0, 4),
-      angle_wrap_degrees(rotatingPlatform2Rotation + 48 * gameTimeDelta),
-      shouldRotatePlatforms,
-    ),
-    secondBoatLerp = lerpDamp(secondBoatLerp, levers[9].$lerpValue2, 0.2 + 0.3 * abs(2 * levers[9].$lerpValue2 - 1)),
-    firstBoatLerp = lerpDamp(firstBoatLerp, game_completed ? lerpDamp(firstBoatLerp, -9, 1.5) : clamp(gameTime / 3), 1),
-    _messageEndTime && gameTime > _messageEndTime && (_messageEndTime = 0, h4.innerHTML = ""),
-    levers[0].$value && 0.8 < levers[0].$lerpValue && (souls_collected_count < 13
-      ? (showMessage("Not leaving now, there are souls to catch!", 3), levers[0].$value = 0)
-      : game_completed
-        || (showMessage("Well done. They will be punished.<br>Thanks for playing", 1 / 0), game_completed = 1));
-};
 const updateCollectedSoulsCounter = () => {
   h3.innerHTML = "Souls: " + [
     0,
@@ -761,6 +736,7 @@ const distanceToPlayer = (
     player_position_final.z - transform.z,
   ));
 const newLever = (transform) => {
+  const _locMatrix = () => matrixCopy($parent.$matrix, $locMatrix).multiplySelf(transform);
   const $locMatrix = new DOMMatrix();
   const $matrix = new DOMMatrix();
   const $parent = currentEditModel;
@@ -770,13 +746,10 @@ const newLever = (transform) => {
     $lerpValue: 0,
     $lerpValue2: 0,
     $parent,
-    $locMatrix,
+    _locMatrix,
     _update() {
       let leverIndex;
-      matrixCopy(matrixCopy($parent.$matrix, $locMatrix).multiplySelf(transform), $matrix).rotateSelf(
-        60 * lever.$lerpValue - 30,
-        0,
-      ).translateSelf(0, 1),
+      matrixCopy(_locMatrix(), $matrix).rotateSelf(60 * lever.$lerpValue - 30, 0).translateSelf(0, 1),
         lever.$lerpValue = lerpDamp(lever.$lerpValue, lever.$value, 4),
         lever.$lerpValue2 = lerpDamp(lever.$lerpValue2, lever.$value, 1),
         interact_pressed && distanceToPlayer($locMatrix) < 3 && (lever.$lerpValue < 0.3 || 0.7 < lever.$lerpValue)
@@ -1008,7 +981,7 @@ const player_init = () => {
           + player_speed * (strafe * Math.sin(movAngle) + forward * Math.cos(movAngle))),
       getReferenceMatrix());
     var { x: forward, y: movAngle, z: v } = 1 < player_respawned
-      ? levers[player_last_pulled_lever].$locMatrix.transformPoint({
+      ? levers[player_last_pulled_lever]._locMatrix().transformPoint({
         x: 0,
         y: player_last_pulled_lever || 0.9 < firstBoatLerp ? 15 : 1,
         z: -2.4,
@@ -1309,7 +1282,38 @@ loadStep(() => {
             _globalTime = globalTime,
             0 < gameTimeDelta
         ) {
-          updateInput(), worldStateUpdate();
+          shouldRotatePlatforms = lerpneg(levers[12].$lerpValue, levers[13].$lerpValue),
+            rotatingHexCorridorRotation = lerp(
+              lerpDamp(rotatingHexCorridorRotation, 0, 1),
+              angle_wrap_degrees(rotatingHexCorridorRotation + 60 * gameTimeDelta),
+              levers[5].$lerpValue - levers[6].$lerpValue2,
+            ),
+            rotatingPlatform1Rotation = lerp(
+              lerpDamp(rotatingPlatform1Rotation, 0, 5),
+              angle_wrap_degrees(rotatingPlatform1Rotation + 56 * gameTimeDelta),
+              shouldRotatePlatforms,
+            ),
+            rotatingPlatform2Rotation = lerp(
+              lerpDamp(rotatingPlatform2Rotation, 0, 4),
+              angle_wrap_degrees(rotatingPlatform2Rotation + 48 * gameTimeDelta),
+              shouldRotatePlatforms,
+            ),
+            secondBoatLerp = lerpDamp(
+              secondBoatLerp,
+              levers[9].$lerpValue2,
+              0.2 + 0.3 * abs(2 * levers[9].$lerpValue2 - 1),
+            ),
+            firstBoatLerp = lerpDamp(
+              firstBoatLerp,
+              game_completed ? lerpDamp(firstBoatLerp, -9, 1.5) : clamp(gameTime / 3),
+              1,
+            ),
+            _messageEndTime && gameTime > _messageEndTime && (_messageEndTime = 0, h4.innerHTML = ""),
+            levers[0].$value && 0.8 < levers[0].$lerpValue && (souls_collected_count < 13
+              ? (showMessage("Not leaving now, there are souls to catch!", 3), levers[0].$value = 0)
+              : game_completed
+                || (showMessage("Well done. They will be punished.<br>Thanks for playing", 1 / 0), game_completed = 1)),
+            updateInput();
           for (const model of allModels) {
             model.$kind
               && (model._update && model._update(matrixCopy(identity, model.$matrix)),
@@ -1494,7 +1498,6 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
         gl["c7a"](1029),
         gl["d4n"](515),
         gl["c5t"](0, 0, 0, 1),
-        worldStateUpdate(),
         NO_INLINE(initPage)(),
         NO_INLINE(player_init)(),
         requestAnimationFrame(mainLoop);

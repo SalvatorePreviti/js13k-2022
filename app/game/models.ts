@@ -16,7 +16,7 @@ export interface Lever {
   $lerpValue: number;
   $lerpValue2: number;
   $parent: Model;
-  readonly $locMatrix: DOMMatrix;
+  _locMatrix: () => DOMMatrixReadOnly;
   _update: () => void;
 }
 

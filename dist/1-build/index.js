@@ -785,6 +785,7 @@ const distanceToPlayer = (transform) => {
   return /* @__PURE__ */ Math.hypot(player_position_final.x - p.x, player_position_final.y - p.y, player_position_final.z - p.z);
 };
 const newLever = (transform) => {
+  const _locMatrix = () => matrixCopy($parent.$matrix, $locMatrix).multiplySelf(transform);
   const $locMatrix = new DOMMatrix();
   const $matrix = new DOMMatrix();
   const $parent = currentEditModel;
@@ -794,9 +795,9 @@ const newLever = (transform) => {
     $lerpValue: 0,
     $lerpValue2: 0,
     $parent,
-    $locMatrix,
+    _locMatrix,
     _update: () => {
-      matrixCopy(matrixCopy($parent.$matrix, $locMatrix).multiplySelf(transform), $matrix).rotateSelf(lever.$lerpValue * 60 - 30, 0).translateSelf(0, 1);
+      matrixCopy(_locMatrix(), $matrix).rotateSelf(lever.$lerpValue * 60 - 30, 0).translateSelf(0, 1);
       lever.$lerpValue = lerpDamp(lever.$lerpValue, lever.$value, 4);
       lever.$lerpValue2 = lerpDamp(lever.$lerpValue2, lever.$value, 1);
       if (interact_pressed && distanceToPlayer($locMatrix) < LEVER_SENSITIVITY_RADIUS) {
@@ -1527,7 +1528,7 @@ const player_init = () => {
     player_mov_x += gameTimeDelta * (playerSpeedCollision * player_collision_velocity_x + player_speed * (strafe * /* @__PURE__ */ Math.cos(dirAngle) - forward * /* @__PURE__ */ Math.sin(dirAngle)));
     player_mov_z += gameTimeDelta * (playerSpeedCollision * player_collision_velocity_z + player_speed * (strafe * /* @__PURE__ */ Math.sin(dirAngle) + forward * /* @__PURE__ */ Math.cos(dirAngle)));
     let referenceMatrix = getReferenceMatrix();
-    const { x, y, z } = player_respawned > 1 ? levers[player_last_pulled_lever].$locMatrix.transformPoint({
+    const { x, y, z } = player_respawned > 1 ? levers[player_last_pulled_lever]._locMatrix().transformPoint({
       x: 0,
       y: player_last_pulled_lever || firstBoatLerp > 0.9 ? 15 : 1,
       z: PLAYER_RESPAWN_Z
@@ -1626,8 +1627,8 @@ const startMainLoop = (groundTextureImage) => {
     requestAnimationFrame(mainLoop);
     gameTimeUpdate(globalTime);
     if (gameTimeDelta > 0) {
-      updateInput();
       worldStateUpdate();
+      updateInput();
       for (const model of allModels)
         if (model.$kind) {
           if (model._update)
@@ -1777,7 +1778,6 @@ const startMainLoop = (groundTextureImage) => {
   gl["c7a"](1029);
   gl["d4n"](515);
   gl["c5t"](0, 0, 0, 1);
-  worldStateUpdate();
   NO_INLINE(initPage)();
   NO_INLINE(player_init)();
   requestAnimationFrame(mainLoop);

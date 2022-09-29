@@ -5,7 +5,6 @@ $front:m
 $kind:G
 $lerpValue:g
 $lerpValue2:i
-$locMatrix:I
 $matrix:u
 $modelId:H
 $parent:s
@@ -15,4 +14,5 @@ $smooth:D
 $value:j
 $vertexBegin:v
 $vertexEnd:F
+_locMatrix:I
 _update:h

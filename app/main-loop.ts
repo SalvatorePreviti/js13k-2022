@@ -344,12 +344,9 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   gl.depthFunc(gl.LEQUAL); // LEQUAL to make sky works
   gl.clearColor(0, 0, 0, 1);
 
-  worldStateUpdate();
-
   NO_INLINE(initPage)();
 
   NO_INLINE(player_init)();
 
-  // gl.bindFramebuffer(gl.FRAMEBUFFER, collision_frameBuffer);
   requestAnimationFrame(mainLoop);
 };

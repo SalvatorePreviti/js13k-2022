@@ -59,14 +59,17 @@ export const newLever = (transform: DOMMatrixReadOnly): void => {
   const $matrix = new DOMMatrix();
   const $parent = currentEditModel;
   const index = levers.length;
+
+  const _locMatrix = () => matrixCopy($parent.$matrix, $locMatrix).multiplySelf(transform);
+
   const lever: Lever = {
     $value: 0,
     $lerpValue: 0,
     $lerpValue2: 0,
     $parent,
-    $locMatrix,
+    _locMatrix,
     _update: () => {
-      matrixCopy(matrixCopy($parent.$matrix, $locMatrix).multiplySelf(transform), $matrix)
+      matrixCopy(_locMatrix(), $matrix)
         .rotateSelf(lever.$lerpValue * 60 - 30, 0)
         .translateSelf(0, 1);
 
