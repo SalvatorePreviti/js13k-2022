@@ -16,7 +16,7 @@ import { onPlayerPullLever, onSoulCollected } from "./world-state";
 import { interact_pressed } from "../page";
 import type { Vec3Optional } from "../math/vectors";
 import { min, angle_lerp_degrees, DEG_TO_RAD, clamp, abs } from "../math/math";
-import { matrixCopy, matrixToArray } from "../math/matrix";
+import { matrixCopy, matrixToArray, tempMatrix } from "../math/matrix";
 import { lerpDamp, damp, gameTime } from "./game-time";
 import { polygons_transform, type Polygon } from "../geometry/polygon";
 import { cylinder } from "../geometry/geometry";
@@ -55,35 +55,34 @@ const distanceToPlayer = (transform: DOMMatrixReadOnly): number => {
 };
 
 export const newLever = (transform: DOMMatrixReadOnly): void => {
-  const $locMatrix = new DOMMatrix();
-  const $matrix = new DOMMatrix();
   const $parent = currentEditModel;
   const index = levers.length;
-
-  const _locMatrix = () => matrixCopy($parent.$matrix, $locMatrix).multiplySelf(transform);
 
   const lever: Lever = {
     $value: 0,
     $lerpValue: 0,
     $lerpValue2: 0,
     $parent,
-    _locMatrix,
+    $matrix: transform,
     _update: () => {
-      matrixCopy(_locMatrix(), $matrix)
-        .rotateSelf(lever.$lerpValue * 60 - 30, 0)
-        .translateSelf(0, 1);
-
       lever.$lerpValue = lerpDamp(lever.$lerpValue, lever.$value, 4);
       lever.$lerpValue2 = lerpDamp(lever.$lerpValue2, lever.$value, 1);
 
-      if (interact_pressed && distanceToPlayer($locMatrix) < LEVER_SENSITIVITY_RADIUS) {
+      matrixCopy($parent.$matrix).multiplySelf(transform);
+
+      if (interact_pressed && distanceToPlayer(tempMatrix) < LEVER_SENSITIVITY_RADIUS) {
         if (lever.$lerpValue < 0.3 || lever.$lerpValue > 0.7) {
           lever.$value = lever.$value ? 0 : 1;
           onPlayerPullLever(index);
         }
       }
 
-      matrixToArray($matrix, objectsMatricesBuffer, index + SOULS_COUNT);
+      matrixToArray(
+        tempMatrix.rotateSelf(lever.$lerpValue * 60 - 30, 0).translateSelf(0, 1),
+        objectsMatricesBuffer,
+        index + SOULS_COUNT,
+      );
+
       // Encode lerp value in matrix m44 so fragmemt shader can change the lever handle color
       objectsMatricesBuffer[index * 16 + (15 + SOULS_COUNT * 16)] = 1 - lever.$lerpValue;
     },
@@ -96,7 +95,6 @@ export const newLever = (transform: DOMMatrixReadOnly): void => {
 };
 
 export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]) => {
-  const $matrix = new DOMMatrix();
   const parentModel = currentEditModel;
   const index = souls.length;
   const circles = (walkingPath as Circle[]).map(([x, z, w]) => ({ x, z, w }));
@@ -164,7 +162,7 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]
 
         if (
           distanceToPlayer(
-            matrixCopy(parentModel.$matrix, $matrix)
+            matrixCopy(parentModel.$matrix)
               .multiplySelf(transform)
               .translateSelf((prevX = soulX), 0, (prevZ = soulZ))
               .rotateSelf(0, lookAngle, Math.sin(gameTime * 1.7) * 7),
@@ -176,14 +174,14 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]
       }
 
       if (soul.$value) {
-        matrixCopy(allModels[MODEL_ID_FIRST_BOAT]!.$matrix, $matrix).translateSelf(
+        matrixCopy(allModels[MODEL_ID_FIRST_BOAT]!.$matrix).translateSelf(
           (index % 4) * 1.2 - 1.7 + Math.sin(gameTime + index) / 7,
           -2,
           -5.5 + ((index / 4) | 0) * 1.7 + abs((index % 4) - 2) + Math.cos(gameTime / 1.5 + index) / 6,
         );
       }
 
-      matrixToArray($matrix, objectsMatricesBuffer, index);
+      matrixToArray(tempMatrix, objectsMatricesBuffer, index);
     },
   };
 

@@ -240,11 +240,13 @@ export const player_init = () => {
 
     const { x, y, z } =
       player_respawned > 1
-        ? levers[player_last_pulled_lever]!._locMatrix().transformPoint({
-            x: 0,
-            y: player_last_pulled_lever || firstBoatLerp > 0.9 ? 15 : 1,
-            z: PLAYER_RESPAWN_Z,
-          })
+        ? matrixCopy(levers[player_last_pulled_lever]!.$parent.$matrix)
+            .multiplySelf(levers[player_last_pulled_lever]!.$matrix)
+            .transformPoint({
+              x: 0,
+              y: player_last_pulled_lever || firstBoatLerp > 0.9 ? 15 : 1,
+              z: PLAYER_RESPAWN_Z,
+            })
         : playerMovedGlobalPos(referenceMatrix);
 
     if (currentModelId) {

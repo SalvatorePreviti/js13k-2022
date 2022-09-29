@@ -785,9 +785,6 @@ const distanceToPlayer = (transform) => {
   return /* @__PURE__ */ Math.hypot(player_position_final.x - p.x, player_position_final.y - p.y, player_position_final.z - p.z);
 };
 const newLever = (transform) => {
-  const _locMatrix = () => matrixCopy($parent.$matrix, $locMatrix).multiplySelf(transform);
-  const $locMatrix = new DOMMatrix();
-  const $matrix = new DOMMatrix();
   const $parent = currentEditModel;
   const index = levers.length;
   const lever = {
@@ -795,18 +792,18 @@ const newLever = (transform) => {
     $lerpValue: 0,
     $lerpValue2: 0,
     $parent,
-    _locMatrix,
+    $matrix: transform,
     _update: () => {
-      matrixCopy(_locMatrix(), $matrix).rotateSelf(lever.$lerpValue * 60 - 30, 0).translateSelf(0, 1);
       lever.$lerpValue = lerpDamp(lever.$lerpValue, lever.$value, 4);
       lever.$lerpValue2 = lerpDamp(lever.$lerpValue2, lever.$value, 1);
-      if (interact_pressed && distanceToPlayer($locMatrix) < LEVER_SENSITIVITY_RADIUS) {
+      matrixCopy($parent.$matrix).multiplySelf(transform);
+      if (interact_pressed && distanceToPlayer(tempMatrix) < LEVER_SENSITIVITY_RADIUS) {
         if (lever.$lerpValue < 0.3 || lever.$lerpValue > 0.7) {
           lever.$value = lever.$value ? 0 : 1;
           onPlayerPullLever(index);
         }
       }
-      matrixToArray($matrix, objectsMatricesBuffer, index + SOULS_COUNT);
+      matrixToArray(tempMatrix.rotateSelf(lever.$lerpValue * 60 - 30, 0).translateSelf(0, 1), objectsMatricesBuffer, index + SOULS_COUNT);
       objectsMatricesBuffer[index * 16 + (15 + SOULS_COUNT * 16)] = 1 - lever.$lerpValue;
     }
   };
@@ -866,17 +863,16 @@ const newSoul = (transform, ...walkingPath) => {
         soulX = lerpDamp(soulX, targetX = lerpDamp(targetX, targetX + dirX, velocity), velocity);
         soulZ = lerpDamp(soulZ, targetZ = lerpDamp(targetZ, targetZ + dirZ, velocity), velocity);
         lookAngle = angle_lerp_degrees(lookAngle, /* @__PURE__ */ Math.atan2(soulX - prevX, soulZ - prevZ) / DEG_TO_RAD - 180, damp(3));
-        if (distanceToPlayer(matrixCopy(parentModel.$matrix, $matrix).multiplySelf(transform).translateSelf(prevX = soulX, 0, prevZ = soulZ).rotateSelf(0, lookAngle, /* @__PURE__ */ Math.sin(gameTime * 1.7) * 7)) < SOUL_SENSITIVITY_RADIUS) {
+        if (distanceToPlayer(matrixCopy(parentModel.$matrix).multiplySelf(transform).translateSelf(prevX = soulX, 0, prevZ = soulZ).rotateSelf(0, lookAngle, /* @__PURE__ */ Math.sin(gameTime * 1.7) * 7)) < SOUL_SENSITIVITY_RADIUS) {
           soul.$value = 1;
           onSoulCollected();
         }
       }
       if (soul.$value)
-        matrixCopy(allModels[MODEL_ID_FIRST_BOAT].$matrix, $matrix).translateSelf(index % 4 * 1.2 - 1.7 + /* @__PURE__ */ Math.sin(gameTime + index) / 7, -2, -5.5 + (index / 4 | 0) * 1.7 + abs(index % 4 - 2) + /* @__PURE__ */ Math.cos(gameTime / 1.5 + index) / 6);
-      matrixToArray($matrix, objectsMatricesBuffer, index);
+        matrixCopy(allModels[MODEL_ID_FIRST_BOAT].$matrix).translateSelf(index % 4 * 1.2 - 1.7 + /* @__PURE__ */ Math.sin(gameTime + index) / 7, -2, -5.5 + (index / 4 | 0) * 1.7 + abs(index % 4 - 2) + /* @__PURE__ */ Math.cos(gameTime / 1.5 + index) / 6);
+      matrixToArray(tempMatrix, objectsMatricesBuffer, index);
     }
   };
-  const $matrix = new DOMMatrix();
   const parentModel = currentEditModel;
   const index = souls.length;
   const circles = walkingPath.map(([x, z, w]) => ({
@@ -1528,7 +1524,7 @@ const player_init = () => {
     player_mov_x += gameTimeDelta * (playerSpeedCollision * player_collision_velocity_x + player_speed * (strafe * /* @__PURE__ */ Math.cos(dirAngle) - forward * /* @__PURE__ */ Math.sin(dirAngle)));
     player_mov_z += gameTimeDelta * (playerSpeedCollision * player_collision_velocity_z + player_speed * (strafe * /* @__PURE__ */ Math.sin(dirAngle) + forward * /* @__PURE__ */ Math.cos(dirAngle)));
     let referenceMatrix = getReferenceMatrix();
-    const { x, y, z } = player_respawned > 1 ? levers[player_last_pulled_lever]._locMatrix().transformPoint({
+    const { x, y, z } = player_respawned > 1 ? matrixCopy(levers[player_last_pulled_lever].$parent.$matrix).multiplySelf(levers[player_last_pulled_lever].$matrix).transformPoint({
       x: 0,
       y: player_last_pulled_lever || firstBoatLerp > 0.9 ? 15 : 1,
       z: PLAYER_RESPAWN_Z
@@ -1627,8 +1623,8 @@ const startMainLoop = (groundTextureImage) => {
     requestAnimationFrame(mainLoop);
     gameTimeUpdate(globalTime);
     if (gameTimeDelta > 0) {
-      worldStateUpdate();
       updateInput();
+      worldStateUpdate();
       for (const model of allModels)
         if (model.$kind) {
           if (model._update)

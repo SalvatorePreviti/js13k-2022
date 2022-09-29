@@ -736,9 +736,6 @@ const distanceToPlayer = (
     player_position_final.z - transform.z,
   ));
 const newLever = (transform) => {
-  const _locMatrix = () => matrixCopy($parent.$matrix, $locMatrix).multiplySelf(transform);
-  const $locMatrix = new DOMMatrix();
-  const $matrix = new DOMMatrix();
   const $parent = currentEditModel;
   const index = levers.length;
   const lever = {
@@ -746,18 +743,22 @@ const newLever = (transform) => {
     $lerpValue: 0,
     $lerpValue2: 0,
     $parent,
-    _locMatrix,
+    $matrix: transform,
     _update() {
       let leverIndex;
-      matrixCopy(_locMatrix(), $matrix).rotateSelf(60 * lever.$lerpValue - 30, 0).translateSelf(0, 1),
-        lever.$lerpValue = lerpDamp(lever.$lerpValue, lever.$value, 4),
+      lever.$lerpValue = lerpDamp(lever.$lerpValue, lever.$value, 4),
         lever.$lerpValue2 = lerpDamp(lever.$lerpValue2, lever.$value, 1),
-        interact_pressed && distanceToPlayer($locMatrix) < 3 && (lever.$lerpValue < 0.3 || 0.7 < lever.$lerpValue)
+        matrixCopy($parent.$matrix).multiplySelf(transform),
+        interact_pressed && distanceToPlayer(tempMatrix) < 3 && (lever.$lerpValue < 0.3 || 0.7 < lever.$lerpValue)
         && (lever.$value = lever.$value ? 0 : 1,
           (leverIndex = index) && showMessage("* click *", 1),
           player_last_pulled_lever = leverIndex,
           saveGame()),
-        matrixToArray($matrix, objectsMatricesBuffer, index + 13),
+        matrixToArray(
+          tempMatrix.rotateSelf(60 * lever.$lerpValue - 30, 0).translateSelf(0, 1),
+          objectsMatricesBuffer,
+          index + 13,
+        ),
         objectsMatricesBuffer[16 * index + 223] = 1 - lever.$lerpValue;
     },
   };
@@ -775,7 +776,6 @@ const newSoul = (transform, ...walkingPath) => {
   let prevZ = 0;
   let wasInside = 1;
   let velocity = 3;
-  const $matrix = new DOMMatrix();
   const soul = {
     $value: 0,
     _update() {
@@ -822,11 +822,8 @@ const newSoul = (transform, ...walkingPath) => {
             damp(3),
           ),
           distanceToPlayer(
-              matrixCopy(parentModel.$matrix, $matrix).multiplySelf(transform).translateSelf(
-                prevX = soulX,
-                0,
-                prevZ = soulZ,
-              ).rotateSelf(0, lookAngle, 7 * Math.sin(1.7 * gameTime)),
+              matrixCopy(parentModel.$matrix).multiplySelf(transform).translateSelf(prevX = soulX, 0, prevZ = soulZ)
+                .rotateSelf(0, lookAngle, 7 * Math.sin(1.7 * gameTime)),
             ) < 1.6 && (soul.$value = 1,
               showMessage(
                 [
@@ -850,11 +847,11 @@ const newSoul = (transform, ...walkingPath) => {
               saveGame());
       }
       soul.$value
-      && matrixCopy(allModels[2].$matrix, $matrix).translateSelf(
+      && matrixCopy(allModels[2].$matrix).translateSelf(
         index % 4 * 1.2 - 1.7 + Math.sin(gameTime + index) / 7,
         -2,
         1.7 * (index / 4 | 0) - 5.5 + abs(index % 4 - 2) + Math.cos(gameTime / 1.5 + index) / 6,
-      ), matrixToArray($matrix, objectsMatricesBuffer, index);
+      ), matrixToArray(tempMatrix, objectsMatricesBuffer, index);
     },
   };
   const parentModel = currentEditModel;
@@ -981,7 +978,9 @@ const player_init = () => {
           + player_speed * (strafe * Math.sin(movAngle) + forward * Math.cos(movAngle))),
       getReferenceMatrix());
     var { x: forward, y: movAngle, z: v } = 1 < player_respawned
-      ? levers[player_last_pulled_lever]._locMatrix().transformPoint({
+      ? matrixCopy(levers[player_last_pulled_lever].$parent.$matrix).multiplySelf(
+        levers[player_last_pulled_lever].$matrix,
+      ).transformPoint({
         x: 0,
         y: player_last_pulled_lever || 0.9 < firstBoatLerp ? 15 : 1,
         z: -2.4,
@@ -1282,7 +1281,8 @@ loadStep(() => {
             _globalTime = globalTime,
             0 < gameTimeDelta
         ) {
-          shouldRotatePlatforms = lerpneg(levers[12].$lerpValue, levers[13].$lerpValue),
+          updateInput(),
+            shouldRotatePlatforms = lerpneg(levers[12].$lerpValue, levers[13].$lerpValue),
             rotatingHexCorridorRotation = lerp(
               lerpDamp(rotatingHexCorridorRotation, 0, 1),
               angle_wrap_degrees(rotatingHexCorridorRotation + 60 * gameTimeDelta),
@@ -1312,8 +1312,7 @@ loadStep(() => {
             levers[0].$value && 0.8 < levers[0].$lerpValue && (souls_collected_count < 13
               ? (showMessage("Not leaving now, there are souls to catch!", 3), levers[0].$value = 0)
               : game_completed
-                || (showMessage("Well done. They will be punished.<br>Thanks for playing", 1 / 0), game_completed = 1)),
-            updateInput();
+                || (showMessage("Well done. They will be punished.<br>Thanks for playing", 1 / 0), game_completed = 1));
           for (const model of allModels) {
             model.$kind
               && (model._update && model._update(matrixCopy(identity, model.$matrix)),

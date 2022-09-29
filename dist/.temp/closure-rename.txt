@@ -5,14 +5,13 @@ $front:m
 $kind:G
 $lerpValue:g
 $lerpValue2:i
-$matrix:u
+$matrix:o
 $modelId:H
 $parent:s
 $polygon:C
-$polygons:o
+$polygons:u
 $smooth:D
 $value:j
 $vertexBegin:v
 $vertexEnd:F
-_locMatrix:I
 _update:h
