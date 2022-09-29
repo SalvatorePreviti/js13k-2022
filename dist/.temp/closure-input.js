@@ -1110,21 +1110,15 @@ const initShaderProgram = (vertexShader, sfsSource) => {
     (name) => name ? uniforms[name] || (uniforms[name] = gl["gan"](program, name)) : gl["u7y"](program);
 };
 const renderModels = (worldMatrixLoc, renderPlayer, soulModelId) => {
-  if (mainMenuVisible) {
-    const matrix = rotation(0, 40 * Math.sin(absoluteTime) - 70);
-    for (
-      const modelId of [
-        37,
-        38,
-        39,
-      ]
-    ) {
-      matrixToArray(matrix, worldMatricesBuffer, modelId - 1);
-    }
-    gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer),
-      gl["d97"](4, allModels[39].$vertexEnd - allModels[37].$vertexBegin, 5123, 2 * allModels[37].$vertexBegin);
-  } else {
-    gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer),
+  let matrix;
+  mainMenuVisible
+    ? (matrix = rotation(0, 40 * Math.sin(absoluteTime) - 70),
+      matrixToArray(matrix, worldMatricesBuffer, 37),
+      matrixToArray(matrix, worldMatricesBuffer, 38),
+      matrixToArray(matrix, worldMatricesBuffer, 39),
+      gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer),
+      gl["d97"](4, allModels[39].$vertexEnd - allModels[37].$vertexBegin, 5123, 2 * allModels[37].$vertexBegin))
+    : (gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer),
       gl["d97"](4, (renderPlayer ? allModels[39].$vertexEnd : allModels[37].$vertexBegin) - 3, 5123, 6),
       gl["uae"](worldMatrixLoc, !1, objectsMatricesBuffer),
       gl["das"](
@@ -1140,8 +1134,7 @@ const renderModels = (worldMatrixLoc, renderPlayer, soulModelId) => {
         5123,
         2 * allModels[40].$vertexBegin,
         levers.length,
-      );
-  }
+      ));
 };
 const loadStep = (fn) => {
   h4.innerHTML += ".", setTimeout(fn);

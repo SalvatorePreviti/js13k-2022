@@ -22,9 +22,10 @@ export const renderModels = (
 ) => {
   if (mainMenuVisible) {
     const matrix = rotation(0, Math.sin(absoluteTime) * 40 - 70);
-    for (const modelId of [MODEL_ID_PLAYER_BODY, MODEL_ID_PLAYER_LEG0, MODEL_ID_PLAYER_LEG1]) {
-      matrixToArray(matrix, worldMatricesBuffer, modelId - 1);
-    }
+
+    matrixToArray(matrix, worldMatricesBuffer, MODEL_ID_PLAYER_BODY);
+    matrixToArray(matrix, worldMatricesBuffer, MODEL_ID_PLAYER_LEG0);
+    matrixToArray(matrix, worldMatricesBuffer, MODEL_ID_PLAYER_LEG1);
 
     gl.uniformMatrix4fv(worldMatrixLoc, false, worldMatricesBuffer);
     gl.drawElements(

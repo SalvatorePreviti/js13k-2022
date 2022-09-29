@@ -332,16 +332,8 @@ b.m43 = a.m43, b.m44 = a.m44, b), t = NO_INLINE((a, b, g) => db.translate(a, b, 
   const g = {}, m = Z.c1h();
   return Z.abz(m, a), Z.abz(m, Mb(b, 35632)), Z.l8l(m), q => q ? g[q] || (g[q] = Z.gan(m, q)) : Z.u7y(m);
 }, Tb = (a, b, g) => {
-  if (ea) {
-    b = gb(0, 40 * Math.sin(oa) - 70);
-    for (const m of [37, 38, 39,]) {
-      cb(b, Sb, m - 1);
-    }
-    Z.uae(a, !1, Sb);
-    Z.d97(4, e[39].F - e[37].v, 5123, 2 * e[37].v);
-  } else {
-    Z.uae(a, !1, Sb), Z.d97(4, (b ? e[39].F : e[37].v) - 3, 5123, 6), Z.uae(a, !1, Ib), Z.das(4, e[g].F - e[g].v, 5123, 2 * e[g].v, Ia.length,), Z.das(4, e[40].F - e[40].v, 5123, 2 * e[40].v, h.length,);
-  }
+  let m;
+  ea ? (m = gb(0, 40 * Math.sin(oa) - 70), cb(m, Sb, 37), cb(m, Sb, 38), cb(m, Sb, 39), Z.uae(a, !1, Sb), Z.d97(4, e[39].F - e[37].v, 5123, 2 * e[37].v)) : (Z.uae(a, !1, Sb), Z.d97(4, (b ? e[39].F : e[37].v) - 3, 5123, 6), Z.uae(a, !1, Ib), Z.das(4, e[g].F - e[g].v, 5123, 2 * e[g].v, Ia.length,), Z.das(4, e[40].F - e[40].v, 5123, 2 * e[40].v, h.length,));
 }, Ub = a => {
   h4.innerHTML += ".";
   setTimeout(a);

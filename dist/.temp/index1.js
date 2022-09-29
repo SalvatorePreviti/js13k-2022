@@ -2310,15 +2310,9 @@ const initShaderProgram = (vertexShader, sfsSource) => {
 const renderModels = (worldMatrixLoc, renderPlayer, soulModelId) => {
   if (mainMenuVisible) {
     const matrix = rotation(0, /* @__PURE__ */ Math.sin(absoluteTime) * 40 - 70);
-    for (
-      const modelId of [
-        MODEL_ID_PLAYER_BODY,
-        MODEL_ID_PLAYER_LEG0,
-        MODEL_ID_PLAYER_LEG1,
-      ]
-    ) {
-      matrixToArray(matrix, worldMatricesBuffer, modelId - 1);
-    }
+    matrixToArray(matrix, worldMatricesBuffer, MODEL_ID_PLAYER_BODY);
+    matrixToArray(matrix, worldMatricesBuffer, MODEL_ID_PLAYER_LEG0);
+    matrixToArray(matrix, worldMatricesBuffer, MODEL_ID_PLAYER_LEG1);
     gl["uae"](worldMatrixLoc, false, worldMatricesBuffer);
     gl["d97"](
       4,
@@ -2326,30 +2320,30 @@ const renderModels = (worldMatrixLoc, renderPlayer, soulModelId) => {
       5123,
       allModels[MODEL_ID_PLAYER_BODY].$vertexBegin * 2,
     );
-    return;
+  } else {
+    gl["uae"](worldMatrixLoc, false, worldMatricesBuffer);
+    gl["d97"](
+      4,
+      (renderPlayer ? allModels[MODEL_ID_PLAYER_LEG1].$vertexEnd : allModels[MODEL_ID_PLAYER_BODY].$vertexBegin) - 3,
+      5123,
+      6,
+    );
+    gl["uae"](worldMatrixLoc, false, objectsMatricesBuffer);
+    gl["das"](
+      4,
+      allModels[soulModelId].$vertexEnd - allModels[soulModelId].$vertexBegin,
+      5123,
+      allModels[soulModelId].$vertexBegin * 2,
+      souls.length,
+    );
+    gl["das"](
+      4,
+      allModels[MODEL_ID_LEVER].$vertexEnd - allModels[MODEL_ID_LEVER].$vertexBegin,
+      5123,
+      allModels[MODEL_ID_LEVER].$vertexBegin * 2,
+      levers.length,
+    );
   }
-  gl["uae"](worldMatrixLoc, false, worldMatricesBuffer);
-  gl["d97"](
-    4,
-    (renderPlayer ? allModels[MODEL_ID_PLAYER_LEG1].$vertexEnd : allModels[MODEL_ID_PLAYER_BODY].$vertexBegin) - 3,
-    5123,
-    6,
-  );
-  gl["uae"](worldMatrixLoc, false, objectsMatricesBuffer);
-  gl["das"](
-    4,
-    allModels[soulModelId].$vertexEnd - allModels[soulModelId].$vertexBegin,
-    5123,
-    allModels[soulModelId].$vertexBegin * 2,
-    souls.length,
-  );
-  gl["das"](
-    4,
-    allModels[MODEL_ID_LEVER].$vertexEnd - allModels[MODEL_ID_LEVER].$vertexBegin,
-    5123,
-    allModels[MODEL_ID_LEVER].$vertexBegin * 2,
-    levers.length,
-  );
 };
 const LIGHT_ROT_Y = 139;
 const LIGHT_ROT_X = 298;

@@ -361,17 +361,19 @@ let F,
     return $.abz(l, e), $.abz(l, Y1(t, 35632)), $.l8l(l), e => e ? a[e] || (a[e] = $.gan(l, e)) : $.u7y(l);
   },
   T1 = (e, t, a) => {
-    if (M) {
-      t = h(0, 40 * J(t1) - 70);
-      for (let e of [37, 38, 39]) C(t, R1, e - 1);
-      $.uae(e, !1, R1), $.d97(4, q[39].F - q[37].v, 5123, 2 * q[37].v);
-    } else {
-      $.uae(e, !1, R1),
+    let l;
+    M
+      ? (l = h(0, 40 * J(t1) - 70),
+        C(l, R1, 37),
+        C(l, R1, 38),
+        C(l, R1, 39),
+        $.uae(e, !1, R1),
+        $.d97(4, q[39].F - q[37].v, 5123, 2 * q[37].v))
+      : ($.uae(e, !1, R1),
         $.d97(4, (t ? q[39].F : q[37].v) - 3, 5123, 6),
         $.uae(e, !1, q1),
         $.das(4, q[a].F - q[a].v, 5123, 2 * q[a].v, m1.length),
-        $.das(4, q[40].F - q[40].v, 5123, 2 * q[40].v, L.length);
-    }
+        $.das(4, q[40].F - q[40].v, 5123, 2 * q[40].v, L.length));
   },
   C1 = e => {
     h4.innerHTML += ".", setTimeout(e);
