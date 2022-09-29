@@ -15,16 +15,6 @@ import { matrixToArray } from "../math/matrix";
 import { gl } from "../gl";
 import { worldMatricesBuffer, objectsMatricesBuffer } from "./models-matrices";
 
-export const updateWorldMatrices = () => {
-  // Setup world matrices
-
-  for (let i = 0; i < allModels.length; ++i) {
-    if (allModels[i]!.$kind) {
-      matrixToArray(allModels[i]!.$matrix, worldMatricesBuffer, i - 1);
-    }
-  }
-};
-
 export const renderModels = (
   worldMatrixLoc: WebGLUniformLocation,
   renderPlayer: 0 | 1 | boolean,

@@ -1,8 +1,7 @@
 import { lerp, angle_wrap_degrees, lerpneg, clamp, abs } from "../math/math";
-import { matrixCopy, identity } from "../math/matrix";
-import type { Vec2 } from "../math/vectors";
 import { gameTime, lerpDamp, gameTimeDelta, resetGameTime } from "./game-time";
-import { allModels, levers, souls, SOULS_COUNT } from "./models";
+import { levers, souls, SOULS_COUNT } from "./models";
+import type { Vec2 } from "../math/vectors";
 
 export const camera_rotation: Vec2 = { x: 0, y: 180 } as Vec2;
 
@@ -73,18 +72,6 @@ export const worldStateUpdate = () => {
       showMessage("Well done. They will be punished.<br>Thanks for playing", Infinity);
       game_completed = 1;
     }
-  }
-
-  for (const model of allModels) {
-    model._update(matrixCopy(identity, model.$matrix));
-  }
-
-  for (const lever of levers) {
-    lever._update();
-  }
-
-  for (const soul of souls) {
-    soul._update();
   }
 };
 

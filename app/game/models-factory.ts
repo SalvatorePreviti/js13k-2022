@@ -38,7 +38,6 @@ export const newModel = (fn: (model: Model) => void, $kind: MODEL_KIND = MODEL_K
     $modelId: allModels.length,
     $kind,
     $polygons: [],
-    _update: () => {},
   };
   allModels.push(model);
   currentEditModel = model;

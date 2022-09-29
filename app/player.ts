@@ -32,7 +32,7 @@ export let camera_position_y: number = 0;
 
 export let camera_position_z: number = 0;
 
-export let player_update: () => void;
+// export let player_update: () => void;
 
 export const set_camera_position = (x: number, y: number, z: number) => {
   camera_position_x = x;
@@ -179,7 +179,7 @@ export const player_init = () => {
     return referenceMatrix.transformPoint(player_position_global);
   };
 
-  player_update = () => {
+  allModels[MODEL_ID_PLAYER_BODY]!._update = (matrix: DOMMatrix) => {
     let forward = clamp(input_forward, -1);
     let strafe = clamp(input_strafe, -1);
 
@@ -354,13 +354,13 @@ export const player_init = () => {
 
     boot = 0;
 
-    allModels[MODEL_ID_PLAYER_BODY]!.$matrix.translateSelf(x, player_model_y + 0.124, z).rotateSelf(
-      0,
-      player_look_angle,
-    );
+    matrix.translateSelf(x, player_model_y + 0.124, z).rotateSelf(0, player_look_angle);
+  };
 
-    for (let i = 0; i < 2; ++i) {
-      allModels[MODEL_ID_PLAYER_LEG0 + i]!.$matrix.multiplySelf(allModels[MODEL_ID_PLAYER_BODY]!.$matrix)
+  for (let i = 0; i < 2; ++i) {
+    // eslint-disable-next-line @typescript-eslint/no-loop-func
+    allModels[MODEL_ID_PLAYER_LEG0 + i]!._update = (matrix: DOMMatrix) =>
+      matrixCopy(allModels[MODEL_ID_PLAYER_BODY]!.$matrix, matrix)
         .translateSelf(
           0,
           player_legs_speed * clamp(Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI * (i - 1) - Math.PI / 2) * 0.45),
@@ -369,6 +369,5 @@ export const player_init = () => {
           player_legs_speed * Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI * (i - 1)) * (0.25 / DEG_TO_RAD),
           0,
         );
-    }
-  };
+  }
 };

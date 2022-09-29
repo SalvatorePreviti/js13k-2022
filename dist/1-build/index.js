@@ -423,12 +423,6 @@ const worldStateUpdate = () => {
       game_completed = 1;
     }
   }
-  for (const model of allModels)
-    model._update(matrixCopy(identity, model.$matrix));
-  for (const lever of levers)
-    lever._update();
-  for (const soul of souls)
-    soul._update();
 };
 const updateCollectedSoulsCounter = () => {
   h3.innerHTML = "Souls: " + [
@@ -778,9 +772,7 @@ const newModel = (fn, $kind = MODEL_KIND_GAME) => {
     $matrix: new DOMMatrix(),
     $modelId: allModels.length,
     $kind,
-    $polygons: [],
-    _update: () => {
-    }
+    $polygons: []
   };
   allModels.push(model);
   currentEditModel = model;
@@ -1387,7 +1379,6 @@ for (const s in gl)
   gl[s[0] + [
     ...s
   ].reduce((p, c, i) => (p * i + c.charCodeAt(0)) % 434, 0).toString(36)] = gl[s];
-let player_update;
 let camera_position_x = 0;
 let camera_position_y = 0;
 let camera_position_z = 0;
@@ -1512,7 +1503,7 @@ const player_init = () => {
   };
   const player_collision_modelIdCounter = new Uint8Array(256);
   const collision_buffer = new Uint8Array(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
-  player_update = () => {
+  allModels[MODEL_ID_PLAYER_BODY]._update = (matrix) => {
     let forward = clamp(input_forward, -1);
     let strafe = clamp(input_strafe, -1);
     const movAmount = threshold(/* @__PURE__ */ Math.hypot(forward, strafe) ** 0.5, 0.1);
@@ -1586,10 +1577,10 @@ const player_init = () => {
     }
     camera_rotation.x = clamp(camera_rotation.x, -87, 87);
     boot = 0;
-    allModels[MODEL_ID_PLAYER_BODY].$matrix.translateSelf(x, player_model_y + 0.124, z).rotateSelf(0, player_look_angle);
-    for (let i = 0; i < 2; ++i)
-      allModels[MODEL_ID_PLAYER_LEG0 + i].$matrix.multiplySelf(allModels[MODEL_ID_PLAYER_BODY].$matrix).translateSelf(0, player_legs_speed * clamp(/* @__PURE__ */ Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI * (i - 1) - Math.PI / 2) * 0.45)).rotateSelf(player_legs_speed * /* @__PURE__ */ Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI * (i - 1)) * (0.25 / DEG_TO_RAD), 0);
+    matrix.translateSelf(x, player_model_y + 0.124, z).rotateSelf(0, player_look_angle);
   };
+  for (let i = 0; i < 2; ++i)
+    allModels[MODEL_ID_PLAYER_LEG0 + i]._update = (matrix) => matrixCopy(allModels[MODEL_ID_PLAYER_BODY].$matrix, matrix).translateSelf(0, player_legs_speed * clamp(/* @__PURE__ */ Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI * (i - 1) - Math.PI / 2) * 0.45)).rotateSelf(player_legs_speed * /* @__PURE__ */ Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI * (i - 1)) * (0.25 / DEG_TO_RAD), 0);
 };
 const loadShader = (source, type = 35633) => {
   const shader = gl["c6x"](type);
@@ -1604,11 +1595,6 @@ const initShaderProgram = (vertexShader, sfsSource) => {
   gl["abz"](program, loadShader(sfsSource, 35632));
   gl["l8l"](program);
   return (name) => name ? uniforms[name] || (uniforms[name] = gl["gan"](program, name)) : gl["u7y"](program);
-};
-const updateWorldMatrices = () => {
-  for (let i = 0; i < allModels.length; ++i)
-    if (allModels[i].$kind)
-      matrixToArray(allModels[i].$matrix, worldMatricesBuffer, i - 1);
 };
 const renderModels = (worldMatrixLoc, renderPlayer, soulModelId) => {
   if (mainMenuVisible) {
@@ -1643,8 +1629,15 @@ const startMainLoop = (groundTextureImage) => {
     if (gameTimeDelta > 0) {
       updateInput();
       worldStateUpdate();
-      player_update();
-      updateWorldMatrices();
+      for (const model of allModels)
+        if (model._update) {
+          model._update(matrixCopy(identity, model.$matrix));
+          matrixToArray(model.$matrix, worldMatricesBuffer, model.$modelId - 1);
+        }
+      for (const lever of levers)
+        lever._update();
+      for (const soul of souls)
+        soul._update();
       collisionShader();
       gl["b6o"](36160, collision_frameBuffer);
       gl["v5y"](0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);

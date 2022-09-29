@@ -6,7 +6,6 @@ let updateInput;
 let projection;
 let csm_projections;
 let currentEditModel;
-let player_update;
 let gameTime = 0;
 let absoluteTime = 0;
 let souls_collected_count = 0;
@@ -46,6 +45,12 @@ const GQuad = [
     z: -1,
   },
 ];
+const player_position_final = {
+  x: 0,
+  y: 0,
+  z: 0,
+};
+const DEG_TO_RAD = Math.PI / 180;
 const song_columns = [
   [
     "(.15:15:=5:=A:=AF=AFIFIMRMRUY(Y(((((((((((((((((((((((((((((M(M(((((((((((((((((((((((((((((R(R(((((((((((((((((((((((((((((U(U",
@@ -188,12 +193,6 @@ const song_instruments = [
     64,
   ],
 ];
-const player_position_final = {
-  x: 0,
-  y: 0,
-  z: 0,
-};
-const DEG_TO_RAD = Math.PI / 180;
 const camera_rotation = {
   x: 0,
   y: 180,
@@ -524,9 +523,6 @@ const worldStateUpdate = () => {
       ? (showMessage("Not leaving now, there are souls to catch!", 3), levers[0].$value = 0)
       : game_completed
         || (showMessage("Well done. They will be punished.<br>Thanks for playing", 1 / 0), game_completed = 1));
-  for (const model of allModels) model._update(matrixCopy(identity, model.$matrix));
-  for (const lever of levers) lever._update();
-  for (const soul of souls) soul._update();
 };
 const updateCollectedSoulsCounter = () => {
   h3.innerHTML = "Souls: " + [
@@ -751,7 +747,6 @@ const newModel = (fn, $kind = 1) => {
     $modelId: allModels.length,
     $kind,
     $polygons: [],
-    _update() {},
   };
   return allModels.push($kind), fn(currentEditModel = $kind), currentEditModel = previousModel, $kind;
 };
@@ -980,7 +975,7 @@ const player_init = () => {
     lerp(previous, desired, boot || (clamp(abs(desired - previous) ** 0.5 - hysteresis) + 1 / 7) * damp(1.5 * speed));
   const player_collision_modelIdCounter = new Uint8Array(256);
   const collision_buffer = new Uint8Array(65536);
-  player_update = () => {
+  allModels[37]._update = (matrix) => {
     var forward = clamp(input_forward, -1);
     let strafe = clamp(input_strafe, -1);
     var movAmount = threshold(Math.hypot(forward, strafe) ** 0.5, 0.1);
@@ -1095,14 +1090,15 @@ const player_init = () => {
           )),
       camera_rotation.x = clamp(camera_rotation.x, -87, 87),
       boot = 0,
-      allModels[37].$matrix.translateSelf(forward, player_model_y + 0.124, v).rotateSelf(0, player_look_angle);
-    for (let i = 0; i < 2; ++i) {
-      allModels[38 + i].$matrix.multiplySelf(allModels[37].$matrix).translateSelf(
+      matrix.translateSelf(forward, player_model_y + 0.124, v).rotateSelf(0, player_look_angle);
+  };
+  for (let i = 0; i < 2; ++i) {
+    allModels[38 + i]._update = (matrix) =>
+      matrixCopy(allModels[37].$matrix, matrix).translateSelf(
         0,
         player_legs_speed * clamp(0.45 * Math.sin(9.1 * gameTime + Math.PI * (i - 1) - Math.PI / 2)),
       ).rotateSelf(player_legs_speed * Math.sin(9.1 * gameTime + Math.PI * (i - 1)) * 0.25 / DEG_TO_RAD, 0);
-    }
-  };
+  }
 };
 const loadShader = (source, type = 35633) => (type = gl["c6x"](type), gl["s3c"](type, source), gl["c6a"](type), type);
 const initShaderProgram = (vertexShader, sfsSource) => {
@@ -1305,10 +1301,14 @@ loadStep(() => {
             _globalTime = globalTime,
             0 < gameTimeDelta
         ) {
-          updateInput(), worldStateUpdate(), player_update();
-          for (let i = 0; allModels.length > i; ++i) {
-            allModels[i].$kind && matrixToArray(allModels[i].$matrix, worldMatricesBuffer, i - 1);
+          updateInput(), worldStateUpdate();
+          for (const model of allModels) {
+            model._update
+              && (model._update(matrixCopy(identity, model.$matrix)),
+                matrixToArray(model.$matrix, worldMatricesBuffer, model.$modelId - 1));
           }
+          for (const lever of levers) lever._update();
+          for (const soul of souls) soul._update();
           collisionShader(),
             gl["b6o"](36160, collision_frameBuffer),
             gl["v5y"](0, 0, 128, 128),
