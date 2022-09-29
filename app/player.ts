@@ -7,6 +7,7 @@ import {
   MODEL_ID_PLAYER_BODY,
   MODEL_ID_PLAYER_LEG0,
   MODEL_ID_ROTATING_PLATFORM,
+  MODEL_ID_PLAYER_LEG1,
 } from "./game/models";
 import { player_last_pulled_lever, firstBoatLerp, shouldRotatePlatforms, camera_rotation } from "./game/world-state";
 import { input_forward, input_strafe, player_first_person } from "./page";
@@ -357,17 +358,17 @@ export const player_init = () => {
     matrix.translateSelf(x, player_model_y + 0.124, z).rotateSelf(0, player_look_angle);
   };
 
-  for (let i = 0; i < 2; ++i) {
-    // eslint-disable-next-line @typescript-eslint/no-loop-func
-    allModels[MODEL_ID_PLAYER_LEG0 + i]!._update = (matrix: DOMMatrix) =>
-      matrixCopy(allModels[MODEL_ID_PLAYER_BODY]!.$matrix, matrix)
-        .translateSelf(
-          0,
-          player_legs_speed * clamp(Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI * (i - 1) - Math.PI / 2) * 0.45),
-        )
-        .rotateSelf(
-          player_legs_speed * Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI * (i - 1)) * (0.25 / DEG_TO_RAD),
-          0,
-        );
-  }
+  [MODEL_ID_PLAYER_LEG1, MODEL_ID_PLAYER_LEG0].map(
+    (modelId, i) =>
+      (allModels[modelId]!._update = (matrix: DOMMatrix) =>
+        matrixCopy(allModels[MODEL_ID_PLAYER_BODY]!.$matrix, matrix)
+          .translateSelf(
+            0,
+            player_legs_speed * clamp(Math.sin(gameTime * PLAYER_LEGS_VELOCITY - Math.PI * i - Math.PI / 2) * 0.45),
+          )
+          .rotateSelf(
+            player_legs_speed * Math.sin(gameTime * PLAYER_LEGS_VELOCITY - Math.PI * i) * (0.25 / DEG_TO_RAD),
+            0,
+          )),
+  );
 };

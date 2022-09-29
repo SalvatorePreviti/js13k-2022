@@ -24,6 +24,8 @@ let camera_position_y = 0;
 let camera_position_z = 0;
 let _messageEndTime = 1;
 let gameTimeDelta = 0.066;
+const MODEL_ID_PLAYER_LEG0 = 38;
+const MODEL_ID_PLAYER_LEG1 = 39;
 const allModels = [];
 const levers = [];
 const souls = [];
@@ -1091,14 +1093,17 @@ const player_init = () => {
       camera_rotation.x = clamp(camera_rotation.x, -87, 87),
       boot = 0,
       matrix.translateSelf(forward, player_model_y + 0.124, v).rotateSelf(0, player_look_angle);
-  };
-  for (let i = 0; i < 2; ++i) {
-    allModels[38 + i]._update = (matrix) =>
-      matrixCopy(allModels[37].$matrix, matrix).translateSelf(
-        0,
-        player_legs_speed * clamp(0.45 * Math.sin(9.1 * gameTime + Math.PI * (i - 1) - Math.PI / 2)),
-      ).rotateSelf(player_legs_speed * Math.sin(9.1 * gameTime + Math.PI * (i - 1)) * 0.25 / DEG_TO_RAD, 0);
-  }
+  },
+    [
+      MODEL_ID_PLAYER_LEG1,
+      MODEL_ID_PLAYER_LEG0,
+    ].map((modelId, i) =>
+      allModels[modelId]._update = (matrix) =>
+        matrixCopy(allModels[37].$matrix, matrix).translateSelf(
+          0,
+          player_legs_speed * clamp(0.45 * Math.sin(9.1 * gameTime - Math.PI * i - Math.PI / 2)),
+        ).rotateSelf(player_legs_speed * Math.sin(9.1 * gameTime - Math.PI * i) * 0.25 / DEG_TO_RAD, 0)
+    );
 };
 const loadShader = (source, type = 35633) => (type = gl["c6x"](type), gl["s3c"](type, source), gl["c6a"](type), type);
 const initShaderProgram = (vertexShader, sfsSource) => {
@@ -1114,12 +1119,22 @@ const renderModels = (worldMatrixLoc, renderPlayer, soulModelId) => {
   mainMenuVisible
     ? (matrix = rotation(0, 40 * Math.sin(absoluteTime) - 70),
       matrixToArray(matrix, worldMatricesBuffer, 37),
-      matrixToArray(matrix, worldMatricesBuffer, 38),
-      matrixToArray(matrix, worldMatricesBuffer, 39),
+      matrixToArray(matrix, worldMatricesBuffer, MODEL_ID_PLAYER_LEG0),
+      matrixToArray(matrix, worldMatricesBuffer, MODEL_ID_PLAYER_LEG1),
       gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer),
-      gl["d97"](4, allModels[39].$vertexEnd - allModels[37].$vertexBegin, 5123, 2 * allModels[37].$vertexBegin))
+      gl["d97"](
+        4,
+        allModels[MODEL_ID_PLAYER_LEG1].$vertexEnd - allModels[37].$vertexBegin,
+        5123,
+        2 * allModels[37].$vertexBegin,
+      ))
     : (gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer),
-      gl["d97"](4, (renderPlayer ? allModels[39].$vertexEnd : allModels[37].$vertexBegin) - 3, 5123, 6),
+      gl["d97"](
+        4,
+        (renderPlayer ? allModels[MODEL_ID_PLAYER_LEG1].$vertexEnd : allModels[37].$vertexBegin) - 3,
+        5123,
+        6,
+      ),
       gl["uae"](worldMatrixLoc, !1, objectsMatricesBuffer),
       gl["das"](
         4,
@@ -1296,8 +1311,8 @@ loadStep(() => {
         ) {
           updateInput(), worldStateUpdate();
           for (const model of allModels) {
-            model._update
-              && (model._update(matrixCopy(identity, model.$matrix)),
+            model.$kind
+              && (model._update && model._update(matrixCopy(identity, model.$matrix)),
                 matrixToArray(model.$matrix, worldMatricesBuffer, model.$modelId - 1));
           }
           for (const lever of levers) lever._update();

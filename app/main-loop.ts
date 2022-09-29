@@ -161,8 +161,10 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       worldStateUpdate();
 
       for (const model of allModels) {
-        if (model._update) {
-          model._update(matrixCopy(identity, model.$matrix));
+        if (model.$kind) {
+          if (model._update) {
+            model._update(matrixCopy(identity, model.$matrix));
+          }
           matrixToArray(model.$matrix, worldMatricesBuffer, model.$modelId - 1);
         }
       }

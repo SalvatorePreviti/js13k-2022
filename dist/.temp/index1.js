@@ -2280,18 +2280,21 @@ const player_init = () => {
     boot = 0;
     matrix.translateSelf(x, player_model_y + 0.124, z).rotateSelf(0, player_look_angle);
   };
-  for (let i = 0; i < 2; ++i) {
-    allModels[MODEL_ID_PLAYER_LEG0 + i]._update = (matrix) =>
+  [
+    MODEL_ID_PLAYER_LEG1,
+    MODEL_ID_PLAYER_LEG0,
+  ].map((modelId, i) =>
+    allModels[modelId]._update = (matrix) =>
       matrixCopy(allModels[MODEL_ID_PLAYER_BODY].$matrix, matrix).translateSelf(
         0,
         player_legs_speed
-          * clamp(/* @__PURE__ */ Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI * (i - 1) - Math.PI / 2) * 0.45),
+          * clamp(/* @__PURE__ */ Math.sin(gameTime * PLAYER_LEGS_VELOCITY - Math.PI * i - Math.PI / 2) * 0.45),
       ).rotateSelf(
-        player_legs_speed * /* @__PURE__ */ Math.sin(gameTime * PLAYER_LEGS_VELOCITY + Math.PI * (i - 1))
+        player_legs_speed * /* @__PURE__ */ Math.sin(gameTime * PLAYER_LEGS_VELOCITY - Math.PI * i)
           * (0.25 / DEG_TO_RAD),
         0,
-      );
-  }
+      )
+  );
 };
 const loadShader = (source, type = 35633) => {
   const shader = gl["c6x"](type);
@@ -2320,30 +2323,30 @@ const renderModels = (worldMatrixLoc, renderPlayer, soulModelId) => {
       5123,
       allModels[MODEL_ID_PLAYER_BODY].$vertexBegin * 2,
     );
-  } else {
-    gl["uae"](worldMatrixLoc, false, worldMatricesBuffer);
-    gl["d97"](
-      4,
-      (renderPlayer ? allModels[MODEL_ID_PLAYER_LEG1].$vertexEnd : allModels[MODEL_ID_PLAYER_BODY].$vertexBegin) - 3,
-      5123,
-      6,
-    );
-    gl["uae"](worldMatrixLoc, false, objectsMatricesBuffer);
-    gl["das"](
-      4,
-      allModels[soulModelId].$vertexEnd - allModels[soulModelId].$vertexBegin,
-      5123,
-      allModels[soulModelId].$vertexBegin * 2,
-      souls.length,
-    );
-    gl["das"](
-      4,
-      allModels[MODEL_ID_LEVER].$vertexEnd - allModels[MODEL_ID_LEVER].$vertexBegin,
-      5123,
-      allModels[MODEL_ID_LEVER].$vertexBegin * 2,
-      levers.length,
-    );
+    return;
   }
+  gl["uae"](worldMatrixLoc, false, worldMatricesBuffer);
+  gl["d97"](
+    4,
+    (renderPlayer ? allModels[MODEL_ID_PLAYER_LEG1].$vertexEnd : allModels[MODEL_ID_PLAYER_BODY].$vertexBegin) - 3,
+    5123,
+    6,
+  );
+  gl["uae"](worldMatrixLoc, false, objectsMatricesBuffer);
+  gl["das"](
+    4,
+    allModels[soulModelId].$vertexEnd - allModels[soulModelId].$vertexBegin,
+    5123,
+    allModels[soulModelId].$vertexBegin * 2,
+    souls.length,
+  );
+  gl["das"](
+    4,
+    allModels[MODEL_ID_LEVER].$vertexEnd - allModels[MODEL_ID_LEVER].$vertexBegin,
+    5123,
+    allModels[MODEL_ID_LEVER].$vertexBegin * 2,
+    levers.length,
+  );
 };
 const LIGHT_ROT_Y = 139;
 const LIGHT_ROT_X = 298;
@@ -2360,8 +2363,10 @@ const startMainLoop = (groundTextureImage) => {
       updateInput();
       worldStateUpdate();
       for (const model of allModels) {
-        if (model._update) {
-          model._update(matrixCopy(identity, model.$matrix));
+        if (model.$kind) {
+          if (model._update) {
+            model._update(matrixCopy(identity, model.$matrix));
+          }
           matrixToArray(model.$matrix, worldMatricesBuffer, model.$modelId - 1);
         }
       }
