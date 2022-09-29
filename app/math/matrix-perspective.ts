@@ -13,11 +13,11 @@ export const zFar = constDef_zFar;
 
 export const fieldOfViewDegrees = 60;
 
-export const fieldOfViewRadians = /* @__PURE__ */ fieldOfViewDegrees * DEG_TO_RAD; // in radians
+export const fieldOfViewRadians = fieldOfViewDegrees * DEG_TO_RAD; // in radians
 
-export const fieldOfViewAmount = /* @__PURE__ */ 1 / Math.tan(fieldOfViewRadians / 2);
+export const fieldOfViewAmount = 1 / Math.tan(fieldOfViewRadians / 2);
 
-export const mat_perspective = /* @__PURE__ */ (near: number, far: number, mx: number, my: number) =>
+export const mat_perspective = (near: number, far: number, mx: number, my: number) =>
   new DOMMatrix([
     mx,
     0,

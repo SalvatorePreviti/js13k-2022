@@ -25,9 +25,9 @@ export const resetGameTime = (value: number) => {
   gameTimeDelta = 0;
 };
 
-export const damp = (speed: number) => 1 - Math.exp(-speed * gameTimeDelta);
+export const damp = /* @__PURE__ */ (speed: number) => 1 - Math.exp(-speed * gameTimeDelta);
 
-export const lerpDamp = /* @__PURE__ */ (from: number, to: number, speed: number) => lerp(from, to, damp(speed));
+export const lerpDamp = NO_INLINE((from: number, to: number, speed: number) => lerp(from, to, damp(speed)));
 
 export const setMainMenuVisible = (visible: boolean) => {
   mainMenuVisible = visible;

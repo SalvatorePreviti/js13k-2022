@@ -168,11 +168,7 @@ export const player_init = () => {
     hysteresis: number,
     speed: number,
   ) =>
-    lerp(
-      previous,
-      desired,
-      boot || (clamp(Math.sqrt(abs(desired - previous)) - hysteresis) + 1 / 7) * damp(speed * 1.5),
-    );
+    lerp(previous, desired, boot || (clamp(abs(desired - previous) ** 0.5 - hysteresis) + 1 / 7) * damp(speed * 1.5));
 
   const playerMovedGlobalPos = (referenceMatrix: DOMMatrixReadOnly) => {
     matrixCopy(referenceMatrix).invertSelf();
@@ -187,7 +183,7 @@ export const player_init = () => {
     let forward = clamp(input_forward, -1);
     let strafe = clamp(input_strafe, -1);
 
-    const movAmount = threshold(Math.sqrt(Math.hypot(forward, strafe)), 0.1);
+    const movAmount = threshold(Math.hypot(forward, strafe) ** 0.5, 0.1);
     const movAngle = Math.atan2(forward, strafe);
 
     if (movAmount) {

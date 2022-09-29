@@ -203,15 +203,16 @@ const player_position_global = {
   y: 0,
   z: 0,
 };
+const abs = NO_INLINE((a) => a < 0 ? -a : a);
 const min = NO_INLINE((a, b) => a < b ? a : b);
 const max = NO_INLINE((a, b) => b < a ? a : b);
-const abs = NO_INLINE((a) => a < 0 ? -a : a);
-const clamp = (value, minValue = 0, maxValue = 1) => value < minValue ? minValue : maxValue < value ? maxValue : value;
 const threshold = (value, amount) => abs(value) > amount ? value : 0;
+const clamp = (value, minValue = 0, maxValue = 1) => value < minValue ? minValue : maxValue < value ? maxValue : value;
+const angle_wrap_degrees = (degrees) =>
+  Math.atan2(Math.sin(degrees * DEG_TO_RAD), Math.cos(degrees * DEG_TO_RAD)) / DEG_TO_RAD;
+const angle_lerp_degrees = (a0, a1, t) => a0 + (2 * (a1 = (a1 - a0) % 360) % 360 - a1) * clamp(t) || 0;
 const lerp = (a, b, t) => (0 < t ? t < 1 ? a + (b - a) * t : b : a) || 0;
 const lerpneg = (v, t) => (v = clamp(v), lerp(v, 1 - v, t));
-const angle_wrap_degrees = (degrees) => Math.atan2(Math.sin(degrees *= DEG_TO_RAD), Math.cos(degrees)) / DEG_TO_RAD;
-const angle_lerp_degrees = (a0, a1, t) => a0 + (2 * (a1 = (a1 - a0) % 360) % 360 - a1) * clamp(t) || 0;
 const matrixToArray = (
   $matrix,
   output = float32Array16Temp,
@@ -495,7 +496,7 @@ const csg_polygons_subtract = (a, ...b) => {
   }
 };
 const damp = (speed) => 1 - Math.exp(-speed * gameTimeDelta);
-const lerpDamp = (from, to, speed) => lerp(from, to, damp(speed));
+const lerpDamp = NO_INLINE((from, to, speed) => lerp(from, to, damp(speed)));
 const showMessage = (message, duration) => {
   1 / 0 > _messageEndTime && (_messageEndTime = gameTime + duration, h4.innerHTML = message);
 };
@@ -976,17 +977,13 @@ const player_init = () => {
       ? levers[player_last_pulled_lever].$parent
       : allModels[oldModelId && allModels[oldModelId].$kind === 1 && oldModelId || 0]).$matrix;
   const interpolate_with_hysteresis = (previous, desired, hysteresis, speed) =>
-    lerp(
-      previous,
-      desired,
-      boot || (clamp(Math.sqrt(abs(desired - previous)) - hysteresis) + 1 / 7) * damp(1.5 * speed),
-    );
+    lerp(previous, desired, boot || (clamp(abs(desired - previous) ** 0.5 - hysteresis) + 1 / 7) * damp(1.5 * speed));
   const player_collision_modelIdCounter = new Uint8Array(256);
   const collision_buffer = new Uint8Array(65536);
   player_update = () => {
     var forward = clamp(input_forward, -1);
     let strafe = clamp(input_strafe, -1);
-    var movAmount = threshold(Math.sqrt(Math.hypot(forward, strafe)), 0.1);
+    var movAmount = threshold(Math.hypot(forward, strafe) ** 0.5, 0.1);
     var movAngle = Math.atan2(forward, strafe);
     movAmount && (player_look_angle_target = 90 - movAngle / DEG_TO_RAD),
       player_look_angle = angle_lerp_degrees(player_look_angle, player_look_angle_target, damp(8)),

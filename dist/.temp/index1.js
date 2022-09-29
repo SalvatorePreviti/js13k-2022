@@ -27,22 +27,24 @@ const player_position_final = {
   z: 0,
 };
 const DEG_TO_RAD = Math.PI / 180;
+const abs = NO_INLINE((a) => a < 0 ? -a : a);
 const min = NO_INLINE((a, b) => a < b ? a : b);
 const max = NO_INLINE((a, b) => a > b ? a : b);
-const abs = NO_INLINE((a) => a < 0 ? -a : a);
-const clamp = (value, minValue = 0, maxValue = 1) => value < minValue ? minValue : value > maxValue ? maxValue : value;
 const threshold = (value, amount) => abs(value) > amount ? value : 0;
+const clamp = (value, minValue = 0, maxValue = 1) => value < minValue ? minValue : value > maxValue ? maxValue : value;
+const angle_wrap_degrees = (degrees) =>
+  /* @__PURE__ */ Math.atan2(
+    /* @__PURE__ */ Math.sin(degrees * DEG_TO_RAD),
+    /* @__PURE__ */ Math.cos(degrees * DEG_TO_RAD),
+  ) / DEG_TO_RAD;
+const angle_lerp_degrees = (a0, a1, t) => {
+  const da = (a1 - a0) % 360;
+  return a0 + (2 * da % 360 - da) * clamp(t) || 0;
+};
 const lerp = (a, b, t) => (t <= 0 ? a : t >= 1 ? b : a + (b - a) * t) || 0;
 const lerpneg = (v, t) => {
   v = clamp(v);
   return lerp(v, 1 - v, t);
-};
-const angle_wrap_radians = (radians) =>
-  /* @__PURE__ */ Math.atan2(/* @__PURE__ */ Math.sin(radians), /* @__PURE__ */ Math.cos(radians));
-const angle_wrap_degrees = (degrees) => angle_wrap_radians(degrees * DEG_TO_RAD) / DEG_TO_RAD;
-const angle_lerp_degrees = (a0, a1, t) => {
-  const da = (a1 - a0) % 360;
-  return a0 + (2 * da % 360 - da) * clamp(t) || 0;
 };
 const matrixToArray = ($matrix, output = float32Array16Temp, index = 0) => {
   index *= 16;
@@ -420,7 +422,7 @@ const resetGameTime = (value) => {
   gameTimeDelta = 0;
 };
 const damp = (speed) => 1 - /* @__PURE__ */ Math.exp(-speed * gameTimeDelta);
-const lerpDamp = (from, to, speed) => lerp(from, to, damp(speed));
+const lerpDamp = NO_INLINE((from, to, speed) => lerp(from, to, damp(speed)));
 const setMainMenuVisible = (visible) => {
   mainMenuVisible = visible;
 };
@@ -2147,11 +2149,7 @@ const player_init = () => {
       ? levers[player_last_pulled_lever].$parent.$matrix
       : allModels[oldModelId && allModels[oldModelId].$kind === MODEL_KIND_GAME && oldModelId || 0].$matrix;
   const interpolate_with_hysteresis = (previous, desired, hysteresis, speed) =>
-    lerp(
-      previous,
-      desired,
-      boot || (clamp(/* @__PURE__ */ Math.sqrt(abs(desired - previous)) - hysteresis) + 1 / 7) * damp(speed * 1.5),
-    );
+    lerp(previous, desired, boot || (clamp(abs(desired - previous) ** 0.5 - hysteresis) + 1 / 7) * damp(speed * 1.5));
   const playerMovedGlobalPos = (referenceMatrix) => {
     matrixCopy(referenceMatrix).invertSelf();
     tempMatrix.m41 = tempMatrix.m42 = tempMatrix.m43 = 0;
@@ -2169,7 +2167,7 @@ const player_init = () => {
   player_update = () => {
     let forward = clamp(input_forward, -1);
     let strafe = clamp(input_strafe, -1);
-    const movAmount = threshold(/* @__PURE__ */ Math.sqrt(/* @__PURE__ */ Math.hypot(forward, strafe)), 0.1);
+    const movAmount = threshold(/* @__PURE__ */ Math.hypot(forward, strafe) ** 0.5, 0.1);
     const movAngle = /* @__PURE__ */ Math.atan2(forward, strafe);
     if (movAmount) {
       player_look_angle_target = 90 - movAngle / DEG_TO_RAD;
