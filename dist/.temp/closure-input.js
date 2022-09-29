@@ -18,37 +18,13 @@ let game_completed = 0;
 let firstBoatLerp = 0;
 let secondBoatLerp = 0;
 let shouldRotatePlatforms = 0;
-let movAngle = 0;
-let movAmount = 0;
+let input_forward = 0;
+let input_strafe = 0;
 let camera_position_x = 0;
 let camera_position_y = 0;
 let camera_position_z = 0;
 let _messageEndTime = 1;
 let gameTimeDelta = 0.066;
-const zFar = 181;
-const zNear = 0.3;
-const fieldOfViewAmount = 1.732051;
-const allModels = [];
-const levers = [];
-const souls = [];
-const GQuad = [
-  {
-    x: -1,
-    z: 1,
-  },
-  {
-    x: 1,
-    z: 1,
-  },
-  {
-    x: 1,
-    z: -1,
-  },
-  {
-    x: -1,
-    z: -1,
-  },
-];
 const song_columns = [
   [
     "(.15:15:=5:=A:=AF=AFIFIMRMRUY(Y(((((((((((((((((((((((((((((M(M(((((((((((((((((((((((((((((R(R(((((((((((((((((((((((((((((U(U",
@@ -191,11 +167,6 @@ const song_instruments = [
     64,
   ],
 ];
-const player_position_final = {
-  x: 0,
-  y: 0,
-  z: 0,
-};
 const camera_rotation = {
   x: 0,
   y: 180,
@@ -207,6 +178,32 @@ const player_position_global = {
 };
 const integers_map = (n, fn) => Array.from(Array(n), (_, i) => fn(i));
 const DEG_TO_RAD = Math.PI / 180;
+const allModels = [];
+const levers = [];
+const souls = [];
+const GQuad = [
+  {
+    x: -1,
+    z: 1,
+  },
+  {
+    x: 1,
+    z: 1,
+  },
+  {
+    x: 1,
+    z: -1,
+  },
+  {
+    x: -1,
+    z: -1,
+  },
+];
+const player_position_final = {
+  x: 0,
+  y: 0,
+  z: 0,
+};
 const min = NO_INLINE((a, b) => a < b ? a : b);
 const max = NO_INLINE((a, b) => b < a ? a : b);
 const abs = NO_INLINE((a) => a < 0 ? -a : a);
@@ -216,7 +213,6 @@ const lerp = (a, b, t) => (0 < t ? t < 1 ? a + (b - a) * t : b : a) || 0;
 const lerpneg = (v, t) => (v = clamp(v), lerp(v, 1 - v, t));
 const angle_wrap_degrees = (degrees) => Math.atan2(Math.sin(degrees *= DEG_TO_RAD), Math.cos(degrees)) / DEG_TO_RAD;
 const angle_lerp_degrees = (a0, a1, t) => a0 + (2 * (a1 = (a1 - a0) % 360) % 360 - a1) * clamp(t) || 0;
-const vec3_distance = ({ x, y, z }, b) => Math.hypot(x - b.x, y - b.y, z - b.z);
 const vec3_dot = ({ x, y, z }, b) => x * b.x + y * b.y + z * b.z;
 const plane_fromPolygon = (polygon) => {
   let b;
@@ -573,7 +569,7 @@ const updateCollectedSoulsCounter = () => {
   ][souls_collected_count = souls.reduce((acc, { $value }) => acc + $value, 0)] + " / XIII";
 };
 const saveGame = () => {
-  localStorage.DanteSP22 = JSON.stringify([
+  localStorage["DanteSP22"] = JSON.stringify([
     levers.map(({ $value }) => $value),
     souls.map(({ $value }) => $value),
     player_last_pulled_lever,
@@ -593,9 +589,9 @@ const initPage = () => {
   let touchRotMoved;
   let touchStartCameraRotX;
   let touchStartCameraRotY;
-  let gamepadInteractPressed;
   let touch_movementX;
   let touch_movementY;
+  let gamepadInteractPressed;
   let music_on = !0;
   const keyboard_downKeys = [];
   const updateMusicOnState = () => {
@@ -603,21 +599,21 @@ const initPage = () => {
       mainMenuVisible || !music_on ? songAudioSource.disconnect() : songAudioSource.connect(audioContext.destination);
   };
   const handleResize = () => {
-    const mx = (hC.height = innerHeight) / (hC.width = innerWidth) * fieldOfViewAmount;
-    projection = mat_perspective(zNear, zFar, mx, fieldOfViewAmount),
+    const mx = (hC.height = innerHeight) / (hC.width = innerWidth) * 1.732051;
+    projection = mat_perspective(0.3, 181, mx, 1.732051),
       csm_projections = [
-        mat_perspective(zNear, 55, mx, fieldOfViewAmount),
-        mat_perspective(55, zFar, mx, fieldOfViewAmount),
+        mat_perspective(0.3, 55, mx, 1.732051),
+        mat_perspective(55, 181, mx, 1.732051),
       ],
       touchPosIdentifier = touchRotIdentifier = void 0,
       keyboard_downKeys.length =
         interact_pressed =
         gamepadInteractPressed =
-        movAmount =
         touch_movementX =
         touch_movementY =
-          0,
-      document.hidden && mainMenu(!0);
+        input_forward =
+        input_strafe =
+          0;
   };
   const mainMenu = (value, firstPerson = 0) => {
     if (mainMenuVisible !== value) {
@@ -642,7 +638,7 @@ const initPage = () => {
       music_on = !music_on, updateMusicOnState();
     },
     b3.onclick = () => {
-      confirm("Restart game?") && (localStorage.DanteSP22 = "", location.reload());
+      confirm("Restart game?") && (localStorage["DanteSP22"] = "", location.reload());
     },
     onclick = (e) => {
       if (!mainMenuVisible && (e.target === hC && (interact_pressed = 1), player_first_person)) {try {
@@ -650,23 +646,23 @@ const initPage = () => {
         } catch {}}
     },
     onkeyup = onkeydown = (e) => {
-      let pressed;
-      e.repeat || (pressed = !!e.type[5] && !0,
-        e = ({
-          "KeyA": 1,
-          "ArrowLeft": 1,
-          "KeyW": 3,
-          "ArrowUp": 3,
-          "KeyD": 2,
-          "ArrowRight": 2,
-          "KeyS": 4,
-          "ArrowDown": 4,
-          "KeyE": 0,
-          "Space": 0,
-          "Enter": 0,
-          "Escape": 5,
-        })[e.code],
-        (keyboard_downKeys[e] = pressed) && (e === 0 && (interact_pressed = 1), e === 5 && mainMenu(!0)));
+      let mapped;
+      e.repeat || (mapped = ({
+        "KeyA": 1,
+        "KeyD": 2,
+        "KeyW": 3,
+        "KeyS": 4,
+        "KeyE": 0,
+        "Space": 0,
+        "Enter": 0,
+        "ArrowLeft": 1,
+        "ArrowRight": 2,
+        "ArrowUp": 3,
+        "ArrowDown": 4,
+        "Escape": 5,
+      })[e.code],
+        (keyboard_downKeys[mapped] = !!e.type[5] && !0)
+        && (mapped === 0 && (interact_pressed = 1), mapped === 5 && mainMenu(!0)));
     },
     onmousemove = ({ movementX, movementY }) => {
       player_first_person && (movementX || movementY)
@@ -692,25 +688,22 @@ const initPage = () => {
     hC.ontouchmove = (e) => {
       if (!mainMenuVisible) {
         for (let { pageX, pageY, identifier } of e.changedTouches) {
-          var deltaY;
           var absDeltaX;
+          var deltaY;
           var absDeltaY;
-          var angle;
-          var speed;
+          var m;
           touchRotIdentifier === identifier
           && (camera_rotation.y = touchStartCameraRotX + (pageX - touchRotX) / 2.3,
             camera_rotation.x = touchStartCameraRotY + (pageY - touchRotY) / 2.3,
             touchRotMoved = 1),
             touchPosIdentifier === identifier
             && (identifier = (touchPosStartX - pageX) / 20,
-              deltaY = (touchPosStartY - pageY) / 20,
               absDeltaX = abs(identifier),
+              deltaY = (touchPosStartY - pageY) / 20,
               absDeltaY = abs(deltaY),
-              angle = Math.atan2(deltaY, identifier),
-              speed = clamp(Math.hypot(deltaY, identifier) - 0.5),
-              touch_movementX = 0.2 < absDeltaX ? Math.cos(angle) * speed : 0,
-              touch_movementY = 0.2 < absDeltaY ? Math.sin(angle) * speed : 0,
-              (touch_movementX || touch_movementY) && (touchPosMoved = 1),
+              (m = 0.5 < max(absDeltaX, absDeltaY)) && (touchPosMoved = 1),
+              touch_movementX = (m && 0.2 < absDeltaX) * clamp(identifier, -1),
+              touch_movementY = (m && 0.2 < absDeltaY) * clamp(deltaY, -1),
               2 < absDeltaX && (touchPosStartX = pageX + 20 * (identifier < 0 ? -1 : 1)),
               2 < absDeltaY && (touchPosStartY = pageY + 20 * (deltaY < 0 ? -1 : 1)));
         }
@@ -728,28 +721,25 @@ const initPage = () => {
             touchPosMoved = 0)
           : click = 1;}
       e.target === hC && click && touchStartTime && 0.02 < (e = absoluteTime - touchStartTime) && e < 0.7
-        && (keyboard_downKeys[0] = !0);
+        && (interact_pressed = 1);
     },
     updateInput = () => {
-      let input_forward = touch_movementY + (keyboard_downKeys[3] ? 1 : 0) - (keyboard_downKeys[4] ? 1 : 0);
-      let input_strafe = touch_movementX + (keyboard_downKeys[1] ? 1 : 0) - (keyboard_downKeys[2] ? 1 : 0);
+      input_forward = touch_movementY + (keyboard_downKeys[3] ? 1 : 0) - (keyboard_downKeys[4] ? 1 : 0),
+        input_strafe = touch_movementX + (keyboard_downKeys[1] ? 1 : 0) - (keyboard_downKeys[2] ? 1 : 0);
       let gamepad = navigator.getGamepads()[0];
       if (gamepad) {
         const getGamepadButtonState = (index) => buttons[index]?.pressed || 0 < buttons[index]?.value ? 1 : 0;
         const { buttons, axes } = gamepad;
-        gamepad = getGamepadButtonState(3) || getGamepadButtonState(2) || getGamepadButtonState(1)
-          || getGamepadButtonState(0),
+        player_first_person
+        && (camera_rotation.x += gameTimeDelta * threshold(axes[3], 0.3) * 80,
+          camera_rotation.y += gameTimeDelta * threshold(axes[2], 0.3) * 80),
           input_forward += getGamepadButtonState(12) - getGamepadButtonState(13) - threshold(axes[1], 0.2),
           input_strafe += getGamepadButtonState(14) - getGamepadButtonState(15) - threshold(axes[0], 0.2),
           getGamepadButtonState(9) && mainMenu(!0),
-          player_first_person
-          && (camera_rotation.x += gameTimeDelta * threshold(axes[3], 0.3) * 80,
-            camera_rotation.y += gameTimeDelta * threshold(axes[2], 0.3) * 80),
-          gamepad && !gamepadInteractPressed && (interact_pressed = 1),
+          (gamepad = getGamepadButtonState(3) || getGamepadButtonState(2) || getGamepadButtonState(1)
+            || getGamepadButtonState(0)) && !gamepadInteractPressed && (interact_pressed = 1),
           gamepadInteractPressed = gamepad;
       }
-      movAngle = Math.atan2(input_forward, input_strafe),
-        movAmount = threshold(clamp(Math.hypot(input_forward, input_strafe)), 0.05);
     },
     document.onvisibilitychange = onblur = onresize = handleResize,
     mainMenu(!0);
@@ -768,6 +758,14 @@ const newModel = (fn, $kind = 1) => {
 };
 const meshAdd = (polygons, transform = new DOMMatrix(), color) =>
   currentEditModel.$polygons.push(...polygons_transform(polygons, transform, color));
+const distanceToPlayer = (
+  transform,
+) => (transform = transform.transformPoint(),
+  Math.hypot(
+    player_position_final.x - transform.x,
+    player_position_final.y - transform.y,
+    player_position_final.z - transform.z,
+  ));
 const newLever = (transform) => {
   const $locMatrix = new DOMMatrix();
   const $matrix = new DOMMatrix();
@@ -788,8 +786,7 @@ const newLever = (transform) => {
       ).translateSelf(0, 1),
         lever.$lerpValue = lerpDamp(lever.$lerpValue, lever.$value, 4),
         lever.$lerpValue2 = lerpDamp(lever.$lerpValue2, lever.$value, 1),
-        interact_pressed && vec3_distance($locMatrix.transformPoint(), player_position_final) < 3
-        && (lever.$lerpValue < 0.3 || 0.7 < lever.$lerpValue)
+        interact_pressed && distanceToPlayer($locMatrix) < 3 && (lever.$lerpValue < 0.3 || 0.7 < lever.$lerpValue)
         && (lever.$value = lever.$value ? 0 : 1,
           (leverIndex = index) && showMessage("* click *", 1),
           player_last_pulled_lever = leverIndex,
@@ -833,6 +830,7 @@ const newSoul = (transform, ...walkingPath) => {
         let ax;
         let az;
         let magnitude;
+        let angle;
         let isInside;
         let contextualVelocity = 1;
         let mindist = 1 / 0;
@@ -867,31 +865,33 @@ const newSoul = (transform, ...walkingPath) => {
             Math.atan2(soulX - prevX, soulZ - prevZ) / DEG_TO_RAD - 180,
             damp(3),
           ),
-          prevX = soulX,
-          prevZ = soulZ;
-        var angle = matrixCopy(parentModel.$matrix, $matrix).multiplySelf(transform).translateSelf(soulX, 0, soulZ)
-          .rotateSelf(0, lookAngle, 7 * Math.sin(1.7 * gameTime)).transformPoint();
-        vec3_distance(angle, player_position_final) < 1.6 && (soul.$value = 1,
-          showMessage(
-            [
-              ,
-              "Mark Zuckemberg<br>made the world worse",
-              "Giorgia Meloni<br>fascist",
-              "Andrzej Mazur<br>for the js13k competition",
-              "Donald Trump<br>lies",
-              "Kim Jong-un<br>Dictator, liked pineapple on pizza",
-              "Maxime Euziere<br>forced me to finish this game",
-              "She traded NFTs apes",
-              ,
-              "Vladimir Putin<br>evil war",
-              "He was not a good person",
-              ,
-              "Salvatore Previti<br>made this evil game<br><br>Done. Go back to the boat",
-            ][souls_collected_count] || "Catched a \"crypto bro\".<br>\"Web3\" is all scam, lies and grift",
-            souls_collected_count && souls_collected_count < 12 ? 5 : 7,
-          ),
-          updateCollectedSoulsCounter(),
-          saveGame());
+          distanceToPlayer(
+              matrixCopy(parentModel.$matrix, $matrix).multiplySelf(transform).translateSelf(
+                prevX = soulX,
+                0,
+                prevZ = soulZ,
+              ).rotateSelf(0, lookAngle, 7 * Math.sin(1.7 * gameTime)),
+            ) < 1.6 && (soul.$value = 1,
+              showMessage(
+                [
+                  ,
+                  "Mark Zuckemberg<br>made the world worse",
+                  "Giorgia Meloni<br>fascist",
+                  "Andrzej Mazur<br>for the js13k competition",
+                  "Donald Trump<br>lies",
+                  "Kim Jong-un<br>Dictator, liked pineapple on pizza",
+                  "Maxime Euziere<br>forced me to finish this game",
+                  "She traded NFTs apes",
+                  ,
+                  "Vladimir Putin<br>evil war",
+                  "He was not a good person",
+                  ,
+                  "Salvatore Previti<br>made this evil game<br><br>Done. Go back to the boat",
+                ][souls_collected_count] || "Catched a \"crypto bro\".<br>\"Web3\" is all scam, lies and grift",
+                souls_collected_count && souls_collected_count < 12 ? 5 : 7,
+              ),
+              updateCollectedSoulsCounter(),
+              saveGame());
       }
       soul.$value
         && matrixCopy(allModels[2].$matrix, $matrix).translateSelf(
@@ -984,41 +984,43 @@ const player_init = () => {
   const player_collision_modelIdCounter = new Uint8Array(256);
   const collision_buffer = new Uint8Array(65536);
   player_update = () => {
-    gl["r9r"](0, 0, 128, 128, 6408, 5121, collision_buffer),
-      gl["iay"](36008, [
-        36064,
-        36096,
-      ]),
-      gl["iay"](36009, [
-        36064,
-        36096,
-      ]),
+    var forward = clamp(input_forward, -1);
+    let strafe = clamp(input_strafe, -1);
+    var movAmount = threshold(Math.sqrt(Math.hypot(forward, strafe)), 0.05);
+    var movAngle = Math.atan2(forward, strafe);
+    movAmount && (player_look_angle_target = 90 - movAngle / DEG_TO_RAD),
+      player_look_angle = angle_lerp_degrees(player_look_angle, player_look_angle_target, damp(8)),
+      player_legs_speed = lerpDamp(player_legs_speed, movAmount, 10),
+      forward = movAmount * abs(forward) * Math.sin(movAngle),
+      strafe = movAmount * abs(strafe) * Math.cos(movAngle),
+      gl["r9r"](0, 0, 128, 128, 6408, 5121, collision_buffer),
       NO_INLINE(doHorizontalCollisions)(),
       NO_INLINE(doVerticalCollisions)();
-    var playerSpeedCollision = clamp(1 - 5 * max(abs(player_mov_x), abs(player_mov_z)));
-    var movementRadians = player_first_person ? camera_rotation.y * DEG_TO_RAD : Math.PI;
-    var playerSpeedCollision = (player_speed = lerpDamp(
+    let playerSpeedCollision = clamp(1 - 5 * max(abs(player_mov_x), abs(player_mov_z)));
+    player_speed = lerpDamp(
       player_speed,
       player_has_ground * playerSpeedCollision * clamp(2 * movAmount) * 7,
       player_has_ground ? 0.1 < playerSpeedCollision ? 10 : 5 + 2 * movAmount : 1,
     ),
       player_collision_velocity_x = lerpDamp(player_collision_velocity_x, 0, player_has_ground ? 8 : 4),
-      player_mov_x += gameTimeDelta
-        * ((currentModelId ? 0 : playerSpeedCollision * player_collision_velocity_x)
-          - Math.cos(movAngle + movementRadians) * movAmount * player_speed),
       player_collision_velocity_z = lerpDamp(player_collision_velocity_z, 0, player_has_ground ? 8 : 4),
+      currentModelId && (playerSpeedCollision = 0);
+    var movAngle = player_first_person ? (180 - camera_rotation.y) * DEG_TO_RAD : 0;
+    var movAmount = (player_mov_x += gameTimeDelta
+      * (playerSpeedCollision * player_collision_velocity_x
+        + player_speed * (strafe * Math.cos(movAngle) - forward * Math.sin(movAngle))),
       player_mov_z += gameTimeDelta
-        * ((currentModelId ? 0 : playerSpeedCollision * player_collision_velocity_z)
-          - Math.sin(movAngle + movementRadians) * movAmount * player_speed),
+        * (playerSpeedCollision * player_collision_velocity_z
+          + player_speed * (strafe * Math.sin(movAngle) + forward * Math.cos(movAngle))),
       getReferenceMatrix());
-    var { x: v, y: movementRadians, z } = 1 < player_respawned
+    var { x: forward, y: movAngle, z: v } = 1 < player_respawned
       ? levers[player_last_pulled_lever].$locMatrix.transformPoint({
         x: 0,
         y: player_last_pulled_lever || 0.9 < firstBoatLerp ? 15 : 1,
         z: -2.4,
       })
-      : (movementRadians = playerSpeedCollision,
-        matrixCopy(movementRadians).invertSelf(),
+      : (strafe = movAmount,
+        matrixCopy(strafe).invertSelf(),
         tempMatrix.m41 = tempMatrix.m42 = tempMatrix.m43 = 0,
         v = tempMatrix.transformPoint({
           x: player_mov_x,
@@ -1027,19 +1029,19 @@ const player_init = () => {
         }),
         player_position_global.x += v.x,
         player_position_global.z += v.z,
-        movementRadians.transformPoint(player_position_global));
+        strafe.transformPoint(player_position_global));
     if (
       currentModelId
-      && (player_collision_velocity_x = (v - player_position_final.x) / gameTimeDelta,
-        player_collision_velocity_z = (z - player_position_final.z) / gameTimeDelta),
-        player_position_final.x = v,
-        player_position_final.y = movementRadians,
-        player_position_final.z = z,
+      && (player_collision_velocity_x = (forward - player_position_final.x) / gameTimeDelta,
+        player_collision_velocity_z = (v - player_position_final.z) / gameTimeDelta),
+        player_position_final.x = forward,
+        player_position_final.y = movAngle,
+        player_position_final.z = v,
         (player_respawned = player_respawned && (player_has_ground && currentModelId ? 0 : 1))
         || currentModelId !== oldModelId
     ) {
       oldModelId = currentModelId;
-      const v1 = (playerSpeedCollision = getReferenceMatrix()).inverse().transformPoint(player_position_final);
+      const v1 = (movAmount = getReferenceMatrix()).inverse().transformPoint(player_position_final);
       player_position_global.x = v1.x, player_position_global.y = v1.y, player_position_global.z = v1.z;
     }
     player_on_rotating_platforms = lerpDamp(
@@ -1047,26 +1049,26 @@ const player_init = () => {
       shouldRotatePlatforms * (27 < currentModelId && currentModelId < 32),
       2,
     ),
-      movementRadians < (v < -25 || z < 109 ? -25 : -9)
+      movAngle < (forward < -25 || v < 109 ? -25 : -9)
       && (player_collision_velocity_x = player_collision_velocity_z = player_speed = 0, player_respawned = 2),
-      currentModelId === 1 && (levers[9].$value = v < -15 && z < 0 ? 1 : 0),
+      currentModelId === 1 && (levers[9].$value = forward < -15 && v < 0 ? 1 : 0),
       player_model_y = lerp(
-        lerpDamp(player_model_y, movementRadians, 2),
-        movementRadians,
-        player_respawned || 8 * abs(player_model_y - movementRadians),
+        lerpDamp(player_model_y, movAngle, 2),
+        movAngle,
+        player_respawned || 8 * abs(player_model_y - movAngle),
       ),
       camera_pos_lookat_y = interpolate_with_hysteresis(camera_pos_lookat_y, player_model_y, 2, 1),
-      camera_pos_lookat_x = interpolate_with_hysteresis(camera_pos_lookat_x, v, 0.5, 1),
-      camera_pos_lookat_z = interpolate_with_hysteresis(camera_pos_lookat_z, z, 0.5, 1),
+      camera_pos_lookat_x = interpolate_with_hysteresis(camera_pos_lookat_x, forward, 0.5, 1),
+      camera_pos_lookat_z = interpolate_with_hysteresis(camera_pos_lookat_z, v, 0.5, 1),
       player_first_person
-        ? (playerSpeedCollision = player_respawned + damp(18),
-          camera_position_x = lerp(camera_position_x, v, playerSpeedCollision),
-          camera_position_y = lerp(camera_position_y, player_model_y + 1.5, playerSpeedCollision),
-          camera_position_z = lerp(camera_position_z, z, playerSpeedCollision),
+        ? (strafe = player_respawned + damp(18),
+          camera_position_x = lerp(camera_position_x, forward, strafe),
+          camera_position_y = lerp(camera_position_y, player_model_y + 1.5, strafe),
+          camera_position_z = lerp(camera_position_z, v, strafe),
           camera_rotation.y = angle_wrap_degrees(camera_rotation.y))
         : (camera_position_y = interpolate_with_hysteresis(
           camera_position_y,
-          max(camera_pos_lookat_y + clamp((-60 - z) / 8, 0, 20) + 13 + 9 * player_on_rotating_platforms, 6),
+          max(camera_pos_lookat_y + clamp((-60 - v) / 8, 0, 20) + 13 + 9 * player_on_rotating_platforms, 6),
           4,
           2,
         ),
@@ -1082,26 +1084,21 @@ const player_init = () => {
             1,
             2 + player_on_rotating_platforms,
           ),
-          movementRadians = min(4, -abs(camera_pos_lookat_z - camera_position_z)),
-          playerSpeedCollision = camera_pos_lookat_x - camera_position_x,
+          movAmount = min(4, -abs(camera_pos_lookat_z - camera_position_z)),
+          movAngle = camera_pos_lookat_x - camera_position_x,
           camera_rotation.y = angle_lerp_degrees(
             camera_rotation.y,
-            90 - angle_wrap_degrees(Math.atan2(movementRadians, playerSpeedCollision) / DEG_TO_RAD),
+            90 - angle_wrap_degrees(Math.atan2(movAmount, movAngle) / DEG_TO_RAD),
             boot + damp(6),
           ),
           camera_rotation.x = angle_lerp_degrees(
             camera_rotation.x,
-            90
-              - Math.atan2(Math.hypot(movementRadians, playerSpeedCollision), camera_position_y - camera_pos_lookat_y)
-                / DEG_TO_RAD,
+            90 - Math.atan2(Math.hypot(movAmount, movAngle), camera_position_y - camera_pos_lookat_y) / DEG_TO_RAD,
             boot + damp(6),
           )),
       camera_rotation.x = clamp(camera_rotation.x, -87, 87),
-      player_look_angle = angle_lerp_degrees(player_look_angle, player_look_angle_target, damp(8)),
-      player_legs_speed = lerpDamp(player_legs_speed, movAmount, 10),
-      movAmount && (player_look_angle_target = 90 - movAngle / DEG_TO_RAD),
       boot = 0,
-      allModels[37].$matrix.translateSelf(v, player_model_y + 0.124, z).rotateSelf(0, player_look_angle);
+      allModels[37].$matrix.translateSelf(forward, player_model_y + 0.124, v).rotateSelf(0, player_look_angle);
     for (let i = 0; i < 2; ++i) {
       allModels[38 + i].$matrix.multiplySelf(allModels[37].$matrix).translateSelf(
         0,
@@ -1142,7 +1139,7 @@ const renderModels = (worldMatrixLoc, renderPlayer, soulModelId) => {
         allModels[soulModelId].$vertexEnd - allModels[soulModelId].$vertexBegin,
         5123,
         2 * allModels[soulModelId].$vertexBegin,
-        13,
+        souls.length,
       ),
       gl["das"](
         4,
@@ -1303,23 +1300,25 @@ loadStep(() => {
         new Float32Array(16),
       ];
       const mainLoop = (globalTime) => {
+        gl["f1s"](), requestAnimationFrame(mainLoop);
+        var dt = (globalTime - (_globalTime || globalTime)) / 1e3;
         if (
-          gl["f1s"](),
-            requestAnimationFrame(mainLoop),
-            dt = (globalTime - (_globalTime || globalTime)) / 1e3,
-            absoluteTime += dt,
+          absoluteTime += dt,
             gameTime += gameTimeDelta = mainMenuVisible ? 0 : min(0.066, dt),
             _globalTime = globalTime,
             0 < gameTimeDelta
         ) {
           updateInput(), worldStateUpdate(), player_update();
-          for (let i = 0; allModels.length > i; ++i) {
-            allModels[i].$kind && matrixToArray(allModels[i].$matrix, worldMatricesBuffer, i - 1);
-          }
-          for (let i1 = 0; i1 < 13; ++i1) matrixToArray(souls[i1].$matrix, objectsMatricesBuffer, i1);
-          for (let i2 = 0; levers.length > i2; ++i2) {
-            matrixToArray(levers[i2].$matrix, objectsMatricesBuffer, i2 + 13),
-              objectsMatricesBuffer[16 * (i2 + 13) + 15] = 1 - levers[i2].$lerpValue;
+          {
+            let j;
+            for (let i = 0; allModels.length > i; ++i) {
+              allModels[i].$kind && matrixToArray(allModels[i].$matrix, worldMatricesBuffer, i - 1);
+            }
+            for (j = 0; souls.length > j; ++j) matrixToArray(souls[j].$matrix, objectsMatricesBuffer, j);
+            for (let i1 = 0; levers.length > i1; ++i1) {
+              matrixToArray(levers[i1].$matrix, objectsMatricesBuffer, j),
+                objectsMatricesBuffer[16 * j++ + 15] = 1 - levers[i1].$lerpValue;
+            }
           }
           collisionShader(),
             gl["b6o"](36160, collision_frameBuffer),
@@ -1351,8 +1350,8 @@ loadStep(() => {
           csmShader(),
           gl["b6o"](36160, csm_framebuffer),
           gl["v5y"](0, 0, 2048, 2048),
-          csm_render[0](1.1 * (55 - zNear)),
-          csm_render[1](1.1 * 126),
+          csm_render[0](54.7 * 1.1),
+          csm_render[1](126 * 1.1),
           mainShader(),
           gl["b6o"](36160, null),
           gl["v5y"](0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight),
@@ -1575,7 +1574,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
         loadStep(end);
         try {
           const [savedLevers, savedSouls, savedLastPulledLever, savedGameTime, savedSecondBoatLerp] = JSON.parse(
-            localStorage.DanteSP22,
+            localStorage["DanteSP22"],
           );
           levers.map((lever, index) =>
             lever.$lerpValue = lever.$lerpValue2 = lever.$value = index ? 0 | savedLevers[index] : 0

@@ -10,7 +10,17 @@ import {
   GAMEPAD_BUTTON_START,
   type KEY_CODE,
 } from "./utils/keycodes";
-import { abs, clamp, CSM_PLANE_DISTANCE, fieldOfViewAmount, mat_perspective, threshold, zFar, zNear } from "./math";
+import {
+  abs,
+  clamp,
+  CSM_PLANE_DISTANCE,
+  fieldOfViewAmount,
+  mat_perspective,
+  max,
+  threshold,
+  zFar,
+  zNear,
+} from "./math";
 import {
   absoluteTime,
   camera_rotation,
@@ -30,9 +40,9 @@ export const resetInteractPressed = () => {
 
 export let player_first_person: 0 | 1 | undefined;
 
-export let movAngle = 0;
+export let input_forward = 0;
 
-export let movAmount = 0;
+export let input_strafe = 0;
 
 export let updateInput: () => void;
 
@@ -54,11 +64,10 @@ export const initPage = () => {
   let touchRotMoved: number | undefined;
   let touchStartCameraRotX: number | undefined;
   let touchStartCameraRotY: number | undefined;
-
-  let gamepadInteractPressed: 0 | 1 | undefined;
-
   let touch_movementX: number;
   let touch_movementY: number;
+
+  let gamepadInteractPressed: 0 | 1 | undefined;
 
   let music_on = !DEBUG || !DEBUG_FLAG1;
 
@@ -93,14 +102,15 @@ export const initPage = () => {
     keyboard_downKeys.length =
       interact_pressed =
       gamepadInteractPressed =
-      movAmount =
       touch_movementX =
       touch_movementY =
+      input_forward =
+      input_strafe =
         0;
 
     if (document.hidden) {
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
-      mainMenu(true);
+      // mainMenu(true);
     }
   };
 
@@ -172,20 +182,18 @@ export const initPage = () => {
       const mapped = (
         {
           ["KeyA"]: KEY_LEFT,
-          ["ArrowLeft"]: KEY_LEFT,
-
-          ["KeyW"]: KEY_FRONT,
-          ["ArrowUp"]: KEY_FRONT,
-
           ["KeyD"]: KEY_RIGHT,
-          ["ArrowRight"]: KEY_RIGHT,
-
+          ["KeyW"]: KEY_FRONT,
           ["KeyS"]: KEY_BACK,
-          ["ArrowDown"]: KEY_BACK,
 
           ["KeyE"]: KEY_INTERACT,
           ["Space"]: KEY_INTERACT,
           ["Enter"]: KEY_INTERACT,
+
+          ["ArrowLeft"]: KEY_LEFT,
+          ["ArrowRight"]: KEY_RIGHT,
+          ["ArrowUp"]: KEY_FRONT,
+          ["ArrowDown"]: KEY_BACK,
 
           ["Escape"]: KEY_MENU,
         } as Partial<Record<KEY_CODE, number>>
@@ -248,20 +256,18 @@ export const initPage = () => {
         }
         if (touchPosIdentifier === identifier) {
           const deltaX = (touchPosStartX! - pageX) / TOUCH_SIZE;
-          const deltaY = (touchPosStartY! - pageY) / TOUCH_SIZE;
           const absDeltaX = abs(deltaX);
+          const deltaY = (touchPosStartY! - pageY) / TOUCH_SIZE;
           const absDeltaY = abs(deltaY);
 
-          const angle = Math.atan2(deltaY, deltaX);
-          const speed = clamp(Math.hypot(deltaY, deltaX) - TOUCH_MOVE_THRESHOLD);
-
-          touch_movementX = absDeltaX > TOUCH_MOVE_SNAP ? Math.cos(angle) * speed : 0;
-          touch_movementY = absDeltaY > TOUCH_MOVE_SNAP ? Math.sin(angle) * speed : 0;
-
-          if (touch_movementX || touch_movementY) {
+          const m = max(absDeltaX, absDeltaY) > TOUCH_MOVE_THRESHOLD;
+          if (m) {
             // Moved, disable the click
             touchPosMoved = 1;
           }
+
+          touch_movementX = +(m && absDeltaX > TOUCH_MOVE_SNAP) * clamp(deltaX, -1);
+          touch_movementY = +(m && absDeltaY > TOUCH_MOVE_SNAP) * clamp(deltaY, -1);
 
           // Move the invisible joysticks
           if (absDeltaX > 2) {
@@ -303,15 +309,14 @@ export const initPage = () => {
     if (e.target === hC && click && touchStartTime) {
       const diff = absoluteTime - touchStartTime;
       if (diff > 0.02 && diff < 0.7) {
-        keyboard_downKeys[KEY_INTERACT] = true;
+        interact_pressed = 1;
       }
     }
   };
 
   updateInput = () => {
-    let input_forward =
-      touch_movementY + (keyboard_downKeys[KEY_FRONT] ? 1 : 0) - (keyboard_downKeys[KEY_BACK] ? 1 : 0);
-    let input_strafe = touch_movementX + (keyboard_downKeys[KEY_LEFT] ? 1 : 0) - (keyboard_downKeys[KEY_RIGHT] ? 1 : 0);
+    input_forward = touch_movementY + (keyboard_downKeys[KEY_FRONT] ? 1 : 0) - (keyboard_downKeys[KEY_BACK] ? 1 : 0);
+    input_strafe = touch_movementX + (keyboard_downKeys[KEY_LEFT] ? 1 : 0) - (keyboard_downKeys[KEY_RIGHT] ? 1 : 0);
 
     const gamepad = navigator.getGamepads()[0];
     if (gamepad) {
@@ -319,11 +324,10 @@ export const initPage = () => {
       const getGamepadButtonState = (index: number) =>
         buttons[index]?.pressed || (buttons[index]?.value as any) > 0 ? 1 : 0;
 
-      const interactButtonPressed =
-        getGamepadButtonState(GAMEPAD_BUTTON_X) ||
-        getGamepadButtonState(GAMEPAD_BUTTON_Y) ||
-        getGamepadButtonState(GAMEPAD_BUTTON_A) ||
-        getGamepadButtonState(GAMEPAD_BUTTON_B);
+      if (player_first_person) {
+        camera_rotation.x += gameTimeDelta * threshold(axes[3], 0.3) * 80;
+        camera_rotation.y += gameTimeDelta * threshold(axes[2], 0.3) * 80;
+      }
 
       input_forward +=
         getGamepadButtonState(GAMEPAD_BUTTON_UP) - getGamepadButtonState(GAMEPAD_BUTTON_DOWN) - threshold(axes[1], 0.2);
@@ -337,19 +341,17 @@ export const initPage = () => {
         mainMenu(true);
       }
 
-      if (player_first_person) {
-        camera_rotation.x += gameTimeDelta * threshold(axes[3], 0.3) * 80;
-        camera_rotation.y += gameTimeDelta * threshold(axes[2], 0.3) * 80;
-      }
+      const interactButtonPressed =
+        getGamepadButtonState(GAMEPAD_BUTTON_X) ||
+        getGamepadButtonState(GAMEPAD_BUTTON_Y) ||
+        getGamepadButtonState(GAMEPAD_BUTTON_A) ||
+        getGamepadButtonState(GAMEPAD_BUTTON_B);
 
       if (interactButtonPressed && !gamepadInteractPressed) {
         interact_pressed = 1;
       }
       gamepadInteractPressed = interactButtonPressed;
     }
-
-    movAngle = Math.atan2(input_forward, input_strafe);
-    movAmount = threshold(clamp(Math.hypot(input_forward, input_strafe)), 0.05);
   };
 
   document.onvisibilitychange = onblur = onresize = handleResize;

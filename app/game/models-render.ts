@@ -8,7 +8,6 @@ import {
   MODEL_ID_PLAYER_LEG0,
   MODEL_ID_PLAYER_LEG1,
   souls,
-  SOULS_COUNT,
   type MODEL_ID_SOUL,
   type MODEL_ID_SOUL_COLLISION,
 } from "./models";
@@ -28,14 +27,15 @@ export const updateWorldMatrices = () => {
 
   // Setup souls and levers matrices
 
-  for (let i = 0; i < SOULS_COUNT; ++i) {
-    matrixToArray(souls[i]!.$matrix, objectsMatricesBuffer, i);
+  let j: number;
+  for (j = 0; j < souls.length; ++j) {
+    matrixToArray(souls[j]!.$matrix, objectsMatricesBuffer, j);
   }
 
   for (let i = 0; i < levers.length; ++i) {
-    matrixToArray(levers[i]!.$matrix, objectsMatricesBuffer, i + SOULS_COUNT);
+    matrixToArray(levers[i]!.$matrix, objectsMatricesBuffer, j);
     // Encode lerp value in matrix m44 so fragmemt shader can change the lever handle color
-    objectsMatricesBuffer[(i + SOULS_COUNT) * 16 + 15] = 1 - levers[i]!.$lerpValue;
+    objectsMatricesBuffer[j++ * 16 + 15] = 1 - levers[i]!.$lerpValue;
   }
 };
 
@@ -81,7 +81,7 @@ export const renderModels = (
     allModels[soulModelId]!.$vertexEnd! - allModels[soulModelId]!.$vertexBegin!,
     gl.UNSIGNED_SHORT,
     allModels[soulModelId]!.$vertexBegin! * 2,
-    13,
+    souls.length,
   );
 
   // Render levers

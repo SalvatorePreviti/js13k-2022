@@ -9,6 +9,7 @@ import {
   abs,
   tempMatrix,
   matrixCopy,
+  threshold,
 } from "./math";
 import {
   levers,
@@ -29,7 +30,7 @@ import {
   shouldRotatePlatforms,
   camera_rotation,
 } from "./game/world-state";
-import { movAmount, movAngle, player_first_person } from "./page";
+import { input_forward, input_strafe, player_first_person } from "./page";
 import { gl } from "./gl";
 
 export const CAMERA_PLAYER_Y_DIST = 13;
@@ -198,20 +199,35 @@ export const player_init = () => {
   };
 
   player_update = () => {
+    let forward = clamp(input_forward, -1);
+    let strafe = clamp(input_strafe, -1);
+
+    const movAmount = threshold(Math.sqrt(Math.hypot(forward, strafe)), 0.1);
+    const movAngle = Math.atan2(forward, strafe);
+
+    if (movAmount) {
+      player_look_angle_target = 90 - movAngle / DEG_TO_RAD;
+    }
+
+    player_look_angle = angle_lerp_degrees(player_look_angle, player_look_angle_target, damp(8));
+    player_legs_speed = lerpDamp(player_legs_speed, movAmount, 10);
+
+    forward = movAmount * abs(forward) * Math.sin(movAngle);
+    strafe = movAmount * abs(strafe) * Math.cos(movAngle);
+
     // ------- read collision renderBuffer -------
 
     // gl.finish();
     gl.readPixels(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE, gl.RGBA, gl.UNSIGNED_BYTE, collision_buffer);
-    gl.invalidateFramebuffer(gl.READ_FRAMEBUFFER, [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT]);
-    gl.invalidateFramebuffer(gl.DRAW_FRAMEBUFFER, [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT]);
+    // gl.invalidateFramebuffer(gl.READ_FRAMEBUFFER, [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT]);
+    // gl.invalidateFramebuffer(gl.DRAW_FRAMEBUFFER, [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT]);
 
     // ------- process collision renderBuffer -------
 
     NO_INLINE(doHorizontalCollisions)();
     NO_INLINE(doVerticalCollisions)();
 
-    const playerSpeedCollision = clamp(1 - max(abs(player_mov_x), abs(player_mov_z)) * 5);
-    const movementRadians = player_first_person ? camera_rotation.y * DEG_TO_RAD : Math.PI;
+    let playerSpeedCollision = clamp(1 - max(abs(player_mov_x), abs(player_mov_z)) * 5);
 
     player_speed = lerpDamp(
       player_speed,
@@ -220,16 +236,23 @@ export const player_init = () => {
     );
 
     player_collision_velocity_x = lerpDamp(player_collision_velocity_x, 0, player_has_ground ? 8 : 4);
+    player_collision_velocity_z = lerpDamp(player_collision_velocity_z, 0, player_has_ground ? 8 : 4);
+
+    if (currentModelId) {
+      playerSpeedCollision = 0;
+    }
+
+    const dirAngle = player_first_person ? (180 - camera_rotation.y) * DEG_TO_RAD : 0;
+
     player_mov_x +=
       gameTimeDelta *
-      ((currentModelId ? 0 : playerSpeedCollision * player_collision_velocity_x) -
-        Math.cos(movAngle + movementRadians) * movAmount * player_speed);
+      (playerSpeedCollision * player_collision_velocity_x +
+        player_speed * (strafe * Math.cos(dirAngle) - forward * Math.sin(dirAngle)));
 
-    player_collision_velocity_z = lerpDamp(player_collision_velocity_z, 0, player_has_ground ? 8 : 4);
     player_mov_z +=
       gameTimeDelta *
-      ((currentModelId ? 0 : playerSpeedCollision * player_collision_velocity_z) -
-        Math.sin(movAngle + movementRadians) * movAmount * player_speed);
+      (playerSpeedCollision * player_collision_velocity_z +
+        player_speed * (strafe * Math.sin(dirAngle) + forward * Math.cos(dirAngle))); //* player_speed * abs(input_forward)
 
     let referenceMatrix = getReferenceMatrix();
 
@@ -342,12 +365,6 @@ export const player_init = () => {
       }
 
       camera_rotation.x = clamp(camera_rotation.x, -87, 87);
-    }
-
-    player_look_angle = angle_lerp_degrees(player_look_angle, player_look_angle_target, damp(8));
-    player_legs_speed = lerpDamp(player_legs_speed, movAmount, 10);
-    if (movAmount) {
-      player_look_angle_target = 90 - movAngle / DEG_TO_RAD;
     }
 
     boot = 0;

@@ -135,7 +135,13 @@ export async function build() {
   async function minifyJavascript(js: string): Promise<string> {
     js = await dprint(js);
 
-    js = await jsTransformSwc(js, false, swcPluginVars());
+    js = await jsTerser(js, {
+      mangle: false,
+      final: false,
+      join_vars: false,
+      sequences: false,
+      computed_props: false,
+    });
 
     js = await jsBabel(js, {
       minify: false,
@@ -163,6 +169,28 @@ export async function build() {
       mangle: false,
       minifySyntax: true,
       minifyWhitespace: false,
+      computed_props: true,
+    });
+
+    js = await jsTransformSwc(js, false, swcPluginVars());
+
+    js = await jsUglify(js, {
+      varify: false,
+      final: false,
+      reduce_vars: true,
+      join_vars: true,
+      sequences: true,
+      computed_props: true,
+      inline: true,
+    });
+
+    js = await jsTransformSwc(js, false, swcPluginVars());
+
+    js = await jsTerser(js, {
+      mangle: false,
+      final: false,
+      join_vars: true,
+      sequences: true,
       computed_props: true,
     });
 

@@ -1,10 +1,9 @@
-import { min, angle_lerp_degrees, DEG_TO_RAD, type Vec3Optional, vec3_distance, clamp, abs, matrixCopy } from "../math";
+import { min, angle_lerp_degrees, DEG_TO_RAD, clamp, abs, matrixCopy, type Vec3Optional } from "../math";
 import { cylinder, polygons_transform, type Polygon } from "../geometry/geometry";
 import {
   levers,
   souls,
   allModels,
-  player_position_final,
   MODEL_ID_FIRST_BOAT,
   MODEL_KIND_GAME,
   type Circle,
@@ -12,6 +11,7 @@ import {
   type Model,
   type Soul,
   type MODEL_KIND,
+  player_position_final,
 } from "./models";
 import { onPlayerPullLever, lerpDamp, gameTime, onSoulCollected, damp } from "./world-state";
 import { interact_pressed } from "../page";
@@ -48,6 +48,11 @@ export const meshAdd = (
   color?: number | undefined,
 ) => currentEditModel.$polygons!.push(...polygons_transform(polygons, transform, color));
 
+const distanceToPlayer = (transform: DOMMatrixReadOnly): number => {
+  const p = transform.transformPoint();
+  return Math.hypot(player_position_final.x - p.x, player_position_final.y - p.y, player_position_final.z - p.z);
+};
+
 export const newLever = (transform: DOMMatrixReadOnly): void => {
   const $locMatrix = new DOMMatrix();
   const $matrix = new DOMMatrix();
@@ -68,10 +73,7 @@ export const newLever = (transform: DOMMatrixReadOnly): void => {
       lever.$lerpValue = lerpDamp(lever.$lerpValue, lever.$value, 4);
       lever.$lerpValue2 = lerpDamp(lever.$lerpValue2, lever.$value, 1);
 
-      if (
-        interact_pressed &&
-        vec3_distance($locMatrix.transformPoint(), player_position_final) < LEVER_SENSITIVITY_RADIUS
-      ) {
+      if (interact_pressed && distanceToPlayer($locMatrix) < LEVER_SENSITIVITY_RADIUS) {
         if (lever.$lerpValue < 0.3 || lever.$lerpValue > 0.7) {
           lever.$value = lever.$value ? 0 : 1;
           onPlayerPullLever(index);
@@ -154,16 +156,14 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]
 
         lookAngle = angle_lerp_degrees(lookAngle, Math.atan2(soulX - prevX, soulZ - prevZ) / DEG_TO_RAD - 180, damp(3));
 
-        prevX = soulX;
-        prevZ = soulZ;
-
-        const soulPos = matrixCopy(parentModel.$matrix, $matrix)
-          .multiplySelf(transform)
-          .translateSelf(soulX, 0, soulZ)
-          .rotateSelf(0, lookAngle, Math.sin(gameTime * 1.7) * 7)
-          .transformPoint();
-
-        if (vec3_distance(soulPos, player_position_final) < SOUL_SENSITIVITY_RADIUS) {
+        if (
+          distanceToPlayer(
+            matrixCopy(parentModel.$matrix, $matrix)
+              .multiplySelf(transform)
+              .translateSelf((prevX = soulX), 0, (prevZ = soulZ))
+              .rotateSelf(0, lookAngle, Math.sin(gameTime * 1.7) * 7),
+          ) < SOUL_SENSITIVITY_RADIUS
+        ) {
           soul.$value = 1;
           onSoulCollected();
         }

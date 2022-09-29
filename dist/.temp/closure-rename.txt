@@ -5,7 +5,7 @@ $front:o
 $kind:G
 $lerpValue:g
 $lerpValue2:i
-$locMatrix:J
+$locMatrix:I
 $matrix:l
 $modelId:H
 $parent:u
@@ -15,5 +15,4 @@ $smooth:D
 $value:j
 $vertexBegin:v
 $vertexEnd:F
-DanteSP22:I
 _update:h
