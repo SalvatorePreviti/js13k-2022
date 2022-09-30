@@ -14,6 +14,7 @@ import { input_forward, input_strafe, player_first_person } from "./page";
 import { matrixCopy, tempMatrix } from "./math/matrix";
 import { gl } from "./gl";
 import { lerpDamp, gameTimeDelta, damp, gameTime } from "./game/game-time";
+import { KEY_CODE_KEY_F, KEY_CODE_KEY_R } from "./utils/keycodes";
 
 export const CAMERA_PLAYER_Y_DIST = 13;
 
@@ -33,7 +34,9 @@ export let camera_position_y: number = 0;
 
 export let camera_position_z: number = 0;
 
-// export let player_update: () => void;
+let debug2dctx: CanvasRenderingContext2D | null | undefined;
+
+export let player_gravity = 2;
 
 export const set_camera_position = (x: number, y: number, z: number) => {
   camera_position_x = x;
@@ -47,7 +50,6 @@ export const player_init = () => {
 
   let boot: 0 | 1 = 1;
   let player_respawned: 0 | 1 | 2 = 2;
-  let player_gravity = 2;
   let player_has_ground: 0 | 1;
   let player_look_angle_target: number;
   let player_look_angle: number;
@@ -69,6 +71,7 @@ export const player_init = () => {
   const doHorizontalCollisions = () => {
     player_mov_x = 0;
     player_mov_z = 0;
+    return;
     for (let y = 32; y < COLLISION_TEXTURE_SIZE; y += 2) {
       let front = 0;
       let back = 0;
@@ -108,6 +111,8 @@ export const player_init = () => {
     }
   };
 
+  let kt = 2;
+
   const doVerticalCollisions = () => {
     let grav = 0;
     let lines = 0;
@@ -119,10 +124,38 @@ export const player_init = () => {
     let modelB = 0;
     let modelBCount = 0;
 
+    let maxv = 0;
+    for (let y = 0; y < 31; ++y) {
+      for (let x = 14 * 4; x < (COLLISION_TEXTURE_SIZE - 14) * 4; x += 4) {
+        const yindex = y * (COLLISION_TEXTURE_SIZE * 4);
+        for (let k = 0; k < 2; ++k) {
+          const v = collision_buffer[yindex + x + k]!;
+          if (v > maxv) {
+            maxv = v;
+          }
+        }
+      }
+    }
+
+    const tv = maxv / (255 / 1.4);
+
+    // 2.32
+
+    dbg.innerHTML = tv.toFixed(2) + " " + kt.toFixed(2);
+
+    player_position_global.y += tv;
+    player_position_global.y -= player_gravity * gameTimeDelta;
+
+    // player_position_global.y -= player_gravity * gameTimeDelta;
+
+    if (!maxv) {
+      // player_position_global.y -= player_gravity * gameTimeDelta;
+    }
+
     for (let y = 0; y < 31; ++y) {
       let up = 0;
       const yindex = y * (COLLISION_TEXTURE_SIZE * 4);
-      for (let x = 14 * 4; x < (COLLISION_TEXTURE_SIZE - 14) * 4; x += 4) {
+      for (let x = 0; x < COLLISION_TEXTURE_SIZE * 4; x += 4) {
         for (let k = 0; k < 2; ++k) {
           const v = collision_buffer[yindex + x + k]!;
           const m = collision_buffer[yindex + x + k + 2]!;
@@ -158,8 +191,18 @@ export const player_init = () => {
     player_gravity = lerpDamp(player_gravity, player_has_ground ? 6.5 : player_position_global.y < -20 ? 11 : 8, 4);
 
     // push up and gravity
-    player_position_global.y +=
-      lines / 41 - (player_has_ground || player_gravity) * (grav / 41) * player_gravity * gameTimeDelta;
+    // player_position_global.y +=
+    //   lines / 41 - (player_has_ground || player_gravity) * (grav / 41) * player_gravity * gameTimeDelta;
+
+    if (dev_keyboard_downKeys.has(KEY_CODE_KEY_R)) {
+      kt += gameTimeDelta * 2;
+    }
+    if (dev_keyboard_downKeys.has(KEY_CODE_KEY_F)) {
+      kt -= gameTimeDelta * 2;
+    }
+
+    // player_position_global.y = kt;
+    player_has_ground = 1;
   };
 
   const getReferenceMatrix = () =>
@@ -212,6 +255,36 @@ export const player_init = () => {
 
     NO_INLINE(doVerticalCollisions)();
     NO_INLINE(doHorizontalCollisions)();
+
+    if (DEBUG) {
+      const debugCanvas = document.getElementById("debug-canvas") as HTMLCanvasElement;
+
+      const buf = new Uint8ClampedArray(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
+
+      if (debugCanvas) {
+        for (let y = 0; y < COLLISION_TEXTURE_SIZE; ++y) {
+          for (let x = 0; x < COLLISION_TEXTURE_SIZE; ++x) {
+            const i = ((COLLISION_TEXTURE_SIZE - y) * COLLISION_TEXTURE_SIZE + x) * 4;
+            const r = collision_buffer[i]!;
+            const g = collision_buffer[i + 1]!;
+            const b = collision_buffer[i + 2]!;
+            const a = collision_buffer[i + 3]!;
+
+            buf[(y * COLLISION_TEXTURE_SIZE + x) * 4] = r;
+            buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 1] = g; // g
+            buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 2] = b > 0 || a > 0 ? 255 : 0; // b
+            buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 3] = 255;
+          }
+        }
+
+        const imgdata = new ImageData(buf, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
+
+        if (!debug2dctx) {
+          debug2dctx = debugCanvas.getContext("2d")!;
+        }
+        debug2dctx.putImageData(imgdata, 0, 0, 0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
+      }
+    }
 
     let playerSpeedCollision = clamp(1 - max(abs(player_mov_x), abs(player_mov_z)) * 5);
 

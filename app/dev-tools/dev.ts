@@ -1,6 +1,9 @@
 window.NO_INLINE = (fn) => fn;
 window.DEBUG_CAMERA = false;
 
+const keyboard_downKeys = new Set<KEY_CODE>();
+window.dev_keyboard_downKeys = keyboard_downKeys;
+
 import { camera_rotation } from "../game/world-state";
 import { angle_wrap_degrees, DEG_TO_RAD } from "../math/math";
 import type { Vec3 } from "../math/vectors";
@@ -22,8 +25,6 @@ let debug_old_flag2 = !!window.DEBUG_FLAG2;
 let debug_old_flag3 = !!window.DEBUG_FLAG3;
 
 export let debug_camera_version = 0;
-
-const keyboard_downKeys = new Set<KEY_CODE>();
 
 let _mouseDown = false;
 let mouse_movementX = 0;

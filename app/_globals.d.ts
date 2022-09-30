@@ -20,6 +20,8 @@ interface Window {
   DEBUG_FLAG3: boolean;
 }
 
+declare var dev_keyboard_downKeys: Set<KEY_CODE>;
+
 declare module "*.frag";
 
 declare module "*.vert";

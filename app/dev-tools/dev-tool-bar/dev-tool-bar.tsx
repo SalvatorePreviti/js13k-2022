@@ -66,6 +66,7 @@ export const DevToolBar: FC = () => {
             <button onClick={dumpPlayerMXZ}>dumpMXZ</button>
             <br />
             <button onClick={() => resetGameTime(0)}>reset time</button>
+            <div id="dbg"></div>
             <canvas
               id="debug-canvas"
               width={128}

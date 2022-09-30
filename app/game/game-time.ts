@@ -32,19 +32,17 @@ export const lerpDamp = NO_INLINE((from: number, to: number, speed: number) => l
 export const setMainMenuVisible = (visible: boolean) => {
   mainMenuVisible = visible;
 };
+
 // export const gameTimeUpdate = (time: number) => {
-//   if (mainMenuVisible) {
-//     keyboard_downKeys[KEY_INTERACT] = 0;
-//   }
-//   const delta = (time - (_globalTime || time)) / 1000;
-//   if (delta >= 0.06) {
+//   const dt = (time - (_globalTime || time)) / 1000;
+//   absoluteTime += dt;
+//   if (dt >= 0.06) {
 //     gameTimeDelta = mainMenuVisible ? 0 : Math.min(GAME_TIME_MAX_DELTA_TIME, (time - (_globalTime || time)) / 1000);
 //     gameTime += gameTimeDelta;
 //     _globalTime = time;
 //   } else {
 //     gameTimeDelta = 0;
 //   }
-//   absoluteTime += delta;
 //   if (!_globalTime) {
 //     _globalTime = time;
 //   }

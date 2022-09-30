@@ -25,7 +25,14 @@ import { allModels, levers, MODEL_ID_SOUL, MODEL_ID_SOUL_COLLISION, player_posit
 import { camera_rotation, worldStateUpdate } from "./game/world-state";
 // import { csm_buildMatrix } from "./csm";
 import { initPage, csm_projections, player_first_person, projection, resetInteractPressed, updateInput } from "./page";
-import { COLLISION_TEXTURE_SIZE, player_init, camera_position_x, camera_position_y, camera_position_z } from "./player";
+import {
+  COLLISION_TEXTURE_SIZE,
+  player_init,
+  camera_position_x,
+  camera_position_y,
+  camera_position_z,
+  player_gravity,
+} from "./player";
 import { gl } from "./gl";
 import { loadShader, initShaderProgram } from "./shaders-utils";
 import type { Vec3 } from "./math/vectors";
@@ -189,7 +196,9 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
       gl.colorMask(true, false, true, false);
 
-      const { x, y, z } = player_position_final;
+      let { x, y, z } = player_position_final;
+
+      y -= player_gravity * gameTimeDelta;
 
       gl.uniformMatrix4fv(
         collisionShader(uniformName_viewMatrix),
@@ -283,7 +292,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   gl.uniformMatrix4fv(
     collisionShader(uniformName_projectionMatrix),
     false,
-    matrixToArray(mat_perspective(0.0001, 1, 1.4, 0.59)),
+    matrixToArray(mat_perspective(0.0001, 10, 1.4, 0.59)),
   );
 
   mainShader();
