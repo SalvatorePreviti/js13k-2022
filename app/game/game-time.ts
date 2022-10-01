@@ -36,7 +36,7 @@ export const setMainMenuVisible = (visible: boolean) => {
 // export const gameTimeUpdate = (time: number) => {
 //   const dt = (time - (_globalTime || time)) / 1000;
 //   absoluteTime += dt;
-//   if (dt >= 0.06) {
+//   if (dt >= 0.04 + Math.random() * 0.02) {
 //     gameTimeDelta = mainMenuVisible ? 0 : Math.min(GAME_TIME_MAX_DELTA_TIME, (time - (_globalTime || time)) / 1000);
 //     gameTime += gameTimeDelta;
 //     _globalTime = time;

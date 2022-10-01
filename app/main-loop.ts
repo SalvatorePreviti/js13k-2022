@@ -25,14 +25,7 @@ import { allModels, levers, MODEL_ID_SOUL, MODEL_ID_SOUL_COLLISION, player_posit
 import { camera_rotation, worldStateUpdate } from "./game/world-state";
 // import { csm_buildMatrix } from "./csm";
 import { initPage, csm_projections, player_first_person, projection, resetInteractPressed, updateInput } from "./page";
-import {
-  COLLISION_TEXTURE_SIZE,
-  player_init,
-  camera_position_x,
-  camera_position_y,
-  camera_position_z,
-  player_gravity,
-} from "./player";
+import { COLLISION_TEXTURE_SIZE, player_init, camera_position_x, camera_position_y, camera_position_z } from "./player";
 import { gl } from "./gl";
 import { loadShader, initShaderProgram } from "./shaders-utils";
 import type { Vec3 } from "./math/vectors";
@@ -196,9 +189,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
       gl.colorMask(true, false, true, false);
 
-      let { x, y, z } = player_position_final;
-
-      y -= player_gravity * gameTimeDelta;
+      const { x, y, z } = player_position_final;
 
       gl.uniformMatrix4fv(
         collisionShader(uniformName_viewMatrix),
@@ -292,7 +283,8 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   gl.uniformMatrix4fv(
     collisionShader(uniformName_projectionMatrix),
     false,
-    matrixToArray(mat_perspective(0.0001, 10, 1.4, 0.59)),
+    matrixToArray(mat_perspective(0.0001, 2, 1.4, 0.4)),
+    // matrixToArray(mat_perspective(0.0001, 10, 1.4, 0.59)),
   );
 
   mainShader();
@@ -315,7 +307,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   gl.bindFramebuffer(gl.FRAMEBUFFER, collision_frameBuffer);
   gl.bindRenderbuffer(gl.RENDERBUFFER, collision_renderBuffer);
 
-  gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
+  gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT24, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
   gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, collision_renderBuffer);
 
   gl.activeTexture(gl.TEXTURE2);
@@ -351,7 +343,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   gl.clearDepth(1); // Clear everything. Default value is 1
   gl.cullFace(gl.BACK); // Default value is already BACK
   gl.depthFunc(gl.LEQUAL); // LEQUAL to make sky works
-  gl.clearColor(0, 0, 0, 1);
+  gl.clearColor(0, 0, 0, 0); // Clear to black, alpha 0 as is used for collision, it will be in any case overwritten when rendering triangles with 1.
 
   NO_INLINE(initPage)();
 

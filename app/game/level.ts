@@ -105,6 +105,11 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
     // ========= WORLD! ========= //
 
+    /// XXX TODO DEBUG
+
+    meshAdd(cylinder(), translation(0, 0, 0).scale(1, 5, 1), material(0.3, 0.3, 0.38));
+    meshAdd(cylinder(), translation(3, 0, 3).scale(1, 5, 1).rotate(0, 45), material(0.3, 0.3, 0.38));
+
     // SOUL 0 - soul after first boat
     newSoul(translation(-0.5, 2.8, -20), [0, 0, 2.5], [0, -3, 2.5]);
 
@@ -385,7 +390,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
       model._update = (matrix) =>
         matrix
           .translateSelf(-75, (1 - levers[5]!.$lerpValue2) * (1 - levers[6]!.$lerpValue) * 3, 55)
-          .rotate(180 * (1 - levers[5]!.$lerpValue2) + rotatingHexCorridorRotation, 0);
+          .rotateSelf(180 * (1 - levers[5]!.$lerpValue2) + rotatingHexCorridorRotation, 0);
       meshAdd(hexCorridorPolygons);
     }, MODEL_KIND_GAME_NO_ATTACH_PLAYER);
 
@@ -405,7 +410,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
       csg_polygons_subtract(
         csg_union(
           // base
-          polygons_transform(cylinder(), translation(-100, -2.5, 55).scale(8, 1, 8), material(0.8, 0.8, 0.8, 0.2)),
+          polygons_transform(cylinder(), translation(-100, -2.4, 55).scale(8, 0.9, 8), material(0.8, 0.8, 0.8, 0.2)),
           // right path to the boat
           polygons_transform(
             cylinder(),
@@ -440,7 +445,11 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
         // decorative octagon
         polygons_transform(cylinder(8), translation(-100, -1, 55).scale(7, 0.9, 7), material(0.3, 0.3, 0.3, 0.4)),
         polygons_transform(cylinder(8), translation(-100, -2, 55).scale(4, 0.3, 4), material(0.4, 0.4, 0.4, 0.5)),
-        polygons_transform(cylinder(8), translation(-100, -3, 55).scale(0.6, 1, 0.6), material(0.4, 0.4, 0.4, 0.5)),
+        polygons_transform(
+          cylinder(8, 0, -3.1),
+          translation(-100, -3, 55).scale(0.4, 1, 0.4),
+          material(0.4, 0.4, 0.4, 0.5),
+        ),
       ),
     );
 
@@ -464,10 +473,10 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
       ),
     );
 
-    // gate bars
+    // central gate bars
     newModel((model) => {
       model._update = (matrix) =>
-        matrix.translateSelf(-99.7, -1.9, 63.5).scale(1, clamp(1.1 - levers[6]!.$lerpValue), 1);
+        matrix.translateSelf(-99.7, -1.9, 63.5).scaleSelf(1, clamp(1.1 - levers[6]!.$lerpValue), 1);
       meshAdd(gateBarsPolygons);
     });
 
@@ -488,7 +497,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
     integers_map(7, (i) => {
       meshAdd(
-        cylinder(((i * 23 + 1) % 5) + 5, 0, 0.55),
+        cylinder(((i * 23 + 1) % 5) + 5, 0, 0.5),
         translation(-101 + Math.sin(i) * 5 + i, -2.3 - i, 44.9 - i * 2.8).scaleSelf(5 + i / 2, 1 + i / 6, 5 + i / 3),
         material(0.5 - i / 17, 0.5 - (i & 1) / 9, 0.6, 0.3),
       );
@@ -517,7 +526,14 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
           (1 - max(levers[6]!.$lerpValue, levers[7]!.$lerpValue)) * 3.5 + shouldOscillate() * Math.sin(gameTime) * 5,
         );
       [0, 12, 24].map((x) =>
-        meshAdd(cylinder(), translation(x - 76.9, x / -13 - 10, 24).scale(2.8, 1.5, 3), material(0.2, 0.5, 0.6, 0.2)),
+        meshAdd(
+          cylinder(),
+          translation(x - 76.9, x / -16 - 10, 24)
+            .rotate(0, 0, -3)
+            .skewX(-3)
+            .scale(2.8, 1.4, 3),
+          material(0.2, 0.5, 0.6, 0.2),
+        ),
       );
     });
 
@@ -529,7 +545,14 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
           Math.sin(gameTime * 0.6 + 1) * 6 * shouldOscillate(),
         );
       [6, 18].map((x) =>
-        meshAdd(cylinder(), translation(x - 76.9, x / -13 - 10, 24).scale(2.8, 1.5, 3), material(0.1, 0.4, 0.5, 0.2)),
+        meshAdd(
+          cylinder(),
+          translation(x - 76.9, x / -16 - 10, 24)
+            .rotate(0, 0, -3)
+            .skewX(-3)
+            .scale(2.8, 1.4, 3),
+          material(0.1, 0.4, 0.5, 0.2),
+        ),
       );
     });
 
@@ -791,7 +814,10 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
         };
         meshAdd(
           cylinder(6),
-          translation(-14.6 - i * 4.8 - (i > 2 ? 2 : 0), -i / 2.3, -21.5).scale(2.6, 1, 2.5),
+          translation(-14.6 - i * 4.8 - (i > 2 ? 2 : 0), -i / 2.5 - 0.1, -21.5)
+            .rotate(0, 0, 4)
+            .skewX(4)
+            .scale(2.6, 1, 2.5),
           material(0.5 - i / 8, i / 12 + 0.5, 0.7, 0.3),
         );
       }),
@@ -1072,8 +1098,9 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
       ),
     );
 
+    // pendulums
     newModel((model) => {
-      model._update = (matrix) => matrix.translateSelf(Math.sin(gameTime) * -2).rotate(Math.sin(gameTime) * 25);
+      model._update = (matrix) => matrix.translateSelf(Math.sin(gameTime) * -2).rotateSelf(Math.sin(gameTime) * 25);
       meshAdd(
         cylinder(3),
         translation(0, -3, 118.8).scale(0.8, 0.8, 18).rotate(90, 0, 60),
@@ -1121,10 +1148,10 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     checkModelId("PLAYER_BODY", MODEL_ID_PLAYER_BODY);
 
     // head
-    meshAdd(sphere(20), translation(0, 1).scale(0.5, 0.5, 0.5), material(1, 0.3, 0.4));
+    meshAdd(sphere(20), translation(0, 1).scale3d(0.5), material(1, 0.3, 0.4));
 
     // body
-    meshAdd(sphere(30), scaling(0.7, 0.8, 0.55), material(1, 0.3, 0.4));
+    meshAdd(sphere(30), scaling(0.65, 0.8, 0.55), material(1, 0.3, 0.4));
 
     // mouth
     meshAdd(cylinder(), translation(0, 0.9, 0.45).scale(0.15, 0.02, 0.06), material(0.3, 0.3, 0.3));

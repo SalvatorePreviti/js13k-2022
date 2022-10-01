@@ -922,6 +922,8 @@ const build_life_the_universe_and_everything = () => {
       newLever(translation(0, -3, 4));
     });
     newLever(translation(-5.4, 1.5, -19).rotate(0, -90));
+    meshAdd(cylinder(), translation(0, 0, 0).scale(1, 5, 1), material(0.3, 0.3, 0.38));
+    meshAdd(cylinder(), translation(3, 0, 3).scale(1, 5, 1).rotate(0, 45), material(0.3, 0.3, 0.38));
     newSoul(translation(-0.5, 2.8, -20), [
       0,
       0,
@@ -1018,12 +1020,12 @@ const build_life_the_universe_and_everything = () => {
     ];
     meshAdd(hexCorridorPolygons, translation(-53, 0, 55));
     newModel((model) => {
-      model._update = (matrix) => matrix.translateSelf(-75, (1 - levers[5].$lerpValue2) * (1 - levers[6].$lerpValue) * 3, 55).rotate(180 * (1 - levers[5].$lerpValue2) + rotatingHexCorridorRotation, 0);
+      model._update = (matrix) => matrix.translateSelf(-75, (1 - levers[5].$lerpValue2) * (1 - levers[6].$lerpValue) * 3, 55).rotateSelf(180 * (1 - levers[5].$lerpValue2) + rotatingHexCorridorRotation, 0);
       meshAdd(hexCorridorPolygons);
     }, MODEL_KIND_GAME_NO_ATTACH_PLAYER);
     meshAdd(cylinder(), translation(-88.3, -5.1, 55).rotate(-30).scale(5, 1.25, 4.5), material(0.7, 0.7, 0.7, 0.2));
     meshAdd(cylinder(3, 0, -0.5), translation(-88.4, -3.9, 55).rotate(0, -90, 17).scale(3, 1.45, 5.9), material(0.8, 0.8, 0.8, 0.2));
-    meshAdd(csg_polygons_subtract(csg_union(polygons_transform(cylinder(), translation(-100, -2.5, 55).scale(8, 1, 8), material(0.8, 0.8, 0.8, 0.2)), polygons_transform(cylinder(), translation(-113, -2.6, 55).scale(6.2, 1.1, 3).skewX(3), material(0.8, 0.8, 0.8, 0.2)), polygons_transform(cylinder(), translation(-100, -2.6, 70).scale(3, 1.1, 7), material(0.8, 0.8, 0.8, 0.2)), polygons_transform(cylinder(), translation(-96, -2.6, 73).rotate(0, 45).scale(3, 1.1, 5), material(0.8, 0.8, 0.8, 0.2)), polygons_transform(cylinder(6), translation(-88.79, -2.6, 80.21).scale(6, 1.1, 6).rotate(0, 15), material(0.6, 0.6, 0.6, 0.3)), polygons_transform(cylinder(), translation(-100, -1.1, 82.39).rotate(-15, 0).scale(3, 1.1, 6), material(0.8, 0.8, 0.8, 0.2)), polygons_transform(cylinder(), translation(-100, 0.42, 92).scale(3, 1.1, 4.1), material(0.8, 0.8, 0.8, 0.2))), polygons_transform(cylinder(8), translation(-100, -1, 55).scale(7, 0.9, 7), material(0.3, 0.3, 0.3, 0.4)), polygons_transform(cylinder(8), translation(-100, -2, 55).scale(4, 0.3, 4), material(0.4, 0.4, 0.4, 0.5)), polygons_transform(cylinder(8), translation(-100, -3, 55).scale(0.6, 1, 0.6), material(0.4, 0.4, 0.4, 0.5))));
+    meshAdd(csg_polygons_subtract(csg_union(polygons_transform(cylinder(), translation(-100, -2.4, 55).scale(8, 0.9, 8), material(0.8, 0.8, 0.8, 0.2)), polygons_transform(cylinder(), translation(-113, -2.6, 55).scale(6.2, 1.1, 3).skewX(3), material(0.8, 0.8, 0.8, 0.2)), polygons_transform(cylinder(), translation(-100, -2.6, 70).scale(3, 1.1, 7), material(0.8, 0.8, 0.8, 0.2)), polygons_transform(cylinder(), translation(-96, -2.6, 73).rotate(0, 45).scale(3, 1.1, 5), material(0.8, 0.8, 0.8, 0.2)), polygons_transform(cylinder(6), translation(-88.79, -2.6, 80.21).scale(6, 1.1, 6).rotate(0, 15), material(0.6, 0.6, 0.6, 0.3)), polygons_transform(cylinder(), translation(-100, -1.1, 82.39).rotate(-15, 0).scale(3, 1.1, 6), material(0.8, 0.8, 0.8, 0.2)), polygons_transform(cylinder(), translation(-100, 0.42, 92).scale(3, 1.1, 4.1), material(0.8, 0.8, 0.8, 0.2))), polygons_transform(cylinder(8), translation(-100, -1, 55).scale(7, 0.9, 7), material(0.3, 0.3, 0.3, 0.4)), polygons_transform(cylinder(8), translation(-100, -2, 55).scale(4, 0.3, 4), material(0.4, 0.4, 0.4, 0.5)), polygons_transform(cylinder(8, 0, -3.1), translation(-100, -3, 55).scale(0.4, 1, 0.4), material(0.4, 0.4, 0.4, 0.5))));
     newSoul(translation(-100, 0.2, 55), [
       0,
       0,
@@ -1048,7 +1050,7 @@ const build_life_the_universe_and_everything = () => {
     ]);
     meshAdd(csg_polygons_subtract(polygons_transform(cylinder(), translation(-100, 1, 63).scale(7.5, 4), material(0.5, 0.5, 0.5, 0.4)), polygons_transform(cylinder(), translation(-100, 0, 70).scale(2, 2, 10), material(0.5, 0.5, 0.5, 0.4)), polygons_transform(cylinder(20, 1), translation(-100, 2, 70).scale(2, 2, 10).rotate(90, 0), material(0.5, 0.5, 0.5, 0.4))));
     newModel((model) => {
-      model._update = (matrix) => matrix.translateSelf(-99.7, -1.9, 63.5).scale(1, clamp(1.1 - levers[6].$lerpValue), 1);
+      model._update = (matrix) => matrix.translateSelf(-99.7, -1.9, 63.5).scaleSelf(1, clamp(1.1 - levers[6].$lerpValue), 1);
       meshAdd(gateBarsPolygons);
     });
     GQuad.map(({ x, z }) => {
@@ -1059,7 +1061,7 @@ const build_life_the_universe_and_everything = () => {
       ].map((i) => meshAdd(cylinder(6), translation(-100 + x * 7, i, z * 7 + 55).scale(1.3, 0.5, 1.3), material(0.4, 0.2, 0.2, 0.8)));
     });
     integers_map(7, (i) => {
-      meshAdd(cylinder((i * 23 + 1) % 5 + 5, 0, 0.55), translation(-101 + /* @__PURE__ */ Math.sin(i) * 5 + i, -2.3 - i, 44.9 - i * 2.8).scaleSelf(5 + i / 2, 1 + i / 6, 5 + i / 3), material(0.5 - i / 17, 0.5 - (i & 1) / 9, 0.6, 0.3));
+      meshAdd(cylinder((i * 23 + 1) % 5 + 5, 0, 0.5), translation(-101 + /* @__PURE__ */ Math.sin(i) * 5 + i, -2.3 - i, 44.9 - i * 2.8).scaleSelf(5 + i / 2, 1 + i / 6, 5 + i / 3), material(0.5 - i / 17, 0.5 - (i & 1) / 9, 0.6, 0.3));
     });
     meshAdd(cylinder(), translation(-87, -9.5, 24).scale(7, 1, 3), material(0.4, 0.5, 0.6, 0.4));
     meshAdd(cylinder(4), translation(-86, -9.2, 27).scale(5, 1, 5), material(0.5, 0.6, 0.7, 0.3));
@@ -1071,14 +1073,14 @@ const build_life_the_universe_and_everything = () => {
         0,
         12,
         24
-      ].map((x) => meshAdd(cylinder(), translation(x - 76.9, x / -13 - 10, 24).scale(2.8, 1.5, 3), material(0.2, 0.5, 0.6, 0.2)));
+      ].map((x) => meshAdd(cylinder(), translation(x - 76.9, x / -16 - 10, 24).rotate(0, 0, -3).skewX(-3).scale(2.8, 1.4, 3), material(0.2, 0.5, 0.6, 0.2)));
     });
     newModel((model) => {
       model._update = (matrix) => matrix.translateSelf(0, shouldOscillate() * /* @__PURE__ */ Math.sin(gameTime + 3) * 6, /* @__PURE__ */ Math.sin(gameTime * 0.6 + 1) * 6 * shouldOscillate());
       [
         6,
         18
-      ].map((x) => meshAdd(cylinder(), translation(x - 76.9, x / -13 - 10, 24).scale(2.8, 1.5, 3), material(0.1, 0.4, 0.5, 0.2)));
+      ].map((x) => meshAdd(cylinder(), translation(x - 76.9, x / -16 - 10, 24).rotate(0, 0, -3).skewX(-3).scale(2.8, 1.4, 3), material(0.1, 0.4, 0.5, 0.2)));
     });
     meshAdd(csg_polygons_subtract(csg_union(polygons_transform(cylinder(5), translation(0, 0, -7).scale(2, 1.2, 2), material(0.2, 0.4, 0.7, 0.3)), polygons_transform(cylinder(5), scaling(9, 1.2, 9), material(0, 0.2, 0.3, 0.5)), polygons_transform(cylinder(), scaling(11, 1, 13), material(0.3, 0.4, 0.6, 0.3))), polygons_transform(cylinder(5), scaling(5.4, 5, 5.4), material(0, 0.2, 0.3, 0.5))), translation(-38.9, -11.3, 17));
     newLever(translation(-38.9, -9.6, 10));
@@ -1172,7 +1174,7 @@ const build_life_the_universe_and_everything = () => {
         const osc = hexPadShouldOscillate();
         matrix.translateSelf((i > 2 ? (1 - osc) * 2 + osc : 0) - 100, osc * /* @__PURE__ */ Math.sin(gameTime * 1.3 + i * 1.7) * (3 + i / 3) + 0.7, (i & 1 ? -1 : 1) * (1 - levers[8].$lerpValue2) * (1 - levers[12].$lerpValue2) * -7 + max(osc, 0.05) * /* @__PURE__ */ Math.cos(gameTime * 1.3 + i * 7) * (4 - 2 * (1 - i / 3)) + 115);
       };
-      meshAdd(cylinder(6), translation(-14.6 - i * 4.8 - (i > 2 ? 2 : 0), -i / 2.3, -21.5).scale(2.6, 1, 2.5), material(0.5 - i / 8, i / 12 + 0.5, 0.7, 0.3));
+      meshAdd(cylinder(6), translation(-14.6 - i * 4.8 - (i > 2 ? 2 : 0), -i / 2.5 - 0.1, -21.5).rotate(0, 0, 4).skewX(4).scale(2.6, 1, 2.5), material(0.5 - i / 8, i / 12 + 0.5, 0.7, 0.3));
     }));
     newModel((model) => {
       model._update = (matrix) => {
@@ -1282,7 +1284,7 @@ const build_life_the_universe_and_everything = () => {
     meshAdd(cylinder(7), translation(0, 16.2, 133).scale(5, 1, 5), material(0.4, 0.5, 0.6, 0.4));
     meshAdd(csg_polygons_subtract(csg_union(polygons_transform(cylinder(), translation(0, 16, 110.5).scale(12, 1, 3), material(0.5, 0.3, 0.3, 0.4)), polygons_transform(cylinder(), translation(0, 16, 111).scale(3, 1, 3.8), material(0.5, 0.3, 0.3, 0.4))), polygons_transform(cylinder(5), translation(0, 16, 103.5).scale(5.5, 5, 5.5), material(0.5, 0.3, 0.3, 0.4))));
     newModel((model) => {
-      model._update = (matrix) => matrix.translateSelf(/* @__PURE__ */ Math.sin(gameTime) * -2).rotate(/* @__PURE__ */ Math.sin(gameTime) * 25);
+      model._update = (matrix) => matrix.translateSelf(/* @__PURE__ */ Math.sin(gameTime) * -2).rotateSelf(/* @__PURE__ */ Math.sin(gameTime) * 25);
       meshAdd(cylinder(3), translation(0, -3, 118.8).scale(0.8, 0.8, 18).rotate(90, 0, 60), material(0.5, 0.3, 0.3, 0.4));
       [
         22,
@@ -1313,8 +1315,8 @@ const build_life_the_universe_and_everything = () => {
     ]);
   });
   newModel(() => {
-    meshAdd(sphere(20), translation(0, 1).scale(0.5, 0.5, 0.5), material(1, 0.3, 0.4));
-    meshAdd(sphere(30), scaling(0.7, 0.8, 0.55), material(1, 0.3, 0.4));
+    meshAdd(sphere(20), translation(0, 1).scale3d(0.5), material(1, 0.3, 0.4));
+    meshAdd(sphere(30), scaling(0.65, 0.8, 0.55), material(1, 0.3, 0.4));
     meshAdd(cylinder(), translation(0, 0.9, 0.45).scale(0.15, 0.02, 0.06), material(0.3, 0.3, 0.3));
     [
       -1,
@@ -1364,7 +1366,7 @@ const code$4 = "#version 300 es\nlayout(location=0)in vec4 f;layout(location=1)i
 const uniformName_projectionMatrix = "a";
 const uniformName_viewMatrix = "b";
 const uniformName_worldMatrices = "c";
-const code$3 = "#version 300 es\nprecision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(m.xyz,1);float r=1.-min(abs(a.z/a.w),1.);O=vec4(vec2(r*(gl_FragCoord.y>31.?1.:abs(o.y))),vec2(m.w/255.));}";
+const code$3 = "#version 300 es\nprecision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(m.xyz+vec3(0,1.49,b[0][0]*.3),1);if(gl_FragCoord.y>36.){float r=1.-sin(gl_FragCoord.x*.02454369),e=clamp(a.z+.6,0.,1.);O=vec4(vec2(b[0][0]*sign(a.x)*o.x<0.?e*(1.-abs(a.x)):0.)*r,vec2(b[0][0]*o.z>0.?e*(1.-r):0.));return;}float r=o.y>.5?a.y*clamp((a.z+.4)*50.,0.,1.):0.;O=vec4(vec2(r),vec2(r>0.?m.w/255.:0.));}";
 const code$2 = "#version 300 es\nvoid main(){}";
 const code$1 = "#version 300 es\nin vec4 f;void main(){gl_Position=vec4(f.xy,1,1);}";
 const code = "#version 300 es\nprecision highp float;uniform vec3 j,k;uniform mat4 b;uniform highp sampler2D q;out vec4 O;void main(){vec2 t=gl_FragCoord.xy/j.xy*2.-1.;vec3 e=(normalize(b*vec4(t.x*-(j.x/j.y),-t.y,1.73205,0.))).xyz;float i=(-32.-k.y)/e.y,o=1.-clamp(abs(i/9999.),0.,1.);if(O=vec4(0,0,0,1),o>.01){if(i>0.){float o=cos(j.z/30.),i=sin(j.z/30.);e.xz*=mat2(o,i,-i,o);vec3 t=abs(e);O.xyz=vec3(dot(vec2(texture(q,e.xy).z,texture(q,e.yz*2.).z),t.zx)*t.y);}else e=k+e*i,O.x=(o*=.9-texture(q,e.xz/150.+vec2(sin(e.z/35.+j.z),cos(e.x/25.+j.z))/80.).y),O.y=o*o*o;}}";
@@ -1391,17 +1393,13 @@ const player_position_global = {
 };
 const player_init = () => {
   let currentModelId;
-  let currentModelIdTMinus1;
   let oldModelId;
-  let player_has_ground;
   let player_look_angle_target;
   let player_look_angle;
   let player_legs_speed;
   let player_on_rotating_platforms;
-  let player_mov_x;
-  let player_mov_z;
-  let player_collision_velocity_x;
-  let player_collision_velocity_z;
+  let player_fly_velocity_x;
+  let player_fly_velocity_z;
   let player_speed;
   let player_model_y;
   let camera_pos_lookat_x;
@@ -1410,58 +1408,51 @@ const player_init = () => {
   let boot = 1;
   let player_respawned = 2;
   let player_gravity = 2;
-  const doHorizontalCollisions = () => {
-    player_mov_x = 0;
-    player_mov_z = 0;
-    for (let y = 32; y < COLLISION_TEXTURE_SIZE; y += 2) {
-      let front = 0;
-      let back = 0;
-      let left = 0;
-      let right = 0;
-      const yindex = y * (COLLISION_TEXTURE_SIZE * 4);
-      for (let x = y & 1; x < COLLISION_TEXTURE_SIZE; x += 2) {
-        const i1 = yindex + x * 4;
-        const i2 = yindex + (COLLISION_TEXTURE_SIZE - 1 - x) * 4;
-        const dist1 = collision_buffer[i1] / 255;
-        const dist2 = collision_buffer[i2 + 1] / 255;
-        const t = 1 - abs(2 * (x / (COLLISION_TEXTURE_SIZE - 1)) - 1);
-        if (x > 10 && x < COLLISION_TEXTURE_SIZE - 10) {
-          front = max(front, max(dist1 * t, dist1 * collision_buffer[i2] / 255));
-          back = max(back, max(dist2 * t, dist2 * collision_buffer[i1 + 1] / 255));
-        }
-        if (x < COLLISION_TEXTURE_SIZE / 2 - 10 || x > COLLISION_TEXTURE_SIZE / 2 + 10) {
-          const xdist = (1 - t) * max(dist1, dist2) / 3;
-          if (xdist > 1e-3) {
-            if (x < COLLISION_TEXTURE_SIZE / 2 && left < xdist)
-              left = xdist;
-            else if (x > COLLISION_TEXTURE_SIZE / 2 && right < xdist)
-              right = xdist;
-          }
-        }
-      }
-      if (abs(right - left) > abs(player_mov_x))
-        player_mov_x = right - left;
-      if (abs(back - front) > abs(player_mov_z))
-        player_mov_z = back - front;
+  const getReferenceMatrix = () => player_respawned ? levers[player_last_pulled_lever].$parent.$matrix : allModels[oldModelId && allModels[oldModelId].$kind === MODEL_KIND_GAME && oldModelId || 0].$matrix;
+  const updatePlayerPositionFinal = (updateVelocity) => {
+    const { x, y, z } = player_respawned > 1 ? matrixCopy(levers[player_last_pulled_lever].$parent.$matrix).multiplySelf(levers[player_last_pulled_lever].$matrix).transformPoint({
+      x: 0,
+      y: player_last_pulled_lever || firstBoatLerp > 0.9 ? 15 : 1,
+      z: PLAYER_RESPAWN_Z
+    }) : getReferenceMatrix().transformPoint(player_position_global);
+    if (updateVelocity) {
+      player_fly_velocity_x = (x - player_position_final.x) / gameTimeDelta;
+      player_fly_velocity_z = (z - player_position_final.z) / gameTimeDelta;
     }
+    player_position_final.x = x;
+    player_position_final.y = y;
+    player_position_final.z = z;
   };
-  const doVerticalCollisions = () => {
-    let grav = 0;
-    let lines = 0;
-    let lineToProcess = -1;
+  const movePlayer = (x, y, z) => {
+    matrixCopy(getReferenceMatrix()).invertSelf();
+    tempMatrix.m41 = tempMatrix.m42 = tempMatrix.m43 = 0;
+    const v = tempMatrix.transformPoint({
+      x,
+      z,
+      w: 0
+    });
+    player_position_global.x += v.x;
+    player_position_global.y += y;
+    player_position_global.z += v.z;
+    updatePlayerPositionFinal();
+  };
+  const doHorizontalCollisions = () => {
     let modelACount = 0;
     let modelB = 0;
     let modelBCount = 0;
-    player_has_ground = 0;
-    for (let y = 0; y < 31; ++y) {
-      let up = 0;
+    let movY = 0;
+    let lineToProcess = -1;
+    let movX = 0;
+    let movZ = 0;
+    for (let y = 0; y < 36; ++y) {
       const yindex = y * (COLLISION_TEXTURE_SIZE * 4);
-      for (let x = 56; x < (COLLISION_TEXTURE_SIZE - 14) * 4; x += 4)
+      for (let x = 96; x < (COLLISION_TEXTURE_SIZE - 24) * 4; x += 4)
         for (let k = 0; k < 2; ++k) {
           const v = collision_buffer[yindex + x + k];
           const m = collision_buffer[yindex + x + k + 2];
-          if (v && m && m < 255) {
-            up += v / 255;
+          if (v > movY)
+            movY = v;
+          if (v + m) {
             if (lineToProcess < 0 || lineToProcess === y) {
               lineToProcess = y;
               if (m === currentModelId)
@@ -1473,93 +1464,61 @@ const player_init = () => {
             }
           }
         }
-      if (up < 3 && y > 5)
-        grav += y / 32;
-      if (up > 3) {
-        if (y > 7)
-          lines += y / 15;
-        player_has_ground = 1;
-      }
     }
-    const nextModelId = modelBCount > modelACount * 2 ? modelB : currentModelId;
-    console.log(nextModelId);
-    currentModelId = nextModelId || currentModelIdTMinus1;
-    currentModelIdTMinus1 = nextModelId;
-    player_gravity = lerpDamp(player_gravity, player_has_ground ? 6.5 : player_position_global.y < -20 ? 11 : 8, 4);
-    player_position_global.y += lines / 41 - (player_has_ground || player_gravity) * (grav / 41) * player_gravity * gameTimeDelta;
+    currentModelId = lineToProcess >= 0 ? modelBCount > modelACount * 2 ? modelB : currentModelId : 0;
+    for (let y1 = 36; y1 < COLLISION_TEXTURE_SIZE; y1 += 1) {
+      let left = 0;
+      let right = 0;
+      let front = 0;
+      let back = 0;
+      const yindex1 = y1 * (COLLISION_TEXTURE_SIZE * 4);
+      for (let tx = 0; tx < COLLISION_TEXTURE_SIZE; tx += 1) {
+        const index = yindex1 + tx * 4;
+        for (let k1 = 0; k1 < 2; ++k1) {
+          const vx = collision_buffer[index + k1];
+          const vz = collision_buffer[index + k1 + 2];
+          if (k1 ? tx > COLLISION_TEXTURE_SIZE / 2 : tx < COLLISION_TEXTURE_SIZE / 2)
+            left = max(left, vx);
+          else
+            right = max(right, vx);
+          if (k1)
+            back = max(back, vz);
+          else
+            front = max(front, vz);
+        }
+      }
+      if (abs(right - left) > abs(movX))
+        movX = right - left;
+      if (abs(back - front) > abs(movZ))
+        movZ = back - front;
+    }
+    movePlayer(movX / 255, movY / 255, movZ / 255);
   };
-  const getReferenceMatrix = () => player_respawned ? levers[player_last_pulled_lever].$parent.$matrix : allModels[oldModelId && allModels[oldModelId].$kind === MODEL_KIND_GAME && oldModelId || 0].$matrix;
   const interpolate_with_hysteresis = (previous, desired, hysteresis, speed) => lerp(previous, desired, boot || (clamp(abs(desired - previous) ** 0.5 - hysteresis) + 1 / 7) * damp(speed * 1.5));
-  const playerMovedGlobalPos = (referenceMatrix) => {
-    matrixCopy(referenceMatrix).invertSelf();
-    tempMatrix.m41 = tempMatrix.m42 = tempMatrix.m43 = 0;
-    const v = tempMatrix.transformPoint({
-      x: player_mov_x,
-      z: player_mov_z,
-      w: 0
-    });
-    player_position_global.x += v.x;
-    player_position_global.z += v.z;
-    return referenceMatrix.transformPoint(player_position_global);
-  };
   const collision_buffer = new Uint8Array(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
   allModels[MODEL_ID_PLAYER_BODY]._update = (matrix) => {
-    let forward = clamp(input_forward, -1);
-    let strafe = clamp(input_strafe, -1);
-    const movAmount = threshold(/* @__PURE__ */ Math.hypot(forward, strafe) ** 0.5, 0.1);
-    const movAngle = /* @__PURE__ */ Math.atan2(forward, strafe);
-    if (movAmount)
-      player_look_angle_target = 90 - movAngle / DEG_TO_RAD;
-    player_look_angle = angle_lerp_degrees(player_look_angle, player_look_angle_target, damp(8));
-    player_legs_speed = lerpDamp(player_legs_speed, movAmount, 10);
-    forward = movAmount * abs(forward) * /* @__PURE__ */ Math.sin(movAngle);
-    strafe = movAmount * abs(strafe) * /* @__PURE__ */ Math.cos(movAngle);
+    updatePlayerPositionFinal(currentModelId);
     gl["r9r"](0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE, 6408, 5121, collision_buffer);
-    NO_INLINE(doVerticalCollisions)();
     NO_INLINE(doHorizontalCollisions)();
-    let playerSpeedCollision = clamp(1 - max(abs(player_mov_x), abs(player_mov_z)) * 5);
-    player_speed = lerpDamp(player_speed, player_has_ground * playerSpeedCollision * clamp(2 * movAmount) * 7, player_has_ground ? playerSpeedCollision > 0.1 ? 10 : 5 + 2 * movAmount : 1);
-    player_collision_velocity_x = lerpDamp(player_collision_velocity_x, 0, player_has_ground ? 8 : 4);
-    player_collision_velocity_z = lerpDamp(player_collision_velocity_z, 0, player_has_ground ? 8 : 4);
-    if (currentModelId)
-      playerSpeedCollision = 0;
-    const dirAngle = player_first_person ? (180 - camera_rotation.y) * DEG_TO_RAD : 0;
-    player_mov_x += gameTimeDelta * (playerSpeedCollision * player_collision_velocity_x + player_speed * (strafe * /* @__PURE__ */ Math.cos(dirAngle) - forward * /* @__PURE__ */ Math.sin(dirAngle)));
-    player_mov_z += gameTimeDelta * (playerSpeedCollision * player_collision_velocity_z + player_speed * (strafe * /* @__PURE__ */ Math.sin(dirAngle) + forward * /* @__PURE__ */ Math.cos(dirAngle)));
-    let referenceMatrix = getReferenceMatrix();
-    const { x, y, z } = player_respawned > 1 ? matrixCopy(levers[player_last_pulled_lever].$parent.$matrix).multiplySelf(levers[player_last_pulled_lever].$matrix).transformPoint({
-      x: 0,
-      y: player_last_pulled_lever || firstBoatLerp > 0.9 ? 15 : 1,
-      z: PLAYER_RESPAWN_Z
-    }) : playerMovedGlobalPos(referenceMatrix);
-    if (currentModelId) {
-      player_collision_velocity_x = (x - player_position_final.x) / gameTimeDelta;
-      player_collision_velocity_z = (z - player_position_final.z) / gameTimeDelta;
-    }
-    player_position_final.x = x;
-    player_position_final.y = y;
-    player_position_final.z = z;
-    if (player_respawned)
-      player_respawned = player_has_ground && currentModelId ? 0 : 1;
     if (player_respawned || currentModelId !== oldModelId) {
       oldModelId = currentModelId;
-      referenceMatrix = getReferenceMatrix();
-      const v = referenceMatrix.inverse().transformPoint(player_position_final);
+      const v = matrixCopy(getReferenceMatrix()).invertSelf().transformPoint(player_position_final);
       player_position_global.x = v.x;
       player_position_global.y = v.y;
       player_position_global.z = v.z;
     }
-    player_on_rotating_platforms = lerpDamp(player_on_rotating_platforms, shouldRotatePlatforms * (currentModelId > MODEL_ID_ROTATING_PLATFORM - 1 && currentModelId < MODEL_ID_ROTATING_PLATFORM + 4), 2);
-    if (y < (x < -20 || z < 109 ? -25 : -9)) {
-      player_collision_velocity_x = player_collision_velocity_z = player_speed = 0;
+    if (player_respawned)
+      player_respawned = currentModelId ? 0 : 1;
+    const { x, y, z } = player_position_final;
+    if (y < (x < -20 || z < 109 ? -25 : -9))
       player_respawned = 2;
-    }
     if (currentModelId === 1)
       levers[9].$value = x < -15 && z < 0 ? 1 : 0;
     player_model_y = lerp(lerpDamp(player_model_y, y, 2), y, player_respawned || abs(player_model_y - y) * 8);
     camera_pos_lookat_y = interpolate_with_hysteresis(camera_pos_lookat_y, player_model_y, 2, 1);
     camera_pos_lookat_x = interpolate_with_hysteresis(camera_pos_lookat_x, x, 0.5, 1);
     camera_pos_lookat_z = interpolate_with_hysteresis(camera_pos_lookat_z, z, 0.5, 1);
+    player_on_rotating_platforms = lerpDamp(player_on_rotating_platforms, shouldRotatePlatforms * (currentModelId > MODEL_ID_ROTATING_PLATFORM - 1 && currentModelId < MODEL_ID_ROTATING_PLATFORM + 4), 2);
     if (player_first_person) {
       const d = player_respawned + damp(18);
       camera_position_x = lerp(camera_position_x, x, d);
@@ -1567,8 +1526,8 @@ const player_init = () => {
       camera_position_z = lerp(camera_position_z, z, d);
       camera_rotation.y = angle_wrap_degrees(camera_rotation.y);
     } else {
-      camera_position_y = interpolate_with_hysteresis(camera_position_y, max(camera_pos_lookat_y + clamp((-60 - z) / 8, 0, 20) + CAMERA_PLAYER_Y_DIST + player_on_rotating_platforms * 9, 6), 4, 2);
       camera_position_z = interpolate_with_hysteresis(camera_position_z, camera_pos_lookat_z + CAMERA_PLAYER_Z_DIST + player_on_rotating_platforms * 5, 1, 2 + player_on_rotating_platforms);
+      camera_position_y = interpolate_with_hysteresis(camera_position_y, max(camera_pos_lookat_y + clamp((-60 - z) / 8, 0, 20) + CAMERA_PLAYER_Y_DIST + player_on_rotating_platforms * 9, 6), 4, 2);
       camera_position_x = interpolate_with_hysteresis(camera_position_x, camera_pos_lookat_x, 1, 2 + player_on_rotating_platforms);
       const viewDirDiffz = min(CAMERA_PLAYER_Z_DIST / 3, -abs(camera_pos_lookat_z - camera_position_z));
       const viewDirDiffx = camera_pos_lookat_x - camera_position_x;
@@ -1577,7 +1536,23 @@ const player_init = () => {
     }
     camera_rotation.x = clamp(camera_rotation.x, -87, 87);
     boot = 0;
-    matrix.translateSelf(x, player_model_y + 0.124, z).rotateSelf(0, player_look_angle);
+    matrix.translateSelf(x, player_model_y, z).rotateSelf(0, player_look_angle);
+    let forward = clamp(input_forward, -1);
+    let strafe = clamp(input_strafe, -1);
+    const movAmount = threshold(/* @__PURE__ */ Math.hypot(forward, strafe) ** 0.5, 0.1);
+    let movAngle = /* @__PURE__ */ Math.atan2(forward, strafe);
+    forward = movAmount * abs(forward) * /* @__PURE__ */ Math.sin(movAngle);
+    strafe = movAmount * abs(strafe) * /* @__PURE__ */ Math.cos(movAngle);
+    if (movAmount)
+      player_look_angle_target = 90 - movAngle / DEG_TO_RAD;
+    player_legs_speed = lerpDamp(player_legs_speed, movAmount, 10);
+    player_look_angle = angle_lerp_degrees(player_look_angle, player_look_angle_target, damp(8));
+    player_fly_velocity_x = currentModelId || player_respawned ? 0 : lerpDamp(player_fly_velocity_x, 0, 3);
+    player_fly_velocity_z = currentModelId || player_respawned ? 0 : lerpDamp(player_fly_velocity_z, 0, 3);
+    player_speed = player_respawned ? 0 : lerpDamp(player_speed, currentModelId ? clamp(2 * movAmount) * 7 : 0, currentModelId ? 9 : 1);
+    player_gravity = lerpDamp(player_gravity, currentModelId ? 6.5 : 8, 4);
+    movAngle = player_first_person ? (180 - camera_rotation.y) * DEG_TO_RAD : 0;
+    movePlayer(gameTimeDelta * (player_fly_velocity_x + player_speed * (strafe * /* @__PURE__ */ Math.cos(movAngle) - forward * /* @__PURE__ */ Math.sin(movAngle))), -player_gravity * gameTimeDelta, gameTimeDelta * (player_fly_velocity_z + player_speed * (strafe * /* @__PURE__ */ Math.sin(movAngle) + forward * /* @__PURE__ */ Math.cos(movAngle))));
   };
   [
     MODEL_ID_PLAYER_LEG1,
@@ -1746,7 +1721,7 @@ const startMainLoop = (groundTextureImage) => {
   const collision_renderBuffer = gl["c3z"]();
   const collision_frameBuffer = gl["c5w"]();
   collisionShader();
-  gl["uae"](collisionShader(uniformName_projectionMatrix), false, matrixToArray(mat_perspective(1e-4, 1, 1.4, 0.59)));
+  gl["uae"](collisionShader(uniformName_projectionMatrix), false, matrixToArray(mat_perspective(1e-4, 2, 1.4, 0.4)));
   mainShader();
   gl["ubh"](mainShader(uniformName_groundTexture), 2);
   gl["ubh"](mainShader(uniformName_csm_texture1), 1);
@@ -1760,7 +1735,7 @@ const startMainLoop = (groundTextureImage) => {
   gl["r9l"](0);
   gl["b6o"](36160, collision_frameBuffer);
   gl["bb1"](36161, collision_renderBuffer);
-  gl["r4v"](36161, 33189, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
+  gl["r4v"](36161, 33190, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
   gl["f8w"](36160, 36096, 36161, collision_renderBuffer);
   gl["a4v"](33986);
   gl["b9j"](3553, collision_texture);
@@ -1776,7 +1751,7 @@ const startMainLoop = (groundTextureImage) => {
   gl["c70"](1);
   gl["c7a"](1029);
   gl["d4n"](515);
-  gl["c5t"](0, 0, 0, 1);
+  gl["c5t"](0, 0, 0, 0);
   NO_INLINE(initPage)();
   NO_INLINE(player_init)();
   requestAnimationFrame(mainLoop);
