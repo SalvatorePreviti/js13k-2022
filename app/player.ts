@@ -39,6 +39,8 @@ export const set_camera_position = (x: number, y: number, z: number) => {
   camera_position_z = z;
 };
 
+const collision_buffer = new Uint8Array(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
+
 export const player_init = () => {
   let currentModelId: number;
   let oldModelId: number | undefined;
@@ -58,8 +60,6 @@ export const player_init = () => {
   let camera_pos_lookat_x: number;
   let camera_pos_lookat_y: number;
   let camera_pos_lookat_z: number;
-
-  const collision_buffer = new Uint8Array(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
 
   const getReferenceMatrix = () =>
     player_respawned

@@ -1495,7 +1495,6 @@ const player_init = () => {
     movePlayer(movX / 255, movY / 255, movZ / 255);
   };
   const interpolate_with_hysteresis = (previous, desired, hysteresis, speed) => lerp(previous, desired, boot || (clamp(abs(desired - previous) ** 0.5 - hysteresis) + 1 / 7) * damp(speed * 1.5));
-  const collision_buffer = new Uint8Array(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
   allModels[MODEL_ID_PLAYER_BODY]._update = (matrix) => {
     updatePlayerPositionFinal(currentModelId);
     gl["r9r"](0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE, 6408, 5121, collision_buffer);
@@ -1559,6 +1558,7 @@ const player_init = () => {
     MODEL_ID_PLAYER_LEG0
   ].map((modelId, i) => allModels[modelId]._update = (matrix) => matrixCopy(allModels[MODEL_ID_PLAYER_BODY].$matrix, matrix).translateSelf(0, player_legs_speed * clamp(/* @__PURE__ */ Math.sin(gameTime * PLAYER_LEGS_VELOCITY - Math.PI * i - Math.PI / 2) * 0.45)).rotateSelf(player_legs_speed * /* @__PURE__ */ Math.sin(gameTime * PLAYER_LEGS_VELOCITY - Math.PI * i) * (0.25 / DEG_TO_RAD), 0));
 };
+const collision_buffer = new Uint8Array(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
 const loadShader = (source, type = 35633) => {
   const shader = gl["c6x"](type);
   gl["s3c"](shader, source);
