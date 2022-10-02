@@ -889,7 +889,8 @@ const build_life_the_universe_and_everything = () => {
   ], translation(-2).scale3d(3).rotate(90, 0)), MODEL_KIND_MESH);
   newModel(() => {
     const makeBigArcPolygons = (height) => csg_polygons_subtract(polygons_transform(cylinder(), translation(0, -height / 2).scale(6, height - 1, 2.2)), polygons_transform(cylinder(), translation(0, -height / 2 - 6).scale(4, height - 3, 4)), polygons_transform(cylinder(32, 1), translation(0, height / 2 - 9).rotate(90, 0, 90).scale3d(4)));
-    const blackPlatform = (freq, amplitude, pz) => newModel(() => {
+    const gateBarsModel = () => newModel(() => integers_map(7, (i) => meshAdd(polygons_transform(cylinder(6, 1), translation(4 * (i / 6 - 0.5), 3).scale(0.2, 3, 0.2), material(0.3, 0.3, 0.38)))));
+    const blackPlatform = (pz) => newModel(() => {
       GQuad.map(({ x, z }) => {
         meshAdd(cylinder(11, 1), translation(x * 4, 4, pz + z * 4).scale(0.8, 3, 0.8), material(0.5, 0.3, 0.7, 0.6));
         meshAdd(cylinder(), translation(x * 4, 7, pz + z * 4).scale(1, 0.3), material(0.5, 0.5, 0.5, 0.3));
@@ -901,7 +902,6 @@ const build_life_the_universe_and_everything = () => {
       meshAdd(cylinder(), translation(0, -3, pz).scale(8, 2, 8), material(0.4, 0.4, 0.4, 0.3));
     });
     const boatPolygons = csg_polygons_subtract(polygons_transform(cylinder(30, 1, 1.15, 1), translation(0, -3).scale(3.5, 1, 3.5), material(0.7, 0.4, 0.25, 0.7)), polygons_transform(cylinder(30, 1, 1.3, 1), translation(0, -2.5).scale(2.6, 1, 3), material(0.7, 0.4, 0.25, 0.2)), polygons_transform(cylinder(), translation(4, -1.2).scale3d(2), material(0.7, 0.4, 0.25, 0.3)));
-    const gateBarsPolygons = integers_map(7, (i) => polygons_transform(cylinder(6, 1), translation(4 * (i / 6 - 0.5), 3).scale(0.2, 3, 0.2), material(0.3, 0.3, 0.38))).flat();
     newModel(() => {
       meshAdd(boatPolygons);
       newLever(translation(0, -3, 4));
@@ -939,9 +939,7 @@ const build_life_the_universe_and_everything = () => {
     ].map((z) => {
       meshAdd(cylinder(), translation(0, 6.3, z).scale(4, 0.3, 1), material(0.3, 0.3, 0.3, 0.4));
       meshAdd(cylinder(), translation(0, 1, z).scale(3, 0.2, 0.35), material(0.5, 0.5, 0.5, 0.3));
-      newModel(() => {
-        meshAdd(gateBarsPolygons);
-      });
+      gateBarsModel();
     });
     integers_map(5, (i) => integers_map(2, (j) => meshAdd(hornPolygons, translation((j - 0.5) * 18.5, 0, i * 4.8 - 9.5).rotate(0, 180 - j * 180).scale(1.2, 10, 1.2), material(1, 1, 0.8, 0.2))));
     meshAdd(cylinder(), translation(3, 1.5, -20).scale(0.5, 2, 5), material(0.7, 0.7, 0.7, 0.2));
@@ -954,8 +952,8 @@ const build_life_the_universe_and_everything = () => {
       newLever(translation(0, 1.2));
     });
     newLever(translation(15, -2, 4));
-    blackPlatform(0.7, 12, 35);
-    blackPlatform(1, 8.2, 55);
+    blackPlatform(35);
+    blackPlatform(55);
     newModel(() => {
       meshAdd(csg_polygons_subtract(csg_union(polygons_transform(cylinder(), scaling(1.5, 1, 5), material(0.9, 0.9, 0.9, 0.2)), polygons_transform(cylinder(6), scaling(4, 1, 5), material(0.9, 0.9, 0.9, 0.2)), polygons_transform(cylinder(), translation(0, -2).scale(2, 3.2, 1.9), material(0.3, 0.8, 0.5, 0.5)), polygons_transform(cylinder(16, 1, 0, 4), scaling(1, 1, 1.5).rotate(0, 90), material(0.9, 0.9, 0.9, 0.2))), polygons_transform(cylinder(), scaling(1.3, 10, 1.3), material(0.2, 0.7, 0.4, 0.6))), translation(0, 0, 45));
       newSoul(translation(0, 2.8, 45), [
@@ -995,9 +993,7 @@ const build_life_the_universe_and_everything = () => {
       ].map((x) => polygons_transform(cylinder(5), translation(x, 2.5).rotate(90, 0, 36).scale(1.8, 10, 1.8), material(0.3, 0.6, 0.6, 0.3))))
     ];
     meshAdd(hexCorridorPolygons, translation(-53, 0, 55));
-    newModel(() => {
-      meshAdd(hexCorridorPolygons);
-    }, MODEL_KIND_GAME_NO_ATTACH_PLAYER);
+    newModel(() => meshAdd(hexCorridorPolygons), MODEL_KIND_GAME_NO_ATTACH_PLAYER);
     meshAdd(cylinder(), translation(-88.3, -5.1, 55).rotate(-30).scale(5, 1.25, 4.5), material(0.7, 0.7, 0.7, 0.2));
     meshAdd(cylinder(3, 0, -0.5), translation(-88.4, -3.9, 55).rotate(0, -90, 17).scale(3, 1.45, 5.9), material(0.8, 0.8, 0.8, 0.2));
     meshAdd(csg_polygons_subtract(csg_union(polygons_transform(cylinder(), translation(-100, -2.4, 55).scale(8, 0.9, 8), material(0.8, 0.8, 0.8, 0.2)), polygons_transform(cylinder(), translation(-113, -2.6, 55).scale(6.2, 1.1, 3).skewX(3), material(0.8, 0.8, 0.8, 0.2)), polygons_transform(cylinder(), translation(-100, -2.6, 70).scale(3, 1.1, 7), material(0.8, 0.8, 0.8, 0.2)), polygons_transform(cylinder(), translation(-96, -2.6, 73).rotate(0, 45).scale(3, 1.1, 5), material(0.8, 0.8, 0.8, 0.2)), polygons_transform(cylinder(6), translation(-88.79, -2.6, 80.21).scale(6, 1.1, 6).rotate(0, 15), material(0.6, 0.6, 0.6, 0.3)), polygons_transform(cylinder(), translation(-100, -1.1, 82.39).rotate(-15, 0).scale(3, 1.1, 6), material(0.8, 0.8, 0.8, 0.2)), polygons_transform(cylinder(), translation(-100, 0.42, 92).scale(3, 1.1, 4.1), material(0.8, 0.8, 0.8, 0.2))), polygons_transform(cylinder(8), translation(-100, -1, 55).scale(7, 0.9, 7), material(0.3, 0.3, 0.3, 0.4)), polygons_transform(cylinder(8), translation(-100, -2, 55).scale(4, 0.3, 4), material(0.4, 0.4, 0.4, 0.5)), polygons_transform(cylinder(8, 0, -3.1), translation(-100, -3, 55).scale(0.4, 1, 0.4), material(0.4, 0.4, 0.4, 0.5))));
@@ -1024,9 +1020,7 @@ const build_life_the_universe_and_everything = () => {
       6
     ]);
     meshAdd(csg_polygons_subtract(polygons_transform(cylinder(), translation(-100, 1, 63).scale(7.5, 4), material(0.5, 0.5, 0.5, 0.4)), polygons_transform(cylinder(), translation(-100, 0, 70).scale(2, 2, 10), material(0.5, 0.5, 0.5, 0.4)), polygons_transform(cylinder(20, 1), translation(-100, 2, 70).scale(2, 2, 10).rotate(90, 0), material(0.5, 0.5, 0.5, 0.4))));
-    newModel(() => {
-      meshAdd(gateBarsPolygons);
-    });
+    gateBarsModel();
     GQuad.map(({ x, z }) => {
       meshAdd(cylinder(6), translation(-100 + x * 7, -3, z * 7 + 55).scale(1, 8.1), material(0.6, 0.15, 0.15, 0.8));
       [
@@ -1159,9 +1153,7 @@ const build_life_the_universe_and_everything = () => {
         1.7
       ]);
     });
-    newModel(() => {
-      meshAdd(gateBarsPolygons);
-    });
+    gateBarsModel();
     [
       -1,
       1

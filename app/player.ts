@@ -333,9 +333,12 @@ export const player_init = () => {
     movAngle = player_first_person ? (180 + camera_rotation.y) * DEG_TO_RAD : 0;
 
     movePlayer(
+      // x
       gameTimeDelta *
         (player_fly_velocity_x + player_speed * (strafe * Math.cos(movAngle) - forward * Math.sin(movAngle))),
+      // y
       -player_gravity * gameTimeDelta,
+      // z
       gameTimeDelta *
         (player_fly_velocity_z + player_speed * (strafe * Math.sin(movAngle) + forward * Math.cos(movAngle))),
     );

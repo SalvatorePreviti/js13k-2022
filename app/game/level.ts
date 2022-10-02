@@ -68,13 +68,18 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
       polygons_transform(cylinder(), translation(4, -1.2).scale3d(2), material(0.7, 0.4, 0.25, 0.3)),
     );
 
-    const gateBarsPolygons = integers_map(7, (i) =>
-      polygons_transform(
-        cylinder(6, 1),
-        translation(4 * (i / 6 - 0.5), 3).scale(0.2, 3, 0.2),
-        material(0.3, 0.3, 0.38),
-      ),
-    ).flat();
+    const gateBarsModel = () =>
+      newModel(() =>
+        integers_map(7, (i) =>
+          meshAdd(
+            polygons_transform(
+              cylinder(6, 1),
+              translation(4 * (i / 6 - 0.5), 3).scale(0.2, 3, 0.2),
+              material(0.3, 0.3, 0.38),
+            ),
+          ),
+        ),
+      );
 
     // ========= FIRST BOAT (modelId:2) ========= //
 
@@ -128,9 +133,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
       //  gate bottom
       meshAdd(cylinder(), translation(0, 1, z).scale(3, 0.2, 0.35), material(0.5, 0.5, 0.5, 0.3));
       // in and out gate bars
-      newModel(() => {
-        meshAdd(gateBarsPolygons);
-      });
+      gateBarsModel();
     });
 
     // horns
@@ -215,7 +218,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
     // ******** LEVEL 2 ********
 
-    const blackPlatform = (freq: number, amplitude: number, pz: number) =>
+    const blackPlatform = (pz: number) =>
       newModel(() => {
         GQuad.map(({ x, z }) => {
           // column body
@@ -242,8 +245,8 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
         meshAdd(cylinder(), translation(0, -3, pz).scale(8, 2, 8), material(0.4, 0.4, 0.4, 0.3));
       });
 
-    blackPlatform(0.7, 12, 35);
-    blackPlatform(1, 8.2, 55);
+    blackPlatform(35);
+    blackPlatform(55);
 
     // central oscillating platform
     newModel(() => {
@@ -348,9 +351,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
     // rotating hex corridor
 
-    newModel(() => {
-      meshAdd(hexCorridorPolygons);
-    }, MODEL_KIND_GAME_NO_ATTACH_PLAYER);
+    newModel(() => meshAdd(hexCorridorPolygons), MODEL_KIND_GAME_NO_ATTACH_PLAYER);
 
     // connection from rotating hex corridor to platforms
 
@@ -432,9 +433,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     );
 
     // central gate bars
-    newModel(() => {
-      meshAdd(gateBarsPolygons);
-    });
+    gateBarsModel();
 
     // hex columns
 
@@ -774,10 +773,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     });
 
     // far arc gate door
-
-    newModel(() => {
-      meshAdd(gateBarsPolygons);
-    });
+    gateBarsModel();
 
     // far arc gate
     [-1, 1].map((x) => {

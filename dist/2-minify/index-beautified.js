@@ -1064,7 +1064,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
         o = h(10, e => d1(s(z1(18), t[e]).reverse(), s(z1(18), t[e + 1]), 1)).flat();
       S(() => b([h1.slice(1)], c(-2).scale3d(3).rotate(90, 0)), 0),
         S(() => {
-          let e = (e, t, a) =>
+          let e = a =>
               S(() => {
                 h1.map(({ x: e, z: t }) => {
                   b(u(11, 1), c(4 * e, 4, a + 4 * t).scale(.8, 3, .8), d(.5, .3, .7, .6)),
@@ -1082,14 +1082,14 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 f(u(), c(0, -e / 2 - 6).scale(4, e - 3, 4)),
                 f(u(32, 1), c(0, e / 2 - 9).rotate(90, 0, 90).scale3d(4)),
               ),
-            a = v(
+            a = () => S(() => h(7, e => b(f(u(6, 1), c(4 * (e / 6 - .5), 3).scale(.2, 3, .2), d(.3, .3, .38))))),
+            l = v(
               f(u(30, 1, 1.15, 1), c(0, -3).scale(3.5, 1, 3.5), d(.7, .4, .25, .7)),
               f(u(30, 1, 1.3, 1), c(0, -2.5).scale(2.6, 1, 3), d(.7, .4, .25, .2)),
               f(u(), c(4, -1.2).scale3d(2), d(.7, .4, .25, .3)),
             ),
-            l = h(7, e => f(u(6, 1), c(4 * (e / 6 - .5), 3).scale(.2, 3, .2), d(.3, .3, .38))).flat(),
             r = (S(() => {
-              b(a), M(c(0, -3, 4));
+              b(l), M(c(0, -3, 4));
             }),
               M(c(-5.4, 1.5, -19).rotate(0, -90)),
               I(c(-.5, 2.8, -20), [0, 0, 2.5], [0, -3, 2.5]),
@@ -1101,9 +1101,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               [-15, 15].map(e => {
                 b(u(), c(0, 6.3, e).scale(4, .3, 1), d(.3, .3, .3, .4)),
                   b(u(), c(0, 1, e).scale(3, .2, .35), d(.5, .5, .5, .3)),
-                  S(() => {
-                    b(l);
-                  });
+                  a();
               }),
               h(5, t =>
                 h(2, e =>
@@ -1131,8 +1129,8 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 b(u(5), c(0, -.2).scale(5, 1, 5), d(.6, .65, .7, .3)), M(c(0, 1.2));
               }),
               M(c(15, -2, 4)),
-              e(0, 0, 35),
-              e(0, 0, 55),
+              e(35),
+              e(55),
               S(() => {
                 b(
                   v(
@@ -1181,9 +1179,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 ),
               ]),
             s = (b(r, c(-53, 0, 55)),
-              S(() => {
-                b(r);
-              }, 2),
+              S(() => b(r), 2),
               b(u(), c(-88.3, -5.1, 55).rotate(-30).scale(5, 1.25, 4.5), d(.7, .7, .7, .2)),
               b(u(3, 0, -.5), c(-88.4, -3.9, 55).rotate(0, -90, 17).scale(3, 1.45, 5.9), d(.8, .8, .8, .2)),
               b(v(
@@ -1207,9 +1203,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 f(u(), c(-100, 0, 70).scale(2, 2, 10), d(.5, .5, .5, .4)),
                 f(u(20, 1), c(-100, 2, 70).scale(2, 2, 10).rotate(90, 0), d(.5, .5, .5, .4)),
               )),
-              S(() => {
-                b(l);
-              }),
+              a(),
               h1.map(({ x: t, z: a }) => {
                 b(u(6), c(7 * t - 100, -3, 7 * a + 55).scale(1, 8.1), d(.6, .15, .15, .8)),
                   [4, -.4].map(e => b(u(6), c(7 * t - 100, e, 7 * a + 55).scale(1.3, .5, 1.3), d(.4, .2, .2, .8)));
@@ -1287,7 +1281,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               b(u(5), c(-84, -2, 85).scale(4, .8, 4).rotate(0, 10), d(.8, .1, .25, .4)),
               M(c(-84, -.5, 85).rotate(0, 45)),
               S(() => {
-                b(a), M(c(0, -3, -4).rotate(0, 180));
+                b(l), M(c(0, -3, -4).rotate(0, 180));
               }),
               v(
                 f(u(), c(0, -.5, 1).scale(1.15, 1.2, 6.5), d(.25, .25, .35, .3)),
@@ -1295,7 +1289,8 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 ...[-1.2, 1.2].map(e => f(u(), c(e, -.5, 1).scale(.14, .3, 6.5), d(.7, .2, 0, .3))),
               ));
           S(() => {
-            h(2, e => b(s, c(9 * e - 110 + (1 & e), 1.7, -12)));
+            h(2, e =>
+              b(s, c(9 * e - 110 + (1 & e), 1.7, -12)));
           }),
             S(() => {
               h(2, e => b(s, c(9 * (e + 2) - 110 + (1 & e), 1.7, -12)));
@@ -1307,7 +1302,8 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               v(
                 g(f(u(), c(26.5, -1.6, 10).scale(20, 2.08, 3)), f(u(), c(26.5, -.6, 10).scale(19, 2, .5))),
                 ...h(4, e => f(u(), c(13 + 9 * e + (1 & e), -.8, 9).scale(1.35, 1.35, 9))),
-                ...h(3, e => f(u(), c(17 + 9 * e, -.8, 9).scale(1.35, 1.35, 9))),
+                ...h(3, e =>
+                  f(u(), c(17 + 9 * e, -.8, 9).scale(1.35, 1.35, 9))),
               ),
               c(-123, 0, -12),
               d(.5, .5, .6, .2),
@@ -1368,9 +1364,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 ),
                 I(c(-5, 4), [0, -1.2, 1.7], [0, 1.2, 1.7]);
             }),
-            S(() => {
-              b(l);
-            }),
+            a(),
             [-1, 1].map(t => {
               [7.2, 1.5].map(e => b(u(15, 1), c(-7.5 * t - 100, e + .7, 96).scale(1.1, .5, 1.1), d(.5, .24, .2, .4))),
                 b(o, c(-5 * t - 100, 1.7, 114.5).scale(1.2, 10, 1.2).rotate(0, 90 * t - 90), d(1, 1, .8)),

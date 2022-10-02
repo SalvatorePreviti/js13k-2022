@@ -1658,7 +1658,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
             GQuad.slice(1),
           ], translation(-2).scale3d(3).rotate(90, 0)), 0),
           newModel(() => {
-            const blackPlatform = (freq, amplitude, pz) =>
+            const blackPlatform = (pz) =>
               newModel(() => {
                 GQuad.map(({ x, z }) => {
                   meshAdd(
@@ -1694,6 +1694,17 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 polygons_transform(cylinder(), translation(0, -height / 2 - 6).scale(4, height - 3, 4)),
                 polygons_transform(cylinder(32, 1), translation(0, height / 2 - 9).rotate(90, 0, 90).scale3d(4)),
               );
+            const gateBarsModel = () =>
+              newModel(() =>
+                integers_map(7, (i) =>
+                  meshAdd(
+                    polygons_transform(
+                      cylinder(6, 1),
+                      translation(4 * (i / 6 - 0.5), 3).scale(0.2, 3, 0.2),
+                      material(0.3, 0.3, 0.38),
+                    ),
+                  ))
+              );
             const boatPolygons = csg_polygons_subtract(
               polygons_transform(
                 cylinder(30, 1, 1.15, 1),
@@ -1707,12 +1718,6 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               ),
               polygons_transform(cylinder(), translation(4, -1.2).scale3d(2), material(0.7, 0.4, 0.25, 0.3)),
             );
-            const gateBarsPolygons = integers_map(7, (i) =>
-              polygons_transform(
-                cylinder(6, 1),
-                translation(4 * (i / 6 - 0.5), 3).scale(0.2, 3, 0.2),
-                material(0.3, 0.3, 0.38),
-              )).flat();
             const hexCorridorPolygons = (newModel(() => {
               meshAdd(boatPolygons), newLever(translation(0, -3, 4));
             }),
@@ -1756,9 +1761,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               ].map((z) => {
                 meshAdd(cylinder(), translation(0, 6.3, z).scale(4, 0.3, 1), material(0.3, 0.3, 0.3, 0.4)),
                   meshAdd(cylinder(), translation(0, 1, z).scale(3, 0.2, 0.35), material(0.5, 0.5, 0.5, 0.3)),
-                  newModel(() => {
-                    meshAdd(gateBarsPolygons);
-                  });
+                  gateBarsModel();
               }),
               integers_map(
                 5,
@@ -1824,8 +1827,8 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   newLever(translation(0, 1.2));
               }),
               newLever(translation(15, -2, 4)),
-              blackPlatform(0, 0, 35),
-              blackPlatform(0, 0, 55),
+              blackPlatform(35),
+              blackPlatform(55),
               newModel(() => {
                 meshAdd(
                   csg_polygons_subtract(
@@ -1918,9 +1921,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 ),
               ]);
             const pushingRod = (meshAdd(hexCorridorPolygons, translation(-53, 0, 55)),
-              newModel(() => {
-                meshAdd(hexCorridorPolygons);
-              }, 2),
+              newModel(() => meshAdd(hexCorridorPolygons), 2),
               meshAdd(
                 cylinder(),
                 translation(-88.3, -5.1, 55).rotate(-30).scale(5, 1.25, 4.5),
@@ -2024,9 +2025,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   ),
                 ),
               ),
-              newModel(() => {
-                meshAdd(gateBarsPolygons);
-              }),
+              gateBarsModel(),
               GQuad.map(({ x, z }) => {
                 meshAdd(
                   cylinder(6),
@@ -2390,9 +2389,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                     1.7,
                   ]);
               }),
-              newModel(() => {
-                meshAdd(gateBarsPolygons);
-              }),
+              gateBarsModel(),
               [
                 -1,
                 1,
