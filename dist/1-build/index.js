@@ -890,6 +890,17 @@ const build_life_the_universe_and_everything = () => {
   newModel(() => {
     const makeBigArcPolygons = (height) => csg_polygons_subtract(polygons_transform(cylinder(), translation(0, -height / 2).scale(6, height - 1, 2.2)), polygons_transform(cylinder(), translation(0, -height / 2 - 6).scale(4, height - 3, 4)), polygons_transform(cylinder(32, 1), translation(0, height / 2 - 9).rotate(90, 0, 90).scale3d(4)));
     const gateBarsModel = () => newModel(() => integers_map(7, (i) => meshAdd(polygons_transform(cylinder(6, 1), translation(4 * (i / 6 - 0.5), 3).scale(0.2, 3, 0.2), material(0.3, 0.3, 0.38)))));
+    const blackPlatform = (pz) => newModel(() => {
+      GQuad.map(({ x, z }) => {
+        meshAdd(cylinder(11, 1), translation(x * 4, 4, pz + z * 4).scale(0.8, 3, 0.8), material(0.5, 0.3, 0.7, 0.6));
+        meshAdd(cylinder(), translation(x * 4, 7, pz + z * 4).scale(1, 0.3), material(0.5, 0.5, 0.5, 0.3));
+      });
+      meshAdd(csg_polygons_subtract(polygons_transform(cylinder(), translation(0, 0, pz).scale(5, 1, 5), material(0.8, 0.8, 0.8, 0.3)), ...[
+        -1,
+        1
+      ].map((i) => polygons_transform(cylinder(), translation(5 * i, 0.2, pz).rotate(i * -30).scale(4, 1, 2), material(0.8, 0.8, 0.8, 0.3)))));
+      meshAdd(cylinder(), translation(0, -3, pz).scale(8, 2, 8), material(0.4, 0.4, 0.4, 0.3));
+    });
     const boatPolygons = csg_polygons_subtract(polygons_transform(cylinder(30, 1, 1.15, 1), translation(0, -3).scale(3.5, 1, 3.5), material(0.7, 0.4, 0.25, 0.7)), polygons_transform(cylinder(30, 1, 1.3, 1), translation(0, -2.5).scale(2.6, 1, 3), material(0.7, 0.4, 0.25, 0.2)), polygons_transform(cylinder(), translation(4, -1.2).scale3d(2), material(0.7, 0.4, 0.25, 0.3)));
     newModel(() => {
       meshAdd(boatPolygons);
@@ -949,20 +960,8 @@ const build_life_the_universe_and_everything = () => {
         4.5
       ]);
     });
-    [
-      35,
-      55
-    ].map((pz) => newModel(() => {
-      GQuad.map(({ x, z }) => {
-        meshAdd(cylinder(11, 1), translation(x * 4, 4, pz + z * 4).scale(0.8, 3, 0.8), material(0.5, 0.3, 0.7, 0.6));
-        meshAdd(cylinder(), translation(x * 4, 7, pz + z * 4).scale(1, 0.3), material(0.5, 0.5, 0.5, 0.3));
-      });
-      meshAdd(csg_polygons_subtract(polygons_transform(cylinder(), translation(0, 0, pz).scale(5, 1, 5), material(0.8, 0.8, 0.8, 0.3)), ...[
-        -1,
-        1
-      ].map((i) => polygons_transform(cylinder(), translation(5 * i, 0.2, pz).rotate(i * -30).scale(4, 1, 2), material(0.8, 0.8, 0.8, 0.3)))));
-      meshAdd(cylinder(), translation(0, -3, pz).scale(8, 2, 8), material(0.4, 0.4, 0.4, 0.3));
-    }));
+    blackPlatform(35);
+    blackPlatform(55);
     meshAdd(cylinder(), translation(-21.1 + 2.45, -3, 55).scale(2.45, 1.4, 2.7), material(0.9, 0.9, 0.9, 0.2));
     newModel(() => {
       meshAdd(cylinder(3), translation(-23, -1.7, 55.8).scale(5, 0.7, 8.3), material(0.3, 0.6, 0.6, 0.2));
@@ -1317,10 +1316,10 @@ for (const s in gl)
   ].reduce((p, c, i) => (p * i + c.charCodeAt(0)) % 434, 0).toString(36)] = gl[s];
 const worldMatricesBuffer = new Float32Array(624);
 const objectsMatricesBuffer = new Float32Array(624);
+let shouldRotatePlatforms;
 let rotatingPlatform1Rotation;
 let rotatingPlatform2Rotation;
 let rotatingHexCorridorRotation;
-let shouldRotatePlatforms;
 const boatAnimationMatrix = (matrix, x, y, z) => matrix.translateSelf(x + /* @__PURE__ */ Math.sin(gameTime + 2) / 5, y + /* @__PURE__ */ Math.sin(gameTime * 0.8) / 3, z).rotateSelf(/* @__PURE__ */ Math.sin(gameTime) * 2, /* @__PURE__ */ Math.sin(gameTime * 0.7), /* @__PURE__ */ Math.sin(gameTime * 0.9));
 const eppur_si_muove = () => {
   let counter = 1;
@@ -1334,10 +1333,10 @@ const eppur_si_muove = () => {
   next().translateSelf(0, 0, 15).scaleSelf(1, clamp(1.22 - levers[2].$lerpValue), 1);
   next().translateSelf(-99.7, -1.9, 63.5).scaleSelf(1, clamp(1.1 - levers[6].$lerpValue), 1);
   next().translateSelf(-100, 0.6, 96.5).scaleSelf(0.88, 1.2 - levers[12].$lerpValue);
-  next().translateSelf(0, levers[3].$lerpValue > 0.01 ? (/* @__PURE__ */ Math.cos(gameTime * 1.5) * 5 + 2) * levers[3].$lerpValue2 * (1 - levers[2].$lerpValue) + (1 - levers[3].$lerpValue) * -15 : -500, 0);
+  next().translateSelf(0, levers[3].$lerpValue < 0.01 ? -500 : (1 - levers[2].$lerpValue) * levers[3].$lerpValue2 * (/* @__PURE__ */ Math.cos(gameTime * 1.5) * 5 + 2) + 15 * (levers[3].$lerpValue - 1), 0);
   const level2Oscillation = min(levers[2].$lerpValue2, 1 - levers[4].$lerpValue2);
-  next().translateSelf(level2Oscillation * /* @__PURE__ */ Math.sin(0.7 * 3 + gameTime * 0.7) * 12);
-  next().translateSelf(level2Oscillation * /* @__PURE__ */ Math.sin(3 + gameTime) * 8.2);
+  next().translateSelf(level2Oscillation * /* @__PURE__ */ Math.sin(gameTime * 0.7 + 2) * 12);
+  next().translateSelf(level2Oscillation * /* @__PURE__ */ Math.sin(gameTime + 3) * 8.2);
   next().translateSelf(level2Oscillation * /* @__PURE__ */ Math.sin(gameTime / 1.5 + 2) * 12);
   next().translateSelf((1 - level2Oscillation) * 9.8);
   const level3Oscillation = clamp(1 - level2Oscillation * 5) * lerpneg(levers[4].$lerpValue, levers[5].$lerpValue);
@@ -1346,15 +1345,14 @@ const eppur_si_muove = () => {
   next().translateSelf(0, levers[4].$lerpValue2 * -6.5);
   next().translateSelf(-75, (1 - levers[5].$lerpValue2) * (1 - levers[6].$lerpValue) * 3, 55).rotateSelf(180 * (1 - levers[5].$lerpValue2) + rotatingHexCorridorRotation, 0);
   const shouldOscillateElevators = lerpneg(levers[7].$lerpValue2, levers[6].$lerpValue2);
-  next().translateSelf(0, (1 - max(levers[6].$lerpValue, levers[7].$lerpValue)) * 3.5 + shouldOscillateElevators * /* @__PURE__ */ Math.sin(gameTime) * 5);
-  next().translateSelf(0, shouldOscillateElevators * /* @__PURE__ */ Math.sin(gameTime + 3) * 6, /* @__PURE__ */ Math.sin(gameTime * 0.6 + 1) * 6 * shouldOscillateElevators);
+  next().translateSelf(0, shouldOscillateElevators * /* @__PURE__ */ Math.sin(gameTime) * 5 + (1 - max(levers[6].$lerpValue, levers[7].$lerpValue)) * 3.5);
+  next().translateSelf(0, shouldOscillateElevators * /* @__PURE__ */ Math.sin(gameTime + 3) * 6, shouldOscillateElevators * /* @__PURE__ */ Math.sin(gameTime * 0.6 + 1) * 6);
   next().translateSelf(0, levers[7].$lerpValue2 * -7.3);
   boatAnimationMatrix(next(), -123, 1.4, 55 + secondBoatLerp * -65);
   const shouldPushRods = lerpneg(levers[10].$lerpValue, levers[11].$lerpValue);
   next().translateSelf(0, -2, shouldPushRods * abs(/* @__PURE__ */ Math.sin(gameTime * 1.1)) * -8.5 + 10);
   next().translateSelf(0, -2, shouldPushRods * abs(/* @__PURE__ */ Math.sin(gameTime * 2.1)) * -8.5 + 10);
-  const shouldBlockRods = (1 - levers[10].$lerpValue) * (1 - shouldPushRods);
-  next().translateSelf(0, -2, max(shouldBlockRods, shouldPushRods * abs(/* @__PURE__ */ Math.sin(gameTime * 1.5))) * -8.5 + 10);
+  next().translateSelf(0, -2, max((1 - levers[10].$lerpValue) * (1 - shouldPushRods), shouldPushRods * abs(/* @__PURE__ */ Math.sin(gameTime * 1.5))) * -8.5 + 10);
   const hexPadShouldOscillate = lerpneg(levers[8].$lerpValue2, levers[12].$lerpValue2);
   for (let i = 0; i < 4; i++)
     next().translateSelf((i > 2 ? (1 - hexPadShouldOscillate) * 2 + hexPadShouldOscillate : 0) - 100, hexPadShouldOscillate * /* @__PURE__ */ Math.sin(gameTime * 1.3 + i * 1.7) * (3 + i / 3) + 0.7, (i & 1 ? -1 : 1) * (1 - levers[8].$lerpValue2) * (1 - levers[12].$lerpValue2) * -7 + max(hexPadShouldOscillate, 0.05) * /* @__PURE__ */ Math.cos(gameTime * 1.3 + i * 7) * (4 - 2 * (1 - i / 3)) + 115);
@@ -2101,6 +2099,6 @@ loadStep(() => {
   const image = new Image();
   image.onload = image.onerror = end;
   image.src = groundTextureSvg;
-  NO_INLINE(loadSong)(songLoaded);
+  loadSong(songLoaded);
 });
 //# sourceMappingURL=index.js.map

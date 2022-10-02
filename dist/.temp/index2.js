@@ -8,10 +8,10 @@ let updateInput;
 let projection;
 let csm_projections;
 let currentEditModel;
+let shouldRotatePlatforms;
 let rotatingPlatform1Rotation;
 let rotatingPlatform2Rotation;
 let rotatingHexCorridorRotation;
-let shouldRotatePlatforms;
 let player_update;
 let gameTime = 0;
 let absoluteTime = 0;
@@ -1108,118 +1108,6 @@ const osc_sin = (value) => Math.sin(value * Math.PI * 2);
 const osc_square = (value) => value % 1 < 0.5 ? 1 : -1;
 const osc_saw = (value) => value % 1 * 2 - 1;
 const osc_tri = (value) => (value = value % 1 * 4) < 2 ? value - 1 : 3 - value;
-const loadSong = (done) => {
-  let channelIndex = 0;
-  const next = () => {
-    let mixIndex = 0;
-    const make = (song_rowLen) => {
-      let n;
-      let f;
-      let filterActive;
-      let low = 0;
-      let band = 0;
-      const noteCache = [];
-      const chnBuf = new Int32Array(768 * song_rowLen);
-      const lfoFreq = 2 ** (LFO_FREQ - 9) / song_rowLen;
-      const panFreq = Math.PI * 2 ** (FX_PAN_FREQ - 8) / song_rowLen;
-      const dly = FX_DELAY_TIME * song_rowLen & -2;
-      for (let p = 0; p <= 11; ++p) {
-        for (
-          let row = 0, cp = +"000001234556112341234556011111111112011111111112000001111112"[12 * channelIndex + p];
-          row < 32;
-          ++row
-        ) {
-          const rowStartSample = (32 * p + row) * song_rowLen;
-          for (let col = 0; col < 4; ++col) {
-            if (n = 0, cp && (n = COLUMNS[cp - 1].charCodeAt(row + 32 * col) - 40, n += 0 < n ? 106 : 0), n) {
-              const noteBuf = noteCache[n] || (noteCache[n] = ((note) => {
-                let o1t;
-                let o2t;
-                let c1 = 0;
-                let c2 = 0;
-                const OSC1_WAVEFORM = channelIndex < 2 ? osc_saw : osc_sin;
-                const OSC2_WAVEFORM = channelIndex < 2 ? channelIndex < 1 ? osc_square : osc_tri : osc_sin;
-                const noteBuf2 = new Int32Array(ENV_ATTACK + ENV_SUSTAIN + ENV_RELEASE);
-                for (let j1 = 0, j2 = 0; ENV_ATTACK + ENV_SUSTAIN + ENV_RELEASE > j1; ++j1, ++j2) {
-                  let e = 1;
-                  ENV_ATTACK > j1
-                    ? e = j1 / ENV_ATTACK
-                    : ENV_ATTACK + ENV_SUSTAIN > j1
-                      || (e = (1 - (e = (j1 - ENV_ATTACK - ENV_SUSTAIN) / ENV_RELEASE))
-                        * 3 ** (-ENV_EXP_DECAY / 16 * e)),
-                    j2 < 0
-                    || (j2 -= 4 * song_rowLen,
-                      o1t = getnotefreq(note + OSC1_SEMI),
-                      o2t = getnotefreq(note + OSC2_SEMI) * (1 + (channelIndex ? 0 : 0.0072))),
-                    noteBuf2[j1] = 80
-                        * (OSC1_WAVEFORM(c1 += o1t * e ** (OSC1_XENV / 32)) * OSC1_VOL
-                          + OSC2_WAVEFORM(c2 += o2t * e ** (OSC2_XENV / 32)) * OSC2_VOL
-                          + (NOISE_VOL ? (2 * Math.random() - 1) * NOISE_VOL : 0))
-                        * e | 0;
-                }
-                return noteBuf2;
-              })(n));
-              for (let j = 0, i = 2 * rowStartSample; noteBuf.length > j; ++j, i += 2) chnBuf[i] += noteBuf[j];
-            }
-          }
-          for (let rsample, j1 = 0; song_rowLen > j1; ++j1) {
-            let lsample = 0;
-            let k = 2 * (rowStartSample + j1);
-            var high = (((rsample = chnBuf[k]) || filterActive)
-              && (f = 0.00308 * FX_FREQ,
-                channelIndex !== 1 && channelIndex !== 4 || (f *= osc_sin(lfoFreq * k) * LFO_AMT / 512 + 0.5),
-                f = 1.5 * Math.sin(f),
-                low += f * band,
-                high = (1 - FX_RESONANCE / 255) * (rsample - band) - low,
-                band += f * high,
-                rsample = channelIndex === 4 ? band : channelIndex === 3 ? high : low,
-                channelIndex
-                || (rsample = (rsample *= 22e-5) < 1 ? -1 < rsample ? osc_sin(rsample / 4) : -1 : 1, rsample /= 22e-5),
-                rsample *= FX_DRIVE / 32,
-                filterActive = 1e-5 < rsample * rsample,
-                high = Math.sin(panFreq * k) * FX_PAN_AMT / 512 + 0.5,
-                lsample = rsample * (1 - high),
-                rsample *= high),
-              k < dly
-              || (lsample += chnBuf[1 + k - dly] * FX_DELAY_AMT / 255, rsample += chnBuf[k - dly] * FX_DELAY_AMT / 255),
-              mixIndex + k >> 1);
-            mixBufferA[high] += (chnBuf[k] = lsample) / 65536, mixBufferB[high] += (chnBuf[++k] = rsample) / 65536;
-          }
-        }
-      }
-      mixIndex += 768 * song_rowLen;
-    };
-    const COLUMNS = song_columns[channelIndex];
-    const [
-      OSC1_VOL,
-      OSC1_SEMI,
-      OSC1_XENV,
-      OSC2_VOL,
-      OSC2_SEMI,
-      OSC2_XENV,
-      NOISE_VOL,
-      ENV_ATTACK,
-      ENV_SUSTAIN,
-      _ENV_RELEASE,
-      ENV_EXP_DECAY,
-      LFO_FREQ,
-      FX_FREQ,
-      FX_RESONANCE,
-      FX_DRIVE,
-      FX_PAN_AMT,
-      FX_PAN_FREQ,
-      FX_DELAY_AMT,
-      FX_DELAY_TIME,
-      LFO_AMT,
-    ] = song_instruments[channelIndex];
-    const ENV_RELEASE = _ENV_RELEASE ** 2 * 4;
-    make(5513), make(4562), make(3891), loadStep(++channelIndex < 5 ? next : done);
-  };
-  const audioBuffer = audioContext.createBuffer(2, 5362944, 44100);
-  const mixBufferA = audioBuffer.getChannelData(0);
-  const mixBufferB = audioBuffer.getChannelData(1);
-  songAudioSource.buffer = audioBuffer, songAudioSource.loop = !0, loadStep(next);
-};
 const audioContext = new AudioContext();
 const identity = new DOMMatrix();
 const tempMatrix = new DOMMatrix();
@@ -1298,16 +1186,16 @@ loadStep(() => {
                 next().translateSelf(-100, 0.6, 96.5).scaleSelf(0.88, 1.2 - levers[12].$lerpValue),
                 next().translateSelf(
                   0,
-                  0.01 < levers[3].$lerpValue
-                    ? (5 * Math.cos(1.5 * gameTime) + 2) * levers[3].$lerpValue2 * (1 - levers[2].$lerpValue)
-                      + -15 * (1 - levers[3].$lerpValue)
-                    : -500,
+                  levers[3].$lerpValue < 0.01
+                    ? -500
+                    : (1 - levers[2].$lerpValue) * levers[3].$lerpValue2 * (5 * Math.cos(1.5 * gameTime) + 2)
+                      + 15 * (levers[3].$lerpValue - 1),
                   0,
                 ),
                 min(levers[2].$lerpValue2, 1 - levers[4].$lerpValue2));
             var globalTime =
-              (next().translateSelf(dt * Math.sin(0.7 * 3 + 0.7 * gameTime) * 12),
-                next().translateSelf(dt * Math.sin(3 + gameTime) * 8.2),
+              (next().translateSelf(dt * Math.sin(0.7 * gameTime + 2) * 12),
+                next().translateSelf(dt * Math.sin(gameTime + 3) * 8.2),
                 next().translateSelf(dt * Math.sin(gameTime / 1.5 + 2) * 12),
                 next().translateSelf(9.8 * (1 - dt)),
                 clamp(1 - 5 * dt) * lerpneg(levers[4].$lerpValue, levers[5].$lerpValue));
@@ -1322,18 +1210,21 @@ loadStep(() => {
                 lerpneg(levers[7].$lerpValue2, levers[6].$lerpValue2));
             var globalTime = (next().translateSelf(
               0,
-              3.5 * (1 - max(levers[6].$lerpValue, levers[7].$lerpValue)) + dt * Math.sin(gameTime) * 5,
+              dt * Math.sin(gameTime) * 5 + 3.5 * (1 - max(levers[6].$lerpValue, levers[7].$lerpValue)),
             ),
-              next().translateSelf(0, dt * Math.sin(gameTime + 3) * 6, 6 * Math.sin(0.6 * gameTime + 1) * dt),
+              next().translateSelf(0, dt * Math.sin(gameTime + 3) * 6, dt * Math.sin(0.6 * gameTime + 1) * 6),
               next().translateSelf(0, -7.3 * levers[7].$lerpValue2),
               boatAnimationMatrix(next(), -123, 1.4, 55 + -65 * secondBoatLerp),
               lerpneg(levers[10].$lerpValue, levers[11].$lerpValue));
-            var dt =
+            const hexPadShouldOscillate =
               (next().translateSelf(0, -2, globalTime * abs(Math.sin(1.1 * gameTime)) * -8.5 + 10),
                 next().translateSelf(0, -2, globalTime * abs(Math.sin(2.1 * gameTime)) * -8.5 + 10),
-                (1 - levers[10].$lerpValue) * (1 - globalTime));
-            const hexPadShouldOscillate =
-              (next().translateSelf(0, -2, -8.5 * max(dt, globalTime * abs(Math.sin(1.5 * gameTime))) + 10),
+                next().translateSelf(
+                  0,
+                  -2,
+                  -8.5 * max((1 - levers[10].$lerpValue) * (1 - globalTime), globalTime * abs(Math.sin(1.5 * gameTime)))
+                    + 10,
+                ),
                 lerpneg(levers[8].$lerpValue2, levers[12].$lerpValue2));
             for (let i = 0; i < 4; i++) {
               next().translateSelf(
@@ -1558,9 +1449,10 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
     }
   };
   const image = new Image();
-  image.onload = image.onerror = end,
-    image.src = groundTextureSvg,
-    NO_INLINE(loadSong)(() => {
+  image.onload = image.onerror = end, image.src = groundTextureSvg;
+  {
+    let channelIndex = 0;
+    const done = () => {
       loadStep(() => {
         {
           let polygon;
@@ -1638,8 +1530,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
             secondBoatLerp = savedSecondBoatLerp,
             gameTime = savedGameTime,
             gameTimeDelta = 0;
-        } catch {
-        }
+        } catch {}
         updateCollectedSoulsCounter(), firstBoatLerp = clamp(player_last_pulled_lever);
       });
       {
@@ -1647,17 +1538,50 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
           11,
           (i) => translation(Math.sin(i / 10 * Math.PI), i / 10).rotate(+i).scale(1.0001 - i / 10, 0, 1 - i / 10),
         );
-        const hornPolygons = integers_map(10, (i) =>
-          cylinder_sides(
-            polygon_transform(polygon_regular(18), hornsMatrices[i]).reverse(),
-            polygon_transform(polygon_regular(18), hornsMatrices[i + 1]),
-            1,
-          )).flat();
+        const hornPolygons = integers_map(
+          10,
+          (i) =>
+            cylinder_sides(
+              polygon_transform(polygon_regular(18), hornsMatrices[i]).reverse(),
+              polygon_transform(polygon_regular(18), hornsMatrices[i + 1]),
+              1,
+            ),
+        ).flat();
         newModel(() =>
           meshAdd([
             GQuad.slice(1),
           ], translation(-2).scale3d(3).rotate(90, 0)), 0),
           newModel(() => {
+            const blackPlatform = (pz) =>
+              newModel(() => {
+                GQuad.map(({ x, z }) => {
+                  meshAdd(
+                    cylinder(11, 1),
+                    translation(4 * x, 4, pz + 4 * z).scale(0.8, 3, 0.8),
+                    material(0.5, 0.3, 0.7, 0.6),
+                  ), meshAdd(cylinder(), translation(4 * x, 7, pz + 4 * z).scale(1, 0.3), material(0.5, 0.5, 0.5, 0.3));
+                }),
+                  meshAdd(
+                    csg_polygons_subtract(
+                      polygons_transform(
+                        cylinder(),
+                        translation(0, 0, pz).scale(5, 1, 5),
+                        material(0.8, 0.8, 0.8, 0.3),
+                      ),
+                      ...[
+                        -1,
+                        1,
+                      ].map((i) =>
+                        polygons_transform(
+                          cylinder(),
+                          translation(5 * i, 0.2, pz).rotate(-30 * i).scale(4, 1, 2),
+                          material(0.8, 0.8, 0.8, 0.3),
+                        )
+                      ),
+                    ),
+                  ),
+                  meshAdd(cylinder(), translation(0, -3, pz).scale(8, 2, 8), material(0.4, 0.4, 0.4, 0.3));
+              });
             const makeBigArcPolygons = (height) =>
               csg_polygons_subtract(
                 polygons_transform(cylinder(), translation(0, -height / 2).scale(6, height - 1, 2.2)),
@@ -1820,45 +1744,8 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                     4.5,
                   ]);
               }),
-              [
-                35,
-                55,
-              ].map((pz) =>
-                newModel(() => {
-                  GQuad.map(({ x, z }) => {
-                    meshAdd(
-                      cylinder(11, 1),
-                      translation(4 * x, 4, pz + 4 * z).scale(0.8, 3, 0.8),
-                      material(0.5, 0.3, 0.7, 0.6),
-                    ),
-                      meshAdd(
-                        cylinder(),
-                        translation(4 * x, 7, pz + 4 * z).scale(1, 0.3),
-                        material(0.5, 0.5, 0.5, 0.3),
-                      );
-                  }),
-                    meshAdd(
-                      csg_polygons_subtract(
-                        polygons_transform(
-                          cylinder(),
-                          translation(0, 0, pz).scale(5, 1, 5),
-                          material(0.8, 0.8, 0.8, 0.3),
-                        ),
-                        ...[
-                          -1,
-                          1,
-                        ].map((i) =>
-                          polygons_transform(
-                            cylinder(),
-                            translation(5 * i, 0.2, pz).rotate(-30 * i).scale(4, 1, 2),
-                            material(0.8, 0.8, 0.8, 0.3),
-                          )
-                        ),
-                      ),
-                    ),
-                    meshAdd(cylinder(), translation(0, -3, pz).scale(8, 2, 8), material(0.4, 0.4, 0.4, 0.3));
-                })
-              ),
+              blackPlatform(35),
+              blackPlatform(55),
               meshAdd(cylinder(), translation(-18.65, -3, 55).scale(2.45, 1.4, 2.7), material(0.9, 0.9, 0.9, 0.2)),
               newModel(() => {
                 meshAdd(cylinder(3), translation(-23, -1.7, 55.8).scale(5, 0.7, 8.3), material(0.3, 0.6, 0.6, 0.2)),
@@ -2552,29 +2439,25 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 material(0.1, 0.55, 0.45, 0.2),
                 material(0.2, 0.5, 0.5, 0.3),
                 material(0.3, 0.45, 0.55, 0.4),
-              ].map((m, i) =>
-                newModel(() => {
-                  meshAdd(cylinder(), translation(-23.5, 0.5, 91 + 6.8 * i).scale(i === 1 ? 2 : 3.3, 1, 3.3), m),
-                    i === 2
-                    && meshAdd(cylinder(), translation(-29.1, 0.4, 91).scale(2.1, 1, 3), material(0.7, 0.7, 0.7, 0.3)),
-                    i === 1
-                    && meshAdd(
-                      cylinder(),
-                      translation(-16.1, 0.5, 103.5).rotate(-3.5).scale(3.9, 0.8, 2).skewX(-1),
-                      material(0.6, 0.6, 0.7, 0.3),
-                    );
-                })
-              ),
+              ].map((m, i) => newModel(() => {
+                meshAdd(cylinder(), translation(-23.5, 0.5, 91 + 6.8 * i).scale(i === 1 ? 2 : 3.3, 1, 3.3), m),
+                  i === 2
+                  && meshAdd(cylinder(), translation(-29.1, 0.4, 91).scale(2.1, 1, 3), material(0.7, 0.7, 0.7, 0.3)),
+                  i === 1
+                  && meshAdd(
+                    cylinder(),
+                    translation(-16.1, 0.5, 103.5).rotate(-3.5).scale(3.9, 0.8, 2).skewX(-1),
+                    material(0.6, 0.6, 0.7, 0.3),
+                  );
+              })),
               [
                 -1,
                 1,
-              ].map((x) =>
-                meshAdd(
-                  hornPolygons,
-                  translation(-8 * x, 1, 85).scale(1.2, 10, 1.2).rotate(0, 90 * x + 90),
-                  material(1, 1, 0.8),
-                )
-              ),
+              ].map((x) => meshAdd(
+                hornPolygons,
+                translation(-8 * x, 1, 85).scale(1.2, 10, 1.2).rotate(0, 90 * x + 90),
+                material(1, 1, 0.8),
+              )),
               integers_map(3, (i) =>
                 meshAdd(
                   makeBigArcPolygons(24.7 - 0.7 * (1 & i)),
@@ -2735,7 +2618,119 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               ].map((x) => meshAdd(sphere(12), translation(0.16 * x, 0.4, -0.36).scale3d(0.09)));
           }, 0);
       }
-    });
+    };
+    const next = () => {
+      let mixIndex = 0;
+      const make = (song_rowLen) => {
+        let n;
+        let f;
+        let filterActive;
+        let low = 0;
+        let band = 0;
+        const noteCache = [];
+        const chnBuf = new Int32Array(768 * song_rowLen);
+        const lfoFreq = 2 ** (LFO_FREQ - 9) / song_rowLen;
+        const panFreq = Math.PI * 2 ** (FX_PAN_FREQ - 8) / song_rowLen;
+        const dly = FX_DELAY_TIME * song_rowLen & -2;
+        for (let p = 0; p <= 11; ++p) {
+          for (
+            let row = 0, cp = +"000001234556112341234556011111111112011111111112000001111112"[12 * channelIndex + p];
+            row < 32;
+            ++row
+          ) {
+            const rowStartSample = (32 * p + row) * song_rowLen;
+            for (let col = 0; col < 4; ++col) {
+              if (n = 0, cp && (n = COLUMNS[cp - 1].charCodeAt(row + 32 * col) - 40, n += 0 < n ? 106 : 0), n) {
+                const noteBuf = noteCache[n] || (noteCache[n] = ((note) => {
+                  let o1t;
+                  let o2t;
+                  let c1 = 0;
+                  let c2 = 0;
+                  const OSC1_WAVEFORM = channelIndex < 2 ? osc_saw : osc_sin;
+                  const OSC2_WAVEFORM = channelIndex < 2 ? channelIndex < 1 ? osc_square : osc_tri : osc_sin;
+                  const noteBuf2 = new Int32Array(ENV_ATTACK + ENV_SUSTAIN + ENV_RELEASE);
+                  for (let j1 = 0, j2 = 0; ENV_ATTACK + ENV_SUSTAIN + ENV_RELEASE > j1; ++j1, ++j2) {
+                    let e = 1;
+                    ENV_ATTACK > j1
+                      ? e = j1 / ENV_ATTACK
+                      : ENV_ATTACK + ENV_SUSTAIN > j1
+                        || (e = (1 - (e = (j1 - ENV_ATTACK - ENV_SUSTAIN) / ENV_RELEASE))
+                          * 3 ** (-ENV_EXP_DECAY / 16 * e)),
+                      j2 < 0
+                      || (j2 -= 4 * song_rowLen,
+                        o1t = getnotefreq(note + OSC1_SEMI),
+                        o2t = getnotefreq(note + OSC2_SEMI) * (1 + (channelIndex ? 0 : 0.0072))),
+                      noteBuf2[j1] = 80
+                          * (OSC1_WAVEFORM(c1 += o1t * e ** (OSC1_XENV / 32)) * OSC1_VOL
+                            + OSC2_WAVEFORM(c2 += o2t * e ** (OSC2_XENV / 32)) * OSC2_VOL
+                            + (NOISE_VOL ? (2 * Math.random() - 1) * NOISE_VOL : 0))
+                          * e | 0;
+                  }
+                  return noteBuf2;
+                })(n));
+                for (let j = 0, i = 2 * rowStartSample; noteBuf.length > j; ++j, i += 2) chnBuf[i] += noteBuf[j];
+              }
+            }
+            for (let rsample, j1 = 0; song_rowLen > j1; ++j1) {
+              let lsample = 0;
+              let k = 2 * (rowStartSample + j1);
+              var high = (((rsample = chnBuf[k]) || filterActive)
+                && (f = 0.00308 * FX_FREQ,
+                  channelIndex !== 1 && channelIndex !== 4 || (f *= osc_sin(lfoFreq * k) * LFO_AMT / 512 + 0.5),
+                  f = 1.5 * Math.sin(f),
+                  low += f * band,
+                  high = (1 - FX_RESONANCE / 255) * (rsample - band) - low,
+                  band += f * high,
+                  rsample = channelIndex === 4 ? band : channelIndex === 3 ? high : low,
+                  channelIndex
+                  || (rsample = (rsample *= 22e-5) < 1 ? -1 < rsample ? osc_sin(rsample / 4) : -1 : 1,
+                    rsample /= 22e-5),
+                  rsample *= FX_DRIVE / 32,
+                  filterActive = 1e-5 < rsample * rsample,
+                  high = Math.sin(panFreq * k) * FX_PAN_AMT / 512 + 0.5,
+                  lsample = rsample * (1 - high),
+                  rsample *= high),
+                k < dly
+                || (lsample += chnBuf[1 + k - dly] * FX_DELAY_AMT / 255,
+                  rsample += chnBuf[k - dly] * FX_DELAY_AMT / 255),
+                mixIndex + k >> 1);
+              mixBufferA[high] += (chnBuf[k] = lsample) / 65536, mixBufferB[high] += (chnBuf[++k] = rsample) / 65536;
+            }
+          }
+        }
+        mixIndex += 768 * song_rowLen;
+      };
+      const COLUMNS = song_columns[channelIndex];
+      const [
+        OSC1_VOL,
+        OSC1_SEMI,
+        OSC1_XENV,
+        OSC2_VOL,
+        OSC2_SEMI,
+        OSC2_XENV,
+        NOISE_VOL,
+        ENV_ATTACK,
+        ENV_SUSTAIN,
+        _ENV_RELEASE,
+        ENV_EXP_DECAY,
+        LFO_FREQ,
+        FX_FREQ,
+        FX_RESONANCE,
+        FX_DRIVE,
+        FX_PAN_AMT,
+        FX_PAN_FREQ,
+        FX_DELAY_AMT,
+        FX_DELAY_TIME,
+        LFO_AMT,
+      ] = song_instruments[channelIndex];
+      const ENV_RELEASE = _ENV_RELEASE ** 2 * 4;
+      make(5513), make(4562), make(3891), loadStep(++channelIndex < 5 ? next : done);
+    };
+    const audioBuffer = audioContext.createBuffer(2, 5362944, 44100);
+    const mixBufferA = audioBuffer.getChannelData(0);
+    const mixBufferB = audioBuffer.getChannelData(1);
+    songAudioSource.buffer = audioBuffer, songAudioSource.loop = !0, loadStep(next);
+  }
 }),
   NO_INLINE(`<!DOCTYPE html><html><head>
     <title>666</title>

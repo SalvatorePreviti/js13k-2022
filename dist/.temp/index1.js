@@ -1023,6 +1023,29 @@ const build_life_the_universe_and_everything = () => {
             ),
         )
       );
+    const blackPlatform = (pz) =>
+      newModel(() => {
+        GQuad.map(({ x, z }) => {
+          meshAdd(cylinder(11, 1), translation(x * 4, 4, pz + z * 4).scale(0.8, 3, 0.8), material(0.5, 0.3, 0.7, 0.6));
+          meshAdd(cylinder(), translation(x * 4, 7, pz + z * 4).scale(1, 0.3), material(0.5, 0.5, 0.5, 0.3));
+        });
+        meshAdd(
+          csg_polygons_subtract(
+            polygons_transform(cylinder(), translation(0, 0, pz).scale(5, 1, 5), material(0.8, 0.8, 0.8, 0.3)),
+            ...[
+              -1,
+              1,
+            ].map((i) =>
+              polygons_transform(
+                cylinder(),
+                translation(5 * i, 0.2, pz).rotate(i * -30).scale(4, 1, 2),
+                material(0.8, 0.8, 0.8, 0.3),
+              )
+            ),
+          ),
+        );
+        meshAdd(cylinder(), translation(0, -3, pz).scale(8, 2, 8), material(0.4, 0.4, 0.4, 0.3));
+      });
     const boatPolygons = csg_polygons_subtract(
       polygons_transform(
         cylinder(30, 1, 1.15, 1),
@@ -1144,33 +1167,8 @@ const build_life_the_universe_and_everything = () => {
         4.5,
       ]);
     });
-    [
-      35,
-      55,
-    ].map((pz) =>
-      newModel(() => {
-        GQuad.map(({ x, z }) => {
-          meshAdd(cylinder(11, 1), translation(x * 4, 4, pz + z * 4).scale(0.8, 3, 0.8), material(0.5, 0.3, 0.7, 0.6));
-          meshAdd(cylinder(), translation(x * 4, 7, pz + z * 4).scale(1, 0.3), material(0.5, 0.5, 0.5, 0.3));
-        });
-        meshAdd(
-          csg_polygons_subtract(
-            polygons_transform(cylinder(), translation(0, 0, pz).scale(5, 1, 5), material(0.8, 0.8, 0.8, 0.3)),
-            ...[
-              -1,
-              1,
-            ].map((i) =>
-              polygons_transform(
-                cylinder(),
-                translation(5 * i, 0.2, pz).rotate(i * -30).scale(4, 1, 2),
-                material(0.8, 0.8, 0.8, 0.3),
-              )
-            ),
-          ),
-        );
-        meshAdd(cylinder(), translation(0, -3, pz).scale(8, 2, 8), material(0.4, 0.4, 0.4, 0.3));
-      })
-    );
+    blackPlatform(35);
+    blackPlatform(55);
     meshAdd(cylinder(), translation(-21.1 + 2.45, -3, 55).scale(2.45, 1.4, 2.7), material(0.9, 0.9, 0.9, 0.2));
     newModel(() => {
       meshAdd(cylinder(3), translation(-23, -1.7, 55.8).scale(5, 0.7, 8.3), material(0.3, 0.6, 0.6, 0.2));
@@ -1900,10 +1898,10 @@ for (const s in gl) {
 }
 const worldMatricesBuffer = new Float32Array(624);
 const objectsMatricesBuffer = new Float32Array(624);
+let shouldRotatePlatforms;
 let rotatingPlatform1Rotation;
 let rotatingPlatform2Rotation;
 let rotatingHexCorridorRotation;
-let shouldRotatePlatforms;
 const boatAnimationMatrix = (matrix, x, y, z) =>
   matrix.translateSelf(
     x + /* @__PURE__ */ Math.sin(gameTime + 2) / 5,
@@ -1940,15 +1938,15 @@ const eppur_si_muove = () => {
   next().translateSelf(-100, 0.6, 96.5).scaleSelf(0.88, 1.2 - levers[12].$lerpValue);
   next().translateSelf(
     0,
-    levers[3].$lerpValue > 0.01
-      ? (/* @__PURE__ */ Math.cos(gameTime * 1.5) * 5 + 2) * levers[3].$lerpValue2 * (1 - levers[2].$lerpValue)
-        + (1 - levers[3].$lerpValue) * -15
-      : -500,
+    levers[3].$lerpValue < 0.01
+      ? -500
+      : (1 - levers[2].$lerpValue) * levers[3].$lerpValue2 * (/* @__PURE__ */ Math.cos(gameTime * 1.5) * 5 + 2)
+        + 15 * (levers[3].$lerpValue - 1),
     0,
   );
   const level2Oscillation = min(levers[2].$lerpValue2, 1 - levers[4].$lerpValue2);
-  next().translateSelf(level2Oscillation * /* @__PURE__ */ Math.sin(0.7 * 3 + gameTime * 0.7) * 12);
-  next().translateSelf(level2Oscillation * /* @__PURE__ */ Math.sin(3 + gameTime) * 8.2);
+  next().translateSelf(level2Oscillation * /* @__PURE__ */ Math.sin(gameTime * 0.7 + 2) * 12);
+  next().translateSelf(level2Oscillation * /* @__PURE__ */ Math.sin(gameTime + 3) * 8.2);
   next().translateSelf(level2Oscillation * /* @__PURE__ */ Math.sin(gameTime / 1.5 + 2) * 12);
   next().translateSelf((1 - level2Oscillation) * 9.8);
   const level3Oscillation = clamp(1 - level2Oscillation * 5) * lerpneg(levers[4].$lerpValue, levers[5].$lerpValue);
@@ -1962,24 +1960,26 @@ const eppur_si_muove = () => {
   const shouldOscillateElevators = lerpneg(levers[7].$lerpValue2, levers[6].$lerpValue2);
   next().translateSelf(
     0,
-    (1 - max(levers[6].$lerpValue, levers[7].$lerpValue)) * 3.5
-      + shouldOscillateElevators * /* @__PURE__ */ Math.sin(gameTime) * 5,
+    shouldOscillateElevators * /* @__PURE__ */ Math.sin(gameTime) * 5
+      + (1 - max(levers[6].$lerpValue, levers[7].$lerpValue)) * 3.5,
   );
   next().translateSelf(
     0,
     shouldOscillateElevators * /* @__PURE__ */ Math.sin(gameTime + 3) * 6,
-    /* @__PURE__ */ Math.sin(gameTime * 0.6 + 1) * 6 * shouldOscillateElevators,
+    shouldOscillateElevators * /* @__PURE__ */ Math.sin(gameTime * 0.6 + 1) * 6,
   );
   next().translateSelf(0, levers[7].$lerpValue2 * -7.3);
   boatAnimationMatrix(next(), -123, 1.4, 55 + secondBoatLerp * -65);
   const shouldPushRods = lerpneg(levers[10].$lerpValue, levers[11].$lerpValue);
   next().translateSelf(0, -2, shouldPushRods * abs(/* @__PURE__ */ Math.sin(gameTime * 1.1)) * -8.5 + 10);
   next().translateSelf(0, -2, shouldPushRods * abs(/* @__PURE__ */ Math.sin(gameTime * 2.1)) * -8.5 + 10);
-  const shouldBlockRods = (1 - levers[10].$lerpValue) * (1 - shouldPushRods);
   next().translateSelf(
     0,
     -2,
-    max(shouldBlockRods, shouldPushRods * abs(/* @__PURE__ */ Math.sin(gameTime * 1.5))) * -8.5 + 10,
+    max(
+          (1 - levers[10].$lerpValue) * (1 - shouldPushRods),
+          shouldPushRods * abs(/* @__PURE__ */ Math.sin(gameTime * 1.5)),
+        ) * -8.5 + 10,
   );
   const hexPadShouldOscillate = lerpneg(levers[8].$lerpValue2, levers[12].$lerpValue2);
   for (let i = 0; i < 4; i++) {
@@ -2893,5 +2893,5 @@ loadStep(() => {
   const image = new Image();
   image.onload = image.onerror = end;
   image.src = groundTextureSvg;
-  NO_INLINE(loadSong)(songLoaded);
+  loadSong(songLoaded);
 });
