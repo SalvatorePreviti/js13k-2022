@@ -714,7 +714,6 @@ const newModel = (fn, $kind = 1) => {
   const previousModel = currentEditModel;
   var $kind = {
     $matrix: new DOMMatrix(),
-    $modelId: allModels.length,
     $kind,
     $polygons: [],
   };
@@ -1594,11 +1593,8 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
           const _vertexMap = new Map();
           const _vertexIntsSmooth = new Int32Array(_vertexInts.buffer, 0, 5);
           const _vertexFloats = new Float32Array(_vertexInts.buffer);
-          for (const model of allModels) {
-            for (
-              polygon
-                of (_vertexFloats[3] = model.$modelId === 40 ? -14 : model.$kind && model.$modelId, model.$polygons)
-            ) {
+          allModels.map((model, index) => {
+            for (polygon of (_vertexFloats[3] = index === 40 ? -14 : model.$kind && index, model.$polygons)) {
               const { x, y, z } = plane_fromPolygon(polygon);
               _vertexInts[4] = 0 | polygon.$color,
                 _vertexInts[5] = 32767 * x,
@@ -1611,8 +1607,8 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
             model.$polygons = null,
               model.$vertexBegin = meshFirstIndex,
               model.$vertexEnd = meshFirstIndex = _triangleIndices.length;
-          }
-          gl["b11"](34962, gl["c1b"]()),
+          }),
+            gl["b11"](34962, gl["c1b"]()),
             gl["b2v"](34962, new Float32Array(_vertexPositions), 35044),
             gl["v7s"](0, 4, 5126, !1, 0, 0),
             gl["b11"](34962, gl["c1b"]()),
@@ -1639,8 +1635,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
             secondBoatLerp = savedSecondBoatLerp,
             gameTime = savedGameTime,
             gameTimeDelta = 0;
-        } catch {
-        }
+        } catch {}
         updateCollectedSoulsCounter(), firstBoatLerp = clamp(player_last_pulled_lever), loadStep(end);
       });
       {

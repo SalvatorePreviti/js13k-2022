@@ -6,12 +6,11 @@ $kind:G
 $lerpValue:g
 $lerpValue2:h
 $matrix:m
-$modelId:H
 $parent:A
 $polygon:B
 $polygons:o
 $smooth:C
-$transform:I
+$transform:H
 $value:i
 $vertexBegin:s
 $vertexEnd:D

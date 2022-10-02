@@ -845,7 +845,6 @@ const newModel = (fn, $kind = MODEL_KIND_GAME) => {
   const previousModel = currentEditModel;
   const model = {
     $matrix: new DOMMatrix(),
-    $modelId: allModels.length,
     $kind,
     $polygons: [],
   };
@@ -2844,8 +2843,8 @@ const initTriangleBuffers = () => {
   const _vertexMap = /* @__PURE__ */ new Map();
   const _vertexIntsSmooth = new Int32Array(_vertexInts.buffer, 0, 5);
   const _vertexFloats = new Float32Array(_vertexInts.buffer);
-  for (const model of allModels) {
-    _vertexFloats[3] = model.$modelId === MODEL_ID_LEVER ? -SOULS_COUNT - 1 : model.$kind && model.$modelId;
+  allModels.map((model, index) => {
+    _vertexFloats[3] = index === MODEL_ID_LEVER ? -SOULS_COUNT - 1 : model.$kind && index;
     for (polygon of model.$polygons) {
       const { x, y, z } = plane_fromPolygon(polygon);
       _vertexInts[4] = polygon.$color | 0;
@@ -2859,7 +2858,7 @@ const initTriangleBuffers = () => {
     model.$polygons = null;
     model.$vertexBegin = meshFirstIndex;
     model.$vertexEnd = meshFirstIndex = _triangleIndices.length;
-  }
+  });
   gl["b11"](34962, gl["c1b"]());
   gl["b2v"](34962, new Float32Array(_vertexPositions), 35044);
   gl["v7s"](0, 4, 5126, false, 0, 0);

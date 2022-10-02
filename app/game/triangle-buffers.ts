@@ -4,10 +4,6 @@ import { plane_fromPolygon } from "../math/vectors";
 import type { Polygon } from "../geometry/polygon";
 
 export const initTriangleBuffers = () => {
-  if (DEBUG) {
-    console.time("initTriangleBuffers");
-  }
-
   let polygon: Polygon | undefined;
 
   const _triangleIndices: number[] = [];
@@ -43,8 +39,12 @@ export const initTriangleBuffers = () => {
 
   let meshFirstIndex: number = 0;
 
-  for (const model of allModels) {
-    _vertexFloats[3] = model.$modelId === MODEL_ID_LEVER ? -SOULS_COUNT - 1 : model.$kind && model.$modelId;
+  if (DEBUG) {
+    console.time("initTriangleBuffers");
+  }
+
+  allModels.map((model, index) => {
+    _vertexFloats[3] = index === MODEL_ID_LEVER ? -SOULS_COUNT - 1 : model.$kind && index;
     for (polygon of model.$polygons!) {
       const { x, y, z } = plane_fromPolygon(polygon);
       _vertexInts[4] = polygon.$color! | 0;
@@ -62,7 +62,7 @@ export const initTriangleBuffers = () => {
     // write the indices offset and count
     model.$vertexBegin = meshFirstIndex;
     model.$vertexEnd = meshFirstIndex = _triangleIndices.length;
-  }
+  });
 
   gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(_vertexPositions), gl.STATIC_DRAW);

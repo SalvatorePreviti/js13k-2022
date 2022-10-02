@@ -33,7 +33,6 @@ export const newModel = (fn: (model: Model) => void, $kind: MODEL_KIND = MODEL_K
   const previousModel = currentEditModel;
   const model: Model = {
     $matrix: new DOMMatrix(),
-    $modelId: allModels.length,
     $kind,
     $polygons: [],
   };
@@ -188,9 +187,10 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]
 
 export const checkModelId = DEBUG
   ? (name: string, expectedId: number) => {
-      console.log(`model ${name} id: ${currentEditModel.$modelId}`);
-      if (currentEditModel.$modelId !== expectedId) {
-        throw new Error(`Model ${name} id should be ${expectedId} but is ${currentEditModel.$modelId}`);
+      const modelId = allModels.length - 1;
+      console.log(`model ${name} id: ${modelId}`);
+      if (modelId !== expectedId) {
+        throw new Error(`Model ${name} id should be ${expectedId} but is ${modelId}`);
       }
     }
   : () => {};

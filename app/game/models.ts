@@ -3,7 +3,6 @@ import type { Vec3 } from "../math/vectors";
 
 export interface Model {
   readonly $matrix: DOMMatrix;
-  $modelId: number;
   $kind: MODEL_KIND;
   $polygons: Polygon[] | null;
   $vertexBegin?: number;
