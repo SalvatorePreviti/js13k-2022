@@ -407,6 +407,7 @@ const csg_union = (...inputs) =>
     return a;
   });
 const csg_polygons_subtract = (a, ...b) => csg_polygons(csg_tree_flip(csg_union(csg_tree_flip(csg_tree(a)), ...b)));
+const material = NO_INLINE((r, g, b, a = 0) => a * 255 << 24 | b * 255 << 16 | g * 255 << 8 | r * 255);
 let _globalTime;
 let mainMenuVisible;
 let gameTime = 0;
@@ -835,7 +836,6 @@ const initPage = () => {
   document.onvisibilitychange = onblur = onresize = handleResize;
   mainMenu(true);
 };
-const material = NO_INLINE((r, g, b, a = 0) => a * 255 << 24 | b * 255 << 16 | g * 255 << 8 | r * 255);
 let currentEditModel;
 const LEVER_SENSITIVITY_RADIUS = 3;
 const SOUL_SENSITIVITY_RADIUS = 1.6;

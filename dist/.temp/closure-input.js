@@ -490,6 +490,7 @@ const csg_polygons_subtract = (a, ...b) => {
       });
   }
 };
+const material = NO_INLINE((r, g, b, a = 0) => 255 * a << 24 | 255 * b << 16 | 255 * g << 8 | 255 * r);
 const damp = (speed) => 1 - Math.exp(-speed * gameTimeDelta);
 const lerpDamp = NO_INLINE((from, to, speed) => lerp(from, to, damp(speed)));
 const updateCollectedSoulsCounter = () => {
@@ -707,7 +708,6 @@ const initPage = () => {
     document.onvisibilitychange = onblur = onresize = handleResize,
     mainMenu(!0);
 };
-const material = NO_INLINE((r, g, b, a = 0) => 255 * a << 24 | 255 * b << 16 | 255 * g << 8 | 255 * r);
 const meshAdd = (polygons, transform = new DOMMatrix(), color) =>
   currentEditModel.$polygons.push(...polygons_transform(polygons, transform, color));
 const newModel = (fn, $kind = 1) => {

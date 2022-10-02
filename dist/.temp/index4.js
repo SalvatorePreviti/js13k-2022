@@ -211,6 +211,7 @@ let I,
         return m(t ? a.reverse() : a, e.u, e.C);
       });
   },
+  v = (e, t, a, l = 0) => 255 * l << 24 | 255 * a << 16 | 255 * t << 8 | 255 * e,
   U = (e, t, a) => N(e, t, 1 - U1(-a * B)),
   F1 = () => {
     h3.innerHTML = "Souls: "
@@ -236,7 +237,6 @@ let I,
   },
   D1 = (e, t, a, l) =>
     new DOMMatrix([a, 0, 0, 0, 0, l, 0, 0, 0, 0, (t + e) / (e - t), -1, 0, 0, 2 * t * e / (e - t), 0]),
-  v = (e, t, a, l = 0) => 255 * l << 24 | 255 * a << 16 | 255 * t << 8 | 255 * e,
   d = (e, t = new DOMMatrix(), a) => r.o.push(...i(e, t, a)),
   b = (e, t = 1) => {
     let a = r;

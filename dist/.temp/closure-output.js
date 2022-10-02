@@ -97,7 +97,7 @@ a.m44, b), p = NO_INLINE((a, b, f) => bb.translate(a, b, f)), fb = NO_INLINE((a,
     const x = m.map(({x:B, y:D, z}) => ({x:B, y:D, z,}));
     return hb(u ? x.reverse() : x, m.u, m.C);
   });
-}, zb = NO_INLINE((a, b, f) => Ya(a, b, 1 - Math.exp(-f * d))), Ab = () => {
+}, U = NO_INLINE((a, b, f, k = 0) => 255 * k << 24 | 255 * f << 16 | 255 * b << 8 | 255 * a), zb = NO_INLINE((a, b, f) => Ya(a, b, 1 - Math.exp(-f * d))), Ab = () => {
   h3.innerHTML = "Souls: " + [0, "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII",][xa = Ga.reduce((a, {i:b}) => a + b, 0)] + " / XIII";
 }, Bb = () => {
   localStorage.DanteSP22 = JSON.stringify([e.map(({i:a}) => a), Ga.map(({i:a}) => a), za, c, da,]);
@@ -193,7 +193,7 @@ a.m44, b), p = NO_INLINE((a, b, f) => bb.translate(a, b, f)), fb = NO_INLINE((a,
   };
   document.onvisibilitychange = onblur = onresize = P;
   v(!0);
-}, U = NO_INLINE((a, b, f, k = 0) => 255 * k << 24 | 255 * f << 16 | 255 * b << 8 | 255 * a), X = (a, b = new DOMMatrix(), f) => na.o.push(...E(a, b, f)), Y = (a, b = 1) => {
+}, X = (a, b = new DOMMatrix(), f) => na.o.push(...E(a, b, f)), Y = (a, b = 1) => {
   const f = na;
   Ha.push(na = {m:new DOMMatrix(), G:b, o:[],},);
   a();

@@ -259,6 +259,7 @@ const h = NO_INLINE(a => 0 > a ? -a : a),
         return hb(u ? x.reverse() : x, m.u, m.C);
       });
   },
+  U = NO_INLINE((a, b, f, k = 0) => 255 * k << 24 | 255 * f << 16 | 255 * b << 8 | 255 * a),
   zb = NO_INLINE((a, b, f) => Ya(a, b, 1 - Math.exp(-f * d))),
   Ab = () => {
     h3.innerHTML = "Souls: "
@@ -419,7 +420,6 @@ const h = NO_INLINE(a => 0 > a ? -a : a),
     document.onvisibilitychange = onblur = onresize = P;
     v(!0);
   },
-  U = NO_INLINE((a, b, f, k = 0) => 255 * k << 24 | 255 * f << 16 | 255 * b << 8 | 255 * a),
   X = (a, b = new DOMMatrix(), f) => na.o.push(...E(a, b, f)),
   Y = (a, b = 1) => {
     const f = na;
