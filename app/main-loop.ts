@@ -15,7 +15,9 @@ import main_fsSource, {
   constDef_CSM_TEXTURE_SIZE as CSM_TEXTURE_SIZE,
   constDef_CSM_PLANE_DISTANCE as CSM_PLANE_DISTANCE,
 } from "./shaders/main-fragment.frag";
-import collider_fsSource from "./shaders/collider-fragment.frag";
+import collider_fsSource, {
+  constDef_COLLISION_TEXTURE_SIZE as COLLISION_TEXTURE_SIZE,
+} from "./shaders/collider-fragment.frag";
 import void_fsSource from "./shaders/void-fragment.frag";
 import sky_vsSource from "./shaders/sky-vertex.vert";
 import sky_fsSource, { uniformName_iResolution } from "./shaders/sky-fragment.frag";
@@ -25,7 +27,7 @@ import { allModels, levers, MODEL_ID_SOUL, MODEL_ID_SOUL_COLLISION, player_posit
 import { camera_rotation, worldStateUpdate } from "./game/world-state";
 // import { csm_buildMatrix } from "./csm";
 import { initPage, csm_projections, player_first_person, projection, resetInteractPressed, updateInput } from "./page";
-import { COLLISION_TEXTURE_SIZE, player_init, camera_position_x, camera_position_y, camera_position_z } from "./player";
+import { player_init, camera_position_x, camera_position_y, camera_position_z } from "./player";
 import { gl } from "./gl";
 import { loadShader, initShaderProgram } from "./shaders-utils";
 import type { Vec3 } from "./math/vectors";

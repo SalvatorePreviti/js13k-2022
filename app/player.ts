@@ -1,3 +1,4 @@
+import { constDef_COLLISION_TEXTURE_SIZE as COLLISION_TEXTURE_SIZE } from "./shaders/collider-fragment.frag";
 import { max, clamp, DEG_TO_RAD, angle_lerp_degrees, lerp, angle_wrap_degrees, min, abs, threshold } from "./math/math";
 import {
   levers,
@@ -22,8 +23,6 @@ export const CAMERA_PLAYER_Z_DIST = -18;
 export const PLAYER_LEGS_VELOCITY = 7 * 1.3;
 
 export const PLAYER_RESPAWN_Z = -2.4;
-
-export const COLLISION_TEXTURE_SIZE = 128;
 
 export const player_position_global = { x: 0, y: 0, z: 0 };
 
