@@ -11,7 +11,7 @@ import {
   type Lever,
   type Soul,
 } from "./models";
-import { onPlayerPullLever, onSoulCollected } from "./world-state";
+import { onLever0Pulled, onPlayerPullLever, onSoulCollected } from "./world-state";
 import { interact_pressed } from "../page";
 import type { Vec3Optional } from "../math/vectors";
 import { min, angle_lerp_degrees, DEG_TO_RAD, clamp, abs } from "../math/math";
@@ -72,6 +72,11 @@ export const newLever = ($transform: DOMMatrixReadOnly): void => {
           lever.$value = lever.$value ? 0 : 1;
           onPlayerPullLever(index);
         }
+      }
+
+      if (!index && lever.$value && lever.$lerpValue > 0.8) {
+        lever.$value = 0;
+        onLever0Pulled();
       }
 
       tempMatrix.rotateSelf(lever.$lerpValue * 60 - 30, 0).translateSelf(0, 1);
@@ -170,18 +175,15 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]
           -5.5 + ((index / 4) | 0) * 1.7 + abs((index % 4) - 2) + Math.cos(gameTime / 1.5 + index) / 6,
         );
       }
-
-      // matrixToArray(tempMatrix, objectsMatricesBuffer, index);
     },
   };
+  souls.push(soul);
 
   if (DEBUG_FLAG0) {
     for (const c of circles) {
       meshAdd(cylinder(12), transform.translate(c.x, -1.7, c.z).scale(c.w, 0.01, c.w), material(0.3, 0.3, 0.38));
     }
   }
-
-  souls.push(soul);
 };
 
 export const checkModelId = DEBUG

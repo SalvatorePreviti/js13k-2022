@@ -497,9 +497,6 @@ const csg_polygons_subtract = (a, ...b) => {
 };
 const damp = (speed) => 1 - Math.exp(-speed * gameTimeDelta);
 const lerpDamp = NO_INLINE((from, to, speed) => lerp(from, to, damp(speed)));
-const showMessage = (message, duration) => {
-  1 / 0 > _messageEndTime && (_messageEndTime = gameTime + duration, h4.innerHTML = message);
-};
 const updateCollectedSoulsCounter = () => {
   h3.innerHTML = "Souls: " + [
     0,
@@ -526,6 +523,9 @@ const saveGame = () => {
     gameTime,
     0,
   ]);
+};
+const showMessage = (message, duration) => {
+  1 / 0 > _messageEndTime && (_messageEndTime = gameTime + duration, h4.innerHTML = message);
 };
 const mat_perspective = (near, far, mx, my) =>
   new DOMMatrix([
@@ -753,6 +753,12 @@ const newLever = ($transform) => {
           (leverIndex = index) && showMessage("* click *", 1),
           player_last_pulled_lever = leverIndex,
           saveGame()),
+        !index && lever.$value && 0.8 < lever.$lerpValue
+        && (lever.$value = 0,
+          souls_collected_count < 13
+            ? showMessage("Not leaving now, there are souls to catch!", 3)
+            : game_completed
+              || (showMessage("Well done. They will be punished.<br>Thanks for playing", 1 / 0), game_completed = 1)),
         tempMatrix.rotateSelf(60 * lever.$lerpValue - 30, 0).translateSelf(0, 1);
     },
   };
@@ -1254,12 +1260,7 @@ loadStep(() => {
             _globalTime = globalTime,
             0 < gameTimeDelta
         ) {
-          updateInput(),
-            _messageEndTime && gameTime > _messageEndTime && (_messageEndTime = 0, h4.innerHTML = ""),
-            levers[0].$value && 0.8 < levers[0].$lerpValue && (souls_collected_count < 13
-              ? (showMessage("Not leaving now, there are souls to catch!", 3), levers[0].$value = 0)
-              : game_completed
-                || (showMessage("Well done. They will be punished.<br>Thanks for playing", 1 / 0), game_completed = 1));
+          updateInput(), _messageEndTime && gameTime > _messageEndTime && (_messageEndTime = 0, h4.innerHTML = "");
           {
             let counter = 1;
             const next = () => matrixCopy(identity, allModels[++counter].$matrix);

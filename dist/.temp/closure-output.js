@@ -204,6 +204,7 @@ a.m42, b.m43 = a.m43, b.m44 = a.m44, b), n = NO_INLINE((a, b, f) => db.translate
     k.h = P(k.h, k.i, 1);
     fb(b.m).multiplySelf(a);
     ca && 3 > Gb(eb) && (0.3 > k.g || 0.7 < k.g) && (k.i = k.i ? 0 : 1, f && 1 / 0 > Ea && (Ea = c + 1, h4.innerHTML = "* click *"), ya = f, Bb());
+    !f && k.i && 0.8 < k.g && (k.i = 0, 13 > wa ? 1 / 0 > Ea && (Ea = c + 3, h4.innerHTML = "Not leaving now, there are souls to catch!") : xa || (1 / 0 > Ea && (Ea = c + 1 / 0, h4.innerHTML = "Well done. They will be punished.<br>Thanks for playing"), xa = 1));
     eb.rotateSelf(60 * k.g - 30, 0).translateSelf(0, 1);
   },};
   e.push(k);
@@ -397,7 +398,6 @@ Wb(() => {
         if (va += q, c += d = ba ? 0 : Ua(0.066, q), aa = x, 0 < d) {
           ea();
           Ea && c > Ea && (Ea = 0, h4.innerHTML = "");
-          e[0].i && 0.8 < e[0].g && (13 > wa ? (1 / 0 > Ea && (Ea = c + 3, h4.innerHTML = "Not leaving now, there are souls to catch!"), e[0].i = 0) : xa || (1 / 0 > Ea && (Ea = c + 1 / 0, h4.innerHTML = "Well done. They will be punished.<br>Thanks for playing"), xa = 1));
           let z = 1;
           var l = () => fb(db, Fa[++z].m);
           q = (ra = ab(e[12].g, e[13].g), na = $a(P(na, 0, 1), Ya(na + 60 * d), e[5].g - e[6].h,), la = $a(P(la, 0, 5), Ya(la + 56 * d), ra,), ma = $a(P(ma, 0, 4), Ya(ma + 48 * d), ra,), qa = P(qa, e[9].h, 0.2 + 0.3 * g(2 * e[9].h - 1),), pa = P(pa, xa ? P(pa, -9, 1.5) : Xa(c / 3), 1,), Jb(l(), -12, 4.2, 40 * pa - 66), l().translateSelf(0, 0, -15).scaleSelf(1, Xa(1.22 - e[1].g), 1), l().translateSelf(0, 0, 15).scaleSelf(1, Xa(1.22 - e[2].g), 1), l().translateSelf(0, 0.01 < e[3].g ? (5 * Math.cos(1.5 * 

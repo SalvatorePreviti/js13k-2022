@@ -259,6 +259,13 @@ let k,
             N(t.m).multiplySelf(e),
             F && C1(U) < 3 && (l.g < .3 || .7 < l.g)
             && (l.i = l.i ? 0 : 1, a && 1 / 0 > j && (j = y + 1, h4.innerHTML = "* click *"), o1 = a, Y1()),
+            !a && l.i && .8 < l.g && (l.i = 0,
+              s1 < 13
+                ? 1 / 0 > j && (j = y + 3, h4.innerHTML = "Not leaving now, there are souls to catch!")
+                : z
+                  || (1 / 0 > j
+                    && (j = y + 1 / 0, h4.innerHTML = "Well done. They will be punished.<br>Thanks for playing"),
+                    z = 1)),
             U.rotateSelf(60 * l.g - 30, 0).translateSelf(0, 1);
         },
       };
@@ -400,13 +407,6 @@ B1(() => {
               for (
                 Y(),
                   j && y > j && (j = 0, h4.innerHTML = ""),
-                  H[0].i && .8 < H[0].g && (s1 < 13
-                    ? (1 / 0 > j && (j = y + 3, h4.innerHTML = "Not leaving now, there are souls to catch!"),
-                      H[0].i = 0)
-                    : z
-                      || (1 / 0 > j
-                        && (j = y + 1 / 0, h4.innerHTML = "Well done. They will be punished.<br>Thanks for playing"),
-                        z = 1)),
                   l1 = z1(H[12].g, H[13].g),
                   e1 = L(E(e1, 0, 1), g1(e1 + 60 * Q), H[5].g - H[6].h),
                   Z = L(E(Z, 0, 5), g1(Z + 56 * Q), l1),

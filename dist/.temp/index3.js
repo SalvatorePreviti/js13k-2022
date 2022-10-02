@@ -444,6 +444,13 @@ const Ta = { x: 0, y: 0, z: 0 },
           fb(b.m).multiplySelf(a);
           ca && 3 > Gb(eb) && (0.3 > k.g || 0.7 < k.g)
             && (k.i = k.i ? 0 : 1, f && 1 / 0 > Ea && (Ea = c + 1, h4.innerHTML = "* click *"), ya = f, Bb());
+          !f && k.i && 0.8 < k.g && (k.i = 0,
+            13 > wa
+              ? 1 / 0 > Ea && (Ea = c + 3, h4.innerHTML = "Not leaving now, there are souls to catch!")
+              : xa
+                || (1 / 0 > Ea
+                  && (Ea = c + 1 / 0, h4.innerHTML = "Well done. They will be punished.<br>Thanks for playing"),
+                  xa = 1));
           eb.rotateSelf(60 * k.g - 30, 0).translateSelf(0, 1);
         },
       };
@@ -790,12 +797,6 @@ Wb(() => {
             if (va += q, c += d = ba ? 0 : Ua(0.066, q), aa = x, 0 < d) {
               ea();
               Ea && c > Ea && (Ea = 0, h4.innerHTML = "");
-              e[0].i && 0.8 < e[0].g && (13 > wa
-                ? (1 / 0 > Ea && (Ea = c + 3, h4.innerHTML = "Not leaving now, there are souls to catch!"), e[0].i = 0)
-                : xa
-                  || (1 / 0 > Ea
-                    && (Ea = c + 1 / 0, h4.innerHTML = "Well done. They will be punished.<br>Thanks for playing"),
-                    xa = 1));
               let z = 1;
               var l = () => fb(db, Fa[++z].m);
               q =

@@ -14,27 +14,10 @@ export let game_completed: 0 | 1 = 0;
 
 export let player_last_pulled_lever = 0;
 
-const showMessage = (message: string, duration: number) => {
-  if (_messageEndTime < Infinity) {
-    _messageEndTime = gameTime + duration;
-    h4.innerHTML = message;
-  }
-};
-
 export const worldStateUpdate = () => {
   if (_messageEndTime && gameTime > _messageEndTime) {
     _messageEndTime = 0;
     h4.innerHTML = "";
-  }
-
-  if (levers[0]!.$value && levers[0]!.$lerpValue > 0.8) {
-    if (souls_collected_count < SOULS_COUNT) {
-      showMessage("Not leaving now, there are souls to catch!", 3);
-      levers[0]!.$value = 0;
-    } else if (!game_completed) {
-      showMessage("Well done. They will be punished.<br>Thanks for playing", Infinity);
-      game_completed = 1;
-    }
   }
 };
 
@@ -78,6 +61,38 @@ export const saveGame = () => {
   ]);
 };
 
+export const showMessage = (message: string, duration: number) => {
+  if (_messageEndTime < Infinity) {
+    _messageEndTime = gameTime + duration;
+    h4.innerHTML = message;
+  }
+};
+
+export const onGameCompleted = () => {
+  game_completed = 1;
+};
+
+export const onPlayerPullLever = (leverIndex: number) => {
+  if (DEBUG) {
+    console.log("switch lever " + leverIndex + " = " + levers[leverIndex]?.$value);
+  }
+
+  if (leverIndex) {
+    showMessage("* click *", 1);
+  }
+  player_last_pulled_lever = leverIndex;
+  saveGame();
+};
+
+export const onLever0Pulled = () => {
+  if (souls_collected_count < SOULS_COUNT) {
+    showMessage("Not leaving now, there are souls to catch!", 3);
+  } else if (!game_completed) {
+    showMessage("Well done. They will be punished.<br>Thanks for playing", Infinity);
+    onGameCompleted();
+  }
+};
+
 export const onSoulCollected = () => {
   showMessage(
     [
@@ -99,17 +114,5 @@ export const onSoulCollected = () => {
   );
 
   updateCollectedSoulsCounter();
-  saveGame();
-};
-
-export const onPlayerPullLever = (leverIndex: number) => {
-  if (DEBUG) {
-    console.log("switch lever " + leverIndex + " = " + levers[leverIndex]?.$value);
-  }
-
-  if (leverIndex) {
-    showMessage("* click *", 1);
-  }
-  player_last_pulled_lever = leverIndex;
   saveGame();
 };

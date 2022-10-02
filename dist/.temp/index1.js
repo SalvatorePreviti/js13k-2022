@@ -437,25 +437,10 @@ const camera_rotation = {
   x: 0,
   y: 180,
 };
-const showMessage = (message, duration) => {
-  if (_messageEndTime < Infinity) {
-    _messageEndTime = gameTime + duration;
-    h4.innerHTML = message;
-  }
-};
 const worldStateUpdate = () => {
   if (_messageEndTime && gameTime > _messageEndTime) {
     _messageEndTime = 0;
     h4.innerHTML = "";
-  }
-  if (levers[0].$value && levers[0].$lerpValue > 0.8) {
-    if (souls_collected_count < SOULS_COUNT) {
-      showMessage("Not leaving now, there are souls to catch!", 3);
-      levers[0].$value = 0;
-    } else if (!game_completed) {
-      showMessage("Well done. They will be punished.<br>Thanks for playing", Infinity);
-      game_completed = 1;
-    }
   }
 };
 const updateCollectedSoulsCounter = () => {
@@ -499,6 +484,30 @@ const saveGame = () => {
     0,
   ]);
 };
+const showMessage = (message, duration) => {
+  if (_messageEndTime < Infinity) {
+    _messageEndTime = gameTime + duration;
+    h4.innerHTML = message;
+  }
+};
+const onGameCompleted = () => {
+  game_completed = 1;
+};
+const onPlayerPullLever = (leverIndex) => {
+  if (leverIndex) {
+    showMessage("* click *", 1);
+  }
+  player_last_pulled_lever = leverIndex;
+  saveGame();
+};
+const onLever0Pulled = () => {
+  if (souls_collected_count < SOULS_COUNT) {
+    showMessage("Not leaving now, there are souls to catch!", 3);
+  } else if (!game_completed) {
+    showMessage("Well done. They will be punished.<br>Thanks for playing", Infinity);
+    onGameCompleted();
+  }
+};
 const onSoulCollected = () => {
   showMessage(
     [
@@ -519,13 +528,6 @@ const onSoulCollected = () => {
     souls_collected_count && souls_collected_count < 12 ? 5 : 7,
   );
   updateCollectedSoulsCounter();
-  saveGame();
-};
-const onPlayerPullLever = (leverIndex) => {
-  if (leverIndex) {
-    showMessage("* click *", 1);
-  }
-  player_last_pulled_lever = leverIndex;
   saveGame();
 };
 const GAMEPAD_BUTTON_B = 0;
@@ -873,6 +875,10 @@ const newLever = ($transform) => {
           lever.$value = lever.$value ? 0 : 1;
           onPlayerPullLever(index);
         }
+      }
+      if (!index && lever.$value && lever.$lerpValue > 0.8) {
+        lever.$value = 0;
+        onLever0Pulled();
       }
       tempMatrix.rotateSelf(lever.$lerpValue * 60 - 30, 0).translateSelf(0, 1);
     },
