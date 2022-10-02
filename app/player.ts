@@ -41,7 +41,7 @@ export const set_camera_position = (x: number, y: number, z: number) => {
 
 const collision_buffer = new Uint8Array(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
 
-let debug2dctx: CanvasRenderingContext2D | null | undefined;
+// let debug2dctx: CanvasRenderingContext2D | null | undefined;
 
 export const player_init = () => {
   let currentModelId: number;
@@ -56,6 +56,7 @@ export const player_init = () => {
   let player_fly_velocity_x: number;
   let player_fly_velocity_z: number;
   let player_speed: number;
+  let player_speed_collision_limiter: number;
   let player_model_y: number;
   let player_gravity = 15;
 
@@ -100,7 +101,7 @@ export const player_init = () => {
     updatePlayerPositionFinal();
   };
 
-  const doHorizontalCollisions = () => {
+  const doCollisions = () => {
     let modelACount = 0;
     let modelB = 0;
     let modelBCount = 0;
@@ -175,6 +176,8 @@ export const player_init = () => {
       }
     }
 
+    player_speed_collision_limiter = clamp(1 - max(abs(movX), abs(movZ)) * 0.015);
+
     movePlayer(movX / 255, movY / 255, movZ / 255);
   };
 
@@ -198,36 +201,36 @@ export const player_init = () => {
 
     // ------- process collision renderBuffer -------
 
-    NO_INLINE(doHorizontalCollisions)();
+    NO_INLINE(doCollisions)();
 
-    if (DEBUG) {
-      const debugCanvas = document.getElementById("debug-canvas") as HTMLCanvasElement;
+    // if (DEBUG) {
+    //   const debugCanvas = document.getElementById("debug-canvas") as HTMLCanvasElement;
 
-      const buf = new Uint8ClampedArray(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
+    //   const buf = new Uint8ClampedArray(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
 
-      if (debugCanvas) {
-        for (let y = 0; y < COLLISION_TEXTURE_SIZE; ++y) {
-          for (let x = 0; x < COLLISION_TEXTURE_SIZE; ++x) {
-            const i = ((COLLISION_TEXTURE_SIZE - y) * COLLISION_TEXTURE_SIZE + x) * 4;
-            const r = collision_buffer[i]!;
-            const g = collision_buffer[i + 1]!;
-            const b = collision_buffer[i + 2]!;
+    //   if (debugCanvas) {
+    //     for (let y = 0; y < COLLISION_TEXTURE_SIZE; ++y) {
+    //       for (let x = 0; x < COLLISION_TEXTURE_SIZE; ++x) {
+    //         const i = ((COLLISION_TEXTURE_SIZE - y) * COLLISION_TEXTURE_SIZE + x) * 4;
+    //         const r = collision_buffer[i]!;
+    //         const g = collision_buffer[i + 1]!;
+    //         const b = collision_buffer[i + 2]!;
 
-            buf[(y * COLLISION_TEXTURE_SIZE + x) * 4] = r * 10;
-            buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 1] = g * 10;
-            buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 2] = b ? 200 : 0;
-            buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 3] = 255;
-          }
-        }
+    //         buf[(y * COLLISION_TEXTURE_SIZE + x) * 4] = r * 10;
+    //         buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 1] = g * 10;
+    //         buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 2] = b ? 200 : 0;
+    //         buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 3] = 255;
+    //       }
+    //     }
 
-        const imgdata = new ImageData(buf, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
+    //     const imgdata = new ImageData(buf, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
 
-        if (!debug2dctx) {
-          debug2dctx = debugCanvas.getContext("2d")!;
-        }
-        debug2dctx.putImageData(imgdata, 0, 0, 0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
-      }
-    }
+    //     if (!debug2dctx) {
+    //       debug2dctx = debugCanvas.getContext("2d")!;
+    //     }
+    //     debug2dctx.putImageData(imgdata, 0, 0, 0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
+    //   }
+    // }
 
     if (player_respawned || currentModelId !== oldModelId) {
       if (DEBUG && currentModelId !== oldModelId) {
@@ -344,16 +347,19 @@ export const player_init = () => {
     player_legs_speed = lerpDamp(player_legs_speed, movAmount, 10);
     player_look_angle = angle_lerp_degrees(player_look_angle, player_look_angle_target, damp(8));
 
+    player_gravity = currentModelId ? 5 : lerpDamp(player_gravity, player_respawned ? 10 : 19, 2.2);
     player_fly_velocity_x = currentModelId || player_respawned ? 0 : lerpDamp(player_fly_velocity_x, 0, 3);
     player_fly_velocity_z = currentModelId || player_respawned ? 0 : lerpDamp(player_fly_velocity_z, 0, 3);
     player_speed = player_respawned
       ? 0
-      : lerpDamp(player_speed, currentModelId ? clamp(2 * movAmount) * 7 : 0, currentModelId ? 9 : 1);
+      : lerpDamp(
+          player_speed,
+          currentModelId ? clamp(2 * movAmount) * 7 * player_speed_collision_limiter : 0,
+          currentModelId ? 9 : 1,
+        );
 
     // Angle is dependant on where the player is looking in first person. Is 0 in third person
     movAngle = player_first_person ? (180 + camera_rotation.y) * DEG_TO_RAD : 0;
-
-    player_gravity = currentModelId ? 5 : lerpDamp(player_gravity, player_respawned ? 10 : 19, 2.2);
 
     movePlayer(
       gameTimeDelta *

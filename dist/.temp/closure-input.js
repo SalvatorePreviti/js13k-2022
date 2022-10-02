@@ -877,6 +877,7 @@ const player_init = () => {
   let player_fly_velocity_x;
   let player_fly_velocity_z;
   let player_speed;
+  let player_speed_collision_limiter;
   let player_model_y;
   let camera_pos_lookat_x;
   let camera_pos_lookat_y;
@@ -918,7 +919,7 @@ const player_init = () => {
       player_position_global.z += x.z,
       updatePlayerPositionFinal();
   };
-  const doHorizontalCollisions = () => {
+  const doCollisions = () => {
     let modelACount = 0;
     let modelB = 0;
     let modelBCount = 0;
@@ -957,14 +958,15 @@ const player_init = () => {
       }
       abs(right - left) > abs(movX) && (movX = right - left), abs(back - front) > abs(movZ) && (movZ = back - front);
     }
-    movePlayer(movX / 255, movY / 255, movZ / 255);
+    player_speed_collision_limiter = clamp(1 - 0.015 * max(abs(movX), abs(movZ))),
+      movePlayer(movX / 255, movY / 255, movZ / 255);
   };
   const interpolate_with_hysteresis = (previous, desired, hysteresis, speed) =>
     lerp(previous, desired, boot || (clamp(abs(desired - previous) ** 0.5 - hysteresis) + 1 / 7) * damp(1.5 * speed));
   allModels[37]._update = (matrix) => {
     updatePlayerPositionFinal(currentModelId),
       gl["r9r"](0, 0, 128, 128, 6408, 5121, collision_buffer),
-      NO_INLINE(doHorizontalCollisions)(),
+      NO_INLINE(doCollisions)(),
       !player_respawned && currentModelId === oldModelId
       || (oldModelId = currentModelId,
         v = matrixCopy(getReferenceMatrix()).invertSelf().transformPoint(player_position_final),
@@ -1033,13 +1035,17 @@ const player_init = () => {
     matrix && (player_look_angle_target = 90 - v / DEG_TO_RAD),
       player_legs_speed = lerpDamp(player_legs_speed, matrix, 10),
       player_look_angle = angle_lerp_degrees(player_look_angle, player_look_angle_target, damp(8)),
+      player_gravity = currentModelId ? 5 : lerpDamp(player_gravity, player_respawned ? 10 : 19, 2.2),
       player_fly_velocity_x = currentModelId || player_respawned ? 0 : lerpDamp(player_fly_velocity_x, 0, 3),
       player_fly_velocity_z = currentModelId || player_respawned ? 0 : lerpDamp(player_fly_velocity_z, 0, 3),
       player_speed = player_respawned
         ? 0
-        : lerpDamp(player_speed, currentModelId ? 7 * clamp(2 * matrix) : 0, currentModelId ? 9 : 1),
+        : lerpDamp(
+          player_speed,
+          currentModelId ? 7 * clamp(2 * matrix) * player_speed_collision_limiter : 0,
+          currentModelId ? 9 : 1,
+        ),
       v = player_first_person ? (180 + camera_rotation.y) * DEG_TO_RAD : 0,
-      player_gravity = currentModelId ? 5 : lerpDamp(player_gravity, player_respawned ? 10 : 19, 2.2),
       movePlayer(
         gameTimeDelta * (player_fly_velocity_x + player_speed * (viewDirDiffx * Math.cos(v) - y * Math.sin(v))),
         -player_gravity * gameTimeDelta,

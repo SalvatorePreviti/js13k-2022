@@ -2056,6 +2056,7 @@ const player_init = () => {
   let player_fly_velocity_x;
   let player_fly_velocity_z;
   let player_speed;
+  let player_speed_collision_limiter;
   let player_model_y;
   let camera_pos_lookat_x;
   let camera_pos_lookat_y;
@@ -2098,7 +2099,7 @@ const player_init = () => {
     player_position_global.z += v.z;
     updatePlayerPositionFinal();
   };
-  const doHorizontalCollisions = () => {
+  const doCollisions = () => {
     let modelACount = 0;
     let modelB = 0;
     let modelBCount = 0;
@@ -2160,6 +2161,7 @@ const player_init = () => {
         movZ = back - front;
       }
     }
+    player_speed_collision_limiter = clamp(1 - max(abs(movX), abs(movZ)) * 0.015);
     movePlayer(movX / 255, movY / 255, movZ / 255);
   };
   const interpolate_with_hysteresis = (previous, desired, hysteresis, speed) =>
@@ -2167,7 +2169,7 @@ const player_init = () => {
   allModels[MODEL_ID_PLAYER_BODY]._update = (matrix) => {
     updatePlayerPositionFinal(currentModelId);
     gl["r9r"](0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE, 6408, 5121, collision_buffer);
-    NO_INLINE(doHorizontalCollisions)();
+    NO_INLINE(doCollisions)();
     if (player_respawned || currentModelId !== oldModelId) {
       oldModelId = currentModelId;
       const v = matrixCopy(getReferenceMatrix()).invertSelf().transformPoint(player_position_final);
@@ -2254,13 +2256,17 @@ const player_init = () => {
     }
     player_legs_speed = lerpDamp(player_legs_speed, movAmount, 10);
     player_look_angle = angle_lerp_degrees(player_look_angle, player_look_angle_target, damp(8));
+    player_gravity = currentModelId ? 5 : lerpDamp(player_gravity, player_respawned ? 10 : 19, 2.2);
     player_fly_velocity_x = currentModelId || player_respawned ? 0 : lerpDamp(player_fly_velocity_x, 0, 3);
     player_fly_velocity_z = currentModelId || player_respawned ? 0 : lerpDamp(player_fly_velocity_z, 0, 3);
     player_speed = player_respawned
       ? 0
-      : lerpDamp(player_speed, currentModelId ? clamp(2 * movAmount) * 7 : 0, currentModelId ? 9 : 1);
+      : lerpDamp(
+        player_speed,
+        currentModelId ? clamp(2 * movAmount) * 7 * player_speed_collision_limiter : 0,
+        currentModelId ? 9 : 1,
+      );
     movAngle = player_first_person ? (180 + camera_rotation.y) * DEG_TO_RAD : 0;
-    player_gravity = currentModelId ? 5 : lerpDamp(player_gravity, player_respawned ? 10 : 19, 2.2);
     movePlayer(
       gameTimeDelta
         * (player_fly_velocity_x
