@@ -22,11 +22,6 @@ const MODEL_ID_LEVER = 42;
 const souls = [];
 const levers = [];
 const allModels = [];
-const player_position_final = {
-  x: 0,
-  y: 0,
-  z: 0,
-};
 const DEG_TO_RAD = Math.PI / 180;
 const abs = NO_INLINE((a) => a < 0 ? -a : a);
 const min = NO_INLINE((a, b) => a < b ? a : b);
@@ -438,6 +433,11 @@ const LOCAL_STORAGE_SAVED_GAME_KEY = "DanteSP22";
 const camera_rotation = {
   x: 0,
   y: 180,
+};
+const player_position_final = {
+  x: 0,
+  y: 0,
+  z: 0,
 };
 const worldStateUpdate = () => {
   if (_messageEndTime && gameTime > _messageEndTime) {

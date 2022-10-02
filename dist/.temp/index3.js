@@ -28,8 +28,9 @@ let aa,
 const Ga = [],
   e = [],
   Ha = [],
-  Ia = [{ x: -1, z: 1 }, { x: 1, z: 1 }, { x: 1, z: -1 }, { x: -1, z: -1 }],
-  Ja = [
+  Ia = Math.PI / 180,
+  Ja = [{ x: -1, z: 1 }, { x: 1, z: 1 }, { x: 1, z: -1 }, { x: -1, z: -1 }],
+  Oa = [
     "(.15:15:=5:=A:=AF=AFIFIMRMRUY(Y(((((((((((((((((((((((((((((M(M(((((((((((((((((((((((((((((R(R(((((((((((((((((((((((((((((U(U (059<59<A9<AE<AEHAEHMEHMQMQTY(Y (5:>A:>AF>AFJAFJMFJMRJMRVMRVY(Y (:?BFFKNRRWZ^(^((:=@FFILRRUX^(^ Q(M(M(O(Q(R(T(Q(T(R(W(U(T(R(Q(N(W((Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(X] QN(M(N(M(N(M(N(M((((((((((((((((W(Y(Y(Y(Y(Y(Y(Y(Y(((((((((((((((]"
       .split(" "),
     ".(5(.(5(.(5(.(5(.(5(.(5(.(5(.(5 -(5(-(5(-(5(-(5(-(5(-(5(-(5(-(5 ,(5(,(5(,(5(,(5(,(5(,(5(,(5(,(5 *(6(*(6(*(6(*(6(*(6(*(6(*(6(*(6 5(E(E(F(H(I(K(H(K(I(N(M(K(I(H(F(A(((((((((((((((((((((((((((((((5(((5(((5(((5(((5(((5(((5(((5 5(6(5(6(5(6(5(6(5((()(((((((((((A(B(A(B(A(B(A(B(A(((5"
@@ -38,22 +39,21 @@ const Ga = [],
     ["9(9(9(9(9(9(9(999(9(9(9(999(9(9", "9(9(9(9(9(999(9(((((Q"],
     ["((((Q(((((((Q(((((((Q(((((((Q", "Q((Q((Q((Q((Q((Q((((Q"],
   ],
-  Oa = [
+  Pa = [
     [69, 128, 0, 143, 128, 0, 0, 196, 100, 36, 0, 0, 149, 110, 31, 47, 3, 56, 2, 0],
     [100, 128, 0, 201, 128, 0, 0, 100, 144, 35, 0, 6, 135, 0, 32, 147, 6, 0, 6, 195],
     [255, 116, 85, 255, 116, 37, 14, 64, 144, 73, 99, 0, 136, 15, 32, 0, 0, 66, 6, 0],
     [0, 140, 0, 0, 140, 0, 81, 64, 400, 47, 55, 5, 239, 135, 13, 176, 5, 16, 4, 187],
     [221, 128, 64, 210, 128, 64, 255, 64, 144, 73, 79, 7, 195, 15, 21, 20, 0, 9, 3, 64],
-  ],
-  Pa = { x: 0, y: 0, z: 0 },
-  Qa = Math.PI / 180;
-var Ra = 0, Sa = 180;
-const h = NO_INLINE(a => 0 > a ? -a : a),
+  ];
+var Qa = 0, Ra = 180;
+const Sa = { x: 0, y: 0, z: 0 },
+  h = NO_INLINE(a => 0 > a ? -a : a),
   Ta = NO_INLINE((a, b) => a < b ? a : b),
   Ua = NO_INLINE((a, b) => b < a ? a : b),
   Va = (a, b) => h(a) > b ? a : 0,
   m = (a, b = 0, f = 1) => a < b ? b : f < a ? f : a,
-  Wa = a => Math.atan2(Math.sin(a * Qa), Math.cos(a * Qa)) / Qa,
+  Wa = a => Math.atan2(Math.sin(a * Ia), Math.cos(a * Ia)) / Ia,
   Xa = (a, b, f) => a + (2 * (b = (b - a) % 360) % 360 - b) * m(f) || 0,
   Ya = (a, b, f) => (0 < f ? 1 > f ? a + (b - a) * f : b : a) || 0,
   Za = (a, b) => (a = m(a), Ya(a, 1 - a, b)),
@@ -128,7 +128,7 @@ const h = NO_INLINE(a => 0 > a ? -a : a),
     b,
     f = 0,
     k,
-  ) => (a = a ? jb(a, k) : Ia,
+  ) => (a = a ? jb(a, k) : Ja,
     k = ib(a, p(0, 1).scale3d(0 < f ? f : 1)),
     a = ib(a, p(0, -1).scale3d(0 > f ? -f : 1)).reverse(),
     [...kb(a, k, b), k, a]),
@@ -359,13 +359,13 @@ const h = NO_INLINE(a => 0 > a ? -a : a),
           (I[n] = !!q.type[5] && !0) && (0 === n && (ea = 1), 1 === n && t(!0)));
     };
     onmousemove = ({ movementX: q, movementY: n }) => {
-      ha && (q || n) && (Sa += 0.1 * q, Ra += 0.1 * n);
+      ha && (q || n) && (Ra += 0.1 * q, Qa += 0.1 * n);
     };
     hC.ontouchstart = q => {
       if (!ba) {
         for (let { pageX: n, pageY: H, identifier: E } of q.changedTouches) {
           ha && n > hC.clientWidth / 2
-            ? void 0 === x && (A = 0, l = n, v = H, x = E, B = Sa, z = Ra)
+            ? void 0 === x && (A = 0, l = n, v = H, x = E, B = Ra, z = Qa)
             : void 0 === k && (r = 0, b = n, f = H, k = E);
         }
         a = wa;
@@ -375,7 +375,7 @@ const h = NO_INLINE(a => 0 > a ? -a : a),
       if (!ba) {
         for (let { pageX: C, pageY: y, identifier: J } of q.changedTouches) {
           var n, H, E, K;
-          x === J && (Sa = B + (C - l) / 2.3, Ra = z + (y - v) / 2.3, A = 1);
+          x === J && (Ra = B + (C - l) / 2.3, Qa = z + (y - v) / 2.3, A = 1);
           k === J
             && (J = (b - C) / 20,
               n = h(J),
@@ -408,7 +408,7 @@ const h = NO_INLINE(a => 0 > a ? -a : a),
       if (q) {
         const n = E => H[E]?.pressed || 0 < H[E]?.value ? 1 : 0, H = q.buttons;
         q = q.axes;
-        ha && (Ra += d * Va(q[3], 0.3) * 80, Sa += d * Va(q[2], 0.3) * 80);
+        ha && (Qa += d * Va(q[3], 0.3) * 80, Ra += d * Va(q[2], 0.3) * 80);
         Aa += n(12) - n(13) - Va(q[1], 0.2);
         Ba += n(14) - n(15) - Va(q[0], 0.2);
         n(9) && t(!0);
@@ -427,7 +427,7 @@ const h = NO_INLINE(a => 0 > a ? -a : a),
     a();
     na = f;
   },
-  Gb = a => (a = a.transformPoint(), Math.hypot(Pa.x - a.x, Pa.y - a.y, Pa.z - a.z)),
+  Gb = a => (a = a.transformPoint(), Math.hypot(Sa.x - a.x, Sa.y - a.y, Sa.z - a.z)),
   Hb = a => {
     const b = na,
       f = e.length,
@@ -487,7 +487,7 @@ const h = NO_INLINE(a => 0 > a ? -a : a),
             B = zb(B, 6 * (1 - F) + 3, F + 3);
             I = zb(I, G = zb(G, G + l, B), B);
             P = zb(P, O = zb(O, O + v, B), B);
-            f = Xa(f, Math.atan2(I - k, P - r) / Qa - 180, 1 - Math.exp(-3 * d));
+            f = Xa(f, Math.atan2(I - k, P - r) / Ia - 180, 1 - Math.exp(-3 * d));
             if (
               1.6 > Gb(eb(Q).multiplySelf(a).translateSelf(k = I, 0, r = P).rotateSelf(0, f, 7 * Math.sin(1.7 * c)))
             ) {
@@ -540,10 +540,10 @@ const h = NO_INLINE(a => 0 > a ? -a : a),
         const { x: C, y, z: J } = 1 < I
           ? eb(e[za].m).multiplySelf(e[za].H).transformPoint({ x: 0, y: za || 0.9 < ca ? 15 : 1, z: -2.4 })
           : t().transformPoint(Q);
-        K && (v = (C - Pa.x) / d, x = (J - Pa.z) / d);
-        Pa.x = C;
-        Pa.y = y;
-        Pa.z = J;
+        K && (v = (C - Sa.x) / d, x = (J - Sa.z) / d);
+        Sa.x = C;
+        Sa.y = y;
+        Sa.z = J;
       },
       n = (K, C, y) => {
         eb(t()).invertSelf();
@@ -596,9 +596,9 @@ const h = NO_INLINE(a => 0 > a ? -a : a),
       q(a);
       Z.r9r(0, 0, 128, 128, 6408, 5121, Kb);
       NO_INLINE(H)();
-      !I && a === b || (b = a, C = eb(t()).invertSelf().transformPoint(Pa), Q.x = C.x, Q.y = C.y, Q.z = C.z);
+      !I && a === b || (b = a, C = eb(t()).invertSelf().transformPoint(Sa), Q.x = C.x, Q.y = C.y, Q.z = C.z);
       I = I && (a ? 0 : 1);
-      var { x: C, y, z: J } = Pa;
+      var { x: C, y, z: J } = Sa;
       y =
         (y < (-20 > C || 109 > J ? -25 : -9) && (I = 2),
           1 === a && (e[9].i = -15 > C && 0 > J ? 1 : 0),
@@ -612,15 +612,15 @@ const h = NO_INLINE(a => 0 > a ? -a : a),
               Ca = Ya(Ca, C, y),
               Da = Ya(Da, z + 1.5, y),
               Ea = Ya(Ea, J, y),
-              Sa = Wa(Sa))
+              Ra = Wa(Ra))
             : (Ea = E(Ea, G + -18 + 5 * l, 1, 2 + l),
               Da = E(Da, Ua(u + m((-60 - J) / 8, 0, 20) + 13 + 9 * l, 6), 4, 2),
               Ca = E(Ca, g, 1, 2 + l),
               y = Ta(-6, -h(G - Ea)),
               L = g - Ca,
-              Sa = Xa(Sa, 90 - Wa(Math.atan2(y, L) / Qa), O + (1 - Math.exp(-10 * d))),
-              Ra = Xa(Ra, 90 - Math.atan2(Math.hypot(y, L), Da - u) / Qa, O + (1 - Math.exp(-10 * d)))),
-          Ra = m(Ra, -87, 87),
+              Ra = Xa(Ra, 90 - Wa(Math.atan2(y, L) / Ia), O + (1 - Math.exp(-10 * d))),
+              Qa = Xa(Qa, 90 - Math.atan2(Math.hypot(y, L), Da - u) / Ia, O + (1 - Math.exp(-10 * d)))),
+          Qa = m(Qa, -87, 87),
           O = 0,
           m(Aa, -1));
       var L = m(Ba, -1);
@@ -628,14 +628,14 @@ const h = NO_INLINE(a => 0 > a ? -a : a),
       var N = Math.atan2(y, L);
       y = V * h(y) * Math.sin(N);
       L = V * h(L) * Math.cos(N);
-      V && (f = 90 - N / Qa);
+      V && (f = 90 - N / Ia);
       k = Xa(k, f, 1 - Math.exp(-8 * d));
       r = zb(r, V, 10);
       K().translateSelf(C, z, J).rotateSelf(0, k);
       for (N = 0; 2 > N; ++N) {
         const F = 9.1 * c - Math.PI * N;
         eb(Ha[37].m, K()).translateSelf(0, r * m(0.45 * Math.sin(F - Math.PI / 2))).rotateSelf(
-          r * Math.sin(F) * 0.25 / Qa,
+          r * Math.sin(F) * 0.25 / Ia,
           0,
         );
       }
@@ -643,7 +643,7 @@ const h = NO_INLINE(a => 0 > a ? -a : a),
       v = a || I ? 0 : zb(v, 0, 3);
       x = a || I ? 0 : zb(x, 0, 3);
       A = I ? 0 : zb(A, a ? 7 * m(2 * V) * B : 0, a ? 9 : 1);
-      N = ha ? (180 + Sa) * Qa : 0;
+      N = ha ? (180 + Ra) * Ia : 0;
       n(d * (v + A * (L * Math.cos(N) - y * Math.sin(N))), -P * d, d * (x + A * (L * Math.sin(N) + y * Math.cos(N))));
     };
   },
@@ -746,8 +746,8 @@ const h = NO_INLINE(a => 0 > a ? -a : a),
             }
             v += 768 * F;
           },
-          A = Ja[b],
-          [B, z, g, u, G, O, I, P, Q, t, q, n, H, E, K, C, y, J, L, V] = Oa[b],
+          A = Oa[b],
+          [B, z, g, u, G, O, I, P, Q, t, q, n, H, E, K, C, y, J, L, V] = Pa[b],
           N = 4 * t ** 2;
         x(5513);
         x(4562);
@@ -868,7 +868,7 @@ Vb(() => {
               Z.v5y(0, 0, 128, 128);
               Z.c4s(16640);
               Z.cbf(!0, !1, !0, !1);
-              var { x: t, y: q, z: H } = Pa;
+              var { x: t, y: q, z: H } = Sa;
               Z.uae(g("b"), !1, ab(eb().rotateSelf(0, 180).invertSelf().translateSelf(-t, -q, 0.3 - H)));
               Ub(g("c"), 0, 40);
               Z.c4s(256);
@@ -881,7 +881,7 @@ Vb(() => {
             eb(bb, v);
             ba
               ? v.rotateSelf(-20, -90).invertSelf().translateSelf(5, -2, -3.4)
-              : v.rotateSelf(-Ra, -Sa).invertSelf().translateSelf(-Ca, -Da, -Ea);
+              : v.rotateSelf(-Qa, -Ra).invertSelf().translateSelf(-Ca, -Da, -Ea);
             B();
             Z.b6o(36160, I);
             Z.v5y(0, 0, 2048, 2048);
@@ -1087,11 +1087,11 @@ Vb(() => {
     });
     const k = gb(11, l => p(Math.sin(l / 10 * Math.PI), l / 10).rotate(+l).scale(1.0001 - l / 10, 0, 1 - l / 10)),
       r = gb(10, l => kb(ib(jb(18), k[l]).reverse(), ib(jb(18), k[l + 1]), 1)).flat();
-    Y(() => X([Ia.slice(1)], p(-2).scale3d(3).rotate(90, 0)), 0);
+    Y(() => X([Ja.slice(1)], p(-2).scale3d(3).rotate(90, 0)), 0);
     Y(() => {
       const l = g =>
           Y(() => {
-            Ia.map(({ x: u, z: G }) => {
+            Ja.map(({ x: u, z: G }) => {
               X(M(11, 1), p(4 * u, 4, g + 4 * G).scale(0.8, 3, 0.8), U(0.5, 0.3, 0.7, 0.6));
               X(M(), p(4 * u, 7, g + 4 * G).scale(1, 0.3), U(0.5, 0.5, 0.5, 0.3));
             });
@@ -1120,7 +1120,7 @@ Vb(() => {
           Hb(p(-5.4, 1.5, -19).rotate(0, -90)),
           Ib(p(-0.5, 2.8, -20), [0, 0, 2.5], [0, -3, 2.5]),
           Ib(p(0, 2.8), [5, 10, 3], [-5, 10, 3], ...jb(18).map(({ x: g, z: u }) => [7 * g, 10 * u, 4.5 - 2 * h(g)])),
-          Ia.map(({ x: g, z: u }) => X(M(6), p(3 * g, 3, 15 * u).scale(0.7, 4, 0.7), U(0.6, 0.3, 0.3, 0.4))),
+          Ja.map(({ x: g, z: u }) => X(M(6), p(3 * g, 3, 15 * u).scale(0.7, 4, 0.7), U(0.6, 0.3, 0.3, 0.4))),
           [-15, 15].map((g, u) => {
             x();
             x();
@@ -1231,7 +1231,7 @@ Vb(() => {
             D(M(), p(-100, 0, 70).scale(2, 2, 10), U(0.5, 0.5, 0.5, 0.4)),
             D(M(20, 1), p(-100, 2, 70).scale(2, 2, 10).rotate(90, 0), U(0.5, 0.5, 0.5, 0.4)),
           )),
-          Ia.map(({ x: g, z: u }) => {
+          Ja.map(({ x: g, z: u }) => {
             X(M(6), p(7 * g - 100, -3, 7 * u + 55).scale(1, 8.1), U(0.6, 0.15, 0.15, 0.8));
             [4, -0.4].map(G => X(M(6), p(7 * g - 100, G, 7 * u + 55).scale(1.3, 0.5, 1.3), U(0.4, 0.2, 0.2, 0.8)));
           }),
@@ -1283,7 +1283,7 @@ Vb(() => {
             );
             Ib(p(-39.1, -0.6, 17).rotate(11), ...jb(15).map(({ x: g, z: u }) => [3 * g, 3 * u, 1.2]));
           }),
-          Ia.map(({ x: g, z: u }) => {
+          Ja.map(({ x: g, z: u }) => {
             X(M(14, 1), p(9 * g - 38.9, -7.3, 11 * u + 17).scale(1, 4), U(0.25, 0.25, 0.25, 1));
             [1.5, 8].map(G =>
               X(M(17, 1), p(9 * g - 38.9, G - 11.3, 11 * u + 17).scale(1.5, 0.5, 1.5), U(0.6, 0.6, 0.6, 0.3))

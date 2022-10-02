@@ -1,9 +1,11 @@
 import { abs, clamp } from "../math/math";
-import type { Vec2 } from "../math/vectors";
+import type { Vec2, Vec3 } from "../math/vectors";
 import { levers, souls, SOULS_COUNT } from "./models";
 import { gameTime, lerpDamp, resetGameTime } from "./game-time";
 
 export const camera_rotation: Vec2 = { x: 0, y: 180 } as Vec2;
+
+export const player_position_final: Vec3 = { x: 0, y: 0, z: 0 };
 
 export let souls_collected_count = 0;
 

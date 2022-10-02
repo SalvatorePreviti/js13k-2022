@@ -3,7 +3,6 @@ import {
   souls,
   allModels,
   MODEL_ID_FIRST_BOAT,
-  player_position_final,
   MODEL_KIND_GAME,
   type MODEL_KIND,
   type Model,
@@ -11,7 +10,7 @@ import {
   type Lever,
   type Soul,
 } from "./models";
-import { onLever0Pulled, onPlayerPullLever, onSoulCollected } from "./world-state";
+import { player_position_final, onLever0Pulled, onPlayerPullLever, onSoulCollected } from "./world-state";
 import { interact_pressed } from "../page";
 import type { Vec3Optional } from "../math/vectors";
 import { min, angle_lerp_degrees, DEG_TO_RAD, clamp, abs } from "../math/math";

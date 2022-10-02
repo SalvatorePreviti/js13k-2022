@@ -10,15 +10,8 @@ import {
   abs,
   threshold,
 } from "../math/math";
-import {
-  levers,
-  player_position_final,
-  allModels,
-  MODEL_KIND_GAME,
-  MODEL_ID_ROTATING_PLATFORM,
-  MODEL_ID_PLAYER_BODY,
-} from "./models";
-import { player_last_pulled_lever, camera_rotation, firstBoatLerp } from "./world-state";
+import { levers, allModels, MODEL_KIND_GAME, MODEL_ID_ROTATING_PLATFORM, MODEL_ID_PLAYER_BODY } from "./models";
+import { player_last_pulled_lever, camera_rotation, firstBoatLerp, player_position_final } from "./world-state";
 import { input_forward, input_strafe, player_first_person } from "../page";
 import { lerpDamp, gameTimeDelta, damp, gameTime } from "./game-time";
 import { matrixCopy, tempMatrix } from "../math/matrix";

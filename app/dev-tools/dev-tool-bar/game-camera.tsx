@@ -1,9 +1,8 @@
 import type { FC } from "react";
 import { useState, useEffect } from "react";
 import { debug_camera_position, debug_camera_rotation, debug_camera_zero } from "../dev";
-import { player_position_final } from "../../game/models";
 import { camera_position_x, camera_position_y, camera_position_z } from "../../game/player";
-import { camera_rotation } from "../../game/world-state";
+import { camera_rotation, player_position_final } from "../../game/world-state";
 
 let updateCounter = 0;
 
