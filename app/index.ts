@@ -11,17 +11,18 @@ import groundTextureSvg from "./groundTexture.svg";
 import { build_life_the_universe_and_everything } from "./game/level";
 import { startMainLoop } from "./main-loop";
 import { loadGame } from "./game/world-state";
-import { initTriangleBuffers } from "./game/triangle-buffers";
-import { loadSong } from "./music/music-player";
 import { loadStep } from "./load-step";
+import { loadSong } from "./music/music-player";
+import { initTriangleBuffers } from "./game/triangle-buffers";
 
 loadStep(() => {
-  let loadStatus = 0;
   const image = new Image();
 
   if (DEBUG) {
     console.time("load");
   }
+
+  let loadStatus = 0;
 
   const end = () => {
     if (++loadStatus === 2) {
@@ -47,8 +48,8 @@ loadStep(() => {
   const songLoaded = () => {
     loadStep(() => {
       initTriangleBuffers();
-      loadStep(end);
       loadGame();
+      loadStep(end);
     });
     build_life_the_universe_and_everything();
   };

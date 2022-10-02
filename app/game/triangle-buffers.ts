@@ -1,6 +1,6 @@
-import { plane_fromPolygon } from "../math/vectors";
 import { allModels, MODEL_ID_LEVER, souls, SOULS_COUNT } from "./models";
 import { gl } from "../gl";
+import { plane_fromPolygon } from "../math/vectors";
 import type { Polygon } from "../geometry/polygon";
 
 export const initTriangleBuffers = () => {

@@ -26,12 +26,6 @@ export interface Soul {
 
 export type Circle = [number, number, number];
 
-export const allModels: Model[] = [];
-
-/** Fixed number of levers */
-
-export const levers: Lever[] = [];
-
 /** Fixed number of souls */
 export const SOULS_COUNT = 13;
 
@@ -39,6 +33,10 @@ export const SOULS_COUNT = 13;
 export const LEVERS_COUNT = 16;
 
 export const souls: Soul[] = [];
+
+export const levers: Lever[] = [];
+
+export const allModels: Model[] = [];
 
 export const player_position_final: Vec3 = {
   x: 0,

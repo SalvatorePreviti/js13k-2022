@@ -12,9 +12,9 @@ const MODEL_ID_PLAYER_LEG1 = 39;
 const MODEL_ID_LEVER = 40;
 const MODEL_ID_SOUL_COLLISION = 41;
 const MODEL_ID_SOUL = 42;
-const allModels = [];
-const levers = [];
 const souls = [];
+const levers = [];
+const allModels = [];
 const player_position_final = {
   x: 0,
   y: 0,
@@ -1579,10 +1579,10 @@ const initShaderProgram = (vertexShader, sfsSource) => {
 };
 const renderModels = (worldMatrixLoc, renderPlayer, soulModelId) => {
   if (mainMenuVisible) {
-    const matrix = rotation(0, /* @__PURE__ */ Math.sin(absoluteTime) * 40 - 70);
-    matrixToArray(matrix, worldMatricesBuffer, MODEL_ID_PLAYER_BODY);
-    matrixToArray(matrix, worldMatricesBuffer, MODEL_ID_PLAYER_LEG0);
-    matrixToArray(matrix, worldMatricesBuffer, MODEL_ID_PLAYER_LEG1);
+    matrixCopy().rotateSelf(0, /* @__PURE__ */ Math.sin(absoluteTime) * 40 - 70);
+    matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_BODY);
+    matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_LEG0);
+    matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_LEG1);
     gl["uae"](worldMatrixLoc, false, worldMatricesBuffer);
     gl["d97"](4, allModels[MODEL_ID_PLAYER_LEG1].$vertexEnd - allModels[MODEL_ID_PLAYER_BODY].$vertexBegin, 5123, allModels[MODEL_ID_PLAYER_BODY].$vertexBegin * 2);
     return;
@@ -1751,66 +1751,9 @@ const startMainLoop = (groundTextureImage) => {
   NO_INLINE(player_init)();
   requestAnimationFrame(mainLoop);
 };
-const initTriangleBuffers = () => {
-  let polygon;
-  let meshFirstIndex = 0;
-  const _triangleIndices = [];
-  const _vertexPositions = [];
-  const _vertexColors = [];
-  const _vertexNormals = [];
-  const getVertex = (i) => {
-    let { x, y, z } = polygon[i];
-    _vertexFloats[0] = x;
-    _vertexFloats[1] = y;
-    _vertexFloats[2] = z;
-    const key = "" + (polygon.$smooth ? _vertexIntsSmooth : _vertexInts);
-    let index = _vertexMap.get(key);
-    if (index !== void 0) {
-      x = index * 3;
-      _vertexNormals[x] = (_vertexNormals[x++] + _vertexInts[5]) / 2;
-      _vertexNormals[x] = (_vertexNormals[x++] + _vertexInts[6]) / 2;
-      _vertexNormals[x] = (_vertexNormals[x] + _vertexInts[7]) / 2;
-    } else {
-      _vertexMap.set(key, index = _vertexMap.size);
-      _vertexPositions.push(x, y, z, _vertexFloats[3]);
-      _vertexColors.push(_vertexInts[4]);
-      _vertexNormals.push(_vertexInts[5], _vertexInts[6], _vertexInts[7]);
-    }
-    return index;
-  };
-  const _vertexInts = new Int32Array(8);
-  const _vertexMap = /* @__PURE__ */ new Map();
-  const _vertexIntsSmooth = new Int32Array(_vertexInts.buffer, 0, 5);
-  const _vertexFloats = new Float32Array(_vertexInts.buffer);
-  for (const model of allModels) {
-    _vertexFloats[3] = model.$modelId === MODEL_ID_LEVER ? -SOULS_COUNT - 1 : model.$kind && model.$modelId;
-    for (polygon of model.$polygons) {
-      const { x, y, z } = plane_fromPolygon(polygon);
-      _vertexInts[4] = polygon.$color | 0;
-      _vertexInts[5] = x * 32767;
-      _vertexInts[6] = y * 32767;
-      _vertexInts[7] = z * 32767;
-      for (let i = 2, a = getVertex(0), b = getVertex(1); i < polygon.length; ++i)
-        _triangleIndices.push(a, b, b = getVertex(i));
-    }
-    model.$polygons = null;
-    model.$vertexBegin = meshFirstIndex;
-    model.$vertexEnd = meshFirstIndex = _triangleIndices.length;
-  }
-  gl["b11"](34962, gl["c1b"]());
-  gl["b2v"](34962, new Float32Array(_vertexPositions), 35044);
-  gl["v7s"](0, 4, 5126, false, 0, 0);
-  gl["b11"](34962, gl["c1b"]());
-  gl["b2v"](34962, new Int16Array(_vertexNormals), 35044);
-  gl["v7s"](1, 3, 5122, true, 0, 0);
-  gl["b11"](34962, gl["c1b"]());
-  gl["b2v"](34962, new Uint32Array(_vertexColors), 35044);
-  gl["v7s"](2, 4, 5121, true, 0, 0);
-  gl["b11"](34963, gl["c1b"]());
-  gl["b2v"](34963, new Uint16Array(_triangleIndices), 35044);
-  gl["e3x"](0);
-  gl["e3x"](1);
-  gl["e3x"](2);
+const loadStep = (fn) => {
+  h4.innerHTML += ".";
+  setTimeout(fn);
 };
 const song_numChannels = 5;
 const song_endPattern = 11;
@@ -1961,10 +1904,6 @@ const song_instruments = [
     64
   ]
 ];
-const loadStep = (fn) => {
-  h4.innerHTML += ".";
-  setTimeout(fn);
-};
 const getnotefreq = (n) => 0.003959503758 * 2 ** ((n - 256) / 12);
 const osc_sin = (value) => /* @__PURE__ */ Math.sin(value * Math.PI * 2);
 const osc_square = (value) => value % 1 < 0.5 ? 1 : -1;
@@ -2082,6 +2021,67 @@ const loadSong = (done) => {
 };
 const SONG_WORDS = song_patternLen * (song_endPattern + 1) * 2;
 const SONG_TOTAL_WORDS = (song_rowLen0 + song_rowLen1 + song_rowLen2) * SONG_WORDS;
+const initTriangleBuffers = () => {
+  let polygon;
+  let meshFirstIndex = 0;
+  const _triangleIndices = [];
+  const _vertexPositions = [];
+  const _vertexColors = [];
+  const _vertexNormals = [];
+  const getVertex = (i) => {
+    let { x, y, z } = polygon[i];
+    _vertexFloats[0] = x;
+    _vertexFloats[1] = y;
+    _vertexFloats[2] = z;
+    const key = "" + (polygon.$smooth ? _vertexIntsSmooth : _vertexInts);
+    let index = _vertexMap.get(key);
+    if (index !== void 0) {
+      x = index * 3;
+      _vertexNormals[x] = (_vertexNormals[x++] + _vertexInts[5]) / 2;
+      _vertexNormals[x] = (_vertexNormals[x++] + _vertexInts[6]) / 2;
+      _vertexNormals[x] = (_vertexNormals[x] + _vertexInts[7]) / 2;
+    } else {
+      _vertexMap.set(key, index = _vertexMap.size);
+      _vertexPositions.push(x, y, z, _vertexFloats[3]);
+      _vertexColors.push(_vertexInts[4]);
+      _vertexNormals.push(_vertexInts[5], _vertexInts[6], _vertexInts[7]);
+    }
+    return index;
+  };
+  const _vertexInts = new Int32Array(8);
+  const _vertexMap = /* @__PURE__ */ new Map();
+  const _vertexIntsSmooth = new Int32Array(_vertexInts.buffer, 0, 5);
+  const _vertexFloats = new Float32Array(_vertexInts.buffer);
+  for (const model of allModels) {
+    _vertexFloats[3] = model.$modelId === MODEL_ID_LEVER ? -SOULS_COUNT - 1 : model.$kind && model.$modelId;
+    for (polygon of model.$polygons) {
+      const { x, y, z } = plane_fromPolygon(polygon);
+      _vertexInts[4] = polygon.$color | 0;
+      _vertexInts[5] = x * 32767;
+      _vertexInts[6] = y * 32767;
+      _vertexInts[7] = z * 32767;
+      for (let i = 2, a = getVertex(0), b = getVertex(1); i < polygon.length; ++i)
+        _triangleIndices.push(a, b, b = getVertex(i));
+    }
+    model.$polygons = null;
+    model.$vertexBegin = meshFirstIndex;
+    model.$vertexEnd = meshFirstIndex = _triangleIndices.length;
+  }
+  gl["b11"](34962, gl["c1b"]());
+  gl["b2v"](34962, new Float32Array(_vertexPositions), 35044);
+  gl["v7s"](0, 4, 5126, false, 0, 0);
+  gl["b11"](34962, gl["c1b"]());
+  gl["b2v"](34962, new Int16Array(_vertexNormals), 35044);
+  gl["v7s"](1, 3, 5122, true, 0, 0);
+  gl["b11"](34962, gl["c1b"]());
+  gl["b2v"](34962, new Uint32Array(_vertexColors), 35044);
+  gl["v7s"](2, 4, 5121, true, 0, 0);
+  gl["b11"](34963, gl["c1b"]());
+  gl["b2v"](34963, new Uint16Array(_triangleIndices), 35044);
+  gl["e3x"](0);
+  gl["e3x"](1);
+  gl["e3x"](2);
+};
 loadStep(() => {
   let loadStatus = 0;
   const end = () => {
@@ -2091,14 +2091,14 @@ loadStep(() => {
   const songLoaded = () => {
     loadStep(() => {
       initTriangleBuffers();
-      loadStep(end);
       loadGame();
+      loadStep(end);
     });
     build_life_the_universe_and_everything();
   };
   const image = new Image();
   image.onload = image.onerror = end;
   image.src = groundTextureSvg;
-  loadSong(songLoaded);
+  NO_INLINE(loadSong)(songLoaded);
 });
 //# sourceMappingURL=index.js.map

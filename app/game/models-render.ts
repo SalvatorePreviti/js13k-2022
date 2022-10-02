@@ -10,8 +10,7 @@ import {
   type MODEL_ID_SOUL_COLLISION,
 } from "./models";
 import { absoluteTime, mainMenuVisible } from "./game-time";
-import { rotation } from "../math/matrix-transforms";
-import { matrixToArray } from "../math/matrix";
+import { matrixCopy, matrixToArray, tempMatrix } from "../math/matrix";
 import { gl } from "../gl";
 import { worldMatricesBuffer, objectsMatricesBuffer } from "./models-matrices";
 
@@ -21,11 +20,11 @@ export const renderModels = (
   soulModelId: typeof MODEL_ID_SOUL | typeof MODEL_ID_SOUL_COLLISION,
 ) => {
   if (mainMenuVisible) {
-    const matrix = rotation(0, Math.sin(absoluteTime) * 40 - 70);
+    matrixCopy().rotateSelf(0, Math.sin(absoluteTime) * 40 - 70);
 
-    matrixToArray(matrix, worldMatricesBuffer, MODEL_ID_PLAYER_BODY);
-    matrixToArray(matrix, worldMatricesBuffer, MODEL_ID_PLAYER_LEG0);
-    matrixToArray(matrix, worldMatricesBuffer, MODEL_ID_PLAYER_LEG1);
+    matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_BODY);
+    matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_LEG0);
+    matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_LEG1);
 
     gl.uniformMatrix4fv(worldMatrixLoc, false, worldMatricesBuffer);
     gl.drawElements(
