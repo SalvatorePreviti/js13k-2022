@@ -411,12 +411,6 @@ let mainMenuVisible;
 let gameTime = 0;
 let absoluteTime = 0;
 const GAME_TIME_MAX_DELTA_TIME = 0.066;
-const gameTimeUpdate = (time) => {
-  const dt = (time - (_globalTime || time)) / 1e3;
-  absoluteTime += dt;
-  gameTime += gameTimeDelta = mainMenuVisible ? 0 : min(GAME_TIME_MAX_DELTA_TIME, dt);
-  _globalTime = time;
-};
 const resetGameTime = (value) => {
   gameTime = value;
   gameTimeDelta = 0;
@@ -425,6 +419,22 @@ const damp = (speed) => 1 - /* @__PURE__ */ Math.exp(-speed * gameTimeDelta);
 const lerpDamp = NO_INLINE((from, to, speed) => lerp(from, to, damp(speed)));
 const setMainMenuVisible = (visible) => {
   mainMenuVisible = visible;
+};
+const gameTimeUpdate = (time) => {
+  const dt = (time - (_globalTime || time)) / 1e3;
+  absoluteTime += dt;
+  if (dt >= 0.04 + /* @__PURE__ */ Math.random() * 0.02) {
+    gameTimeDelta = mainMenuVisible
+      ? 0
+      : /* @__PURE__ */ Math.min(GAME_TIME_MAX_DELTA_TIME, (time - (_globalTime || time)) / 1e3);
+    gameTime += gameTimeDelta;
+    _globalTime = time;
+  } else {
+    gameTimeDelta = 0;
+  }
+  if (!_globalTime) {
+    _globalTime = time;
+  }
 };
 let gameTimeDelta = GAME_TIME_MAX_DELTA_TIME;
 let souls_collected_count = 0;
@@ -2261,8 +2271,9 @@ const player_init = () => {
     player_speed = player_respawned
       ? 0
       : lerpDamp(player_speed, currentModelId ? clamp(2 * movAmount) * 7 : 0, currentModelId ? 9 : 1);
-    player_gravity = lerpDamp(player_gravity, currentModelId ? 6.5 : 8, 4);
     movAngle = player_first_person ? (180 - camera_rotation.y) * DEG_TO_RAD : 0;
+    player_gravity = currentModelId ? 5 : lerpDamp(player_gravity, player_respawned ? 13 : 20, 4);
+    document.getElementById("dbg").innerHTML = player_gravity.toFixed(2);
     movePlayer(
       gameTimeDelta
         * (player_fly_velocity_x

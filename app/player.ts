@@ -319,10 +319,12 @@ export const player_init = () => {
       ? 0
       : lerpDamp(player_speed, currentModelId ? clamp(2 * movAmount) * 7 : 0, currentModelId ? 9 : 1);
 
-    player_gravity = lerpDamp(player_gravity, currentModelId ? 6.5 : 8, 4);
-
     // Angle is dependant on where the player is looking in first person. Is 0 in third person
-    movAngle = player_first_person ? (180 - camera_rotation.y) * DEG_TO_RAD : 0;
+    movAngle = player_first_person ? (180 + camera_rotation.y) * DEG_TO_RAD : 0;
+
+    player_gravity = currentModelId ? 5 : lerpDamp(player_gravity, player_respawned ? 10 : 19, 2.2);
+
+    document.getElementById("dbg")!.innerHTML = player_gravity.toFixed(2);
 
     movePlayer(
       gameTimeDelta *
