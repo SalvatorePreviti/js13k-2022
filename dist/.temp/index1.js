@@ -2040,11 +2040,6 @@ const CAMERA_PLAYER_Y_DIST = 13;
 const CAMERA_PLAYER_Z_DIST = -18;
 const PLAYER_LEGS_VELOCITY = 9.1;
 const PLAYER_RESPAWN_Z = -2.4;
-const player_position_global = {
-  x: 0,
-  y: 0,
-  z: 0,
-};
 const player_init = () => {
   let currentModelId;
   let oldModelId;
@@ -2063,6 +2058,11 @@ const player_init = () => {
   let boot = 1;
   let player_respawned = 2;
   let player_gravity = 15;
+  const player_position_global = {
+    x: 0,
+    y: 0,
+    z: 0,
+  };
   const getReferenceMatrix = () =>
     player_respawned
       ? levers[player_last_pulled_lever].$matrix
@@ -2516,7 +2516,7 @@ const startMainLoop = (groundTextureImage) => {
   gl["d4n"](515);
   gl["c5t"](0, 0, 0, 0);
   NO_INLINE(initPage)();
-  player_init();
+  NO_INLINE(player_init)();
   requestAnimationFrame(mainLoop);
 };
 const initTriangleBuffers = () => {

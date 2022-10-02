@@ -5,34 +5,7 @@ import { GameCameraComponent } from "./game-camera";
 import { FpsGraph } from "./fps-graph";
 import { DebugFlagsComponent } from "./debug-flags";
 import { LeversComponent } from "./levers-checkboxes";
-import { player_position_global } from "../../player";
 import { resetGameTime } from "../../game/game-time";
-
-function dumpPlayerZ() {
-  player_position_global.z = 600;
-}
-
-function dumpPlayerX() {
-  player_position_global.x = 600;
-}
-
-function dumpPlayerXZ() {
-  player_position_global.x = 600;
-  player_position_global.z = 600;
-}
-
-function dumpPlayerMZ() {
-  player_position_global.z = -600;
-}
-
-function dumpPlayerMX() {
-  player_position_global.x = -600;
-}
-
-function dumpPlayerMXZ() {
-  player_position_global.x = -600;
-  player_position_global.z = 600;
-}
 
 export const DevToolBar: FC = () => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -58,12 +31,6 @@ export const DevToolBar: FC = () => {
             <GameCameraComponent />
             <LeversComponent />
             <DebugFlagsComponent />
-            <button onClick={dumpPlayerZ}>dumpZ</button>
-            <button onClick={dumpPlayerX}>dumpX</button>
-            <button onClick={dumpPlayerXZ}>dumpXZ</button>
-            <button onClick={dumpPlayerMZ}>dumpMZ</button>
-            <button onClick={dumpPlayerMX}>dumpMX</button>
-            <button onClick={dumpPlayerMXZ}>dumpMXZ</button>
             <br />
             <button onClick={() => resetGameTime(0)}>reset time</button>
             <div id="dbg"></div>

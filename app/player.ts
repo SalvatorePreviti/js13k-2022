@@ -16,8 +16,6 @@ export const PLAYER_LEGS_VELOCITY = 7 * 1.3;
 
 export const PLAYER_RESPAWN_Z = -2.4;
 
-export const player_position_global = { x: 0, y: 0, z: 0 };
-
 export let camera_position_x: number = 0;
 
 export let camera_position_y: number = 0;
@@ -56,6 +54,8 @@ export const player_init = () => {
   let camera_pos_lookat_x: number;
   let camera_pos_lookat_y: number;
   let camera_pos_lookat_z: number;
+
+  const player_position_global = { x: 0, y: 0, z: 0 };
 
   const getReferenceMatrix = () =>
     player_respawned
