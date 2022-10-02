@@ -20,7 +20,7 @@ void main() {
     float xattenuation = (1. - sin((gl_FragCoord.x * (3.1415926 / 128.))));
     float z = clamp(v.z + .6, 0., 1.);
     O = vec4(
-      vec2(orientation * sign(v.x) * VNormal.x < 0. ? z * (1. - abs(v.x)) : 0.) * xattenuation,
+      vec2(orientation * sign(v.x) * VNormal.x < 0. ? min(z * 10., 1.) * (.6 - abs(v.x)) : 0.) * xattenuation,
       vec2(orientation * VNormal.z > 0. ? z * (1. - xattenuation) : 0.)
     );
 

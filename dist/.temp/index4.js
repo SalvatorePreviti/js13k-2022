@@ -468,7 +468,7 @@ precision highp float;uniform vec3 j,k;uniform mat4 b;uniform highp sampler2D q;
           s = D1(
             t,
             `#version 300 es
-precision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(m.xyz+vec3(0,1.49,b[0][0]*.3),1);if(gl_FragCoord.y>36.){float r=1.-sin(gl_FragCoord.x*.02454369),e=clamp(a.z+.6,0.,1.);O=vec4(vec2(b[0][0]*sign(a.x)*o.x<0.?e*(1.-abs(a.x)):0.)*r,vec2(b[0][0]*o.z>0.?e*(1.-r):0.));return;}float r=o.y>.5?a.y*clamp((a.z+.4)*50.,0.,1.):0.;O=vec4(vec2(r),vec2(r>0.?m.w/255.:0.));}`,
+precision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(m.xyz+vec3(0,1.49,b[0][0]*.3),1);if(gl_FragCoord.y>36.){float r=1.-sin(gl_FragCoord.x*.02454369),i=clamp(a.z+.6,0.,1.);O=vec4(vec2(b[0][0]*sign(a.x)*o.x<0.?min(i*10.,1.)*(.6-abs(a.x)):0.)*r,vec2(b[0][0]*o.z>0.?i*(1.-r):0.));return;}float r=o.y>.5?a.y*clamp((a.z+.4)*50.,0.,1.):0.;O=vec4(vec2(r),vec2(r>0.?m.w/255.:0.));}`,
           ),
           o = D1(
             t,
@@ -1174,7 +1174,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   [0, 12, 24].map(e =>
                     M(
                       v(),
-                      i(e - 76.9, e / -16 - 10, 24).rotate(0, 0, -3).skewX(-3).scale(2.8, 1.4, 3),
+                      i(e - 76.9, e / -16 - 10, 24).rotate(0, 0, -2).skewX(-2).scale(2.8, 1.4, 3),
                       S(.2, .5, .6, .2),
                     )
                   );
@@ -1321,7 +1321,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 },
                   M(
                     v(6),
-                    i(-14.6 - 4.8 * a - (2 < a ? 2 : 0), -a / 2.5 - .1, -21.5).rotate(0, 0, 4).skewX(4).scale(
+                    i(-14.6 - 4.8 * a - (2 < a ? 2 : 0), -a / 2.5 - .1, -21.5).rotate(0, 0, 3.5).skewX(3.5).scale(
                       2.6,
                       1,
                       2.5,

@@ -41,6 +41,8 @@ export const set_camera_position = (x: number, y: number, z: number) => {
 
 const collision_buffer = new Uint8Array(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
 
+let debug2dctx: CanvasRenderingContext2D | null | undefined;
+
 export const player_init = () => {
   let currentModelId: number;
   let oldModelId: number | undefined;
@@ -197,6 +199,35 @@ export const player_init = () => {
     // ------- process collision renderBuffer -------
 
     NO_INLINE(doHorizontalCollisions)();
+
+    if (DEBUG) {
+      const debugCanvas = document.getElementById("debug-canvas") as HTMLCanvasElement;
+
+      const buf = new Uint8ClampedArray(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
+
+      if (debugCanvas) {
+        for (let y = 0; y < COLLISION_TEXTURE_SIZE; ++y) {
+          for (let x = 0; x < COLLISION_TEXTURE_SIZE; ++x) {
+            const i = ((COLLISION_TEXTURE_SIZE - y) * COLLISION_TEXTURE_SIZE + x) * 4;
+            const r = collision_buffer[i]!;
+            const g = collision_buffer[i + 1]!;
+            const b = collision_buffer[i + 2]!;
+
+            buf[(y * COLLISION_TEXTURE_SIZE + x) * 4] = r * 10;
+            buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 1] = g * 10;
+            buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 2] = b ? 200 : 0;
+            buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 3] = 255;
+          }
+        }
+
+        const imgdata = new ImageData(buf, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
+
+        if (!debug2dctx) {
+          debug2dctx = debugCanvas.getContext("2d")!;
+        }
+        debug2dctx.putImageData(imgdata, 0, 0, 0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
+      }
+    }
 
     if (player_respawned || currentModelId !== oldModelId) {
       if (DEBUG && currentModelId !== oldModelId) {

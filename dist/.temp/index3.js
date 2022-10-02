@@ -861,7 +861,7 @@ Ub(() => {
           ),
           Q = Rb(
             l,
-            "#version 300 es\nprecision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(m.xyz+vec3(0,1.49,b[0][0]*.3),1);if(gl_FragCoord.y>36.){float r=1.-sin(gl_FragCoord.x*.02454369),e=clamp(a.z+.6,0.,1.);O=vec4(vec2(b[0][0]*sign(a.x)*o.x<0.?e*(1.-abs(a.x)):0.)*r,vec2(b[0][0]*o.z>0.?e*(1.-r):0.));return;}float r=o.y>.5?a.y*clamp((a.z+.4)*50.,0.,1.):0.;O=vec4(vec2(r),vec2(r>0.?m.w/255.:0.));}",
+            "#version 300 es\nprecision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(m.xyz+vec3(0,1.49,b[0][0]*.3),1);if(gl_FragCoord.y>36.){float r=1.-sin(gl_FragCoord.x*.02454369),i=clamp(a.z+.6,0.,1.);O=vec4(vec2(b[0][0]*sign(a.x)*o.x<0.?min(i*10.,1.)*(.6-abs(a.x)):0.)*r,vec2(b[0][0]*o.z>0.?i*(1.-r):0.));return;}float r=o.y>.5?a.y*clamp((a.z+.4)*50.,0.,1.):0.;O=vec4(vec2(r),vec2(r>0.?m.w/255.:0.));}",
           ),
           C = Rb(
             l,
@@ -1215,7 +1215,7 @@ Ub(() => {
           Y(f => {
             f.h = g => g.translateSelf(0, 3.5 * (1 - Ua(k[6].g, k[7].g)) + Za(k[7].i, k[6].i) * Math.sin(c) * 5);
             [0, 12, 24].map(g =>
-              X(P(), t(g - 76.9, g / -16 - 10, 24).rotate(0, 0, -3).skewX(-3).scale(2.8, 1.4, 3), W(0.2, 0.5, 0.6, 0.2))
+              X(P(), t(g - 76.9, g / -16 - 10, 24).rotate(0, 0, -2).skewX(-2).scale(2.8, 1.4, 3), W(0.2, 0.5, 0.6, 0.2))
             );
           }),
           Y(f => {
@@ -1364,7 +1364,7 @@ Ub(() => {
           };
           X(
             P(6),
-            t(-14.6 - 4.8 * f - (2 < f ? 2 : 0), -f / 2.5 - 0.1, -21.5).rotate(0, 0, 4).skewX(4).scale(2.6, 1, 2.5),
+            t(-14.6 - 4.8 * f - (2 < f ? 2 : 0), -f / 2.5 - 0.1, -21.5).rotate(0, 0, 3.5).skewX(3.5).scale(2.6, 1, 2.5),
             W(0.5 - f / 8, f / 12 + 0.5, 0.7, 0.3),
           );
         }));
