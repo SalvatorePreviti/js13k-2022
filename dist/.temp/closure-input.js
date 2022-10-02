@@ -490,7 +490,6 @@ const csg_polygons_subtract = (a, ...b) => {
       });
   }
 };
-const material = NO_INLINE((r, g, b, a = 0) => 255 * a << 24 | 255 * b << 16 | 255 * g << 8 | 255 * r);
 const damp = (speed) => 1 - Math.exp(-speed * gameTimeDelta);
 const lerpDamp = NO_INLINE((from, to, speed) => lerp(from, to, damp(speed)));
 const updateCollectedSoulsCounter = () => {
@@ -708,6 +707,7 @@ const initPage = () => {
     document.onvisibilitychange = onblur = onresize = handleResize,
     mainMenu(!0);
 };
+const material = NO_INLINE((r, g, b, a = 0) => 255 * a << 24 | 255 * b << 16 | 255 * g << 8 | 255 * r);
 const meshAdd = (polygons, transform = new DOMMatrix(), color) =>
   currentEditModel.$polygons.push(...polygons_transform(polygons, transform, color));
 const newModel = (fn, $kind = 1) => {
@@ -964,7 +964,7 @@ const player_init = () => {
       }
       abs(right - left) > abs(movX) && (movX = right - left), abs(back - front) > abs(movZ) && (movZ = back - front);
     }
-    player_speed_collision_limiter = clamp(1 - 0.015 * max(abs(movX), abs(movZ))),
+    player_speed_collision_limiter = clamp(1 - 0.02 * max(abs(movX), abs(movZ))),
       movePlayer(movX / 255, movY / 255, movZ / 255);
   };
   const interpolate_with_hysteresis = (previous, desired, hysteresis, speed) =>
@@ -981,7 +981,7 @@ const player_init = () => {
         player_position_global.z = v.z),
       player_respawned = player_respawned && (currentModelId ? 0 : 1);
     var { x: v, y, z } = player_position_final;
-    const playerBodyMatrix =
+    var y =
       (y < (v < -20 || z < 109 ? -25 : -9) && (player_respawned = 2),
         currentModelId === 1 && (levers[9].$value = v < -15 && z < 0 ? 1 : 0),
         player_model_y = lerp(lerpDamp(player_model_y, y, 2), y, player_respawned || 8 * abs(player_model_y - y)),
@@ -1031,38 +1031,40 @@ const player_init = () => {
             )),
         camera_rotation.x = clamp(camera_rotation.x, -87, 87),
         boot = 0,
-        nextModelMatrix().translateSelf(v, player_model_y, z).rotateSelf(0, player_look_angle));
+        clamp(input_forward, -1));
+    var viewDirDiffx = clamp(input_strafe, -1);
+    const movAmount = threshold(Math.hypot(y, viewDirDiffx) ** 0.5, 0.1);
+    let movAngle = Math.atan2(y, viewDirDiffx);
+    var y = movAmount * abs(y) * Math.sin(movAngle);
+    var viewDirDiffx = movAmount * abs(viewDirDiffx) * Math.cos(movAngle);
+    movAmount && (player_look_angle_target = 90 - movAngle / DEG_TO_RAD),
+      player_look_angle = angle_lerp_degrees(player_look_angle, player_look_angle_target, damp(8)),
+      player_legs_speed = lerpDamp(player_legs_speed, movAmount, 10),
+      nextModelMatrix().translateSelf(v, player_model_y, z).rotateSelf(0, player_look_angle);
     for (let i = 0; i < 2; ++i) {
       const t = 9.1 * gameTime - Math.PI * i;
-      matrixCopy(playerBodyMatrix, nextModelMatrix()).translateSelf(
+      matrixCopy(allModels[37].$matrix, nextModelMatrix()).translateSelf(
         0,
         player_legs_speed * clamp(0.45 * Math.sin(t - Math.PI / 2)),
       ).rotateSelf(player_legs_speed * Math.sin(t) * 0.25 / DEG_TO_RAD, 0);
     }
-    var y = clamp(input_forward, -1);
-    var viewDirDiffx = clamp(input_strafe, -1);
-    var v = threshold(Math.hypot(y, viewDirDiffx) ** 0.5, 0.1);
-    var z = Math.atan2(y, viewDirDiffx);
-    var y = v * abs(y) * Math.sin(z);
-    var viewDirDiffx = v * abs(viewDirDiffx) * Math.cos(z);
-    v && (player_look_angle_target = 90 - z / DEG_TO_RAD),
-      player_legs_speed = lerpDamp(player_legs_speed, v, 10),
-      player_look_angle = angle_lerp_degrees(player_look_angle, player_look_angle_target, damp(8)),
-      player_gravity = currentModelId ? 5 : lerpDamp(player_gravity, player_respawned ? 10 : 19, 2.2),
+    player_gravity = currentModelId ? 5 : lerpDamp(player_gravity, player_respawned ? 10 : 19, 2.2),
       player_fly_velocity_x = currentModelId || player_respawned ? 0 : lerpDamp(player_fly_velocity_x, 0, 3),
       player_fly_velocity_z = currentModelId || player_respawned ? 0 : lerpDamp(player_fly_velocity_z, 0, 3),
       player_speed = player_respawned
         ? 0
         : lerpDamp(
           player_speed,
-          currentModelId ? 7 * clamp(2 * v) * player_speed_collision_limiter : 0,
+          currentModelId ? 7 * clamp(2 * movAmount) * player_speed_collision_limiter : 0,
           currentModelId ? 9 : 1,
         ),
-      z = player_first_person ? (180 + camera_rotation.y) * DEG_TO_RAD : 0,
+      movAngle = player_first_person ? (180 + camera_rotation.y) * DEG_TO_RAD : 0,
       movePlayer(
-        gameTimeDelta * (player_fly_velocity_x + player_speed * (viewDirDiffx * Math.cos(z) - y * Math.sin(z))),
+        gameTimeDelta
+          * (player_fly_velocity_x + player_speed * (viewDirDiffx * Math.cos(movAngle) - y * Math.sin(movAngle))),
         -player_gravity * gameTimeDelta,
-        gameTimeDelta * (player_fly_velocity_z + player_speed * (viewDirDiffx * Math.sin(z) + y * Math.cos(z))),
+        gameTimeDelta
+          * (player_fly_velocity_z + player_speed * (viewDirDiffx * Math.sin(movAngle) + y * Math.cos(movAngle))),
       );
   };
 };
@@ -1369,15 +1371,15 @@ loadStep(() => {
                 lerpneg((levers[14].$lerpValue + levers[14].$lerpValue2) / 2, levers[13].$lerpValue2),
                 (levers[15].$lerpValue + levers[15].$lerpValue2) / 2,
               ),
-              next().translateSelf(0, 16 * dt, 8.5 * clamp(2 * dt - 1) + 95),
-              player_update(next);
-            for (let i2 = 0; counter >= i2; ++i2) matrixToArray(allModels[i2].$matrix, worldMatricesBuffer, i2 - 1);
-            for (let i3 = 0; i3 < 13; ++i3) souls[i3]._update(), matrixToArray(tempMatrix, objectsMatricesBuffer, i3);
-            for (let i4 = 0; i4 < 16; ++i4) {
-              levers[i4]._update(),
-                matrixToArray(tempMatrix, objectsMatricesBuffer, i4 + 13),
-                objectsMatricesBuffer[16 * i4 + 223] = 1 - levers[i4].$lerpValue;
+              next().translateSelf(0, 16 * dt, 8.5 * clamp(2 * dt - 1) + 95);
+            for (let i2 = 0; i2 < 13; ++i2) souls[i2]._update(), matrixToArray(tempMatrix, objectsMatricesBuffer, i2);
+            for (let i3 = 0; i3 < 16; ++i3) {
+              levers[i3]._update(),
+                matrixToArray(tempMatrix, objectsMatricesBuffer, i3 + 13),
+                objectsMatricesBuffer[16 * i3 + 223] = 1 - levers[i3].$lerpValue;
             }
+            player_update(next);
+            for (let i4 = 0; counter >= i4; ++i4) matrixToArray(allModels[i4].$matrix, worldMatricesBuffer, i4 - 1);
           }
           collisionShader(),
             gl["b6o"](36160, collision_frameBuffer),

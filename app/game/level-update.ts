@@ -1,6 +1,6 @@
 import { clamp, max, abs, lerpneg, min, angle_wrap_degrees, lerp } from "../math/math";
 import { matrixCopy, identity, matrixToArray, tempMatrix } from "../math/matrix";
-import { player_update } from "../player";
+import { player_update } from "./player";
 import { gameTime, gameTimeDelta, lerpDamp } from "./game-time";
 import { allModels, levers, LEVERS_COUNT, souls, SOULS_COUNT } from "./models";
 import { objectsMatricesBuffer, worldMatricesBuffer } from "./models-matrices";
@@ -233,16 +233,6 @@ export const eppur_si_muove = () => {
 
   next().translateSelf(0, floatingElevatorPad * 16, clamp(floatingElevatorPad * 2 - 1) * 8.5 + 95);
 
-  // Player body and legs
-
-  player_update(next);
-
-  // Copy all matrices to uniform buffer
-
-  for (let i = 0; i <= counter; ++i) {
-    matrixToArray(allModels[i]!.$matrix, worldMatricesBuffer, i - 1);
-  }
-
   // Update souls
 
   for (let i = 0; i < SOULS_COUNT; ++i) {
@@ -258,5 +248,15 @@ export const eppur_si_muove = () => {
 
     // Encode lerp value in matrix m44 so fragmemt shader can change the lever handle color
     objectsMatricesBuffer[i * 16 + (15 + SOULS_COUNT * 16)] = 1 - levers[i]!.$lerpValue;
+  }
+
+  // Player body and legs
+
+  player_update(next);
+
+  // Copy all models matrices to the world uniform buffer
+
+  for (let i = 0; i <= counter; ++i) {
+    matrixToArray(allModels[i]!.$matrix, worldMatricesBuffer, i - 1);
   }
 };

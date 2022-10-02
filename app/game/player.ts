@@ -1,12 +1,29 @@
-import { constDef_COLLISION_TEXTURE_SIZE as COLLISION_TEXTURE_SIZE } from "./shaders/collider-fragment.frag";
-import { max, clamp, DEG_TO_RAD, angle_lerp_degrees, lerp, angle_wrap_degrees, min, abs, threshold } from "./math/math";
-import { levers, player_position_final, allModels, MODEL_KIND_GAME, MODEL_ID_ROTATING_PLATFORM } from "./game/models";
-import { player_last_pulled_lever, camera_rotation, firstBoatLerp } from "./game/world-state";
-import { input_forward, input_strafe, player_first_person } from "./page";
-import { lerpDamp, gameTimeDelta, damp, gameTime } from "./game/game-time";
-import { matrixCopy, tempMatrix } from "./math/matrix";
-import { gl } from "./gl";
-import { shouldRotatePlatforms } from "./game/level-update";
+import { constDef_COLLISION_TEXTURE_SIZE as COLLISION_TEXTURE_SIZE } from "../shaders/collider-fragment.frag";
+import {
+  max,
+  clamp,
+  DEG_TO_RAD,
+  angle_lerp_degrees,
+  lerp,
+  angle_wrap_degrees,
+  min,
+  abs,
+  threshold,
+} from "../math/math";
+import {
+  levers,
+  player_position_final,
+  allModels,
+  MODEL_KIND_GAME,
+  MODEL_ID_ROTATING_PLATFORM,
+  MODEL_ID_PLAYER_BODY,
+} from "./models";
+import { player_last_pulled_lever, camera_rotation, firstBoatLerp } from "./world-state";
+import { input_forward, input_strafe, player_first_person } from "../page";
+import { lerpDamp, gameTimeDelta, damp, gameTime } from "./game-time";
+import { matrixCopy, tempMatrix } from "../math/matrix";
+import { gl } from "../gl";
+import { shouldRotatePlatforms } from "./level-update";
 
 export const CAMERA_PLAYER_Y_DIST = 13;
 
@@ -169,7 +186,7 @@ export const player_init = () => {
       }
     }
 
-    player_speed_collision_limiter = clamp(1 - max(abs(movX), abs(movZ)) * 0.015);
+    player_speed_collision_limiter = clamp(1 - max(abs(movX), abs(movZ)) * 0.02);
 
     movePlayer(movX / 255, movY / 255, movZ / 255);
   };
@@ -291,16 +308,7 @@ export const player_init = () => {
 
     boot = 0;
 
-    const playerBodyMatrix = nextModelMatrix().translateSelf(x, player_model_y, z).rotateSelf(0, player_look_angle);
-
-    for (let i = 0; i < 2; ++i) {
-      const t = gameTime * PLAYER_LEGS_VELOCITY - Math.PI * i;
-      matrixCopy(playerBodyMatrix, nextModelMatrix())
-        .translateSelf(0, player_legs_speed * clamp(Math.sin(t - Math.PI / 2) * 0.45))
-        .rotateSelf(player_legs_speed * Math.sin(t) * (0.25 / DEG_TO_RAD), 0);
-    }
-
-    // ---- move player ----
+    // ---- process user input ----
 
     let forward = clamp(input_forward, -1);
     let strafe = clamp(input_strafe, -1);
@@ -315,8 +323,21 @@ export const player_init = () => {
       player_look_angle_target = 90 - movAngle / DEG_TO_RAD;
     }
 
-    player_legs_speed = lerpDamp(player_legs_speed, movAmount, 10);
     player_look_angle = angle_lerp_degrees(player_look_angle, player_look_angle_target, damp(8));
+    player_legs_speed = lerpDamp(player_legs_speed, movAmount, 10);
+
+    // Update player body and legs matrices
+
+    nextModelMatrix().translateSelf(x, player_model_y, z).rotateSelf(0, player_look_angle);
+
+    for (let i = 0; i < 2; ++i) {
+      const t = gameTime * PLAYER_LEGS_VELOCITY - Math.PI * i;
+      matrixCopy(allModels[MODEL_ID_PLAYER_BODY]!.$matrix, nextModelMatrix())
+        .translateSelf(0, player_legs_speed * clamp(Math.sin(t - Math.PI / 2) * 0.45))
+        .rotateSelf(player_legs_speed * Math.sin(t) * (0.25 / DEG_TO_RAD), 0);
+    }
+
+    // Move player
 
     player_gravity = currentModelId ? 5 : lerpDamp(player_gravity, player_respawned ? 10 : 19, 2.2);
     player_fly_velocity_x = currentModelId || player_respawned ? 0 : lerpDamp(player_fly_velocity_x, 0, 3);

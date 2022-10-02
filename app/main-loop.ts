@@ -26,7 +26,7 @@ import { max, min } from "./math/math";
 import { MODEL_ID_SOUL, MODEL_ID_SOUL_COLLISION, player_position_final } from "./game/models";
 import { camera_rotation, worldStateUpdate } from "./game/world-state";
 import { initPage, csm_projections, player_first_person, projection, resetInteractPressed, updateInput } from "./page";
-import { player_init, camera_position_x, camera_position_y, camera_position_z } from "./player";
+import { player_init, camera_position_x, camera_position_y, camera_position_z } from "./game/player";
 import { gl } from "./gl";
 import { loadShader, initShaderProgram } from "./shaders-utils";
 import type { Vec3 } from "./math/vectors";

@@ -7,7 +7,7 @@ window.dev_keyboard_downKeys = keyboard_downKeys;
 import { camera_rotation } from "../game/world-state";
 import { angle_wrap_degrees, DEG_TO_RAD } from "../math/math";
 import type { Vec3 } from "../math/vectors";
-import { camera_position_x, camera_position_y, camera_position_z, set_camera_position } from "../player";
+import { camera_position_x, camera_position_y, camera_position_z, set_camera_position } from "../game/player";
 import type { KEY_CODE } from "../utils/keycodes";
 
 export const debug_camera_position: Vec3 = { x: 0, y: 0, z: 0 };

@@ -407,7 +407,6 @@ const csg_union = (...inputs) =>
     return a;
   });
 const csg_polygons_subtract = (a, ...b) => csg_polygons(csg_tree_flip(csg_union(csg_tree_flip(csg_tree(a)), ...b)));
-const material = NO_INLINE((r, g, b, a = 0) => a * 255 << 24 | b * 255 << 16 | g * 255 << 8 | r * 255);
 let _globalTime;
 let mainMenuVisible;
 let gameTime = 0;
@@ -836,6 +835,7 @@ const initPage = () => {
   document.onvisibilitychange = onblur = onresize = handleResize;
   mainMenu(true);
 };
+const material = NO_INLINE((r, g, b, a = 0) => a * 255 << 24 | b * 255 << 16 | g * 255 << 8 | r * 255);
 let currentEditModel;
 const LEVER_SENSITIVITY_RADIUS = 3;
 const SOUL_SENSITIVITY_RADIUS = 1.6;
@@ -2009,18 +2009,18 @@ const eppur_si_muove = () => {
     (levers[15].$lerpValue + levers[15].$lerpValue2) / 2,
   );
   next().translateSelf(0, floatingElevatorPad * 16, clamp(floatingElevatorPad * 2 - 1) * 8.5 + 95);
+  for (let i2 = 0; i2 < SOULS_COUNT; ++i2) {
+    souls[i2]._update();
+    matrixToArray(tempMatrix, objectsMatricesBuffer, i2);
+  }
+  for (let i3 = 0; i3 < LEVERS_COUNT; ++i3) {
+    levers[i3]._update();
+    matrixToArray(tempMatrix, objectsMatricesBuffer, i3 + SOULS_COUNT);
+    objectsMatricesBuffer[i3 * 16 + (15 + SOULS_COUNT * 16)] = 1 - levers[i3].$lerpValue;
+  }
   player_update(next);
-  for (let i2 = 0; i2 <= counter; ++i2) {
-    matrixToArray(allModels[i2].$matrix, worldMatricesBuffer, i2 - 1);
-  }
-  for (let i3 = 0; i3 < SOULS_COUNT; ++i3) {
-    souls[i3]._update();
-    matrixToArray(tempMatrix, objectsMatricesBuffer, i3);
-  }
-  for (let i4 = 0; i4 < LEVERS_COUNT; ++i4) {
-    levers[i4]._update();
-    matrixToArray(tempMatrix, objectsMatricesBuffer, i4 + SOULS_COUNT);
-    objectsMatricesBuffer[i4 * 16 + (15 + SOULS_COUNT * 16)] = 1 - levers[i4].$lerpValue;
+  for (let i4 = 0; i4 <= counter; ++i4) {
+    matrixToArray(allModels[i4].$matrix, worldMatricesBuffer, i4 - 1);
   }
 };
 let player_update;
@@ -2150,7 +2150,7 @@ const player_init = () => {
         movZ = back - front;
       }
     }
-    player_speed_collision_limiter = clamp(1 - max(abs(movX), abs(movZ)) * 0.015);
+    player_speed_collision_limiter = clamp(1 - max(abs(movX), abs(movZ)) * 0.02);
     movePlayer(movX / 255, movY / 255, movZ / 255);
   };
   const interpolate_with_hysteresis = (previous, desired, hysteresis, speed) =>
@@ -2233,14 +2233,6 @@ const player_init = () => {
     }
     camera_rotation.x = clamp(camera_rotation.x, -87, 87);
     boot = 0;
-    const playerBodyMatrix = nextModelMatrix().translateSelf(x, player_model_y, z).rotateSelf(0, player_look_angle);
-    for (let i = 0; i < 2; ++i) {
-      const t = gameTime * PLAYER_LEGS_VELOCITY - Math.PI * i;
-      matrixCopy(playerBodyMatrix, nextModelMatrix()).translateSelf(
-        0,
-        player_legs_speed * clamp(/* @__PURE__ */ Math.sin(t - Math.PI / 2) * 0.45),
-      ).rotateSelf(player_legs_speed * /* @__PURE__ */ Math.sin(t) * (0.25 / DEG_TO_RAD), 0);
-    }
     let forward = clamp(input_forward, -1);
     let strafe = clamp(input_strafe, -1);
     const movAmount = threshold(/* @__PURE__ */ Math.hypot(forward, strafe) ** 0.5, 0.1);
@@ -2250,8 +2242,16 @@ const player_init = () => {
     if (movAmount) {
       player_look_angle_target = 90 - movAngle / DEG_TO_RAD;
     }
-    player_legs_speed = lerpDamp(player_legs_speed, movAmount, 10);
     player_look_angle = angle_lerp_degrees(player_look_angle, player_look_angle_target, damp(8));
+    player_legs_speed = lerpDamp(player_legs_speed, movAmount, 10);
+    nextModelMatrix().translateSelf(x, player_model_y, z).rotateSelf(0, player_look_angle);
+    for (let i = 0; i < 2; ++i) {
+      const t = gameTime * PLAYER_LEGS_VELOCITY - Math.PI * i;
+      matrixCopy(allModels[MODEL_ID_PLAYER_BODY].$matrix, nextModelMatrix()).translateSelf(
+        0,
+        player_legs_speed * clamp(/* @__PURE__ */ Math.sin(t - Math.PI / 2) * 0.45),
+      ).rotateSelf(player_legs_speed * /* @__PURE__ */ Math.sin(t) * (0.25 / DEG_TO_RAD), 0);
+    }
     player_gravity = currentModelId ? 5 : lerpDamp(player_gravity, player_respawned ? 10 : 19, 2.2);
     player_fly_velocity_x = currentModelId || player_respawned ? 0 : lerpDamp(player_fly_velocity_x, 0, 3);
     player_fly_velocity_z = currentModelId || player_respawned ? 0 : lerpDamp(player_fly_velocity_z, 0, 3);
