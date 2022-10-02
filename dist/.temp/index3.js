@@ -81,7 +81,7 @@ const h = NO_INLINE(a => 0 > a ? -a : a),
     b),
   eb = (
     a = bb,
-    b = cb,
+    b = db,
   ) => (b.m11 = a.m11,
     b.m12 = a.m12,
     b.m13 = a.m13,
@@ -440,7 +440,7 @@ const h = NO_INLINE(a => 0 > a ? -a : a),
           k.g = zb(k.g, k.i, 4);
           k.h = zb(k.h, k.i, 1);
           eb(b.m).multiplySelf(a);
-          ea && 3 > Gb(cb) && (0.3 > k.g || 0.7 < k.g)
+          ea && 3 > Gb(db) && (0.3 > k.g || 0.7 < k.g)
             && (k.i = k.i ? 0 : 1, f && 1 / 0 > Fa && (Fa = c + 1, h4.innerHTML = "* click *"), za = f, Bb());
           !f && k.i && 0.8 < k.g && (k.i = 0,
             13 > xa
@@ -449,7 +449,7 @@ const h = NO_INLINE(a => 0 > a ? -a : a),
                 || (1 / 0 > Fa
                   && (Fa = c + 1 / 0, h4.innerHTML = "Well done. They will be punished.<br>Thanks for playing"),
                   ya = 1));
-          cb.rotateSelf(60 * k.g - 30, 0).translateSelf(0, 1);
+          db.rotateSelf(60 * k.g - 30, 0).translateSelf(0, 1);
         },
       };
     e.push(k);
@@ -547,8 +547,8 @@ const h = NO_INLINE(a => 0 > a ? -a : a),
       },
       l = (I, A, y) => {
         eb(v()).invertSelf();
-        cb.m41 = cb.m42 = cb.m43 = 0;
-        I = cb.transformPoint({ x: I, z: y, w: 0 });
+        db.m41 = db.m42 = db.m43 = 0;
+        I = db.transformPoint({ x: I, z: y, w: 0 });
         L.x += I.x;
         L.y += A;
         L.z += I.z;
@@ -580,9 +580,9 @@ const h = NO_INLINE(a => 0 > a ? -a : a),
           for (P = 0; 128 > P; P += 1) {
             for (sa = R + 4 * P, ia = 0; 2 > ia; ++ia) {
               ma = Kb[sa + ia];
-              const db = Kb[sa + ia + 2];
+              const cb = Kb[sa + ia + 2];
               (ia ? 64 < P : 64 > P) ? A = Ua(A, ma) : y = Ua(y, ma);
-              ia ? J = Ua(J, db) : T = Ua(T, db);
+              ia ? J = Ua(J, cb) : T = Ua(T, cb);
             }
           }
           h(y - A) > h(N) && (N = y - A);
@@ -658,9 +658,9 @@ const h = NO_INLINE(a => 0 > a ? -a : a),
   Ub = (a, b, f) => {
     ba
       ? (eb().rotateSelf(0, 40 * Math.sin(wa) - 70),
-        ab(cb, Sb, 37),
-        ab(cb, Sb, 38),
-        ab(cb, Sb, 39),
+        ab(db, Sb, 37),
+        ab(db, Sb, 38),
+        ab(db, Sb, 39),
         Z.uae(a, !1, Sb),
         Z.d97(4, Ha[39].D - Ha[37].s, 5123, 2 * Ha[37].s))
       : (Z.uae(a, !1, Sb),
@@ -683,7 +683,7 @@ const h = NO_INLINE(a => 0 > a ? -a : a),
         let u = 0;
         const x = J => {
             let R, P, sa, ia = 0, ma = 0;
-            const db = [],
+            const cb = [],
               Ka = new Int32Array(768 * J),
               $b = 2 ** (l - 9) / J,
               ac = Math.PI * 2 ** (y - 8) / J,
@@ -698,7 +698,7 @@ const h = NO_INLINE(a => 0 > a ? -a : a),
                 for (var La = 0; 4 > La; ++La) {
                   if (R = 0, Ob && (R = B[Ob - 1].charCodeAt(tb + 32 * La) - 40, R += 0 < R ? 106 : 0), R) {
                     var fa;
-                    if (!(fa = db[R])) {
+                    if (!(fa = cb[R])) {
                       fa = R;
                       let W = void 0, ta = void 0;
                       var Qb = R;
@@ -716,7 +716,7 @@ const h = NO_INLINE(a => 0 > a ? -a : a),
                               + (E ? (2 * Math.random() - 1) * E : 0))
                             * Na | 0;
                       }
-                      fa = db[fa] = Rb;
+                      fa = cb[fa] = Rb;
                     }
                     for (let W = 0, ta = 2 * Pb; fa.length > W; ++W, ta += 2) {
                       Ka[ta] += fa[W];
@@ -766,7 +766,7 @@ const h = NO_INLINE(a => 0 > a ? -a : a),
   },
   Eb = new AudioContext(),
   bb = new DOMMatrix(),
-  cb = new DOMMatrix(),
+  db = new DOMMatrix(),
   $a = new Float32Array(16),
   Sb = new Float32Array(624),
   Tb = new Float32Array(624),
@@ -861,10 +861,10 @@ Vb(() => {
                 ab(Ha[l].m, Sb, l - 1);
               }
               for (l = 0; 13 > l; ++l) {
-                Ga[l].F(), ab(cb, Tb, l);
+                Ga[l].F(), ab(db, Tb, l);
               }
               for (l = 0; 16 > l; ++l) {
-                e[l].F(), ab(cb, Tb, l + 13), Tb[16 * l + 223] = 1 - e[l].g;
+                e[l].F(), ab(db, Tb, l + 13), Tb[16 * l + 223] = 1 - e[l].g;
               }
               g();
               Z.b6o(36160, L);
@@ -952,14 +952,14 @@ Vb(() => {
                 eb().scale3dSelf(l).multiplySelf(eb(la[v], x).multiplySelf(u).invertSelf());
                 for (let J = 0; 8 > J; ++J) {
                   const R = O[J],
-                    P = (R.x = 4 & J ? 1 : -1, R.y = 2 & J ? 1 : -1, R.z = 1 & J ? 1 : -1, cb.transformPoint(R));
+                    P = (R.x = 4 & J ? 1 : -1, R.y = 2 & J ? 1 : -1, R.z = 1 & J ? 1 : -1, db.transformPoint(R));
                   H -= R.x = (0 | P.x) / l / P.w;
                   G -= R.y = (0 | P.y) / l / P.w;
                   I -= R.z = (0 | P.z) / l / P.w;
                 }
                 eb().rotateSelf(298, 139).translateSelf(H / 8, G / 8, I / 8);
                 for (l = 0; 8 > l; ++l) {
-                  const { x: J, y: R, z: P } = cb.transformPoint(O[l]);
+                  const { x: J, y: R, z: P } = db.transformPoint(O[l]);
                   A = Ta(A, J);
                   y = Ua(y, J);
                   C = Ta(C, R);
@@ -978,7 +978,7 @@ Vb(() => {
                       (y + A) / -2,
                       (T + C) / -2,
                       (N + V) / 2,
-                    ).multiplySelf(cb),
+                    ).multiplySelf(db),
                     r[v],
                   ),
                 );
@@ -1539,8 +1539,7 @@ Vb(() => {
         w(0.7, 0.7, 0.7),
         U(1, 1, 1),
       );
-      X(lb(12), p(-0.16, 0.4, -0.36).scale3d(0.09));
-      X(lb(12), p(0.16, 0.4, -0.36).scale3d(0.09));
+      [-1, 1].map(m => X(lb(12), p(0.16 * m, 0.4, -0.36).scale3d(0.09)));
     }, 0);
     Y(() => {
       X(M(6, 1), w(0.13, 1.4, 0.13), U(0.3, 0.3, 0.5, 0.1));

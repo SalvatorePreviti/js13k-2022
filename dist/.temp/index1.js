@@ -1859,8 +1859,10 @@ const build_life_the_universe_and_everything = () => {
       scaling(0.7, 0.7, 0.7),
       material(1, 1, 1),
     );
-    meshAdd(sphere(12), translation(-0.16, 0.4, -0.36).scale3d(0.09));
-    meshAdd(sphere(12), translation(0.16, 0.4, -0.36).scale3d(0.09));
+    [
+      -1,
+      1,
+    ].map((x) => meshAdd(sphere(12), translation(x * 0.16, 0.4, -0.36).scale3d(0.09)));
   }, MODEL_KIND_MESH);
   newModel(() => {
     meshAdd(cylinder(6, 1), scaling(0.13, 1.4, 0.13), material(0.3, 0.3, 0.5, 0.1));

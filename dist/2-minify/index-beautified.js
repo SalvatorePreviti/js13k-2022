@@ -1493,9 +1493,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
             }),
             n(.7, .7, .7),
             v(1, 1, 1),
-          ),
-            d(a(12), c(-.16, .4, -.36).scale3d(.09)),
-            d(a(12), c(.16, .4, -.36).scale3d(.09));
+          ), [-1, 1].map(e => d(a(12), c(.16 * e, .4, -.36).scale3d(.09)));
         }, 0),
         b(() => {
           d(f(6, 1), n(.13, 1.4, .13), v(.3, .3, .5, .1)),

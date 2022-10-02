@@ -4,7 +4,7 @@ const Ga = [], e = [], Ha = [], Ia = [{x:-1, z:1,}, {x:1, z:1,}, {x:1, z:-1,}, {
 16, 4, 187,], [221, 128, 64, 210, 128, 64, 255, 64, 144, 73, 79, 7, 195, 15, 21, 20, 0, 9, 3, 64,],], Pa = {x:0, y:0, z:0,}, Qa = Math.PI / 180;
 var Ra = 0, Sa = 180;
 const h = NO_INLINE(a => 0 > a ? -a : a), Ta = NO_INLINE((a, b) => a < b ? a : b), Ua = NO_INLINE((a, b) => b < a ? a : b), Va = (a, b) => h(a) > b ? a : 0, n = (a, b = 0, f = 1) => a < b ? b : f < a ? f : a, Wa = a => Math.atan2(Math.sin(a * Qa), Math.cos(a * Qa)) / Qa, Xa = (a, b, f) => a + (2 * (b = (b - a) % 360) % 360 - b) * n(f) || 0, Ya = (a, b, f) => (0 < f ? 1 > f ? a + (b - a) * f : b : a) || 0, Za = (a, b) => (a = n(a), Ya(a, 1 - a, b)), ab = (a, b = $a, f = 0,) => (f *= 16, b[f++] = a.m11, 
-b[f++] = a.m12, b[f++] = a.m13, b[f++] = a.m14, b[f++] = a.m21, b[f++] = a.m22, b[f++] = a.m23, b[f++] = a.m24, b[f++] = a.m31, b[f++] = a.m32, b[f++] = a.m33, b[f++] = a.m34, b[f++] = a.m41, b[f++] = a.m42, b[f++] = a.m43, b[f] = a.m44, b), eb = (a = bb, b = cb,) => (b.m11 = a.m11, b.m12 = a.m12, b.m13 = a.m13, b.m14 = a.m14, b.m21 = a.m21, b.m22 = a.m22, b.m23 = a.m23, b.m24 = a.m24, b.m31 = a.m31, b.m32 = a.m32, b.m33 = a.m33, b.m34 = a.m34, b.m41 = a.m41, b.m42 = a.m42, b.m43 = a.m43, b.m44 = 
+b[f++] = a.m12, b[f++] = a.m13, b[f++] = a.m14, b[f++] = a.m21, b[f++] = a.m22, b[f++] = a.m23, b[f++] = a.m24, b[f++] = a.m31, b[f++] = a.m32, b[f++] = a.m33, b[f++] = a.m34, b[f++] = a.m41, b[f++] = a.m42, b[f++] = a.m43, b[f] = a.m44, b), eb = (a = bb, b = db,) => (b.m11 = a.m11, b.m12 = a.m12, b.m13 = a.m13, b.m14 = a.m14, b.m21 = a.m21, b.m22 = a.m22, b.m23 = a.m23, b.m24 = a.m24, b.m31 = a.m31, b.m32 = a.m32, b.m33 = a.m33, b.m34 = a.m34, b.m41 = a.m41, b.m42 = a.m42, b.m43 = a.m43, b.m44 = 
 a.m44, b), p = NO_INLINE((a, b, f) => bb.translate(a, b, f)), fb = NO_INLINE((a, b, f) => bb.rotate(a, b, f)), w = NO_INLINE((a, b, f) => bb.scale(a, b, f)), gb = (a, b) => Array.from(Array(a), (f, k) => b(k)), hb = (a, b, f) => (a.C = f, a.u = b, a), ib = (a, b, f = a.u) => hb(a.map(k => {
   let r, m;
   return {x:k, y:r, z:m} = k, {x:k, y:r, z:m} = b.transformPoint({x:k, y:r, z:m,}), {x:k, y:r, z:m,};
@@ -202,9 +202,9 @@ a.m44, b), p = NO_INLINE((a, b, f) => bb.translate(a, b, f)), fb = NO_INLINE((a,
     k.g = zb(k.g, k.i, 4);
     k.h = zb(k.h, k.i, 1);
     eb(b.m).multiplySelf(a);
-    ea && 3 > Gb(cb) && (0.3 > k.g || 0.7 < k.g) && (k.i = k.i ? 0 : 1, f && 1 / 0 > Fa && (Fa = c + 1, h4.innerHTML = "* click *"), za = f, Bb());
+    ea && 3 > Gb(db) && (0.3 > k.g || 0.7 < k.g) && (k.i = k.i ? 0 : 1, f && 1 / 0 > Fa && (Fa = c + 1, h4.innerHTML = "* click *"), za = f, Bb());
     !f && k.i && 0.8 < k.g && (k.i = 0, 13 > xa ? 1 / 0 > Fa && (Fa = c + 3, h4.innerHTML = "Not leaving now, there are souls to catch!") : ya || (1 / 0 > Fa && (Fa = c + 1 / 0, h4.innerHTML = "Well done. They will be punished.<br>Thanks for playing"), ya = 1));
-    cb.rotateSelf(60 * k.g - 30, 0).translateSelf(0, 1);
+    db.rotateSelf(60 * k.g - 30, 0).translateSelf(0, 1);
   },};
   e.push(k);
   X(M(5), a.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), U(0.4, 0.5, 0.5));
@@ -252,8 +252,8 @@ a.m44, b), p = NO_INLINE((a, b, f) => bb.translate(a, b, f)), fb = NO_INLINE((a,
     Pa.z = C;
   }, l = (I, A, y) => {
     eb(v()).invertSelf();
-    cb.m41 = cb.m42 = cb.m43 = 0;
-    I = cb.transformPoint({x:I, z:y, w:0,});
+    db.m41 = db.m42 = db.m43 = 0;
+    I = db.transformPoint({x:I, z:y, w:0,});
     L.x += I.x;
     L.y += A;
     L.z += I.z;
@@ -280,9 +280,9 @@ a.m44, b), p = NO_INLINE((a, b, f) => bb.translate(a, b, f)), fb = NO_INLINE((a,
       for (P = 0; 128 > P; P += 1) {
         for (sa = R + 4 * P, ia = 0; 2 > ia; ++ia) {
           ma = Kb[sa + ia];
-          const db = Kb[sa + ia + 2];
+          const cb = Kb[sa + ia + 2];
           (ia ? 64 < P : 64 > P) ? A = Ua(A, ma) : y = Ua(y, ma);
-          ia ? J = Ua(J, db) : T = Ua(T, db);
+          ia ? J = Ua(J, cb) : T = Ua(T, cb);
         }
       }
       h(y - A) > h(N) && (N = y - A);
@@ -324,7 +324,7 @@ a.m44, b), p = NO_INLINE((a, b, f) => bb.translate(a, b, f)), fb = NO_INLINE((a,
   const f = {}, k = Z.c1h();
   return Z.abz(k, a), Z.abz(k, Mb(b, 35632)), Z.l8l(k), r => r ? f[r] || (f[r] = Z.gan(k, r)) : Z.u7y(k);
 }, Ub = (a, b, f) => {
-  ba ? (eb().rotateSelf(0, 40 * Math.sin(wa) - 70), ab(cb, Sb, 37), ab(cb, Sb, 38), ab(cb, Sb, 39), Z.uae(a, !1, Sb), Z.d97(4, Ha[39].D - Ha[37].s, 5123, 2 * Ha[37].s)) : (Z.uae(a, !1, Sb), Z.d97(4, (b ? Ha[39].D : Ha[37].s) - 3, 5123, 6), Z.uae(a, !1, Tb), Z.das(4, Ha[f].D - Ha[f].s, 5123, 2 * Ha[f].s, Ga.length,), Z.das(4, Ha[42].D - Ha[42].s, 5123, 2 * Ha[42].s, e.length,));
+  ba ? (eb().rotateSelf(0, 40 * Math.sin(wa) - 70), ab(db, Sb, 37), ab(db, Sb, 38), ab(db, Sb, 39), Z.uae(a, !1, Sb), Z.d97(4, Ha[39].D - Ha[37].s, 5123, 2 * Ha[37].s)) : (Z.uae(a, !1, Sb), Z.d97(4, (b ? Ha[39].D : Ha[37].s) - 3, 5123, 6), Z.uae(a, !1, Tb), Z.das(4, Ha[f].D - Ha[f].s, 5123, 2 * Ha[f].s, Ga.length,), Z.das(4, Ha[42].D - Ha[42].s, 5123, 2 * Ha[42].s, e.length,));
 }, Vb = a => {
   h4.innerHTML += ".";
   setTimeout(a);
@@ -334,14 +334,14 @@ a.m44, b), p = NO_INLINE((a, b, f) => bb.translate(a, b, f)), fb = NO_INLINE((a,
     let u = 0;
     const x = J => {
       let R, P, sa, ia = 0, ma = 0;
-      const db = [], Ka = new Int32Array(768 * J), $b = 2 ** (l - 9) / J, ac = Math.PI * 2 ** (y - 8) / J, xb = T * J & -2;
+      const cb = [], Ka = new Int32Array(768 * J), $b = 2 ** (l - 9) / J, ac = Math.PI * 2 ** (y - 8) / J, xb = T * J & -2;
       for (let sb = 0; 11 >= sb; ++sb) {
         for (let tb = 0, Ob = +"000001234556112341234556011111111112011111111112000001111112"[12 * b + sb]; 32 > tb; ++tb) {
           const Pb = (32 * sb + tb) * J;
           for (var La = 0; 4 > La; ++La) {
             if (R = 0, Ob && (R = B[Ob - 1].charCodeAt(tb + 32 * La) - 40, R += 0 < R ? 106 : 0), R) {
               var fa;
-              if (!(fa = db[R])) {
+              if (!(fa = cb[R])) {
                 fa = R;
                 let W = void 0, ta = void 0;
                 var Qb = R;
@@ -353,7 +353,7 @@ a.m44, b), p = NO_INLINE((a, b, f) => bb.translate(a, b, f)), fb = NO_INLINE((a,
                   0 > yb || (yb -= 4 * J, ta = 0.00396 * 2 ** ((Qb + z - 256) / 12), W = 0.00396 * 2 ** ((Qb + O - 256) / 12) * (1 + (b ? 0 : 0.0072)));
                   Rb[Ma] = 80 * (dc(bc += ta * Na ** (g / 32)) * D + ec(cc += W * Na ** (S / 32)) * t + (E ? (2 * Math.random() - 1) * E : 0)) * Na | 0;
                 }
-                fa = db[fa] = Rb;
+                fa = cb[fa] = Rb;
               }
               for (let W = 0, ta = 2 * Pb; fa.length > W; ++W, ta += 2) {
                 Ka[ta] += fa[W];
@@ -380,7 +380,7 @@ a.m44, b), p = NO_INLINE((a, b, f) => bb.translate(a, b, f)), fb = NO_INLINE((a,
   Db.buffer = k;
   Db.loop = !0;
   Vb(f);
-}, Eb = new AudioContext(), bb = new DOMMatrix(), cb = new DOMMatrix(), $a = new Float32Array(16), Sb = new Float32Array(624), Tb = new Float32Array(624), Kb = new Uint8Array(65536), gc = "data:image/svg+xml;base64," + btoa('<svg color-interpolation-filters="sRGB" height="1024" width="1024" xmlns="http://www.w3.org/2000/svg"><filter filterUnits="userSpaceOnUse" height="1026" id="a" width="1026" x="0" y="0"><feTurbulence baseFrequency=".007" height="1025" numOctaves="6" stitchTiles="stitch" width="1025" result="z" type="fractalNoise" x="1" y="1"/><feTile height="1024" width="1024" x="-1" y="-1"/><feTile/><feDiffuseLighting diffuseConstant="4" lighting-color="red" surfaceScale="5"><feDistantLight azimuth="270" elevation="5"/></feDiffuseLighting><feTile height="1024" width="1024" x="1" y="1"/><feTile result="x"/><feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 1" in="z"/><feTile height="1024" width="1024" x="1" y="1"/><feTile result="z"/><feTurbulence baseFrequency=".01" height="1024" numOctaves="5" stitchTiles="stitch" width="1024"/><feColorMatrix values="0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1"/><feBlend in2="x" mode="screen"/><feBlend in2="z" mode="screen"/></filter><rect filter="url(#a)" height="100%" width="100%"/></svg>',
+}, Eb = new AudioContext(), bb = new DOMMatrix(), db = new DOMMatrix(), $a = new Float32Array(16), Sb = new Float32Array(624), Tb = new Float32Array(624), Kb = new Uint8Array(65536), gc = "data:image/svg+xml;base64," + btoa('<svg color-interpolation-filters="sRGB" height="1024" width="1024" xmlns="http://www.w3.org/2000/svg"><filter filterUnits="userSpaceOnUse" height="1026" id="a" width="1026" x="0" y="0"><feTurbulence baseFrequency=".007" height="1025" numOctaves="6" stitchTiles="stitch" width="1025" result="z" type="fractalNoise" x="1" y="1"/><feTile height="1024" width="1024" x="-1" y="-1"/><feTile/><feDiffuseLighting diffuseConstant="4" lighting-color="red" surfaceScale="5"><feDistantLight azimuth="270" elevation="5"/></feDiffuseLighting><feTile height="1024" width="1024" x="1" y="1"/><feTile result="x"/><feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 1" in="z"/><feTile height="1024" width="1024" x="1" y="1"/><feTile result="z"/><feTurbulence baseFrequency=".01" height="1024" numOctaves="5" stitchTiles="stitch" width="1024"/><feColorMatrix values="0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1"/><feBlend in2="x" mode="screen"/><feBlend in2="z" mode="screen"/></filter><rect filter="url(#a)" height="100%" width="100%"/></svg>',
 ), Db = Eb.createBufferSource(), Z = hC.getContext("webgl2", {powerPreference:"high-performance",});
 for (const a in Z) {
   Z[a[0] + [...a,].reduce((b, f, k) => (b * k + f.charCodeAt(0)) % 434, 0).toString(36)] = Z[a];
@@ -426,10 +426,10 @@ Vb(() => {
             ab(Ha[l].m, Sb, l - 1);
           }
           for (l = 0; 13 > l; ++l) {
-            Ga[l].F(), ab(cb, Tb, l);
+            Ga[l].F(), ab(db, Tb, l);
           }
           for (l = 0; 16 > l; ++l) {
-            e[l].F(), ab(cb, Tb, l + 13), Tb[16 * l + 223] = 1 - e[l].g;
+            e[l].F(), ab(db, Tb, l + 13), Tb[16 * l + 223] = 1 - e[l].g;
           }
           g();
           Z.b6o(36160, L);
@@ -483,14 +483,14 @@ Vb(() => {
           Z.c4s(256);
           eb().scale3dSelf(l).multiplySelf(eb(la[v], x).multiplySelf(u).invertSelf(),);
           for (let J = 0; 8 > J; ++J) {
-            const R = O[J], P = (R.x = 4 & J ? 1 : -1, R.y = 2 & J ? 1 : -1, R.z = 1 & J ? 1 : -1, cb.transformPoint(R));
+            const R = O[J], P = (R.x = 4 & J ? 1 : -1, R.y = 2 & J ? 1 : -1, R.z = 1 & J ? 1 : -1, db.transformPoint(R));
             H -= R.x = (0 | P.x) / l / P.w;
             G -= R.y = (0 | P.y) / l / P.w;
             I -= R.z = (0 | P.z) / l / P.w;
           }
           eb().rotateSelf(298, 139).translateSelf(H / 8, G / 8, I / 8);
           for (l = 0; 8 > l; ++l) {
-            const {x:J, y:R, z:P} = cb.transformPoint(O[l]);
+            const {x:J, y:R, z:P} = db.transformPoint(O[l]);
             A = Ta(A, J);
             y = Ua(y, J);
             C = Ta(C, R);
@@ -501,7 +501,7 @@ Vb(() => {
           l = 10 + v;
           N *= 0 > N ? l : 1 / l;
           V *= 0 < V ? l : 1 / l;
-          Z.uae(D("b"), !1, ab(eb(bb, x).scaleSelf(2 / (y - A), 2 / (T - C), 2 / (N - V),).translateSelf((y + A) / -2, (T + C) / -2, (N + V) / 2).multiplySelf(cb), r[v],),);
+          Z.uae(D("b"), !1, ab(eb(bb, x).scaleSelf(2 / (y - A), 2 / (T - C), 2 / (N - V),).translateSelf((y + A) / -2, (T + C) / -2, (N + V) / 2).multiplySelf(db), r[v],),);
           Ub(D("c"), !ha, 41);
         };
       }), E = Z.c5w();
@@ -787,8 +787,7 @@ Vb(() => {
         m = B * B * Math.sin(m * Math.PI * 14 / 30) / 4;
         return 23 < u ? {x:x.C = 0, y:-0.5, z:0,} : {x:Math.cos(D) * z, y:Math.cos(B * Math.PI) - B - m, z:Math.sin(D) * z + Math.sin(m * Math.PI * 2) / 4,};
       }), w(0.7, 0.7, 0.7), U(1, 1, 1),);
-      X(lb(12), p(-0.16, 0.4, -0.36).scale3d(0.09));
-      X(lb(12), p(0.16, 0.4, -0.36).scale3d(0.09));
+      [-1, 1,].map(m => X(lb(12), p(0.16 * m, 0.4, -0.36).scale3d(0.09)));
     }, 0);
     Y(() => {
       X(M(6, 1), w(0.13, 1.4, 0.13), U(0.3, 0.3, 0.5, 0.1));

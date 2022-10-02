@@ -2709,8 +2709,10 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               scaling(0.7, 0.7, 0.7),
               material(1, 1, 1),
             ),
-              meshAdd(sphere(12), translation(-0.16, 0.4, -0.36).scale3d(0.09)),
-              meshAdd(sphere(12), translation(0.16, 0.4, -0.36).scale3d(0.09));
+              [
+                -1,
+                1,
+              ].map((x) => meshAdd(sphere(12), translation(0.16 * x, 0.4, -0.36).scale3d(0.09)));
           }, 0),
           newModel(() => {
             meshAdd(cylinder(6, 1), scaling(0.13, 1.4, 0.13), material(0.3, 0.3, 0.5, 0.1)),
