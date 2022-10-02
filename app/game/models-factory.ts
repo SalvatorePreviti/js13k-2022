@@ -10,18 +10,16 @@ import {
   type Circle,
   type Lever,
   type Soul,
-  SOULS_COUNT,
 } from "./models";
 import { onPlayerPullLever, onSoulCollected } from "./world-state";
 import { interact_pressed } from "../page";
 import type { Vec3Optional } from "../math/vectors";
 import { min, angle_lerp_degrees, DEG_TO_RAD, clamp, abs } from "../math/math";
-import { matrixCopy, matrixToArray, tempMatrix } from "../math/matrix";
+import { matrixCopy, tempMatrix } from "../math/matrix";
 import { lerpDamp, damp, gameTime } from "./game-time";
 import { polygons_transform, type Polygon } from "../geometry/polygon";
 import { cylinder } from "../geometry/geometry";
 import { material } from "../geometry/material";
-import { objectsMatricesBuffer } from "./models-matrices";
 
 export let currentEditModel: Model;
 
@@ -77,14 +75,7 @@ export const newLever = (transform: DOMMatrixReadOnly): void => {
         }
       }
 
-      matrixToArray(
-        tempMatrix.rotateSelf(lever.$lerpValue * 60 - 30, 0).translateSelf(0, 1),
-        objectsMatricesBuffer,
-        index + SOULS_COUNT,
-      );
-
-      // Encode lerp value in matrix m44 so fragmemt shader can change the lever handle color
-      objectsMatricesBuffer[index * 16 + (15 + SOULS_COUNT * 16)] = 1 - lever.$lerpValue;
+      tempMatrix.rotateSelf(lever.$lerpValue * 60 - 30, 0).translateSelf(0, 1);
     },
   };
   levers.push(lever);
@@ -181,7 +172,7 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]
         );
       }
 
-      matrixToArray(tempMatrix, objectsMatricesBuffer, index);
+      // matrixToArray(tempMatrix, objectsMatricesBuffer, index);
     },
   };
 

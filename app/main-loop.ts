@@ -23,9 +23,8 @@ import sky_vsSource from "./shaders/sky-vertex.vert";
 import sky_fsSource, { uniformName_iResolution } from "./shaders/sky-fragment.frag";
 
 import { max, min } from "./math/math";
-import { allModels, levers, MODEL_ID_SOUL, MODEL_ID_SOUL_COLLISION, player_position_final, souls } from "./game/models";
+import { MODEL_ID_SOUL, MODEL_ID_SOUL_COLLISION, player_position_final } from "./game/models";
 import { camera_rotation, worldStateUpdate } from "./game/world-state";
-// import { csm_buildMatrix } from "./csm";
 import { initPage, csm_projections, player_first_person, projection, resetInteractPressed, updateInput } from "./page";
 import { player_init, camera_position_x, camera_position_y, camera_position_z } from "./player";
 import { gl } from "./gl";
@@ -36,7 +35,7 @@ import { identity, matrixCopy, matrixToArray, tempMatrix } from "./math/matrix";
 import { mat_perspective, zFar, zNear } from "./math/matrix-perspective";
 import { renderModels } from "./game/models-render";
 import { gameTimeUpdate, gameTimeDelta, mainMenuVisible, absoluteTime } from "./game/game-time";
-import { worldMatricesBuffer } from "./game/models-matrices";
+import { eppur_si_muove } from "./game/level-update";
 
 const LIGHT_ROT_X = 298;
 const LIGHT_ROT_Y = 139;
@@ -162,22 +161,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
       worldStateUpdate();
 
-      for (const model of allModels) {
-        if (model.$kind) {
-          if (model._update) {
-            model._update(matrixCopy(identity, model.$matrix));
-          }
-          matrixToArray(model.$matrix, worldMatricesBuffer, model.$modelId - 1);
-        }
-      }
-
-      for (const lever of levers) {
-        lever._update();
-      }
-
-      for (const soul of souls) {
-        soul._update();
-      }
+      eppur_si_muove();
 
       // *** COLLISION RENDERER ***
 

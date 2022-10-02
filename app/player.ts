@@ -1,15 +1,6 @@
 import { constDef_COLLISION_TEXTURE_SIZE as COLLISION_TEXTURE_SIZE } from "./shaders/collider-fragment.frag";
 import { max, clamp, DEG_TO_RAD, angle_lerp_degrees, lerp, angle_wrap_degrees, min, abs, threshold } from "./math/math";
-import {
-  levers,
-  player_position_final,
-  allModels,
-  MODEL_KIND_GAME,
-  MODEL_ID_PLAYER_BODY,
-  MODEL_ID_PLAYER_LEG0,
-  MODEL_ID_ROTATING_PLATFORM,
-  MODEL_ID_PLAYER_LEG1,
-} from "./game/models";
+import { levers, player_position_final, allModels, MODEL_KIND_GAME, MODEL_ID_ROTATING_PLATFORM } from "./game/models";
 import { player_last_pulled_lever, firstBoatLerp, shouldRotatePlatforms, camera_rotation } from "./game/world-state";
 import { input_forward, input_strafe, player_first_person } from "./page";
 import { lerpDamp, gameTimeDelta, damp, gameTime } from "./game/game-time";
@@ -41,6 +32,8 @@ export const set_camera_position = (x: number, y: number, z: number) => {
 const collision_buffer = new Uint8Array(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
 
 // let debug2dctx: CanvasRenderingContext2D | null | undefined;
+
+export let player_update: (nextModelMatrix: () => DOMMatrix) => void;
 
 export const player_init = () => {
   let currentModelId: number;
@@ -188,7 +181,7 @@ export const player_init = () => {
   ) =>
     lerp(previous, desired, boot || (clamp(abs(desired - previous) ** 0.5 - hysteresis) + 1 / 7) * damp(speed * 1.5));
 
-  allModels[MODEL_ID_PLAYER_BODY]!._update = (matrix: DOMMatrix) => {
+  player_update = (nextModelMatrix: () => DOMMatrix) => {
     updatePlayerPositionFinal(currentModelId);
 
     // ------- read collision renderBuffer -------
@@ -201,35 +194,6 @@ export const player_init = () => {
     // ------- process collision renderBuffer -------
 
     NO_INLINE(doCollisions)();
-
-    // if (DEBUG) {
-    //   const debugCanvas = document.getElementById("debug-canvas") as HTMLCanvasElement;
-
-    //   const buf = new Uint8ClampedArray(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
-
-    //   if (debugCanvas) {
-    //     for (let y = 0; y < COLLISION_TEXTURE_SIZE; ++y) {
-    //       for (let x = 0; x < COLLISION_TEXTURE_SIZE; ++x) {
-    //         const i = ((COLLISION_TEXTURE_SIZE - y) * COLLISION_TEXTURE_SIZE + x) * 4;
-    //         const r = collision_buffer[i]!;
-    //         const g = collision_buffer[i + 1]!;
-    //         const b = collision_buffer[i + 2]!;
-
-    //         buf[(y * COLLISION_TEXTURE_SIZE + x) * 4] = r * 10;
-    //         buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 1] = g * 10;
-    //         buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 2] = b ? 200 : 0;
-    //         buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 3] = 255;
-    //       }
-    //     }
-
-    //     const imgdata = new ImageData(buf, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
-
-    //     if (!debug2dctx) {
-    //       debug2dctx = debugCanvas.getContext("2d")!;
-    //     }
-    //     debug2dctx.putImageData(imgdata, 0, 0, 0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
-    //   }
-    // }
 
     if (player_respawned || currentModelId !== oldModelId) {
       if (DEBUG && currentModelId !== oldModelId) {
@@ -326,7 +290,14 @@ export const player_init = () => {
 
     boot = 0;
 
-    matrix.translateSelf(x, player_model_y, z).rotateSelf(0, player_look_angle);
+    const playerBodyMatrix = nextModelMatrix().translateSelf(x, player_model_y, z).rotateSelf(0, player_look_angle);
+
+    for (let i = 0; i < 2; ++i) {
+      const t = gameTime * PLAYER_LEGS_VELOCITY - Math.PI * i;
+      matrixCopy(playerBodyMatrix, nextModelMatrix())
+        .translateSelf(0, player_legs_speed * clamp(Math.sin(t - Math.PI / 2) * 0.45))
+        .rotateSelf(player_legs_speed * Math.sin(t) * (0.25 / DEG_TO_RAD), 0);
+    }
 
     // ---- move player ----
 
@@ -368,18 +339,33 @@ export const player_init = () => {
         (player_fly_velocity_z + player_speed * (strafe * Math.sin(movAngle) + forward * Math.cos(movAngle))),
     );
   };
-
-  [MODEL_ID_PLAYER_LEG1, MODEL_ID_PLAYER_LEG0].map(
-    (modelId, i) =>
-      (allModels[modelId]!._update = (matrix: DOMMatrix) =>
-        matrixCopy(allModels[MODEL_ID_PLAYER_BODY]!.$matrix, matrix)
-          .translateSelf(
-            0,
-            player_legs_speed * clamp(Math.sin(gameTime * PLAYER_LEGS_VELOCITY - Math.PI * i - Math.PI / 2) * 0.45),
-          )
-          .rotateSelf(
-            player_legs_speed * Math.sin(gameTime * PLAYER_LEGS_VELOCITY - Math.PI * i) * (0.25 / DEG_TO_RAD),
-            0,
-          )),
-  );
 };
+
+// if (DEBUG) {
+//   const debugCanvas = document.getElementById("debug-canvas") as HTMLCanvasElement;
+
+//   const buf = new Uint8ClampedArray(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
+
+//   if (debugCanvas) {
+//     for (let y = 0; y < COLLISION_TEXTURE_SIZE; ++y) {
+//       for (let x = 0; x < COLLISION_TEXTURE_SIZE; ++x) {
+//         const i = ((COLLISION_TEXTURE_SIZE - y) * COLLISION_TEXTURE_SIZE + x) * 4;
+//         const r = collision_buffer[i]!;
+//         const g = collision_buffer[i + 1]!;
+//         const b = collision_buffer[i + 2]!;
+
+//         buf[(y * COLLISION_TEXTURE_SIZE + x) * 4] = r * 10;
+//         buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 1] = g * 10;
+//         buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 2] = b ? 200 : 0;
+//         buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 3] = 255;
+//       }
+//     }
+
+//     const imgdata = new ImageData(buf, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
+
+//     if (!debug2dctx) {
+//       debug2dctx = debugCanvas.getContext("2d")!;
+//     }
+//     debug2dctx.putImageData(imgdata, 0, 0, 0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
+//   }
+// }

@@ -6,7 +6,6 @@ export interface Model {
   $modelId: number;
   $kind: MODEL_KIND;
   $polygons: Polygon[] | null;
-  _update?: (matrix: DOMMatrix) => void;
   $vertexBegin?: number;
   $vertexEnd?: number;
 }
