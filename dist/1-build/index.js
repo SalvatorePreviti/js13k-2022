@@ -922,8 +922,6 @@ const build_life_the_universe_and_everything = () => {
       newLever(translation(0, -3, 4));
     });
     newLever(translation(-5.4, 1.5, -19).rotate(0, -90));
-    meshAdd(cylinder(), translation(0, 0, 0).scale(1, 5, 1), material(0.3, 0.3, 0.38));
-    meshAdd(cylinder(), translation(3, 0, 3).scale(1, 5, 1).rotate(0, 45), material(0.3, 0.3, 0.38));
     newSoul(translation(-0.5, 2.8, -20), [
       0,
       0,
@@ -1407,7 +1405,7 @@ const player_init = () => {
   let camera_pos_lookat_z;
   let boot = 1;
   let player_respawned = 2;
-  let player_gravity = 2;
+  let player_gravity = 15;
   const getReferenceMatrix = () => player_respawned ? levers[player_last_pulled_lever].$parent.$matrix : allModels[oldModelId && allModels[oldModelId].$kind === MODEL_KIND_GAME && oldModelId || 0].$matrix;
   const updatePlayerPositionFinal = (updateVelocity) => {
     const { x, y, z } = player_respawned > 1 ? matrixCopy(levers[player_last_pulled_lever].$parent.$matrix).multiplySelf(levers[player_last_pulled_lever].$matrix).transformPoint({

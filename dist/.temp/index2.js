@@ -883,7 +883,7 @@ const player_init = () => {
   let camera_pos_lookat_z;
   let boot = 1;
   let player_respawned = 2;
-  let player_gravity = 2;
+  let player_gravity = 15;
   const getReferenceMatrix = () =>
     (player_respawned
       ? levers[player_last_pulled_lever].$parent
@@ -1664,8 +1664,6 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 newLever(translation(0, -3, 4));
             }),
               newLever(translation(-5.4, 1.5, -19).rotate(0, -90)),
-              meshAdd(cylinder(), translation(0, 0, 0).scale(1, 5, 1), material(0.3, 0.3, 0.38)),
-              meshAdd(cylinder(), translation(3, 0, 3).scale(1, 5, 1).rotate(0, 45), material(0.3, 0.3, 0.38)),
               newSoul(translation(-0.5, 2.8, -20), [
                 0,
                 0,
@@ -1711,16 +1709,16 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                       meshAdd(gateBarsPolygons);
                   });
               }),
-              integers_map(5, (i) =>
-                integers_map(
-                  2,
-                  (j) =>
+              integers_map(
+                5,
+                (i) =>
+                  integers_map(2, (j) =>
                     meshAdd(
                       hornPolygons,
                       translation(18.5 * (j - 0.5), 0, 4.8 * i - 9.5).rotate(0, 180 - 180 * j).scale(1.2, 10, 1.2),
                       material(1, 1, 0.8, 0.2),
-                    ),
-                )),
+                    )),
+              ),
               meshAdd(cylinder(), translation(3, 1.5, -20).scale(0.5, 2, 5), material(0.7, 0.7, 0.7, 0.2)),
               meshAdd(
                 cylinder(),

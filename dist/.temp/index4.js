@@ -709,7 +709,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               p,
               b = 1,
               S = 2,
-              A = 2,
+              A = 15,
               M = () => (S ? Q[l1].s : H[s && 1 === H[s].G && s || 0]).o,
               I = e => {
                 let { x: t, y: a, z: l } = 1 < S
@@ -1021,8 +1021,6 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               e.h = e => t(e, -12, 4.2, 40 * y - 66), M(l), F(i(0, -3, 4));
             }),
               F(i(-5.4, 1.5, -19).rotate(0, -90)),
-              M(v(), i(0, 0, 0).scale(1, 5, 1), S(.3, .3, .38)),
-              M(v(), i(3, 0, 3).scale(1, 5, 1).rotate(0, 45), S(.3, .3, .38)),
               j(i(-.5, 2.8, -20), [0, 0, 2.5], [0, -3, 2.5]),
               j(i(0, 2.8), [5, 10, 3], [-5, 10, 3], ...d1(18).map(({ x: e, z: t }) => [7 * e, 10 * t, 4.5 - 2 * P(e)])),
               M(v(), i(-5, -.2, -26).scale(3.2, 1, 2.5).skewX(3), S(.8, .8, .8, .2)),

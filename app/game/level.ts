@@ -105,10 +105,12 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
     // ========= WORLD! ========= //
 
-    /// XXX TODO DEBUG
+    if (DEBUG) {
+      /// XXX TODO DEBUG
 
-    meshAdd(cylinder(), translation(0, 0, 0).scale(1, 5, 1), material(0.3, 0.3, 0.38));
-    meshAdd(cylinder(), translation(3, 0, 3).scale(1, 5, 1).rotate(0, 45), material(0.3, 0.3, 0.38));
+      meshAdd(cylinder(), translation(0, 0, 0).scale(1, 5, 1), material(0.3, 0.3, 0.38));
+      meshAdd(cylinder(), translation(3, 0, 3).scale(1, 5, 1).rotate(0, 45), material(0.3, 0.3, 0.38));
+    }
 
     // SOUL 0 - soul after first boat
     newSoul(translation(-0.5, 2.8, -20), [0, 0, 2.5], [0, -3, 2.5]);
@@ -529,8 +531,8 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
         meshAdd(
           cylinder(),
           translation(x - 76.9, x / -16 - 10, 24)
-            .rotate(0, 0, -3)
-            .skewX(-3)
+            .rotate(0, 0, -2)
+            .skewX(-2)
             .scale(2.8, 1.4, 3),
           material(0.2, 0.5, 0.6, 0.2),
         ),
@@ -815,8 +817,8 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
         meshAdd(
           cylinder(6),
           translation(-14.6 - i * 4.8 - (i > 2 ? 2 : 0), -i / 2.5 - 0.1, -21.5)
-            .rotate(0, 0, 4)
-            .skewX(4)
+            .rotate(0, 0, 3.5)
+            .skewX(3.5)
             .scale(2.6, 1, 2.5),
           material(0.5 - i / 8, i / 12 + 0.5, 0.7, 0.3),
         );
