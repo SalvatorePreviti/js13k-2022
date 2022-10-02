@@ -29,18 +29,11 @@ export const meshAdd = (
   color?: number | undefined,
 ) => currentEditModel.$polygons!.push(...polygons_transform(polygons, transform, color));
 
-export const newModel = (fn: (model: Model) => void, $kind: MODEL_KIND = MODEL_KIND_GAME) => {
+export const newModel = (fn: () => void, $kind: MODEL_KIND = MODEL_KIND_GAME): void => {
   const previousModel = currentEditModel;
-  const model: Model = {
-    $matrix: new DOMMatrix(),
-    $kind,
-    $polygons: [],
-  };
-  allModels.push(model);
-  currentEditModel = model;
-  fn(model);
+  allModels.push((currentEditModel = { $matrix: new DOMMatrix(), $kind, $polygons: [] }));
+  fn();
   currentEditModel = previousModel;
-  return model;
 };
 
 const LEVER_SENSITIVITY_RADIUS = 3;
@@ -89,22 +82,23 @@ export const newLever = ($transform: DOMMatrixReadOnly): void => {
 };
 
 export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]) => {
-  const parentModel = currentEditModel;
-  const index = souls.length;
+  let dirX = -1;
+  let dirZ = 0;
+  let randAngle = 0;
+  let lookAngle: number;
+  let prevX: number;
+  let prevZ: number;
+  let velocity = 3;
+  let wasInside: boolean | undefined | 1 = 1;
+
   const circles = (walkingPath as Circle[]).map(([x, z, w]) => ({ x, z, w }));
   let circle = circles[0]!;
   let { x: targetX, z: targetZ } = circle;
   let soulX = targetX;
   let soulZ = targetZ;
-  let dirX = -1;
-  let dirZ = 0;
-  let randAngle = 0;
-  let lookAngle = 0;
-  let prevX = 0;
-  let prevZ = 0;
-  let velocity = 3;
-  let wasInside: boolean | undefined | 1 = 1;
 
+  const parentModelMatrix = currentEditModel.$matrix;
+  const index = souls.length;
   const soul: Soul = {
     $value: 0,
     _update: () => {
@@ -156,7 +150,7 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]
 
         if (
           distanceToPlayer(
-            matrixCopy(parentModel.$matrix)
+            matrixCopy(parentModelMatrix)
               .multiplySelf(transform)
               .translateSelf((prevX = soulX), 0, (prevZ = soulZ))
               .rotateSelf(0, lookAngle, Math.sin(gameTime * 1.7) * 7),

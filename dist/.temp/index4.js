@@ -240,7 +240,7 @@ let I,
   d = (e, t = new DOMMatrix(), a) => r.o.push(...i(e, t, a)),
   b = (e, t = 1) => {
     let a = r;
-    return P.push(t = { m: new DOMMatrix(), G: t, o: [] }), e(r = t), r = a, t;
+    P.push(r = { m: new DOMMatrix(), G: t, o: [] }), e(), r = a;
   },
   C1 = e => (e = e.transformPoint(), E1(X.x - e.x, X.y - e.y, X.z - e.z)),
   S = e => {
@@ -274,10 +274,10 @@ let I,
       d(f(), e.translate(0, -.4).scale(.5, .1, .5), v(.5, .5, .4));
   },
   M = (f, ...e) => {
-    let m = -1,
-      h = 0,
-      u = 0,
-      g = 0,
+    let m,
+      h,
+      u,
+      g = -1,
       v = 0,
       d = 0,
       p = 1,
@@ -287,27 +287,27 @@ let I,
         F() {
           if (!S.i) {
             let e, t, a, l, r, s, o, c, n = 1, i = 1 / 0;
-            for (let l of M) {
+            for (let l of A) {
               let { x: e, z: t, w: a } = l;
-              t = (e = E1(k - e, F - t)) - a, c ||= e < a, 0 < t && i > t && (i = t, I = l), n = h1(n, e / a);
+              t = (e = E1(I - e, k - t)) - a, c ||= e < a, 0 < t && i > t && (i = t, M = l), n = h1(n, e / a);
             }
             c
-            || ({ x: e, z: t, w: a } = I,
-              l = k - e,
-              r = F - t,
+            || ({ x: e, z: t, w: a } = M,
+              l = I - e,
+              r = k - t,
               s = E1(l, r),
               o = N1(-r, l),
-              p && (u = (W1() - .5) * K / 2, b = L(b / (1 + W1()))),
-              o += u,
-              m = -_(o),
-              h = V(o),
-              .1 < s && (s = h1(s, a) / (s || 1), k = l * s + e, F = r * s + t)),
+              p && (d = (W1() - .5) * K / 2, b = L(b / (1 + W1()))),
+              o += d,
+              g = -_(o),
+              v = V(o),
+              .1 < s && (s = h1(s, a) / (s || 1), I = l * s + e, k = r * s + t)),
               p = c,
               b = U(b, 6 * (1 - n) + 3, n + 3),
-              Y = U(Y, k = U(k, k + m, b), b),
-              D = U(D, F = U(F, F + h, b), b),
-              g = y1(g, N1(Y - v, D - d) / G - 180, 1 - U1(-3 * B)),
-              C1(E(A.m).multiplySelf(f).translateSelf(v = Y, 0, d = D).rotateSelf(0, g, 7 * V(1.7 * y))) < 1.6
+              F = U(F, I = U(I, I + g, b), b),
+              Y = U(Y, k = U(k, k + v, b), b),
+              m = y1(m, N1(F - h, Y - u) / G - 180, 1 - U1(-3 * B)),
+              C1(E(D).multiplySelf(f).translateSelf(h = F, 0, u = Y).rotateSelf(0, m, 7 * V(1.7 * y))) < 1.6
               && (S.i = 1,
                 e = [
                   ,
@@ -336,13 +336,13 @@ let I,
             );
         },
       },
-      A = r,
-      t = f1.length,
-      M = e.map(([e, t, a]) => ({ x: e, z: t, w: a })),
-      I = M[0],
-      { x: k, z: F } = I,
+      A = e.map(([e, t, a]) => ({ x: e, z: t, w: a })),
+      M = A[0],
+      { x: I, z: k } = M,
+      F = I,
       Y = k,
-      D = F;
+      D = r.m,
+      t = f1.length;
     f1.push(S);
   },
   T1 = (e, t, a, l) => {

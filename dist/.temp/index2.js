@@ -712,12 +712,15 @@ const meshAdd = (polygons, transform = new DOMMatrix(), color) =>
   currentEditModel.$polygons.push(...polygons_transform(polygons, transform, color));
 const newModel = (fn, $kind = 1) => {
   const previousModel = currentEditModel;
-  var $kind = {
-    $matrix: new DOMMatrix(),
-    $kind,
-    $polygons: [],
-  };
-  return allModels.push($kind), fn(currentEditModel = $kind), currentEditModel = previousModel, $kind;
+  allModels.push(
+    currentEditModel = {
+      $matrix: new DOMMatrix(),
+      $kind,
+      $polygons: [],
+    },
+  ),
+    fn(),
+    currentEditModel = previousModel;
 };
 const distanceToPlayer = (
   transform,
@@ -761,12 +764,12 @@ const newLever = ($transform) => {
     meshAdd(cylinder(), $transform.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
 };
 const newSoul = (transform, ...walkingPath) => {
+  let lookAngle;
+  let prevX;
+  let prevZ;
   let dirX = -1;
   let dirZ = 0;
   let randAngle = 0;
-  let lookAngle = 0;
-  let prevX = 0;
-  let prevZ = 0;
   let wasInside = 1;
   let velocity = 3;
   const soul = {
@@ -815,7 +818,7 @@ const newSoul = (transform, ...walkingPath) => {
             damp(3),
           ),
           distanceToPlayer(
-              matrixCopy(parentModel.$matrix).multiplySelf(transform).translateSelf(prevX = soulX, 0, prevZ = soulZ)
+              matrixCopy(parentModelMatrix).multiplySelf(transform).translateSelf(prevX = soulX, 0, prevZ = soulZ)
                 .rotateSelf(0, lookAngle, 7 * Math.sin(1.7 * gameTime)),
             ) < 1.6 && (soul.$value = 1,
               showMessage(
@@ -847,8 +850,6 @@ const newSoul = (transform, ...walkingPath) => {
         );
     },
   };
-  const parentModel = currentEditModel;
-  const index = souls.length;
   const circles = walkingPath.map(([x, z, w]) => ({
     x,
     z,
@@ -858,6 +859,8 @@ const newSoul = (transform, ...walkingPath) => {
   let { x: targetX, z: targetZ } = circle;
   let soulX = targetX;
   let soulZ = targetZ;
+  const parentModelMatrix = currentEditModel.$matrix;
+  const index = souls.length;
   souls.push(soul);
 };
 const boatAnimationMatrix = (matrix, x, y, z) =>

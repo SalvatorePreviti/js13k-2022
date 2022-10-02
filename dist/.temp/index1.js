@@ -843,16 +843,15 @@ const meshAdd = (polygons, transform = new DOMMatrix(), color) =>
   currentEditModel.$polygons.push(...polygons_transform(polygons, transform, color));
 const newModel = (fn, $kind = MODEL_KIND_GAME) => {
   const previousModel = currentEditModel;
-  const model = {
-    $matrix: new DOMMatrix(),
-    $kind,
-    $polygons: [],
-  };
-  allModels.push(model);
-  currentEditModel = model;
-  fn(model);
+  allModels.push(
+    currentEditModel = {
+      $matrix: new DOMMatrix(),
+      $kind,
+      $polygons: [],
+    },
+  );
+  fn();
   currentEditModel = previousModel;
-  return model;
 };
 const distanceToPlayer = (transform) => {
   const p = transform.transformPoint();
@@ -894,12 +893,12 @@ const newLever = ($transform) => {
   meshAdd(cylinder(), $transform.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
 };
 const newSoul = (transform, ...walkingPath) => {
+  let lookAngle;
+  let prevX;
+  let prevZ;
   let dirX = -1;
   let dirZ = 0;
   let randAngle = 0;
-  let lookAngle = 0;
-  let prevX = 0;
-  let prevZ = 0;
   let wasInside = 1;
   let velocity = 3;
   const soul = {
@@ -950,7 +949,7 @@ const newSoul = (transform, ...walkingPath) => {
         );
         if (
           distanceToPlayer(
-            matrixCopy(parentModel.$matrix).multiplySelf(transform).translateSelf(prevX = soulX, 0, prevZ = soulZ)
+            matrixCopy(parentModelMatrix).multiplySelf(transform).translateSelf(prevX = soulX, 0, prevZ = soulZ)
               .rotateSelf(0, lookAngle, /* @__PURE__ */ Math.sin(gameTime * 1.7) * 7),
           ) < SOUL_SENSITIVITY_RADIUS
         ) {
@@ -967,8 +966,6 @@ const newSoul = (transform, ...walkingPath) => {
       }
     },
   };
-  const parentModel = currentEditModel;
-  const index = souls.length;
   const circles = walkingPath.map(([x, z, w]) => ({
     x,
     z,
@@ -978,6 +975,8 @@ const newSoul = (transform, ...walkingPath) => {
   let { x: targetX, z: targetZ } = circle;
   let soulX = targetX;
   let soulZ = targetZ;
+  const parentModelMatrix = currentEditModel.$matrix;
+  const index = souls.length;
   souls.push(soul);
 };
 const build_life_the_universe_and_everything = () => {

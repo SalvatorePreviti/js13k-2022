@@ -760,16 +760,13 @@ const SOUL_SENSITIVITY_RADIUS = 1.6;
 const meshAdd = (polygons, transform = new DOMMatrix(), color) => currentEditModel.$polygons.push(...polygons_transform(polygons, transform, color));
 const newModel = (fn, $kind = MODEL_KIND_GAME) => {
   const previousModel = currentEditModel;
-  const model = {
+  allModels.push(currentEditModel = {
     $matrix: new DOMMatrix(),
     $kind,
     $polygons: []
-  };
-  allModels.push(model);
-  currentEditModel = model;
-  fn(model);
+  });
+  fn();
   currentEditModel = previousModel;
-  return model;
 };
 const distanceToPlayer = (transform) => {
   const p = transform.transformPoint();
@@ -807,12 +804,12 @@ const newLever = ($transform) => {
   meshAdd(cylinder(), $transform.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
 };
 const newSoul = (transform, ...walkingPath) => {
+  let lookAngle;
+  let prevX;
+  let prevZ;
   let dirX = -1;
   let dirZ = 0;
   let randAngle = 0;
-  let lookAngle = 0;
-  let prevX = 0;
-  let prevZ = 0;
   let wasInside = 1;
   let velocity = 3;
   const soul = {
@@ -857,7 +854,7 @@ const newSoul = (transform, ...walkingPath) => {
         soulX = lerpDamp(soulX, targetX = lerpDamp(targetX, targetX + dirX, velocity), velocity);
         soulZ = lerpDamp(soulZ, targetZ = lerpDamp(targetZ, targetZ + dirZ, velocity), velocity);
         lookAngle = angle_lerp_degrees(lookAngle, /* @__PURE__ */ Math.atan2(soulX - prevX, soulZ - prevZ) / DEG_TO_RAD - 180, damp(3));
-        if (distanceToPlayer(matrixCopy(parentModel.$matrix).multiplySelf(transform).translateSelf(prevX = soulX, 0, prevZ = soulZ).rotateSelf(0, lookAngle, /* @__PURE__ */ Math.sin(gameTime * 1.7) * 7)) < SOUL_SENSITIVITY_RADIUS) {
+        if (distanceToPlayer(matrixCopy(parentModelMatrix).multiplySelf(transform).translateSelf(prevX = soulX, 0, prevZ = soulZ).rotateSelf(0, lookAngle, /* @__PURE__ */ Math.sin(gameTime * 1.7) * 7)) < SOUL_SENSITIVITY_RADIUS) {
           soul.$value = 1;
           onSoulCollected();
         }
@@ -866,8 +863,6 @@ const newSoul = (transform, ...walkingPath) => {
         matrixCopy(allModels[MODEL_ID_FIRST_BOAT].$matrix).translateSelf(index % 4 * 1.2 - 1.7 + /* @__PURE__ */ Math.sin(gameTime + index) / 7, -2, -5.5 + (index / 4 | 0) * 1.7 + abs(index % 4 - 2) + /* @__PURE__ */ Math.cos(gameTime / 1.5 + index) / 6);
     }
   };
-  const parentModel = currentEditModel;
-  const index = souls.length;
   const circles = walkingPath.map(([x, z, w]) => ({
     x,
     z,
@@ -877,6 +872,8 @@ const newSoul = (transform, ...walkingPath) => {
   let { x: targetX, z: targetZ } = circle;
   let soulX = targetX;
   let soulZ = targetZ;
+  const parentModelMatrix = currentEditModel.$matrix;
+  const index = souls.length;
   souls.push(soul);
 };
 const build_life_the_universe_and_everything = () => {
