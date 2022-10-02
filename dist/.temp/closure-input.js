@@ -6,18 +6,18 @@ let updateInput;
 let projection;
 let csm_projections;
 let currentEditModel;
+let rotatingPlatform1Rotation;
+let rotatingPlatform2Rotation;
+let rotatingHexCorridorRotation;
+let firstBoatLerp;
+let secondBoatLerp;
+let shouldRotatePlatforms;
 let player_update;
 let gameTime = 0;
 let absoluteTime = 0;
 let souls_collected_count = 0;
-let player_last_pulled_lever = 0;
-let rotatingPlatform1Rotation = 0;
-let rotatingPlatform2Rotation = 0;
-let rotatingHexCorridorRotation = 0;
 let game_completed = 0;
-let firstBoatLerp = 0;
-let secondBoatLerp = 0;
-let shouldRotatePlatforms = 0;
+let player_last_pulled_lever = 0;
 let input_forward = 0;
 let input_strafe = 0;
 let camera_position_x = 0;
@@ -524,7 +524,7 @@ const saveGame = () => {
     souls.map(({ $value }) => $value),
     player_last_pulled_lever,
     gameTime,
-    secondBoatLerp,
+    0,
   ]);
 };
 const mat_perspective = (near, far, mx, my) =>
@@ -734,20 +734,20 @@ const distanceToPlayer = (
     player_position_final.y - transform.y,
     player_position_final.z - transform.z,
   ));
-const newLever = (transform) => {
-  const $parent = currentEditModel;
+const newLever = ($transform) => {
+  const parentModel = currentEditModel;
   const index = levers.length;
   const lever = {
     $value: 0,
     $lerpValue: 0,
     $lerpValue2: 0,
-    $parent,
-    $matrix: transform,
+    $matrix: parentModel.$matrix,
+    $transform,
     _update() {
       let leverIndex;
       lever.$lerpValue = lerpDamp(lever.$lerpValue, lever.$value, 4),
         lever.$lerpValue2 = lerpDamp(lever.$lerpValue2, lever.$value, 1),
-        matrixCopy($parent.$matrix).multiplySelf(transform),
+        matrixCopy(parentModel.$matrix).multiplySelf($transform),
         interact_pressed && distanceToPlayer(tempMatrix) < 3 && (lever.$lerpValue < 0.3 || 0.7 < lever.$lerpValue)
         && (lever.$value = lever.$value ? 0 : 1,
           (leverIndex = index) && showMessage("* click *", 1),
@@ -757,9 +757,9 @@ const newLever = (transform) => {
     },
   };
   levers.push(lever),
-    meshAdd(cylinder(5), transform.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5)),
-    meshAdd(cylinder(5), transform.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5)),
-    meshAdd(cylinder(), transform.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
+    meshAdd(cylinder(5), $transform.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5)),
+    meshAdd(cylinder(5), $transform.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5)),
+    meshAdd(cylinder(), $transform.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
 };
 const newSoul = (transform, ...walkingPath) => {
   let dirX = -1;
@@ -861,6 +861,12 @@ const newSoul = (transform, ...walkingPath) => {
   let soulZ = targetZ;
   souls.push(soul);
 };
+const boatAnimationMatrix = (matrix, x, y, z) =>
+  matrix.translateSelf(x + Math.sin(gameTime + 2) / 5, y + Math.sin(0.8 * gameTime) / 3, z).rotateSelf(
+    2 * Math.sin(gameTime),
+    Math.sin(0.7 * gameTime),
+    Math.sin(0.9 * gameTime),
+  );
 const player_init = () => {
   let currentModelId;
   let oldModelId;
@@ -881,17 +887,16 @@ const player_init = () => {
   let player_gravity = 15;
   const getReferenceMatrix = () =>
     (player_respawned
-      ? levers[player_last_pulled_lever].$parent
+      ? levers[player_last_pulled_lever]
       : allModels[oldModelId && allModels[oldModelId].$kind === 1 && oldModelId || 0]).$matrix;
   const updatePlayerPositionFinal = (updateVelocity) => {
     const { x, y, z } = 1 < player_respawned
-      ? matrixCopy(levers[player_last_pulled_lever].$parent.$matrix).multiplySelf(
-        levers[player_last_pulled_lever].$matrix,
-      ).transformPoint({
-        x: 0,
-        y: player_last_pulled_lever || 0.9 < firstBoatLerp ? 15 : 1,
-        z: -2.4,
-      })
+      ? matrixCopy(levers[player_last_pulled_lever].$matrix).multiplySelf(levers[player_last_pulled_lever].$transform)
+        .transformPoint({
+          x: 0,
+          y: player_last_pulled_lever || 0.9 < firstBoatLerp ? 15 : 1,
+          z: -2.4,
+        })
       : getReferenceMatrix().transformPoint(player_position_global);
     updateVelocity
     && (player_fly_velocity_x = (x - player_position_final.x) / gameTimeDelta,
@@ -1090,12 +1095,6 @@ const renderModels = (worldMatrixLoc, renderPlayer, soulModelId) => {
         levers.length,
       ));
 };
-const boatAnimationMatrix = (matrix, x, y, z) =>
-  matrix.translateSelf(x + Math.sin(gameTime + 2) / 5, y + Math.sin(0.8 * gameTime) / 3, z).rotateSelf(
-    2 * Math.sin(gameTime),
-    Math.sin(0.7 * gameTime),
-    Math.sin(0.9 * gameTime),
-  );
 const loadStep = (fn) => {
   h4.innerHTML += ".", setTimeout(fn);
 };
@@ -1256,32 +1255,6 @@ loadStep(() => {
             0 < gameTimeDelta
         ) {
           updateInput(),
-            shouldRotatePlatforms = lerpneg(levers[12].$lerpValue, levers[13].$lerpValue),
-            rotatingHexCorridorRotation = lerp(
-              lerpDamp(rotatingHexCorridorRotation, 0, 1),
-              angle_wrap_degrees(rotatingHexCorridorRotation + 60 * gameTimeDelta),
-              levers[5].$lerpValue - levers[6].$lerpValue2,
-            ),
-            rotatingPlatform1Rotation = lerp(
-              lerpDamp(rotatingPlatform1Rotation, 0, 5),
-              angle_wrap_degrees(rotatingPlatform1Rotation + 56 * gameTimeDelta),
-              shouldRotatePlatforms,
-            ),
-            rotatingPlatform2Rotation = lerp(
-              lerpDamp(rotatingPlatform2Rotation, 0, 4),
-              angle_wrap_degrees(rotatingPlatform2Rotation + 48 * gameTimeDelta),
-              shouldRotatePlatforms,
-            ),
-            secondBoatLerp = lerpDamp(
-              secondBoatLerp,
-              levers[9].$lerpValue2,
-              0.2 + 0.3 * abs(2 * levers[9].$lerpValue2 - 1),
-            ),
-            firstBoatLerp = lerpDamp(
-              firstBoatLerp,
-              game_completed ? lerpDamp(firstBoatLerp, -9, 1.5) : clamp(gameTime / 3),
-              1,
-            ),
             _messageEndTime && gameTime > _messageEndTime && (_messageEndTime = 0, h4.innerHTML = ""),
             levers[0].$value && 0.8 < levers[0].$lerpValue && (souls_collected_count < 13
               ? (showMessage("Not leaving now, there are souls to catch!", 3), levers[0].$value = 0)
@@ -1291,7 +1264,33 @@ loadStep(() => {
             let counter = 1;
             const next = () => matrixCopy(identity, allModels[++counter].$matrix);
             var dt =
-              (boatAnimationMatrix(next(), -12, 4.2, 40 * firstBoatLerp - 66),
+              (shouldRotatePlatforms = lerpneg(levers[12].$lerpValue, levers[13].$lerpValue),
+                rotatingHexCorridorRotation = lerp(
+                  lerpDamp(rotatingHexCorridorRotation, 0, 1),
+                  angle_wrap_degrees(rotatingHexCorridorRotation + 60 * gameTimeDelta),
+                  levers[5].$lerpValue - levers[6].$lerpValue2,
+                ),
+                rotatingPlatform1Rotation = lerp(
+                  lerpDamp(rotatingPlatform1Rotation, 0, 5),
+                  angle_wrap_degrees(rotatingPlatform1Rotation + 56 * gameTimeDelta),
+                  shouldRotatePlatforms,
+                ),
+                rotatingPlatform2Rotation = lerp(
+                  lerpDamp(rotatingPlatform2Rotation, 0, 4),
+                  angle_wrap_degrees(rotatingPlatform2Rotation + 48 * gameTimeDelta),
+                  shouldRotatePlatforms,
+                ),
+                secondBoatLerp = lerpDamp(
+                  secondBoatLerp,
+                  levers[9].$lerpValue2,
+                  0.2 + 0.3 * abs(2 * levers[9].$lerpValue2 - 1),
+                ),
+                firstBoatLerp = lerpDamp(
+                  firstBoatLerp,
+                  game_completed ? lerpDamp(firstBoatLerp, -9, 1.5) : clamp(gameTime / 3),
+                  1,
+                ),
+                boatAnimationMatrix(next(), -12, 4.2, 40 * firstBoatLerp - 66),
                 next().translateSelf(0, 0, -15).scaleSelf(1, clamp(1.22 - levers[1].$lerpValue), 1),
                 next().translateSelf(0, 0, 15).scaleSelf(1, clamp(1.22 - levers[2].$lerpValue), 1),
                 next().translateSelf(
@@ -1627,20 +1626,16 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
         }
         loadStep(end);
         try {
-          const [savedLevers, savedSouls, savedLastPulledLever, savedGameTime, savedSecondBoatLerp] = JSON.parse(
-            localStorage["DanteSP22"],
-          );
+          const [savedLevers, savedSouls, savedLastPulledLever, savedGameTime] = JSON.parse(localStorage["DanteSP22"]);
           levers.map((lever, index) =>
             lever.$lerpValue = lever.$lerpValue2 = lever.$value = index ? 0 | savedLevers[index] : 0
           ),
             souls.map((soul, index) => soul.$value = 0 | savedSouls[index]),
             player_last_pulled_lever = savedLastPulledLever,
-            secondBoatLerp = savedSecondBoatLerp,
             gameTime = savedGameTime,
             gameTimeDelta = 0;
         } catch {
         }
-        firstBoatLerp = clamp(player_last_pulled_lever);
       });
       {
         const hornsMatrices = integers_map(

@@ -52,21 +52,20 @@ const distanceToPlayer = (transform: DOMMatrixReadOnly): number => {
   return Math.hypot(player_position_final.x - p.x, player_position_final.y - p.y, player_position_final.z - p.z);
 };
 
-export const newLever = (transform: DOMMatrixReadOnly): void => {
-  const $parent = currentEditModel;
+export const newLever = ($transform: DOMMatrixReadOnly): void => {
+  const parentModel = currentEditModel;
   const index = levers.length;
-
   const lever: Lever = {
     $value: 0,
     $lerpValue: 0,
     $lerpValue2: 0,
-    $parent,
-    $matrix: transform,
+    $matrix: parentModel.$matrix,
+    $transform,
     _update: () => {
       lever.$lerpValue = lerpDamp(lever.$lerpValue, lever.$value, 4);
       lever.$lerpValue2 = lerpDamp(lever.$lerpValue2, lever.$value, 1);
 
-      matrixCopy($parent.$matrix).multiplySelf(transform);
+      matrixCopy(parentModel.$matrix).multiplySelf($transform);
 
       if (interact_pressed && distanceToPlayer(tempMatrix) < LEVER_SENSITIVITY_RADIUS) {
         if (lever.$lerpValue < 0.3 || lever.$lerpValue > 0.7) {
@@ -80,9 +79,9 @@ export const newLever = (transform: DOMMatrixReadOnly): void => {
   };
   levers.push(lever);
 
-  meshAdd(cylinder(5), transform.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
-  meshAdd(cylinder(5), transform.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
-  meshAdd(cylinder(), transform.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
+  meshAdd(cylinder(5), $transform.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
+  meshAdd(cylinder(5), $transform.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
+  meshAdd(cylinder(), $transform.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
 };
 
 export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]) => {

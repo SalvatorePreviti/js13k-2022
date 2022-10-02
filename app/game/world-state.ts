@@ -1,5 +1,4 @@
-import { lerp, angle_wrap_degrees, lerpneg, clamp, abs } from "../math/math";
-import { gameTime, lerpDamp, gameTimeDelta, resetGameTime } from "./game-time";
+import { gameTime, resetGameTime } from "./game-time";
 import { levers, souls, SOULS_COUNT } from "./models";
 import type { Vec2 } from "../math/vectors";
 
@@ -11,21 +10,9 @@ let _messageEndTime = 1;
 
 export const LOCAL_STORAGE_SAVED_GAME_KEY = "DanteSP22";
 
-export let player_last_pulled_lever = 0;
-
-export let rotatingPlatform1Rotation = 0;
-
-export let rotatingPlatform2Rotation = 0;
-
-export let rotatingHexCorridorRotation = 0;
-
 export let game_completed: 0 | 1 = 0;
 
-export let firstBoatLerp = 0;
-
-export let secondBoatLerp = 0;
-
-export let shouldRotatePlatforms = 0;
+export let player_last_pulled_lever = 0;
 
 const showMessage = (message: string, duration: number) => {
   if (_messageEndTime < Infinity) {
@@ -35,30 +22,6 @@ const showMessage = (message: string, duration: number) => {
 };
 
 export const worldStateUpdate = () => {
-  shouldRotatePlatforms = lerpneg(levers[12]!.$lerpValue, levers[13]!.$lerpValue);
-
-  rotatingHexCorridorRotation = lerp(
-    lerpDamp(rotatingHexCorridorRotation, 0, 1),
-    angle_wrap_degrees(rotatingHexCorridorRotation + gameTimeDelta * 60),
-    levers[5]!.$lerpValue - levers[6]!.$lerpValue2,
-  );
-
-  rotatingPlatform1Rotation = lerp(
-    lerpDamp(rotatingPlatform1Rotation, 0, 5),
-    angle_wrap_degrees(rotatingPlatform1Rotation + gameTimeDelta * 56),
-    shouldRotatePlatforms,
-  );
-
-  rotatingPlatform2Rotation = lerp(
-    lerpDamp(rotatingPlatform2Rotation, 0, 4),
-    angle_wrap_degrees(rotatingPlatform2Rotation + gameTimeDelta * 48),
-    shouldRotatePlatforms,
-  );
-
-  secondBoatLerp = lerpDamp(secondBoatLerp, levers[9]!.$lerpValue2, 0.2 + 0.3 * abs(levers[9]!.$lerpValue2 * 2 - 1));
-
-  firstBoatLerp = lerpDamp(firstBoatLerp, game_completed ? lerpDamp(firstBoatLerp, -9, 1.5) : clamp(gameTime / 3), 1);
-
   if (_messageEndTime && gameTime > _messageEndTime) {
     _messageEndTime = 0;
     h4.innerHTML = "";
@@ -95,14 +58,14 @@ export const loadGame = () => {
     );
     souls.map((soul, index) => (soul.$value = (savedSouls[index] | 0) as 0 | 1));
     player_last_pulled_lever = savedLastPulledLever;
-    secondBoatLerp = savedSecondBoatLerp;
+    // secondBoatLerp = savedSecondBoatLerp;
     resetGameTime(savedGameTime);
   } catch (e) {
     if (DEBUG) {
       console.log(e);
     }
   }
-  firstBoatLerp = clamp(player_last_pulled_lever);
+  // firstBoatLerp = clamp(player_last_pulled_lever);
 };
 
 export const saveGame = () => {
@@ -111,7 +74,7 @@ export const saveGame = () => {
     souls.map(({ $value }) => $value),
     player_last_pulled_lever,
     gameTime,
-    secondBoatLerp,
+    /* secondBoatLerp */ 0,
   ]);
 };
 

@@ -1,26 +1,56 @@
-import { clamp, max, abs, lerpneg, min } from "../math/math";
+import { clamp, max, abs, lerpneg, min, angle_wrap_degrees, lerp } from "../math/math";
 import { matrixCopy, identity, matrixToArray, tempMatrix } from "../math/matrix";
 import { player_update } from "../player";
-import { gameTime } from "./game-time";
+import { gameTime, gameTimeDelta, lerpDamp } from "./game-time";
 import { allModels, levers, LEVERS_COUNT, souls, SOULS_COUNT } from "./models";
 import { objectsMatricesBuffer, worldMatricesBuffer } from "./models-matrices";
-import {
-  firstBoatLerp,
-  rotatingHexCorridorRotation,
-  secondBoatLerp,
-  rotatingPlatform1Rotation,
-  rotatingPlatform2Rotation,
-} from "./world-state";
+import { game_completed } from "./world-state";
 
 const boatAnimationMatrix = (matrix: DOMMatrix, x: number, y: number, z: number) =>
   matrix
     .translateSelf(x + Math.sin(gameTime + 2) / 5, y + Math.sin(gameTime * 0.8) / 3, z)
     .rotateSelf(Math.sin(gameTime) * 2, Math.sin(gameTime * 0.7), Math.sin(gameTime * 0.9));
 
+export let rotatingPlatform1Rotation: number;
+
+export let rotatingPlatform2Rotation: number;
+
+export let rotatingHexCorridorRotation: number;
+
+export let firstBoatLerp: number;
+
+export let secondBoatLerp: number;
+
+export let shouldRotatePlatforms: number;
+
 export const eppur_si_muove = () => {
   let counter = 1;
 
   const next = () => matrixCopy(identity, allModels[++counter]!.$matrix);
+
+  shouldRotatePlatforms = lerpneg(levers[12]!.$lerpValue, levers[13]!.$lerpValue);
+
+  rotatingHexCorridorRotation = lerp(
+    lerpDamp(rotatingHexCorridorRotation, 0, 1),
+    angle_wrap_degrees(rotatingHexCorridorRotation + gameTimeDelta * 60),
+    levers[5]!.$lerpValue - levers[6]!.$lerpValue2,
+  );
+
+  rotatingPlatform1Rotation = lerp(
+    lerpDamp(rotatingPlatform1Rotation, 0, 5),
+    angle_wrap_degrees(rotatingPlatform1Rotation + gameTimeDelta * 56),
+    shouldRotatePlatforms,
+  );
+
+  rotatingPlatform2Rotation = lerp(
+    lerpDamp(rotatingPlatform2Rotation, 0, 4),
+    angle_wrap_degrees(rotatingPlatform2Rotation + gameTimeDelta * 48),
+    shouldRotatePlatforms,
+  );
+
+  secondBoatLerp = lerpDamp(secondBoatLerp, levers[9]!.$lerpValue2, 0.2 + 0.3 * abs(levers[9]!.$lerpValue2 * 2 - 1));
+
+  firstBoatLerp = lerpDamp(firstBoatLerp, game_completed ? lerpDamp(firstBoatLerp, -9, 1.5) : clamp(gameTime / 3), 1);
 
   // first boad
   boatAnimationMatrix(next(), -12, 4.2, -66 + firstBoatLerp * 40);

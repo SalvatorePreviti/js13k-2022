@@ -1,11 +1,12 @@
 import { constDef_COLLISION_TEXTURE_SIZE as COLLISION_TEXTURE_SIZE } from "./shaders/collider-fragment.frag";
 import { max, clamp, DEG_TO_RAD, angle_lerp_degrees, lerp, angle_wrap_degrees, min, abs, threshold } from "./math/math";
 import { levers, player_position_final, allModels, MODEL_KIND_GAME, MODEL_ID_ROTATING_PLATFORM } from "./game/models";
-import { player_last_pulled_lever, firstBoatLerp, shouldRotatePlatforms, camera_rotation } from "./game/world-state";
+import { player_last_pulled_lever, camera_rotation } from "./game/world-state";
 import { input_forward, input_strafe, player_first_person } from "./page";
 import { lerpDamp, gameTimeDelta, damp, gameTime } from "./game/game-time";
 import { matrixCopy, tempMatrix } from "./math/matrix";
 import { gl } from "./gl";
+import { firstBoatLerp, shouldRotatePlatforms } from "./game/level-update";
 
 export const CAMERA_PLAYER_Y_DIST = 13;
 
@@ -58,14 +59,14 @@ export const player_init = () => {
 
   const getReferenceMatrix = () =>
     player_respawned
-      ? levers[player_last_pulled_lever]!.$parent.$matrix
+      ? levers[player_last_pulled_lever]!.$matrix
       : allModels[(oldModelId && allModels[oldModelId]!.$kind === MODEL_KIND_GAME && oldModelId) || 0]!.$matrix;
 
   const updatePlayerPositionFinal = (updateVelocity?: unknown) => {
     const { x, y, z } =
       player_respawned > 1
-        ? matrixCopy(levers[player_last_pulled_lever]!.$parent.$matrix)
-            .multiplySelf(levers[player_last_pulled_lever]!.$matrix)
+        ? matrixCopy(levers[player_last_pulled_lever]!.$matrix)
+            .multiplySelf(levers[player_last_pulled_lever]!.$transform)
             .transformPoint({
               x: 0,
               y: player_last_pulled_lever || firstBoatLerp > 0.9 ? 15 : 1,

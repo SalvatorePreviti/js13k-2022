@@ -429,14 +429,8 @@ const setMainMenuVisible = (visible) => {
 };
 let gameTimeDelta = GAME_TIME_MAX_DELTA_TIME;
 let souls_collected_count = 0;
-let player_last_pulled_lever = 0;
-let rotatingPlatform1Rotation = 0;
-let rotatingPlatform2Rotation = 0;
-let rotatingHexCorridorRotation = 0;
 let game_completed = 0;
-let firstBoatLerp = 0;
-let secondBoatLerp = 0;
-let shouldRotatePlatforms = 0;
+let player_last_pulled_lever = 0;
 let _messageEndTime = 1;
 const LOCAL_STORAGE_SAVED_GAME_KEY = "DanteSP22";
 const camera_rotation = {
@@ -450,24 +444,6 @@ const showMessage = (message, duration) => {
   }
 };
 const worldStateUpdate = () => {
-  shouldRotatePlatforms = lerpneg(levers[12].$lerpValue, levers[13].$lerpValue);
-  rotatingHexCorridorRotation = lerp(
-    lerpDamp(rotatingHexCorridorRotation, 0, 1),
-    angle_wrap_degrees(rotatingHexCorridorRotation + gameTimeDelta * 60),
-    levers[5].$lerpValue - levers[6].$lerpValue2,
-  );
-  rotatingPlatform1Rotation = lerp(
-    lerpDamp(rotatingPlatform1Rotation, 0, 5),
-    angle_wrap_degrees(rotatingPlatform1Rotation + gameTimeDelta * 56),
-    shouldRotatePlatforms,
-  );
-  rotatingPlatform2Rotation = lerp(
-    lerpDamp(rotatingPlatform2Rotation, 0, 4),
-    angle_wrap_degrees(rotatingPlatform2Rotation + gameTimeDelta * 48),
-    shouldRotatePlatforms,
-  );
-  secondBoatLerp = lerpDamp(secondBoatLerp, levers[9].$lerpValue2, 0.2 + 0.3 * abs(levers[9].$lerpValue2 * 2 - 1));
-  firstBoatLerp = lerpDamp(firstBoatLerp, game_completed ? lerpDamp(firstBoatLerp, -9, 1.5) : clamp(gameTime / 3), 1);
   if (_messageEndTime && gameTime > _messageEndTime) {
     _messageEndTime = 0;
     h4.innerHTML = "";
@@ -510,11 +486,9 @@ const loadGame = () => {
     );
     souls.map((soul, index) => soul.$value = savedSouls[index] | 0);
     player_last_pulled_lever = savedLastPulledLever;
-    secondBoatLerp = savedSecondBoatLerp;
     resetGameTime(savedGameTime);
   } catch (e) {
   }
-  firstBoatLerp = clamp(player_last_pulled_lever);
 };
 const saveGame = () => {
   localStorage[LOCAL_STORAGE_SAVED_GAME_KEY] = JSON.stringify([
@@ -522,7 +496,7 @@ const saveGame = () => {
     souls.map(({ $value }) => $value),
     player_last_pulled_lever,
     gameTime,
-    secondBoatLerp,
+    0,
   ]);
 };
 const onSoulCollected = () => {
@@ -881,19 +855,19 @@ const distanceToPlayer = (transform) => {
     player_position_final.z - p.z,
   );
 };
-const newLever = (transform) => {
-  const $parent = currentEditModel;
+const newLever = ($transform) => {
+  const parentModel = currentEditModel;
   const index = levers.length;
   const lever = {
     $value: 0,
     $lerpValue: 0,
     $lerpValue2: 0,
-    $parent,
-    $matrix: transform,
+    $matrix: parentModel.$matrix,
+    $transform,
     _update: () => {
       lever.$lerpValue = lerpDamp(lever.$lerpValue, lever.$value, 4);
       lever.$lerpValue2 = lerpDamp(lever.$lerpValue2, lever.$value, 1);
-      matrixCopy($parent.$matrix).multiplySelf(transform);
+      matrixCopy(parentModel.$matrix).multiplySelf($transform);
       if (interact_pressed && distanceToPlayer(tempMatrix) < LEVER_SENSITIVITY_RADIUS) {
         if (lever.$lerpValue < 0.3 || lever.$lerpValue > 0.7) {
           lever.$value = lever.$value ? 0 : 1;
@@ -904,9 +878,9 @@ const newLever = (transform) => {
     },
   };
   levers.push(lever);
-  meshAdd(cylinder(5), transform.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
-  meshAdd(cylinder(5), transform.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
-  meshAdd(cylinder(), transform.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
+  meshAdd(cylinder(5), $transform.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
+  meshAdd(cylinder(5), $transform.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
+  meshAdd(cylinder(), $transform.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
 };
 const newSoul = (transform, ...walkingPath) => {
   let dirX = -1;
@@ -1916,6 +1890,140 @@ for (const s in gl) {
     ].reduce((p, c, i) => (p * i + c.charCodeAt(0)) % 434, 0).toString(36)
   ] = gl[s];
 }
+const worldMatricesBuffer = new Float32Array(624);
+const objectsMatricesBuffer = new Float32Array(624);
+let rotatingPlatform1Rotation;
+let rotatingPlatform2Rotation;
+let rotatingHexCorridorRotation;
+let firstBoatLerp;
+let secondBoatLerp;
+let shouldRotatePlatforms;
+const boatAnimationMatrix = (matrix, x, y, z) =>
+  matrix.translateSelf(
+    x + /* @__PURE__ */ Math.sin(gameTime + 2) / 5,
+    y + /* @__PURE__ */ Math.sin(gameTime * 0.8) / 3,
+    z,
+  ).rotateSelf(
+    /* @__PURE__ */ Math.sin(gameTime) * 2,
+    /* @__PURE__ */ Math.sin(gameTime * 0.7),
+    /* @__PURE__ */ Math.sin(gameTime * 0.9),
+  );
+const eppur_si_muove = () => {
+  let counter = 1;
+  const next = () => matrixCopy(identity, allModels[++counter].$matrix);
+  shouldRotatePlatforms = lerpneg(levers[12].$lerpValue, levers[13].$lerpValue);
+  rotatingHexCorridorRotation = lerp(
+    lerpDamp(rotatingHexCorridorRotation, 0, 1),
+    angle_wrap_degrees(rotatingHexCorridorRotation + gameTimeDelta * 60),
+    levers[5].$lerpValue - levers[6].$lerpValue2,
+  );
+  rotatingPlatform1Rotation = lerp(
+    lerpDamp(rotatingPlatform1Rotation, 0, 5),
+    angle_wrap_degrees(rotatingPlatform1Rotation + gameTimeDelta * 56),
+    shouldRotatePlatforms,
+  );
+  rotatingPlatform2Rotation = lerp(
+    lerpDamp(rotatingPlatform2Rotation, 0, 4),
+    angle_wrap_degrees(rotatingPlatform2Rotation + gameTimeDelta * 48),
+    shouldRotatePlatforms,
+  );
+  secondBoatLerp = lerpDamp(secondBoatLerp, levers[9].$lerpValue2, 0.2 + 0.3 * abs(levers[9].$lerpValue2 * 2 - 1));
+  firstBoatLerp = lerpDamp(firstBoatLerp, game_completed ? lerpDamp(firstBoatLerp, -9, 1.5) : clamp(gameTime / 3), 1);
+  boatAnimationMatrix(next(), -12, 4.2, -66 + firstBoatLerp * 40);
+  next().translateSelf(0, 0, -15).scaleSelf(1, clamp(1.22 - levers[1].$lerpValue), 1);
+  next().translateSelf(0, 0, 15).scaleSelf(1, clamp(1.22 - levers[2].$lerpValue), 1);
+  next().translateSelf(
+    0,
+    levers[3].$lerpValue > 0.01
+      ? (/* @__PURE__ */ Math.cos(gameTime * 1.5) * 5 + 2) * levers[3].$lerpValue2 * (1 - levers[2].$lerpValue)
+        + (1 - levers[3].$lerpValue) * -15
+      : -500,
+    0,
+  );
+  const level2Oscillation = min(levers[2].$lerpValue2, 1 - levers[4].$lerpValue2);
+  next().translateSelf(level2Oscillation * /* @__PURE__ */ Math.sin(0.7 * 3 + gameTime * 0.7) * 12);
+  next().translateSelf(level2Oscillation * /* @__PURE__ */ Math.sin(3 + gameTime) * 8.2);
+  next().translateSelf(level2Oscillation * /* @__PURE__ */ Math.sin(gameTime / 1.5 + 2) * 12);
+  next().translateSelf((1 - level2Oscillation) * 9.8);
+  const level3Oscillation = clamp(1 - level2Oscillation * 5) * lerpneg(levers[4].$lerpValue, levers[5].$lerpValue);
+  next().translateSelf(0, level3Oscillation * /* @__PURE__ */ Math.sin(gameTime * 1.35) * 4);
+  next().translateSelf(0, 0, level3Oscillation * /* @__PURE__ */ Math.sin(gameTime * 0.9) * 8);
+  next().translateSelf(0, levers[4].$lerpValue2 * -6.5);
+  next().translateSelf(-75, (1 - levers[5].$lerpValue2) * (1 - levers[6].$lerpValue) * 3, 55).rotateSelf(
+    180 * (1 - levers[5].$lerpValue2) + rotatingHexCorridorRotation,
+    0,
+  );
+  next().translateSelf(-99.7, -1.9, 63.5).scaleSelf(1, clamp(1.1 - levers[6].$lerpValue), 1);
+  const shouldOscillateElevators = lerpneg(levers[7].$lerpValue2, levers[6].$lerpValue2);
+  next().translateSelf(
+    0,
+    (1 - max(levers[6].$lerpValue, levers[7].$lerpValue)) * 3.5
+      + shouldOscillateElevators * /* @__PURE__ */ Math.sin(gameTime) * 5,
+  );
+  next().translateSelf(
+    0,
+    shouldOscillateElevators * /* @__PURE__ */ Math.sin(gameTime + 3) * 6,
+    /* @__PURE__ */ Math.sin(gameTime * 0.6 + 1) * 6 * shouldOscillateElevators,
+  );
+  next().translateSelf(0, levers[7].$lerpValue2 * -7.3);
+  boatAnimationMatrix(next(), -123, 1.4, 55 + secondBoatLerp * -65);
+  const shouldPushRods = lerpneg(levers[10].$lerpValue, levers[11].$lerpValue);
+  next().translateSelf(0, -2, shouldPushRods * abs(/* @__PURE__ */ Math.sin(gameTime * 1.1)) * -8.5 + 10);
+  next().translateSelf(0, -2, shouldPushRods * abs(/* @__PURE__ */ Math.sin(gameTime * 2.1)) * -8.5 + 10);
+  const shouldBlockRods = (1 - levers[10].$lerpValue) * (1 - shouldPushRods);
+  next().translateSelf(
+    0,
+    -2,
+    max(shouldBlockRods, shouldPushRods * abs(/* @__PURE__ */ Math.sin(gameTime * 1.5))) * -8.5 + 10,
+  );
+  const hexPadShouldOscillate = lerpneg(levers[8].$lerpValue2, levers[12].$lerpValue2);
+  for (let i = 0; i < 4; i++) {
+    next().translateSelf(
+      (i > 2 ? (1 - hexPadShouldOscillate) * 2 + hexPadShouldOscillate : 0) - 100,
+      hexPadShouldOscillate * /* @__PURE__ */ Math.sin(gameTime * 1.3 + i * 1.7) * (3 + i / 3) + 0.7,
+      (i & 1 ? -1 : 1) * (1 - levers[8].$lerpValue2) * (1 - levers[12].$lerpValue2) * -7
+        + max(hexPadShouldOscillate, 0.05) * /* @__PURE__ */ Math.cos(gameTime * 1.3 + i * 7) * (4 - 2 * (1 - i / 3))
+        + 115,
+    );
+  }
+  next().translateSelf(
+    (1 - hexPadShouldOscillate) * 2.5 - 139.7,
+    (1 - levers[8].$lerpValue) * -3 + hexPadShouldOscillate * /* @__PURE__ */ Math.sin(gameTime * 0.8) * -1 - 1.8,
+    93.5,
+  ).rotateSelf(/* @__PURE__ */ Math.cos(gameTime * 1.3) * (hexPadShouldOscillate * 3 + 3), 0);
+  next().translateSelf(-100, 0.6, 96.5).scaleSelf(0.88, 1.2 - levers[12].$lerpValue);
+  next().translateSelf(-81, 0.6, 106).rotateSelf(0, 40 + rotatingPlatform1Rotation);
+  next().translateSelf(-65.8, 0.8, 106).rotateSelf(0, rotatingPlatform2Rotation);
+  next().translateSelf(-50.7, 0.8, 106).rotateSelf(0, 180 - rotatingPlatform2Rotation);
+  next().translateSelf(-50.7, 0.8, 91).rotateSelf(0, 270 + rotatingPlatform2Rotation);
+  const jumpingPadsOscillate = lerpneg(levers[13].$lerpValue2, levers[14].$lerpValue2);
+  for (let i1 = 0; i1 < 3; ++i1) {
+    next().translateSelf(
+      0,
+      (1 - levers[13].$lerpValue2) * (1 - levers[14].$lerpValue2) * (i1 ? 0 : 3)
+        + jumpingPadsOscillate * /* @__PURE__ */ Math.sin(gameTime * 1.5 + i1 * 1.5) * 4,
+    );
+  }
+  next().translateSelf(/* @__PURE__ */ Math.sin(gameTime) * -2).rotateSelf(/* @__PURE__ */ Math.sin(gameTime) * 25);
+  const floatingElevatorPad = lerpneg(
+    lerpneg((levers[14].$lerpValue + levers[14].$lerpValue2) / 2, levers[13].$lerpValue2),
+    (levers[15].$lerpValue + levers[15].$lerpValue2) / 2,
+  );
+  next().translateSelf(0, floatingElevatorPad * 16, clamp(floatingElevatorPad * 2 - 1) * 8.5 + 95);
+  player_update(next);
+  for (let i2 = 0; i2 <= counter; ++i2) {
+    matrixToArray(allModels[i2].$matrix, worldMatricesBuffer, i2 - 1);
+  }
+  for (let i3 = 0; i3 < SOULS_COUNT; ++i3) {
+    souls[i3]._update();
+    matrixToArray(tempMatrix, objectsMatricesBuffer, i3);
+  }
+  for (let i4 = 0; i4 < LEVERS_COUNT; ++i4) {
+    levers[i4]._update();
+    matrixToArray(tempMatrix, objectsMatricesBuffer, i4 + SOULS_COUNT);
+    objectsMatricesBuffer[i4 * 16 + (15 + SOULS_COUNT * 16)] = 1 - levers[i4].$lerpValue;
+  }
+};
 let player_update;
 let camera_position_x = 0;
 let camera_position_y = 0;
@@ -1949,17 +2057,16 @@ const player_init = () => {
   let player_gravity = 15;
   const getReferenceMatrix = () =>
     player_respawned
-      ? levers[player_last_pulled_lever].$parent.$matrix
+      ? levers[player_last_pulled_lever].$matrix
       : allModels[oldModelId && allModels[oldModelId].$kind === MODEL_KIND_GAME && oldModelId || 0].$matrix;
   const updatePlayerPositionFinal = (updateVelocity) => {
     const { x, y, z } = player_respawned > 1
-      ? matrixCopy(levers[player_last_pulled_lever].$parent.$matrix).multiplySelf(
-        levers[player_last_pulled_lever].$matrix,
-      ).transformPoint({
-        x: 0,
-        y: player_last_pulled_lever || firstBoatLerp > 0.9 ? 15 : 1,
-        z: PLAYER_RESPAWN_Z,
-      })
+      ? matrixCopy(levers[player_last_pulled_lever].$matrix).multiplySelf(levers[player_last_pulled_lever].$transform)
+        .transformPoint({
+          x: 0,
+          y: player_last_pulled_lever || firstBoatLerp > 0.9 ? 15 : 1,
+          z: PLAYER_RESPAWN_Z,
+        })
       : getReferenceMatrix().transformPoint(player_position_global);
     if (updateVelocity) {
       player_fly_velocity_x = (x - player_position_final.x) / gameTimeDelta;
@@ -2185,8 +2292,6 @@ const initShaderProgram = (vertexShader, sfsSource) => {
   gl["l8l"](program);
   return (name) => name ? uniforms[name] || (uniforms[name] = gl["gan"](program, name)) : gl["u7y"](program);
 };
-const worldMatricesBuffer = new Float32Array(624);
-const objectsMatricesBuffer = new Float32Array(624);
 const renderModels = (worldMatrixLoc, renderPlayer, soulModelId) => {
   if (mainMenuVisible) {
     const matrix = rotation(0, /* @__PURE__ */ Math.sin(absoluteTime) * 40 - 70);
@@ -2224,114 +2329,6 @@ const renderModels = (worldMatrixLoc, renderPlayer, soulModelId) => {
     allModels[MODEL_ID_LEVER].$vertexBegin * 2,
     levers.length,
   );
-};
-const boatAnimationMatrix = (matrix, x, y, z) =>
-  matrix.translateSelf(
-    x + /* @__PURE__ */ Math.sin(gameTime + 2) / 5,
-    y + /* @__PURE__ */ Math.sin(gameTime * 0.8) / 3,
-    z,
-  ).rotateSelf(
-    /* @__PURE__ */ Math.sin(gameTime) * 2,
-    /* @__PURE__ */ Math.sin(gameTime * 0.7),
-    /* @__PURE__ */ Math.sin(gameTime * 0.9),
-  );
-const eppur_si_muove = () => {
-  let counter = 1;
-  const next = () => matrixCopy(identity, allModels[++counter].$matrix);
-  boatAnimationMatrix(next(), -12, 4.2, -66 + firstBoatLerp * 40);
-  next().translateSelf(0, 0, -15).scaleSelf(1, clamp(1.22 - levers[1].$lerpValue), 1);
-  next().translateSelf(0, 0, 15).scaleSelf(1, clamp(1.22 - levers[2].$lerpValue), 1);
-  next().translateSelf(
-    0,
-    levers[3].$lerpValue > 0.01
-      ? (/* @__PURE__ */ Math.cos(gameTime * 1.5) * 5 + 2) * levers[3].$lerpValue2 * (1 - levers[2].$lerpValue)
-        + (1 - levers[3].$lerpValue) * -15
-      : -500,
-    0,
-  );
-  const level2Oscillation = min(levers[2].$lerpValue2, 1 - levers[4].$lerpValue2);
-  next().translateSelf(level2Oscillation * /* @__PURE__ */ Math.sin(0.7 * 3 + gameTime * 0.7) * 12);
-  next().translateSelf(level2Oscillation * /* @__PURE__ */ Math.sin(3 + gameTime) * 8.2);
-  next().translateSelf(level2Oscillation * /* @__PURE__ */ Math.sin(gameTime / 1.5 + 2) * 12);
-  next().translateSelf((1 - level2Oscillation) * 9.8);
-  const level3Oscillation = clamp(1 - level2Oscillation * 5) * lerpneg(levers[4].$lerpValue, levers[5].$lerpValue);
-  next().translateSelf(0, level3Oscillation * /* @__PURE__ */ Math.sin(gameTime * 1.35) * 4);
-  next().translateSelf(0, 0, level3Oscillation * /* @__PURE__ */ Math.sin(gameTime * 0.9) * 8);
-  next().translateSelf(0, levers[4].$lerpValue2 * -6.5);
-  next().translateSelf(-75, (1 - levers[5].$lerpValue2) * (1 - levers[6].$lerpValue) * 3, 55).rotateSelf(
-    180 * (1 - levers[5].$lerpValue2) + rotatingHexCorridorRotation,
-    0,
-  );
-  next().translateSelf(-99.7, -1.9, 63.5).scaleSelf(1, clamp(1.1 - levers[6].$lerpValue), 1);
-  const shouldOscillateElevators = lerpneg(levers[7].$lerpValue2, levers[6].$lerpValue2);
-  next().translateSelf(
-    0,
-    (1 - max(levers[6].$lerpValue, levers[7].$lerpValue)) * 3.5
-      + shouldOscillateElevators * /* @__PURE__ */ Math.sin(gameTime) * 5,
-  );
-  next().translateSelf(
-    0,
-    shouldOscillateElevators * /* @__PURE__ */ Math.sin(gameTime + 3) * 6,
-    /* @__PURE__ */ Math.sin(gameTime * 0.6 + 1) * 6 * shouldOscillateElevators,
-  );
-  next().translateSelf(0, levers[7].$lerpValue2 * -7.3);
-  boatAnimationMatrix(next(), -123, 1.4, 55 + secondBoatLerp * -65);
-  const shouldPushRods = lerpneg(levers[10].$lerpValue, levers[11].$lerpValue);
-  next().translateSelf(0, -2, shouldPushRods * abs(/* @__PURE__ */ Math.sin(gameTime * 1.1)) * -8.5 + 10);
-  next().translateSelf(0, -2, shouldPushRods * abs(/* @__PURE__ */ Math.sin(gameTime * 2.1)) * -8.5 + 10);
-  const shouldBlockRods = (1 - levers[10].$lerpValue) * (1 - shouldPushRods);
-  next().translateSelf(
-    0,
-    -2,
-    max(shouldBlockRods, shouldPushRods * abs(/* @__PURE__ */ Math.sin(gameTime * 1.5))) * -8.5 + 10,
-  );
-  const hexPadShouldOscillate = lerpneg(levers[8].$lerpValue2, levers[12].$lerpValue2);
-  for (let i = 0; i < 4; i++) {
-    next().translateSelf(
-      (i > 2 ? (1 - hexPadShouldOscillate) * 2 + hexPadShouldOscillate : 0) - 100,
-      hexPadShouldOscillate * /* @__PURE__ */ Math.sin(gameTime * 1.3 + i * 1.7) * (3 + i / 3) + 0.7,
-      (i & 1 ? -1 : 1) * (1 - levers[8].$lerpValue2) * (1 - levers[12].$lerpValue2) * -7
-        + max(hexPadShouldOscillate, 0.05) * /* @__PURE__ */ Math.cos(gameTime * 1.3 + i * 7) * (4 - 2 * (1 - i / 3))
-        + 115,
-    );
-  }
-  next().translateSelf(
-    (1 - hexPadShouldOscillate) * 2.5 - 139.7,
-    (1 - levers[8].$lerpValue) * -3 + hexPadShouldOscillate * /* @__PURE__ */ Math.sin(gameTime * 0.8) * -1 - 1.8,
-    93.5,
-  ).rotateSelf(/* @__PURE__ */ Math.cos(gameTime * 1.3) * (hexPadShouldOscillate * 3 + 3), 0);
-  next().translateSelf(-100, 0.6, 96.5).scaleSelf(0.88, 1.2 - levers[12].$lerpValue);
-  next().translateSelf(-81, 0.6, 106).rotateSelf(0, 40 + rotatingPlatform1Rotation);
-  next().translateSelf(-65.8, 0.8, 106).rotateSelf(0, rotatingPlatform2Rotation);
-  next().translateSelf(-50.7, 0.8, 106).rotateSelf(0, 180 - rotatingPlatform2Rotation);
-  next().translateSelf(-50.7, 0.8, 91).rotateSelf(0, 270 + rotatingPlatform2Rotation);
-  const jumpingPadsOscillate = lerpneg(levers[13].$lerpValue2, levers[14].$lerpValue2);
-  for (let i1 = 0; i1 < 3; ++i1) {
-    next().translateSelf(
-      0,
-      (1 - levers[13].$lerpValue2) * (1 - levers[14].$lerpValue2) * (i1 ? 0 : 3)
-        + jumpingPadsOscillate * /* @__PURE__ */ Math.sin(gameTime * 1.5 + i1 * 1.5) * 4,
-    );
-  }
-  next().translateSelf(/* @__PURE__ */ Math.sin(gameTime) * -2).rotateSelf(/* @__PURE__ */ Math.sin(gameTime) * 25);
-  const floatingElevatorPad = lerpneg(
-    lerpneg((levers[14].$lerpValue + levers[14].$lerpValue2) / 2, levers[13].$lerpValue2),
-    (levers[15].$lerpValue + levers[15].$lerpValue2) / 2,
-  );
-  next().translateSelf(0, floatingElevatorPad * 16, clamp(floatingElevatorPad * 2 - 1) * 8.5 + 95);
-  player_update(next);
-  for (let i2 = 0; i2 <= counter; ++i2) {
-    matrixToArray(allModels[i2].$matrix, worldMatricesBuffer, i2 - 1);
-  }
-  for (let i3 = 0; i3 < SOULS_COUNT; ++i3) {
-    souls[i3]._update();
-    matrixToArray(tempMatrix, objectsMatricesBuffer, i3);
-  }
-  for (let i4 = 0; i4 < LEVERS_COUNT; ++i4) {
-    levers[i4]._update();
-    matrixToArray(tempMatrix, objectsMatricesBuffer, i4 + SOULS_COUNT);
-    objectsMatricesBuffer[i4 * 16 + (15 + SOULS_COUNT * 16)] = 1 - levers[i4].$lerpValue;
-  }
 };
 const LIGHT_ROT_Y = 139;
 const LIGHT_ROT_X = 298;
