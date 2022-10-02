@@ -1038,9 +1038,8 @@ const player_init = () => {
       player_speed = player_respawned
         ? 0
         : lerpDamp(player_speed, currentModelId ? 7 * clamp(2 * matrix) : 0, currentModelId ? 9 : 1),
-      v = player_first_person ? (180 - camera_rotation.y) * DEG_TO_RAD : 0,
-      player_gravity = currentModelId ? 5 : lerpDamp(player_gravity, player_respawned ? 13 : 20, 4),
-      document.getElementById("dbg").innerHTML = player_gravity.toFixed(2),
+      v = player_first_person ? (180 + camera_rotation.y) * DEG_TO_RAD : 0,
+      player_gravity = currentModelId ? 5 : lerpDamp(player_gravity, player_respawned ? 10 : 19, 2.2),
       movePlayer(
         gameTimeDelta * (player_fly_velocity_x + player_speed * (viewDirDiffx * Math.cos(v) - y * Math.sin(v))),
         -player_gravity * gameTimeDelta,
@@ -1259,14 +1258,8 @@ loadStep(() => {
         var dt = (globalTime - (_globalTime || globalTime)) / 1e3;
         if (
           absoluteTime += dt,
-            dt < 0.04 + 0.02 * Math.random()
-              ? gameTimeDelta = 0
-              : (gameTimeDelta = mainMenuVisible
-                ? 0
-                : Math.min(0.066, (globalTime - (_globalTime || globalTime)) / 1e3),
-                gameTime += gameTimeDelta,
-                _globalTime = globalTime),
-            _globalTime = _globalTime || globalTime,
+            gameTime += gameTimeDelta = mainMenuVisible ? 0 : min(0.066, dt),
+            _globalTime = globalTime,
             0 < gameTimeDelta
         ) {
           updateInput(),
