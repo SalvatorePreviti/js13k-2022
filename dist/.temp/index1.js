@@ -16,9 +16,9 @@ const MODEL_ID_ROTATING_PLATFORM = 28;
 const MODEL_ID_PLAYER_BODY = 37;
 const MODEL_ID_PLAYER_LEG0 = 38;
 const MODEL_ID_PLAYER_LEG1 = 39;
-const MODEL_ID_LEVER = 40;
-const MODEL_ID_SOUL_COLLISION = 41;
-const MODEL_ID_SOUL = 42;
+const MODEL_ID_SOUL_COLLISION = 40;
+const MODEL_ID_SOUL = 41;
+const MODEL_ID_LEVER = 42;
 const souls = [];
 const levers = [];
 const allModels = [];
@@ -1833,11 +1833,6 @@ const build_life_the_universe_and_everything = () => {
     });
   });
   newModel(() => {
-    meshAdd(cylinder(6, 1), scaling(0.13, 1.4, 0.13), material(0.3, 0.3, 0.5, 0.1));
-    meshAdd(cylinder(10), translation(0, 1).scale(0.21, 0.3, 0.21), material(1, 0.5, 0.2));
-    meshAdd(cylinder(3), translation(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3), material(0.2, 0.2, 0.2, 0.1));
-  }, MODEL_KIND_MESH);
-  newModel(() => {
     meshAdd(cylinder(6).slice(0, -1), scaling(0.77, 1, 0.77), material(1, 0.3, 0.5));
   }, MODEL_KIND_MESH);
   newModel(() => {
@@ -1864,10 +1859,13 @@ const build_life_the_universe_and_everything = () => {
       scaling(0.7, 0.7, 0.7),
       material(1, 1, 1),
     );
-    [
-      -1,
-      1,
-    ].map((x) => meshAdd(sphere(12), translation(x * 0.16, 0.4, -0.36).scale3d(0.09)));
+    meshAdd(sphere(12), translation(-0.16, 0.4, -0.36).scale3d(0.09));
+    meshAdd(sphere(12), translation(0.16, 0.4, -0.36).scale3d(0.09));
+  }, MODEL_KIND_MESH);
+  newModel(() => {
+    meshAdd(cylinder(6, 1), scaling(0.13, 1.4, 0.13), material(0.3, 0.3, 0.5, 0.1));
+    meshAdd(cylinder(10), translation(0, 1).scale(0.21, 0.3, 0.21), material(1, 0.5, 0.2));
+    meshAdd(cylinder(3), translation(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3), material(0.2, 0.2, 0.2, 0.1));
   }, MODEL_KIND_MESH);
 };
 const code$5 =
@@ -2813,38 +2811,38 @@ const loadSong = (done) => {
 const SONG_WORDS = song_patternLen * (song_endPattern + 1) * 2;
 const SONG_TOTAL_WORDS = (song_rowLen0 + song_rowLen1 + song_rowLen2) * SONG_WORDS;
 const initTriangleBuffers = () => {
-  let polygon;
   let meshFirstIndex = 0;
   const _triangleIndices = [];
   const _vertexPositions = [];
   const _vertexColors = [];
   const _vertexNormals = [];
-  const getVertex = (i) => {
-    let { x, y, z } = polygon[i];
-    _vertexFloats[0] = x;
-    _vertexFloats[1] = y;
-    _vertexFloats[2] = z;
-    const key = "" + (polygon.$smooth ? _vertexIntsSmooth : _vertexInts);
-    let index = _vertexMap.get(key);
-    if (index !== void 0) {
-      x = index * 3;
-      _vertexNormals[x] = (_vertexNormals[x++] + _vertexInts[5]) / 2;
-      _vertexNormals[x] = (_vertexNormals[x++] + _vertexInts[6]) / 2;
-      _vertexNormals[x] = (_vertexNormals[x] + _vertexInts[7]) / 2;
-    } else {
-      _vertexMap.set(key, index = _vertexMap.size);
-      _vertexPositions.push(x, y, z, _vertexFloats[3]);
-      _vertexColors.push(_vertexInts[4]);
-      _vertexNormals.push(_vertexInts[5], _vertexInts[6], _vertexInts[7]);
-    }
-    return index;
-  };
   const _vertexInts = new Int32Array(8);
   const _vertexMap = /* @__PURE__ */ new Map();
   const _vertexIntsSmooth = new Int32Array(_vertexInts.buffer, 0, 5);
   const _vertexFloats = new Float32Array(_vertexInts.buffer);
   allModels.map((model, index) => {
-    _vertexFloats[3] = index === MODEL_ID_LEVER ? -SOULS_COUNT - 1 : model.$kind && index;
+    let polygon;
+    const getVertex = (i) => {
+      let { x, y, z } = polygon[i];
+      _vertexFloats[0] = x;
+      _vertexFloats[1] = y;
+      _vertexFloats[2] = z;
+      const key = "" + (polygon.$smooth ? _vertexIntsSmooth : _vertexInts);
+      let vertexIndex = _vertexMap.get(key);
+      if (vertexIndex !== void 0) {
+        x = vertexIndex * 3;
+        _vertexNormals[x] = (_vertexNormals[x++] + _vertexInts[5]) / 2;
+        _vertexNormals[x] = (_vertexNormals[x++] + _vertexInts[6]) / 2;
+        _vertexNormals[x] = (_vertexNormals[x] + _vertexInts[7]) / 2;
+      } else {
+        _vertexMap.set(key, vertexIndex = _vertexMap.size);
+        _vertexPositions.push(x, y, z, _vertexFloats[3]);
+        _vertexColors.push(_vertexInts[4]);
+        _vertexNormals.push(_vertexInts[5], _vertexInts[6], _vertexInts[7]);
+      }
+      return vertexIndex;
+    };
+    _vertexFloats[3] = index > MODEL_ID_SOUL ? -SOULS_COUNT - 1 : model.$kind && index;
     for (polygon of model.$polygons) {
       const { x, y, z } = plane_fromPolygon(polygon);
       _vertexInts[4] = polygon.$color | 0;

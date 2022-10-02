@@ -1,11 +1,9 @@
-import { allModels, MODEL_ID_LEVER, souls, SOULS_COUNT } from "./models";
+import { allModels, souls, MODEL_ID_SOUL, SOULS_COUNT } from "./models";
 import { gl } from "../gl";
 import { plane_fromPolygon } from "../math/vectors";
 import type { Polygon } from "../geometry/polygon";
 
 export const initTriangleBuffers = () => {
-  let polygon: Polygon | undefined;
-
   const _triangleIndices: number[] = [];
   const _vertexPositions: number[] = [];
   const _vertexColors: number[] = [];
@@ -16,27 +14,6 @@ export const initTriangleBuffers = () => {
   const _vertexFloats = new Float32Array(_vertexInts.buffer);
   const _vertexMap = new Map<string, number>();
 
-  const getVertex = (i: number): number => {
-    let { x, y, z } = polygon![i]!;
-    _vertexFloats[0] = x;
-    _vertexFloats[1] = y;
-    _vertexFloats[2] = z;
-    const key = "" + (polygon!.$smooth ? _vertexIntsSmooth : _vertexInts);
-    let index = _vertexMap.get(key);
-    if (index !== undefined) {
-      x = index * 3;
-      _vertexNormals[x] = (_vertexNormals[x++]! + _vertexInts[5]!) / 2;
-      _vertexNormals[x] = (_vertexNormals[x++]! + _vertexInts[6]!) / 2;
-      _vertexNormals[x] = (_vertexNormals[x]! + _vertexInts[7]!) / 2;
-    } else {
-      _vertexMap.set(key, (index = _vertexMap.size));
-      _vertexPositions.push(x, y, z, _vertexFloats[3]!);
-      _vertexColors.push(_vertexInts[4]!);
-      _vertexNormals.push(_vertexInts[5]!, _vertexInts[6]!, _vertexInts[7]!);
-    }
-    return index;
-  };
-
   let meshFirstIndex: number = 0;
 
   if (DEBUG) {
@@ -44,7 +21,31 @@ export const initTriangleBuffers = () => {
   }
 
   allModels.map((model, index) => {
-    _vertexFloats[3] = index === MODEL_ID_LEVER ? -SOULS_COUNT - 1 : model.$kind && index;
+    let polygon: Polygon | undefined;
+
+    const getVertex = (i: number): number => {
+      let { x, y, z } = polygon![i]!;
+      _vertexFloats[0] = x;
+      _vertexFloats[1] = y;
+      _vertexFloats[2] = z;
+      const key = "" + (polygon!.$smooth ? _vertexIntsSmooth : _vertexInts);
+      let vertexIndex = _vertexMap.get(key);
+      if (vertexIndex !== undefined) {
+        x = vertexIndex * 3;
+        _vertexNormals[x] = (_vertexNormals[x++]! + _vertexInts[5]!) / 2;
+        _vertexNormals[x] = (_vertexNormals[x++]! + _vertexInts[6]!) / 2;
+        _vertexNormals[x] = (_vertexNormals[x]! + _vertexInts[7]!) / 2;
+      } else {
+        _vertexMap.set(key, (vertexIndex = _vertexMap.size));
+        _vertexPositions.push(x, y, z, _vertexFloats[3]!);
+        _vertexColors.push(_vertexInts[4]!);
+        _vertexNormals.push(_vertexInts[5]!, _vertexInts[6]!, _vertexInts[7]!);
+      }
+      return vertexIndex;
+    };
+
+    _vertexFloats[3] = index > MODEL_ID_SOUL ? -SOULS_COUNT - 1 : model.$kind && index;
+
     for (polygon of model.$polygons!) {
       const { x, y, z } = plane_fromPolygon(polygon);
       _vertexInts[4] = polygon.$color! | 0;

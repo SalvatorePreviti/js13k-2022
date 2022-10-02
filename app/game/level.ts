@@ -22,10 +22,11 @@ import { polygon_transform, polygons_transform, type Polygon } from "../geometry
 import { material } from "../geometry/material";
 
 export const build_life_the_universe_and_everything = (): 42 | void => {
+  const HORN_STACKS = 10;
+
   if (DEBUG) {
     console.time("build_life_the_universe_and_everything");
   }
-  const HORN_STACKS = 10;
 
   const hornsMatrices = integers_map(HORN_STACKS + 1, (i: number) =>
     translation(Math.sin((i / HORN_STACKS) * Math.PI), i / HORN_STACKS)
@@ -1061,13 +1062,6 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
   });
 
   newModel(() => {
-    checkModelId("LEVER", MODEL_ID_LEVER);
-    meshAdd(cylinder(6, 1), scaling(0.13, 1.4, 0.13), material(0.3, 0.3, 0.5, 0.1));
-    meshAdd(cylinder(10), translation(0, 1).scale(0.21, 0.3, 0.21), material(1, 0.5, 0.2));
-    meshAdd(cylinder(3), translation(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3), material(0.2, 0.2, 0.2, 0.1));
-  }, MODEL_KIND_MESH);
-
-  newModel(() => {
     checkModelId("SOUL_COLLISION", MODEL_ID_SOUL_COLLISION);
     meshAdd(cylinder(6).slice(0, -1), scaling(0.77, 1, 0.77), material(1, 0.3, 0.5));
   }, MODEL_KIND_MESH);
@@ -1098,6 +1092,13 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
     // eyes
     [-1, 1].map((x) => meshAdd(sphere(12), translation(x * 0.16, 0.4, -0.36).scale3d(0.09)));
+  }, MODEL_KIND_MESH);
+
+  newModel(() => {
+    checkModelId("LEVER", MODEL_ID_LEVER);
+    meshAdd(cylinder(6, 1), scaling(0.13, 1.4, 0.13), material(0.3, 0.3, 0.5, 0.1));
+    meshAdd(cylinder(10), translation(0, 1).scale(0.21, 0.3, 0.21), material(1, 0.5, 0.2));
+    meshAdd(cylinder(3), translation(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3), material(0.2, 0.2, 0.2, 0.1));
   }, MODEL_KIND_MESH);
 
   if (DEBUG) {

@@ -1092,9 +1092,9 @@ const renderModels = (worldMatrixLoc, renderPlayer, soulModelId) => {
       ),
       gl["das"](
         4,
-        allModels[40].$vertexEnd - allModels[40].$vertexBegin,
+        allModels[42].$vertexEnd - allModels[42].$vertexBegin,
         5123,
-        2 * allModels[40].$vertexBegin,
+        2 * allModels[42].$vertexBegin,
         levers.length,
       ));
 };
@@ -1387,11 +1387,11 @@ loadStep(() => {
             !1,
             matrixToArray(matrixCopy().rotateSelf(0, 180).invertSelf().translateSelf(-globalTime, -dt, 0.3 - z)),
           ),
-            renderModels(collisionShader("c"), 0, 41),
+            renderModels(collisionShader("c"), 0, 40),
             gl["c4s"](256),
             gl["cbf"](!1, !0, !1, !0),
             gl["uae"](collisionShader("b"), !1, matrixToArray(matrixCopy().translateSelf(-globalTime, -dt, -z - 0.3))),
-            renderModels(collisionShader("c"), 0, 41),
+            renderModels(collisionShader("c"), 0, 40),
             gl["f1s"]();
         }
         interact_pressed = 0,
@@ -1418,7 +1418,7 @@ loadStep(() => {
           gl["uae"](mainShader("i"), !1, csm_lightSpaceMatrices[0]),
           gl["uae"](mainShader("j"), !1, csm_lightSpaceMatrices[1]),
           gl["ubu"](mainShader("k"), camera_position_x, camera_position_y, camera_position_z),
-          renderModels(mainShader("c"), !player_first_person, 42),
+          renderModels(mainShader("c"), !player_first_person, 41),
           skyShader(),
           gl["ubu"](skyShader("j"), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime),
           gl["ubu"](skyShader("k"), camera_position_x, camera_position_y, camera_position_z),
@@ -1514,7 +1514,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   csm_lightSpaceMatrices[split],
                 ),
               ),
-              renderModels(csmShader("c"), !player_first_person, 42);
+              renderModels(csmShader("c"), !player_first_person, 41);
           };
       });
       const csm_framebuffer = gl["c5w"]();
@@ -1564,37 +1564,37 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
     NO_INLINE(loadSong)(() => {
       loadStep(() => {
         {
-          let polygon;
           let meshFirstIndex = 0;
           const _triangleIndices = [];
           const _vertexPositions = [];
           const _vertexColors = [];
           const _vertexNormals = [];
-          const getVertex = (i) => {
-            let { x, y, z } = polygon[i];
-            let index =
-              (_vertexFloats[0] = x,
-                _vertexFloats[1] = y,
-                _vertexFloats[2] = z,
-                i = "" + (polygon.$smooth ? _vertexIntsSmooth : _vertexInts),
-                _vertexMap.get(i));
-            return index !== void 0
-              ? (x = 3 * index,
-                _vertexNormals[x] = (_vertexNormals[x++] + _vertexInts[5]) / 2,
-                _vertexNormals[x] = (_vertexNormals[x++] + _vertexInts[6]) / 2,
-                _vertexNormals[x] = (_vertexNormals[x] + _vertexInts[7]) / 2)
-              : (_vertexMap.set(i, index = _vertexMap.size),
-                _vertexPositions.push(x, y, z, _vertexFloats[3]),
-                _vertexColors.push(_vertexInts[4]),
-                _vertexNormals.push(_vertexInts[5], _vertexInts[6], _vertexInts[7])),
-              index;
-          };
           const _vertexInts = new Int32Array(8);
           const _vertexMap = new Map();
           const _vertexIntsSmooth = new Int32Array(_vertexInts.buffer, 0, 5);
           const _vertexFloats = new Float32Array(_vertexInts.buffer);
           allModels.map((model, index) => {
-            for (polygon of (_vertexFloats[3] = index === 40 ? -14 : model.$kind && index, model.$polygons)) {
+            let polygon;
+            const getVertex = (i) => {
+              let { x, y, z } = polygon[i];
+              let vertexIndex =
+                (_vertexFloats[0] = x,
+                  _vertexFloats[1] = y,
+                  _vertexFloats[2] = z,
+                  i = "" + (polygon.$smooth ? _vertexIntsSmooth : _vertexInts),
+                  _vertexMap.get(i));
+              return vertexIndex !== void 0
+                ? (x = 3 * vertexIndex,
+                  _vertexNormals[x] = (_vertexNormals[x++] + _vertexInts[5]) / 2,
+                  _vertexNormals[x] = (_vertexNormals[x++] + _vertexInts[6]) / 2,
+                  _vertexNormals[x] = (_vertexNormals[x] + _vertexInts[7]) / 2)
+                : (_vertexMap.set(i, vertexIndex = _vertexMap.size),
+                  _vertexPositions.push(x, y, z, _vertexFloats[3]),
+                  _vertexColors.push(_vertexInts[4]),
+                  _vertexNormals.push(_vertexInts[5], _vertexInts[6], _vertexInts[7])),
+                vertexIndex;
+            };
+            for (polygon of (_vertexFloats[3] = 41 < index ? -14 : model.$kind && index, model.$polygons)) {
               const { x, y, z } = plane_fromPolygon(polygon);
               _vertexInts[4] = 0 | polygon.$color,
                 _vertexInts[5] = 32767 * x,
@@ -2685,15 +2685,6 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               });
           }),
           newModel(() => {
-            meshAdd(cylinder(6, 1), scaling(0.13, 1.4, 0.13), material(0.3, 0.3, 0.5, 0.1)),
-              meshAdd(cylinder(10), translation(0, 1).scale(0.21, 0.3, 0.21), material(1, 0.5, 0.2)),
-              meshAdd(
-                cylinder(3),
-                translation(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3),
-                material(0.2, 0.2, 0.2, 0.1),
-              );
-          }, 0),
-          newModel(() => {
             meshAdd(cylinder(6).slice(0, -1), scaling(0.77, 1, 0.77), material(1, 0.3, 0.5));
           }, 0),
           newModel(() => {
@@ -2718,10 +2709,17 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               scaling(0.7, 0.7, 0.7),
               material(1, 1, 1),
             ),
-              [
-                -1,
-                1,
-              ].map((x) => meshAdd(sphere(12), translation(0.16 * x, 0.4, -0.36).scale3d(0.09)));
+              meshAdd(sphere(12), translation(-0.16, 0.4, -0.36).scale3d(0.09)),
+              meshAdd(sphere(12), translation(0.16, 0.4, -0.36).scale3d(0.09));
+          }, 0),
+          newModel(() => {
+            meshAdd(cylinder(6, 1), scaling(0.13, 1.4, 0.13), material(0.3, 0.3, 0.5, 0.1)),
+              meshAdd(cylinder(10), translation(0, 1).scale(0.21, 0.3, 0.21), material(1, 0.5, 0.2)),
+              meshAdd(
+                cylinder(3),
+                translation(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3),
+                material(0.2, 0.2, 0.2, 0.1),
+              );
           }, 0);
       }
     });
