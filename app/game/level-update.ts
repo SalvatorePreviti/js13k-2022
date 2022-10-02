@@ -4,7 +4,7 @@ import { player_update } from "../player";
 import { gameTime, gameTimeDelta, lerpDamp } from "./game-time";
 import { allModels, levers, LEVERS_COUNT, souls, SOULS_COUNT } from "./models";
 import { objectsMatricesBuffer, worldMatricesBuffer } from "./models-matrices";
-import { game_completed } from "./world-state";
+import { firstBoatLerp, secondBoatLerp } from "./world-state";
 
 const boatAnimationMatrix = (matrix: DOMMatrix, x: number, y: number, z: number) =>
   matrix
@@ -16,10 +16,6 @@ export let rotatingPlatform1Rotation: number;
 export let rotatingPlatform2Rotation: number;
 
 export let rotatingHexCorridorRotation: number;
-
-export let firstBoatLerp: number;
-
-export let secondBoatLerp: number;
 
 export let shouldRotatePlatforms: number;
 
@@ -47,10 +43,6 @@ export const eppur_si_muove = () => {
     angle_wrap_degrees(rotatingPlatform2Rotation + gameTimeDelta * 48),
     shouldRotatePlatforms,
   );
-
-  secondBoatLerp = lerpDamp(secondBoatLerp, levers[9]!.$lerpValue2, 0.2 + 0.3 * abs(levers[9]!.$lerpValue2 * 2 - 1));
-
-  firstBoatLerp = lerpDamp(firstBoatLerp, game_completed ? lerpDamp(firstBoatLerp, -9, 1.5) : clamp(gameTime / 3), 1);
 
   // first boad
   boatAnimationMatrix(next(), -12, 4.2, -66 + firstBoatLerp * 40);

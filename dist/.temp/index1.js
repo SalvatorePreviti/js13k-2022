@@ -428,6 +428,8 @@ const setMainMenuVisible = (visible) => {
   mainMenuVisible = visible;
 };
 let gameTimeDelta = GAME_TIME_MAX_DELTA_TIME;
+let firstBoatLerp;
+let secondBoatLerp;
 let souls_collected_count = 0;
 let game_completed = 0;
 let player_last_pulled_lever = 0;
@@ -442,6 +444,8 @@ const worldStateUpdate = () => {
     _messageEndTime = 0;
     h4.innerHTML = "";
   }
+  secondBoatLerp = lerpDamp(secondBoatLerp, levers[9].$lerpValue2, 0.2 + 0.3 * abs(levers[9].$lerpValue2 * 2 - 1));
+  firstBoatLerp = lerpDamp(firstBoatLerp, game_completed ? lerpDamp(firstBoatLerp, -9, 1.5) : clamp(gameTime / 3), 1);
 };
 const updateCollectedSoulsCounter = () => {
   h3.innerHTML = "Souls: " + [
@@ -471,9 +475,12 @@ const loadGame = () => {
     );
     souls.map((soul, index) => soul.$value = savedSouls[index] | 0);
     player_last_pulled_lever = savedLastPulledLever;
+    secondBoatLerp = savedSecondBoatLerp;
     resetGameTime(savedGameTime);
   } catch (e) {
   }
+  updateCollectedSoulsCounter();
+  firstBoatLerp = clamp(player_last_pulled_lever);
 };
 const saveGame = () => {
   localStorage[LOCAL_STORAGE_SAVED_GAME_KEY] = JSON.stringify([
@@ -481,17 +488,18 @@ const saveGame = () => {
     souls.map(({ $value }) => $value),
     player_last_pulled_lever,
     gameTime,
-    0,
+    secondBoatLerp,
   ]);
+};
+const resetGame = () => {
+  localStorage[LOCAL_STORAGE_SAVED_GAME_KEY] = "";
+  location.reload();
 };
 const showMessage = (message, duration) => {
   if (_messageEndTime < Infinity) {
     _messageEndTime = gameTime + duration;
     h4.innerHTML = message;
   }
-};
-const onGameCompleted = () => {
-  game_completed = 1;
 };
 const onPlayerPullLever = (leverIndex) => {
   if (leverIndex) {
@@ -505,7 +513,7 @@ const onLever0Pulled = () => {
     showMessage("Not leaving now, there are souls to catch!", 3);
   } else if (!game_completed) {
     showMessage("Well done. They will be punished.<br>Thanks for playing", Infinity);
-    onGameCompleted();
+    game_completed = 1;
   }
 };
 const onSoulCollected = () => {
@@ -643,7 +651,6 @@ const initPage = () => {
       setMainMenuVisible(value);
       player_first_person = firstPerson;
       handleResize();
-      updateCollectedSoulsCounter();
       document.body.className = value ? "l m" : "l";
       try {
         if (value) {
@@ -668,8 +675,7 @@ const initPage = () => {
   };
   b3.onclick = () => {
     if (confirm("Restart game?")) {
-      localStorage[LOCAL_STORAGE_SAVED_GAME_KEY] = "";
-      location.reload();
+      resetGame();
     }
   };
   onclick = (e) => {
@@ -1901,8 +1907,6 @@ const objectsMatricesBuffer = new Float32Array(624);
 let rotatingPlatform1Rotation;
 let rotatingPlatform2Rotation;
 let rotatingHexCorridorRotation;
-let firstBoatLerp;
-let secondBoatLerp;
 let shouldRotatePlatforms;
 const boatAnimationMatrix = (matrix, x, y, z) =>
   matrix.translateSelf(
@@ -1933,8 +1937,6 @@ const eppur_si_muove = () => {
     angle_wrap_degrees(rotatingPlatform2Rotation + gameTimeDelta * 48),
     shouldRotatePlatforms,
   );
-  secondBoatLerp = lerpDamp(secondBoatLerp, levers[9].$lerpValue2, 0.2 + 0.3 * abs(levers[9].$lerpValue2 * 2 - 1));
-  firstBoatLerp = lerpDamp(firstBoatLerp, game_completed ? lerpDamp(firstBoatLerp, -9, 1.5) : clamp(gameTime / 3), 1);
   boatAnimationMatrix(next(), -12, 4.2, -66 + firstBoatLerp * 40);
   next().translateSelf(0, 0, -15).scaleSelf(1, clamp(1.22 - levers[1].$lerpValue), 1);
   next().translateSelf(0, 0, 15).scaleSelf(1, clamp(1.22 - levers[2].$lerpValue), 1);
@@ -2514,7 +2516,7 @@ const startMainLoop = (groundTextureImage) => {
   gl["d4n"](515);
   gl["c5t"](0, 0, 0, 0);
   NO_INLINE(initPage)();
-  NO_INLINE(player_init)();
+  player_init();
   requestAnimationFrame(mainLoop);
 };
 const initTriangleBuffers = () => {

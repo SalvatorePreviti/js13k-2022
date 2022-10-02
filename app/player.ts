@@ -1,12 +1,12 @@
 import { constDef_COLLISION_TEXTURE_SIZE as COLLISION_TEXTURE_SIZE } from "./shaders/collider-fragment.frag";
 import { max, clamp, DEG_TO_RAD, angle_lerp_degrees, lerp, angle_wrap_degrees, min, abs, threshold } from "./math/math";
 import { levers, player_position_final, allModels, MODEL_KIND_GAME, MODEL_ID_ROTATING_PLATFORM } from "./game/models";
-import { player_last_pulled_lever, camera_rotation } from "./game/world-state";
+import { player_last_pulled_lever, camera_rotation, firstBoatLerp } from "./game/world-state";
 import { input_forward, input_strafe, player_first_person } from "./page";
 import { lerpDamp, gameTimeDelta, damp, gameTime } from "./game/game-time";
 import { matrixCopy, tempMatrix } from "./math/matrix";
 import { gl } from "./gl";
-import { firstBoatLerp, shouldRotatePlatforms } from "./game/level-update";
+import { shouldRotatePlatforms } from "./game/level-update";
 
 export const CAMERA_PLAYER_Y_DIST = 13;
 

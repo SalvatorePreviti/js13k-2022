@@ -11,7 +11,7 @@ import {
   type KEY_CODE,
 } from "./utils/keycodes";
 import { abs, clamp, max, threshold } from "./math/math";
-import { camera_rotation, LOCAL_STORAGE_SAVED_GAME_KEY, updateCollectedSoulsCounter } from "./game/world-state";
+import { camera_rotation, resetGame } from "./game/world-state";
 import { songAudioSource, audioContext } from "./music/audio-context";
 import { CSM_PLANE_DISTANCE, fieldOfViewAmount, mat_perspective, zFar, zNear } from "./math/matrix-perspective";
 import { mainMenuVisible, setMainMenuVisible, absoluteTime, gameTimeDelta } from "./game/game-time";
@@ -103,7 +103,6 @@ export const initPage = () => {
       setMainMenuVisible(value);
       player_first_person = firstPerson;
       handleResize();
-      updateCollectedSoulsCounter();
       document.body.className = value ? "l m" : "l";
       try {
         if (value) {
@@ -141,8 +140,7 @@ export const initPage = () => {
   b3.onclick = () => {
     // eslint-disable-next-line no-alert
     if (confirm("Restart game?")) {
-      localStorage[LOCAL_STORAGE_SAVED_GAME_KEY] = "";
-      location.reload();
+      resetGame();
     }
   };
 

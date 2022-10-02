@@ -1,6 +1,7 @@
-import { gameTime, resetGameTime } from "./game-time";
+import { gameTime, lerpDamp, resetGameTime } from "./game-time";
 import { levers, souls, SOULS_COUNT } from "./models";
 import type { Vec2 } from "../math/vectors";
+import { abs, clamp } from "../math/math";
 
 export const camera_rotation: Vec2 = { x: 0, y: 180 } as Vec2;
 
@@ -14,14 +15,21 @@ export let game_completed: 0 | 1 = 0;
 
 export let player_last_pulled_lever = 0;
 
+export let firstBoatLerp: number;
+
+export let secondBoatLerp: number;
+
 export const worldStateUpdate = () => {
   if (_messageEndTime && gameTime > _messageEndTime) {
     _messageEndTime = 0;
     h4.innerHTML = "";
   }
+
+  secondBoatLerp = lerpDamp(secondBoatLerp, levers[9]!.$lerpValue2, 0.2 + 0.3 * abs(levers[9]!.$lerpValue2 * 2 - 1));
+  firstBoatLerp = lerpDamp(firstBoatLerp, game_completed ? lerpDamp(firstBoatLerp, -9, 1.5) : clamp(gameTime / 3), 1);
 };
 
-export const updateCollectedSoulsCounter = () => {
+const updateCollectedSoulsCounter = () => {
   h3.innerHTML =
     "Souls: " +
     [0, "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII"][
@@ -41,14 +49,15 @@ export const loadGame = () => {
     );
     souls.map((soul, index) => (soul.$value = (savedSouls[index] | 0) as 0 | 1));
     player_last_pulled_lever = savedLastPulledLever;
-    // secondBoatLerp = savedSecondBoatLerp;
+    secondBoatLerp = savedSecondBoatLerp;
     resetGameTime(savedGameTime);
   } catch (e) {
     if (DEBUG) {
       console.log(e);
     }
   }
-  // firstBoatLerp = clamp(player_last_pulled_lever);
+  updateCollectedSoulsCounter();
+  firstBoatLerp = clamp(player_last_pulled_lever);
 };
 
 export const saveGame = () => {
@@ -57,8 +66,13 @@ export const saveGame = () => {
     souls.map(({ $value }) => $value),
     player_last_pulled_lever,
     gameTime,
-    /* secondBoatLerp */ 0,
+    secondBoatLerp,
   ]);
+};
+
+export const resetGame = () => {
+  localStorage[LOCAL_STORAGE_SAVED_GAME_KEY] = "";
+  location.reload();
 };
 
 export const showMessage = (message: string, duration: number) => {
@@ -66,10 +80,6 @@ export const showMessage = (message: string, duration: number) => {
     _messageEndTime = gameTime + duration;
     h4.innerHTML = message;
   }
-};
-
-export const onGameCompleted = () => {
-  game_completed = 1;
 };
 
 export const onPlayerPullLever = (leverIndex: number) => {
@@ -89,7 +99,7 @@ export const onLever0Pulled = () => {
     showMessage("Not leaving now, there are souls to catch!", 3);
   } else if (!game_completed) {
     showMessage("Well done. They will be punished.<br>Thanks for playing", Infinity);
-    onGameCompleted();
+    game_completed = 1;
   }
 };
 
