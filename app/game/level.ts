@@ -612,17 +612,11 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
       ),
     );
 
-    newModel(() => {
-      integers_map(2, (x) => meshAdd(pushingRod, translation(-110 + x * 9 + (x & 1), 1.7, -12)));
-    });
+    newModel(() => integers_map(2, (x) => meshAdd(pushingRod, translation(-110 + x * 9 + (x & 1), 1.7, -12))));
 
-    newModel(() => {
-      integers_map(2, (x) => meshAdd(pushingRod, translation(-110 + (x + 2) * 9 + (x & 1), 1.7, -12)));
-    });
+    newModel(() => integers_map(2, (x) => meshAdd(pushingRod, translation(-110 + (x + 2) * 9 + (x & 1), 1.7, -12))));
 
-    newModel(() => {
-      integers_map(3, (x) => meshAdd(pushingRod, translation(-106 + x * 9, 1.7, -12)));
-    });
+    newModel(() => integers_map(3, (x) => meshAdd(pushingRod, translation(-106 + x * 9, 1.7, -12))));
 
     // pushing rods container
 
@@ -725,7 +719,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     // oscillating hex pads
 
     integers_map(4, (i) =>
-      newModel(() => {
+      newModel(() =>
         meshAdd(
           cylinder(6),
           translation(-14.6 - i * 4.8 - (i > 2 ? 2 : 0), -i / 2.5 - 0.1, -21.5)
@@ -733,8 +727,8 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
             .skewX(3.5)
             .scale(2.6, 1, 2.5),
           material(0.5 - i / 8, i / 12 + 0.5, 0.7, 0.3),
-        );
-      }),
+        ),
+      ),
     );
 
     // after the hex pads

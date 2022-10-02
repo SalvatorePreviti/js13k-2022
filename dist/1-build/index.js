@@ -1084,15 +1084,9 @@ const build_life_the_universe_and_everything = () => {
       -1.2,
       1.2
     ].map((i) => polygons_transform(cylinder(), translation(i, -0.5, 1).scale(0.14, 0.3, 6.5), material(0.7, 0.2, 0, 0.3))));
-    newModel(() => {
-      integers_map(2, (x) => meshAdd(pushingRod, translation(-110 + x * 9 + (x & 1), 1.7, -12)));
-    });
-    newModel(() => {
-      integers_map(2, (x) => meshAdd(pushingRod, translation(-110 + (x + 2) * 9 + (x & 1), 1.7, -12)));
-    });
-    newModel(() => {
-      integers_map(3, (x) => meshAdd(pushingRod, translation(-106 + x * 9, 1.7, -12)));
-    });
+    newModel(() => integers_map(2, (x) => meshAdd(pushingRod, translation(-110 + x * 9 + (x & 1), 1.7, -12))));
+    newModel(() => integers_map(2, (x) => meshAdd(pushingRod, translation(-110 + (x + 2) * 9 + (x & 1), 1.7, -12))));
+    newModel(() => integers_map(3, (x) => meshAdd(pushingRod, translation(-106 + x * 9, 1.7, -12))));
     meshAdd(csg_polygons_subtract(csg_union(polygons_transform(cylinder(), translation(26.5, -1.6, 10).scale(20, 2.08, 3)), polygons_transform(cylinder(), translation(26.5, -0.6, 10).scale(19, 2, 0.5))), ...integers_map(4, (x) => polygons_transform(cylinder(), translation(13 + x * 9 + (x & 1), -0.8, 9).scale(1.35, 1.35, 9))), ...integers_map(3, (x) => polygons_transform(cylinder(), translation(17 + x * 9, -0.8, 9).scale(1.35, 1.35, 9)))), translation(-123, 0, -12), material(0.5, 0.5, 0.6, 0.2));
     newLever(translation(-116, -1.4, -18).rotate(0, 180));
     meshAdd(cylinder(), translation(-116, -2.6, -12).scale(3.2, 1.1, 4).skewX(3), material(0.8, 0.8, 0.8, 0.2));
@@ -1125,9 +1119,7 @@ const build_life_the_universe_and_everything = () => {
       3.5
     ]);
     meshAdd(csg_polygons_subtract(csg_union(polygons_transform(cylinder(6, 0, 0, 0.6), translation(-100, 0.7, 105.5).scale(8, 1, 11), material(0.7, 0.7, 0.7, 0.2)), polygons_transform(cylinder(), translation(-101.5, 0.7, 93.5).scale(10.5, 1, 2), material(0.7, 0.7, 0.7, 0.2))), polygons_transform(cylinder(5), translation(-100, 0.7, 113).scale(4, 3, 4), material(0.7, 0.7, 0.7, 0.2))));
-    integers_map(4, (i) => newModel(() => {
-      meshAdd(cylinder(6), translation(-14.6 - i * 4.8 - (i > 2 ? 2 : 0), -i / 2.5 - 0.1, -21.5).rotate(0, 0, 3.5).skewX(3.5).scale(2.6, 1, 2.5), material(0.5 - i / 8, i / 12 + 0.5, 0.7, 0.3));
-    }));
+    integers_map(4, (i) => newModel(() => meshAdd(cylinder(6), translation(-14.6 - i * 4.8 - (i > 2 ? 2 : 0), -i / 2.5 - 0.1, -21.5).rotate(0, 0, 3.5).skewX(3.5).scale(2.6, 1, 2.5), material(0.5 - i / 8, i / 12 + 0.5, 0.7, 0.3))));
     newModel(() => {
       meshAdd(csg_polygons_subtract(polygons_transform(cylinder(10), scaling(6, 2, 6), material(0.1, 0.6, 0.5, 0.3)), polygons_transform(cylinder(10), scaling(3.3, 6, 3.3), material(0.1, 0.6, 0.5, 0.5))));
       meshAdd(cylinder(15, 1), translation(-7.5).rotate(0, 90).scale(3, 2.3, 3), material(0.4, 0.4, 0.4, 0.3));

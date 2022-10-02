@@ -2212,15 +2212,14 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   )
                 ),
               ));
-            newModel(() => {
-              integers_map(2, (x) => meshAdd(pushingRod, translation(9 * x - 110 + (1 & x), 1.7, -12)));
-            }),
-              newModel(() => {
-                integers_map(2, (x) => meshAdd(pushingRod, translation(9 * (x + 2) - 110 + (1 & x), 1.7, -12)));
-              }),
-              newModel(() => {
-                integers_map(3, (x) => meshAdd(pushingRod, translation(9 * x - 106, 1.7, -12)));
-              }),
+            newModel(() => integers_map(2, (x) => meshAdd(pushingRod, translation(9 * x - 110 + (1 & x), 1.7, -12)))),
+              newModel(() =>
+                integers_map(2, (x) =>
+                  meshAdd(pushingRod, translation(9 * (x + 2) - 110 + (1 & x), 1.7, -12)))
+              ),
+              newModel(() =>
+                integers_map(3, (x) => meshAdd(pushingRod, translation(9 * x - 106, 1.7, -12)))
+              ),
               meshAdd(
                 csg_polygons_subtract(
                   csg_union(
@@ -2340,14 +2339,14 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 ),
               ),
               integers_map(4, (i) =>
-                newModel(() => {
+                newModel(() =>
                   meshAdd(
                     cylinder(6),
                     translation(-14.6 - 4.8 * i - (2 < i ? 2 : 0), -i / 2.5 - 0.1, -21.5).rotate(0, 0, 3.5).skewX(3.5)
                       .scale(2.6, 1, 2.5),
                     material(0.5 - i / 8, i / 12 + 0.5, 0.7, 0.3),
-                  );
-                })),
+                  )
+                )),
               newModel(() => {
                 meshAdd(
                   csg_polygons_subtract(
