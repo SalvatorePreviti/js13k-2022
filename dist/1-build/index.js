@@ -890,17 +890,6 @@ const build_life_the_universe_and_everything = () => {
   newModel(() => {
     const makeBigArcPolygons = (height) => csg_polygons_subtract(polygons_transform(cylinder(), translation(0, -height / 2).scale(6, height - 1, 2.2)), polygons_transform(cylinder(), translation(0, -height / 2 - 6).scale(4, height - 3, 4)), polygons_transform(cylinder(32, 1), translation(0, height / 2 - 9).rotate(90, 0, 90).scale3d(4)));
     const gateBarsModel = () => newModel(() => integers_map(7, (i) => meshAdd(polygons_transform(cylinder(6, 1), translation(4 * (i / 6 - 0.5), 3).scale(0.2, 3, 0.2), material(0.3, 0.3, 0.38)))));
-    const blackPlatform = (pz) => newModel(() => {
-      GQuad.map(({ x, z }) => {
-        meshAdd(cylinder(11, 1), translation(x * 4, 4, pz + z * 4).scale(0.8, 3, 0.8), material(0.5, 0.3, 0.7, 0.6));
-        meshAdd(cylinder(), translation(x * 4, 7, pz + z * 4).scale(1, 0.3), material(0.5, 0.5, 0.5, 0.3));
-      });
-      meshAdd(csg_polygons_subtract(polygons_transform(cylinder(), translation(0, 0, pz).scale(5, 1, 5), material(0.8, 0.8, 0.8, 0.3)), ...[
-        -1,
-        1
-      ].map((i) => polygons_transform(cylinder(), translation(5 * i, 0.2, pz).rotate(i * -30).scale(4, 1, 2), material(0.8, 0.8, 0.8, 0.3)))));
-      meshAdd(cylinder(), translation(0, -3, pz).scale(8, 2, 8), material(0.4, 0.4, 0.4, 0.3));
-    });
     const boatPolygons = csg_polygons_subtract(polygons_transform(cylinder(30, 1, 1.15, 1), translation(0, -3).scale(3.5, 1, 3.5), material(0.7, 0.4, 0.25, 0.7)), polygons_transform(cylinder(30, 1, 1.3, 1), translation(0, -2.5).scale(2.6, 1, 3), material(0.7, 0.4, 0.25, 0.2)), polygons_transform(cylinder(), translation(4, -1.2).scale3d(2), material(0.7, 0.4, 0.25, 0.3)));
     newModel(() => {
       meshAdd(boatPolygons);
@@ -929,19 +918,19 @@ const build_life_the_universe_and_everything = () => {
       z * 10,
       4.5 - abs(x) * 2
     ]));
-    meshAdd(cylinder(), translation(-5, -0.2, -26).scale(3.2, 1, 2.5).skewX(3), material(0.8, 0.8, 0.8, 0.2));
     GQuad.map(({ x, z }) => meshAdd(cylinder(6), translation(x * 3, 3, z * 15).scale(0.7, 4, 0.7), material(0.6, 0.3, 0.3, 0.4)));
-    meshAdd(cylinder(), translation(0, 0, -23).scale(3, 1, 8), material(0.9, 0.9, 0.9, 0.2));
-    meshAdd(cylinder(), translation(0, 0, 22).scale(3, 1, 8), material(0.9, 0.9, 0.9, 0.2));
     [
       -15,
       15
-    ].map((z) => {
+    ].map((z, j) => {
+      gateBarsModel();
+      gateBarsModel();
       meshAdd(cylinder(), translation(0, 6.3, z).scale(4, 0.3, 1), material(0.3, 0.3, 0.3, 0.4));
       meshAdd(cylinder(), translation(0, 1, z).scale(3, 0.2, 0.35), material(0.5, 0.5, 0.5, 0.3));
-      gateBarsModel();
+      meshAdd(cylinder(), translation(0, 0, j ? 22 : -23).scale(3, 1, 8), material(0.9, 0.9, 0.9, 0.2));
+      integers_map(5, (i) => meshAdd(hornPolygons, translation((j - 0.5) * 18.5, 0, i * 4.8 - 9.5).rotate(0, 180 - j * 180).scale(1.2, 10, 1.2), material(1, 1, 0.8, 0.2)));
     });
-    integers_map(5, (i) => integers_map(2, (j) => meshAdd(hornPolygons, translation((j - 0.5) * 18.5, 0, i * 4.8 - 9.5).rotate(0, 180 - j * 180).scale(1.2, 10, 1.2), material(1, 1, 0.8, 0.2))));
+    meshAdd(cylinder(), translation(-5, -0.2, -26).scale(3.2, 1, 2.5).skewX(3), material(0.8, 0.8, 0.8, 0.2));
     meshAdd(cylinder(), translation(3, 1.5, -20).scale(0.5, 2, 5), material(0.7, 0.7, 0.7, 0.2));
     meshAdd(cylinder(), translation(-3.4, -0.2, -19).scale(2, 1, 1.5).rotate(0, -90), material(0.75, 0.75, 0.75, 0.2));
     meshAdd(cylinder(5), translation(-5.4, 0, -19).scale(2, 1, 2).rotate(0, -90), material(0.6, 0.3, 0.3, 0.4));
@@ -952,8 +941,6 @@ const build_life_the_universe_and_everything = () => {
       newLever(translation(0, 1.2));
     });
     newLever(translation(15, -2, 4));
-    blackPlatform(35);
-    blackPlatform(55);
     newModel(() => {
       meshAdd(csg_polygons_subtract(csg_union(polygons_transform(cylinder(), scaling(1.5, 1, 5), material(0.9, 0.9, 0.9, 0.2)), polygons_transform(cylinder(6), scaling(4, 1, 5), material(0.9, 0.9, 0.9, 0.2)), polygons_transform(cylinder(), translation(0, -2).scale(2, 3.2, 1.9), material(0.3, 0.8, 0.5, 0.5)), polygons_transform(cylinder(16, 1, 0, 4), scaling(1, 1, 1.5).rotate(0, 90), material(0.9, 0.9, 0.9, 0.2))), polygons_transform(cylinder(), scaling(1.3, 10, 1.3), material(0.2, 0.7, 0.4, 0.6))), translation(0, 0, 45));
       newSoul(translation(0, 2.8, 45), [
@@ -962,6 +949,20 @@ const build_life_the_universe_and_everything = () => {
         4.5
       ]);
     });
+    [
+      35,
+      55
+    ].map((pz) => newModel(() => {
+      GQuad.map(({ x, z }) => {
+        meshAdd(cylinder(11, 1), translation(x * 4, 4, pz + z * 4).scale(0.8, 3, 0.8), material(0.5, 0.3, 0.7, 0.6));
+        meshAdd(cylinder(), translation(x * 4, 7, pz + z * 4).scale(1, 0.3), material(0.5, 0.5, 0.5, 0.3));
+      });
+      meshAdd(csg_polygons_subtract(polygons_transform(cylinder(), translation(0, 0, pz).scale(5, 1, 5), material(0.8, 0.8, 0.8, 0.3)), ...[
+        -1,
+        1
+      ].map((i) => polygons_transform(cylinder(), translation(5 * i, 0.2, pz).rotate(i * -30).scale(4, 1, 2), material(0.8, 0.8, 0.8, 0.3)))));
+      meshAdd(cylinder(), translation(0, -3, pz).scale(8, 2, 8), material(0.4, 0.4, 0.4, 0.3));
+    }));
     meshAdd(cylinder(), translation(-21.1 + 2.45, -3, 55).scale(2.45, 1.4, 2.7), material(0.9, 0.9, 0.9, 0.2));
     newModel(() => {
       meshAdd(cylinder(3), translation(-23, -1.7, 55.8).scale(5, 0.7, 8.3), material(0.3, 0.6, 0.6, 0.2));
@@ -1020,7 +1021,6 @@ const build_life_the_universe_and_everything = () => {
       6
     ]);
     meshAdd(csg_polygons_subtract(polygons_transform(cylinder(), translation(-100, 1, 63).scale(7.5, 4), material(0.5, 0.5, 0.5, 0.4)), polygons_transform(cylinder(), translation(-100, 0, 70).scale(2, 2, 10), material(0.5, 0.5, 0.5, 0.4)), polygons_transform(cylinder(20, 1), translation(-100, 2, 70).scale(2, 2, 10).rotate(90, 0), material(0.5, 0.5, 0.5, 0.4))));
-    gateBarsModel();
     GQuad.map(({ x, z }) => {
       meshAdd(cylinder(6), translation(-100 + x * 7, -3, z * 7 + 55).scale(1, 8.1), material(0.6, 0.15, 0.15, 0.8));
       [
@@ -1153,7 +1153,6 @@ const build_life_the_universe_and_everything = () => {
         1.7
       ]);
     });
-    gateBarsModel();
     [
       -1,
       1
@@ -1333,6 +1332,8 @@ const eppur_si_muove = () => {
   boatAnimationMatrix(next(), -12, 4.2, -66 + firstBoatLerp * 40);
   next().translateSelf(0, 0, -15).scaleSelf(1, clamp(1.22 - levers[1].$lerpValue), 1);
   next().translateSelf(0, 0, 15).scaleSelf(1, clamp(1.22 - levers[2].$lerpValue), 1);
+  next().translateSelf(-99.7, -1.9, 63.5).scaleSelf(1, clamp(1.1 - levers[6].$lerpValue), 1);
+  next().translateSelf(-100, 0.6, 96.5).scaleSelf(0.88, 1.2 - levers[12].$lerpValue);
   next().translateSelf(0, levers[3].$lerpValue > 0.01 ? (/* @__PURE__ */ Math.cos(gameTime * 1.5) * 5 + 2) * levers[3].$lerpValue2 * (1 - levers[2].$lerpValue) + (1 - levers[3].$lerpValue) * -15 : -500, 0);
   const level2Oscillation = min(levers[2].$lerpValue2, 1 - levers[4].$lerpValue2);
   next().translateSelf(level2Oscillation * /* @__PURE__ */ Math.sin(0.7 * 3 + gameTime * 0.7) * 12);
@@ -1344,7 +1345,6 @@ const eppur_si_muove = () => {
   next().translateSelf(0, 0, level3Oscillation * /* @__PURE__ */ Math.sin(gameTime * 0.9) * 8);
   next().translateSelf(0, levers[4].$lerpValue2 * -6.5);
   next().translateSelf(-75, (1 - levers[5].$lerpValue2) * (1 - levers[6].$lerpValue) * 3, 55).rotateSelf(180 * (1 - levers[5].$lerpValue2) + rotatingHexCorridorRotation, 0);
-  next().translateSelf(-99.7, -1.9, 63.5).scaleSelf(1, clamp(1.1 - levers[6].$lerpValue), 1);
   const shouldOscillateElevators = lerpneg(levers[7].$lerpValue2, levers[6].$lerpValue2);
   next().translateSelf(0, (1 - max(levers[6].$lerpValue, levers[7].$lerpValue)) * 3.5 + shouldOscillateElevators * /* @__PURE__ */ Math.sin(gameTime) * 5);
   next().translateSelf(0, shouldOscillateElevators * /* @__PURE__ */ Math.sin(gameTime + 3) * 6, /* @__PURE__ */ Math.sin(gameTime * 0.6 + 1) * 6 * shouldOscillateElevators);
@@ -1359,7 +1359,6 @@ const eppur_si_muove = () => {
   for (let i = 0; i < 4; i++)
     next().translateSelf((i > 2 ? (1 - hexPadShouldOscillate) * 2 + hexPadShouldOscillate : 0) - 100, hexPadShouldOscillate * /* @__PURE__ */ Math.sin(gameTime * 1.3 + i * 1.7) * (3 + i / 3) + 0.7, (i & 1 ? -1 : 1) * (1 - levers[8].$lerpValue2) * (1 - levers[12].$lerpValue2) * -7 + max(hexPadShouldOscillate, 0.05) * /* @__PURE__ */ Math.cos(gameTime * 1.3 + i * 7) * (4 - 2 * (1 - i / 3)) + 115);
   next().translateSelf((1 - hexPadShouldOscillate) * 2.5 - 139.7, (1 - levers[8].$lerpValue) * -3 + hexPadShouldOscillate * /* @__PURE__ */ Math.sin(gameTime * 0.8) * -1 - 1.8, 93.5).rotateSelf(/* @__PURE__ */ Math.cos(gameTime * 1.3) * (hexPadShouldOscillate * 3 + 3), 0);
-  next().translateSelf(-100, 0.6, 96.5).scaleSelf(0.88, 1.2 - levers[12].$lerpValue);
   next().translateSelf(-81, 0.6, 106).rotateSelf(0, 40 + rotatingPlatform1Rotation);
   next().translateSelf(-65.8, 0.8, 106).rotateSelf(0, rotatingPlatform2Rotation);
   next().translateSelf(-50.7, 0.8, 106).rotateSelf(0, 180 - rotatingPlatform2Rotation);

@@ -114,32 +114,26 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
       ...polygon_regular(18).map(({ x, z }) => [x * 7, z * 10, 4.5 - abs(x) * 2]),
     );
 
-    // first boat attachment
-
-    meshAdd(cylinder(), translation(-5, -0.2, -26).scale(3.2, 1, 2.5).skewX(3), material(0.8, 0.8, 0.8, 0.2));
-
     // gate columns
     GQuad.map(({ x, z }) =>
       meshAdd(cylinder(6), translation(x * 3, 3, z * 15).scale(0.7, 4, 0.7), material(0.6, 0.3, 0.3, 0.4)),
     );
 
-    // in and out
-    meshAdd(cylinder(), translation(0, 0, -23).scale(3, 1, 8), material(0.9, 0.9, 0.9, 0.2));
-    meshAdd(cylinder(), translation(0, 0, 22).scale(3, 1, 8), material(0.9, 0.9, 0.9, 0.2));
+    [-15, 15].map((z, j) => {
+      // all 4 gate bars
+      gateBarsModel();
+      gateBarsModel();
 
-    [-15, 15].map((z) => {
       //  gate top
       meshAdd(cylinder(), translation(0, 6.3, z).scale(4, 0.3, 1), material(0.3, 0.3, 0.3, 0.4));
       //  gate bottom
       meshAdd(cylinder(), translation(0, 1, z).scale(3, 0.2, 0.35), material(0.5, 0.5, 0.5, 0.3));
-      // in and out gate bars
-      gateBarsModel();
-    });
 
-    // horns
+      // in and out
+      meshAdd(cylinder(), translation(0, 0, j ? 22 : -23).scale(3, 1, 8), material(0.9, 0.9, 0.9, 0.2));
 
-    integers_map(5, (i) =>
-      integers_map(2, (j) =>
+      // horns
+      integers_map(5, (i) =>
         meshAdd(
           hornPolygons,
           translation((j - 0.5) * 18.5, 0, i * 4.8 - 9.5)
@@ -147,9 +141,13 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
             .scale(1.2, 10, 1.2),
           material(1, 1, 0.8, 0.2),
         ),
-      ),
-    );
+      );
+    });
 
+    // first boat attachment
+    meshAdd(cylinder(), translation(-5, -0.2, -26).scale(3.2, 1, 2.5).skewX(3), material(0.8, 0.8, 0.8, 0.2));
+
+    // small entrance wall
     meshAdd(cylinder(), translation(3, 1.5, -20).scale(0.5, 2, 5), material(0.7, 0.7, 0.7, 0.2));
 
     // first lever pad
@@ -218,6 +216,27 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
     // ******** LEVEL 2 ********
 
+    // central oscillating platform
+    newModel(() => {
+      meshAdd(
+        csg_polygons_subtract(
+          csg_union(
+            polygons_transform(cylinder(), scaling(1.5, 1, 5), material(0.9, 0.9, 0.9, 0.2)),
+            polygons_transform(cylinder(6), scaling(4, 1, 5), material(0.9, 0.9, 0.9, 0.2)),
+            polygons_transform(cylinder(), translation(0, -2).scale(2, 3.2, 1.9), material(0.3, 0.8, 0.5, 0.5)),
+            polygons_transform(cylinder(16, 1, 0, 4), scaling(1, 1, 1.5).rotate(0, 90), material(0.9, 0.9, 0.9, 0.2)),
+          ),
+          polygons_transform(cylinder(), scaling(1.3, 10, 1.3), material(0.2, 0.7, 0.4, 0.6)),
+        ),
+        translation(0, 0, 45),
+      );
+
+      // SOUL 2 - soul over the central oscillating platform in the second level
+      newSoul(translation(0, 2.8, 45), [0, 0, 4.5]);
+    });
+
+    // black platforms in the second level
+
     const blackPlatform = (pz: number) =>
       newModel(() => {
         GQuad.map(({ x, z }) => {
@@ -247,25 +266,6 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
     blackPlatform(35);
     blackPlatform(55);
-
-    // central oscillating platform
-    newModel(() => {
-      meshAdd(
-        csg_polygons_subtract(
-          csg_union(
-            polygons_transform(cylinder(), scaling(1.5, 1, 5), material(0.9, 0.9, 0.9, 0.2)),
-            polygons_transform(cylinder(6), scaling(4, 1, 5), material(0.9, 0.9, 0.9, 0.2)),
-            polygons_transform(cylinder(), translation(0, -2).scale(2, 3.2, 1.9), material(0.3, 0.8, 0.5, 0.5)),
-            polygons_transform(cylinder(16, 1, 0, 4), scaling(1, 1, 1.5).rotate(0, 90), material(0.9, 0.9, 0.9, 0.2)),
-          ),
-          polygons_transform(cylinder(), scaling(1.3, 10, 1.3), material(0.2, 0.7, 0.4, 0.6)),
-        ),
-        translation(0, 0, 45),
-      );
-
-      // SOUL 2 - soul over the central oscillating platform in the second level
-      newSoul(translation(0, 2.8, 45), [0, 0, 4.5]);
-    });
 
     // ******** LEVEL 3 ********
 
@@ -431,9 +431,6 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
         ),
       ),
     );
-
-    // central gate bars
-    gateBarsModel();
 
     // hex columns
 
@@ -771,9 +768,6 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
       // SOUL 9 - soul after the hex pads, in the hex donut with horns
       newSoul(translation(-5, 4), [0, -1.2, 1.7], [0, 1.2, 1.7]);
     });
-
-    // far arc gate door
-    gateBarsModel();
 
     // far arc gate
     [-1, 1].map((x) => {

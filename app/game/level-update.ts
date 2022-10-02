@@ -57,6 +57,18 @@ export const eppur_si_muove = () => {
     .translateSelf(0, 0, 15)
     .scaleSelf(1, clamp(1.22 - levers[2]!.$lerpValue), 1);
 
+  // central gate bars
+
+  next()
+    .translateSelf(-99.7, -1.9, 63.5)
+    .scaleSelf(1, clamp(1.1 - levers[6]!.$lerpValue), 1);
+
+  // far arc gate bars
+
+  next()
+    .translateSelf(-100, 0.6, 96.5)
+    .scaleSelf(0.88, 1.2 - levers[12]!.$lerpValue);
+
   // moving central platform in the first level
 
   next().translateSelf(
@@ -103,12 +115,6 @@ export const eppur_si_muove = () => {
   next()
     .translateSelf(-75, (1 - levers[5]!.$lerpValue2) * (1 - levers[6]!.$lerpValue) * 3, 55)
     .rotateSelf(180 * (1 - levers[5]!.$lerpValue2) + rotatingHexCorridorRotation, 0);
-
-  // central gate bars
-
-  next()
-    .translateSelf(-99.7, -1.9, 63.5)
-    .scaleSelf(1, clamp(1.1 - levers[6]!.$lerpValue), 1);
 
   // elevators
 
@@ -168,12 +174,6 @@ export const eppur_si_muove = () => {
       93.5,
     )
     .rotateSelf(Math.cos(gameTime * 1.3) * (hexPadShouldOscillate * 3 + 3), 0);
-
-  // far arc gate door
-
-  next()
-    .translateSelf(-100, 0.6, 96.5)
-    .scaleSelf(0.88, 1.2 - levers[12]!.$lerpValue);
 
   // First rotating platform (with hole)
 
