@@ -3,18 +3,18 @@ import type { Vec3 } from "../math/vectors";
 
 export interface Model {
   readonly $matrix: DOMMatrix;
-  $kind: MODEL_KIND;
+  readonly $kind: MODEL_KIND;
   $polygons: Polygon[] | null;
   $vertexBegin?: number;
   $vertexEnd?: number;
 }
 
 export interface Lever {
+  readonly $matrix: DOMMatrixReadOnly;
+  readonly $transform: DOMMatrixReadOnly;
   $value: 0 | 1;
   $lerpValue: number;
   $lerpValue2: number;
-  $matrix: DOMMatrixReadOnly;
-  $transform: DOMMatrixReadOnly;
   _update: () => void;
 }
 
