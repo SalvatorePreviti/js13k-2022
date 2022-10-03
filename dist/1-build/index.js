@@ -532,9 +532,9 @@ const fieldOfViewRadians = fieldOfViewDegrees * DEG_TO_RAD;
 const fieldOfViewAmount = 1 / /* @__PURE__ */ Math.tan(fieldOfViewRadians / 2);
 let interact_pressed;
 let player_first_person;
-let updateInput;
 let projection;
 let csm_projections;
+let updateInput;
 let input_forward = 0;
 let input_strafe = 0;
 const resetInteractPressed = () => {
@@ -575,11 +575,11 @@ const initPage = () => {
   };
   const handleResize = () => {
     const mx = (hC.height = innerHeight) / (hC.width = innerWidth) * fieldOfViewAmount;
-    projection = mat_perspective(zNear, zFar, mx, fieldOfViewAmount);
     csm_projections = [
       mat_perspective(zNear, constDef_CSM_PLANE_DISTANCE, mx, fieldOfViewAmount),
       mat_perspective(constDef_CSM_PLANE_DISTANCE, zFar, mx, fieldOfViewAmount)
     ];
+    projection = mat_perspective(zNear, zFar, mx, fieldOfViewAmount);
     touchPosIdentifier = touchRotIdentifier = void 0;
     keyboard_downKeys.length = interact_pressed = gamepadInteractPressed = touch_movementX = touch_movementY = input_forward = input_strafe = 0;
   };
@@ -1085,10 +1085,10 @@ const build_life_the_universe_and_everything = () => {
       -1.2,
       1.2
     ].map((i) => polygons_transform(cylinder(), translation(i, -0.5, 1).scale(0.14, 0.3, 6.5), material(0.7, 0.2, 0, 0.3))));
-    newModel(() => integers_map(2, (x) => meshAdd(pushingRod, translation(-110 + x * 9 + (x & 1), 1.7, -12))));
-    newModel(() => integers_map(2, (x) => meshAdd(pushingRod, translation(-110 + (x + 2) * 9 + (x & 1), 1.7, -12))));
-    newModel(() => integers_map(3, (x) => meshAdd(pushingRod, translation(-106 + x * 9, 1.7, -12))));
-    meshAdd(csg_polygons_subtract(csg_union(polygons_transform(cylinder(), translation(26.5, -1.6, 10).scale(20, 2.08, 3)), polygons_transform(cylinder(), translation(26.5, -0.6, 10).scale(19, 2, 0.5))), ...integers_map(4, (x) => polygons_transform(cylinder(), translation(13 + x * 9 + (x & 1), -0.8, 9).scale(1.35, 1.35, 9))), ...integers_map(3, (x) => polygons_transform(cylinder(), translation(17 + x * 9, -0.8, 9).scale(1.35, 1.35, 9)))), translation(-123, 0, -12), material(0.5, 0.5, 0.6, 0.2));
+    newModel(() => integers_map(2, (x) => meshAdd(pushingRod, translation(-110 + x * 9 + (x & 1), 1.9, -12))));
+    newModel(() => integers_map(2, (x) => meshAdd(pushingRod, translation(-110 + (x + 2) * 9 + (x & 1), 1.9, -12))));
+    newModel(() => integers_map(3, (x) => meshAdd(pushingRod, translation(-106 + x * 9, 1.9, -12))));
+    meshAdd(csg_polygons_subtract(csg_union(polygons_transform(cylinder(), translation(26.5, -1.6, 10).scale(20, 2.08, 3)), polygons_transform(cylinder(), translation(26.5, -0.5, 10).scale(19, 2, 0.5))), ...integers_map(4, (x) => polygons_transform(cylinder(), translation(13 + x * 9 + (x & 1), -0.8, 9).scale(1.35, 1.35, 9))), ...integers_map(3, (x) => polygons_transform(cylinder(), translation(17 + x * 9, -0.8, 9).scale(1.35, 1.35, 9)))), translation(-123, 0.2, -12), material(0.5, 0.5, 0.6, 0.2));
     newLever(translation(-116, -1.4, -18).rotate(0, 180));
     meshAdd(cylinder(), translation(-116, -2.6, -12).scale(3.2, 1.1, 4).skewX(3), material(0.8, 0.8, 0.8, 0.2));
     meshAdd(cylinder(6), translation(-116, -2.6, -16.5).scale(3.2, 0.8, 3), material(0.6, 0.5, 0.7, 0.2));
@@ -1290,7 +1290,7 @@ const code$4 = "#version 300 es\nlayout(location=0)in vec4 f;layout(location=1)i
 const uniformName_projectionMatrix = "a";
 const uniformName_viewMatrix = "b";
 const uniformName_worldMatrices = "c";
-const code$3 = "#version 300 es\nprecision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(vec3(0,1.49,.3*b[0][0])+m.xyz,1);if(gl_FragCoord.y>36.){float e=1.-abs((gl_FragCoord.x-63.5)/63.5),i=clamp(a.z+.6,0.,1.);O=vec4(vec2(b[0][0]*sign(a.x)*o.x<0.?min(i*10.,1.)*(.9-abs(a.x))*e:0.),vec2(b[0][0]*o.z>0.?i*(1.-e):0.));}else{float e=o.y>.45?a.y*clamp((a.z+.4)*50.,0.,1.):0.;O=vec4(vec2(e),vec2(e>0.?m.w/255.:0.));}}";
+const code$3 = "#version 300 es\nprecision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(vec3(0,1.49,.3*b[0][0])+m.xyz,1);if(gl_FragCoord.y>36.){float e=abs(gl_FragCoord.x/64.-1.),v=clamp(a.z+.7,0.,1.);O=a.y<.6||a.y>4.?vec4(0):vec4(vec2(b[0][0]*sign(a.x)*o.x<0.?v*(.7-abs(a.x))*e:0.),vec2(b[0][0]*o.z>0.?v*(1.-e):0.));}else{float e=o.y>.45&&a.y<1.?a.y*clamp((a.z+.4)*50.,0.,1.):0.;O=vec4(vec2(e),vec2(e>0.?m.w/255.:0.));}}";
 const constDef_COLLISION_TEXTURE_SIZE = 128;
 const code$2 = "#version 300 es\nvoid main(){}";
 const code$1 = "#version 300 es\nin vec4 f;void main(){gl_Position=vec4(f.xy,1,1);}";
@@ -1303,72 +1303,6 @@ for (const s in gl)
   gl[s[0] + [
     ...s
   ].reduce((p, c, i) => (p * i + c.charCodeAt(0)) % 434, 0).toString(36)] = gl[s];
-const worldMatricesBuffer = new Float32Array(624);
-const objectsMatricesBuffer = new Float32Array(624);
-let shouldRotatePlatforms;
-let rotatingPlatform1Rotation;
-let rotatingPlatform2Rotation;
-let rotatingHexCorridorRotation;
-const boatAnimationMatrix = (matrix, x, y, z) => matrix.translateSelf(x + /* @__PURE__ */ Math.sin(gameTime + 2) / 5, y + /* @__PURE__ */ Math.sin(gameTime * 0.8) / 3, z).rotateSelf(/* @__PURE__ */ Math.sin(gameTime) * 2, /* @__PURE__ */ Math.sin(gameTime * 0.7), /* @__PURE__ */ Math.sin(gameTime * 0.9));
-const eppur_si_muove = () => {
-  let counter = 1;
-  const next = () => matrixCopy(identity, allModels[++counter].$matrix);
-  shouldRotatePlatforms = lerpneg(levers[12].$lerpValue, levers[13].$lerpValue);
-  rotatingHexCorridorRotation = lerp(lerpDamp(rotatingHexCorridorRotation, 0, 1), angle_wrap_degrees(rotatingHexCorridorRotation + gameTimeDelta * 60), levers[5].$lerpValue - levers[6].$lerpValue2);
-  rotatingPlatform1Rotation = lerp(lerpDamp(rotatingPlatform1Rotation, 0, 5), angle_wrap_degrees(rotatingPlatform1Rotation + gameTimeDelta * 56), shouldRotatePlatforms);
-  rotatingPlatform2Rotation = lerp(lerpDamp(rotatingPlatform2Rotation, 0, 4), angle_wrap_degrees(rotatingPlatform2Rotation + gameTimeDelta * 48), shouldRotatePlatforms);
-  boatAnimationMatrix(next(), -12, 4.2, -66 + firstBoatLerp * 40);
-  next().translateSelf(0, 0, -15).scaleSelf(1, clamp(1.22 - levers[1].$lerpValue), 1);
-  next().translateSelf(0, 0, 15).scaleSelf(1, clamp(1.22 - levers[2].$lerpValue), 1);
-  next().translateSelf(-99.7, -1.9, 63.5).scaleSelf(1, clamp(1.1 - levers[6].$lerpValue), 1);
-  next().translateSelf(-100, 0.6, 96.5).scaleSelf(0.88, 1.2 - levers[12].$lerpValue);
-  next().translateSelf(0, levers[3].$lerpValue < 0.01 ? -500 : (1 - levers[2].$lerpValue) * levers[3].$lerpValue2 * (/* @__PURE__ */ Math.cos(gameTime * 1.5) * 5 + 2) + 15 * (levers[3].$lerpValue - 1), 0);
-  const level2Oscillation = min(levers[2].$lerpValue2, 1 - levers[4].$lerpValue2);
-  next().translateSelf(level2Oscillation * /* @__PURE__ */ Math.sin(gameTime / 1.5 + 2) * 12);
-  next().translateSelf(level2Oscillation * /* @__PURE__ */ Math.sin(gameTime * 0.7 + 2) * 12);
-  next().translateSelf(level2Oscillation * /* @__PURE__ */ Math.sin(gameTime + 3) * 8.2);
-  next().translateSelf((1 - level2Oscillation) * 9.8);
-  const level3Oscillation = clamp(1 - level2Oscillation * 5) * lerpneg(levers[4].$lerpValue, levers[5].$lerpValue);
-  next().translateSelf(0, level3Oscillation * /* @__PURE__ */ Math.sin(gameTime * 1.35) * 4);
-  next().translateSelf(0, 0, level3Oscillation * /* @__PURE__ */ Math.sin(gameTime * 0.9) * 8);
-  next().translateSelf(0, levers[4].$lerpValue2 * -6.5);
-  next().translateSelf(-75, (1 - levers[5].$lerpValue2) * (1 - levers[6].$lerpValue) * 3, 55).rotateSelf(180 * (1 - levers[5].$lerpValue2) + rotatingHexCorridorRotation, 0);
-  const shouldOscillateElevators = lerpneg(levers[7].$lerpValue2, levers[6].$lerpValue2);
-  next().translateSelf(0, shouldOscillateElevators * /* @__PURE__ */ Math.sin(gameTime) * 5 + (1 - max(levers[6].$lerpValue, levers[7].$lerpValue)) * 3.5);
-  next().translateSelf(0, shouldOscillateElevators * /* @__PURE__ */ Math.sin(gameTime + 3) * 6, shouldOscillateElevators * /* @__PURE__ */ Math.sin(gameTime * 0.6 + 1) * 6);
-  next().translateSelf(0, levers[7].$lerpValue2 * -7.3);
-  boatAnimationMatrix(next(), -123, 1.4, 55 + secondBoatLerp * -65);
-  const shouldPushRods = lerpneg(levers[10].$lerpValue, levers[11].$lerpValue);
-  next().translateSelf(0, -2, shouldPushRods * abs(/* @__PURE__ */ Math.sin(gameTime * 1.1)) * -8.5 + 10);
-  next().translateSelf(0, -2, shouldPushRods * abs(/* @__PURE__ */ Math.sin(gameTime * 2.1)) * -8.5 + 10);
-  next().translateSelf(0, -2, max((1 - levers[10].$lerpValue) * (1 - shouldPushRods), shouldPushRods * abs(/* @__PURE__ */ Math.sin(gameTime * 1.5))) * -8.5 + 10);
-  const hexPadShouldOscillate = lerpneg(levers[8].$lerpValue2, levers[12].$lerpValue2);
-  for (let i = 0; i < 4; i++)
-    next().translateSelf((i > 2 ? (1 - hexPadShouldOscillate) * 2 + hexPadShouldOscillate : 0) - 100, hexPadShouldOscillate * /* @__PURE__ */ Math.sin(gameTime * 1.3 + i * 1.7) * (3 + i / 3) + 0.7, (i & 1 ? -1 : 1) * (1 - levers[8].$lerpValue2) * (1 - levers[12].$lerpValue2) * -7 + max(hexPadShouldOscillate, 0.05) * /* @__PURE__ */ Math.cos(gameTime * 1.3 + i * 7) * (4 - 2 * (1 - i / 3)) + 115);
-  next().translateSelf((1 - hexPadShouldOscillate) * 2.5 - 139.7, (1 - levers[8].$lerpValue) * -3 + hexPadShouldOscillate * /* @__PURE__ */ Math.sin(gameTime * 0.8) * -1 - 1.8, 93.5).rotateSelf(/* @__PURE__ */ Math.cos(gameTime * 1.3) * (hexPadShouldOscillate * 3 + 3), 0);
-  next().translateSelf(-81, 0.6, 106).rotateSelf(0, 40 + rotatingPlatform1Rotation);
-  next().translateSelf(-65.8, 0.8, 106).rotateSelf(0, rotatingPlatform2Rotation);
-  next().translateSelf(-50.7, 0.8, 106).rotateSelf(0, 180 - rotatingPlatform2Rotation);
-  next().translateSelf(-50.7, 0.8, 91).rotateSelf(0, 270 + rotatingPlatform2Rotation);
-  const jumpingPadsOscillate = lerpneg(levers[13].$lerpValue2, levers[14].$lerpValue2);
-  for (let i1 = 0; i1 < 3; ++i1)
-    next().translateSelf(0, (1 - levers[13].$lerpValue2) * (1 - levers[14].$lerpValue2) * (i1 ? 0 : 3) + jumpingPadsOscillate * /* @__PURE__ */ Math.sin(gameTime * 1.5 + i1 * 1.5) * 4);
-  next().translateSelf(/* @__PURE__ */ Math.sin(gameTime) * -2).rotateSelf(/* @__PURE__ */ Math.sin(gameTime) * 25);
-  const floatingElevatorPad = lerpneg(lerpneg((levers[14].$lerpValue + levers[14].$lerpValue2) / 2, levers[13].$lerpValue2), (levers[15].$lerpValue + levers[15].$lerpValue2) / 2);
-  next().translateSelf(0, floatingElevatorPad * 16, clamp(floatingElevatorPad * 2 - 1) * 8.5 + 95);
-  for (let i2 = 0; i2 < SOULS_COUNT; ++i2) {
-    souls[i2]._update();
-    matrixToArray(tempMatrix, objectsMatricesBuffer, i2);
-  }
-  for (let i3 = 0; i3 < LEVERS_COUNT; ++i3) {
-    levers[i3]._update();
-    matrixToArray(tempMatrix, objectsMatricesBuffer, i3 + SOULS_COUNT);
-    objectsMatricesBuffer[i3 * 16 + (15 + SOULS_COUNT * 16)] = 1 - levers[i3].$lerpValue;
-  }
-  player_update(next);
-  for (let i4 = 0; i4 <= counter; ++i4)
-    matrixToArray(allModels[i4].$matrix, worldMatricesBuffer, i4 - 1);
-};
 let player_update;
 let camera_position_x = 0;
 let camera_position_y = 0;
@@ -1378,8 +1312,6 @@ const CAMERA_PLAYER_Z_DIST = -18;
 const PLAYER_LEGS_VELOCITY = 9.1;
 const PLAYER_RESPAWN_Z = -2.4;
 const player_init = () => {
-  let currentModelId;
-  let oldModelId;
   let player_look_angle_target;
   let player_look_angle;
   let player_legs_speed;
@@ -1389,6 +1321,8 @@ const player_init = () => {
   let player_speed;
   let player_speed_collision_limiter;
   let player_model_y;
+  let currentModelId;
+  let oldModelId;
   let camera_pos_lookat_x;
   let camera_pos_lookat_y;
   let camera_pos_lookat_z;
@@ -1400,13 +1334,13 @@ const player_init = () => {
     y: 0,
     z: 0
   };
-  const getReferenceMatrix = () => player_respawned ? levers[player_last_pulled_lever].$matrix : allModels[oldModelId && allModels[oldModelId].$kind === MODEL_KIND_GAME && oldModelId || 0].$matrix;
+  const loadReferenceMatrix = () => matrixCopy((player_respawned ? levers[player_last_pulled_lever] : allModels[oldModelId && allModels[oldModelId].$kind === MODEL_KIND_GAME && oldModelId || 0]).$matrix);
   const updatePlayerPositionFinal = (updateVelocity) => {
     const { x, y, z } = player_respawned > 1 ? matrixCopy(levers[player_last_pulled_lever].$matrix).multiplySelf(levers[player_last_pulled_lever].$transform).transformPoint({
       x: 0,
       y: player_last_pulled_lever || firstBoatLerp > 0.9 ? 15 : 1,
       z: PLAYER_RESPAWN_Z
-    }) : getReferenceMatrix().transformPoint(player_position_global);
+    }) : loadReferenceMatrix().transformPoint(player_position_global);
     if (updateVelocity) {
       player_fly_velocity_x = (x - player_position_final.x) / gameTimeDelta;
       player_fly_velocity_z = (z - player_position_final.z) / gameTimeDelta;
@@ -1416,7 +1350,7 @@ const player_init = () => {
     player_position_final.z = z;
   };
   const movePlayer = (x, y, z) => {
-    matrixCopy(getReferenceMatrix()).invertSelf();
+    loadReferenceMatrix().invertSelf();
     tempMatrix.m41 = tempMatrix.m42 = tempMatrix.m43 = 0;
     const v = tempMatrix.transformPoint({
       x,
@@ -1494,7 +1428,7 @@ const player_init = () => {
     NO_INLINE(doCollisions)();
     if (player_respawned || currentModelId !== oldModelId) {
       oldModelId = currentModelId;
-      const v = matrixCopy(getReferenceMatrix()).invertSelf().transformPoint(player_position_final);
+      const v = loadReferenceMatrix().invertSelf().transformPoint(player_position_final);
       player_position_global.x = v.x;
       player_position_global.y = v.y;
       player_position_global.z = v.z;
@@ -1552,19 +1486,71 @@ const player_init = () => {
   };
 };
 const collision_buffer = new Uint8Array(constDef_COLLISION_TEXTURE_SIZE * constDef_COLLISION_TEXTURE_SIZE * 4);
-const loadShader = (source, type = 35633) => {
-  const shader = gl["c6x"](type);
-  gl["s3c"](shader, source);
-  gl["c6a"](shader);
-  return shader;
-};
-const initShaderProgram = (vertexShader, sfsSource) => {
-  const uniforms = {};
-  const program = gl["c1h"]();
-  gl["abz"](program, vertexShader);
-  gl["abz"](program, loadShader(sfsSource, 35632));
-  gl["l8l"](program);
-  return (name) => name ? uniforms[name] || (uniforms[name] = gl["gan"](program, name)) : gl["u7y"](program);
+const worldMatricesBuffer = new Float32Array(624);
+const objectsMatricesBuffer = new Float32Array(624);
+let shouldRotatePlatforms;
+let rotatingPlatform1Rotation;
+let rotatingPlatform2Rotation;
+let rotatingHexCorridorRotation;
+const boatAnimationMatrix = (matrix, x, y, z) => matrix.translateSelf(x + /* @__PURE__ */ Math.sin(gameTime + 2) / 5, y + /* @__PURE__ */ Math.sin(gameTime * 0.8) / 3, z).rotateSelf(/* @__PURE__ */ Math.sin(gameTime) * 2, /* @__PURE__ */ Math.sin(gameTime * 0.7), /* @__PURE__ */ Math.sin(gameTime * 0.9));
+const eppur_si_muove = () => {
+  let counter = 1;
+  const next = () => matrixCopy(identity, allModels[++counter].$matrix);
+  shouldRotatePlatforms = lerpneg(levers[12].$lerpValue, levers[13].$lerpValue);
+  rotatingHexCorridorRotation = lerp(lerpDamp(rotatingHexCorridorRotation, 0, 1), angle_wrap_degrees(rotatingHexCorridorRotation + gameTimeDelta * 60), levers[5].$lerpValue - levers[6].$lerpValue2);
+  rotatingPlatform1Rotation = lerp(lerpDamp(rotatingPlatform1Rotation, 0, 5), angle_wrap_degrees(rotatingPlatform1Rotation + gameTimeDelta * 56), shouldRotatePlatforms);
+  rotatingPlatform2Rotation = lerp(lerpDamp(rotatingPlatform2Rotation, 0, 4), angle_wrap_degrees(rotatingPlatform2Rotation + gameTimeDelta * 48), shouldRotatePlatforms);
+  boatAnimationMatrix(next(), -12, 4.2, -66 + firstBoatLerp * 40);
+  next().translateSelf(0, 0, -15).scaleSelf(1, clamp(1.22 - levers[1].$lerpValue), 1);
+  next().translateSelf(0, 0, 15).scaleSelf(1, clamp(1.22 - levers[2].$lerpValue), 1);
+  next().translateSelf(-99.7, -1.9, 63.5).scaleSelf(1, clamp(1.1 - levers[6].$lerpValue), 1);
+  next().translateSelf(-100, 0.6, 96.5).scaleSelf(0.88, 1.2 - levers[12].$lerpValue);
+  next().translateSelf(0, levers[3].$lerpValue < 0.01 ? -500 : (1 - levers[2].$lerpValue) * levers[3].$lerpValue2 * (/* @__PURE__ */ Math.cos(gameTime * 1.5) * 5 + 2) + 15 * (levers[3].$lerpValue - 1), 0);
+  const level2Oscillation = min(levers[2].$lerpValue2, 1 - levers[4].$lerpValue2);
+  next().translateSelf(level2Oscillation * /* @__PURE__ */ Math.sin(gameTime / 1.5 + 2) * 12);
+  next().translateSelf(level2Oscillation * /* @__PURE__ */ Math.sin(gameTime * 0.7 + 2) * 12);
+  next().translateSelf(level2Oscillation * /* @__PURE__ */ Math.sin(gameTime + 3) * 8.2);
+  next().translateSelf((1 - level2Oscillation) * 9.8);
+  const level3Oscillation = clamp(1 - level2Oscillation * 5) * lerpneg(levers[4].$lerpValue, levers[5].$lerpValue);
+  next().translateSelf(0, level3Oscillation * /* @__PURE__ */ Math.sin(gameTime * 1.35) * 4);
+  next().translateSelf(0, 0, level3Oscillation * /* @__PURE__ */ Math.sin(gameTime * 0.9) * 8);
+  next().translateSelf(0, levers[4].$lerpValue2 * -6.5);
+  next().translateSelf(-75, (1 - levers[5].$lerpValue2) * (1 - levers[6].$lerpValue) * 3, 55).rotateSelf(180 * (1 - levers[5].$lerpValue2) + rotatingHexCorridorRotation, 0);
+  const shouldOscillateElevators = lerpneg(levers[7].$lerpValue2, levers[6].$lerpValue2);
+  next().translateSelf(0, shouldOscillateElevators * /* @__PURE__ */ Math.sin(gameTime) * 5 + (1 - max(levers[6].$lerpValue, levers[7].$lerpValue)) * 3.5);
+  next().translateSelf(0, shouldOscillateElevators * /* @__PURE__ */ Math.sin(gameTime + 3) * 6, shouldOscillateElevators * /* @__PURE__ */ Math.sin(gameTime * 0.6 + 1) * 6);
+  next().translateSelf(0, levers[7].$lerpValue2 * -7.3);
+  boatAnimationMatrix(next(), -123, 1.4, 55 + secondBoatLerp * -65);
+  const shouldPushRods = lerpneg(levers[10].$lerpValue, levers[11].$lerpValue);
+  next().translateSelf(0, -2, shouldPushRods * abs(/* @__PURE__ */ Math.sin(gameTime * 1.1)) * -8.5 + 10);
+  next().translateSelf(0, -2, shouldPushRods * abs(/* @__PURE__ */ Math.sin(gameTime * 2.1)) * -8.5 + 10);
+  next().translateSelf(0, -2, max((1 - levers[10].$lerpValue) * (1 - shouldPushRods), shouldPushRods * abs(/* @__PURE__ */ Math.sin(gameTime * 1.5))) * -8.5 + 10);
+  const hexPadShouldOscillate = lerpneg(levers[8].$lerpValue2, levers[12].$lerpValue2);
+  for (let i = 0; i < 4; i++)
+    next().translateSelf((i > 2 ? (1 - hexPadShouldOscillate) * 2 + hexPadShouldOscillate : 0) - 100, hexPadShouldOscillate * /* @__PURE__ */ Math.sin(gameTime * 1.3 + i * 1.7) * (3 + i / 3) + 0.7, (i & 1 ? -1 : 1) * (1 - levers[8].$lerpValue2) * (1 - levers[12].$lerpValue2) * -7 + max(hexPadShouldOscillate, 0.05) * /* @__PURE__ */ Math.cos(gameTime * 1.3 + i * 7) * (4 - 2 * (1 - i / 3)) + 115);
+  next().translateSelf((1 - hexPadShouldOscillate) * 2.5 - 139.7, (1 - levers[8].$lerpValue) * -3 + hexPadShouldOscillate * /* @__PURE__ */ Math.sin(gameTime * 0.8) * -1 - 1.8, 93.5).rotateSelf(/* @__PURE__ */ Math.cos(gameTime * 1.3) * (hexPadShouldOscillate * 3 + 3), 0);
+  next().translateSelf(-81, 0.6, 106).rotateSelf(0, 40 + rotatingPlatform1Rotation);
+  next().translateSelf(-65.8, 0.8, 106).rotateSelf(0, rotatingPlatform2Rotation);
+  next().translateSelf(-50.7, 0.8, 106).rotateSelf(0, 180 - rotatingPlatform2Rotation);
+  next().translateSelf(-50.7, 0.8, 91).rotateSelf(0, 270 + rotatingPlatform2Rotation);
+  const jumpingPadsOscillate = lerpneg(levers[13].$lerpValue2, levers[14].$lerpValue2);
+  for (let i1 = 0; i1 < 3; ++i1)
+    next().translateSelf(0, (1 - levers[13].$lerpValue2) * (1 - levers[14].$lerpValue2) * (i1 ? 0 : 3) + jumpingPadsOscillate * /* @__PURE__ */ Math.sin(gameTime * 1.5 + i1 * 1.5) * 4);
+  next().translateSelf(/* @__PURE__ */ Math.sin(gameTime) * -2).rotateSelf(/* @__PURE__ */ Math.sin(gameTime) * 25);
+  const floatingElevatorPad = lerpneg(lerpneg((levers[14].$lerpValue + levers[14].$lerpValue2) / 2, levers[13].$lerpValue2), (levers[15].$lerpValue + levers[15].$lerpValue2) / 2);
+  next().translateSelf(0, floatingElevatorPad * 16, clamp(floatingElevatorPad * 2 - 1) * 8.5 + 95);
+  for (let i2 = 0; i2 < SOULS_COUNT; ++i2) {
+    souls[i2]._update();
+    matrixToArray(tempMatrix, objectsMatricesBuffer, i2);
+  }
+  for (let i3 = 0; i3 < LEVERS_COUNT; ++i3) {
+    levers[i3]._update();
+    matrixToArray(tempMatrix, objectsMatricesBuffer, i3 + SOULS_COUNT);
+    objectsMatricesBuffer[i3 * 16 + (15 + SOULS_COUNT * 16)] = 1 - levers[i3].$lerpValue;
+  }
+  player_update(next);
+  for (let i4 = 0; i4 <= counter; ++i4)
+    matrixToArray(allModels[i4].$matrix, worldMatricesBuffer, i4 - 1);
 };
 const renderModels = (worldMatrixLoc, renderPlayer, soulModelId) => {
   if (mainMenuVisible) {
@@ -1584,6 +1570,20 @@ const renderModels = (worldMatrixLoc, renderPlayer, soulModelId) => {
   gl["das"](4, allModels[soulModelId].$vertexEnd - allModels[soulModelId].$vertexBegin, 5123, allModels[soulModelId].$vertexBegin * 2, souls.length);
   gl["das"](4, allModels[MODEL_ID_LEVER].$vertexEnd - allModels[MODEL_ID_LEVER].$vertexBegin, 5123, allModels[MODEL_ID_LEVER].$vertexBegin * 2, levers.length);
 };
+const loadShader = (source, type = 35633) => {
+  const shader = gl["c6x"](type);
+  gl["s3c"](shader, source);
+  gl["c6a"](shader);
+  return shader;
+};
+const initShaderProgram = (vertexShader, sfsSource) => {
+  const uniforms = {};
+  const program = gl["c1h"]();
+  gl["abz"](program, vertexShader);
+  gl["abz"](program, loadShader(sfsSource, 35632));
+  gl["l8l"](program);
+  return (name) => name ? uniforms[name] || (uniforms[name] = gl["gan"](program, name)) : gl["u7y"](program);
+};
 const LIGHT_ROT_Y = 139;
 const LIGHT_ROT_X = 298;
 const startMainLoop = (groundTextureImage) => {
@@ -1592,7 +1592,6 @@ const startMainLoop = (groundTextureImage) => {
     new Float32Array(16)
   ];
   const mainLoop = (globalTime) => {
-    gl["f1s"]();
     requestAnimationFrame(mainLoop);
     gameTimeUpdate(globalTime);
     if (gameTimeDelta > 0) {

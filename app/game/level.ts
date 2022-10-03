@@ -100,8 +100,23 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     if (DEBUG) {
       /// XXX TODO DEBUG
 
-      meshAdd(cylinder(), translation(0, 0, 0).scale(1, 5, 1), material(0.3, 0.3, 0.38));
-      meshAdd(cylinder(), translation(3, 0, 3).scale(1, 5, 1).rotate(0, 45), material(0.3, 0.3, 0.38));
+      // meshAdd(cylinder(), translation(0, 0, 0).scale(1, 5, 1), material(0.3, 0.3, 0.38));
+      // meshAdd(cylinder(), translation(3, 0, 3).scale(1, 5, 1).rotate(0, 45), material(0.3, 0.3, 0.38));
+
+      meshAdd(
+        csg_polygons_subtract(
+          polygons_transform(
+            cylinder(),
+            translation(0, -0.5, 1).scale(1.15, 1.2, 6.5),
+            material(0.25, 0.25, 0.35, 0.3),
+          ),
+          polygons_transform(cylinder(3), translation(0, 0, -5.5).scale(3, 2), material(0.6, 0.3, 0.4, 0.3)),
+          ...[-1.2, 1.2].map((i) =>
+            polygons_transform(cylinder(), translation(i, -0.5, 1).scale(0.14, 0.3, 6.5), material(0.7, 0.2, 0, 0.3)),
+          ),
+        ),
+        translation(3, 2.7, 3).scale(1, 1),
+      );
     }
 
     // SOUL 0 - soul after first boat
@@ -613,11 +628,11 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
       ),
     );
 
-    newModel(() => integers_map(2, (x) => meshAdd(pushingRod, translation(-110 + x * 9 + (x & 1), 1.7, -12))));
+    newModel(() => integers_map(2, (x) => meshAdd(pushingRod, translation(-110 + x * 9 + (x & 1), 1.9, -12))));
 
-    newModel(() => integers_map(2, (x) => meshAdd(pushingRod, translation(-110 + (x + 2) * 9 + (x & 1), 1.7, -12))));
+    newModel(() => integers_map(2, (x) => meshAdd(pushingRod, translation(-110 + (x + 2) * 9 + (x & 1), 1.9, -12))));
 
-    newModel(() => integers_map(3, (x) => meshAdd(pushingRod, translation(-106 + x * 9, 1.7, -12))));
+    newModel(() => integers_map(3, (x) => meshAdd(pushingRod, translation(-106 + x * 9, 1.9, -12))));
 
     // pushing rods container
 
@@ -625,7 +640,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
       csg_polygons_subtract(
         csg_union(
           polygons_transform(cylinder(), translation(26.5, -1.6, 10).scale(20, 2.08, 3)),
-          polygons_transform(cylinder(), translation(26.5, -0.6, 10).scale(19, 2, 0.5)),
+          polygons_transform(cylinder(), translation(26.5, -0.5, 10).scale(19, 2, 0.5)),
         ),
         ...integers_map(4, (x) =>
           polygons_transform(cylinder(), translation(13 + x * 9 + (x & 1), -0.8, 9).scale(1.35, 1.35, 9)),
@@ -634,7 +649,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
           polygons_transform(cylinder(), translation(17 + x * 9, -0.8, 9).scale(1.35, 1.35, 9)),
         ),
       ),
-      translation(-123, 0, -12),
+      translation(-123, 0.2, -12),
       material(0.5, 0.5, 0.6, 0.2),
     );
 

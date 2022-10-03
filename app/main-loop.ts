@@ -22,20 +22,20 @@ import void_fsSource from "./shaders/void-fragment.frag";
 import sky_vsSource from "./shaders/sky-vertex.vert";
 import sky_fsSource, { uniformName_iResolution } from "./shaders/sky-fragment.frag";
 
-import { max, min } from "./math/math";
+import { gameTimeUpdate, gameTimeDelta, mainMenuVisible, absoluteTime } from "./game/game-time";
 import { MODEL_ID_SOUL, MODEL_ID_SOUL_COLLISION } from "./game/models";
 import { camera_rotation, player_position_final, worldStateUpdate } from "./game/world-state";
-import { initPage, csm_projections, player_first_person, projection, resetInteractPressed, updateInput } from "./page";
-import { player_init, camera_position_x, camera_position_y, camera_position_z } from "./game/player";
-import { gl } from "./gl";
-import { loadShader, initShaderProgram } from "./shaders-utils";
-import type { Vec3 } from "./math/vectors";
 import { integers_map } from "./math/integers-map";
 import { identity, matrixCopy, matrixToArray, tempMatrix } from "./math/matrix";
 import { mat_perspective, zFar, zNear } from "./math/matrix-perspective";
-import { renderModels } from "./game/models-render";
-import { gameTimeUpdate, gameTimeDelta, mainMenuVisible, absoluteTime } from "./game/game-time";
 import { eppur_si_muove } from "./game/level-update";
+import { max, min } from "./math/math";
+import type { Vec3 } from "./math/vectors";
+import { renderModels } from "./game/models-render";
+import { loadShader, initShaderProgram } from "./shaders-utils";
+import { initPage, csm_projections, player_first_person, projection, resetInteractPressed, updateInput } from "./page";
+import { player_init, camera_position_x, camera_position_y, camera_position_z } from "./game/player";
+import { gl } from "./gl";
 
 const LIGHT_ROT_X = 298;
 const LIGHT_ROT_Y = 139;

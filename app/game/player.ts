@@ -10,7 +10,14 @@ import {
   abs,
   threshold,
 } from "../math/math";
-import { levers, allModels, MODEL_KIND_GAME, MODEL_ID_ROTATING_PLATFORM, MODEL_ID_PLAYER_BODY } from "./models";
+import {
+  levers,
+  allModels,
+  MODEL_KIND_GAME,
+  MODEL_ID_ROTATING_PLATFORM,
+  MODEL_ID_PLAYER_BODY,
+  MODEL_ID_STATIC_WORLD,
+} from "./models";
 import { player_last_pulled_lever, camera_rotation, firstBoatLerp, player_position_final } from "./world-state";
 import { input_forward, input_strafe, player_first_person } from "../page";
 import { lerpDamp, gameTimeDelta, damp, gameTime } from "./game-time";
@@ -40,15 +47,11 @@ export const set_camera_position = (x: number, y: number, z: number) => {
 
 const collision_buffer = new Uint8Array(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
 
-// let debug2dctx: CanvasRenderingContext2D | null | undefined;
-
 export let player_update: (nextModelMatrix: () => DOMMatrix) => void;
 
 export const player_init = () => {
-  let currentModelId: number;
-  let oldModelId: number | undefined;
-
   let boot: 0 | 1 = 1;
+  let player_gravity = 15;
   let player_respawned: 0 | 1 | 2 = 2;
   let player_look_angle_target: number;
   let player_look_angle: number;
@@ -59,7 +62,9 @@ export const player_init = () => {
   let player_speed: number;
   let player_speed_collision_limiter: number;
   let player_model_y: number;
-  let player_gravity = 15;
+
+  let currentModelId: number;
+  let oldModelId: number | undefined;
 
   let camera_pos_lookat_x: number;
   let camera_pos_lookat_y: number;
@@ -67,10 +72,13 @@ export const player_init = () => {
 
   const player_position_global = { x: 0, y: 0, z: 0 };
 
-  const getReferenceMatrix = () =>
-    player_respawned
-      ? levers[player_last_pulled_lever]!.$matrix
-      : allModels[(oldModelId && allModels[oldModelId]!.$kind === MODEL_KIND_GAME && oldModelId) || 0]!.$matrix;
+  const loadReferenceMatrix = () =>
+    matrixCopy(
+      (player_respawned
+        ? levers[player_last_pulled_lever]!
+        : allModels[(oldModelId && allModels[oldModelId]!.$kind === MODEL_KIND_GAME && oldModelId) || 0]!
+      ).$matrix,
+    );
 
   const updatePlayerPositionFinal = (updateVelocity?: unknown) => {
     const { x, y, z } =
@@ -82,7 +90,7 @@ export const player_init = () => {
               y: player_last_pulled_lever || firstBoatLerp > 0.9 ? 15 : 1,
               z: PLAYER_RESPAWN_Z,
             })
-        : getReferenceMatrix().transformPoint(player_position_global);
+        : loadReferenceMatrix().transformPoint(player_position_global);
 
     if (updateVelocity) {
       player_fly_velocity_x = (x - player_position_final.x) / gameTimeDelta;
@@ -95,7 +103,7 @@ export const player_init = () => {
   };
 
   const movePlayer = (x: number, y: number, z: number) => {
-    matrixCopy(getReferenceMatrix()).invertSelf();
+    loadReferenceMatrix().invertSelf();
     tempMatrix.m41 = tempMatrix.m42 = tempMatrix.m43 = 0;
     const v = tempMatrix.transformPoint({ x, z, w: 0 });
     player_position_global.x += v.x;
@@ -179,6 +187,8 @@ export const player_init = () => {
       }
     }
 
+    // movX = movZ = 0; // TODO DeBUG
+
     player_speed_collision_limiter = clamp(1 - max(abs(movX), abs(movZ)) * 0.02);
 
     movePlayer(movX / 255, movY / 255, movZ / 255);
@@ -202,6 +212,35 @@ export const player_init = () => {
     // gl.invalidateFramebuffer(gl.READ_FRAMEBUFFER, [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT]);
     // gl.invalidateFramebuffer(gl.DRAW_FRAMEBUFFER, [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT]);
 
+    if (DEBUG) {
+      const debugCanvas = document.getElementById("debug-canvas") as HTMLCanvasElement;
+
+      const buf = new Uint8ClampedArray(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
+
+      if (debugCanvas) {
+        for (let y = 0; y < COLLISION_TEXTURE_SIZE; ++y) {
+          for (let x = 0; x < COLLISION_TEXTURE_SIZE; ++x) {
+            const i = ((COLLISION_TEXTURE_SIZE - y) * COLLISION_TEXTURE_SIZE + x) * 4;
+            const r = collision_buffer[i]!;
+            const g = collision_buffer[i + 1]!;
+            const b = collision_buffer[i + 2]!;
+
+            buf[(y * COLLISION_TEXTURE_SIZE + x) * 4] = r;
+            buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 1] = g * 30;
+            buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 2] = b ? 200 : 0;
+            buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 3] = 255;
+          }
+        }
+
+        const imgdata = new ImageData(buf, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
+
+        if (!(window as any).debug2dctx) {
+          (window as any).debug2dctx = debugCanvas.getContext("2d")!;
+        }
+        (window as any).debug2dctx.putImageData(imgdata, 0, 0, 0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
+      }
+    }
+
     // ------- process collision renderBuffer -------
 
     NO_INLINE(doCollisions)();
@@ -213,7 +252,7 @@ export const player_init = () => {
 
       oldModelId = currentModelId;
 
-      const v = matrixCopy(getReferenceMatrix()).invertSelf().transformPoint(player_position_final);
+      const v = loadReferenceMatrix().invertSelf().transformPoint(player_position_final);
       player_position_global.x = v.x;
       player_position_global.y = v.y;
       player_position_global.z = v.z;
@@ -231,7 +270,7 @@ export const player_init = () => {
     }
 
     // Special handling for the second boat (lever 7) - the boat must be on the side of the map the player is
-    if (currentModelId === 1) {
+    if (currentModelId === MODEL_ID_STATIC_WORLD) {
       levers[9]!.$value = x < -15 && z < 0 ? 1 : 0;
     }
 
@@ -361,32 +400,3 @@ export const player_init = () => {
     );
   };
 };
-
-// if (DEBUG) {
-//   const debugCanvas = document.getElementById("debug-canvas") as HTMLCanvasElement;
-
-//   const buf = new Uint8ClampedArray(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
-
-//   if (debugCanvas) {
-//     for (let y = 0; y < COLLISION_TEXTURE_SIZE; ++y) {
-//       for (let x = 0; x < COLLISION_TEXTURE_SIZE; ++x) {
-//         const i = ((COLLISION_TEXTURE_SIZE - y) * COLLISION_TEXTURE_SIZE + x) * 4;
-//         const r = collision_buffer[i]!;
-//         const g = collision_buffer[i + 1]!;
-//         const b = collision_buffer[i + 2]!;
-
-//         buf[(y * COLLISION_TEXTURE_SIZE + x) * 4] = r * 10;
-//         buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 1] = g * 10;
-//         buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 2] = b ? 200 : 0;
-//         buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 3] = 255;
-//       }
-//     }
-
-//     const imgdata = new ImageData(buf, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
-
-//     if (!debug2dctx) {
-//       debug2dctx = debugCanvas.getContext("2d")!;
-//     }
-//     debug2dctx.putImageData(imgdata, 0, 0, 0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
-//   }
-// }

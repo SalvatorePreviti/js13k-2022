@@ -28,11 +28,11 @@ export let input_forward = 0;
 
 export let input_strafe = 0;
 
-export let updateInput: () => void;
-
 export let projection: DOMMatrix;
 
 export let csm_projections: DOMMatrix[];
+
+export let updateInput: () => void;
 
 export const initPage = () => {
   let touchStartTime: number | undefined;
@@ -76,11 +76,11 @@ export const initPage = () => {
 
   const handleResize = () => {
     const mx = ((hC.height = innerHeight) / (hC.width = innerWidth)) * fieldOfViewAmount;
-    projection = mat_perspective(zNear, zFar, mx, fieldOfViewAmount);
     csm_projections = [
       mat_perspective(zNear, CSM_PLANE_DISTANCE, mx, fieldOfViewAmount),
       mat_perspective(CSM_PLANE_DISTANCE, zFar, mx, fieldOfViewAmount),
     ];
+    projection = mat_perspective(zNear, zFar, mx, fieldOfViewAmount);
 
     touchPosIdentifier = touchRotIdentifier = undefined;
     keyboard_downKeys.length =

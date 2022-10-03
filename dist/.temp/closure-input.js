@@ -4,15 +4,15 @@ let firstBoatLerp;
 let secondBoatLerp;
 let interact_pressed;
 let player_first_person;
-let updateInput;
 let projection;
 let csm_projections;
+let updateInput;
 let currentEditModel;
+let player_update;
 let shouldRotatePlatforms;
 let rotatingPlatform1Rotation;
 let rotatingPlatform2Rotation;
 let rotatingHexCorridorRotation;
-let player_update;
 let gameTime = 0;
 let absoluteTime = 0;
 let souls_collected_count = 0;
@@ -564,11 +564,11 @@ const initPage = () => {
   };
   const handleResize = () => {
     const mx = (hC.height = innerHeight) / (hC.width = innerWidth) * 1.732051;
-    projection = mat_perspective(0.3, 181, mx, 1.732051),
-      csm_projections = [
-        mat_perspective(0.3, 55, mx, 1.732051),
-        mat_perspective(55, 181, mx, 1.732051),
-      ],
+    csm_projections = [
+      mat_perspective(0.3, 55, mx, 1.732051),
+      mat_perspective(55, 181, mx, 1.732051),
+    ],
+      projection = mat_perspective(0.3, 181, mx, 1.732051),
       touchPosIdentifier = touchRotIdentifier = void 0,
       keyboard_downKeys.length =
         interact_pressed =
@@ -863,15 +863,7 @@ const newSoul = (transform, ...walkingPath) => {
   const index = souls.length;
   souls.push(soul);
 };
-const boatAnimationMatrix = (matrix, x, y, z) =>
-  matrix.translateSelf(x + Math.sin(gameTime + 2) / 5, y + Math.sin(0.8 * gameTime) / 3, z).rotateSelf(
-    2 * Math.sin(gameTime),
-    Math.sin(0.7 * gameTime),
-    Math.sin(0.9 * gameTime),
-  );
 const player_init = () => {
-  let currentModelId;
-  let oldModelId;
   let player_look_angle_target;
   let player_look_angle;
   let player_legs_speed;
@@ -881,6 +873,8 @@ const player_init = () => {
   let player_speed;
   let player_speed_collision_limiter;
   let player_model_y;
+  let currentModelId;
+  let oldModelId;
   let camera_pos_lookat_x;
   let camera_pos_lookat_y;
   let camera_pos_lookat_z;
@@ -892,10 +886,12 @@ const player_init = () => {
     y: 0,
     z: 0,
   };
-  const getReferenceMatrix = () =>
-    (player_respawned
-      ? levers[player_last_pulled_lever]
-      : allModels[oldModelId && allModels[oldModelId].$kind === 1 && oldModelId || 0]).$matrix;
+  const loadReferenceMatrix = () =>
+    matrixCopy(
+      (player_respawned
+        ? levers[player_last_pulled_lever]
+        : allModels[oldModelId && allModels[oldModelId].$kind === 1 && oldModelId || 0]).$matrix,
+    );
   const updatePlayerPositionFinal = (updateVelocity) => {
     const { x, y, z } = 1 < player_respawned
       ? matrixCopy(levers[player_last_pulled_lever].$matrix).multiplySelf(levers[player_last_pulled_lever].$transform)
@@ -904,7 +900,7 @@ const player_init = () => {
           y: player_last_pulled_lever || 0.9 < firstBoatLerp ? 15 : 1,
           z: -2.4,
         })
-      : getReferenceMatrix().transformPoint(player_position_global);
+      : loadReferenceMatrix().transformPoint(player_position_global);
     updateVelocity
     && (player_fly_velocity_x = (x - player_position_final.x) / gameTimeDelta,
       player_fly_velocity_z = (z - player_position_final.z) / gameTimeDelta),
@@ -913,7 +909,7 @@ const player_init = () => {
       player_position_final.z = z;
   };
   const movePlayer = (x, y, z) => {
-    matrixCopy(getReferenceMatrix()).invertSelf(),
+    loadReferenceMatrix().invertSelf(),
       tempMatrix.m41 = tempMatrix.m42 = tempMatrix.m43 = 0,
       x = tempMatrix.transformPoint({
         x,
@@ -975,7 +971,7 @@ const player_init = () => {
       NO_INLINE(doCollisions)(),
       !player_respawned && currentModelId === oldModelId
       || (oldModelId = currentModelId,
-        v = matrixCopy(getReferenceMatrix()).invertSelf().transformPoint(player_position_final),
+        v = loadReferenceMatrix().invertSelf().transformPoint(player_position_final),
         player_position_global.x = v.x,
         player_position_global.y = v.y,
         player_position_global.z = v.z),
@@ -1070,15 +1066,12 @@ const player_init = () => {
       );
   };
 };
-const loadShader = (source, type = 35633) => (type = gl["c6x"](type), gl["s3c"](type, source), gl["c6a"](type), type);
-const initShaderProgram = (vertexShader, sfsSource) => {
-  const uniforms = {};
-  const program = gl["c1h"]();
-  return gl["abz"](program, vertexShader),
-    gl["abz"](program, loadShader(sfsSource, 35632)),
-    gl["l8l"](program),
-    (name) => name ? uniforms[name] || (uniforms[name] = gl["gan"](program, name)) : gl["u7y"](program);
-};
+const boatAnimationMatrix = (matrix, x, y, z) =>
+  matrix.translateSelf(x + Math.sin(gameTime + 2) / 5, y + Math.sin(0.8 * gameTime) / 3, z).rotateSelf(
+    2 * Math.sin(gameTime),
+    Math.sin(0.7 * gameTime),
+    Math.sin(0.9 * gameTime),
+  );
 const renderModels = (worldMatrixLoc, renderPlayer, soulModelId) => {
   mainMenuVisible
     ? 1100 < hC.width
@@ -1105,6 +1098,15 @@ const renderModels = (worldMatrixLoc, renderPlayer, soulModelId) => {
         2 * allModels[42].$vertexBegin,
         levers.length,
       ));
+};
+const loadShader = (source, type = 35633) => (type = gl["c6x"](type), gl["s3c"](type, source), gl["c6a"](type), type);
+const initShaderProgram = (vertexShader, sfsSource) => {
+  const uniforms = {};
+  const program = gl["c1h"]();
+  return gl["abz"](program, vertexShader),
+    gl["abz"](program, loadShader(sfsSource, 35632)),
+    gl["l8l"](program),
+    (name) => name ? uniforms[name] || (uniforms[name] = gl["gan"](program, name)) : gl["u7y"](program);
 };
 const loadStep = (fn) => {
   h4.innerHTML += ".", setTimeout(fn);
@@ -1257,7 +1259,7 @@ loadStep(() => {
         new Float32Array(16),
       ];
       const mainLoop = (globalTime) => {
-        gl["f1s"](), requestAnimationFrame(mainLoop);
+        requestAnimationFrame(mainLoop);
         var dt = (globalTime - (_globalTime || globalTime)) / 1e3;
         if (
           absoluteTime += dt,
@@ -1465,7 +1467,7 @@ precision highp float;uniform vec3 j,k;uniform mat4 b;uniform highp sampler2D q;
       const collisionShader = initShaderProgram(
         mainVertexShader,
         `#version 300 es
-precision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(vec3(0,1.49,.3*b[0][0])+m.xyz,1);if(gl_FragCoord.y>36.){float e=1.-abs((gl_FragCoord.x-63.5)/63.5),i=clamp(a.z+.6,0.,1.);O=vec4(vec2(b[0][0]*sign(a.x)*o.x<0.?min(i*10.,1.)*(.9-abs(a.x))*e:0.),vec2(b[0][0]*o.z>0.?i*(1.-e):0.));}else{float e=o.y>.45?a.y*clamp((a.z+.4)*50.,0.,1.):0.;O=vec4(vec2(e),vec2(e>0.?m.w/255.:0.));}}`,
+precision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(vec3(0,1.49,.3*b[0][0])+m.xyz,1);if(gl_FragCoord.y>36.){float e=abs(gl_FragCoord.x/64.-1.),v=clamp(a.z+.7,0.,1.);O=a.y<.6||a.y>4.?vec4(0):vec4(vec2(b[0][0]*sign(a.x)*o.x<0.?v*(.7-abs(a.x))*e:0.),vec2(b[0][0]*o.z>0.?v*(1.-e):0.));}else{float e=o.y>.45&&a.y<1.?a.y*clamp((a.z+.4)*50.,0.,1.):0.;O=vec4(vec2(e),vec2(e>0.?m.w/255.:0.));}}`,
       );
       const mainShader = initShaderProgram(
         mainVertexShader,
@@ -2232,19 +2234,19 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   )
                 ),
               ));
-            newModel(() => integers_map(2, (x) => meshAdd(pushingRod, translation(9 * x - 110 + (1 & x), 1.7, -12)))),
+            newModel(() => integers_map(2, (x) => meshAdd(pushingRod, translation(9 * x - 110 + (1 & x), 1.9, -12)))),
               newModel(() =>
                 integers_map(2, (x) =>
-                  meshAdd(pushingRod, translation(9 * (x + 2) - 110 + (1 & x), 1.7, -12)))
+                  meshAdd(pushingRod, translation(9 * (x + 2) - 110 + (1 & x), 1.9, -12)))
               ),
               newModel(() =>
-                integers_map(3, (x) => meshAdd(pushingRod, translation(9 * x - 106, 1.7, -12)))
+                integers_map(3, (x) => meshAdd(pushingRod, translation(9 * x - 106, 1.9, -12)))
               ),
               meshAdd(
                 csg_polygons_subtract(
                   csg_union(
                     polygons_transform(cylinder(), translation(26.5, -1.6, 10).scale(20, 2.08, 3)),
-                    polygons_transform(cylinder(), translation(26.5, -0.6, 10).scale(19, 2, 0.5)),
+                    polygons_transform(cylinder(), translation(26.5, -0.5, 10).scale(19, 2, 0.5)),
                   ),
                   ...integers_map(
                     4,
@@ -2256,7 +2258,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                     (x) => polygons_transform(cylinder(), translation(17 + 9 * x, -0.8, 9).scale(1.35, 1.35, 9)),
                   ),
                 ),
-                translation(-123, 0, -12),
+                translation(-123, 0.2, -12),
                 material(0.5, 0.5, 0.6, 0.2),
               ),
               newLever(translation(-116, -1.4, -18).rotate(0, 180)),
