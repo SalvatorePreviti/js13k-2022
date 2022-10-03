@@ -80,17 +80,17 @@ export const eppur_si_muove = () => {
     0,
   );
 
-  // blackPlatforms
+  // central oscillating platform
 
   const level2Oscillation = min(levers[2]!.$lerpValue2, 1 - levers[4]!.$lerpValue2);
+
+  next().translateSelf(level2Oscillation * Math.sin(gameTime / 1.5 + 2) * 12);
+
+  // blackPlatforms
 
   next().translateSelf(level2Oscillation * Math.sin(gameTime * 0.7 + 2) * 12);
 
   next().translateSelf(level2Oscillation * Math.sin(gameTime + 3) * 8.2);
-
-  // central oscillating platform
-
-  next().translateSelf(level2Oscillation * Math.sin(gameTime / 1.5 + 2) * 12);
 
   // triangle platform
 
