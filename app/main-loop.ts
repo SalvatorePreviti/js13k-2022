@@ -36,7 +36,6 @@ import { mat_perspective, zFar, zNear } from "./math/matrix-perspective";
 import { renderModels } from "./game/models-render";
 import { gameTimeUpdate, gameTimeDelta, mainMenuVisible, absoluteTime } from "./game/game-time";
 import { eppur_si_muove } from "./game/level-update";
-import { KEY_CODE_KEY_F, KEY_CODE_KEY_R } from "./utils/keycodes";
 
 const LIGHT_ROT_X = 298;
 const LIGHT_ROT_Y = 139;

@@ -1401,24 +1401,24 @@ loadStep(() => {
             renderModels(collisionShader("c"), 0, 40),
             gl["f1s"]();
         }
-        let camera_x = camera_position_x;
-        let camera_y = camera_position_y;
-        let camera_z = camera_position_z;
+        let cameraX = camera_position_x;
+        let cameraY = camera_position_y;
+        let cameraZ = camera_position_z;
         mainMenuVisible
           ? ({ x: globalTime, y: dt } = matrixCopy(projection).invertSelf().transformPoint({
             x: 3.6,
             y: 3.5,
           }),
-            camera_x = globalTime,
-            camera_y = dt,
-            camera_z = 5,
+            cameraX = globalTime,
+            cameraY = dt,
+            cameraZ = 5,
             matrixCopy(identity, camera_view).rotateSelf(-20, 0).invertSelf().translateSelf(
-              -camera_x,
-              -camera_y,
-              -camera_z,
+              -cameraX,
+              -cameraY,
+              -cameraZ,
             ).rotateSelf(0, 99))
           : matrixCopy(identity, camera_view).rotateSelf(-camera_rotation.x, -camera_rotation.y).invertSelf()
-            .translateSelf(-camera_x, -camera_y, -camera_z),
+            .translateSelf(-cameraX, -cameraY, -cameraZ),
           csmShader(),
           gl["b6o"](36160, csm_framebuffer),
           gl["v5y"](0, 0, 2048, 2048),
@@ -1433,11 +1433,11 @@ loadStep(() => {
           gl["uae"](mainShader("b"), !1, matrixToArray(camera_view)),
           gl["uae"](mainShader("i"), !1, csm_lightSpaceMatrices[0]),
           gl["uae"](mainShader("j"), !1, csm_lightSpaceMatrices[1]),
-          gl["ubu"](mainShader("k"), camera_x, camera_y, camera_z),
+          gl["ubu"](mainShader("k"), cameraX, cameraY, cameraZ),
           renderModels(mainShader("c"), !player_first_person, 41),
           skyShader(),
           gl["ubu"](skyShader("j"), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime),
-          gl["ubu"](skyShader("k"), camera_x, camera_y, camera_z),
+          gl["ubu"](skyShader("k"), cameraX, cameraY, cameraZ),
           gl["uae"](skyShader("b"), !1, matrixToArray(matrixCopy(camera_view).invertSelf())),
           gl["d97"](4, 3, 5123, 0),
           gl["b6o"](36160, collision_frameBuffer),

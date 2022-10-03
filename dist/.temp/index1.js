@@ -2369,24 +2369,24 @@ const startMainLoop = (groundTextureImage) => {
       renderModels(collisionShader(uniformName_worldMatrices), 0, MODEL_ID_SOUL_COLLISION);
       gl["f1s"]();
     }
-    let camera_x = camera_position_x;
-    let camera_y = camera_position_y;
-    let camera_z = camera_position_z;
+    let cameraX = camera_position_x;
+    let cameraY = camera_position_y;
+    let cameraZ = camera_position_z;
     if (mainMenuVisible) {
       const { x: x1, y: y1 } = matrixCopy(projection).invertSelf().transformPoint({
         x: 3.6,
         y: 3.5,
       });
-      camera_x = x1;
-      camera_y = y1;
-      camera_z = 5;
-      matrixCopy(identity, camera_view).rotateSelf(-20, 0).invertSelf().translateSelf(-camera_x, -camera_y, -camera_z)
+      cameraX = x1;
+      cameraY = y1;
+      cameraZ = 5;
+      matrixCopy(identity, camera_view).rotateSelf(-20, 0).invertSelf().translateSelf(-cameraX, -cameraY, -cameraZ)
         .rotateSelf(0, 99);
     } else {
       matrixCopy(identity, camera_view).rotateSelf(-camera_rotation.x, -camera_rotation.y).invertSelf().translateSelf(
-        -camera_x,
-        -camera_y,
-        -camera_z,
+        -cameraX,
+        -cameraY,
+        -cameraZ,
       );
     }
     csmShader();
@@ -2403,11 +2403,11 @@ const startMainLoop = (groundTextureImage) => {
     gl["uae"](mainShader(uniformName_viewMatrix), false, matrixToArray(camera_view));
     gl["uae"](mainShader(uniformName_csm_matrix0), false, csm_lightSpaceMatrices[0]);
     gl["uae"](mainShader(uniformName_csm_matrix1), false, csm_lightSpaceMatrices[1]);
-    gl["ubu"](mainShader(uniformName_viewPos), camera_x, camera_y, camera_z);
+    gl["ubu"](mainShader(uniformName_viewPos), cameraX, cameraY, cameraZ);
     renderModels(mainShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL);
     skyShader();
     gl["ubu"](skyShader(uniformName_iResolution), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime);
-    gl["ubu"](skyShader(uniformName_viewPos), camera_x, camera_y, camera_z);
+    gl["ubu"](skyShader(uniformName_viewPos), cameraX, cameraY, cameraZ);
     gl["uae"](skyShader(uniformName_viewMatrix), false, matrixToArray(matrixCopy(camera_view).invertSelf()));
     gl["d97"](4, 3, 5123, 0);
     gl["b6o"](36160, collision_frameBuffer);
