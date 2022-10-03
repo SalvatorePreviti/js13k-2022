@@ -1,5 +1,5 @@
 NO_INLINE(
-  "<!DOCTYPE html><html><head>\n    <title>666</title>\n    <meta name=\"viewport\" content=\"width=device-width,initial-scale=1,user-scalable=0\">\n    \n    \n    \n  <link rel=\"stylesheet\" href=\"/index.css\"></head>\n\n  <body>\n    <canvas id=\"hC\"></canvas>\n    <h4 id=\"h4\">loading</h4>\n    <b id=\"b5\">☰</b>\n    <h3 id=\"h3\"></h3>\n    <main>\n      <nav>\n        <h2>DANTE</h2>\n        Lucifer:\n        <i>\"Damn. Infernal delivery service failed again. A delivery of evil souls fell in an area under construction.\n          Dante, take them where they belong, to the 8th circle.\"</i>\n        <ul>\n          <li id=\"b1\">Play</li>\n          <li id=\"b2\">Play first person</li>\n          <li id=\"b3\">Restart</li>\n          <li id=\"b4\"></li>\n        </ul>\n        <p>move WASD/arrows, levers E/click, menu Esc</p>\n        <p>\n          <a target=\"_blank\" href=\"https://github.com/SalvatorePreviti/js13k-2022\">© 2022 Salvatore Previti</a> -\n          <a target=\"_blank\" href=\"https://twitter.com/ryanmalm\">music Ryan Malm</a>\n        </p>\n      </nav>\n    </main>\n    \n  \n\n<script type=\"module\" src=\"/index.js\" crossorigin=\"\"></script></body></html> * {\n  -webkit-user-select: none;\n  user-select: none;\n  color: #fda;\n  font-weight: 100;\n  touch-action: none;\n  overscroll-behavior: contain;\n}\nhtml,\nbody {\n  background: #000;\n  margin: 0;\n  font-family: \"Times New Roman\", serif;\n  font-size: max(min(3.8vw, 3.8vh), 15px);\n  text-shadow: 4px 4px 2px #000, -2px -2px 8px #000;\n}\np {\n  font-size: 0.7em;\n}\nbody > * {\n  position: absolute;\n}\nh2 {\n  color: #f61;\n  margin: 0 0 0.7em;\n}\nh4 {\n  left: 0;\n  top: 0;\n  right: 0;\n  text-align: center;\n}\nh3,\nh4 {\n  pointer-events: none;\n}\n.m main {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  top: 0;\n  right: 0;\n  bottom: 0;\n  min-width: 70%;\n}\nnav {\n  background: #00000080;\n  border-radius: 1em;\n  max-width: 780px;\n  padding: 1em;\n}\n#b5,\nh3 {\n  padding: 10px;\n}\nh3 {\n  text-align: right;\n  right: 5%;\n  bottom: 0;\n}\na,\nli {\n  cursor: pointer;\n  margin-bottom: 0.5em;\n  text-decoration: none;\n  border-bottom: 3px solid #00000000;\n}\nh2,\na:hover,\nli:hover {\n  border-bottom: 3px solid;\n}\nmain,\n.m h4 {\n  display: none;\n}\n",
+  "<!DOCTYPE html><html><head>\n    <title>666</title>\n    <meta name=\"viewport\" content=\"width=device-width,initial-scale=1,user-scalable=0\">\n    \n    \n    \n  <link rel=\"stylesheet\" href=\"/index.css\"></head>\n\n  <body>\n    <canvas id=\"hC\"></canvas>\n    <h4 id=\"h4\">loading</h4>\n    <b id=\"b5\">☰</b>\n    <h3 id=\"h3\"></h3>\n    <main>\n      <nav>\n        <h2>DANTE</h2>\n        Lucifer:\n        <i>\"Damn. Infernal delivery service failed again. A delivery of evil souls fell in an area under construction.\n          Dante, take them where they belong, to the 8th circle.\"</i>\n        <ul>\n          <li id=\"b1\">Play</li>\n          <li id=\"b2\">Play first person</li>\n          <li id=\"b3\">Restart</li>\n          <li id=\"b4\"></li>\n        </ul>\n        <p>move WASD/arrows, levers E/click, menu Esc</p>\n        <p>\n          <a target=\"_blank\" href=\"https://github.com/SalvatorePreviti/js13k-2022\">© 2022 Salvatore Previti</a> -\n          <a target=\"_blank\" href=\"https://twitter.com/ryanmalm\">music Ryan Malm</a>\n        </p>\n      </nav>\n    </main>\n    \n  \n\n<script type=\"module\" src=\"/index.js\" crossorigin=\"\"></script></body></html> * {\n  -webkit-user-select: none;\n  user-select: none;\n  color: #fda;\n  font-weight: 100;\n  touch-action: none;\n  overscroll-behavior: contain;\n}\nhtml,\nbody {\n  background: #000;\n  margin: 0;\n  font-family: \"Times New Roman\", serif;\n  font-size: max(min(3.8vw, 3.8vh), 15px);\n  text-shadow: 4px 4px 2px #000, -2px -2px 8px #000;\n}\np {\n  font-size: 0.7em;\n}\nbody > * {\n  position: absolute;\n}\nh2 {\n  color: #f61;\n  margin: 0 0 0.7em;\n}\nh4 {\n  left: 0;\n  top: 0;\n  right: 0;\n  text-align: center;\n}\nh3,\nh4 {\n  pointer-events: none;\n}\n.m main {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  top: 0;\n  right: 0;\n  bottom: 0;\n  min-width: 70%;\n}\nnav {\n  background: #00000080;\n  border-radius: 1em;\n  max-width: max(780px, 50vw);\n  padding: 1em;\n}\n#b5,\nh3 {\n  padding: 10px;\n}\nh3 {\n  text-align: right;\n  right: 5%;\n  bottom: 0;\n}\na,\nli {\n  cursor: pointer;\n  margin-bottom: 0.5em;\n  text-decoration: none;\n  border-bottom: 3px solid #00000000;\n}\nh2,\na:hover,\nli:hover {\n  border-bottom: 3px solid;\n}\nmain,\n.m h4 {\n  display: none;\n}\n",
 );
 const groundTextureSvg = `data:image/svg+xml;base64,${
   /* @__PURE__ */ btoa(
@@ -2293,17 +2293,19 @@ const initShaderProgram = (vertexShader, sfsSource) => {
 };
 const renderModels = (worldMatrixLoc, renderPlayer, soulModelId) => {
   if (mainMenuVisible) {
-    matrixCopy().rotateSelf(0, /* @__PURE__ */ Math.sin(absoluteTime) * 40 - 70);
-    matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_BODY);
-    matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_LEG0);
-    matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_LEG1);
-    gl["uae"](worldMatrixLoc, false, worldMatricesBuffer);
-    gl["d97"](
-      4,
-      allModels[MODEL_ID_PLAYER_LEG1].$vertexEnd - allModels[MODEL_ID_PLAYER_BODY].$vertexBegin,
-      5123,
-      allModels[MODEL_ID_PLAYER_BODY].$vertexBegin * 2,
-    );
+    if (hC.width > 1100) {
+      matrixCopy().rotateSelf(0, /* @__PURE__ */ Math.sin(absoluteTime) * 40 - 80, -8);
+      matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_BODY - 1);
+      matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_LEG0 - 1);
+      matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_LEG1 - 1);
+      gl["uae"](worldMatrixLoc, false, worldMatricesBuffer);
+      gl["d97"](
+        4,
+        allModels[MODEL_ID_PLAYER_LEG1].$vertexEnd - allModels[MODEL_ID_PLAYER_BODY].$vertexBegin,
+        5123,
+        allModels[MODEL_ID_PLAYER_BODY].$vertexBegin * 2,
+      );
+    }
     return;
   }
   gl["uae"](worldMatrixLoc, false, worldMatricesBuffer);
@@ -2344,6 +2346,7 @@ const startMainLoop = (groundTextureImage) => {
       updateInput();
       worldStateUpdate();
       eppur_si_muove();
+      resetInteractPressed();
       collisionShader();
       gl["b6o"](36160, collision_frameBuffer);
       gl["v5y"](0, 0, constDef_COLLISION_TEXTURE_SIZE, constDef_COLLISION_TEXTURE_SIZE);
@@ -2366,15 +2369,24 @@ const startMainLoop = (groundTextureImage) => {
       renderModels(collisionShader(uniformName_worldMatrices), 0, MODEL_ID_SOUL_COLLISION);
       gl["f1s"]();
     }
-    resetInteractPressed();
-    matrixCopy(identity, camera_view);
+    let camera_x = camera_position_x;
+    let camera_y = camera_position_y;
+    let camera_z = camera_position_z;
     if (mainMenuVisible) {
-      camera_view.rotateSelf(-20, -90).invertSelf().translateSelf(5, -2, -3.4);
+      const { x: x1, y: y1 } = matrixCopy(projection).invertSelf().transformPoint({
+        x: 3.6,
+        y: 3.5,
+      });
+      camera_x = x1;
+      camera_y = y1;
+      camera_z = 5;
+      matrixCopy(identity, camera_view).rotateSelf(-20, 0).invertSelf().translateSelf(-camera_x, -camera_y, -camera_z)
+        .rotateSelf(0, 99);
     } else {
-      camera_view.rotateSelf(-camera_rotation.x, -camera_rotation.y).invertSelf().translateSelf(
-        -camera_position_x,
-        -camera_position_y,
-        -camera_position_z,
+      matrixCopy(identity, camera_view).rotateSelf(-camera_rotation.x, -camera_rotation.y).invertSelf().translateSelf(
+        -camera_x,
+        -camera_y,
+        -camera_z,
       );
     }
     csmShader();
@@ -2391,11 +2403,11 @@ const startMainLoop = (groundTextureImage) => {
     gl["uae"](mainShader(uniformName_viewMatrix), false, matrixToArray(camera_view));
     gl["uae"](mainShader(uniformName_csm_matrix0), false, csm_lightSpaceMatrices[0]);
     gl["uae"](mainShader(uniformName_csm_matrix1), false, csm_lightSpaceMatrices[1]);
-    gl["ubu"](mainShader(uniformName_viewPos), camera_position_x, camera_position_y, camera_position_z);
+    gl["ubu"](mainShader(uniformName_viewPos), camera_x, camera_y, camera_z);
     renderModels(mainShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL);
     skyShader();
     gl["ubu"](skyShader(uniformName_iResolution), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime);
-    gl["ubu"](skyShader(uniformName_viewPos), camera_position_x, camera_position_y, camera_position_z);
+    gl["ubu"](skyShader(uniformName_viewPos), camera_x, camera_y, camera_z);
     gl["uae"](skyShader(uniformName_viewMatrix), false, matrixToArray(matrixCopy(camera_view).invertSelf()));
     gl["d97"](4, 3, 5123, 0);
     gl["b6o"](36160, collision_frameBuffer);

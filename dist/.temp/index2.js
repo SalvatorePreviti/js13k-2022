@@ -1079,12 +1079,13 @@ const initShaderProgram = (vertexShader, sfsSource) => {
 };
 const renderModels = (worldMatrixLoc, renderPlayer, soulModelId) => {
   mainMenuVisible
-    ? (matrixCopy().rotateSelf(0, 40 * Math.sin(absoluteTime) - 70),
-      matrixToArray(tempMatrix, worldMatricesBuffer, 37),
-      matrixToArray(tempMatrix, worldMatricesBuffer, 38),
-      matrixToArray(tempMatrix, worldMatricesBuffer, 39),
-      gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer),
-      gl["d97"](4, allModels[39].$vertexEnd - allModels[37].$vertexBegin, 5123, 2 * allModels[37].$vertexBegin))
+    ? 1100 < hC.width
+      && (matrixCopy().rotateSelf(0, 40 * Math.sin(absoluteTime) - 80, -8),
+        matrixToArray(tempMatrix, worldMatricesBuffer, 36),
+        matrixToArray(tempMatrix, worldMatricesBuffer, 37),
+        matrixToArray(tempMatrix, worldMatricesBuffer, 38),
+        gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer),
+        gl["d97"](4, allModels[39].$vertexEnd - allModels[37].$vertexBegin, 5123, 2 * allModels[37].$vertexBegin))
     : (gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer),
       gl["d97"](4, (renderPlayer ? allModels[39].$vertexEnd : allModels[37].$vertexBegin) - 3, 5123, 6),
       gl["uae"](worldMatrixLoc, !1, objectsMatricesBuffer),
@@ -1381,7 +1382,8 @@ loadStep(() => {
             player_update(next);
             for (let i4 = 0; counter >= i4; ++i4) matrixToArray(allModels[i4].$matrix, worldMatricesBuffer, i4 - 1);
           }
-          collisionShader(),
+          interact_pressed = 0,
+            collisionShader(),
             gl["b6o"](36160, collision_frameBuffer),
             gl["v5y"](0, 0, 128, 128),
             gl["c4s"](16640),
@@ -1399,15 +1401,24 @@ loadStep(() => {
             renderModels(collisionShader("c"), 0, 40),
             gl["f1s"]();
         }
-        interact_pressed = 0,
-          matrixCopy(identity, camera_view),
-          mainMenuVisible
-            ? camera_view.rotateSelf(-20, -90).invertSelf().translateSelf(5, -2, -3.4)
-            : camera_view.rotateSelf(-camera_rotation.x, -camera_rotation.y).invertSelf().translateSelf(
-              -camera_position_x,
-              -camera_position_y,
-              -camera_position_z,
-            ),
+        let camera_x = camera_position_x;
+        let camera_y = camera_position_y;
+        let camera_z = camera_position_z;
+        mainMenuVisible
+          ? ({ x: globalTime, y: dt } = matrixCopy(projection).invertSelf().transformPoint({
+            x: 3.6,
+            y: 3.5,
+          }),
+            camera_x = globalTime,
+            camera_y = dt,
+            camera_z = 5,
+            matrixCopy(identity, camera_view).rotateSelf(-20, 0).invertSelf().translateSelf(
+              -camera_x,
+              -camera_y,
+              -camera_z,
+            ).rotateSelf(0, 99))
+          : matrixCopy(identity, camera_view).rotateSelf(-camera_rotation.x, -camera_rotation.y).invertSelf()
+            .translateSelf(-camera_x, -camera_y, -camera_z),
           csmShader(),
           gl["b6o"](36160, csm_framebuffer),
           gl["v5y"](0, 0, 2048, 2048),
@@ -1422,11 +1433,11 @@ loadStep(() => {
           gl["uae"](mainShader("b"), !1, matrixToArray(camera_view)),
           gl["uae"](mainShader("i"), !1, csm_lightSpaceMatrices[0]),
           gl["uae"](mainShader("j"), !1, csm_lightSpaceMatrices[1]),
-          gl["ubu"](mainShader("k"), camera_position_x, camera_position_y, camera_position_z),
+          gl["ubu"](mainShader("k"), camera_x, camera_y, camera_z),
           renderModels(mainShader("c"), !player_first_person, 41),
           skyShader(),
           gl["ubu"](skyShader("j"), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime),
-          gl["ubu"](skyShader("k"), camera_position_x, camera_position_y, camera_position_z),
+          gl["ubu"](skyShader("k"), camera_x, camera_y, camera_z),
           gl["uae"](skyShader("b"), !1, matrixToArray(matrixCopy(camera_view).invertSelf())),
           gl["d97"](4, 3, 5123, 0),
           gl["b6o"](36160, collision_frameBuffer),
@@ -2813,7 +2824,7 @@ h4 {
 nav {
   background: #00000080;
   border-radius: 1em;
-  max-width: 780px;
+  max-width: max(780px, 50vw);
   padding: 1em;
 }
 #b5,

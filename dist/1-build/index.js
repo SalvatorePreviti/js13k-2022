@@ -1567,12 +1567,14 @@ const initShaderProgram = (vertexShader, sfsSource) => {
 };
 const renderModels = (worldMatrixLoc, renderPlayer, soulModelId) => {
   if (mainMenuVisible) {
-    matrixCopy().rotateSelf(0, /* @__PURE__ */ Math.sin(absoluteTime) * 40 - 70);
-    matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_BODY);
-    matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_LEG0);
-    matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_LEG1);
-    gl["uae"](worldMatrixLoc, false, worldMatricesBuffer);
-    gl["d97"](4, allModels[MODEL_ID_PLAYER_LEG1].$vertexEnd - allModels[MODEL_ID_PLAYER_BODY].$vertexBegin, 5123, allModels[MODEL_ID_PLAYER_BODY].$vertexBegin * 2);
+    if (hC.width > 1100) {
+      matrixCopy().rotateSelf(0, /* @__PURE__ */ Math.sin(absoluteTime) * 40 - 80, -8);
+      matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_BODY - 1);
+      matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_LEG0 - 1);
+      matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_LEG1 - 1);
+      gl["uae"](worldMatrixLoc, false, worldMatricesBuffer);
+      gl["d97"](4, allModels[MODEL_ID_PLAYER_LEG1].$vertexEnd - allModels[MODEL_ID_PLAYER_BODY].$vertexBegin, 5123, allModels[MODEL_ID_PLAYER_BODY].$vertexBegin * 2);
+    }
     return;
   }
   gl["uae"](worldMatrixLoc, false, worldMatricesBuffer);
@@ -1596,6 +1598,7 @@ const startMainLoop = (groundTextureImage) => {
       updateInput();
       worldStateUpdate();
       eppur_si_muove();
+      resetInteractPressed();
       collisionShader();
       gl["b6o"](36160, collision_frameBuffer);
       gl["v5y"](0, 0, constDef_COLLISION_TEXTURE_SIZE, constDef_COLLISION_TEXTURE_SIZE);
@@ -1610,12 +1613,20 @@ const startMainLoop = (groundTextureImage) => {
       renderModels(collisionShader(uniformName_worldMatrices), 0, MODEL_ID_SOUL_COLLISION);
       gl["f1s"]();
     }
-    resetInteractPressed();
-    matrixCopy(identity, camera_view);
-    if (mainMenuVisible)
-      camera_view.rotateSelf(-20, -90).invertSelf().translateSelf(5, -2, -3.4);
-    else
-      camera_view.rotateSelf(-camera_rotation.x, -camera_rotation.y).invertSelf().translateSelf(-camera_position_x, -camera_position_y, -camera_position_z);
+    let camera_x = camera_position_x;
+    let camera_y = camera_position_y;
+    let camera_z = camera_position_z;
+    if (mainMenuVisible) {
+      const { x: x1, y: y1 } = matrixCopy(projection).invertSelf().transformPoint({
+        x: 3.6,
+        y: 3.5
+      });
+      camera_x = x1;
+      camera_y = y1;
+      camera_z = 5;
+      matrixCopy(identity, camera_view).rotateSelf(-20, 0).invertSelf().translateSelf(-camera_x, -camera_y, -camera_z).rotateSelf(0, 99);
+    } else
+      matrixCopy(identity, camera_view).rotateSelf(-camera_rotation.x, -camera_rotation.y).invertSelf().translateSelf(-camera_x, -camera_y, -camera_z);
     csmShader();
     gl["b6o"](36160, csm_framebuffer);
     gl["v5y"](0, 0, constDef_CSM_TEXTURE_SIZE, constDef_CSM_TEXTURE_SIZE);
@@ -1630,11 +1641,11 @@ const startMainLoop = (groundTextureImage) => {
     gl["uae"](mainShader(uniformName_viewMatrix), false, matrixToArray(camera_view));
     gl["uae"](mainShader(uniformName_csm_matrix0), false, csm_lightSpaceMatrices[0]);
     gl["uae"](mainShader(uniformName_csm_matrix1), false, csm_lightSpaceMatrices[1]);
-    gl["ubu"](mainShader(uniformName_viewPos), camera_position_x, camera_position_y, camera_position_z);
+    gl["ubu"](mainShader(uniformName_viewPos), camera_x, camera_y, camera_z);
     renderModels(mainShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL);
     skyShader();
     gl["ubu"](skyShader(uniformName_iResolution), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime);
-    gl["ubu"](skyShader(uniformName_viewPos), camera_position_x, camera_position_y, camera_position_z);
+    gl["ubu"](skyShader(uniformName_viewPos), camera_x, camera_y, camera_z);
     gl["uae"](skyShader(uniformName_viewMatrix), false, matrixToArray(matrixCopy(camera_view).invertSelf()));
     gl["d97"](4, 3, 5123, 0);
     gl["b6o"](36160, collision_frameBuffer);

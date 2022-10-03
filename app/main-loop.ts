@@ -36,6 +36,7 @@ import { mat_perspective, zFar, zNear } from "./math/matrix-perspective";
 import { renderModels } from "./game/models-render";
 import { gameTimeUpdate, gameTimeDelta, mainMenuVisible, absoluteTime } from "./game/game-time";
 import { eppur_si_muove } from "./game/level-update";
+import { KEY_CODE_KEY_F, KEY_CODE_KEY_R } from "./utils/keycodes";
 
 const LIGHT_ROT_X = 298;
 const LIGHT_ROT_Y = 139;
@@ -163,6 +164,9 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
       eppur_si_muove();
 
+      // Reset interact button
+      resetInteractPressed();
+
       // *** COLLISION RENDERER ***
 
       collisionShader();
@@ -204,20 +208,27 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       gl.flush();
     }
 
-    // Reset interact button
-    resetInteractPressed();
-
     // view camera
 
-    matrixCopy(identity, camera_view);
+    let cameraX = camera_position_x;
+    let cameraY = camera_position_y;
+    let cameraZ = camera_position_z;
 
     if (mainMenuVisible) {
-      camera_view.rotateSelf(-20, -90).invertSelf().translateSelf(5, -2, -3.4);
+      const { x, y } = matrixCopy(projection).invertSelf().transformPoint({ x: 3.6, y: 3.5 });
+      cameraX = x;
+      cameraY = y;
+      cameraZ = 5;
+      matrixCopy(identity, camera_view)
+        .rotateSelf(-20, 0)
+        .invertSelf()
+        .translateSelf(-cameraX, -cameraY, -cameraZ)
+        .rotateSelf(0, 99);
     } else {
-      camera_view
+      matrixCopy(identity, camera_view)
         .rotateSelf(-camera_rotation.x, -camera_rotation.y)
         .invertSelf()
-        .translateSelf(-camera_position_x, -camera_position_y, -camera_position_z);
+        .translateSelf(-cameraX, -cameraY, -cameraZ);
     }
 
     // *** CASCADED SHADOWMAPS ***
@@ -244,7 +255,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     gl.uniformMatrix4fv(mainShader(uniformName_viewMatrix), false, matrixToArray(camera_view));
     gl.uniformMatrix4fv(mainShader(uniformName_csm_matrix0), false, csm_lightSpaceMatrices[0]!);
     gl.uniformMatrix4fv(mainShader(uniformName_csm_matrix1), false, csm_lightSpaceMatrices[1]!);
-    gl.uniform3f(mainShader(uniformName_viewPos), camera_position_x, camera_position_y, camera_position_z);
+    gl.uniform3f(mainShader(uniformName_viewPos), cameraX, cameraY, cameraZ);
 
     renderModels(mainShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL);
 
@@ -253,7 +264,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     skyShader();
 
     gl.uniform3f(skyShader(uniformName_iResolution), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime);
-    gl.uniform3f(skyShader(uniformName_viewPos), camera_position_x, camera_position_y, camera_position_z);
+    gl.uniform3f(skyShader(uniformName_viewPos), cameraX, cameraY, cameraZ);
     gl.uniformMatrix4fv(skyShader(uniformName_viewMatrix), false, matrixToArray(matrixCopy(camera_view).invertSelf()));
 
     gl.drawElements(gl.TRIANGLES, 3, gl.UNSIGNED_SHORT, 0);

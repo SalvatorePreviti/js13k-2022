@@ -20,19 +20,21 @@ export const renderModels = (
   soulModelId: typeof MODEL_ID_SOUL | typeof MODEL_ID_SOUL_COLLISION,
 ) => {
   if (mainMenuVisible) {
-    matrixCopy().rotateSelf(0, Math.sin(absoluteTime) * 40 - 70);
+    if (hC.width > 1100) {
+      matrixCopy().rotateSelf(0, Math.sin(absoluteTime) * 40 - 80, -8);
 
-    matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_BODY);
-    matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_LEG0);
-    matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_LEG1);
+      matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_BODY - 1);
+      matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_LEG0 - 1);
+      matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_LEG1 - 1);
 
-    gl.uniformMatrix4fv(worldMatrixLoc, false, worldMatricesBuffer);
-    gl.drawElements(
-      gl.TRIANGLES,
-      allModels[MODEL_ID_PLAYER_LEG1]!.$vertexEnd! - allModels[MODEL_ID_PLAYER_BODY]!.$vertexBegin!,
-      gl.UNSIGNED_SHORT,
-      allModels[MODEL_ID_PLAYER_BODY]!.$vertexBegin! * 2,
-    );
+      gl.uniformMatrix4fv(worldMatrixLoc, false, worldMatricesBuffer);
+      gl.drawElements(
+        gl.TRIANGLES,
+        allModels[MODEL_ID_PLAYER_LEG1]!.$vertexEnd! - allModels[MODEL_ID_PLAYER_BODY]!.$vertexBegin!,
+        gl.UNSIGNED_SHORT,
+        allModels[MODEL_ID_PLAYER_BODY]!.$vertexBegin! * 2,
+      );
+    }
 
     return;
   }
