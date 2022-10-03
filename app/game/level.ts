@@ -330,6 +330,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
     const hexCorridorPolygons = [
       ...polygons_transform(cylinder(), translation(0, -3).scale(11, 1.4, 3), material(0.9, 0.9, 0.9, 0.2)),
+      ...polygons_transform(cylinder(), translation(0, -2.2).scale(7.7, 0.5, 4), material(0.6, 0.4, 0.4, 0.3)),
       ...csg_polygons_subtract(
         polygons_transform(cylinder(6), rotation(90).scale(6, 8, 6), material(0.3, 0.6, 0.6, 0.3)),
         polygons_transform(

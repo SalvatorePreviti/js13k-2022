@@ -150,7 +150,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   const collision_frameBuffer = gl.createFramebuffer()!;
 
   const mainLoop = (globalTime: number) => {
-    gl.flush();
+    // gl.flush();
 
     requestAnimationFrame(mainLoop);
 

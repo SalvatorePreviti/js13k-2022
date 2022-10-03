@@ -981,7 +981,7 @@ const player_init = () => {
         player_position_global.z = v.z),
       player_respawned = player_respawned && (currentModelId ? 0 : 1);
     var { x: v, y, z } = player_position_final;
-    var y =
+    var d =
       (y < (v < -20 || z < 109 ? -25 : -9) && (player_respawned = 2),
         currentModelId === 1 && (levers[9].$value = v < -15 && z < 0 ? 1 : 0),
         player_model_y = lerp(lerpDamp(player_model_y, y, 2), y, player_respawned || 8 * abs(player_model_y - y)),
@@ -994,10 +994,10 @@ const player_init = () => {
           2,
         ),
         player_first_person
-          ? (y = player_respawned + damp(18),
-            camera_position_x = lerp(camera_position_x, v, y),
-            camera_position_y = lerp(camera_position_y, player_model_y + 1.5, y),
-            camera_position_z = lerp(camera_position_z, z, y),
+          ? (d = player_respawned + damp(18),
+            camera_position_x = lerp(camera_position_x, v, d),
+            camera_position_y = lerp(camera_position_y, player_model_y + 1.5, d),
+            camera_position_z = lerp(camera_position_z, z, d),
             camera_rotation.y = angle_wrap_degrees(camera_rotation.y))
           : (camera_position_z = interpolate_with_hysteresis(
             camera_position_z,
@@ -1017,25 +1017,25 @@ const player_init = () => {
               1,
               2 + player_on_rotating_platforms,
             ),
-            y = min(-6, -abs(camera_pos_lookat_z - camera_position_z)),
+            d = min(-6, -abs(camera_pos_lookat_z - camera_position_z)),
             viewDirDiffx = camera_pos_lookat_x - camera_position_x,
             camera_rotation.y = angle_lerp_degrees(
               camera_rotation.y,
-              90 - angle_wrap_degrees(Math.atan2(y, viewDirDiffx) / DEG_TO_RAD),
+              90 - angle_wrap_degrees(Math.atan2(d, viewDirDiffx) / DEG_TO_RAD),
               boot + damp(10),
             ),
             camera_rotation.x = angle_lerp_degrees(
               camera_rotation.x,
-              90 - Math.atan2(Math.hypot(y, viewDirDiffx), camera_position_y - camera_pos_lookat_y) / DEG_TO_RAD,
+              90 - Math.atan2(Math.hypot(d, viewDirDiffx), camera_position_y - camera_pos_lookat_y) / DEG_TO_RAD,
               boot + damp(10),
             )),
         camera_rotation.x = clamp(camera_rotation.x, -87, 87),
         boot = 0,
         clamp(input_forward, -1));
     var viewDirDiffx = clamp(input_strafe, -1);
-    const movAmount = threshold(Math.hypot(y, viewDirDiffx) ** 0.5, 0.1);
-    let movAngle = Math.atan2(y, viewDirDiffx);
-    var y = movAmount * abs(y) * Math.sin(movAngle);
+    const movAmount = threshold(Math.hypot(d, viewDirDiffx) ** 0.5, 0.1);
+    let movAngle = Math.atan2(d, viewDirDiffx);
+    var d = movAmount * abs(d) * Math.sin(movAngle);
     var viewDirDiffx = movAmount * abs(viewDirDiffx) * Math.cos(movAngle);
     movAmount && (player_look_angle_target = 90 - movAngle / DEG_TO_RAD),
       player_look_angle = angle_lerp_degrees(player_look_angle, player_look_angle_target, damp(8)),
@@ -1048,7 +1048,9 @@ const player_init = () => {
         player_legs_speed * clamp(0.45 * Math.sin(t - Math.PI / 2)),
       ).rotateSelf(player_legs_speed * Math.sin(t) * 0.25 / DEG_TO_RAD, 0);
     }
-    player_gravity = currentModelId ? 5 : lerpDamp(player_gravity, player_respawned ? 10 : 19, 2.2),
+    player_gravity = currentModelId
+      ? 5
+      : lerpDamp(player_gravity, player_respawned ? 13 : 19 - 2 * min(0, y + 10), 2.2),
       player_fly_velocity_x = currentModelId || player_respawned ? 0 : lerpDamp(player_fly_velocity_x, 0, 3),
       player_fly_velocity_z = currentModelId || player_respawned ? 0 : lerpDamp(player_fly_velocity_z, 0, 3),
       player_speed = player_respawned
@@ -1061,10 +1063,10 @@ const player_init = () => {
       movAngle = player_first_person ? (180 + camera_rotation.y) * DEG_TO_RAD : 0,
       movePlayer(
         gameTimeDelta
-          * (player_fly_velocity_x + player_speed * (viewDirDiffx * Math.cos(movAngle) - y * Math.sin(movAngle))),
+          * (player_fly_velocity_x + player_speed * (viewDirDiffx * Math.cos(movAngle) - d * Math.sin(movAngle))),
         -player_gravity * gameTimeDelta,
         gameTimeDelta
-          * (player_fly_velocity_z + player_speed * (viewDirDiffx * Math.sin(movAngle) + y * Math.cos(movAngle))),
+          * (player_fly_velocity_z + player_speed * (viewDirDiffx * Math.sin(movAngle) + d * Math.cos(movAngle))),
       );
   };
 };
@@ -1310,9 +1312,9 @@ loadStep(() => {
                 ),
                 min(levers[2].$lerpValue2, 1 - levers[4].$lerpValue2));
             var globalTime =
-              (next().translateSelf(dt * Math.sin(0.7 * gameTime + 2) * 12),
+              (next().translateSelf(dt * Math.sin(gameTime / 1.5 + 2) * 12),
+                next().translateSelf(dt * Math.sin(0.7 * gameTime + 2) * 12),
                 next().translateSelf(dt * Math.sin(gameTime + 3) * 8.2),
-                next().translateSelf(dt * Math.sin(gameTime / 1.5 + 2) * 12),
                 next().translateSelf(9.8 * (1 - dt)),
                 clamp(1 - 5 * dt) * lerpneg(levers[4].$lerpValue, levers[5].$lerpValue));
             var dt =
@@ -1463,7 +1465,7 @@ precision highp float;uniform vec3 j,k;uniform mat4 b;uniform highp sampler2D q;
       const collisionShader = initShaderProgram(
         mainVertexShader,
         `#version 300 es
-precision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(vec3(0,1.49,.3*b[0][0])+m.xyz,1);if(gl_FragCoord.y>36.){float e=1.-sin(gl_FragCoord.x*.02454369),i=clamp(a.z+.6,0.,1.);O=vec4(vec2(b[0][0]*sign(a.x)*o.x<0.?min(i*10.,1.)*(.6-abs(a.x))*e:0.),vec2(b[0][0]*o.z>0.?i*(1.-e):0.));}else{float e=o.y>.5?a.y*clamp((a.z+.4)*50.,0.,1.):0.;O=vec4(vec2(e),vec2(e>0.?m.w/255.:0.));}}`,
+precision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(vec3(0,1.49,.3*b[0][0])+m.xyz,1);if(gl_FragCoord.y>36.){float e=1.-abs((gl_FragCoord.x-63.5)/63.5),i=clamp(a.z+.6,0.,1.);O=vec4(vec2(b[0][0]*sign(a.x)*o.x<0.?min(i*10.,1.)*(.9-abs(a.x))*e:0.),vec2(b[0][0]*o.z>0.?i*(1.-e):0.));}else{float e=o.y>.45?a.y*clamp((a.z+.4)*50.,0.,1.):0.;O=vec4(vec2(e),vec2(e>0.?m.w/255.:0.));}}`,
       );
       const mainShader = initShaderProgram(
         mainVertexShader,
@@ -1907,6 +1909,11 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               meshAdd(cylinder(7), translation(-57, -2.6, 46).scale(4, 1, 4), material(0.8, 0.8, 0.8, 0.3)),
               [
                 ...polygons_transform(cylinder(), translation(0, -3).scale(11, 1.4, 3), material(0.9, 0.9, 0.9, 0.2)),
+                ...polygons_transform(
+                  cylinder(),
+                  translation(0, -2.2).scale(7.7, 0.5, 4),
+                  material(0.6, 0.4, 0.4, 0.3),
+                ),
                 ...csg_polygons_subtract(
                   polygons_transform(cylinder(6), rotation(90).scale(6, 8, 6), material(0.3, 0.6, 0.6, 0.3)),
                   polygons_transform(

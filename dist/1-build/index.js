@@ -982,6 +982,7 @@ const build_life_the_universe_and_everything = () => {
     meshAdd(cylinder(7), translation(-57, -2.6, 46).scale(4, 1, 4), material(0.8, 0.8, 0.8, 0.3));
     const hexCorridorPolygons = [
       ...polygons_transform(cylinder(), translation(0, -3).scale(11, 1.4, 3), material(0.9, 0.9, 0.9, 0.2)),
+      ...polygons_transform(cylinder(), translation(0, -2.2).scale(7.7, 0.5, 4), material(0.6, 0.4, 0.4, 0.3)),
       ...csg_polygons_subtract(polygons_transform(cylinder(6), rotation(90).scale(6, 8, 6), material(0.3, 0.6, 0.6, 0.3)), polygons_transform(cylinder(4, 0, 0.01), translation(0, 6).scale(12, 2, 0.75).rotate(0, 45), material(0.3, 0.6, 0.6, 0.3)), polygons_transform(cylinder(6), rotation(90).scale(5, 12, 5), material(0.3, 0.6, 0.6, 0.3)), ...[
         5,
         0,
@@ -1289,7 +1290,7 @@ const code$4 = "#version 300 es\nlayout(location=0)in vec4 f;layout(location=1)i
 const uniformName_projectionMatrix = "a";
 const uniformName_viewMatrix = "b";
 const uniformName_worldMatrices = "c";
-const code$3 = "#version 300 es\nprecision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(vec3(0,1.49,.3*b[0][0])+m.xyz,1);if(gl_FragCoord.y>36.){float e=1.-sin(gl_FragCoord.x*.02454369),i=clamp(a.z+.6,0.,1.);O=vec4(vec2(b[0][0]*sign(a.x)*o.x<0.?min(i*10.,1.)*(.6-abs(a.x))*e:0.),vec2(b[0][0]*o.z>0.?i*(1.-e):0.));}else{float e=o.y>.5?a.y*clamp((a.z+.4)*50.,0.,1.):0.;O=vec4(vec2(e),vec2(e>0.?m.w/255.:0.));}}";
+const code$3 = "#version 300 es\nprecision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(vec3(0,1.49,.3*b[0][0])+m.xyz,1);if(gl_FragCoord.y>36.){float e=1.-abs((gl_FragCoord.x-63.5)/63.5),i=clamp(a.z+.6,0.,1.);O=vec4(vec2(b[0][0]*sign(a.x)*o.x<0.?min(i*10.,1.)*(.9-abs(a.x))*e:0.),vec2(b[0][0]*o.z>0.?i*(1.-e):0.));}else{float e=o.y>.45?a.y*clamp((a.z+.4)*50.,0.,1.):0.;O=vec4(vec2(e),vec2(e>0.?m.w/255.:0.));}}";
 const constDef_COLLISION_TEXTURE_SIZE = 128;
 const code$2 = "#version 300 es\nvoid main(){}";
 const code$1 = "#version 300 es\nin vec4 f;void main(){gl_Position=vec4(f.xy,1,1);}";
@@ -1323,9 +1324,9 @@ const eppur_si_muove = () => {
   next().translateSelf(-100, 0.6, 96.5).scaleSelf(0.88, 1.2 - levers[12].$lerpValue);
   next().translateSelf(0, levers[3].$lerpValue < 0.01 ? -500 : (1 - levers[2].$lerpValue) * levers[3].$lerpValue2 * (/* @__PURE__ */ Math.cos(gameTime * 1.5) * 5 + 2) + 15 * (levers[3].$lerpValue - 1), 0);
   const level2Oscillation = min(levers[2].$lerpValue2, 1 - levers[4].$lerpValue2);
+  next().translateSelf(level2Oscillation * /* @__PURE__ */ Math.sin(gameTime / 1.5 + 2) * 12);
   next().translateSelf(level2Oscillation * /* @__PURE__ */ Math.sin(gameTime * 0.7 + 2) * 12);
   next().translateSelf(level2Oscillation * /* @__PURE__ */ Math.sin(gameTime + 3) * 8.2);
-  next().translateSelf(level2Oscillation * /* @__PURE__ */ Math.sin(gameTime / 1.5 + 2) * 12);
   next().translateSelf((1 - level2Oscillation) * 9.8);
   const level3Oscillation = clamp(1 - level2Oscillation * 5) * lerpneg(levers[4].$lerpValue, levers[5].$lerpValue);
   next().translateSelf(0, level3Oscillation * /* @__PURE__ */ Math.sin(gameTime * 1.35) * 4);
@@ -1542,7 +1543,7 @@ const player_init = () => {
       const t = gameTime * PLAYER_LEGS_VELOCITY - Math.PI * i;
       matrixCopy(allModels[MODEL_ID_PLAYER_BODY].$matrix, nextModelMatrix()).translateSelf(0, player_legs_speed * clamp(/* @__PURE__ */ Math.sin(t - Math.PI / 2) * 0.45)).rotateSelf(player_legs_speed * /* @__PURE__ */ Math.sin(t) * (0.25 / DEG_TO_RAD), 0);
     }
-    player_gravity = currentModelId ? 5 : lerpDamp(player_gravity, player_respawned ? 10 : 19, 2.2);
+    player_gravity = currentModelId ? 5 : lerpDamp(player_gravity, player_respawned ? 13 : 19 - min(0, y + 10) * 2, 2.2);
     player_fly_velocity_x = currentModelId || player_respawned ? 0 : lerpDamp(player_fly_velocity_x, 0, 3);
     player_fly_velocity_z = currentModelId || player_respawned ? 0 : lerpDamp(player_fly_velocity_z, 0, 3);
     player_speed = player_respawned ? 0 : lerpDamp(player_speed, currentModelId ? clamp(2 * movAmount) * 7 * player_speed_collision_limiter : 0, currentModelId ? 9 : 1);

@@ -332,7 +332,10 @@ export const player_init = () => {
 
     // Move player
 
-    player_gravity = currentModelId ? 5 : lerpDamp(player_gravity, player_respawned ? 10 : 19, 2.2);
+    player_gravity = currentModelId
+      ? 5
+      : lerpDamp(player_gravity, player_respawned ? 13 : 19 - min(0, y + 10) * 2, 2.2);
+
     player_fly_velocity_x = currentModelId || player_respawned ? 0 : lerpDamp(player_fly_velocity_x, 0, 3);
     player_fly_velocity_z = currentModelId || player_respawned ? 0 : lerpDamp(player_fly_velocity_z, 0, 3);
     player_speed = player_respawned
