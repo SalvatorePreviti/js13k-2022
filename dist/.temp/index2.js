@@ -1675,7 +1675,8 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
             GQuad.slice(1),
           ], translation(-2).scale3d(3).rotate(90, 0)), 0),
           newModel(() => {
-            const blackPlatform = (pz) =>
+            let b;
+            let blackPlatform = (pz) =>
               newModel(() => {
                 GQuad.map(({ x, z }) => {
                   meshAdd(
@@ -2223,14 +2224,22 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   translation(0, -0.5, 1).scale(1.15, 1.2, 6.5),
                   material(0.25, 0.25, 0.35, 0.3),
                 ),
-                polygons_transform(cylinder(3), translation(0, 0, -5.5).scale(3, 2), material(0.6, 0.3, 0.4, 0.3)),
+                (blackPlatform = polygons_transform(
+                  cylinder(),
+                  translation(0, 0, -3.65).scale(2.5, 3),
+                  material(0.6, 0.3, 0.4, 0.3),
+                ),
+                  b = [
+                    polygons_transform(cylinder(3), translation(0, 0, -5.5).scale(3, 2), material(0.6, 0.3, 0.4, 0.3)),
+                  ],
+                  csg_tree_flip(csg_union(csg_tree_flip(csg_tree(blackPlatform)), ...b))),
                 ...[
-                  -1.2,
-                  1.2,
+                  -1,
+                  1,
                 ].map((i) =>
                   polygons_transform(
                     cylinder(),
-                    translation(i, -0.5, 1).scale(0.14, 0.3, 6.5),
+                    translation(1.2 * i, -0.5, 1).scale(0.14, 0.3, 6.5),
                     material(0.7, 0.2, 0, 0.3),
                   )
                 ),

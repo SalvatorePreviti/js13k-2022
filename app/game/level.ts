@@ -14,7 +14,7 @@ import {
 } from "./models";
 import { abs } from "../math/math";
 import { GQuad, cylinder, polygon_regular, sphere, cylinder_sides } from "../geometry/geometry";
-import { csg_union, csg_polygons_subtract } from "../geometry/csg";
+import { csg_union, csg_polygons_subtract, csg_subtract, csg_polygons } from "../geometry/csg";
 import { translation, rotation, scaling } from "../math/matrix-transforms";
 import { integers_map } from "../math/integers-map";
 import { checkModelId, meshAdd, newLever, newModel, newSoul } from "./models-factory";
@@ -96,28 +96,6 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     newLever(translation(-5.4, 1.5, -19).rotate(0, -90));
 
     // ========= WORLD! ========= //
-
-    if (DEBUG) {
-      /// XXX TODO DEBUG
-
-      // meshAdd(cylinder(), translation(0, 0, 0).scale(1, 5, 1), material(0.3, 0.3, 0.38));
-      // meshAdd(cylinder(), translation(3, 0, 3).scale(1, 5, 1).rotate(0, 45), material(0.3, 0.3, 0.38));
-
-      meshAdd(
-        csg_polygons_subtract(
-          polygons_transform(
-            cylinder(),
-            translation(0, -0.5, 1).scale(1.15, 1.2, 6.5),
-            material(0.25, 0.25, 0.35, 0.3),
-          ),
-          polygons_transform(cylinder(3), translation(0, 0, -5.5).scale(3, 2), material(0.6, 0.3, 0.4, 0.3)),
-          ...[-1.2, 1.2].map((i) =>
-            polygons_transform(cylinder(), translation(i, -0.5, 1).scale(0.14, 0.3, 6.5), material(0.7, 0.2, 0, 0.3)),
-          ),
-        ),
-        translation(3, 2.7, 3).scale(1, 1),
-      );
-    }
 
     // SOUL 0 - soul after first boat
     newSoul(translation(-0.5, 2.8, -20), [0, 0, 2.5], [0, -3, 2.5]);
@@ -622,9 +600,12 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
     const pushingRod = csg_polygons_subtract(
       polygons_transform(cylinder(), translation(0, -0.5, 1).scale(1.15, 1.2, 6.5), material(0.25, 0.25, 0.35, 0.3)),
-      polygons_transform(cylinder(3), translation(0, 0, -5.5).scale(3, 2), material(0.6, 0.3, 0.4, 0.3)),
-      ...[-1.2, 1.2].map((i) =>
-        polygons_transform(cylinder(), translation(i, -0.5, 1).scale(0.14, 0.3, 6.5), material(0.7, 0.2, 0, 0.3)),
+      csg_subtract(
+        polygons_transform(cylinder(3), translation(0, 0, -5.5).scale(3, 2), material(0.6, 0.3, 0.4, 0.3)),
+        polygons_transform(cylinder(), translation(0, 0, -3.65).scale(2.5, 3), material(0.6, 0.3, 0.4, 0.3)),
+      ),
+      ...[-1, 1].map((i) =>
+        polygons_transform(cylinder(), translation(i * 1.2, -0.5, 1).scale(0.14, 0.3, 6.5), material(0.7, 0.2, 0, 0.3)),
       ),
     );
 
