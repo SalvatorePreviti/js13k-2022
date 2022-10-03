@@ -8,6 +8,7 @@ const groundTextureSvg = `data:image/svg+xml;base64,${
 }`;
 const MODEL_KIND_MESH = 0;
 const MODEL_KIND_GAME = 1;
+const MODEL_ID_STATIC_WORLD = 1;
 const MODEL_KIND_GAME_NO_ATTACH_PLAYER = 2;
 const MODEL_ID_FIRST_BOAT = 2;
 const SOULS_COUNT = 13;
@@ -42,6 +43,7 @@ const lerpneg = (v, t) => {
   v = clamp(v);
   return lerp(v, 1 - v, t);
 };
+const hypot = (a, b, c = 0) => /* @__PURE__ */ Math.sqrt(a * a + b * b + c * c);
 const matrixToArray = ($matrix, output = float32Array16Temp, index = 0) => {
   index *= 16;
   output[index++] = $matrix.m11;
@@ -198,7 +200,7 @@ const plane_fromPolygon = (polygon) => {
     z += (a.x - b.x) * (a.y + b.y);
     a = b;
   }
-  b = /* @__PURE__ */ Math.hypot(x, y, z);
+  b = hypot(x, y, z);
   x /= b;
   y /= b;
   z /= b;
@@ -855,11 +857,7 @@ const newModel = (fn, $kind = MODEL_KIND_GAME) => {
 };
 const distanceToPlayer = (transform) => {
   const p = transform.transformPoint();
-  return /* @__PURE__ */ Math.hypot(
-    player_position_final.x - p.x,
-    player_position_final.y - p.y,
-    player_position_final.z - p.z,
-  );
+  return hypot(player_position_final.x - p.x, player_position_final.y - p.y, player_position_final.z - p.z);
 };
 const newLever = ($transform) => {
   const parentModel = currentEditModel;
@@ -910,9 +908,9 @@ const newSoul = (transform, ...walkingPath) => {
         let mindist = Infinity;
         for (const c of circles) {
           const { x, z, w } = c;
-          const distance = /* @__PURE__ */ Math.hypot(targetX - x, targetZ - z);
+          const distance = hypot(targetX - x, targetZ - z);
           const circleSDF = distance - w;
-          isInside ||= distance < w;
+          isInside ||= circleSDF < 0;
           if (circleSDF > 0 && circleSDF < mindist) {
             mindist = circleSDF;
             circle = c;
@@ -923,7 +921,7 @@ const newSoul = (transform, ...walkingPath) => {
           const { x: x1, z: z1, w: w1 } = circle;
           const ax = targetX - x1;
           const az = targetZ - z1;
-          let magnitude = /* @__PURE__ */ Math.hypot(ax, az);
+          let magnitude = hypot(ax, az);
           let angle = /* @__PURE__ */ Math.atan2(-az, ax);
           if (wasInside) {
             randAngle = (/* @__PURE__ */ Math.random() - 0.5) * Math.PI / 2;
@@ -2044,7 +2042,7 @@ const player_init = () => {
     if (y < (x < -20 || z < 109 ? -25 : -9)) {
       player_respawned = 2;
     }
-    if (currentModelId === 1) {
+    if (currentModelId === MODEL_ID_STATIC_WORLD) {
       levers[9].$value = x < -15 && z < 0 ? 1 : 0;
     }
     player_model_y = lerp(lerpDamp(player_model_y, y, 2), y, player_respawned || abs(player_model_y - y) * 8);
@@ -2095,10 +2093,8 @@ const player_init = () => {
       camera_rotation.x = angle_lerp_degrees(
         camera_rotation.x,
         90
-          - /* @__PURE__ */ Math.atan2(
-              /* @__PURE__ */ Math.hypot(viewDirDiffz, viewDirDiffx),
-              camera_position_y - camera_pos_lookat_y,
-            ) / DEG_TO_RAD,
+          - /* @__PURE__ */ Math.atan2(hypot(viewDirDiffz, viewDirDiffx), camera_position_y - camera_pos_lookat_y)
+            / DEG_TO_RAD,
         boot + damp(10),
       );
     }
@@ -2106,7 +2102,7 @@ const player_init = () => {
     boot = 0;
     let forward = clamp(input_forward, -1);
     let strafe = clamp(input_strafe, -1);
-    const movAmount = threshold(/* @__PURE__ */ Math.hypot(forward, strafe) ** 0.5, 0.1);
+    const movAmount = threshold(hypot(forward, strafe) ** 0.5, 0.1);
     let movAngle = /* @__PURE__ */ Math.atan2(forward, strafe);
     forward = movAmount * abs(forward) * /* @__PURE__ */ Math.sin(movAngle);
     strafe = movAmount * abs(strafe) * /* @__PURE__ */ Math.cos(movAngle);

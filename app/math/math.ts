@@ -34,3 +34,5 @@ export const lerpneg = (v: number, t: number) => /* @__PURE__ */ {
   v = clamp(v);
   return lerp(v, 1 - v, t);
 };
+
+export const hypot = /* @__PURE__ */ (a: number, b: number, c: number = 0) => Math.sqrt(a * a + b * b + c * c);

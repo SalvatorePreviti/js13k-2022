@@ -1,3 +1,5 @@
+import { hypot } from "./math";
+
 export interface Vec2 {
   x: number;
   y: number;
@@ -35,9 +37,6 @@ export type Vec3In = Readonly<Vec3>;
 
 export type Vec4In = Readonly<Vec4>;
 
-export const vec3_distance = /* @__PURE__ */ ({ x, y, z }: Vec3In, b: Vec3In): number =>
-  Math.hypot(x - b.x, y - b.y, z - b.z);
-
 export const vec3_dot = /* @__PURE__ */ ({ x, y, z }: Vec3In, b: Vec3In): number => x * b.x + y * b.y + z * b.z;
 
 /**
@@ -58,7 +57,7 @@ export const plane_fromPolygon = /* @__PURE__ */ (polygon: readonly Vec3In[]): P
     z += (a.x - b.x) * (a.y + b.y);
     a = b;
   }
-  b = Math.hypot(x, y, z);
+  b = hypot(x, y, z);
   x /= b;
   y /= b;
   z /= b;

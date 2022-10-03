@@ -1,3 +1,9 @@
+window.DEBUG_CAMERA = false;
+window.DEBUG_FLAG0 = false;
+window.DEBUG_FLAG1 = false;
+window.DEBUG_FLAG2 = false;
+window.DEBUG_FLAG3 = false;
+
 import { devInit } from "./dev";
 import "./dev-main.less";
 import ReactDOM from "react-dom/client";

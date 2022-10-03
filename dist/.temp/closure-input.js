@@ -208,6 +208,7 @@ const angle_wrap_degrees = (degrees) =>
 const angle_lerp_degrees = (a0, a1, t) => a0 + (2 * (a1 = (a1 - a0) % 360) % 360 - a1) * clamp(t) || 0;
 const lerp = (a, b, t) => (0 < t ? t < 1 ? a + (b - a) * t : b : a) || 0;
 const lerpneg = (v, t) => (v = clamp(v), lerp(v, 1 - v, t));
+const hypot = (a, b, c = 0) => Math.sqrt(a * a + b * b + c * c);
 const matrixToArray = (
   $matrix,
   output = float32Array16Temp,
@@ -340,7 +341,7 @@ const plane_fromPolygon = (polygon) => {
   for (b of polygon) {
     x += (a.y - b.y) * (a.z + b.z), y += (a.z - b.z) * (a.x + b.x), z += (a.x - b.x) * (a.y + b.y), a = b;
   }
-  return b = Math.hypot(x, y, z), x /= b, y /= b, z /= b, {
+  return b = hypot(x, y, z), x /= b, y /= b, z /= b, {
     x,
     y,
     z,
@@ -725,7 +726,7 @@ const newModel = (fn, $kind = 1) => {
 const distanceToPlayer = (
   transform,
 ) => (transform = transform.transformPoint(),
-  Math.hypot(
+  hypot(
     player_position_final.x - transform.x,
     player_position_final.y - transform.y,
     player_position_final.z - transform.z,
@@ -788,8 +789,8 @@ const newSoul = (transform, ...walkingPath) => {
         let mindist = 1 / 0;
         for (const c of circles) {
           var { x, z, w } = c;
-          var z = (x = Math.hypot(targetX - x, targetZ - z)) - w;
-          isInside ||= x < w,
+          var z = (x = hypot(targetX - x, targetZ - z)) - w;
+          isInside ||= z < 0,
             0 < z && mindist > z && (mindist = z, circle = c),
             contextualVelocity = min(contextualVelocity, x / w);
         }
@@ -797,7 +798,7 @@ const newSoul = (transform, ...walkingPath) => {
         || ({ x: x1, z: z1, w: w1 } = circle,
           ax = targetX - x1,
           az = targetZ - z1,
-          magnitude = Math.hypot(ax, az),
+          magnitude = hypot(ax, az),
           angle = Math.atan2(-az, ax),
           wasInside
           && (randAngle = (Math.random() - 0.5) * Math.PI / 2, velocity = clamp(velocity / (1 + Math.random()))),
@@ -1022,14 +1023,14 @@ const player_init = () => {
             ),
             camera_rotation.x = angle_lerp_degrees(
               camera_rotation.x,
-              90 - Math.atan2(Math.hypot(d, viewDirDiffx), camera_position_y - camera_pos_lookat_y) / DEG_TO_RAD,
+              90 - Math.atan2(hypot(d, viewDirDiffx), camera_position_y - camera_pos_lookat_y) / DEG_TO_RAD,
               boot + damp(10),
             )),
         camera_rotation.x = clamp(camera_rotation.x, -87, 87),
         boot = 0,
         clamp(input_forward, -1));
     var viewDirDiffx = clamp(input_strafe, -1);
-    const movAmount = threshold(Math.hypot(d, viewDirDiffx) ** 0.5, 0.1);
+    const movAmount = threshold(hypot(d, viewDirDiffx) ** 0.5, 0.1);
     let movAngle = Math.atan2(d, viewDirDiffx);
     var d = movAmount * abs(d) * Math.sin(movAngle);
     var viewDirDiffx = movAmount * abs(viewDirDiffx) * Math.cos(movAngle);

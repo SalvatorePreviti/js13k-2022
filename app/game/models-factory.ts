@@ -13,7 +13,7 @@ import {
 import { player_position_final, onLever0Pulled, onPlayerPullLever, onSoulCollected } from "./world-state";
 import { interact_pressed } from "../page";
 import type { Vec3Optional } from "../math/vectors";
-import { min, angle_lerp_degrees, DEG_TO_RAD, clamp, abs } from "../math/math";
+import { min, angle_lerp_degrees, DEG_TO_RAD, clamp, abs, hypot } from "../math/math";
 import { matrixCopy, tempMatrix } from "../math/matrix";
 import { lerpDamp, damp, gameTime } from "./game-time";
 import { polygons_transform, type Polygon } from "../geometry/polygon";
@@ -40,7 +40,7 @@ const SOUL_SENSITIVITY_RADIUS = 1.6;
 
 const distanceToPlayer = (transform: DOMMatrixReadOnly): number => {
   const p = transform.transformPoint();
-  return Math.hypot(player_position_final.x - p.x, player_position_final.y - p.y, player_position_final.z - p.z);
+  return hypot(player_position_final.x - p.x, player_position_final.y - p.y, player_position_final.z - p.z);
 };
 
 export const newLever = ($transform: DOMMatrixReadOnly): void => {
@@ -108,9 +108,9 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]
 
         for (const c of circles) {
           const { x, z, w } = c;
-          const distance = Math.hypot(targetX - x, targetZ - z);
+          const distance = hypot(targetX - x, targetZ - z);
           const circleSDF = distance - w;
-          isInside ||= distance < w;
+          isInside ||= circleSDF < 0;
           if (circleSDF > 0 && circleSDF < mindist) {
             mindist = circleSDF;
             circle = c;
@@ -122,7 +122,7 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]
           const { x, z, w } = circle;
           const ax = targetX - x;
           const az = targetZ - z;
-          let magnitude = Math.hypot(ax, az);
+          let magnitude = hypot(ax, az);
           let angle = Math.atan2(-az, ax);
           if (wasInside) {
             randAngle = ((Math.random() - 0.5) * Math.PI) / 2;

@@ -9,6 +9,7 @@ import {
   min,
   abs,
   threshold,
+  hypot,
 } from "../math/math";
 import {
   levers,
@@ -330,7 +331,7 @@ export const player_init = () => {
 
         camera_rotation.x = angle_lerp_degrees(
           camera_rotation.x,
-          90 - Math.atan2(Math.hypot(viewDirDiffz, viewDirDiffx), camera_position_y - camera_pos_lookat_y) / DEG_TO_RAD,
+          90 - Math.atan2(hypot(viewDirDiffz, viewDirDiffx), camera_position_y - camera_pos_lookat_y) / DEG_TO_RAD,
           boot + damp(10),
         );
       }
@@ -345,7 +346,7 @@ export const player_init = () => {
     let forward = clamp(input_forward, -1);
     let strafe = clamp(input_strafe, -1);
 
-    const movAmount = threshold(Math.hypot(forward, strafe) ** 0.5, 0.1);
+    const movAmount = threshold(hypot(forward, strafe) ** 0.5, 0.1);
     let movAngle = Math.atan2(forward, strafe);
 
     forward = movAmount * abs(forward) * Math.sin(movAngle);
