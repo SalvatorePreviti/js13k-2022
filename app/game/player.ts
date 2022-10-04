@@ -22,9 +22,10 @@ import {
 import { player_last_pulled_lever, camera_rotation, firstBoatLerp, player_position_final } from "./world-state";
 import { input_forward, input_strafe, player_first_person } from "../page";
 import { lerpDamp, gameTimeDelta, damp, gameTime } from "./game-time";
-import { matrixCopy, tempMatrix } from "../math/matrix";
+import { matrixCopy } from "../math/matrix";
 import { gl } from "../gl";
 import { shouldRotatePlatforms } from "./level-update";
+import { matrixTransformPoint } from "../math/matrix-transform-point";
 
 export const CAMERA_PLAYER_Y_DIST = 13;
 
@@ -71,7 +72,9 @@ export const player_init = () => {
   let camera_pos_lookat_y: number;
   let camera_pos_lookat_z: number;
 
-  const player_position_global = { x: 0, y: 0, z: 0 };
+  let player_position_global_x = 0;
+  let player_position_global_y = 0;
+  let player_position_global_z = 0;
 
   const loadReferenceMatrix = () =>
     matrixCopy(
@@ -82,34 +85,30 @@ export const player_init = () => {
     );
 
   const updatePlayerPositionFinal = (updateVelocity?: unknown) => {
-    const { x, y, z } =
-      player_respawned > 1
-        ? matrixCopy(levers[player_last_pulled_lever]!.$matrix)
-            .multiplySelf(levers[player_last_pulled_lever]!.$transform)
-            .transformPoint({
-              x: 0,
-              y: player_last_pulled_lever || firstBoatLerp > 0.9 ? 15 : 1,
-              z: PLAYER_RESPAWN_Z,
-            })
-        : loadReferenceMatrix().transformPoint(player_position_global);
-
-    if (updateVelocity) {
-      player_fly_velocity_x = (x - player_position_final.x) / gameTimeDelta;
-      player_fly_velocity_z = (z - player_position_final.z) / gameTimeDelta;
+    if (player_respawned > 1) {
+      matrixCopy(levers[player_last_pulled_lever]!.$matrix).multiplySelf(levers[player_last_pulled_lever]!.$transform);
+      matrixTransformPoint(0, player_last_pulled_lever || firstBoatLerp > 0.9 ? 15 : 1, PLAYER_RESPAWN_Z);
+    } else {
+      loadReferenceMatrix();
+      matrixTransformPoint(player_position_global_x, player_position_global_y, player_position_global_z);
     }
 
-    player_position_final.x = x;
-    player_position_final.y = y;
-    player_position_final.z = z;
+    if (updateVelocity) {
+      player_fly_velocity_x = (matrixTransformPoint.x - player_position_final.x) / gameTimeDelta;
+      player_fly_velocity_z = (matrixTransformPoint.z - player_position_final.z) / gameTimeDelta;
+    }
+
+    player_position_final.x = matrixTransformPoint.x;
+    player_position_final.y = matrixTransformPoint.y;
+    player_position_final.z = matrixTransformPoint.z;
   };
 
   const movePlayer = (x: number, y: number, z: number) => {
     loadReferenceMatrix().invertSelf();
-    tempMatrix.m41 = tempMatrix.m42 = tempMatrix.m43 = 0;
-    const v = tempMatrix.transformPoint({ x, z, w: 0 });
-    player_position_global.x += v.x;
-    player_position_global.y += y;
-    player_position_global.z += v.z;
+    matrixTransformPoint(x, 0, z, 0);
+    player_position_global_x += matrixTransformPoint.x;
+    player_position_global_y += matrixTransformPoint.y;
+    player_position_global_z += matrixTransformPoint.z;
     updatePlayerPositionFinal();
   };
 
@@ -253,10 +252,11 @@ export const player_init = () => {
 
       oldModelId = currentModelId;
 
-      const v = loadReferenceMatrix().invertSelf().transformPoint(player_position_final);
-      player_position_global.x = v.x;
-      player_position_global.y = v.y;
-      player_position_global.z = v.z;
+      loadReferenceMatrix().invertSelf();
+      matrixTransformPoint(player_position_final.x, player_position_final.y, player_position_final.z);
+      player_position_global_x = matrixTransformPoint.x;
+      player_position_global_y = matrixTransformPoint.y;
+      player_position_global_z = matrixTransformPoint.z;
     }
 
     if (player_respawned) {

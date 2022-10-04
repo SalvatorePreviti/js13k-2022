@@ -259,27 +259,27 @@ const translation = NO_INLINE((x, y, z) => identity.translate(x, y, z));
 const rotation = NO_INLINE((x, y, z) => identity.rotate(x, y, z));
 const scaling = NO_INLINE((x, y, z) => identity.scale(x, y, z));
 const integers_map = (n, fn) => Array.from(Array(n), (_, i) => fn(i));
+const matrixTransformPoint = (x = 0, y = 0, z = 0, w = 1) => {
+  matrixTransformPoint.x = tempMatrix.m11 * x + tempMatrix.m21 * y + tempMatrix.m31 * z + tempMatrix.m41 * w,
+    matrixTransformPoint.y = tempMatrix.m12 * x + tempMatrix.m22 * y + tempMatrix.m32 * z + tempMatrix.m42 * w,
+    matrixTransformPoint.z = tempMatrix.m13 * x + tempMatrix.m23 * y + tempMatrix.m33 * z + tempMatrix.m43 * w,
+    matrixTransformPoint.w = tempMatrix.m14 * x + tempMatrix.m24 * y + tempMatrix.m34 * z + tempMatrix.m44 * w;
+};
 const polygon_color = (polygon, color, smooth) => (polygon.$smooth = smooth, polygon.$color = color, polygon);
-const polygon_transform = (polygon, m, color = polygon.$color) =>
+const polygon_transform = (
+  polygon,
+  m,
+  color = polygon.$color,
+) => (matrixCopy(m),
   polygon_color(
-    polygon.map((p) => {
-      let y;
-      let z;
-      return { x: p, y, z } = p,
-        { x: p, y, z } = m.transformPoint({
-          x: p,
-          y,
-          z,
-        }),
-        {
-          x: p,
-          y,
-          z,
-        };
-    }),
+    polygon.map(({ x, y, z }) => (matrixTransformPoint(x, y, z), {
+      x: matrixTransformPoint.x,
+      y: matrixTransformPoint.y,
+      z: matrixTransformPoint.z,
+    })),
     color,
     polygon.$smooth,
-  );
+  ));
 const polygons_transform = (polygons, m, color) => polygons.map((polygon) => polygon_transform(polygon, m, color));
 const polygon_regular = (segments, elongate = 0) =>
   integers_map(segments, (i) => {
@@ -567,13 +567,11 @@ const newModel = (fn, $kind = 1) => {
     fn(),
     currentEditModel = previousModel;
 };
-const distanceToPlayer = (
-  transform,
-) => (transform = transform.transformPoint(),
+const distanceToPlayer = () => (matrixTransformPoint(),
   hypot(
-    player_position_final.x - transform.x,
-    player_position_final.y - transform.y,
-    player_position_final.z - transform.z,
+    player_position_final.x - matrixTransformPoint.x,
+    player_position_final.y - matrixTransformPoint.y,
+    player_position_final.z - matrixTransformPoint.z,
   ));
 const newLever = ($transform) => {
   const parentModel = currentEditModel;
@@ -589,7 +587,7 @@ const newLever = ($transform) => {
       lever.$lerpValue = lerpDamp(lever.$lerpValue, lever.$value, 4),
         lever.$lerpValue2 = lerpDamp(lever.$lerpValue2, lever.$value, 1),
         matrixCopy(parentModel.$matrix).multiplySelf($transform),
-        interact_pressed && distanceToPlayer(tempMatrix) < 3 && (lever.$lerpValue < 0.3 || 0.7 < lever.$lerpValue)
+        interact_pressed && distanceToPlayer() < 3 && (lever.$lerpValue < 0.3 || 0.7 < lever.$lerpValue)
         && (lever.$value = lever.$value ? 0 : 1,
           (leverIndex = index) && showMessage("* click *", 1),
           player_last_pulled_lever = leverIndex,
@@ -662,30 +660,29 @@ const newSoul = (transform, ...walkingPath) => {
             Math.atan2(soulX - prevX, soulZ - prevZ) / DEG_TO_RAD - 180,
             damp(3),
           ),
-          distanceToPlayer(
-              matrixCopy(parentModelMatrix).multiplySelf(transform).translateSelf(prevX = soulX, 0, prevZ = soulZ)
-                .rotateSelf(0, lookAngle, 7 * Math.sin(1.7 * gameTime)),
-            ) < 1.6 && (soul.$value = 1,
-              showMessage(
-                [
-                  ,
-                  "Mark Zuckemberg<br>made the world worse",
-                  "Giorgia Meloni<br>fascist",
-                  "Andrzej Mazur<br>for the js13k competition",
-                  "Donald Trump<br>lies",
-                  "Kim Jong-un<br>Dictator, liked pineapple on pizza",
-                  "Maxime Euziere<br>forced me to finish this game",
-                  "She traded NFTs apes",
-                  ,
-                  "Vladimir Putin<br>evil war",
-                  "He was not a good person",
-                  ,
-                  "Salvatore Previti<br>made this evil game<br><br>Done. Go back to the boat",
-                ][souls_collected_count] || "Catched a \"crypto bro\".<br>\"Web3\" is all scam, lies and grift",
-                souls_collected_count && souls_collected_count < 12 ? 5 : 7,
-              ),
-              updateCollectedSoulsCounter(),
-              saveGame());
+          matrixCopy(parentModelMatrix).multiplySelf(transform).translateSelf(prevX = soulX, 0, prevZ = soulZ)
+            .rotateSelf(0, lookAngle, 7 * Math.sin(1.7 * gameTime)),
+          distanceToPlayer() < 1.6 && (soul.$value = 1,
+            showMessage(
+              [
+                ,
+                "Mark Zuckemberg<br>made the world worse",
+                "Giorgia Meloni<br>fascist",
+                "Andrzej Mazur<br>for the js13k competition",
+                "Donald Trump<br>lies",
+                "Kim Jong-un<br>Dictator, liked pineapple on pizza",
+                "Maxime Euziere<br>forced me to finish this game",
+                "She traded NFTs apes",
+                ,
+                "Vladimir Putin<br>evil war",
+                "He was not a good person",
+                ,
+                "Salvatore Previti<br>made this evil game<br><br>Done. Go back to the boat",
+              ][souls_collected_count] || "Catched a \"crypto bro\".<br>\"Web3\" is all scam, lies and grift",
+              souls_collected_count && souls_collected_count < 12 ? 5 : 7,
+            ),
+            updateCollectedSoulsCounter(),
+            saveGame());
       }
       soul.$value
         && matrixCopy(allModels[2].$matrix).translateSelf(
@@ -883,14 +880,12 @@ const player_init = () => {
   let camera_pos_lookat_x;
   let camera_pos_lookat_y;
   let camera_pos_lookat_z;
+  let player_position_global_x = 0;
+  let player_position_global_y = 0;
+  let player_position_global_z = 0;
   let boot = 1;
   let player_respawned = 2;
   let player_gravity = 15;
-  const player_position_global = {
-    x: 0,
-    y: 0,
-    z: 0,
-  };
   const loadReferenceMatrix = () =>
     matrixCopy(
       (player_respawned
@@ -898,32 +893,24 @@ const player_init = () => {
         : allModels[oldModelId && allModels[oldModelId].$kind === 1 && oldModelId || 0]).$matrix,
     );
   const updatePlayerPositionFinal = (updateVelocity) => {
-    const { x, y, z } = 1 < player_respawned
-      ? matrixCopy(levers[player_last_pulled_lever].$matrix).multiplySelf(levers[player_last_pulled_lever].$transform)
-        .transformPoint({
-          x: 0,
-          y: player_last_pulled_lever || 0.9 < firstBoatLerp ? 15 : 1,
-          z: -2.4,
-        })
-      : loadReferenceMatrix().transformPoint(player_position_global);
-    updateVelocity
-    && (player_fly_velocity_x = (x - player_position_final.x) / gameTimeDelta,
-      player_fly_velocity_z = (z - player_position_final.z) / gameTimeDelta),
-      player_position_final.x = x,
-      player_position_final.y = y,
-      player_position_final.z = z;
+    1 < player_respawned
+      ? (matrixCopy(levers[player_last_pulled_lever].$matrix).multiplySelf(levers[player_last_pulled_lever].$transform),
+        matrixTransformPoint(0, player_last_pulled_lever || 0.9 < firstBoatLerp ? 15 : 1, -2.4))
+      : (loadReferenceMatrix(),
+        matrixTransformPoint(player_position_global_x, player_position_global_y, player_position_global_z)),
+      updateVelocity
+      && (player_fly_velocity_x = (matrixTransformPoint.x - player_position_final.x) / gameTimeDelta,
+        player_fly_velocity_z = (matrixTransformPoint.z - player_position_final.z) / gameTimeDelta),
+      player_position_final.x = matrixTransformPoint.x,
+      player_position_final.y = matrixTransformPoint.y,
+      player_position_final.z = matrixTransformPoint.z;
   };
   const movePlayer = (x, y, z) => {
     loadReferenceMatrix().invertSelf(),
-      tempMatrix.m41 = tempMatrix.m42 = tempMatrix.m43 = 0,
-      x = tempMatrix.transformPoint({
-        x,
-        z,
-        w: 0,
-      }),
-      player_position_global.x += x.x,
-      player_position_global.y += y,
-      player_position_global.z += x.z,
+      matrixTransformPoint(x, 0, z, 0),
+      player_position_global_x += matrixTransformPoint.x,
+      player_position_global_y += matrixTransformPoint.y,
+      player_position_global_z += matrixTransformPoint.z,
       updatePlayerPositionFinal();
   };
   const doCollisions = () => {
@@ -965,8 +952,7 @@ const player_init = () => {
       }
       abs(right - left) > abs(movX) && (movX = right - left), abs(back - front) > abs(movZ) && (movZ = back - front);
     }
-    player_speed_collision_limiter = clamp(1 - 0.02 * max(abs(movX), abs(movZ))),
-      movePlayer(movX / 255, movY / 255, movZ / 255);
+    player_speed_collision_limiter = clamp(1 - 0.02 * max(abs(movX), abs(movZ))), movePlayer(movX / 255, 0, movZ / 255);
   };
   const interpolate_with_hysteresis = (previous, desired, hysteresis, speed) =>
     lerp(previous, desired, boot || (clamp(abs(desired - previous) ** 0.5 - hysteresis) + 1 / 7) * damp(1.5 * speed));
@@ -976,18 +962,19 @@ const player_init = () => {
       NO_INLINE(doCollisions)(),
       !player_respawned && currentModelId === oldModelId
       || (oldModelId = currentModelId,
-        v = loadReferenceMatrix().invertSelf().transformPoint(player_position_final),
-        player_position_global.x = v.x,
-        player_position_global.y = v.y,
-        player_position_global.z = v.z),
+        loadReferenceMatrix().invertSelf(),
+        matrixTransformPoint(player_position_final.x, player_position_final.y, player_position_final.z),
+        player_position_global_x = matrixTransformPoint.x,
+        player_position_global_y = matrixTransformPoint.y,
+        player_position_global_z = matrixTransformPoint.z),
       player_respawned = player_respawned && (currentModelId ? 0 : 1);
-    var { x: v, y, z } = player_position_final;
+    const { x, y, z } = player_position_final;
     var d =
-      (y < (v < -20 || z < 109 ? -25 : -9) && (player_respawned = 2),
-        currentModelId === 1 && (levers[9].$value = v < -15 && z < 0 ? 1 : 0),
+      (y < (x < -20 || z < 109 ? -25 : -9) && (player_respawned = 2),
+        currentModelId === 1 && (levers[9].$value = x < -15 && z < 0 ? 1 : 0),
         player_model_y = lerp(lerpDamp(player_model_y, y, 2), y, player_respawned || 8 * abs(player_model_y - y)),
         camera_pos_lookat_y = interpolate_with_hysteresis(camera_pos_lookat_y, player_model_y, 2, 1),
-        camera_pos_lookat_x = interpolate_with_hysteresis(camera_pos_lookat_x, v, 0.5, 1),
+        camera_pos_lookat_x = interpolate_with_hysteresis(camera_pos_lookat_x, x, 0.5, 1),
         camera_pos_lookat_z = interpolate_with_hysteresis(camera_pos_lookat_z, z, 0.5, 1),
         player_on_rotating_platforms = lerpDamp(
           player_on_rotating_platforms,
@@ -996,7 +983,7 @@ const player_init = () => {
         ),
         player_first_person
           ? (d = player_respawned + damp(18),
-            camera_position_x = lerp(camera_position_x, v, d),
+            camera_position_x = lerp(camera_position_x, x, d),
             camera_position_y = lerp(camera_position_y, player_model_y + 1.5, d),
             camera_position_z = lerp(camera_position_z, z, d),
             camera_rotation.y = angle_wrap_degrees(camera_rotation.y))
@@ -1041,7 +1028,7 @@ const player_init = () => {
     movAmount && (player_look_angle_target = 90 - movAngle / DEG_TO_RAD),
       player_look_angle = angle_lerp_degrees(player_look_angle, player_look_angle_target, damp(8)),
       player_legs_speed = lerpDamp(player_legs_speed, movAmount, 10),
-      nextModelMatrix().translateSelf(v, player_model_y, z).rotateSelf(0, player_look_angle);
+      nextModelMatrix().translateSelf(x, player_model_y, z).rotateSelf(0, player_look_angle);
     for (let i = 0; i < 2; ++i) {
       const t = 9.1 * gameTime - Math.PI * i;
       matrixCopy(allModels[37].$matrix, nextModelMatrix()).translateSelf(
@@ -1065,7 +1052,7 @@ const player_init = () => {
       movePlayer(
         gameTimeDelta
           * (player_fly_velocity_x + player_speed * (viewDirDiffx * Math.cos(movAngle) - d * Math.sin(movAngle))),
-        -player_gravity * gameTimeDelta,
+        0,
         gameTimeDelta
           * (player_fly_velocity_z + player_speed * (viewDirDiffx * Math.sin(movAngle) + d * Math.cos(movAngle))),
       );
@@ -1410,12 +1397,10 @@ loadStep(() => {
         let cameraY = camera_position_y;
         let cameraZ = camera_position_z;
         mainMenuVisible
-          ? ({ x: globalTime, y: dt } = matrixCopy(projection).invertSelf().transformPoint({
-            x: 3.6,
-            y: 3.5,
-          }),
-            cameraX = globalTime,
-            cameraY = dt,
+          ? (matrixCopy(projection).invertSelf(),
+            matrixTransformPoint(3.6, 3.5),
+            cameraX = matrixTransformPoint.x,
+            cameraY = matrixTransformPoint.y,
             cameraZ = 5,
             matrixCopy(identity, camera_view).rotateSelf(-20, 0).invertSelf().translateSelf(
               -cameraX,
@@ -1504,21 +1489,21 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               );
             for (let i = 0; i < 8; ++i) {
               const p = csm_tempFrustumCorners[i];
-              const v =
-                (p.x = 4 & i ? 1 : -1, p.y = 2 & i ? 1 : -1, p.z = 1 & i ? 1 : -1, tempMatrix.transformPoint(p));
-              tx -= p.x = (0 | v.x) / roundingRadius / v.w,
-                ty -= p.y = (0 | v.y) / roundingRadius / v.w,
-                tz -= p.z = (0 | v.z) / roundingRadius / v.w;
+              matrixTransformPoint(4 & i ? 1 : -1, 2 & i ? 1 : -1, 1 & i ? 1 : -1),
+                tx -= p.x = (0 | matrixTransformPoint.x) / (roundingRadius * matrixTransformPoint.w),
+                ty -= p.y = (0 | matrixTransformPoint.y) / (roundingRadius * matrixTransformPoint.w),
+                tz -= p.z = (0 | matrixTransformPoint.z) / (roundingRadius * matrixTransformPoint.w);
             }
             matrixCopy().rotateSelf(298, 139).translateSelf(tx / 8, ty / 8, tz / 8);
             for (let i1 = 0; i1 < 8; ++i1) {
-              const { x, y, z } = tempMatrix.transformPoint(csm_tempFrustumCorners[i1]);
-              left = min(left, x),
-                right = max(right, x),
-                bottom = min(bottom, y),
-                top = max(top, y),
-                near = min(near, z),
-                far = max(far, z);
+              const { x, y, z } = csm_tempFrustumCorners[i1];
+              matrixTransformPoint(x, y, z),
+                left = min(left, matrixTransformPoint.x),
+                right = max(right, matrixTransformPoint.x),
+                bottom = min(bottom, matrixTransformPoint.y),
+                top = max(top, matrixTransformPoint.y),
+                near = min(near, matrixTransformPoint.z),
+                far = max(far, matrixTransformPoint.z);
             }
             const zMultiplier = 10 + split;
             near *= near < 0 ? zMultiplier : 1 / zMultiplier,

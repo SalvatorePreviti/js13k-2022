@@ -19,6 +19,7 @@ import { polygons_transform, type Polygon } from "../geometry/polygon";
 import { cylinder } from "../geometry/geometry";
 import { material } from "../geometry/material";
 import { interact_pressed } from "../page";
+import { matrixTransformPoint } from "../math/matrix-transform-point";
 
 export let currentEditModel: Model;
 
@@ -38,9 +39,13 @@ export const newModel = (fn: () => void, $kind: MODEL_KIND = MODEL_KIND_GAME): v
 const LEVER_SENSITIVITY_RADIUS = 3;
 const SOUL_SENSITIVITY_RADIUS = 1.6;
 
-const distanceToPlayer = (transform: DOMMatrixReadOnly): number => {
-  const p = transform.transformPoint();
-  return hypot(player_position_final.x - p.x, player_position_final.y - p.y, player_position_final.z - p.z);
+const distanceToPlayer = (): number => {
+  matrixTransformPoint();
+  return hypot(
+    player_position_final.x - matrixTransformPoint.x,
+    player_position_final.y - matrixTransformPoint.y,
+    player_position_final.z - matrixTransformPoint.z,
+  );
 };
 
 export const newLever = ($transform: DOMMatrixReadOnly): void => {
@@ -58,7 +63,7 @@ export const newLever = ($transform: DOMMatrixReadOnly): void => {
 
       matrixCopy(parentModel.$matrix).multiplySelf($transform);
 
-      if (interact_pressed && distanceToPlayer(tempMatrix) < LEVER_SENSITIVITY_RADIUS) {
+      if (interact_pressed && distanceToPlayer() < LEVER_SENSITIVITY_RADIUS) {
         if (lever.$lerpValue < 0.3 || lever.$lerpValue > 0.7) {
           lever.$value = lever.$value ? 0 : 1;
           onPlayerPullLever(index);
@@ -147,14 +152,12 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]
 
         lookAngle = angle_lerp_degrees(lookAngle, Math.atan2(soulX - prevX, soulZ - prevZ) / DEG_TO_RAD - 180, damp(3));
 
-        if (
-          distanceToPlayer(
-            matrixCopy(parentModelMatrix)
-              .multiplySelf(transform)
-              .translateSelf((prevX = soulX), 0, (prevZ = soulZ))
-              .rotateSelf(0, lookAngle, Math.sin(gameTime * 1.7) * 7),
-          ) < SOUL_SENSITIVITY_RADIUS
-        ) {
+        matrixCopy(parentModelMatrix)
+          .multiplySelf(transform)
+          .translateSelf((prevX = soulX), 0, (prevZ = soulZ))
+          .rotateSelf(0, lookAngle, Math.sin(gameTime * 1.7) * 7);
+
+        if (distanceToPlayer() < SOUL_SENSITIVITY_RADIUS) {
           soul.$value = 1;
           onSoulCollected();
         }

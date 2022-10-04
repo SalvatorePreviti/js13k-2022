@@ -36,6 +36,7 @@ import { loadShader, initShaderProgram } from "./shaders-utils";
 import { initPage, csm_projections, player_first_person, projection, resetInteractPressed, updateInput } from "./page";
 import { player_init, camera_position_x, camera_position_y, camera_position_z } from "./game/player";
 import { gl } from "./gl";
+import { matrixTransformPoint } from "./math/matrix-transform-point";
 
 const LIGHT_ROT_X = 298;
 const LIGHT_ROT_Y = 139;
@@ -89,14 +90,11 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
       for (let i = 0; i < 8; ++i) {
         const p = csm_tempFrustumCorners[i]!;
-        p.x = 4 & i ? 1 : -1;
-        p.y = 2 & i ? 1 : -1;
-        p.z = 1 & i ? 1 : -1;
-        const v = tempMatrix.transformPoint(p);
+        matrixTransformPoint(4 & i ? 1 : -1, 2 & i ? 1 : -1, 1 & i ? 1 : -1);
         // Round to reduce shimmering
-        tx -= p.x = (v.x | 0) / (roundingRadius * v.w);
-        ty -= p.y = (v.y | 0) / (roundingRadius * v.w);
-        tz -= p.z = (v.z | 0) / (roundingRadius * v.w);
+        tx -= p.x = (matrixTransformPoint.x | 0) / (roundingRadius * matrixTransformPoint.w);
+        ty -= p.y = (matrixTransformPoint.y | 0) / (roundingRadius * matrixTransformPoint.w);
+        tz -= p.z = (matrixTransformPoint.z | 0) / (roundingRadius * matrixTransformPoint.w);
       }
 
       matrixCopy()
@@ -112,13 +110,14 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
       // Compute the frustum bouding box
       for (let i = 0; i < 8; ++i) {
-        const { x, y, z } = tempMatrix.transformPoint(csm_tempFrustumCorners[i]);
-        left = min(left, x);
-        right = max(right, x);
-        bottom = min(bottom, y);
-        top = max(top, y);
-        near = min(near, z);
-        far = max(far, z);
+        const { x, y, z } = csm_tempFrustumCorners[i]!;
+        matrixTransformPoint(x, y, z);
+        left = min(left, matrixTransformPoint.x);
+        right = max(right, matrixTransformPoint.x);
+        bottom = min(bottom, matrixTransformPoint.y);
+        top = max(top, matrixTransformPoint.y);
+        near = min(near, matrixTransformPoint.z);
+        far = max(far, matrixTransformPoint.z);
       }
 
       const zMultiplier = 10 + split;
@@ -214,9 +213,10 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     let cameraZ = camera_position_z;
 
     if (mainMenuVisible) {
-      const { x, y } = matrixCopy(projection).invertSelf().transformPoint({ x: 3.6, y: 3.5 });
-      cameraX = x;
-      cameraY = y;
+      matrixCopy(projection).invertSelf();
+      matrixTransformPoint(3.6, 3.5);
+      cameraX = matrixTransformPoint.x;
+      cameraY = matrixTransformPoint.y;
       cameraZ = 5;
       matrixCopy(identity, camera_view)
         .rotateSelf(-20, 0)
