@@ -14,12 +14,12 @@ import {
 } from "./models";
 import { abs } from "../math/math";
 import { GQuad, cylinder, polygon_regular, sphere, cylinder_sides } from "../geometry/geometry";
-import { csg_union, csg_polygons_subtract, csg_subtract, csg_polygons } from "../geometry/csg";
+import { polygon_transform, polygons_transform, type Polygon } from "../geometry/polygon";
 import { translation, rotation, scaling } from "../math/matrix-transforms";
 import { integers_map } from "../math/integers-map";
 import { checkModelId, meshAdd, newLever, newModel, newSoul } from "./models-factory";
-import { polygon_transform, polygons_transform, type Polygon } from "../geometry/polygon";
 import { material } from "../geometry/material";
+import { csg_union, csg_polygons_subtract } from "../geometry/csg";
 
 export const build_life_the_universe_and_everything = (): 42 | void => {
   const HORN_STACKS = 10;
@@ -323,7 +323,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
     const hexCorridorPolygons = [
       ...polygons_transform(cylinder(), translation(0, -3).scale(11, 1.4, 3), material(0.9, 0.9, 0.9, 0.2)),
-      ...polygons_transform(cylinder(), translation(0, -2.2).scale(7.7, 0.5, 4), material(0.6, 0.4, 0.4, 0.3)),
+      ...polygons_transform(cylinder(), translation(0, -2.2).scale(7.7, 0.5, 4), material(0.5, 0.5, 0.5, 0.2)),
       ...csg_polygons_subtract(
         polygons_transform(cylinder(6), rotation(90).scale(6, 8, 6), material(0.3, 0.6, 0.6, 0.3)),
         polygons_transform(
@@ -600,7 +600,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
     const pushingRod = csg_polygons_subtract(
       polygons_transform(cylinder(), translation(0, -0.5, 1).scale(1.15, 1.2, 6.5), material(0.25, 0.25, 0.35, 0.3)),
-      csg_subtract(
+      csg_polygons_subtract(
         polygons_transform(cylinder(3), translation(0, 0, -5.5).scale(3, 2), material(0.6, 0.3, 0.4, 0.3)),
         polygons_transform(cylinder(), translation(0, 0, -3.65).scale(2.5, 3), material(0.6, 0.3, 0.4, 0.3)),
       ),
@@ -610,9 +610,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     );
 
     newModel(() => integers_map(2, (x) => meshAdd(pushingRod, translation(-110 + x * 9 + (x & 1), 1.9, -12))));
-
     newModel(() => integers_map(2, (x) => meshAdd(pushingRod, translation(-110 + (x + 2) * 9 + (x & 1), 1.9, -12))));
-
     newModel(() => integers_map(3, (x) => meshAdd(pushingRod, translation(-106 + x * 9, 1.9, -12))));
 
     // pushing rods container

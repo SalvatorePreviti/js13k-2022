@@ -331,166 +331,6 @@ const sphere = (slices, stacks = slices, vertexFunc = (x, y) => (y *= Math.PI / 
   }
   return polygons;
 };
-const vec3_dot = ({ x, y, z }, b) => x * b.x + y * b.y + z * b.z;
-const plane_fromPolygon = (polygon) => {
-  let b;
-  let x = 0;
-  let y = 0;
-  let z = 0;
-  let a = polygon.at(-1);
-  for (b of polygon) {
-    x += (a.y - b.y) * (a.z + b.z), y += (a.z - b.z) * (a.x + b.x), z += (a.x - b.x) * (a.y + b.y), a = b;
-  }
-  return b = hypot(x, y, z), x /= b, y /= b, z /= b, {
-    x,
-    y,
-    z,
-    w: x * a.x + y * a.y + z * a.z,
-  };
-};
-const CSGPolygon_split = (plane, polygon) => {
-  let d;
-  let $front;
-  let $back;
-  const $polygon = polygon.$polygon;
-  for (let i = 0; $polygon.length > i; ++i) {
-    if (
-      (d = vec3_dot(plane, $polygon[i]) - plane.w) < -0.00008 ? $back = polygon : 8e-5 < d && ($front = polygon),
-        $back && $front
-    ) {
-      return ((plane2, polygon2) => {
-        let jd;
-        const fpoints = [];
-        const bpoints = [];
-        const { $polygon: $polygon2, $flipped } = polygon2;
-        let iv = $polygon2.at(-1);
-        let id = vec3_dot(plane2, iv) - plane2.w;
-        for (const jv of $polygon2) {
-          jd = vec3_dot(plane2, jv) - plane2.w,
-            id < 8e-5 && bpoints.push(iv),
-            -0.00008 < id && fpoints.push(iv),
-            (8e-5 < id && jd < -0.00008 || id < -0.00008 && 8e-5 < jd) && (id /= jd - id,
-              iv = {
-                x: iv.x + (iv.x - jv.x) * id,
-                y: iv.y + (iv.y - jv.y) * id,
-                z: iv.z + (iv.z - jv.z) * id,
-              },
-              fpoints.push(iv),
-              bpoints.push(iv)),
-            iv = jv,
-            id = jd;
-        }
-        return {
-          $front: 2 < fpoints.length && {
-            $polygon: polygon_color(fpoints, $polygon2.$color, $polygon2.$smooth),
-            $flipped,
-            $parent: polygon2,
-          },
-          $back: 2 < bpoints.length && {
-            $polygon: polygon_color(bpoints, $polygon2.$color, $polygon2.$smooth),
-            $flipped,
-            $parent: polygon2,
-          },
-        };
-      })(plane, polygon);
-    }
-  }
-  return {
-    $front,
-    $back,
-  };
-};
-const csg_tree_addPolygon = (node, polygon, plane = plane_fromPolygon(polygon.$polygon)) => {
-  let $front;
-  let $back;
-  let w;
-  return node
-    ? ({ $front, $back } = CSGPolygon_split(node, polygon),
-      $front || $back || node.$polygons.push(polygon),
-      $front && (node.$front = csg_tree_addPolygon(node.$front, $front, plane)),
-      $back && (node.$back = csg_tree_addPolygon(node.$back, $back, plane)))
-    : ({ x: $front, y: $back, z: plane, w } = plane,
-      node = {
-        x: $front,
-        y: $back,
-        z: plane,
-        w,
-        $polygons: [
-          polygon,
-        ],
-        $front: 0,
-        $back: 0,
-      }),
-    node;
-};
-const csg_tree_clipNode = (anode, bnode, polygonPlaneFlipped) => {
-  const result = [];
-  const recursion = (node, polygon) => {
-    let { $front, $back } = CSGPolygon_split(node, polygon);
-    $front || $back || (0 < polygonPlaneFlipped * vec3_dot(node, bnode) ? $front = polygon : $back = polygon),
-      $front && (node.$front ? recursion(node.$front, $front) : result.push($front)),
-      $back && node.$back && recursion(node.$back, $back);
-  };
-  for (const polygon of bnode.$polygons) recursion(anode, polygon);
-  return result;
-};
-const csg_tree_each = (node, fn) => node && (fn(node), csg_tree_each(node.$front, fn), csg_tree_each(node.$back, fn));
-const csg_tree_flip = (root) => (csg_tree_each(root, (node) => {
-  const back = node.$back;
-  node.$back = node.$front, node.$front = back, node.x *= -1, node.y *= -1, node.z *= -1, node.w *= -1;
-  for (const polygon of node.$polygons) polygon.$flipped = !polygon.$flipped;
-}),
-  root);
-const csg_tree = (n) =>
-  n.length
-    ? n.reduce((prev, $polygon) =>
-      csg_tree_addPolygon(prev, {
-        $polygon,
-        $flipped: 0,
-        $parent: 0,
-      }), 0)
-    : n;
-const csg_union = (...inputs) =>
-  inputs.reduce((a, b) => {
-    const polygonsToAdd = [];
-    if (a = csg_tree(a), b) {
-      b = csg_tree(b),
-        csg_tree_each(a, (node) => node.$polygons = csg_tree_clipNode(b, node, 1)),
-        csg_tree_each(b, (node) =>
-          polygonsToAdd.push([
-            node,
-            csg_tree_clipNode(a, node, -1),
-          ]));
-      for (let [plane, polygons] of polygonsToAdd) for (const pp of polygons) csg_tree_addPolygon(a, pp, plane);
-    }
-    return a;
-  });
-const csg_polygons_subtract = (a, ...b) => {
-  {
-    const add = (polygon) => {
-      let found;
-      return polygon.$parent
-        && ((found = byParent.get(polygon.$parent))
-          ? (allPolygons.delete(found), polygon = add(polygon.$parent))
-          : byParent.set(polygon.$parent, polygon)),
-        polygon;
-    };
-    const byParent = new Map();
-    const allPolygons = new Map();
-    return a = csg_tree_flip(csg_union(csg_tree_flip(csg_tree(a)), ...b)),
-      csg_tree_each(a, (node) => {
-        for (const polygon of node.$polygons) allPolygons.set(add(polygon), polygon.$flipped);
-      }),
-      Array.from(allPolygons, ([{ $polygon }, flipped]) => {
-        const polygon = $polygon.map(({ x, y, z }) => ({
-          x,
-          y,
-          z,
-        }));
-        return polygon_color(flipped ? polygon.reverse() : polygon, $polygon.$color, $polygon.$smooth);
-      });
-  }
-};
 const damp = (speed) => 1 - Math.exp(-speed * gameTimeDelta);
 const lerpDamp = NO_INLINE((from, to, speed) => lerp(from, to, damp(speed)));
 const updateCollectedSoulsCounter = () => {
@@ -523,6 +363,7 @@ const saveGame = () => {
 const showMessage = (message, duration) => {
   1 / 0 > _messageEndTime && (_messageEndTime = gameTime + duration, h4.innerHTML = message);
 };
+const material = NO_INLINE((r, g, b, a = 0) => 255 * a << 24 | 255 * b << 16 | 255 * g << 8 | 255 * r);
 const mat_perspective = (near, far, mx, my) =>
   new DOMMatrix([
     mx,
@@ -708,7 +549,6 @@ const initPage = () => {
     document.onvisibilitychange = onblur = onresize = handleResize,
     mainMenu(!0);
 };
-const material = NO_INLINE((r, g, b, a = 0) => 255 * a << 24 | 255 * b << 16 | 255 * g << 8 | 255 * r);
 const meshAdd = (polygons, transform = new DOMMatrix(), color) =>
   currentEditModel.$polygons.push(...polygons_transform(polygons, transform, color));
 const newModel = (fn, $kind = 1) => {
@@ -863,6 +703,166 @@ const newSoul = (transform, ...walkingPath) => {
   const parentModelMatrix = currentEditModel.$matrix;
   const index = souls.length;
   souls.push(soul);
+};
+const vec3_dot = ({ x, y, z }, b) => x * b.x + y * b.y + z * b.z;
+const plane_fromPolygon = (polygon) => {
+  let b;
+  let x = 0;
+  let y = 0;
+  let z = 0;
+  let a = polygon.at(-1);
+  for (b of polygon) {
+    x += (a.y - b.y) * (a.z + b.z), y += (a.z - b.z) * (a.x + b.x), z += (a.x - b.x) * (a.y + b.y), a = b;
+  }
+  return b = hypot(x, y, z), x /= b, y /= b, z /= b, {
+    x,
+    y,
+    z,
+    w: x * a.x + y * a.y + z * a.z,
+  };
+};
+const CSGPolygon_split = (plane, polygon) => {
+  let d;
+  let $front;
+  let $back;
+  const $polygon = polygon.$polygon;
+  for (let i = 0; $polygon.length > i; ++i) {
+    if (
+      (d = vec3_dot(plane, $polygon[i]) - plane.w) < -0.00008 ? $back = polygon : 8e-5 < d && ($front = polygon),
+        $back && $front
+    ) {
+      return ((plane2, polygon2) => {
+        let jd;
+        const fpoints = [];
+        const bpoints = [];
+        const { $polygon: $polygon2, $flipped } = polygon2;
+        let iv = $polygon2.at(-1);
+        let id = vec3_dot(plane2, iv) - plane2.w;
+        for (const jv of $polygon2) {
+          jd = vec3_dot(plane2, jv) - plane2.w,
+            id < 8e-5 && bpoints.push(iv),
+            -0.00008 < id && fpoints.push(iv),
+            (8e-5 < id && jd < -0.00008 || id < -0.00008 && 8e-5 < jd) && (id /= jd - id,
+              iv = {
+                x: iv.x + (iv.x - jv.x) * id,
+                y: iv.y + (iv.y - jv.y) * id,
+                z: iv.z + (iv.z - jv.z) * id,
+              },
+              fpoints.push(iv),
+              bpoints.push(iv)),
+            iv = jv,
+            id = jd;
+        }
+        return {
+          $front: 2 < fpoints.length && {
+            $polygon: polygon_color(fpoints, $polygon2.$color, $polygon2.$smooth),
+            $flipped,
+            $parent: polygon2,
+          },
+          $back: 2 < bpoints.length && {
+            $polygon: polygon_color(bpoints, $polygon2.$color, $polygon2.$smooth),
+            $flipped,
+            $parent: polygon2,
+          },
+        };
+      })(plane, polygon);
+    }
+  }
+  return {
+    $front,
+    $back,
+  };
+};
+const csg_tree_addPolygon = (node, polygon, plane = plane_fromPolygon(polygon.$polygon)) => {
+  let $front;
+  let $back;
+  let w;
+  return node
+    ? ({ $front, $back } = CSGPolygon_split(node, polygon),
+      $front || $back || node.$polygons.push(polygon),
+      $front && (node.$front = csg_tree_addPolygon(node.$front, $front, plane)),
+      $back && (node.$back = csg_tree_addPolygon(node.$back, $back, plane)))
+    : ({ x: $front, y: $back, z: plane, w } = plane,
+      node = {
+        x: $front,
+        y: $back,
+        z: plane,
+        w,
+        $polygons: [
+          polygon,
+        ],
+        $front: 0,
+        $back: 0,
+      }),
+    node;
+};
+const csg_tree_clipNode = (anode, bnode, polygonPlaneFlipped) => {
+  const result = [];
+  const recursion = (node, polygon) => {
+    let { $front, $back } = CSGPolygon_split(node, polygon);
+    $front || $back || (0 < polygonPlaneFlipped * vec3_dot(node, bnode) ? $front = polygon : $back = polygon),
+      $front && (node.$front ? recursion(node.$front, $front) : result.push($front)),
+      $back && node.$back && recursion(node.$back, $back);
+  };
+  for (const polygon of bnode.$polygons) recursion(anode, polygon);
+  return result;
+};
+const csg_tree_each = (node, fn) => node && (fn(node), csg_tree_each(node.$front, fn), csg_tree_each(node.$back, fn));
+const csg_tree_flip = (root) => (csg_tree_each(root, (node) => {
+  const back = node.$back;
+  node.$back = node.$front, node.$front = back, node.x *= -1, node.y *= -1, node.z *= -1, node.w *= -1;
+  for (const polygon of node.$polygons) polygon.$flipped = !polygon.$flipped;
+}),
+  root);
+const csg_tree = (n) =>
+  n.length
+    ? n.reduce((prev, $polygon) =>
+      csg_tree_addPolygon(prev, {
+        $polygon,
+        $flipped: 0,
+        $parent: 0,
+      }), 0)
+    : n;
+const csg_union = (...inputs) =>
+  inputs.reduce((a, b) => {
+    const polygonsToAdd = [];
+    if (a = csg_tree(a), b) {
+      b = csg_tree(b),
+        csg_tree_each(a, (node) => node.$polygons = csg_tree_clipNode(b, node, 1)),
+        csg_tree_each(b, (node) =>
+          polygonsToAdd.push([
+            node,
+            csg_tree_clipNode(a, node, -1),
+          ]));
+      for (let [plane, polygons] of polygonsToAdd) for (const pp of polygons) csg_tree_addPolygon(a, pp, plane);
+    }
+    return a;
+  });
+const csg_polygons_subtract = (a, ...b) => {
+  {
+    const add = (polygon) => {
+      let found;
+      return polygon.$parent
+        && ((found = byParent.get(polygon.$parent))
+          ? (allPolygons.delete(found), polygon = add(polygon.$parent))
+          : byParent.set(polygon.$parent, polygon)),
+        polygon;
+    };
+    const byParent = new Map();
+    const allPolygons = new Map();
+    return a = csg_tree_flip(csg_union(csg_tree_flip(csg_tree(a)), ...b)),
+      csg_tree_each(a, (node) => {
+        for (const polygon of node.$polygons) allPolygons.set(add(polygon), polygon.$flipped);
+      }),
+      Array.from(allPolygons, ([{ $polygon }, flipped]) => {
+        const polygon = $polygon.map(({ x, y, z }) => ({
+          x,
+          y,
+          z,
+        }));
+        return polygon_color(flipped ? polygon.reverse() : polygon, $polygon.$color, $polygon.$smooth);
+      });
+  }
 };
 const player_init = () => {
   let player_look_angle_target;
@@ -1302,7 +1302,7 @@ loadStep(() => {
                 ),
                 boatAnimationMatrix(next(), -12, 4.2, 40 * firstBoatLerp - 66),
                 next().translateSelf(0, 0, -15).scaleSelf(1, clamp(1.22 - levers[1].$lerpValue), 1),
-                next().translateSelf(0, 0, 15).scaleSelf(1, clamp(1.22 - levers[2].$lerpValue), 1),
+                next().translateSelf(0, 0, 15).scaleSelf(1, clamp(1.22 - levers[1].$lerpValue), 1),
                 next().translateSelf(-99.7, -1.9, 63.5).scaleSelf(1, clamp(1.1 - levers[6].$lerpValue), 1),
                 next().translateSelf(-100, 0.6, 96.5).scaleSelf(0.88, 1.2 - levers[12].$lerpValue),
                 next().translateSelf(
@@ -1675,8 +1675,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
             GQuad.slice(1),
           ], translation(-2).scale3d(3).rotate(90, 0)), 0),
           newModel(() => {
-            let b;
-            let blackPlatform = (pz) =>
+            const blackPlatform = (pz) =>
               newModel(() => {
                 GQuad.map(({ x, z }) => {
                   meshAdd(
@@ -1916,7 +1915,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 ...polygons_transform(
                   cylinder(),
                   translation(0, -2.2).scale(7.7, 0.5, 4),
-                  material(0.6, 0.4, 0.4, 0.3),
+                  material(0.5, 0.5, 0.5, 0.2),
                 ),
                 ...csg_polygons_subtract(
                   polygons_transform(cylinder(6), rotation(90).scale(6, 8, 6), material(0.3, 0.6, 0.6, 0.3)),
@@ -2224,15 +2223,10 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   translation(0, -0.5, 1).scale(1.15, 1.2, 6.5),
                   material(0.25, 0.25, 0.35, 0.3),
                 ),
-                (blackPlatform = polygons_transform(
-                  cylinder(),
-                  translation(0, 0, -3.65).scale(2.5, 3),
-                  material(0.6, 0.3, 0.4, 0.3),
+                csg_polygons_subtract(
+                  polygons_transform(cylinder(3), translation(0, 0, -5.5).scale(3, 2), material(0.6, 0.3, 0.4, 0.3)),
+                  polygons_transform(cylinder(), translation(0, 0, -3.65).scale(2.5, 3), material(0.6, 0.3, 0.4, 0.3)),
                 ),
-                  b = [
-                    polygons_transform(cylinder(3), translation(0, 0, -5.5).scale(3, 2), material(0.6, 0.3, 0.4, 0.3)),
-                  ],
-                  csg_tree_flip(csg_union(csg_tree_flip(csg_tree(blackPlatform)), ...b))),
                 ...[
                   -1,
                   1,

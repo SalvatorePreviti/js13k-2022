@@ -1,10 +1,10 @@
 import { clamp, max, abs, lerpneg, min, angle_wrap_degrees, lerp } from "../math/math";
-import { matrixCopy, identity, matrixToArray, tempMatrix } from "../math/matrix";
-import { player_update } from "./player";
-import { gameTime, gameTimeDelta, lerpDamp } from "./game-time";
 import { allModels, levers, LEVERS_COUNT, souls, SOULS_COUNT } from "./models";
 import { objectsMatricesBuffer, worldMatricesBuffer } from "./models-matrices";
+import { matrixCopy, identity, matrixToArray, tempMatrix } from "../math/matrix";
+import { gameTime, gameTimeDelta, lerpDamp } from "./game-time";
 import { firstBoatLerp, secondBoatLerp } from "./world-state";
+import { player_update } from "./player";
 
 export let shouldRotatePlatforms: number;
 
