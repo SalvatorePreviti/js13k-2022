@@ -25,10 +25,14 @@ let camera_position_y = 0;
 let camera_position_z = 0;
 let _messageEndTime = 1;
 let gameTimeDelta = 0.066;
+const DEG_TO_RAD = Math.PI / 180;
+const groundTextureSvg = "data:image/svg+xml;base64,"
+  + btoa(
+    "<svg color-interpolation-filters=\"sRGB\" height=\"1024\" width=\"1024\" xmlns=\"http://www.w3.org/2000/svg\"><filter filterUnits=\"userSpaceOnUse\" height=\"1026\" id=\"a\" width=\"1026\" x=\"0\" y=\"0\"><feTurbulence baseFrequency=\".007\" height=\"1025\" numOctaves=\"6\" stitchTiles=\"stitch\" width=\"1025\" result=\"z\" type=\"fractalNoise\" x=\"1\" y=\"1\"/><feTile height=\"1024\" width=\"1024\" x=\"-1\" y=\"-1\"/><feTile/><feDiffuseLighting diffuseConstant=\"4\" lighting-color=\"red\" surfaceScale=\"5\"><feDistantLight azimuth=\"270\" elevation=\"5\"/></feDiffuseLighting><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"x\"/><feColorMatrix values=\"0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 1\" in=\"z\"/><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"z\"/><feTurbulence baseFrequency=\".01\" height=\"1024\" numOctaves=\"5\" stitchTiles=\"stitch\" width=\"1024\"/><feColorMatrix values=\"0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1\"/><feBlend in2=\"x\" mode=\"screen\"/><feBlend in2=\"z\" mode=\"screen\"/></filter><rect filter=\"url(#a)\" height=\"100%\" width=\"100%\"/></svg>",
+  );
 const souls = [];
 const levers = [];
 const allModels = [];
-const DEG_TO_RAD = Math.PI / 180;
 const GQuad = [
   {
     x: -1,
@@ -608,11 +612,11 @@ const newSoul = (transform, ...walkingPath) => {
   let lookAngle;
   let prevX;
   let prevZ;
-  let dirX = -1;
   let dirZ = 0;
   let randAngle = 0;
   let wasInside = 1;
   let velocity = 3;
+  let dirX = -1;
   const soul = {
     $value: 0,
     _update() {
@@ -927,9 +931,9 @@ const player_init = () => {
     let modelB = 0;
     let modelBCount = 0;
     let movY = 0;
-    let lineToProcess = -1;
     let movX = 0;
     let movZ = 0;
+    let lineToProcess = -1;
     for (let y = 0; y < 36; ++y) {
       const yindex = 512 * y;
       for (let x = 96; x < 416; x += 4) {
@@ -1236,10 +1240,6 @@ const float32Array16Temp = new Float32Array(16);
 const worldMatricesBuffer = new Float32Array(624);
 const objectsMatricesBuffer = new Float32Array(624);
 const collision_buffer = new Uint8Array(65536);
-const groundTextureSvg = "data:image/svg+xml;base64,"
-  + btoa(
-    "<svg color-interpolation-filters=\"sRGB\" height=\"1024\" width=\"1024\" xmlns=\"http://www.w3.org/2000/svg\"><filter filterUnits=\"userSpaceOnUse\" height=\"1026\" id=\"a\" width=\"1026\" x=\"0\" y=\"0\"><feTurbulence baseFrequency=\".007\" height=\"1025\" numOctaves=\"6\" stitchTiles=\"stitch\" width=\"1025\" result=\"z\" type=\"fractalNoise\" x=\"1\" y=\"1\"/><feTile height=\"1024\" width=\"1024\" x=\"-1\" y=\"-1\"/><feTile/><feDiffuseLighting diffuseConstant=\"4\" lighting-color=\"red\" surfaceScale=\"5\"><feDistantLight azimuth=\"270\" elevation=\"5\"/></feDiffuseLighting><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"x\"/><feColorMatrix values=\"0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 1\" in=\"z\"/><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"z\"/><feTurbulence baseFrequency=\".01\" height=\"1024\" numOctaves=\"5\" stitchTiles=\"stitch\" width=\"1024\"/><feColorMatrix values=\"0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1\"/><feBlend in2=\"x\" mode=\"screen\"/><feBlend in2=\"z\" mode=\"screen\"/></filter><rect filter=\"url(#a)\" height=\"100%\" width=\"100%\"/></svg>",
-  );
 const songAudioSource = audioContext.createBufferSource();
 const gl = hC.getContext("webgl2", {
   powerPreference: "high-performance",
@@ -1283,93 +1283,93 @@ loadStep(() => {
           {
             let counter = 1;
             const next = () => matrixCopy(identity, allModels[++counter].$matrix);
-            var dt =
-              (shouldRotatePlatforms = lerpneg(levers[12].$lerpValue, levers[13].$lerpValue),
-                rotatingHexCorridorRotation = lerp(
-                  lerpDamp(rotatingHexCorridorRotation, 0, 1),
-                  angle_wrap_degrees(rotatingHexCorridorRotation + 60 * gameTimeDelta),
-                  levers[5].$lerpValue - levers[6].$lerpValue2,
-                ),
-                rotatingPlatform1Rotation = lerp(
-                  lerpDamp(rotatingPlatform1Rotation, 0, 5),
-                  angle_wrap_degrees(rotatingPlatform1Rotation + 56 * gameTimeDelta),
-                  shouldRotatePlatforms,
-                ),
-                rotatingPlatform2Rotation = lerp(
-                  lerpDamp(rotatingPlatform2Rotation, 0, 4),
-                  angle_wrap_degrees(rotatingPlatform2Rotation + 48 * gameTimeDelta),
-                  shouldRotatePlatforms,
-                ),
-                boatAnimationMatrix(next(), -12, 4.2, 40 * firstBoatLerp - 66),
-                next().translateSelf(0, 0, -15).scaleSelf(1, clamp(1.22 - levers[1].$lerpValue), 1),
-                next().translateSelf(0, 0, 15).scaleSelf(1, clamp(1.22 - levers[1].$lerpValue), 1),
-                next().translateSelf(-99.7, -1.9, 63.5).scaleSelf(1, clamp(1.1 - levers[6].$lerpValue), 1),
-                next().translateSelf(-100, 0.6, 96.5).scaleSelf(0.88, 1.2 - levers[12].$lerpValue),
-                next().translateSelf(
-                  0,
-                  levers[3].$lerpValue < 0.01
-                    ? -500
-                    : (1 - levers[2].$lerpValue) * levers[3].$lerpValue2 * (5 * Math.cos(1.5 * gameTime) + 2)
-                      + 15 * (levers[3].$lerpValue - 1),
-                  0,
-                ),
-                min(levers[2].$lerpValue2, 1 - levers[4].$lerpValue2));
-            var globalTime =
-              (next().translateSelf(dt * Math.sin(gameTime / 1.5 + 2) * 12),
-                next().translateSelf(dt * Math.sin(0.7 * gameTime + 2) * 12),
-                next().translateSelf(dt * Math.sin(gameTime + 3) * 8.2),
-                next().translateSelf(9.8 * (1 - dt)),
-                clamp(1 - 5 * dt) * lerpneg(levers[4].$lerpValue, levers[5].$lerpValue));
-            var dt =
-              (next().translateSelf(0, globalTime * Math.sin(1.35 * gameTime) * 4),
-                next().translateSelf(0, 0, globalTime * Math.sin(0.9 * gameTime) * 8),
-                next().translateSelf(0, -6.5 * levers[4].$lerpValue2),
-                next().translateSelf(-75, (1 - levers[5].$lerpValue2) * (1 - levers[6].$lerpValue) * 3, 55).rotateSelf(
-                  180 * (1 - levers[5].$lerpValue2) + rotatingHexCorridorRotation,
-                  0,
-                ),
-                lerpneg(levers[7].$lerpValue2, levers[6].$lerpValue2));
-            var globalTime = (next().translateSelf(
-              0,
-              dt * Math.sin(gameTime) * 5 + 3.5 * (1 - max(levers[6].$lerpValue, levers[7].$lerpValue)),
-            ),
-              next().translateSelf(0, dt * Math.sin(gameTime + 3) * 6, dt * Math.sin(0.6 * gameTime + 1) * 6),
+            shouldRotatePlatforms = lerpneg(levers[12].$lerpValue, levers[13].$lerpValue),
+              rotatingHexCorridorRotation = lerp(
+                lerpDamp(rotatingHexCorridorRotation, 0, 1),
+                angle_wrap_degrees(rotatingHexCorridorRotation + 60 * gameTimeDelta),
+                levers[5].$lerpValue - levers[6].$lerpValue2,
+              ),
+              rotatingPlatform1Rotation = lerp(
+                lerpDamp(rotatingPlatform1Rotation, 0, 5),
+                angle_wrap_degrees(rotatingPlatform1Rotation + 56 * gameTimeDelta),
+                shouldRotatePlatforms,
+              ),
+              rotatingPlatform2Rotation = lerp(
+                lerpDamp(rotatingPlatform2Rotation, 0, 4),
+                angle_wrap_degrees(rotatingPlatform2Rotation + 48 * gameTimeDelta),
+                shouldRotatePlatforms,
+              ),
+              boatAnimationMatrix(next(), -12, 4.2, 40 * firstBoatLerp - 66),
+              next().translateSelf(0, 0, -15).scaleSelf(1, clamp(1.22 - levers[1].$lerpValue), 1),
+              next().translateSelf(0, 0, 15).scaleSelf(1, clamp(1.22 - levers[2].$lerpValue), 1),
+              next().translateSelf(-99.7, -1.9, 63.5).scaleSelf(1, clamp(1.1 - levers[6].$lerpValue), 1),
+              next().translateSelf(-100, 0.6, 96.5).scaleSelf(0.88, 1.2 - levers[12].$lerpValue),
+              next().translateSelf(
+                0,
+                levers[3].$lerpValue < 0.01
+                  ? -500
+                  : (1 - levers[2].$lerpValue) * levers[3].$lerpValue2 * (5 * Math.cos(1.5 * gameTime) + 2)
+                    + 15 * (levers[3].$lerpValue - 1),
+                0,
+              );
+            let oscillation = min(levers[2].$lerpValue2, 1 - levers[4].$lerpValue2);
+            next().translateSelf(oscillation * Math.sin(gameTime / 1.5 + 2) * 12),
+              next().translateSelf(oscillation * Math.sin(0.7 * gameTime + 2) * 12),
+              next().translateSelf(oscillation * Math.sin(gameTime + 3) * 8.2),
+              next().translateSelf(9.8 * (1 - oscillation)),
+              oscillation = clamp(1 - 5 * oscillation) * lerpneg(levers[4].$lerpValue, levers[5].$lerpValue),
+              next().translateSelf(0, oscillation * Math.sin(1.35 * gameTime) * 4),
+              next().translateSelf(0, 0, oscillation * Math.sin(0.9 * gameTime) * 8),
+              next().translateSelf(0, -6.5 * levers[4].$lerpValue2),
+              next().translateSelf(-75, (1 - levers[5].$lerpValue2) * (1 - levers[6].$lerpValue) * 3, 55).rotateSelf(
+                180 * (1 - levers[5].$lerpValue2) + rotatingHexCorridorRotation,
+                0,
+              ),
+              oscillation = lerpneg(levers[7].$lerpValue2, levers[6].$lerpValue2),
+              next().translateSelf(
+                0,
+                oscillation * Math.sin(gameTime) * 5 + 3.5 * (1 - max(levers[6].$lerpValue, levers[7].$lerpValue)),
+              ),
+              next().translateSelf(
+                0,
+                oscillation * Math.sin(gameTime + 3) * 6,
+                oscillation * Math.sin(0.6 * gameTime + 1) * 6,
+              ),
               next().translateSelf(0, -7.3 * levers[7].$lerpValue2),
               boatAnimationMatrix(next(), -123, 1.4, 55 + -65 * secondBoatLerp),
-              lerpneg(levers[10].$lerpValue, levers[11].$lerpValue));
-            const hexPadShouldOscillate =
-              (next().translateSelf(0, -2, globalTime * abs(Math.sin(1.1 * gameTime)) * -8.5 + 10),
-                next().translateSelf(0, -2, globalTime * abs(Math.sin(2.1 * gameTime)) * -8.5 + 10),
-                next().translateSelf(
-                  0,
-                  -2,
-                  -8.5 * max((1 - levers[10].$lerpValue) * (1 - globalTime), globalTime * abs(Math.sin(1.5 * gameTime)))
-                    + 10,
-                ),
-                lerpneg(levers[8].$lerpValue2, levers[12].$lerpValue2));
+              oscillation = lerpneg(levers[10].$lerpValue, levers[11].$lerpValue),
+              next().translateSelf(0, -2, oscillation * abs(Math.sin(1.1 * gameTime)) * -8.5 + 10),
+              next().translateSelf(0, -2, oscillation * abs(Math.sin(2.1 * gameTime)) * -8.5 + 10),
+              next().translateSelf(
+                0,
+                -2,
+                -8.5 * max((1 - levers[10].$lerpValue) * (1 - oscillation), oscillation * abs(Math.sin(1.5 * gameTime)))
+                  + 10,
+              ),
+              oscillation = lerpneg(levers[8].$lerpValue2, levers[12].$lerpValue2);
             for (let i = 0; i < 4; i++) {
               next().translateSelf(
-                (2 < i ? 2 * (1 - hexPadShouldOscillate) + hexPadShouldOscillate : 0) - 100,
-                hexPadShouldOscillate * Math.sin(1.3 * gameTime + 1.7 * i) * (3 + i / 3) + 0.7,
+                (2 < i ? 2 * (1 - oscillation) + oscillation : 0) - 100,
+                oscillation * Math.sin(1.3 * gameTime + 1.7 * i) * (3 + i / 3) + 0.7,
                 115 + (1 & i ? -1 : 1) * (1 - levers[8].$lerpValue2) * (1 - levers[12].$lerpValue2) * -7
-                  + max(hexPadShouldOscillate, 0.05) * Math.cos(1.3 * gameTime + 7 * i) * (4 - 2 * (1 - i / 3)),
+                  + max(oscillation, 0.05) * Math.cos(1.3 * gameTime + 7 * i) * (4 - 2 * (1 - i / 3)),
               );
             }
             next().translateSelf(
-              2.5 * (1 - hexPadShouldOscillate) - 139.7,
-              -3 * (1 - levers[8].$lerpValue) + hexPadShouldOscillate * Math.sin(0.8 * gameTime) * -1 - 1.8,
+              2.5 * (1 - oscillation) - 139.7,
+              -3 * (1 - levers[8].$lerpValue) + oscillation * Math.sin(0.8 * gameTime) * -1 - 1.8,
               93.5,
-            ).rotateSelf(Math.cos(1.3 * gameTime) * (3 * hexPadShouldOscillate + 3), 0),
+            ).rotateSelf(Math.cos(1.3 * gameTime) * (3 * oscillation + 3), 0),
               next().translateSelf(-81, 0.6, 106).rotateSelf(0, 40 + rotatingPlatform1Rotation),
               next().translateSelf(-65.8, 0.8, 106).rotateSelf(0, rotatingPlatform2Rotation),
               next().translateSelf(-50.7, 0.8, 106).rotateSelf(0, 180 - rotatingPlatform2Rotation),
-              next().translateSelf(-50.7, 0.8, 91).rotateSelf(0, 270 + rotatingPlatform2Rotation);
-            const jumpingPadsOscillate = lerpneg(levers[13].$lerpValue2, levers[14].$lerpValue2);
+              next().translateSelf(-50.7, 0.8, 91).rotateSelf(0, 270 + rotatingPlatform2Rotation),
+              oscillation = lerpneg(levers[13].$lerpValue2, levers[14].$lerpValue2);
             for (let i1 = 0; i1 < 3; ++i1) {
               next().translateSelf(
                 0,
-                (1 - levers[13].$lerpValue2) * (1 - levers[14].$lerpValue2) * (i1 ? 0 : 3)
-                  + jumpingPadsOscillate * Math.sin(1.5 * gameTime + 1.5 * i1) * 4,
+                oscillation * Math.sin(1.5 * gameTime + 1.5 * i1) * 4
+                  + (i1 ? 0 : (1 - levers[13].$lerpValue2) * (1 - levers[14].$lerpValue2)),
               );
             }
             next().translateSelf(-2 * Math.sin(gameTime)).rotateSelf(25 * Math.sin(gameTime)),
@@ -1492,10 +1492,10 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
             let ty = 0;
             let tz = 0;
             let left = 1 / 0;
-            let right = -1 / 0;
             let bottom = 1 / 0;
-            let top = -1 / 0;
             let near = 1 / 0;
+            let right = -1 / 0;
+            let top = -1 / 0;
             let far = -1 / 0;
             gl["fas"](36160, 36096, 3553, texture, 0),
               gl["c4s"](256),
@@ -2569,29 +2569,25 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 material(0.1, 0.55, 0.45, 0.2),
                 material(0.2, 0.5, 0.5, 0.3),
                 material(0.3, 0.45, 0.55, 0.4),
-              ].map((m, i) =>
-                newModel(() => {
-                  meshAdd(cylinder(), translation(-23.5, 0.5, 91 + 6.8 * i).scale(i === 1 ? 2 : 3.3, 1, 3.3), m),
-                    i === 2
-                    && meshAdd(cylinder(), translation(-29.1, 0.4, 91).scale(2.1, 1, 3), material(0.7, 0.7, 0.7, 0.3)),
-                    i === 1
-                    && meshAdd(
-                      cylinder(),
-                      translation(-16.1, 0.5, 103.5).rotate(-3.5).scale(3.9, 0.8, 2).skewX(-1),
-                      material(0.6, 0.6, 0.7, 0.3),
-                    );
-                })
-              ),
+              ].map((m, i) => newModel(() => {
+                meshAdd(cylinder(), translation(-23.5, 0.5, 91 + 6.8 * i).scale(i === 1 ? 2 : 3.3, 1, 3.3), m),
+                  i === 2
+                  && meshAdd(cylinder(), translation(-29.1, 0.4, 91).scale(2.1, 1, 3), material(0.7, 0.7, 0.7, 0.3)),
+                  i === 1
+                  && meshAdd(
+                    cylinder(),
+                    translation(-16.1, 0.5, 103.5).rotate(-3.5).scale(3.9, 0.8, 2).skewX(-1),
+                    material(0.6, 0.6, 0.7, 0.3),
+                  );
+              })),
               [
                 -1,
                 1,
-              ].map((x) =>
-                meshAdd(
-                  hornPolygons,
-                  translation(-8 * x, 1, 85).scale(1.2, 10, 1.2).rotate(0, 90 * x + 90),
-                  material(1, 1, 0.8),
-                )
-              ),
+              ].map((x) => meshAdd(
+                hornPolygons,
+                translation(-8 * x, 1, 85).scale(1.2, 10, 1.2).rotate(0, 90 * x + 90),
+                material(1, 1, 0.8),
+              )),
               integers_map(3, (i) =>
                 meshAdd(
                   makeBigArcPolygons(24.7 - 0.7 * (1 & i)),
@@ -2753,116 +2749,4 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
           }, 0);
       }
     });
-}),
-  NO_INLINE(`<!DOCTYPE html><html><head>
-    <title>666</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
-    
-    
-    
-  <link rel="stylesheet" href="/index.css"></head>
-
-  <body>
-    <canvas id="hC"></canvas>
-    <h4 id="h4">loading</h4>
-    <b id="b5">☰</b>
-    <h3 id="h3"></h3>
-    <main>
-      <nav>
-        <h2>DANTE</h2>
-        Lucifer:
-        <i>"Damn. Infernal delivery service failed again. A delivery of evil souls fell in an area under construction.
-          Dante, take them where they belong, to the 8th circle."</i>
-        <ul>
-          <li id="b1">Play</li>
-          <li id="b2">Play first person</li>
-          <li id="b3">Restart</li>
-          <li id="b4"></li>
-        </ul>
-        <p>move WASD/arrows, levers E/click, menu Esc</p>
-        <p>
-          <a target="_blank" href="https://github.com/SalvatorePreviti/js13k-2022">© 2022 Salvatore Previti</a> -
-          <a target="_blank" href="https://twitter.com/ryanmalm">music Ryan Malm</a>
-        </p>
-      </nav>
-    </main>
-    
-  
-
-<script type="module" src="/index.js" crossorigin=""><\/script></body></html> * {
-  -webkit-user-select: none;
-  user-select: none;
-  color: #fda;
-  font-weight: 100;
-  touch-action: none;
-  overscroll-behavior: contain;
-}
-html,
-body {
-  background: #000;
-  margin: 0;
-  font-family: "Times New Roman", serif;
-  font-size: max(min(3.8vw, 3.8vh), 15px);
-  text-shadow: 4px 4px 2px #000, -2px -2px 8px #000;
-}
-p {
-  font-size: 0.7em;
-}
-body > * {
-  position: absolute;
-}
-h2 {
-  color: #f61;
-  margin: 0 0 0.7em;
-}
-h4 {
-  left: 0;
-  top: 0;
-  right: 0;
-  text-align: center;
-}
-h3,
-h4 {
-  pointer-events: none;
-}
-.m main {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  min-width: 70%;
-}
-nav {
-  background: #00000080;
-  border-radius: 1em;
-  max-width: max(780px, 50vw);
-  padding: 1em;
-}
-#b5,
-h3 {
-  padding: 10px;
-}
-h3 {
-  text-align: right;
-  right: 5%;
-  bottom: 0;
-}
-a,
-li {
-  cursor: pointer;
-  margin-bottom: 0.5em;
-  text-decoration: none;
-  border-bottom: 3px solid #00000000;
-}
-h2,
-a:hover,
-li:hover {
-  border-bottom: 3px solid;
-}
-main,
-.m h4 {
-  display: none;
-}
-`);
+});

@@ -1,5 +1,6 @@
 import type { BlockStatement, Expression, ModuleItem, Program, Statement, VariableDeclaration } from "@swc/core";
 import SwcVisitor from "@swc/core/Visitor";
+import { browserPureFunctionsSet } from "../../../lib/js-config";
 import type { SwcSimpleTransformSettings } from "./swc-plugin-simple";
 import { swcPluginSimpleTransform } from "./swc-plugin-simple";
 
@@ -88,28 +89,24 @@ function isConstantExpr(expression?: Expression): boolean {
       if (expression.callee.type === "Identifier" && expression.callee.value === "NO_INLINE") {
         return isConstantExpr(expression.arguments[0]?.expression);
       }
-      if (expression.callee.type !== "MemberExpression") {
-        return false;
-      }
-      if (!isConstantExpr(expression.callee.object)) {
-        return false;
-      }
-      for (const arg of expression.arguments) {
-        if (arg && !isConstantExpr(arg.expression)) {
-          return false;
+      if (
+        (expression.callee.type === "Identifier" && browserPureFunctionsSet.has(expression.callee.value)) ||
+        (expression.callee.type === "MemberExpression" && isConstantExpr(expression.callee.object))
+      ) {
+        for (const arg of expression.arguments) {
+          if (arg && !isConstantExpr(arg.expression)) {
+            return false;
+          }
         }
+        return true;
       }
       break;
 
     case "MemberExpression":
-      if (expression.object.type === "Identifier") {
-        switch (expression.object.value) {
-          case "Math":
-          case "DOMMatrix":
-            return true;
-        }
+      if (expression.object.type === "Identifier" && browserPureFunctionsSet.has(expression.object.value)) {
+        return true;
       }
-      return false;
+      break;
 
     case "ObjectExpression":
       for (const property of expression.properties) {
@@ -377,14 +374,16 @@ const expressionTypeOrdering: Expression["type"][] = [
   "BigIntLiteral",
   "BooleanLiteral",
   "NullLiteral",
+  "BinaryExpression",
+  "UnaryExpression",
   "StringLiteral",
   "ArrayExpression",
   "ObjectExpression",
   "RegExpLiteral",
   "MemberExpression",
-  "CallExpression",
   "Identifier",
   "ClassExpression",
+  "CallExpression",
   "FunctionExpression",
   "ArrowFunctionExpression",
   "NewExpression",

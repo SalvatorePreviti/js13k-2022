@@ -82,29 +82,29 @@ export const eppur_si_muove = () => {
 
   // central oscillating platform
 
-  const level2Oscillation = min(levers[2]!.$lerpValue2, 1 - levers[4]!.$lerpValue2);
+  let oscillation = min(levers[2]!.$lerpValue2, 1 - levers[4]!.$lerpValue2);
 
-  next().translateSelf(level2Oscillation * Math.sin(gameTime / 1.5 + 2) * 12);
+  next().translateSelf(oscillation * Math.sin(gameTime / 1.5 + 2) * 12);
 
   // blackPlatforms
 
-  next().translateSelf(level2Oscillation * Math.sin(gameTime * 0.7 + 2) * 12);
+  next().translateSelf(oscillation * Math.sin(gameTime * 0.7 + 2) * 12);
 
-  next().translateSelf(level2Oscillation * Math.sin(gameTime + 3) * 8.2);
+  next().translateSelf(oscillation * Math.sin(gameTime + 3) * 8.2);
 
   // triangle platform
 
-  next().translateSelf((1 - level2Oscillation) * 9.8);
+  next().translateSelf((1 - oscillation) * 9.8);
 
   // vertically oscillating mini platforms
 
-  const level3Oscillation = clamp(1 - level2Oscillation * 5) * lerpneg(levers[4]!.$lerpValue, levers[5]!.$lerpValue);
+  oscillation = clamp(1 - oscillation * 5) * lerpneg(levers[4]!.$lerpValue, levers[5]!.$lerpValue);
 
-  next().translateSelf(0, level3Oscillation * Math.sin(gameTime * 1.35) * 4);
+  next().translateSelf(0, oscillation * Math.sin(gameTime * 1.35) * 4);
 
   // horizontaly oscillating mini platforms
 
-  next().translateSelf(0, 0, level3Oscillation * Math.sin(gameTime * 0.9) * 8);
+  next().translateSelf(0, 0, oscillation * Math.sin(gameTime * 0.9) * 8);
 
   // hex corridor door
 
@@ -118,18 +118,14 @@ export const eppur_si_muove = () => {
 
   // elevators
 
-  const shouldOscillateElevators = lerpneg(levers[7]!.$lerpValue2, levers[6]!.$lerpValue2);
+  oscillation = lerpneg(levers[7]!.$lerpValue2, levers[6]!.$lerpValue2);
 
   next().translateSelf(
     0,
-    shouldOscillateElevators * Math.sin(gameTime) * 5 + (1 - max(levers[6]!.$lerpValue, levers[7]!.$lerpValue)) * 3.5,
+    oscillation * Math.sin(gameTime) * 5 + (1 - max(levers[6]!.$lerpValue, levers[7]!.$lerpValue)) * 3.5,
   );
 
-  next().translateSelf(
-    0,
-    shouldOscillateElevators * Math.sin(gameTime + 3) * 6,
-    shouldOscillateElevators * Math.sin(gameTime * 0.6 + 1) * 6,
-  );
+  next().translateSelf(0, oscillation * Math.sin(gameTime + 3) * 6, oscillation * Math.sin(gameTime * 0.6 + 1) * 6);
 
   // central sculpture/monument
 
@@ -141,20 +137,20 @@ export const eppur_si_muove = () => {
 
   // pushing rods
 
-  const shouldPushRods = lerpneg(levers[10]!.$lerpValue, levers[11]!.$lerpValue);
+  oscillation = lerpneg(levers[10]!.$lerpValue, levers[11]!.$lerpValue);
 
-  next().translateSelf(0, -2, shouldPushRods * abs(Math.sin(gameTime * 1.1)) * -8.5 + 10);
+  next().translateSelf(0, -2, oscillation * abs(Math.sin(gameTime * 1.1)) * -8.5 + 10);
 
-  next().translateSelf(0, -2, shouldPushRods * abs(Math.sin(gameTime * 2.1)) * -8.5 + 10);
+  next().translateSelf(0, -2, oscillation * abs(Math.sin(gameTime * 2.1)) * -8.5 + 10);
 
   next().translateSelf(
     0,
     -2,
     max(
       // block rods
-      (1 - levers[10]!.$lerpValue) * (1 - shouldPushRods),
+      (1 - levers[10]!.$lerpValue) * (1 - oscillation),
       // push rods
-      shouldPushRods * abs(Math.sin(gameTime * 1.5)),
+      oscillation * abs(Math.sin(gameTime * 1.5)),
     ) *
       -8.5 +
       10,
@@ -162,14 +158,14 @@ export const eppur_si_muove = () => {
 
   // oscillating hex pads
 
-  const hexPadShouldOscillate = lerpneg(levers[8]!.$lerpValue2, levers[12]!.$lerpValue2);
+  oscillation = lerpneg(levers[8]!.$lerpValue2, levers[12]!.$lerpValue2);
 
   for (let i = 0; i < 4; i++) {
     next().translateSelf(
-      (i > 2 ? (1 - hexPadShouldOscillate) * 2 + hexPadShouldOscillate : 0) - 100,
-      hexPadShouldOscillate * Math.sin(gameTime * 1.3 + i * 1.7) * (3 + i / 3) + 0.7,
+      (i > 2 ? (1 - oscillation) * 2 + oscillation : 0) - 100,
+      oscillation * Math.sin(gameTime * 1.3 + i * 1.7) * (3 + i / 3) + 0.7,
       (i & 1 ? -1 : 1) * (1 - levers[8]!.$lerpValue2) * (1 - levers[12]!.$lerpValue2) * -7 +
-        max(hexPadShouldOscillate, 0.05) * Math.cos(gameTime * 1.3 + i * 7) * (4 - 2 * (1 - i / 3)) +
+        max(oscillation, 0.05) * Math.cos(gameTime * 1.3 + i * 7) * (4 - 2 * (1 - i / 3)) +
         115,
     );
   }
@@ -178,11 +174,11 @@ export const eppur_si_muove = () => {
 
   next()
     .translateSelf(
-      (1 - hexPadShouldOscillate) * 2.5 - 139.7,
-      (1 - levers[8]!.$lerpValue) * -3 + hexPadShouldOscillate * Math.sin(gameTime * 0.8) * -1 - 1.8,
+      (1 - oscillation) * 2.5 - 139.7,
+      (1 - levers[8]!.$lerpValue) * -3 + oscillation * Math.sin(gameTime * 0.8) * -1 - 1.8,
       93.5,
     )
-    .rotateSelf(Math.cos(gameTime * 1.3) * (hexPadShouldOscillate * 3 + 3), 0);
+    .rotateSelf(Math.cos(gameTime * 1.3) * (oscillation * 3 + 3), 0);
 
   // First rotating platform (with hole)
 
@@ -208,13 +204,13 @@ export const eppur_si_muove = () => {
 
   // jumping pads
 
-  const jumpingPadsOscillate = lerpneg(levers[13]!.$lerpValue2, levers[14]!.$lerpValue2);
+  oscillation = lerpneg(levers[13]!.$lerpValue2, levers[14]!.$lerpValue2);
 
   for (let i = 0; i < 3; ++i) {
     next().translateSelf(
       0,
-      (1 - levers[13]!.$lerpValue2) * (1 - levers[14]!.$lerpValue2) * (i ? 0 : 3) +
-        jumpingPadsOscillate * Math.sin(gameTime * 1.5 + i * 1.5) * 4,
+      oscillation * Math.sin(gameTime * 1.5 + i * 1.5) * 4 +
+        (i ? 0 : (1 - levers[13]!.$lerpValue2) * (1 - levers[14]!.$lerpValue2)),
     );
   }
 

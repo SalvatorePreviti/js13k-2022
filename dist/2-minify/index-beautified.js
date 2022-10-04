@@ -27,6 +27,10 @@ let M,
   D = 1,
   B = 180,
   P = .066,
+  t = "data:image/svg+xml;base64,"
+    + btoa(
+      "<svg color-interpolation-filters=\"sRGB\" height=\"1024\" width=\"1024\" xmlns=\"http://www.w3.org/2000/svg\"><filter filterUnits=\"userSpaceOnUse\" height=\"1026\" id=\"a\" width=\"1026\" x=\"0\" y=\"0\"><feTurbulence baseFrequency=\".007\" height=\"1025\" numOctaves=\"6\" stitchTiles=\"stitch\" width=\"1025\" result=\"z\" type=\"fractalNoise\" x=\"1\" y=\"1\"/><feTile height=\"1024\" width=\"1024\" x=\"-1\" y=\"-1\"/><feTile/><feDiffuseLighting diffuseConstant=\"4\" lighting-color=\"red\" surfaceScale=\"5\"><feDistantLight azimuth=\"270\" elevation=\"5\"/></feDiffuseLighting><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"x\"/><feColorMatrix values=\"0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 1\" in=\"z\"/><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"z\"/><feTurbulence baseFrequency=\".01\" height=\"1024\" numOctaves=\"5\" stitchTiles=\"stitch\" width=\"1024\"/><feColorMatrix values=\"0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1\"/><feBlend in2=\"x\" mode=\"screen\"/><feBlend in2=\"z\" mode=\"screen\"/></filter><rect filter=\"url(#a)\" height=\"100%\" width=\"100%\"/></svg>",
+    ),
   i1 = [],
   H = [],
   X = [],
@@ -197,11 +201,11 @@ let M,
     let m,
       h,
       u,
-      v = -1,
+      v = 0,
       g = 0,
-      d = 0,
-      p = 1,
-      b = 3,
+      d = 1,
+      p = 3,
+      b = -1,
       S = {
         i: 0,
         F() {
@@ -217,15 +221,15 @@ let M,
               r = k - t,
               s = y1(l, r),
               o = E1(-r, l),
-              p && (d = (K1() - .5) * _ / 2, b = E(b / (1 + K1()))),
-              o += d,
-              v = -J(o),
-              g = G(o),
+              d && (g = (K1() - .5) * _ / 2, p = E(p / (1 + K1()))),
+              o += g,
+              b = -J(o),
+              v = G(o),
               .1 < s && (s = L(s, a) / (s || 1), I = l * s + e, k = r * s + t)),
-              p = c,
-              b = K(b, 6 * (1 - n) + 3, n + 3),
-              F = K(F, I = K(I, I + v, b), b),
-              Y = K(Y, k = K(k, k + g, b), b),
+              d = c,
+              p = K(p, 6 * (1 - n) + 3, n + 3),
+              F = K(F, I = K(I, I + b, p), p),
+              Y = K(Y, k = K(k, k + v, p), p),
               m = u1(m, E1(F - h, Y - u) / Z - 180, 1 - W1(-3 * P)),
               M1(W(C).multiplySelf(f).translateSelf(h = F, 0, u = Y).rotateSelf(0, m, 7 * G(1.7 * y))) < 1.6
               && (S.i = 1,
@@ -382,10 +386,6 @@ let M,
   N1 = new Uint8Array(65536),
   { PI: _, atan2: E1, sin: G, cos: J, sqrt: U1, exp: W1, random: K1 } = Math,
   Z = _ / 180,
-  t = "data:image/svg+xml;base64,"
-    + btoa(
-      "<svg color-interpolation-filters=\"sRGB\" height=\"1024\" width=\"1024\" xmlns=\"http://www.w3.org/2000/svg\"><filter filterUnits=\"userSpaceOnUse\" height=\"1026\" id=\"a\" width=\"1026\" x=\"0\" y=\"0\"><feTurbulence baseFrequency=\".007\" height=\"1025\" numOctaves=\"6\" stitchTiles=\"stitch\" width=\"1025\" result=\"z\" type=\"fractalNoise\" x=\"1\" y=\"1\"/><feTile height=\"1024\" width=\"1024\" x=\"-1\" y=\"-1\"/><feTile/><feDiffuseLighting diffuseConstant=\"4\" lighting-color=\"red\" surfaceScale=\"5\"><feDistantLight azimuth=\"270\" elevation=\"5\"/></feDiffuseLighting><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"x\"/><feColorMatrix values=\"0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 1\" in=\"z\"/><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"z\"/><feTurbulence baseFrequency=\".01\" height=\"1024\" numOctaves=\"5\" stitchTiles=\"stitch\" width=\"1024\"/><feColorMatrix values=\"0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1\"/><feBlend in2=\"x\" mode=\"screen\"/><feBlend in2=\"z\" mode=\"screen\"/></filter><rect filter=\"url(#a)\" height=\"100%\" width=\"100%\"/></svg>",
-    ),
   V1 = X1.createBufferSource(),
   $ = hC.getContext("webgl2", { powerPreference: "high-performance" });
 for (let e in $) $[e[0] + [...e].reduce((e, t, a) => (e * a + t.charCodeAt(0)) % 434, 0).toString(36)] = $[e];
@@ -399,84 +399,84 @@ P1(() => {
             if (requestAnimationFrame(o), l1 += l = (t - (M || t)) / 1e3, y += P = A ? 0 : L(.066, l), M = t, 0 < P) {
               let e = 1;
               for (
-                a = () => W(q1, X[++e].m),
-                  C(),
+                C(),
                   D && y > D && (D = 0, h4.innerHTML = ""),
                   I = K(I, H[9].h, .2 + .3 * R(2 * H[9].h - 1)),
                   e1 = K(e1, z ? K(e1, -9, 1.5) : E(y / 3), 1),
+                  t = () => W(q1, X[++e].m),
                   a1 = x1(H[12].g, H[13].g),
                   x = U(K(x, 0, 1), h1(x + 60 * P), H[5].g - H[6].h),
                   T = U(K(T, 0, 5), h1(T + 56 * P), a1),
                   j = U(K(j, 0, 4), h1(j + 48 * P), a1),
-                  j1(a(), -12, 4.2, 40 * e1 - 66),
-                  a().translateSelf(0, 0, -15).scaleSelf(1, E(1.22 - H[1].g), 1),
-                  a().translateSelf(0, 0, 15).scaleSelf(1, E(1.22 - H[1].g), 1),
-                  a().translateSelf(-99.7, -1.9, 63.5).scaleSelf(1, E(1.1 - H[6].g), 1),
-                  a().translateSelf(-100, .6, 96.5).scaleSelf(.88, 1.2 - H[12].g),
-                  a().translateSelf(
+                  j1(t(), -12, 4.2, 40 * e1 - 66),
+                  t().translateSelf(0, 0, -15).scaleSelf(1, E(1.22 - H[1].g), 1),
+                  t().translateSelf(0, 0, 15).scaleSelf(1, E(1.22 - H[2].g), 1),
+                  t().translateSelf(-99.7, -1.9, 63.5).scaleSelf(1, E(1.1 - H[6].g), 1),
+                  t().translateSelf(-100, .6, 96.5).scaleSelf(.88, 1.2 - H[12].g),
+                  t().translateSelf(
                     0,
                     H[3].g < .01 ? -500 : (1 - H[2].g) * H[3].h * (5 * J(1.5 * y) + 2) + 15 * (H[3].g - 1),
                     0,
                   ),
                   l = L(H[2].h, 1 - H[4].h),
-                  a().translateSelf(l * G(y / 1.5 + 2) * 12),
-                  a().translateSelf(l * G(.7 * y + 2) * 12),
-                  a().translateSelf(l * G(y + 3) * 8.2),
-                  a().translateSelf(9.8 * (1 - l)),
-                  t = E(1 - 5 * l) * x1(H[4].g, H[5].g),
-                  a().translateSelf(0, t * G(1.35 * y) * 4),
-                  a().translateSelf(0, 0, t * G(.9 * y) * 8),
-                  a().translateSelf(0, -6.5 * H[4].h),
-                  a().translateSelf(-75, (1 - H[5].h) * (1 - H[6].g) * 3, 55).rotateSelf(180 * (1 - H[5].h) + x, 0),
+                  t().translateSelf(l * G(y / 1.5 + 2) * 12),
+                  t().translateSelf(l * G(.7 * y + 2) * 12),
+                  t().translateSelf(l * G(y + 3) * 8.2),
+                  t().translateSelf(9.8 * (1 - l)),
+                  l = E(1 - 5 * l) * x1(H[4].g, H[5].g),
+                  t().translateSelf(0, l * G(1.35 * y) * 4),
+                  t().translateSelf(0, 0, l * G(.9 * y) * 8),
+                  t().translateSelf(0, -6.5 * H[4].h),
+                  t().translateSelf(-75, (1 - H[5].h) * (1 - H[6].g) * 3, 55).rotateSelf(180 * (1 - H[5].h) + x, 0),
                   l = x1(H[7].h, H[6].h),
-                  a().translateSelf(0, l * G(y) * 5 + 3.5 * (1 - N(H[6].g, H[7].g))),
-                  a().translateSelf(0, l * G(y + 3) * 6, l * G(.6 * y + 1) * 6),
-                  a().translateSelf(0, -7.3 * H[7].h),
-                  j1(a(), -123, 1.4, 55 + -65 * I),
-                  t = x1(H[10].g, H[11].g),
-                  a().translateSelf(0, -2, t * R(G(1.1 * y)) * -8.5 + 10),
-                  a().translateSelf(0, -2, t * R(G(2.1 * y)) * -8.5 + 10),
-                  a().translateSelf(0, -2, -8.5 * N((1 - H[10].g) * (1 - t), t * R(G(1.5 * y))) + 10),
-                  t = x1(H[8].h, H[12].h),
-                  l = 0;
-                l < 4;
-                l++
+                  t().translateSelf(0, l * G(y) * 5 + 3.5 * (1 - N(H[6].g, H[7].g))),
+                  t().translateSelf(0, l * G(y + 3) * 6, l * G(.6 * y + 1) * 6),
+                  t().translateSelf(0, -7.3 * H[7].h),
+                  j1(t(), -123, 1.4, 55 + -65 * I),
+                  l = x1(H[10].g, H[11].g),
+                  t().translateSelf(0, -2, l * R(G(1.1 * y)) * -8.5 + 10),
+                  t().translateSelf(0, -2, l * R(G(2.1 * y)) * -8.5 + 10),
+                  t().translateSelf(0, -2, -8.5 * N((1 - H[10].g) * (1 - l), l * R(G(1.5 * y))) + 10),
+                  l = x1(H[8].h, H[12].h),
+                  a = 0;
+                a < 4;
+                a++
               ) {
-                a().translateSelf(
-                  (2 < l ? 2 * (1 - t) + t : 0) - 100,
-                  t * G(1.3 * y + 1.7 * l) * (3 + l / 3) + .7,
-                  115 + (1 & l ? -1 : 1) * (1 - H[8].h) * (1 - H[12].h) * -7
-                    + N(t, .05) * J(1.3 * y + 7 * l) * (4 - 2 * (1 - l / 3)),
+                t().translateSelf(
+                  (2 < a ? 2 * (1 - l) + l : 0) - 100,
+                  l * G(1.3 * y + 1.7 * a) * (3 + a / 3) + .7,
+                  115 + (1 & a ? -1 : 1) * (1 - H[8].h) * (1 - H[12].h) * -7
+                    + N(l, .05) * J(1.3 * y + 7 * a) * (4 - 2 * (1 - a / 3)),
                 );
               }
               for (
-                a().translateSelf(2.5 * (1 - t) - 139.7, -3 * (1 - H[8].g) + t * G(.8 * y) * -1 - 1.8, 93.5).rotateSelf(
-                  J(1.3 * y) * (3 * t + 3),
+                t().translateSelf(2.5 * (1 - l) - 139.7, -3 * (1 - H[8].g) + l * G(.8 * y) * -1 - 1.8, 93.5).rotateSelf(
+                  J(1.3 * y) * (3 * l + 3),
                   0,
                 ),
-                  a().translateSelf(-81, .6, 106).rotateSelf(0, 40 + T),
-                  a().translateSelf(-65.8, .8, 106).rotateSelf(0, j),
-                  a().translateSelf(-50.7, .8, 106).rotateSelf(0, 180 - j),
-                  a().translateSelf(-50.7, .8, 91).rotateSelf(0, 270 + j),
-                  t = x1(H[13].h, H[14].h),
-                  l = 0;
-                l < 3;
-                ++l
+                  t().translateSelf(-81, .6, 106).rotateSelf(0, 40 + T),
+                  t().translateSelf(-65.8, .8, 106).rotateSelf(0, j),
+                  t().translateSelf(-50.7, .8, 106).rotateSelf(0, 180 - j),
+                  t().translateSelf(-50.7, .8, 91).rotateSelf(0, 270 + j),
+                  l = x1(H[13].h, H[14].h),
+                  a = 0;
+                a < 3;
+                ++a
               ) {
-                a().translateSelf(0, (1 - H[13].h) * (1 - H[14].h) * (l ? 0 : 3) + t * G(1.5 * y + 1.5 * l) * 4);
+                t().translateSelf(0, l * G(1.5 * y + 1.5 * a) * 4 + (a ? 0 : (1 - H[13].h) * (1 - H[14].h)));
               }
               for (
-                a().translateSelf(-2 * G(y)).rotateSelf(25 * G(y)),
+                t().translateSelf(-2 * G(y)).rotateSelf(25 * G(y)),
                   l = x1(x1((H[14].g + H[14].h) / 2, H[13].h), (H[15].g + H[15].h) / 2),
-                  a().translateSelf(0, 16 * l, 8.5 * E(2 * l - 1) + 95),
-                  t = 0;
-                t < 13;
-                ++t
+                  t().translateSelf(0, 16 * l, 8.5 * E(2 * l - 1) + 95),
+                  l = 0;
+                l < 13;
+                ++l
               ) {
-                i1[t].F(), p(V, L1, t);
+                i1[l].F(), p(V, L1, l);
               }
-              for (t = 0; t < 16; ++t) H[t].F(), p(V, L1, t + 13), L1[16 * t + 223] = 1 - H[t].g;
-              for (t1(a), a = 0; e >= a; ++a) p(X[a].m, R1, a - 1);
+              for (l = 0; l < 16; ++l) H[l].F(), p(V, L1, l + 13), L1[16 * l + 223] = 1 - H[l].g;
+              for (t1(t), t = 0; e >= t; ++t) p(X[t].m, R1, t - 1);
               k = 0, n(), $.b6o(36160, h), $.v5y(0, 0, 128, 128), $.c4s(16640), $.cbf(!0, !1, !0, !1);
               var { x: t, y: l, z: r } = q;
               $.uae(n("b"), !1, p(W().rotateSelf(0, 180).invertSelf().translateSelf(-t, -l, .3 - r))),
@@ -560,7 +560,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               $.t2z(3553, 10243, 33071),
               $.t2z(3553, 10242, 33071),
               l => {
-                let r = 0, s = 0, o = 0, c = 1 / 0, n = -1 / 0, i = 1 / 0, f = -1 / 0, m = 1 / 0, h = -1 / 0;
+                let r = 0, s = 0, o = 0, c = 1 / 0, n = 1 / 0, i = 1 / 0, f = -1 / 0, m = -1 / 0, h = -1 / 0;
                 $.fas(36160, 36096, 3553, t, 0),
                   $.c4s(256),
                   W().scale3dSelf(l).multiplySelf(W(Y[e], a).multiplySelf(v).invertSelf());
@@ -571,19 +571,19 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 }
                 for (W().rotateSelf(298, 139).translateSelf(r / 8, s / 8, o / 8), l = 0; l < 8; ++l) {
                   let { x: e, y: t, z: a } = V.transformPoint(d[l]);
-                  c = L(c, e), n = N(n, e), i = L(i, t), f = N(f, t), m = L(m, a), h = N(h, a);
+                  c = L(c, e), f = N(f, e), n = L(n, t), m = N(m, t), i = L(i, a), h = N(h, a);
                 }
                 l = 10 + e,
-                  m *= m < 0 ? l : 1 / l,
+                  i *= i < 0 ? l : 1 / l,
                   h *= 0 < h ? l : 1 / l,
                   $.uae(
                     g("b"),
                     !1,
                     p(
-                      W(q1, a).scaleSelf(2 / (n - c), 2 / (f - i), 2 / (m - h)).translateSelf(
-                        (n + c) / -2,
-                        (f + i) / -2,
-                        (m + h) / 2,
+                      W(q1, a).scaleSelf(2 / (f - c), 2 / (m - n), 2 / (i - h)).translateSelf(
+                        (f + c) / -2,
+                        (m + n) / -2,
+                        (i + h) / 2,
                       ).multiplySelf(V),
                       u[e],
                     ),
@@ -806,20 +806,20 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               D(p),
                 $.r9r(0, 0, 128, 128, 6408, 5121, N1),
                 (() => {
-                  let t, e, a, l, r, s, o = 0, c = 0, n = 0, i = 0, f = -1, m = 0, h = 0;
+                  let t, e, a, l, r, s, o = 0, c = 0, n = 0, i = 0, f = 0, m = 0, h = -1;
                   for (t = 0; t < 36; ++t) {
                     for (e = 512 * t, a = 96; a < 416; a += 4) {
                       for (l = 0; l < 2; ++l) {
                         (r = N1[e + a + l]) > i && (i = r),
-                          r + (s = N1[e + a + l + 2]) && (f < 0 || f === t)
-                          && (f = t, s === p ? ++o : c && c !== s || (c = s, ++n));
+                          r + (s = N1[e + a + l + 2]) && (h < 0 || h === t)
+                          && (h = t, s === p ? ++o : c && c !== s || (c = s, ++n));
                       }
                     }
                   }
-                  for (p = f < 0 ? 0 : n > 2 * o ? c : p, o = 36; o < 128; o += 1) {
+                  for (p = h < 0 ? 0 : n > 2 * o ? c : p, o = 36; o < 128; o += 1) {
                     for (
                       t =
-                        f =
+                        h =
                         n =
                         c =
                           0,
@@ -831,12 +831,12 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                       for (l = e + 4 * a, r = 0; r < 2; ++r) {
                         s = N1[l + r];
                         let e = N1[l + r + 2];
-                        (r ? 64 < a : a < 64) ? c = N(c, s) : n = N(n, s), r ? t = N(t, e) : f = N(f, e);
+                        (r ? 64 < a : a < 64) ? c = N(c, s) : n = N(n, s), r ? t = N(t, e) : h = N(h, e);
                       }
                     }
-                    R(n - c) > R(m) && (m = n - c), R(t - f) > R(h) && (h = t - f);
+                    R(n - c) > R(f) && (f = n - c), R(t - h) > R(m) && (m = t - h);
                   }
-                  g = E(1 - .02 * N(R(m), R(h))), T(m / 255, i / 255, h / 255);
+                  g = E(1 - .02 * N(R(f), R(m))), T(f / 255, i / 255, m / 255);
                 })(),
                 !k && p === b || (b = p, l = C().invertSelf().transformPoint(q), Y.x = l.x, Y.y = l.y, Y.z = l.z),
                 k = k && (p ? 0 : 1);
