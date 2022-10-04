@@ -133,8 +133,8 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: Circle[]) 
           dirX = -Math.cos(angle);
           dirZ = Math.sin(angle);
           if (magnitude > 0.1) {
-            // limit the vector length to the circle radius, as a security measure
-            magnitude = min(magnitude, circle[2]) / (magnitude || 1);
+            // limit the vector length to the circle radius, ghost cannot escape by mistake
+            magnitude = min(magnitude, circle[2]) / magnitude;
             targetX = ax * magnitude + circle[0];
             targetZ = az * magnitude + circle[1];
           }

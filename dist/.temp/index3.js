@@ -380,7 +380,7 @@ const ob = (
               H += v,
               z = -Math.cos(H),
               m = Math.sin(H),
-              0.1 < t && (t = ab(t, g[2]) / (t || 1), u = p * t + g[0], A = q * t + g[1]));
+              0.1 < t && (t = ab(t, g[2]) / t, u = p * t + g[0], A = q * t + g[1]));
           y = O;
           x = K(x, 6 * (1 - U) + 3, U + 3);
           P = K(P, u = K(u, u + z, x), x);
@@ -588,15 +588,15 @@ const ob = (
       (-20 > Wa || 109 > Ya ? -25 : -9) > Xa && (p = 2);
       1 === z && (d[9].i = -15 > Wa && 0 > Ya ? 1 : 0);
       x = fb(K(x, Xa, 2), Xa, p || 8 * h(x - Xa));
-      u = U(u, x, 2, 1);
       g = U(g, Wa, 0.5, 1);
+      u = U(u, x, 2, 1);
       A = U(A, Ya, 0.5, 1);
       k = K(k, ua * (27 < z && 32 > z), 2);
       la
-        ? (C = p + wb(18), Ja = fb(Ja, Wa, C), Ka = fb(Ka, x + 1.5, C), La = fb(La, Ya, C), $a = db($a))
-        : (La = U(La, A + -18 + 5 * k, 1, 2 + k),
+        ? (C = p + wb(18), Ja = fb(Ja, Wa, C), La = fb(La, Ya, C), Ka = fb(Ka, x + 1.5, C), $a = db($a))
+        : (Ja = U(Ja, g, 1, 2 + k),
+          La = U(La, A + -18 + 5 * k, 1, 2 + k),
           Ka = U(Ka, bb(u + l((-60 - Ya) / 8, 0, 20) + 13 + 9 * k, 6), 4, 2),
-          Ja = U(Ja, g, 1, 2 + k),
           C = ab(-6, -h(A - La)),
           E = g - Ja,
           $a = eb($a, 90 - db(Math.atan2(C, E) / Na), N + wb(10)),
@@ -799,7 +799,7 @@ dc(() => {
                 0.01 > d[3].g ? -500 : (1 - d[2].g) * d[3].h * (5 * Math.cos(1.5 * c) + 2) + 15 * (d[3].g - 1),
                 0,
               );
-              p = ab(d[2].h, 1 - d[4].h);
+              p = ab(1 - d[4].h, d[2].h);
               Y().translateSelf(p * Math.sin(c / 1.5 + 2) * 12);
               Y().translateSelf(p * Math.sin(0.7 * c + 2) * 12);
               Y().translateSelf(p * Math.sin(c + 3) * 8.2);
@@ -810,24 +810,24 @@ dc(() => {
               Y().translateSelf(0, -6.5 * d[4].h);
               Y().translateSelf(-75, (1 - d[5].h) * (1 - d[6].g) * 3, 55).rotateSelf(180 * (1 - d[5].h) + ya, 0);
               p = gb(d[7].h, d[6].h);
-              Y().translateSelf(0, p * Math.sin(c) * 5 + 3.5 * (1 - bb(d[6].g, d[7].g)));
-              Y().translateSelf(0, p * Math.sin(c + 3) * 6, p * Math.sin(0.6 * c + 1) * 6);
+              Y().translateSelf(0, 5 * p * Math.sin(c) + 3.5 * (1 - bb(d[6].g, d[7].g)));
+              Y().translateSelf(0, 6 * p * Math.sin(c + 3), 6 * p * Math.sin(0.6 * c + 1));
               Y().translateSelf(0, -7.3 * d[7].h);
               Ub(Y(), -123, 1.4, 55 + -65 * ja);
               p = gb(d[10].g, d[11].g);
               Y().translateSelf(0, -2, p * h(Math.sin(1.1 * c)) * -8.5 + 10);
               Y().translateSelf(0, -2, p * h(Math.sin(2.1 * c)) * -8.5 + 10);
-              Y().translateSelf(0, -2, -8.5 * bb((1 - d[10].g) * (1 - p), p * h(Math.sin(1.5 * c))) + 10);
+              Y().translateSelf(0, -2, 10 - 8.5 * bb(p * h(Math.sin(1.5 * c)), (1 - d[10].g) * (1 - p)));
               p = gb(d[8].h, d[12].h);
               for (q = 0; 4 > q; q++) {
                 Y().translateSelf(
                   (2 < q ? 2 * (1 - p) + p : 0) - 100,
                   p * Math.sin(1.3 * c + 1.7 * q) * (3 + q / 3) + 0.7,
-                  115 + (1 & q ? -1 : 1) * (1 - d[8].h) * (1 - d[12].h) * -7
-                    + bb(p, 0.05) * Math.cos(1.3 * c + 7 * q) * (4 - 2 * (1 - q / 3)),
+                  115 - 7 * (1 - d[8].h) * (1 - d[12].h) * (1 & q ? -1 : 1)
+                    + bb(0.05, p) * Math.cos(1.3 * c + 7 * q) * (4 - 2 * (1 - q / 3)),
                 );
               }
-              Y().translateSelf(2.5 * (1 - p) - 139.7, -3 * (1 - d[8].g) + p * Math.sin(0.8 * c) * -1 - 1.8, 93.5)
+              Y().translateSelf(2.5 * (1 - p) - 139.7, -3 * (1 - d[8].g) - p * Math.sin(0.8 * c) - 1.8, 93.5)
                 .rotateSelf(Math.cos(1.3 * c) * (3 * p + 3), 0);
               Y().translateSelf(-81, 0.6, 106).rotateSelf(0, 40 + wa);
               Y().translateSelf(-65.8, 0.8, 106).rotateSelf(0, xa);
@@ -839,12 +839,12 @@ dc(() => {
               }
               Y().translateSelf(-2 * Math.sin(c)).rotateSelf(25 * Math.sin(c));
               q = gb(gb((d[14].g + d[14].h) / 2, d[13].h), (d[15].g + d[15].h) / 2);
-              Y().translateSelf(0, 16 * q, 8.5 * l(2 * q - 1) + 95);
+              Y().translateSelf(0, 16 * q, 95 + 8.5 * l(2 * q - 1));
               for (p = 0; 13 > p; ++p) {
                 Pa[p].F(), ob(n, $b, p);
               }
               for (p = 0; 16 > p; ++p) {
-                d[p].F(), ob(n, $b, p + 13), $b[16 * p + 223] = 1 - d[p].g;
+                d[p].F(), ob(n, $b, p + 13), $b[223 + 16 * p] = 1 - d[p].g;
               }
               ta();
               for (p = 0; sa >= p; ++p) {

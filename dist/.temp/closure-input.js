@@ -643,7 +643,7 @@ const newSoul = (transform, ...walkingPath) => {
           dirX = -Math.cos(angle),
           dirZ = Math.sin(angle),
           0.1 < magnitude
-          && (magnitude = min(magnitude, circle[2]) / (magnitude || 1),
+          && (magnitude = min(magnitude, circle[2]) / magnitude,
             targetX = ax * magnitude + circle[0],
             targetZ = az * magnitude + circle[1])),
           wasInside = isInside,
@@ -966,8 +966,8 @@ const player_init = () => {
         player_position_final.y,
         player_respawned || 8 * abs(player_model_y - player_position_final.y),
       ),
-      camera_pos_lookat_y = interpolate_with_hysteresis(camera_pos_lookat_y, player_model_y, 2, 1),
       camera_pos_lookat_x = interpolate_with_hysteresis(camera_pos_lookat_x, player_position_final.x, 0.5, 1),
+      camera_pos_lookat_y = interpolate_with_hysteresis(camera_pos_lookat_y, player_model_y, 2, 1),
       camera_pos_lookat_z = interpolate_with_hysteresis(camera_pos_lookat_z, player_position_final.z, 0.5, 1),
       player_on_rotating_platforms = lerpDamp(
         player_on_rotating_platforms,
@@ -977,15 +977,21 @@ const player_init = () => {
       player_first_person
         ? (d = player_respawned + damp(18),
           camera_position_x = lerp(camera_position_x, player_position_final.x, d),
-          camera_position_y = lerp(camera_position_y, player_model_y + 1.5, d),
           camera_position_z = lerp(camera_position_z, player_position_final.z, d),
+          camera_position_y = lerp(camera_position_y, player_model_y + 1.5, d),
           camera_rotation.y = angle_wrap_degrees(camera_rotation.y))
-        : (camera_position_z = interpolate_with_hysteresis(
-          camera_position_z,
-          camera_pos_lookat_z + -18 + 5 * player_on_rotating_platforms,
+        : (camera_position_x = interpolate_with_hysteresis(
+          camera_position_x,
+          camera_pos_lookat_x,
           1,
           2 + player_on_rotating_platforms,
         ),
+          camera_position_z = interpolate_with_hysteresis(
+            camera_position_z,
+            camera_pos_lookat_z + -18 + 5 * player_on_rotating_platforms,
+            1,
+            2 + player_on_rotating_platforms,
+          ),
           camera_position_y = interpolate_with_hysteresis(
             camera_position_y,
             max(
@@ -995,12 +1001,6 @@ const player_init = () => {
             ),
             4,
             2,
-          ),
-          camera_position_x = interpolate_with_hysteresis(
-            camera_position_x,
-            camera_pos_lookat_x,
-            1,
-            2 + player_on_rotating_platforms,
           ),
           d = min(-6, -abs(camera_pos_lookat_z - camera_position_z)),
           viewDirDiffx = camera_pos_lookat_x - camera_position_x,
@@ -1298,7 +1298,7 @@ loadStep(() => {
                     + 15 * (levers[3].$lerpValue - 1),
                 0,
               );
-            let oscillation = min(levers[2].$lerpValue2, 1 - levers[4].$lerpValue2);
+            let oscillation = min(1 - levers[4].$lerpValue2, levers[2].$lerpValue2);
             modelsNextUpdate().translateSelf(oscillation * Math.sin(gameTime / 1.5 + 2) * 12),
               modelsNextUpdate().translateSelf(oscillation * Math.sin(0.7 * gameTime + 2) * 12),
               modelsNextUpdate().translateSelf(oscillation * Math.sin(gameTime + 3) * 8.2),
@@ -1312,12 +1312,12 @@ loadStep(() => {
               oscillation = lerpneg(levers[7].$lerpValue2, levers[6].$lerpValue2),
               modelsNextUpdate().translateSelf(
                 0,
-                oscillation * Math.sin(gameTime) * 5 + 3.5 * (1 - max(levers[6].$lerpValue, levers[7].$lerpValue)),
+                5 * oscillation * Math.sin(gameTime) + 3.5 * (1 - max(levers[6].$lerpValue, levers[7].$lerpValue)),
               ),
               modelsNextUpdate().translateSelf(
                 0,
-                oscillation * Math.sin(gameTime + 3) * 6,
-                oscillation * Math.sin(0.6 * gameTime + 1) * 6,
+                6 * oscillation * Math.sin(gameTime + 3),
+                6 * oscillation * Math.sin(0.6 * gameTime + 1),
               ),
               modelsNextUpdate().translateSelf(0, -7.3 * levers[7].$lerpValue2),
               boatAnimationMatrix(modelsNextUpdate(), -123, 1.4, 55 + -65 * secondBoatLerp),
@@ -1327,21 +1327,22 @@ loadStep(() => {
               modelsNextUpdate().translateSelf(
                 0,
                 -2,
-                -8.5 * max((1 - levers[10].$lerpValue) * (1 - oscillation), oscillation * abs(Math.sin(1.5 * gameTime)))
-                  + 10,
+                10
+                  - 8.5
+                    * max(oscillation * abs(Math.sin(1.5 * gameTime)), (1 - levers[10].$lerpValue) * (1 - oscillation)),
               ),
               oscillation = lerpneg(levers[8].$lerpValue2, levers[12].$lerpValue2);
             for (let i = 0; i < 4; i++) {
               modelsNextUpdate().translateSelf(
                 (2 < i ? 2 * (1 - oscillation) + oscillation : 0) - 100,
                 oscillation * Math.sin(1.3 * gameTime + 1.7 * i) * (3 + i / 3) + 0.7,
-                115 + (1 & i ? -1 : 1) * (1 - levers[8].$lerpValue2) * (1 - levers[12].$lerpValue2) * -7
-                  + max(oscillation, 0.05) * Math.cos(1.3 * gameTime + 7 * i) * (4 - 2 * (1 - i / 3)),
+                115 - 7 * (1 - levers[8].$lerpValue2) * (1 - levers[12].$lerpValue2) * (1 & i ? -1 : 1)
+                  + max(0.05, oscillation) * Math.cos(1.3 * gameTime + 7 * i) * (4 - 2 * (1 - i / 3)),
               );
             }
             modelsNextUpdate().translateSelf(
               2.5 * (1 - oscillation) - 139.7,
-              -3 * (1 - levers[8].$lerpValue) + oscillation * Math.sin(0.8 * gameTime) * -1 - 1.8,
+              -3 * (1 - levers[8].$lerpValue) - oscillation * Math.sin(0.8 * gameTime) - 1.8,
               93.5,
             ).rotateSelf(Math.cos(1.3 * gameTime) * (3 * oscillation + 3), 0),
               modelsNextUpdate().translateSelf(-81, 0.6, 106).rotateSelf(0, 40 + rotatingPlatform1Rotation),
@@ -1361,12 +1362,12 @@ loadStep(() => {
                 lerpneg((levers[14].$lerpValue + levers[14].$lerpValue2) / 2, levers[13].$lerpValue2),
                 (levers[15].$lerpValue + levers[15].$lerpValue2) / 2,
               ),
-              modelsNextUpdate().translateSelf(0, 16 * dt, 8.5 * clamp(2 * dt - 1) + 95);
+              modelsNextUpdate().translateSelf(0, 16 * dt, 95 + 8.5 * clamp(2 * dt - 1));
             for (let i2 = 0; i2 < 13; ++i2) souls[i2]._update(), matrixToArray(tempMatrix, objectsMatricesBuffer, i2);
             for (let i3 = 0; i3 < 16; ++i3) {
               levers[i3]._update(),
                 matrixToArray(tempMatrix, objectsMatricesBuffer, i3 + 13),
-                objectsMatricesBuffer[16 * i3 + 223] = 1 - levers[i3].$lerpValue;
+                objectsMatricesBuffer[223 + 16 * i3] = 1 - levers[i3].$lerpValue;
             }
             player_update();
             for (let i4 = 0; modelsUpdateCounter >= i4; ++i4) {

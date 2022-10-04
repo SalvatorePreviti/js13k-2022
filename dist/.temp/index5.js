@@ -225,7 +225,7 @@ let T,
               l += u,
               d = -Z(l),
               h = J(l),
-              .1 < t && (t = d1(t, b[2]) / (t || 1), S = e * t + b[0], A = a * t + b[1])),
+              .1 < t && (t = d1(t, b[2]) / t, S = e * t + b[0], A = a * t + b[1])),
               v = r,
               g = V(g, 6 * (1 - s) + 3, s + 3),
               M = V(M, S = V(S, S + d, g), g),
@@ -420,7 +420,7 @@ E1(() => {
                     L[3].g < .01 ? -500 : (1 - L[2].g) * L[3].h * (5 * Z(1.5 * B) + 2) + 15 * (L[3].g - 1),
                     0,
                   ),
-                  e = d1(L[2].h, 1 - L[4].h),
+                  e = d1(1 - L[4].h, L[2].h),
                   _().translateSelf(e * J(B / 1.5 + 2) * 12),
                   _().translateSelf(e * J(.7 * B + 2) * 12),
                   _().translateSelf(e * J(B + 3) * 8.2),
@@ -431,14 +431,14 @@ E1(() => {
                   _().translateSelf(0, -6.5 * L[4].h),
                   _().translateSelf(-75, (1 - L[5].h) * (1 - L[6].g) * 3, 55).rotateSelf(180 * (1 - L[5].h) + o1, 0),
                   e = A1(L[7].h, L[6].h),
-                  _().translateSelf(0, e * J(B) * 5 + 3.5 * (1 - E(L[6].g, L[7].g))),
-                  _().translateSelf(0, e * J(B + 3) * 6, e * J(.6 * B + 1) * 6),
+                  _().translateSelf(0, 5 * e * J(B) + 3.5 * (1 - E(L[6].g, L[7].g))),
+                  _().translateSelf(0, 6 * e * J(B + 3), 6 * e * J(.6 * B + 1)),
                   _().translateSelf(0, -7.3 * L[7].h),
                   R1(_(), -123, 1.4, 55 + -65 * Y),
                   e = A1(L[10].g, L[11].g),
                   _().translateSelf(0, -2, e * P(J(1.1 * B)) * -8.5 + 10),
                   _().translateSelf(0, -2, e * P(J(2.1 * B)) * -8.5 + 10),
-                  _().translateSelf(0, -2, -8.5 * E((1 - L[10].g) * (1 - e), e * P(J(1.5 * B))) + 10),
+                  _().translateSelf(0, -2, 10 - 8.5 * E(e * P(J(1.5 * B)), (1 - L[10].g) * (1 - e))),
                   e = A1(L[8].h, L[12].h),
                   a = 0;
                 a < 4;
@@ -447,12 +447,12 @@ E1(() => {
                 _().translateSelf(
                   (2 < a ? 2 * (1 - e) + e : 0) - 100,
                   e * J(1.3 * B + 1.7 * a) * (3 + a / 3) + .7,
-                  115 + (1 & a ? -1 : 1) * (1 - L[8].h) * (1 - L[12].h) * -7
-                    + E(e, .05) * Z(1.3 * B + 7 * a) * (4 - 2 * (1 - a / 3)),
+                  115 - 7 * (1 - L[8].h) * (1 - L[12].h) * (1 & a ? -1 : 1)
+                    + E(.05, e) * Z(1.3 * B + 7 * a) * (4 - 2 * (1 - a / 3)),
                 );
               }
               for (
-                _().translateSelf(2.5 * (1 - e) - 139.7, -3 * (1 - L[8].g) + e * J(.8 * B) * -1 - 1.8, 93.5).rotateSelf(
+                _().translateSelf(2.5 * (1 - e) - 139.7, -3 * (1 - L[8].g) - e * J(.8 * B) - 1.8, 93.5).rotateSelf(
                   Z(1.3 * B) * (3 * e + 3),
                   0,
                 ),
@@ -470,14 +470,14 @@ E1(() => {
               for (
                 _().translateSelf(-2 * J(B)).rotateSelf(25 * J(B)),
                   a = A1(A1((L[14].g + L[14].h) / 2, L[13].h), (L[15].g + L[15].h) / 2),
-                  _().translateSelf(0, 16 * a, 8.5 * U(2 * a - 1) + 95),
+                  _().translateSelf(0, 16 * a, 95 + 8.5 * U(2 * a - 1)),
                   e = 0;
                 e < 13;
                 ++e
               ) {
                 x1[e].F(), p(S, V1, e);
               }
-              for (e = 0; e < 16; ++e) L[e].F(), p(S, V1, e + 13), V1[16 * e + 223] = 1 - L[e].g;
+              for (e = 0; e < 16; ++e) L[e].F(), p(S, V1, e + 13), V1[223 + 16 * e] = 1 - L[e].g;
               for (x(), e = 0; r1 >= e; ++e) p(N[e].m, K1, e - 1);
               C = 0,
                 s(),
@@ -856,15 +856,15 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   (H < -20 || q < 109 ? -25 : -9) > X && (k = 2),
                   1 === v && (L[9].i = H < -15 && q < 0 ? 1 : 0),
                   h = w1(V(h, X, 2), X, k || 8 * P(h - X)),
-                  p = D(p, h, 2, 1),
                   d = D(d, H, .5, 1),
+                  p = D(p, h, 2, 1),
                   b = D(b, q, .5, 1),
                   n = V(n, y * (27 < v && v < 32), 2),
                   a1
-                    ? (e = k + F1(18), h1 = w1(h1, H, e), u1 = w1(u1, h + 1.5, e), v1 = w1(v1, q, e), R = S1(R))
-                    : (v1 = D(v1, b + -18 + 5 * n, 1, 2 + n),
+                    ? (e = k + F1(18), h1 = w1(h1, H, e), v1 = w1(v1, q, e), u1 = w1(u1, h + 1.5, e), R = S1(R))
+                    : (h1 = D(h1, d, 1, 2 + n),
+                      v1 = D(v1, b + -18 + 5 * n, 1, 2 + n),
                       u1 = D(u1, E(p + U((-60 - q) / 8, 0, 20) + 13 + 9 * n, 6), 4, 2),
-                      h1 = D(h1, d, 1, 2 + n),
                       e = d1(-6, -P(b - v1)),
                       R = z1(R, 90 - S1(G1(e, a = d - h1) / ee), I + F1(10)),
                       g1 = z1(g1, 90 - G1(M1(e, a), u1 - p) / ee, I + F1(10))),

@@ -81,7 +81,7 @@ export const eppur_si_muove = () => {
 
   // central oscillating platform
 
-  let oscillation = min(levers[2]!.$lerpValue2, 1 - levers[4]!.$lerpValue2);
+  let oscillation = min(1 - levers[4]!.$lerpValue2, levers[2]!.$lerpValue2);
 
   modelsNextUpdate().translateSelf(oscillation * Math.sin(gameTime / 1.5 + 2) * 12);
 
@@ -121,13 +121,13 @@ export const eppur_si_muove = () => {
 
   modelsNextUpdate().translateSelf(
     0,
-    oscillation * Math.sin(gameTime) * 5 + (1 - max(levers[6]!.$lerpValue, levers[7]!.$lerpValue)) * 3.5,
+    5 * oscillation * Math.sin(gameTime) + 3.5 * (1 - max(levers[6]!.$lerpValue, levers[7]!.$lerpValue)),
   );
 
   modelsNextUpdate().translateSelf(
     0,
-    oscillation * Math.sin(gameTime + 3) * 6,
-    oscillation * Math.sin(gameTime * 0.6 + 1) * 6,
+    6 * oscillation * Math.sin(gameTime + 3),
+    6 * oscillation * Math.sin(gameTime * 0.6 + 1),
   );
 
   // central sculpture/monument
@@ -149,14 +149,14 @@ export const eppur_si_muove = () => {
   modelsNextUpdate().translateSelf(
     0,
     -2,
-    max(
-      // block rods
-      (1 - levers[10]!.$lerpValue) * (1 - oscillation),
-      // push rods
-      oscillation * abs(Math.sin(gameTime * 1.5)),
-    ) *
-      -8.5 +
-      10,
+    10 -
+      8.5 *
+        max(
+          // push rods
+          oscillation * abs(Math.sin(gameTime * 1.5)),
+          // block rods
+          (1 - levers[10]!.$lerpValue) * (1 - oscillation),
+        ),
   );
 
   // oscillating hex pads
@@ -167,9 +167,9 @@ export const eppur_si_muove = () => {
     modelsNextUpdate().translateSelf(
       (i > 2 ? (1 - oscillation) * 2 + oscillation : 0) - 100,
       oscillation * Math.sin(gameTime * 1.3 + i * 1.7) * (3 + i / 3) + 0.7,
-      (i & 1 ? -1 : 1) * (1 - levers[8]!.$lerpValue2) * (1 - levers[12]!.$lerpValue2) * -7 +
-        max(oscillation, 0.05) * Math.cos(gameTime * 1.3 + i * 7) * (4 - 2 * (1 - i / 3)) +
-        115,
+      115 -
+        7 * (1 - levers[8]!.$lerpValue2) * (1 - levers[12]!.$lerpValue2) * (i & 1 ? -1 : 1) +
+        max(0.05, oscillation) * Math.cos(gameTime * 1.3 + i * 7) * (4 - 2 * (1 - i / 3)),
     );
   }
 
@@ -178,7 +178,7 @@ export const eppur_si_muove = () => {
   modelsNextUpdate()
     .translateSelf(
       (1 - oscillation) * 2.5 - 139.7,
-      (1 - levers[8]!.$lerpValue) * -3 + oscillation * Math.sin(gameTime * 0.8) * -1 - 1.8,
+      -3 * (1 - levers[8]!.$lerpValue) - oscillation * Math.sin(gameTime * 0.8) - 1.8,
       93.5,
     )
     .rotateSelf(Math.cos(gameTime * 1.3) * (oscillation * 3 + 3), 0);
@@ -220,8 +220,8 @@ export const eppur_si_muove = () => {
   // pendulums
 
   modelsNextUpdate()
-    .translateSelf(Math.sin(gameTime) * -2)
-    .rotateSelf(Math.sin(gameTime) * 25);
+    .translateSelf(-2 * Math.sin(gameTime))
+    .rotateSelf(25 * Math.sin(gameTime));
 
   // floating elevator pad
 
@@ -230,7 +230,7 @@ export const eppur_si_muove = () => {
     (levers[15]!.$lerpValue + levers[15]!.$lerpValue2) / 2,
   );
 
-  modelsNextUpdate().translateSelf(0, floatingElevatorPad * 16, clamp(floatingElevatorPad * 2 - 1) * 8.5 + 95);
+  modelsNextUpdate().translateSelf(0, 16 * floatingElevatorPad, 95 + 8.5 * clamp(2 * floatingElevatorPad - 1));
 
   // Update souls
 
@@ -246,7 +246,7 @@ export const eppur_si_muove = () => {
     matrixToArray(tempMatrix, objectsMatricesBuffer, i + SOULS_COUNT);
 
     // Encode lerp value in matrix m44 so fragmemt shader can change the lever handle color
-    objectsMatricesBuffer[i * 16 + (15 + SOULS_COUNT * 16)] = 1 - levers[i]!.$lerpValue;
+    objectsMatricesBuffer[15 + SOULS_COUNT * 16 + 16 * i] = 1 - levers[i]!.$lerpValue;
   }
 
   // Player body and legs

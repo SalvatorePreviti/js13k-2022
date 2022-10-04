@@ -278,8 +278,8 @@ export const player_init = () => {
       player_position_final.y,
       player_respawned || abs(player_model_y - player_position_final.y) * 8,
     );
-    camera_pos_lookat_y = interpolate_with_hysteresis(camera_pos_lookat_y, player_model_y, 2, 1);
     camera_pos_lookat_x = interpolate_with_hysteresis(camera_pos_lookat_x, player_position_final.x, 0.5, 1);
+    camera_pos_lookat_y = interpolate_with_hysteresis(camera_pos_lookat_y, player_model_y, 2, 1);
     camera_pos_lookat_z = interpolate_with_hysteresis(camera_pos_lookat_z, player_position_final.z, 0.5, 1);
 
     // Special handling for the rotating platforms, better camera for mobile that allows to see more
@@ -294,10 +294,17 @@ export const player_init = () => {
       if (player_first_person) {
         const d = player_respawned + damp(18);
         camera_position_x = lerp(camera_position_x, player_position_final.x, d);
-        camera_position_y = lerp(camera_position_y, player_model_y + 1.5, d);
         camera_position_z = lerp(camera_position_z, player_position_final.z, d);
+        camera_position_y = lerp(camera_position_y, player_model_y + 1.5, d);
         camera_rotation.y = angle_wrap_degrees(camera_rotation.y);
       } else {
+        camera_position_x = interpolate_with_hysteresis(
+          camera_position_x,
+          camera_pos_lookat_x,
+          1,
+          2 + player_on_rotating_platforms,
+        );
+
         camera_position_z = interpolate_with_hysteresis(
           camera_position_z,
           camera_pos_lookat_z + CAMERA_PLAYER_Z_DIST + player_on_rotating_platforms * 5,
@@ -316,13 +323,6 @@ export const player_init = () => {
           ),
           4,
           2,
-        );
-
-        camera_position_x = interpolate_with_hysteresis(
-          camera_position_x,
-          camera_pos_lookat_x,
-          1,
-          2 + player_on_rotating_platforms,
         );
 
         const viewDirDiffz = min(CAMERA_PLAYER_Z_DIST / 3, -abs(camera_pos_lookat_z - camera_position_z));
