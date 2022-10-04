@@ -1,10 +1,11 @@
 import { clamp, max, abs, lerpneg, min, angle_wrap_degrees, lerp } from "../math/math";
 import { allModels, levers, LEVERS_COUNT, souls, SOULS_COUNT } from "./models";
 import { objectsMatricesBuffer, worldMatricesBuffer } from "./models-matrices";
-import { matrixCopy, identity, matrixToArray, tempMatrix } from "../math/matrix";
+import { matrixToArray, tempMatrix } from "../math/matrix";
 import { gameTime, gameTimeDelta, lerpDamp } from "./game-time";
 import { firstBoatLerp, secondBoatLerp } from "./world-state";
 import { player_update } from "./player";
+import { modelsNextUpdate, modelsUpdateCounter, modelsResetUpdateCounter } from "./models-next-update";
 
 export let shouldRotatePlatforms: number;
 
@@ -20,9 +21,7 @@ const boatAnimationMatrix = (matrix: DOMMatrix, x: number, y: number, z: number)
     .rotateSelf(Math.sin(gameTime) * 2, Math.sin(gameTime * 0.7), Math.sin(gameTime * 0.9));
 
 export const eppur_si_muove = () => {
-  let counter = 1;
-
-  const next = () => matrixCopy(identity, allModels[++counter]!.$matrix);
+  modelsResetUpdateCounter();
 
   shouldRotatePlatforms = lerpneg(levers[12]!.$lerpValue, levers[13]!.$lerpValue);
 
@@ -45,33 +44,33 @@ export const eppur_si_muove = () => {
   );
 
   // first boad
-  boatAnimationMatrix(next(), -12, 4.2, -66 + firstBoatLerp * 40);
+  boatAnimationMatrix(modelsNextUpdate(), -12, 4.2, -66 + firstBoatLerp * 40);
 
   // in and out gate bars
 
-  next()
+  modelsNextUpdate()
     .translateSelf(0, 0, -15)
     .scaleSelf(1, clamp(1.22 - levers[1]!.$lerpValue), 1);
 
-  next()
+  modelsNextUpdate()
     .translateSelf(0, 0, 15)
     .scaleSelf(1, clamp(1.22 - levers[2]!.$lerpValue), 1);
 
   // central gate bars
 
-  next()
+  modelsNextUpdate()
     .translateSelf(-99.7, -1.9, 63.5)
     .scaleSelf(1, clamp(1.1 - levers[6]!.$lerpValue), 1);
 
   // far arc gate bars
 
-  next()
+  modelsNextUpdate()
     .translateSelf(-100, 0.6, 96.5)
     .scaleSelf(0.88, 1.2 - levers[12]!.$lerpValue);
 
   // moving central platform in the first level
 
-  next().translateSelf(
+  modelsNextUpdate().translateSelf(
     0,
     levers[3]!.$lerpValue < 0.01
       ? -500
@@ -84,35 +83,35 @@ export const eppur_si_muove = () => {
 
   let oscillation = min(levers[2]!.$lerpValue2, 1 - levers[4]!.$lerpValue2);
 
-  next().translateSelf(oscillation * Math.sin(gameTime / 1.5 + 2) * 12);
+  modelsNextUpdate().translateSelf(oscillation * Math.sin(gameTime / 1.5 + 2) * 12);
 
   // blackPlatforms
 
-  next().translateSelf(oscillation * Math.sin(gameTime * 0.7 + 2) * 12);
+  modelsNextUpdate().translateSelf(oscillation * Math.sin(gameTime * 0.7 + 2) * 12);
 
-  next().translateSelf(oscillation * Math.sin(gameTime + 3) * 8.2);
+  modelsNextUpdate().translateSelf(oscillation * Math.sin(gameTime + 3) * 8.2);
 
   // triangle platform
 
-  next().translateSelf((1 - oscillation) * 9.8);
+  modelsNextUpdate().translateSelf((1 - oscillation) * 9.8);
 
   // vertically oscillating mini platforms
 
   oscillation = clamp(1 - oscillation * 5) * lerpneg(levers[4]!.$lerpValue, levers[5]!.$lerpValue);
 
-  next().translateSelf(0, oscillation * Math.sin(gameTime * 1.35) * 4);
+  modelsNextUpdate().translateSelf(0, oscillation * Math.sin(gameTime * 1.35) * 4);
 
   // horizontaly oscillating mini platforms
 
-  next().translateSelf(0, 0, oscillation * Math.sin(gameTime * 0.9) * 8);
+  modelsNextUpdate().translateSelf(0, 0, oscillation * Math.sin(gameTime * 0.9) * 8);
 
   // hex corridor door
 
-  next().translateSelf(0, levers[4]!.$lerpValue2 * -6.5);
+  modelsNextUpdate().translateSelf(0, levers[4]!.$lerpValue2 * -6.5);
 
   // rotating hex corridor
 
-  next()
+  modelsNextUpdate()
     .translateSelf(-75, (1 - levers[5]!.$lerpValue2) * (1 - levers[6]!.$lerpValue) * 3, 55)
     .rotateSelf(180 * (1 - levers[5]!.$lerpValue2) + rotatingHexCorridorRotation, 0);
 
@@ -120,30 +119,34 @@ export const eppur_si_muove = () => {
 
   oscillation = lerpneg(levers[7]!.$lerpValue2, levers[6]!.$lerpValue2);
 
-  next().translateSelf(
+  modelsNextUpdate().translateSelf(
     0,
     oscillation * Math.sin(gameTime) * 5 + (1 - max(levers[6]!.$lerpValue, levers[7]!.$lerpValue)) * 3.5,
   );
 
-  next().translateSelf(0, oscillation * Math.sin(gameTime + 3) * 6, oscillation * Math.sin(gameTime * 0.6 + 1) * 6);
+  modelsNextUpdate().translateSelf(
+    0,
+    oscillation * Math.sin(gameTime + 3) * 6,
+    oscillation * Math.sin(gameTime * 0.6 + 1) * 6,
+  );
 
   // central sculpture/monument
 
-  next().translateSelf(0, levers[7]!.$lerpValue2 * -7.3);
+  modelsNextUpdate().translateSelf(0, levers[7]!.$lerpValue2 * -7.3);
 
   // second boat
 
-  boatAnimationMatrix(next(), -123, 1.4, 55 + secondBoatLerp * -65);
+  boatAnimationMatrix(modelsNextUpdate(), -123, 1.4, 55 + secondBoatLerp * -65);
 
   // pushing rods
 
   oscillation = lerpneg(levers[10]!.$lerpValue, levers[11]!.$lerpValue);
 
-  next().translateSelf(0, -2, oscillation * abs(Math.sin(gameTime * 1.1)) * -8.5 + 10);
+  modelsNextUpdate().translateSelf(0, -2, oscillation * abs(Math.sin(gameTime * 1.1)) * -8.5 + 10);
 
-  next().translateSelf(0, -2, oscillation * abs(Math.sin(gameTime * 2.1)) * -8.5 + 10);
+  modelsNextUpdate().translateSelf(0, -2, oscillation * abs(Math.sin(gameTime * 2.1)) * -8.5 + 10);
 
-  next().translateSelf(
+  modelsNextUpdate().translateSelf(
     0,
     -2,
     max(
@@ -161,7 +164,7 @@ export const eppur_si_muove = () => {
   oscillation = lerpneg(levers[8]!.$lerpValue2, levers[12]!.$lerpValue2);
 
   for (let i = 0; i < 4; i++) {
-    next().translateSelf(
+    modelsNextUpdate().translateSelf(
       (i > 2 ? (1 - oscillation) * 2 + oscillation : 0) - 100,
       oscillation * Math.sin(gameTime * 1.3 + i * 1.7) * (3 + i / 3) + 0.7,
       (i & 1 ? -1 : 1) * (1 - levers[8]!.$lerpValue2) * (1 - levers[12]!.$lerpValue2) * -7 +
@@ -172,7 +175,7 @@ export const eppur_si_muove = () => {
 
   // donut pad
 
-  next()
+  modelsNextUpdate()
     .translateSelf(
       (1 - oscillation) * 2.5 - 139.7,
       (1 - levers[8]!.$lerpValue) * -3 + oscillation * Math.sin(gameTime * 0.8) * -1 - 1.8,
@@ -182,23 +185,23 @@ export const eppur_si_muove = () => {
 
   // First rotating platform (with hole)
 
-  next()
+  modelsNextUpdate()
     .translateSelf(-81, 0.6, 106)
     .rotateSelf(0, 40 + rotatingPlatform1Rotation);
 
   // Second rotating platform
 
-  next().translateSelf(-65.8, 0.8, 106).rotateSelf(0, rotatingPlatform2Rotation);
+  modelsNextUpdate().translateSelf(-65.8, 0.8, 106).rotateSelf(0, rotatingPlatform2Rotation);
 
   // Third rotating platform
 
-  next()
+  modelsNextUpdate()
     .translateSelf(-50.7, 0.8, 106)
     .rotateSelf(0, 180 - rotatingPlatform2Rotation);
 
   // Fourth rotating platform
 
-  next()
+  modelsNextUpdate()
     .translateSelf(-50.7, 0.8, 91)
     .rotateSelf(0, 270 + rotatingPlatform2Rotation);
 
@@ -207,7 +210,7 @@ export const eppur_si_muove = () => {
   oscillation = lerpneg(levers[13]!.$lerpValue2, levers[14]!.$lerpValue2);
 
   for (let i = 0; i < 3; ++i) {
-    next().translateSelf(
+    modelsNextUpdate().translateSelf(
       0,
       oscillation * Math.sin(gameTime * 1.5 + i * 1.5) * 4 +
         (i ? 0 : (1 - levers[13]!.$lerpValue2) * (1 - levers[14]!.$lerpValue2)),
@@ -216,7 +219,7 @@ export const eppur_si_muove = () => {
 
   // pendulums
 
-  next()
+  modelsNextUpdate()
     .translateSelf(Math.sin(gameTime) * -2)
     .rotateSelf(Math.sin(gameTime) * 25);
 
@@ -227,7 +230,7 @@ export const eppur_si_muove = () => {
     (levers[15]!.$lerpValue + levers[15]!.$lerpValue2) / 2,
   );
 
-  next().translateSelf(0, floatingElevatorPad * 16, clamp(floatingElevatorPad * 2 - 1) * 8.5 + 95);
+  modelsNextUpdate().translateSelf(0, floatingElevatorPad * 16, clamp(floatingElevatorPad * 2 - 1) * 8.5 + 95);
 
   // Update souls
 
@@ -248,11 +251,11 @@ export const eppur_si_muove = () => {
 
   // Player body and legs
 
-  player_update(next);
+  player_update();
 
   // Copy all models matrices to the world uniform buffer
 
-  for (let i = 0; i <= counter; ++i) {
+  for (let i = 0; i <= modelsUpdateCounter; ++i) {
     matrixToArray(allModels[i]!.$matrix, worldMatricesBuffer, i - 1);
   }
 };

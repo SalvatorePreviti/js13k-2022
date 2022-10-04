@@ -197,7 +197,11 @@ export function devInit() {
       debug_camera_old_rotation.x !== debug_camera_rotation.x ||
       debug_camera_old_rotation.y !== debug_camera_rotation.y ||
       debug_camera_old_rotation.z !== debug_camera_rotation.z ||
-      debug_camera_old_enabled !== !!window.DEBUG_CAMERA
+      debug_camera_old_enabled !== !!window.DEBUG_CAMERA ||
+      debug_old_flag0 !== !!DEBUG_FLAG0 ||
+      debug_old_flag1 !== !!DEBUG_FLAG1 ||
+      debug_old_flag2 !== !!DEBUG_FLAG2 ||
+      debug_old_flag3 !== !!DEBUG_FLAG3
     ) {
       ++debug_camera_version;
       debug_camera_save();

@@ -2,22 +2,22 @@
 
 declare const DEBUG: boolean;
 declare const NO_DEBUG: boolean;
-declare let DEBUG_CAMERA: boolean;
-declare let DEBUG_FLAG0: boolean;
-declare let DEBUG_FLAG1: boolean;
-declare let DEBUG_FLAG2: boolean;
-declare let DEBUG_FLAG3: boolean;
+declare let DEBUG_CAMERA: boolean | undefined;
+declare let DEBUG_FLAG0: boolean | undefined;
+declare let DEBUG_FLAG1: boolean | undefined;
+declare let DEBUG_FLAG2: boolean | undefined;
+declare let DEBUG_FLAG3: boolean | undefined;
 
 type ArrayElement<ArrayType extends readonly unknown[]> = ArrayType extends readonly (infer ElementType)[]
   ? ElementType
   : never;
 
 interface Window {
-  DEBUG_CAMERA: boolean;
-  DEBUG_FLAG0: boolean;
-  DEBUG_FLAG1: boolean;
-  DEBUG_FLAG2: boolean;
-  DEBUG_FLAG3: boolean;
+  DEBUG_CAMERA: boolean | undefined;
+  DEBUG_FLAG0: boolean | undefined;
+  DEBUG_FLAG1: boolean | undefined;
+  DEBUG_FLAG2: boolean | undefined;
+  DEBUG_FLAG3: boolean | undefined;
 }
 
 declare var dev_keyboard_downKeys: Set<KEY_CODE>;

@@ -11,7 +11,7 @@ export let gameTime = 0;
 
 export let absoluteTime = 0;
 
-export let gameTimeDelta: number = GAME_TIME_MAX_DELTA_TIME;
+export let gameTimeDelta: number;
 
 export const gameTimeUpdate = (time: number) => {
   const dt = (time - (_globalTime || time)) / 1000;
@@ -25,7 +25,7 @@ export const resetGameTime = (value: number) => {
   gameTimeDelta = 0;
 };
 
-export const damp = /* @__PURE__ */ (speed: number) => 1 - Math.exp(-speed * gameTimeDelta);
+export const damp = NO_INLINE((speed: number) => 1 - Math.exp(-speed * gameTimeDelta));
 
 export const lerpDamp = NO_INLINE((from: number, to: number, speed: number) => lerp(from, to, damp(speed)));
 

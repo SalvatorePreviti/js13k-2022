@@ -29,16 +29,15 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     console.time("build_life_the_universe_and_everything");
   }
 
-  const hornsMatrices = integers_map(HORN_STACKS + 1, (i: number) =>
+  const hornMatrix = (i: number) =>
     translation(Math.sin((i / HORN_STACKS) * Math.PI), i / HORN_STACKS)
-      .rotate(10 * (i / HORN_STACKS))
-      .scale(1.0001 - i / HORN_STACKS, 0, 1 - i / HORN_STACKS),
-  );
+      .rotateSelf(10 * (i / HORN_STACKS))
+      .scaleSelf(1.0001 - i / HORN_STACKS, 0, 1 - i / HORN_STACKS);
 
   const hornPolygons = integers_map(HORN_STACKS, (i) =>
     cylinder_sides(
-      polygon_transform(polygon_regular(18), hornsMatrices[i]!).reverse(),
-      polygon_transform(polygon_regular(18), hornsMatrices[i + 1]!),
+      polygon_transform(polygon_regular(18), hornMatrix(i)).reverse(),
+      polygon_transform(polygon_regular(18), hornMatrix(i + 1)),
       1,
     ),
   ).flat();
