@@ -1,5 +1,4 @@
-import { matrixCopy } from "../math/matrix";
-import { matrixTransformPoint } from "../math/matrix-transform-point";
+import { matrixCopy, matrixTransformPoint } from "../math/matrix";
 import type { Vec3, Vec3Optional } from "../math/vectors";
 
 export interface Polygon<TVec3 = Vec3> extends Array<TVec3> {

@@ -26,7 +26,7 @@ import { gameTimeUpdate, gameTimeDelta, mainMenuVisible, absoluteTime } from "./
 import { MODEL_ID_SOUL, MODEL_ID_SOUL_COLLISION } from "./game/models";
 import { camera_rotation, player_position_final, worldStateUpdate } from "./game/world-state";
 import { integers_map } from "./math/integers-map";
-import { identity, matrixCopy, matrixToArray, tempMatrix } from "./math/matrix";
+import { identity, matrixCopy, matrixToArray, matrixTransformPoint, tempMatrix } from "./math/matrix";
 import { mat_perspective, zFar, zNear } from "./math/matrix-perspective";
 import { eppur_si_muove } from "./game/level-update";
 import { max, min } from "./math/math";
@@ -36,7 +36,6 @@ import { loadShader, initShaderProgram } from "./shaders-utils";
 import { initPage, csm_projections, player_first_person, projection, resetInteractPressed, updateInput } from "./page";
 import { player_init, camera_position_x, camera_position_y, camera_position_z } from "./game/player";
 import { gl } from "./gl";
-import { matrixTransformPoint } from "./math/matrix-transform-point";
 
 const LIGHT_ROT_X = 298;
 const LIGHT_ROT_Y = 139;

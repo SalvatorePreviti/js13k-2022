@@ -213,6 +213,12 @@ const angle_lerp_degrees = (a0, a1, t) => a0 + (2 * (a1 = (a1 - a0) % 360) % 360
 const lerp = (a, b, t) => (0 < t ? t < 1 ? a + (b - a) * t : b : a) || 0;
 const lerpneg = (v, t) => (v = clamp(v), lerp(v, 1 - v, t));
 const hypot = (a, b, c = 0) => Math.sqrt(a * a + b * b + c * c);
+const matrixTransformPoint = (x = 0, y = 0, z = 0, w = 1) => {
+  matrixTransformPoint.x = tempMatrix.m11 * x + tempMatrix.m21 * y + tempMatrix.m31 * z + tempMatrix.m41 * w,
+    matrixTransformPoint.y = tempMatrix.m12 * x + tempMatrix.m22 * y + tempMatrix.m32 * z + tempMatrix.m42 * w,
+    matrixTransformPoint.z = tempMatrix.m13 * x + tempMatrix.m23 * y + tempMatrix.m33 * z + tempMatrix.m43 * w,
+    matrixTransformPoint.w = tempMatrix.m14 * x + tempMatrix.m24 * y + tempMatrix.m34 * z + tempMatrix.m44 * w;
+};
 const matrixToArray = (
   $matrix,
   output = float32Array16Temp,
@@ -259,12 +265,6 @@ const translation = NO_INLINE((x, y, z) => identity.translate(x, y, z));
 const rotation = NO_INLINE((x, y, z) => identity.rotate(x, y, z));
 const scaling = NO_INLINE((x, y, z) => identity.scale(x, y, z));
 const integers_map = (n, fn) => Array.from(Array(n), (_, i) => fn(i));
-const matrixTransformPoint = (x = 0, y = 0, z = 0, w = 1) => {
-  matrixTransformPoint.x = tempMatrix.m11 * x + tempMatrix.m21 * y + tempMatrix.m31 * z + tempMatrix.m41 * w,
-    matrixTransformPoint.y = tempMatrix.m12 * x + tempMatrix.m22 * y + tempMatrix.m32 * z + tempMatrix.m42 * w,
-    matrixTransformPoint.z = tempMatrix.m13 * x + tempMatrix.m23 * y + tempMatrix.m33 * z + tempMatrix.m43 * w,
-    matrixTransformPoint.w = tempMatrix.m14 * x + tempMatrix.m24 * y + tempMatrix.m34 * z + tempMatrix.m44 * w;
-};
 const polygon_color = (polygon, color, smooth) => (polygon.$smooth = smooth, polygon.$color = color, polygon);
 const polygon_transform = (
   polygon,
@@ -905,11 +905,11 @@ const player_init = () => {
       player_position_final.y = matrixTransformPoint.y,
       player_position_final.z = matrixTransformPoint.z;
   };
-  const movePlayer = (x, y, z) => {
+  const movePlayer = (mx, my, mz) => {
     loadReferenceMatrix().invertSelf(),
-      matrixTransformPoint(x, 0, z, 0),
+      matrixTransformPoint(mx, my, mz, 0),
       player_position_global_x += matrixTransformPoint.x,
-      player_position_global_y += matrixTransformPoint.y,
+      player_position_global_y += my,
       player_position_global_z += matrixTransformPoint.z,
       updatePlayerPositionFinal();
   };
@@ -952,7 +952,8 @@ const player_init = () => {
       }
       abs(right - left) > abs(movX) && (movX = right - left), abs(back - front) > abs(movZ) && (movZ = back - front);
     }
-    player_speed_collision_limiter = clamp(1 - 0.02 * max(abs(movX), abs(movZ))), movePlayer(movX / 255, 0, movZ / 255);
+    player_speed_collision_limiter = clamp(1 - 0.02 * max(abs(movX), abs(movZ))),
+      movePlayer(movX / 255, movY / 255, movZ / 255);
   };
   const interpolate_with_hysteresis = (previous, desired, hysteresis, speed) =>
     lerp(previous, desired, boot || (clamp(abs(desired - previous) ** 0.5 - hysteresis) + 1 / 7) * damp(1.5 * speed));
@@ -1052,7 +1053,7 @@ const player_init = () => {
       movePlayer(
         gameTimeDelta
           * (player_fly_velocity_x + player_speed * (viewDirDiffx * Math.cos(movAngle) - d * Math.sin(movAngle))),
-        0,
+        -player_gravity * gameTimeDelta,
         gameTimeDelta
           * (player_fly_velocity_z + player_speed * (viewDirDiffx * Math.sin(movAngle) + d * Math.cos(movAngle))),
       );
@@ -1221,8 +1222,8 @@ const loadSong = (done) => {
   songAudioSource.buffer = audioBuffer, songAudioSource.loop = !0, loadStep(next);
 };
 const audioContext = new AudioContext();
-const identity = new DOMMatrix();
 const tempMatrix = new DOMMatrix();
+const identity = new DOMMatrix();
 const float32Array16Temp = new Float32Array(16);
 const worldMatricesBuffer = new Float32Array(624);
 const objectsMatricesBuffer = new Float32Array(624);

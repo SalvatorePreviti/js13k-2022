@@ -13,13 +13,12 @@ import {
 import { player_position_final, onLever0Pulled, onPlayerPullLever, onSoulCollected } from "./world-state";
 import type { Vec3Optional } from "../math/vectors";
 import { min, angle_lerp_degrees, DEG_TO_RAD, clamp, abs, hypot } from "../math/math";
-import { matrixCopy, tempMatrix } from "../math/matrix";
+import { matrixCopy, matrixTransformPoint, tempMatrix } from "../math/matrix";
 import { lerpDamp, damp, gameTime } from "./game-time";
 import { polygons_transform, type Polygon } from "../geometry/polygon";
 import { cylinder } from "../geometry/geometry";
 import { material } from "../geometry/material";
 import { interact_pressed } from "../page";
-import { matrixTransformPoint } from "../math/matrix-transform-point";
 
 export let currentEditModel: Model;
 

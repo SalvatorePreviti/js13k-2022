@@ -22,10 +22,9 @@ import {
 import { player_last_pulled_lever, camera_rotation, firstBoatLerp, player_position_final } from "./world-state";
 import { input_forward, input_strafe, player_first_person } from "../page";
 import { lerpDamp, gameTimeDelta, damp, gameTime } from "./game-time";
-import { matrixCopy } from "../math/matrix";
+import { matrixCopy, matrixTransformPoint } from "../math/matrix";
 import { gl } from "../gl";
 import { shouldRotatePlatforms } from "./level-update";
-import { matrixTransformPoint } from "../math/matrix-transform-point";
 
 export const CAMERA_PLAYER_Y_DIST = 13;
 
@@ -103,11 +102,11 @@ export const player_init = () => {
     player_position_final.z = matrixTransformPoint.z;
   };
 
-  const movePlayer = (x: number, y: number, z: number) => {
+  const movePlayer = (mx: number, my: number, mz: number) => {
     loadReferenceMatrix().invertSelf();
-    matrixTransformPoint(x, 0, z, 0);
+    matrixTransformPoint(mx, my, mz, 0);
     player_position_global_x += matrixTransformPoint.x;
-    player_position_global_y += matrixTransformPoint.y;
+    player_position_global_y += my;
     player_position_global_z += matrixTransformPoint.z;
     updatePlayerPositionFinal();
   };
