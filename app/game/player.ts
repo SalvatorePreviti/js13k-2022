@@ -262,22 +262,24 @@ export const player_init = () => {
       player_respawned = currentModelId ? 0 : 1;
     }
 
-    const { x, y, z } = player_position_final;
-
-    if (y < (x < -20 || z < 109 ? -25 : -9)) {
+    if (player_position_final.y < (player_position_final.x < -20 || player_position_final.z < 109 ? -25 : -9)) {
       // Player fell in lava
       player_respawned = 2;
     }
 
     // Special handling for the second boat (lever 7) - the boat must be on the side of the map the player is
     if (currentModelId === MODEL_ID_STATIC_WORLD) {
-      levers[9]!.$value = x < -15 && z < 0 ? 1 : 0;
+      levers[9]!.$value = player_position_final.x < -15 && player_position_final.z < 0 ? 1 : 0;
     }
 
-    player_model_y = lerp(lerpDamp(player_model_y, y, 2), y, player_respawned || abs(player_model_y - y) * 8);
+    player_model_y = lerp(
+      lerpDamp(player_model_y, player_position_final.y, 2),
+      player_position_final.y,
+      player_respawned || abs(player_model_y - player_position_final.y) * 8,
+    );
     camera_pos_lookat_y = interpolate_with_hysteresis(camera_pos_lookat_y, player_model_y, 2, 1);
-    camera_pos_lookat_x = interpolate_with_hysteresis(camera_pos_lookat_x, x, 0.5, 1);
-    camera_pos_lookat_z = interpolate_with_hysteresis(camera_pos_lookat_z, z, 0.5, 1);
+    camera_pos_lookat_x = interpolate_with_hysteresis(camera_pos_lookat_x, player_position_final.x, 0.5, 1);
+    camera_pos_lookat_z = interpolate_with_hysteresis(camera_pos_lookat_z, player_position_final.z, 0.5, 1);
 
     // Special handling for the rotating platforms, better camera for mobile that allows to see more
     player_on_rotating_platforms = lerpDamp(
@@ -290,9 +292,9 @@ export const player_init = () => {
     if (!DEBUG_CAMERA) {
       if (player_first_person) {
         const d = player_respawned + damp(18);
-        camera_position_x = lerp(camera_position_x, x, d);
+        camera_position_x = lerp(camera_position_x, player_position_final.x, d);
         camera_position_y = lerp(camera_position_y, player_model_y + 1.5, d);
-        camera_position_z = lerp(camera_position_z, z, d);
+        camera_position_z = lerp(camera_position_z, player_position_final.z, d);
         camera_rotation.y = angle_wrap_degrees(camera_rotation.y);
       } else {
         camera_position_z = interpolate_with_hysteresis(
@@ -305,7 +307,10 @@ export const player_init = () => {
         camera_position_y = interpolate_with_hysteresis(
           camera_position_y,
           max(
-            camera_pos_lookat_y + clamp((-60 - z) / 8, 0, 20) + CAMERA_PLAYER_Y_DIST + player_on_rotating_platforms * 9,
+            camera_pos_lookat_y +
+              clamp((-60 - player_position_final.z) / 8, 0, 20) +
+              CAMERA_PLAYER_Y_DIST +
+              player_on_rotating_platforms * 9,
             6,
           ),
           4,
@@ -360,7 +365,9 @@ export const player_init = () => {
 
     // Update player body and legs matrices
 
-    nextModelMatrix().translateSelf(x, player_model_y, z).rotateSelf(0, player_look_angle);
+    nextModelMatrix()
+      .translateSelf(player_position_final.x, player_model_y, player_position_final.z)
+      .rotateSelf(0, player_look_angle);
 
     for (let i = 0; i < 2; ++i) {
       const t = gameTime * PLAYER_LEGS_VELOCITY - Math.PI * i;
@@ -373,7 +380,7 @@ export const player_init = () => {
 
     player_gravity = currentModelId
       ? 5
-      : lerpDamp(player_gravity, player_respawned ? 13 : 19 - min(0, y + 10) * 2, 2.2);
+      : lerpDamp(player_gravity, player_respawned ? 13 : 19 - min(0, player_position_final.y + 10) * 2, 2.2);
 
     player_fly_velocity_x = currentModelId || player_respawned ? 0 : lerpDamp(player_fly_velocity_x, 0, 3);
     player_fly_velocity_z = currentModelId || player_respawned ? 0 : lerpDamp(player_fly_velocity_z, 0, 3);

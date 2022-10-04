@@ -111,21 +111,19 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]
         let mindist = Infinity;
 
         for (const c of circles) {
-          const { x, z, w } = c;
-          const distance = hypot(targetX - x, targetZ - z);
-          const circleSDF = distance - w;
+          const distance = hypot(targetX - c.x, targetZ - c.z);
+          const circleSDF = distance - c.w;
           isInside ||= circleSDF < 0;
           if (circleSDF > 0 && circleSDF < mindist) {
             mindist = circleSDF;
             circle = c;
           }
-          contextualVelocity = min(contextualVelocity, distance / w);
+          contextualVelocity = min(contextualVelocity, distance / c.w);
         }
 
         if (!isInside) {
-          const { x, z, w } = circle;
-          const ax = targetX - x;
-          const az = targetZ - z;
+          const ax = targetX - circle.x;
+          const az = targetZ - circle.z;
           let magnitude = hypot(ax, az);
           let angle = Math.atan2(-az, ax);
           if (wasInside) {
@@ -137,9 +135,9 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]
           dirZ = Math.sin(angle);
           if (magnitude > 0.1) {
             // limit the vector length to the circle radius, as a security measure
-            magnitude = min(magnitude, w) / (magnitude || 1);
-            targetX = ax * magnitude + x;
-            targetZ = az * magnitude + z;
+            magnitude = min(magnitude, circle.w) / (magnitude || 1);
+            targetX = ax * magnitude + circle.x;
+            targetZ = az * magnitude + circle.z;
           }
         }
 

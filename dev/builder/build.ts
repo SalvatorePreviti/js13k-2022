@@ -328,8 +328,6 @@ export async function build() {
 
     js = await jsTransformSwc(js, false, swcPluginVars({ floatRound: 6 }));
 
-    // js = await jsTransformSwc(js, false, swcPluginVars({ constToLet: true, floatRound: 6 }));
-
     js = await jsUglify(js, {
       varify: false,
       final: true,
@@ -342,7 +340,7 @@ export async function build() {
     });
 
     js = await jsBabel(js, {
-      minify: true,
+      minify: false,
       plugins: [
         "babel-plugin-minify-constant-folding",
         // "babel-plugin-minify-dead-code-elimination",

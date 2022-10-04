@@ -41,17 +41,17 @@ const LIGHT_ROT_X = 298;
 const LIGHT_ROT_Y = 139;
 
 export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
+  const csm_tempMatrix = new DOMMatrix();
   const camera_view = new DOMMatrix();
+
+  const csm_lightSpaceMatrices = [new Float32Array(16), new Float32Array(16)];
+  const csm_tempFrustumCorners: Vec3[] = integers_map(8, () => ({} as Vec3));
+
   const mainVertexShader = loadShader(main_vsSource);
   const csmShader = initShaderProgram(loadShader(csm_vsSource), void_fsSource);
   const skyShader = initShaderProgram(loadShader(sky_vsSource), sky_fsSource);
   const collisionShader = initShaderProgram(mainVertexShader, collider_fsSource);
   const mainShader = initShaderProgram(mainVertexShader, main_fsSource);
-
-  const csm_lightSpaceMatrices = [new Float32Array(16), new Float32Array(16)];
-
-  const csm_tempMatrix = new DOMMatrix();
-  const csm_tempFrustumCorners: Vec3[] = integers_map(8, () => ({} as Vec3));
 
   const csm_render = integers_map(2, (split: number) => {
     const texture = gl.createTexture()!;
@@ -142,7 +142,6 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   });
 
   const csm_framebuffer = gl.createFramebuffer();
-
   const collision_texture = gl.createTexture()!;
   const collision_renderBuffer = gl.createRenderbuffer();
   const collision_frameBuffer = gl.createFramebuffer()!;
@@ -176,8 +175,6 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
       gl.colorMask(true, false, true, false);
 
-      const { x, y, z } = player_position_final;
-
       gl.uniformMatrix4fv(
         collisionShader(uniformName_viewMatrix),
         false,
@@ -185,7 +182,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
           matrixCopy()
             .rotateSelf(0, 180)
             .invertSelf()
-            .translateSelf(-x, -y, 0.3 - z),
+            .translateSelf(-player_position_final.x, -player_position_final.y, 0.3 - player_position_final.z),
         ),
       );
       renderModels(collisionShader(uniformName_worldMatrices), 0, MODEL_ID_SOUL_COLLISION);
@@ -197,7 +194,13 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       gl.uniformMatrix4fv(
         collisionShader(uniformName_viewMatrix),
         false,
-        matrixToArray(matrixCopy().translateSelf(-x, -y, -z - 0.3)),
+        matrixToArray(
+          matrixCopy().translateSelf(
+            -player_position_final.x,
+            -player_position_final.y,
+            -player_position_final.z - 0.3,
+          ),
+        ),
       );
       renderModels(collisionShader(uniformName_worldMatrices), 0, MODEL_ID_SOUL_COLLISION);
 

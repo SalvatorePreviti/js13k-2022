@@ -111,8 +111,7 @@ const csg_tree_addPolygon = /* @__PURE__ */ (
       node.$back = csg_tree_addPolygon(node.$back, $back, plane);
     }
   } else {
-    const { x, y, z, w } = plane;
-    node = { x, y, z, w, $polygons: [polygon], $front: 0, $back: 0 };
+    node = { x: plane.x, y: plane.y, z: plane.z, w: plane.w, $polygons: [polygon], $front: 0, $back: 0 };
   }
   return node;
 };
