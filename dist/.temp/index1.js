@@ -1203,7 +1203,7 @@ const build_life_the_universe_and_everything = () => {
     newModel(() => {
       meshAdd(
         cylinder(6),
-        translation(-44.5, 0, 55).rotate(90, 90).rotate(0, 90).scale(5.9, 0.5, 5.9),
+        translation(-44.5, 0, 55).rotate(0, 0, 90).scale(5.9, 0.5, 5.9),
         material(0.7, 0.7, 0.7, 0.4),
       );
     });
