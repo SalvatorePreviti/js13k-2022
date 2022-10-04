@@ -1,3 +1,4 @@
+import type { Circle } from "./models";
 import {
   levers,
   souls,
@@ -105,7 +106,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
       translation(0, 2.8),
       [5, 10, 3],
       [-5, 10, 3],
-      ...polygon_regular(18).map(({ x, z }) => [x * 7, z * 10, 4.5 - abs(x) * 2]),
+      ...polygon_regular(18).map(({ x, z }): Circle => [x * 7, z * 10, 4.5 - abs(x) * 2]),
     );
 
     // gate columns
@@ -548,7 +549,10 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
       );
 
       // SOUL 5 - soul over the central sculpture/monument
-      newSoul(translation(-39.1, -0.6, 17).rotate(11), ...polygon_regular(15).map(({ x, z }) => [x * 3, z * 3, 1.2]));
+      newSoul(
+        translation(-39.1, -0.6, 17).rotate(11),
+        ...polygon_regular(15).map(({ x, z }): Circle => [x * 3, z * 3, 1.2]),
+      );
     });
 
     // columns
@@ -844,7 +848,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
       meshAdd(cylinder(5), translation(0, 2).scale(1, 2), material(0.3, 0.3, 0.3, 0.2));
 
       // SOUL 10 - soul over the first rotating platform
-      newSoul(translation(0, 3), ...polygon_regular(14).map(({ x, z }) => [x * 5.6, z * 5.6, 2]));
+      newSoul(translation(0, 3), ...polygon_regular(14).map(({ x, z }): Circle => [x * 5.6, z * 5.6, 2]));
     });
 
     // Second rotating platform
@@ -1017,7 +1021,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     });
 
     // SOUL 11 - soul in the last platform
-    newSoul(translation(0, 3, 95), ...polygon_regular(9).map(({ x, z }) => [x * 9, z * 9, 4]));
+    newSoul(translation(0, 3, 95), ...polygon_regular(9).map(({ x, z }): Circle => [x * 9, z * 9, 4]));
 
     // SOUL 12 - soul after the pendulums
     newSoul(translation(0, 19, 134), [0, 0, 3.5]);

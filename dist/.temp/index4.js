@@ -18,9 +18,9 @@ let T,
   y,
   s1,
   c1,
-  z,
+  o1,
   B = 0,
-  o1 = 0,
+  z = 0,
   w = 0,
   n1 = 0,
   i1 = 0,
@@ -48,8 +48,8 @@ let T,
   E = (e, a) => a < e ? e : a,
   p1 = (e, a) => P(e) > a ? e : 0,
   U = (e, a = 0, t = 1) => e < a ? a : t < e ? t : e,
-  z1 = e => G1(J(e * ee), Z(e * ee)) / ee,
-  S1 = (e, a, t) => e + (2 * (a = (a - e) % 360) % 360 - a) * U(t) || 0,
+  S1 = e => G1(J(e * ee), Z(e * ee)) / ee,
+  z1 = (e, a, t) => e + (2 * (a = (a - e) % 360) % 360 - a) * U(t) || 0,
   w1 = (e, a, t) => (0 < t ? t < 1 ? e + (a - e) * t : a : e) || 0,
   A1 = (e, a) => (e = U(e), w1(e, 1 - e, a)),
   M1 = (e, a, t = 0) => J1(e * e + a * a + t * t),
@@ -198,43 +198,43 @@ let T,
       u(i(5), e.translate(.2).rotate(90, 90).scale(.4, .1, .5), h(.4, .5, .5)),
       u(i(), e.translate(0, -.4).scale(.5, .1, .5), h(.5, .5, .4));
   },
-  d = (o, ...e) => {
-    let n,
-      i,
+  d = (o, ...n) => {
+    let i,
       f,
-      m = 0,
+      m,
       h = 0,
-      u = 1,
-      v = 3,
-      g = -1,
-      d = {
+      u = 0,
+      v = 1,
+      g = 3,
+      d = -1,
+      p = {
         i: 0,
         F() {
-          if (!d.i) {
+          if (!p.i) {
             let e, a, t, l, r, s = 1, c = 1 / 0;
-            for (let t of p) {
-              let e = M1(S - t.x, A - t.z), a = e - t.w;
-              r ||= a < 0, 0 < a && c > a && (c = a, b = t), s = d1(s, e / t.w);
+            for (let t of n) {
+              let e = M1(S - t[0], A - t[1]), a = e - t[2];
+              r ||= a < 0, 0 < a && c > a && (c = a, b = t), s = d1(s, e / t[2]);
             }
             r
-            || (e = S - b.x,
-              a = A - b.z,
+            || (e = S - b[0],
+              a = A - b[1],
               t = M1(e, a),
               l = G1(-a, e),
-              u && (h = ($1() - .5) * G / 2, v = U(v / (1 + $1()))),
-              l += h,
-              g = -Z(l),
-              m = J(l),
-              .1 < t && (t = d1(t, b.w) / (t || 1), S = e * t + b.x, A = a * t + b.z)),
-              u = r,
-              v = V(v, 6 * (1 - s) + 3, s + 3),
-              M = V(M, S = V(S, S + g, v), v),
-              I = V(I, A = V(A, A + m, v), v),
-              n = S1(n, G1(M - i, I - f) / ee - 180, F1(3)),
-              K(k).multiplySelf(o).translateSelf(i = M, 0, f = I).rotateSelf(0, n, 7 * J(1.7 * B)),
+              v && (u = ($1() - .5) * G / 2, g = U(g / (1 + $1()))),
+              l += u,
+              d = -Z(l),
+              h = J(l),
+              .1 < t && (t = d1(t, b[2]) / (t || 1), S = e * t + b[0], A = a * t + b[1])),
+              v = r,
+              g = V(g, 6 * (1 - s) + 3, s + 3),
+              M = V(M, S = V(S, S + d, g), g),
+              I = V(I, A = V(A, A + h, g), g),
+              i = z1(i, G1(M - f, I - m) / ee - 180, F1(3)),
+              K(k).multiplySelf(o).translateSelf(f = M, 0, m = I).rotateSelf(0, i, 7 * J(1.7 * B)),
               W(),
               M1(H - T, X - j, q - O) < 1.6
-              && (d.i = 1,
+              && (p.i = 1,
                 e = [
                   ,
                   "Mark Zuckemberg<br>made the world worse",
@@ -254,22 +254,21 @@ let T,
                 Y1(),
                 C1());
           }
-          d.i
+          p.i
             && K(N[2].m).translateSelf(
-              a % 4 * 1.2 - 1.7 + J(B + a) / 7,
+              e % 4 * 1.2 - 1.7 + J(B + e) / 7,
               -2,
-              1.7 * (a / 4 | 0) - 5.5 + P(a % 4 - 2) + Z(B / 1.5 + a) / 6,
+              1.7 * (e / 4 | 0) - 5.5 + P(e % 4 - 2) + Z(B / 1.5 + e) / 6,
             );
         },
       },
-      p = e.map(([e, a, t]) => ({ x: e, z: a, w: t })),
-      b = p[0],
-      { x: S, z: A } = b,
+      b = n[0],
+      [S, A] = b,
       M = S,
       I = A,
       k = r.m,
-      a = x1.length;
-    x1.push(d);
+      e = x1.length;
+    x1.push(p);
   },
   T1 = ({ x: e, y: a, z: t }, l) => e * l.x + a * l.y + t * l.z,
   j1 = e => {
@@ -359,7 +358,7 @@ let T,
   L1 = (e, a, t) => {
     k
       ? 1100 < hC.width
-        && (K().rotateSelf(0, 40 * J(o1) - 80, -8),
+        && (K().rotateSelf(0, 40 * J(z) - 80, -8),
           p(S, K1, 36),
           p(S, K1, 37),
           p(S, K1, 38),
@@ -400,7 +399,7 @@ E1(() => {
           l = e => {
             requestAnimationFrame(l);
             let a = (e - (I || e)) / 1e3;
-            if (o1 += a, B += Q = k ? 0 : d1(.066, a), I = e, 0 < Q) {
+            if (z += a, B += Q = k ? 0 : d1(.066, a), I = e, 0 < Q) {
               for (
                 l1(),
                   F && B > F && (F = 0, h4.innerHTML = ""),
@@ -408,9 +407,9 @@ E1(() => {
                   Y = V(Y, L[9].h, .2 + .3 * P(2 * L[9].h - 1)),
                   r1 = 1,
                   y = A1(L[12].g, L[13].g),
-                  z = w1(V(z, 0, 1), z1(z + 60 * Q), L[5].g - L[6].h),
-                  s1 = w1(V(s1, 0, 5), z1(s1 + 56 * Q), y),
-                  c1 = w1(V(c1, 0, 4), z1(c1 + 48 * Q), y),
+                  o1 = w1(V(o1, 0, 1), S1(o1 + 60 * Q), L[5].g - L[6].h),
+                  s1 = w1(V(s1, 0, 5), S1(s1 + 56 * Q), y),
+                  c1 = w1(V(c1, 0, 4), S1(c1 + 48 * Q), y),
                   R1(_(), -12, 4.2, 40 * e1 - 66),
                   _().translateSelf(0, 0, -15).scaleSelf(1, U(1.22 - L[1].g), 1),
                   _().translateSelf(0, 0, 15).scaleSelf(1, U(1.22 - L[2].g), 1),
@@ -430,7 +429,7 @@ E1(() => {
                   _().translateSelf(0, e * J(1.35 * B) * 4),
                   _().translateSelf(0, 0, e * J(.9 * B) * 8),
                   _().translateSelf(0, -6.5 * L[4].h),
-                  _().translateSelf(-75, (1 - L[5].h) * (1 - L[6].g) * 3, 55).rotateSelf(180 * (1 - L[5].h) + z, 0),
+                  _().translateSelf(-75, (1 - L[5].h) * (1 - L[6].g) * 3, 55).rotateSelf(180 * (1 - L[5].h) + o1, 0),
                   e = A1(L[7].h, L[6].h),
                   _().translateSelf(0, e * J(B) * 5 + 3.5 * (1 - E(L[6].g, L[7].g))),
                   _().translateSelf(0, e * J(B + 3) * 6, e * J(.6 * B + 1) * 6),
@@ -521,7 +520,7 @@ E1(() => {
               $.ubu(c("k"), e, a, t),
               L1(c("c"), !a1, 41),
               r(),
-              $.ubu(r("j"), $.drawingBufferWidth, $.drawingBufferHeight, o1),
+              $.ubu(r("j"), $.drawingBufferWidth, $.drawingBufferHeight, z),
               $.ubu(r("k"), e, a, t),
               $.uae(r("b"), !1, p(K(v).invertSelf())),
               $.d97(4, 3, 5123, 0),
@@ -725,7 +724,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                       ? void 0 === v && (g = 0, h = e, u = a, v = t, d = R, p = g1)
                       : void 0 === f && (m = 0, n = e, i = a, f = t);
                   }
-                  e = o1;
+                  e = z;
                 }
               },
               hC.ontouchmove = l => {
@@ -756,7 +755,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                     ? (f = void 0, S = b = 0, m || (t = 1), m = 0)
                     : t = 1;
                 }
-                a.target === hC && t && e && .02 < (a = o1 - e) && a < .7 && (C = 1);
+                a.target === hC && t && e && .02 < (a = z - e) && a < .7 && (C = 1);
               },
               l1 = () => {
                 f1 = S + (r[4] ? 1 : 0) - (r[5] ? 1 : 0), m1 = b + (r[2] ? 1 : 0) - (r[3] ? 1 : 0);
@@ -862,13 +861,13 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   b = D(b, q, .5, 1),
                   n = V(n, y * (27 < v && v < 32), 2),
                   a1
-                    ? (e = k + F1(18), h1 = w1(h1, H, e), u1 = w1(u1, h + 1.5, e), v1 = w1(v1, q, e), R = z1(R))
+                    ? (e = k + F1(18), h1 = w1(h1, H, e), u1 = w1(u1, h + 1.5, e), v1 = w1(v1, q, e), R = S1(R))
                     : (v1 = D(v1, b + -18 + 5 * n, 1, 2 + n),
                       u1 = D(u1, E(p + U((-60 - q) / 8, 0, 20) + 13 + 9 * n, 6), 4, 2),
                       h1 = D(h1, d, 1, 2 + n),
                       e = d1(-6, -P(b - v1)),
-                      R = S1(R, 90 - z1(G1(e, a = d - h1) / ee), I + F1(10)),
-                      g1 = S1(g1, 90 - G1(M1(e, a), u1 - p) / ee, I + F1(10))),
+                      R = z1(R, 90 - S1(G1(e, a = d - h1) / ee), I + F1(10)),
+                      g1 = z1(g1, 90 - G1(M1(e, a), u1 - p) / ee, I + F1(10))),
                   g1 = U(g1, -87, 87),
                   I = 0,
                   e = U(f1, -1),
@@ -878,7 +877,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   e = t * P(e) * J(l),
                   a = t * P(a) * Z(l),
                   t && (s = 90 - l / ee),
-                  c = S1(c, s, F1(8)),
+                  c = z1(c, s, F1(8)),
                   o = V(o, t, 10),
                   _().translateSelf(H, h, q).rotateSelf(0, c),
                   l = 0;

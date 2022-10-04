@@ -625,16 +625,16 @@ const newSoul = (transform, ...walkingPath) => {
         let isInside;
         let contextualVelocity = 1;
         let mindist = 1 / 0;
-        for (const c of circles) {
-          const distance = hypot(targetX - c.x, targetZ - c.z);
-          const circleSDF = distance - c.w;
+        for (const c of walkingPath) {
+          const distance = hypot(targetX - c[0], targetZ - c[1]);
+          const circleSDF = distance - c[2];
           isInside ||= circleSDF < 0,
             0 < circleSDF && mindist > circleSDF && (mindist = circleSDF, circle = c),
-            contextualVelocity = min(contextualVelocity, distance / c.w);
+            contextualVelocity = min(contextualVelocity, distance / c[2]);
         }
         isInside
-        || (ax = targetX - circle.x,
-          az = targetZ - circle.z,
+        || (ax = targetX - circle[0],
+          az = targetZ - circle[1],
           magnitude = hypot(ax, az),
           angle = Math.atan2(-az, ax),
           wasInside
@@ -643,9 +643,9 @@ const newSoul = (transform, ...walkingPath) => {
           dirX = -Math.cos(angle),
           dirZ = Math.sin(angle),
           0.1 < magnitude
-          && (magnitude = min(magnitude, circle.w) / (magnitude || 1),
-            targetX = ax * magnitude + circle.x,
-            targetZ = az * magnitude + circle.z)),
+          && (magnitude = min(magnitude, circle[2]) / (magnitude || 1),
+            targetX = ax * magnitude + circle[0],
+            targetZ = az * magnitude + circle[1])),
           wasInside = isInside,
           velocity = lerpDamp(velocity, 6 * (1 - contextualVelocity) + 3, contextualVelocity + 3),
           soulX = lerpDamp(soulX, targetX = lerpDamp(targetX, targetX + dirX, velocity), velocity),
@@ -687,13 +687,8 @@ const newSoul = (transform, ...walkingPath) => {
         );
     },
   };
-  const circles = walkingPath.map(([x, z, w]) => ({
-    x,
-    z,
-    w,
-  }));
-  let circle = circles[0];
-  let { x: targetX, z: targetZ } = circle;
+  let circle = walkingPath[0];
+  let [targetX, targetZ] = circle;
   let soulX = targetX;
   let soulZ = targetZ;
   const parentModelMatrix = currentEditModel.$matrix;

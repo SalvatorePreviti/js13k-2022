@@ -628,19 +628,19 @@ const newSoul = (transform, ...walkingPath) => {
         let isInside;
         let contextualVelocity = 1;
         let mindist = Infinity;
-        for (const c of circles) {
-          const distance = hypot(targetX - c.x, targetZ - c.z);
-          const circleSDF = distance - c.w;
+        for (const c of walkingPath) {
+          const distance = hypot(targetX - c[0], targetZ - c[1]);
+          const circleSDF = distance - c[2];
           isInside ||= circleSDF < 0;
           if (circleSDF > 0 && circleSDF < mindist) {
             mindist = circleSDF;
             circle = c;
           }
-          contextualVelocity = min(contextualVelocity, distance / c.w);
+          contextualVelocity = min(contextualVelocity, distance / c[2]);
         }
         if (!isInside) {
-          const ax = targetX - circle.x;
-          const az = targetZ - circle.z;
+          const ax = targetX - circle[0];
+          const az = targetZ - circle[1];
           let magnitude = hypot(ax, az);
           let angle = /* @__PURE__ */ Math.atan2(-az, ax);
           if (wasInside) {
@@ -651,9 +651,9 @@ const newSoul = (transform, ...walkingPath) => {
           dirX = -/* @__PURE__ */ Math.cos(angle);
           dirZ = /* @__PURE__ */ Math.sin(angle);
           if (magnitude > 0.1) {
-            magnitude = min(magnitude, circle.w) / (magnitude || 1);
-            targetX = ax * magnitude + circle.x;
-            targetZ = az * magnitude + circle.z;
+            magnitude = min(magnitude, circle[2]) / (magnitude || 1);
+            targetX = ax * magnitude + circle[0];
+            targetZ = az * magnitude + circle[1];
           }
         }
         wasInside = isInside;
@@ -671,13 +671,8 @@ const newSoul = (transform, ...walkingPath) => {
         matrixCopy(allModels[MODEL_ID_FIRST_BOAT].$matrix).translateSelf(index % 4 * 1.2 - 1.7 + /* @__PURE__ */ Math.sin(gameTime + index) / 7, -2, -5.5 + (index / 4 | 0) * 1.7 + abs(index % 4 - 2) + /* @__PURE__ */ Math.cos(gameTime / 1.5 + index) / 6);
     }
   };
-  const circles = walkingPath.map(([x, z, w]) => ({
-    x,
-    z,
-    w
-  }));
-  let circle = circles[0];
-  let { x: targetX, z: targetZ } = circle;
+  let circle = walkingPath[0];
+  let [targetX, targetZ] = circle;
   let soulX = targetX;
   let soulZ = targetZ;
   const parentModelMatrix = currentEditModel.$matrix;

@@ -84,7 +84,7 @@ export const newLever = ($transform: DOMMatrixReadOnly): void => {
   meshAdd(cylinder(), $transform.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
 };
 
-export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]) => {
+export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: Circle[]) => {
   let dirX = -1;
   let dirZ = 0;
   let randAngle = 0;
@@ -94,9 +94,8 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]
   let velocity = 3;
   let wasInside: boolean | undefined | 1 = 1;
 
-  const circles = (walkingPath as Circle[]).map(([x, z, w]) => ({ x, z, w }));
-  let circle = circles[0]!;
-  let { x: targetX, z: targetZ } = circle;
+  let circle = walkingPath[0]!;
+  let [targetX, targetZ] = circle;
   let soulX = targetX;
   let soulZ = targetZ;
 
@@ -110,20 +109,20 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]
         let contextualVelocity = 1;
         let mindist = Infinity;
 
-        for (const c of circles) {
-          const distance = hypot(targetX - c.x, targetZ - c.z);
-          const circleSDF = distance - c.w;
+        for (const c of walkingPath) {
+          const distance = hypot(targetX - c[0], targetZ - c[1]);
+          const circleSDF = distance - c[2];
           isInside ||= circleSDF < 0;
           if (circleSDF > 0 && circleSDF < mindist) {
             mindist = circleSDF;
             circle = c;
           }
-          contextualVelocity = min(contextualVelocity, distance / c.w);
+          contextualVelocity = min(contextualVelocity, distance / c[2]);
         }
 
         if (!isInside) {
-          const ax = targetX - circle.x;
-          const az = targetZ - circle.z;
+          const ax = targetX - circle[0];
+          const az = targetZ - circle[1];
           let magnitude = hypot(ax, az);
           let angle = Math.atan2(-az, ax);
           if (wasInside) {
@@ -135,9 +134,9 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]
           dirZ = Math.sin(angle);
           if (magnitude > 0.1) {
             // limit the vector length to the circle radius, as a security measure
-            magnitude = min(magnitude, circle.w) / (magnitude || 1);
-            targetX = ax * magnitude + circle.x;
-            targetZ = az * magnitude + circle.z;
+            magnitude = min(magnitude, circle[2]) / (magnitude || 1);
+            targetX = ax * magnitude + circle[0];
+            targetZ = az * magnitude + circle[1];
           }
         }
 
@@ -172,8 +171,8 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: number[][]
   souls.push(soul);
 
   if (DEBUG_FLAG0) {
-    for (const c of circles) {
-      meshAdd(cylinder(12), transform.translate(c.x, -1.7, c.z).scale(c.w, 0.01, c.w), material(0.3, 0.3, 0.38));
+    for (const c of walkingPath) {
+      meshAdd(cylinder(12), transform.translate(c[0], -1.7, c[1]).scale(c[2], 0.01, c[2]), material(0.3, 0.3, 0.38));
     }
   }
 };
