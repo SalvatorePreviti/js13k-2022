@@ -383,15 +383,22 @@ const expressionTypeOrdering: Expression["type"][] = [
   "MemberExpression",
   "Identifier",
   "ClassExpression",
-  "CallExpression",
   "FunctionExpression",
   "ArrowFunctionExpression",
   "NewExpression",
+  "CallExpression",
 ];
 
 function exprTypeOrdering(expression: Expression): number {
-  const idx = expressionTypeOrdering.indexOf(expression.type);
+  let idx = expressionTypeOrdering.indexOf(expression.type);
   if (idx >= 0) {
+    if (
+      expression.type === "CallExpression" &&
+      expression.callee.type === "Identifier" &&
+      expression.callee.value === "NO_INLINE"
+    ) {
+      idx = expressionTypeOrdering.indexOf("ArrowFunctionExpression");
+    }
     return idx + 1;
   }
   return 0;
