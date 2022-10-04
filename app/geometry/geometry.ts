@@ -4,7 +4,7 @@ import { integers_map } from "../math/integers-map";
 import { polygon_color, polygon_transform, type Polygon } from "./polygon";
 import type { Vec3 } from "../math/vectors";
 
-export const GQuad = /* @__PURE__ */ [
+export const GQuad = [
   { x: -1, z: 1 },
   { x: 1, z: 1 },
   { x: 1, z: -1 },
@@ -15,7 +15,7 @@ export const GQuad = /* @__PURE__ */ [
  * Creates a regular polygon
  * The polygon will face up (normal 0, -1, 0).
  */
-export const polygon_regular = /* @__PURE__ */ (segments: number, elongate: number = 0): Polygon =>
+export const polygon_regular = (segments: number, elongate: number = 0): Polygon =>
   integers_map(segments, (i) => {
     const z = Math.cos(Math.PI * 2 * (i / segments));
     return {
@@ -30,7 +30,7 @@ export const polygon_regular = /* @__PURE__ */ (segments: number, elongate: numb
  * Top and bottom polygons must have the same length.
  * Top polygon is supposed to be flipped.
  */
-export const cylinder_sides = /* @__PURE__ */ (btm: Polygon, top: Polygon, smooth?: 0 | 1 | undefined): Polygon[] =>
+export const cylinder_sides = (btm: Polygon, top: Polygon, smooth?: 0 | 1 | undefined): Polygon[] =>
   btm.map((btmi, i, { length }) =>
     polygon_color(
       [btmi, top[length - i - 1]!, top[length - ((i + 1) % length) - 1]!, btm[(i + 1) % length]!],
@@ -40,19 +40,14 @@ export const cylinder_sides = /* @__PURE__ */ (btm: Polygon, top: Polygon, smoot
   );
 
 /** Simplest composition of polygon functions. */
-export const cylinder = /* @__PURE__ */ (
-  segments?: number,
-  smooth?: 0 | 1,
-  topSize: number = 0,
-  elongate?: number,
-): Polygon[] => {
+export const cylinder = (segments?: number, smooth?: 0 | 1, topSize: number = 0, elongate?: number): Polygon[] => {
   const points = segments ? polygon_regular(segments, elongate) : GQuad;
   const top = polygon_transform(points, translation(0, 1).scale3d(topSize > 0 ? topSize : 1));
   const bottom = polygon_transform(points, translation(0, -1).scale3d(topSize < 0 ? -topSize : 1)).reverse();
   return [...cylinder_sides(bottom as Polygon, top, smooth), top, bottom];
 };
 
-export const sphere = /* @__PURE__ */ (
+export const sphere = (
   slices: number,
   stacks = slices,
   vertexFunc: (slice: number, stack: number, polygon: Polygon) => Vec3 = (x: number, y: number) => {
