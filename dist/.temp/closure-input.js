@@ -335,6 +335,9 @@ const sphere = (slices, stacks = slices, vertexFunc = (x, y) => (y *= Math.PI / 
 };
 const damp = (speed) => 1 - Math.exp(-speed * gameTimeDelta);
 const lerpDamp = NO_INLINE((from, to, speed) => lerp(from, to, damp(speed)));
+const showMessage = (message, duration) => {
+  1 / 0 > _messageEndTime && (_messageEndTime = gameTime + duration, h4.innerHTML = message);
+};
 const updateCollectedSoulsCounter = () => {
   h3.innerHTML = "Souls: " + [
     0,
@@ -361,9 +364,6 @@ const saveGame = () => {
     gameTime,
     secondBoatLerp,
   ]);
-};
-const showMessage = (message, duration) => {
-  1 / 0 > _messageEndTime && (_messageEndTime = gameTime + duration, h4.innerHTML = message);
 };
 const material = NO_INLINE((r, g, b, a = 0) => 255 * a << 24 | 255 * b << 16 | 255 * g << 8 | 255 * r);
 const mat_perspective = (near, far, mx, my) =>
@@ -1260,15 +1260,15 @@ loadStep(() => {
         ) {
           updateInput(),
             _messageEndTime && gameTime > _messageEndTime && (_messageEndTime = 0, h4.innerHTML = ""),
-            secondBoatLerp = lerpDamp(
-              secondBoatLerp,
-              levers[9].$lerpValue2,
-              0.2 + 0.3 * abs(2 * levers[9].$lerpValue2 - 1),
-            ),
             firstBoatLerp = lerpDamp(
               firstBoatLerp,
               game_completed ? lerpDamp(firstBoatLerp, -9, 1.5) : clamp(gameTime / 3),
               1,
+            ),
+            secondBoatLerp = lerpDamp(
+              secondBoatLerp,
+              levers[9].$lerpValue2,
+              0.2 + 0.3 * abs(2 * levers[9].$lerpValue2 - 1),
             );
           {
             let counter = 1;

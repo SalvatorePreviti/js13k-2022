@@ -229,13 +229,19 @@ const camera_rotation = {
   x: 0,
   y: 180,
 };
+const showMessage = (message, duration) => {
+  if (_messageEndTime < Infinity) {
+    _messageEndTime = gameTime + duration;
+    h4.innerHTML = message;
+  }
+};
 const worldStateUpdate = () => {
   if (_messageEndTime && gameTime > _messageEndTime) {
     _messageEndTime = 0;
     h4.innerHTML = "";
   }
-  secondBoatLerp = lerpDamp(secondBoatLerp, levers[9].$lerpValue2, 0.2 + 0.3 * abs(levers[9].$lerpValue2 * 2 - 1));
   firstBoatLerp = lerpDamp(firstBoatLerp, game_completed ? lerpDamp(firstBoatLerp, -9, 1.5) : clamp(gameTime / 3), 1);
+  secondBoatLerp = lerpDamp(secondBoatLerp, levers[9].$lerpValue2, 0.2 + 0.3 * abs(levers[9].$lerpValue2 * 2 - 1));
 };
 const updateCollectedSoulsCounter = () => {
   h3.innerHTML = "Souls: " + [
@@ -284,12 +290,6 @@ const saveGame = () => {
 const resetGame = () => {
   localStorage[LOCAL_STORAGE_SAVED_GAME_KEY] = "";
   location.reload();
-};
-const showMessage = (message, duration) => {
-  if (_messageEndTime < Infinity) {
-    _messageEndTime = gameTime + duration;
-    h4.innerHTML = message;
-  }
 };
 const onPlayerPullLever = (leverIndex) => {
   if (leverIndex) {

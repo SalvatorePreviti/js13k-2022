@@ -407,8 +407,8 @@ ac(() => {
         if (wa += k, c += d = ba ? 0 : Za(0.066, k), aa = r, 0 < d) {
           ma();
           Ja && c > Ja && (Ja = 0, h4.innerHTML = "");
-          ea = N(ea, e[9].h, 0.2 + 0.3 * h(2 * e[9].h - 1),);
           da = N(da, ya ? N(da, -9, 1.5) : m(c / 3), 1,);
+          ea = N(ea, e[9].h, 0.2 + 0.3 * h(2 * e[9].h - 1),);
           let C = 1;
           r = () => nb(w, Na[++C].m);
           ra = eb(e[12].g, e[13].g);
