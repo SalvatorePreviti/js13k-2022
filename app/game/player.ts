@@ -130,15 +130,13 @@ export const player_init = () => {
           if (v > movY) {
             movY = v;
           }
-          if (v + m) {
-            if (lineToProcess < 0 || lineToProcess === y) {
-              lineToProcess = y;
-              if (m === currentModelId) {
-                ++modelACount;
-              } else if (!modelB || modelB === m) {
-                modelB = m;
-                ++modelBCount;
-              }
+          if (v + m && (lineToProcess < 0 || lineToProcess === y)) {
+            lineToProcess = y;
+            if (m === currentModelId) {
+              ++modelACount;
+            } else if (!modelB || modelB === m) {
+              modelB = m;
+              ++modelBCount;
             }
           }
         }
@@ -151,43 +149,56 @@ export const player_init = () => {
 
     let movX = 0;
     let movZ = 0;
-    for (let y = 36; y < COLLISION_TEXTURE_SIZE; y += 1) {
-      const yindex = y * (COLLISION_TEXTURE_SIZE * 4);
-
+    for (let y = 36; y < COLLISION_TEXTURE_SIZE; ++y) {
       let left = 0;
       let right = 0;
       let front = 0;
       let back = 0;
-      for (let tx = 0; tx < COLLISION_TEXTURE_SIZE; tx += 1) {
+      const yindex = y * (COLLISION_TEXTURE_SIZE * 4);
+      for (let tx = 0; tx < COLLISION_TEXTURE_SIZE; ++tx) {
         const index = yindex + tx * 4;
 
-        for (let k = 0; k < 2; ++k) {
-          const vx = collision_buffer[index + k]!;
-          const vz = collision_buffer[index + k + 2]!;
+        let v = collision_buffer[index]!;
 
-          if (k ? tx > COLLISION_TEXTURE_SIZE / 2 : tx < COLLISION_TEXTURE_SIZE / 2) {
-            left = max(left, vx);
-          } else {
-            right = max(right, vx);
+        if (tx < COLLISION_TEXTURE_SIZE / 2) {
+          if (v > left) {
+            left = v;
           }
+        } else if (v > right) {
+          right = v;
+        }
 
-          if (k) {
-            back = max(back, vz);
-          } else {
-            front = max(front, vz);
+        v = collision_buffer[index + 2]!;
+        if (v > front) {
+          front = v;
+        }
+
+        v = collision_buffer[index + 1]!;
+
+        if (tx > COLLISION_TEXTURE_SIZE / 2) {
+          if (v > left) {
+            left = v;
           }
+        } else if (v > right) {
+          right = v;
+        }
+
+        v = collision_buffer[index + 3]!;
+        if (v > back) {
+          back = v;
         }
       }
 
-      if (abs(right - left) > abs(movX)) {
-        movX = right - left;
+      right -= left;
+      if (right * right > movX * movX) {
+        movX = right;
       }
-      if (abs(back - front) > abs(movZ)) {
-        movZ = back - front;
+
+      back -= front;
+      if (back * back > movZ * movZ) {
+        movZ = back;
       }
     }
-
-    // movX = movZ = 0; // TODO DeBUG
 
     player_speed_collision_limiter = clamp(1 - max(abs(movX), abs(movZ)) * 0.02);
 

@@ -44,6 +44,9 @@ export const matrixToArray = (
 };
 
 export const matrixCopy = (source: DOMMatrixReadOnly = identity, target: DOMMatrix = tempMatrix) => {
+  // if (source.isIdentity) {
+  //   return target.setMatrixValue("none");
+  // }
   target.m11 = source.m11;
   target.m12 = source.m12;
   target.m13 = source.m13;

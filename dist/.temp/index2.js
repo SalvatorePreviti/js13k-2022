@@ -926,32 +926,31 @@ const player_init = () => {
       }
     }
     currentModelId = lineToProcess < 0 ? 0 : modelBCount > 2 * modelACount ? modelB : currentModelId;
-    for (let y1 = 36; y1 < 128; y1 += 1) {
+    for (let y1 = 36; y1 < 128; ++y1) {
       let left = 0;
       let right = 0;
       let front = 0;
       let back = 0;
       const yindex1 = 512 * y1;
-      for (let tx = 0; tx < 128; tx += 1) {
+      for (let tx = 0; tx < 128; ++tx) {
         const index = yindex1 + 4 * tx;
-        for (let k1 = 0; k1 < 2; ++k1) {
-          const vx = collision_buffer[index + k1];
-          const vz = collision_buffer[index + k1 + 2];
-          (k1 ? 64 < tx : tx < 64) ? left = max(left, vx) : right = max(right, vx),
-            k1 ? back = max(back, vz) : front = max(front, vz);
-        }
+        let v1 = collision_buffer[index];
+        tx < 64 ? v1 > left && (left = v1) : v1 > right && (right = v1),
+          (v1 = collision_buffer[2 + index]) > front && (front = v1),
+          v1 = collision_buffer[1 + index],
+          64 < tx ? v1 > left && (left = v1) : v1 > right && (right = v1),
+          (v1 = collision_buffer[3 + index]) > back && (back = v1);
       }
-      abs(right - left) > abs(movX) && (movX = right - left), abs(back - front) > abs(movZ) && (movZ = back - front);
+      (right -= left) * right > movX * movX && (movX = right), (back -= front) * back > movZ * movZ && (movZ = back);
     }
     player_speed_collision_limiter = clamp(1 - 0.02 * max(abs(movX), abs(movZ))),
-      movePlayer(movX / 255, movY / 255, movZ / 255),
-      currentModelId = 1,
-      player_position_global_y = 1;
+      movePlayer(movX / 255, movY / 255, movZ / 255);
   };
   const interpolate_with_hysteresis = (previous, desired, hysteresis, speed) =>
     lerp(previous, desired, boot || (clamp(abs(desired - previous) ** 0.5 - hysteresis) + 1 / 7) * damp(1.5 * speed));
   player_update = () => {
     updatePlayerPositionFinal(currentModelId),
+      gl["r9r"](0, 0, 128, 128, 6408, 5121, collision_buffer),
       NO_INLINE(doCollisions)(),
       !player_respawned && currentModelId === oldModelId
       || (oldModelId = currentModelId,

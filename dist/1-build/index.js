@@ -1296,6 +1296,13 @@ const code = "#version 300 es\nprecision highp float;uniform vec3 j,k;uniform ma
 const uniformName_iResolution = "j";
 const worldMatricesBuffer = new Float32Array(624);
 const objectsMatricesBuffer = new Float32Array(624);
+const gl = hC.getContext("webgl2", {
+  powerPreference: "high-performance"
+});
+for (const s in gl)
+  gl[s[0] + [
+    ...s
+  ].reduce((p, c, i) => (p * i + c.charCodeAt(0)) % 434, 0).toString(36)] = gl[s];
 let modelsUpdateCounter;
 const modelsResetUpdateCounter = () => modelsUpdateCounter = 1;
 const modelsNextUpdate = () => matrixCopy(identity, allModels[++modelsUpdateCounter].$matrix);
@@ -1369,54 +1376,59 @@ const player_init = () => {
           const m = collision_buffer[yindex + x + k + 2];
           if (v > movY)
             movY = v;
-          if (v + m) {
-            if (lineToProcess < 0 || lineToProcess === y) {
-              lineToProcess = y;
-              if (m === currentModelId)
-                ++modelACount;
-              else if (!modelB || modelB === m) {
-                modelB = m;
-                ++modelBCount;
-              }
+          if (v + m && (lineToProcess < 0 || lineToProcess === y)) {
+            lineToProcess = y;
+            if (m === currentModelId)
+              ++modelACount;
+            else if (!modelB || modelB === m) {
+              modelB = m;
+              ++modelBCount;
             }
           }
         }
     }
     currentModelId = lineToProcess >= 0 ? modelBCount > modelACount * 2 ? modelB : currentModelId : 0;
-    for (let y1 = 36; y1 < constDef_COLLISION_TEXTURE_SIZE; y1 += 1) {
+    for (let y1 = 36; y1 < constDef_COLLISION_TEXTURE_SIZE; ++y1) {
       let left = 0;
       let right = 0;
       let front = 0;
       let back = 0;
       const yindex1 = y1 * (constDef_COLLISION_TEXTURE_SIZE * 4);
-      for (let tx = 0; tx < constDef_COLLISION_TEXTURE_SIZE; tx += 1) {
+      for (let tx = 0; tx < constDef_COLLISION_TEXTURE_SIZE; ++tx) {
         const index = yindex1 + tx * 4;
-        for (let k1 = 0; k1 < 2; ++k1) {
-          const vx = collision_buffer[index + k1];
-          const vz = collision_buffer[index + k1 + 2];
-          if (k1 ? tx > constDef_COLLISION_TEXTURE_SIZE / 2 : tx < constDef_COLLISION_TEXTURE_SIZE / 2)
-            left = max(left, vx);
-          else
-            right = max(right, vx);
-          if (k1)
-            back = max(back, vz);
-          else
-            front = max(front, vz);
-        }
+        let v1 = collision_buffer[index];
+        if (tx < constDef_COLLISION_TEXTURE_SIZE / 2) {
+          if (v1 > left)
+            left = v1;
+        } else if (v1 > right)
+          right = v1;
+        v1 = collision_buffer[index + 2];
+        if (v1 > front)
+          front = v1;
+        v1 = collision_buffer[index + 1];
+        if (tx > constDef_COLLISION_TEXTURE_SIZE / 2) {
+          if (v1 > left)
+            left = v1;
+        } else if (v1 > right)
+          right = v1;
+        v1 = collision_buffer[index + 3];
+        if (v1 > back)
+          back = v1;
       }
-      if (abs(right - left) > abs(movX))
-        movX = right - left;
-      if (abs(back - front) > abs(movZ))
-        movZ = back - front;
+      right -= left;
+      if (right * right > movX * movX)
+        movX = right;
+      back -= front;
+      if (back * back > movZ * movZ)
+        movZ = back;
     }
     player_speed_collision_limiter = clamp(1 - max(abs(movX), abs(movZ)) * 0.02);
     movePlayer(movX / 255, movY / 255, movZ / 255);
-    currentModelId = 1;
-    player_position_global_y = 1;
   };
   const interpolate_with_hysteresis = (previous, desired, hysteresis, speed) => lerp(previous, desired, boot || (clamp(abs(desired - previous) ** 0.5 - hysteresis) + 1 / 7) * damp(speed * 1.5));
   player_update = () => {
     updatePlayerPositionFinal(currentModelId);
+    gl["r9r"](0, 0, constDef_COLLISION_TEXTURE_SIZE, constDef_COLLISION_TEXTURE_SIZE, 6408, 5121, collision_buffer);
     (/* @__PURE__ */ NO_INLINE(doCollisions))();
     if (player_respawned || currentModelId !== oldModelId) {
       oldModelId = currentModelId;
@@ -1541,13 +1553,6 @@ const eppur_si_muove = () => {
   for (let i4 = 0; i4 <= modelsUpdateCounter; ++i4)
     matrixToArray(allModels[i4].$matrix, worldMatricesBuffer, i4 - 1);
 };
-const gl = hC.getContext("webgl2", {
-  powerPreference: "high-performance"
-});
-for (const s in gl)
-  gl[s[0] + [
-    ...s
-  ].reduce((p, c, i) => (p * i + c.charCodeAt(0)) % 434, 0).toString(36)] = gl[s];
 const renderModels = (worldMatrixLoc, renderPlayer, soulModelId) => {
   if (mainMenuVisible) {
     if (hC.width > 1100) {
