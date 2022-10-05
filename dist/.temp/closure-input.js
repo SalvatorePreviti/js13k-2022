@@ -438,6 +438,8 @@ const initPage = () => {
       updateMusicOnState();
     }
   };
+  const getGamepadButtonState = (gamepad, index) =>
+    gamepad.buttons[index]?.pressed || 0 < gamepad.buttons[index]?.value ? 1 : 0;
   oncontextmenu = () => !1,
     b1.onclick = () => mainMenu(!1),
     b2.onclick = () => mainMenu(!1, 1),
@@ -535,19 +537,19 @@ const initPage = () => {
       input_forward = touch_movementY + (keyboard_downKeys[4] ? 1 : 0) - (keyboard_downKeys[5] ? 1 : 0),
         input_strafe = touch_movementX + (keyboard_downKeys[2] ? 1 : 0) - (keyboard_downKeys[3] ? 1 : 0);
       let gamepad = navigator.getGamepads()[0];
-      if (gamepad) {
-        const getGamepadButtonState = (index) => buttons[index]?.pressed || 0 < buttons[index]?.value ? 1 : 0;
-        const { buttons, axes } = gamepad;
-        player_first_person
-        && (camera_rotation.x += gameTimeDelta * threshold(axes[3], 0.3) * 80,
-          camera_rotation.y += gameTimeDelta * threshold(axes[2], 0.3) * 80),
-          input_forward += getGamepadButtonState(12) - getGamepadButtonState(13) - threshold(axes[1], 0.2),
-          input_strafe += getGamepadButtonState(14) - getGamepadButtonState(15) - threshold(axes[0], 0.2),
-          getGamepadButtonState(9) && mainMenu(!0),
-          (gamepad = getGamepadButtonState(3) || getGamepadButtonState(2) || getGamepadButtonState(1)
-            || getGamepadButtonState(0)) && !gamepadInteractPressed && (interact_pressed = 1),
-          gamepadInteractPressed = gamepad;
-      }
+      gamepad
+        && (player_first_person
+          && (camera_rotation.x += gameTimeDelta * threshold(gamepad.axes[3], 0.3) * 80,
+            camera_rotation.y += gameTimeDelta * threshold(gamepad.axes[2], 0.3) * 80),
+          input_forward += getGamepadButtonState(gamepad, 12) - getGamepadButtonState(gamepad, 13)
+            - threshold(gamepad.axes[1], 0.2),
+          input_strafe += getGamepadButtonState(gamepad, 14) - getGamepadButtonState(gamepad, 15)
+            - threshold(gamepad.axes[0], 0.2),
+          getGamepadButtonState(gamepad, 9) && mainMenu(!0),
+          (gamepad = getGamepadButtonState(gamepad, 3) || getGamepadButtonState(gamepad, 2)
+            || getGamepadButtonState(gamepad, 1) || getGamepadButtonState(gamepad, 0))
+          && !gamepadInteractPressed && (interact_pressed = 1),
+          gamepadInteractPressed = gamepad);
     },
     document.onvisibilitychange = onblur = onresize = handleResize,
     mainMenu(!0);
@@ -1376,8 +1378,7 @@ loadStep(() => {
               matrixToArray(allModels[i4].$matrix, worldMatricesBuffer, i4 - 1);
             }
           }
-          interact_pressed = 0,
-            collisionShader(),
+          collisionShader(),
             gl["b6o"](36160, collision_frameBuffer),
             gl["v5y"](0, 0, 128, 128),
             gl["c4s"](16640),
@@ -1408,7 +1409,7 @@ loadStep(() => {
               ),
             ),
             renderModels(collisionShader("c"), 0, 40),
-            gl["f1s"]();
+            interact_pressed = 0;
         }
         let cameraX = camera_position_x;
         let cameraY = camera_position_y;

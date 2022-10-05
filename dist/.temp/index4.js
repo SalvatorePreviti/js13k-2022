@@ -480,8 +480,7 @@ E1(() => {
               }
               for (e = 0; e < 16; ++e) L[e].F(), p(S, V1, e + 13), V1[223 + 16 * e] = 1 - L[e].g;
               for (x(), e = 0; r1 >= e; ++e) p(N[e].m, K1, e - 1);
-              C = 0,
-                s(),
+              s(),
                 $.b6o(36160, i),
                 $.v5y(0, 0, 128, 128),
                 $.c4s(16640),
@@ -492,7 +491,7 @@ E1(() => {
                 $.cbf(!1, !0, !1, !0),
                 $.uae(s("b"), !1, p(K().translateSelf(-H, -X, -q - .3))),
                 L1(s("c"), 0, 40),
-                $.f1s();
+                C = 0;
             }
             e = h1, a = u1;
             let t = g1;
@@ -648,20 +647,20 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               p,
               b,
               S,
-              l,
-              a = !0,
-              r = [],
-              t = () => {
-                b4.innerHTML = "Music: " + a, k || !a ? ae.disconnect() : ae.connect(W1.destination);
+              a,
+              t = !0,
+              l = [],
+              r = () => {
+                b4.innerHTML = "Music: " + t, k || !t ? ae.disconnect() : ae.connect(W1.destination);
               },
               s = () => {
                 let e = (hC.height = innerHeight) / (hC.width = innerWidth) * 1.732051;
                 t1 = [D1(.3, 55, e, 1.732051), D1(55, 181, e, 1.732051)],
                   D = D1(.3, 181, e, 1.732051),
                   f = g = void 0,
-                  r.length =
+                  l.length =
                     C =
-                    l =
+                    a =
                     b =
                     S =
                     f1 =
@@ -676,15 +675,16 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                       ? (document.exitFullscreen().catch(() => 0), document.exitPointerLock())
                       : (document.body.requestFullscreen().catch(() => 0), ae.start());
                   } catch {}
-                  t();
+                  r();
                 }
-              };
+              },
+              o = (e, a) => e.buttons[a]?.pressed || 0 < e.buttons[a]?.value ? 1 : 0;
             oncontextmenu = () => !1,
               b1.onclick = () => c(!1),
               b2.onclick = () => c(!1, 1),
               b5.onclick = () => c(!0),
               b4.onclick = () => {
-                a = !a, t();
+                t = !t, r();
               },
               b3.onclick = () => {
                 confirm("Restart game?") && (localStorage.DanteSP22 = "", location.reload());
@@ -713,7 +713,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                     KeyS: 5,
                     ArrowDown: 5,
                   }[e.code],
-                    (r[a] = !!e.type[5] && !0) && (0 === a && (C = 1), 1 === a && c(!0)));
+                    (l[a] = !!e.type[5] && !0) && (0 === a && (C = 1), 1 === a && c(!0)));
               },
               onmousemove = ({ movementX: e, movementY: a }) => {
                 a1 && (e || a) && (R += .1 * e, v1 += .1 * a);
@@ -759,18 +759,15 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 a.target === hC && t && e && .02 < (a = z - e) && a < .7 && (C = 1);
               },
               l1 = () => {
-                f1 = S + (r[4] ? 1 : 0) - (r[5] ? 1 : 0), m1 = b + (r[2] ? 1 : 0) - (r[3] ? 1 : 0);
-                let t = navigator.getGamepads()[0];
-                if (t) {
-                  let e = e => a[e]?.pressed || 0 < a[e]?.value ? 1 : 0, a = t.buttons;
-                  t = t.axes,
-                    a1 && (v1 += Q * S1(t[3], .3) * 80, R += Q * S1(t[2], .3) * 80),
-                    f1 += e(12) - e(13) - S1(t[1], .2),
-                    m1 += e(14) - e(15) - S1(t[0], .2),
-                    e(9) && c(!0),
-                    (t = e(3) || e(2) || e(1) || e(0)) && !l && (C = 1),
-                    l = t;
-                }
+                f1 = S + (l[4] ? 1 : 0) - (l[5] ? 1 : 0), m1 = b + (l[2] ? 1 : 0) - (l[3] ? 1 : 0);
+                let e = navigator.getGamepads()[0];
+                e
+                  && (a1 && (v1 += Q * S1(e.axes[3], .3) * 80, R += Q * S1(e.axes[2], .3) * 80),
+                    f1 += o(e, 12) - o(e, 13) - S1(e.axes[1], .2),
+                    m1 += o(e, 14) - o(e, 15) - S1(e.axes[0], .2),
+                    o(e, 9) && c(!0),
+                    (e = o(e, 3) || o(e, 2) || o(e, 1) || o(e, 0)) && !a && (C = 1),
+                    a = e);
               },
               document.onvisibilitychange = onblur = onresize = s,
               c(!0);

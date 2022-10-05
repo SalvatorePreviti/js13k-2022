@@ -412,6 +412,7 @@ const initPage = () => {
       updateMusicOnState();
     }
   };
+  const getGamepadButtonState = (gamepad, index) => gamepad.buttons[index]?.pressed || gamepad.buttons[index]?.value > 0 ? 1 : 0;
   oncontextmenu = () => false;
   b1.onclick = () => mainMenu(false);
   b2.onclick = () => mainMenu(false, 1);
@@ -544,17 +545,15 @@ const initPage = () => {
     input_strafe = touch_movementX + (keyboard_downKeys[KEY_LEFT] ? 1 : 0) - (keyboard_downKeys[KEY_RIGHT] ? 1 : 0);
     const gamepad = navigator.getGamepads()[0];
     if (gamepad) {
-      const getGamepadButtonState = (index) => buttons[index]?.pressed || buttons[index]?.value > 0 ? 1 : 0;
-      const { buttons, axes } = gamepad;
       if (player_first_person) {
-        camera_rotation.x += gameTimeDelta * threshold(axes[3], 0.3) * 80;
-        camera_rotation.y += gameTimeDelta * threshold(axes[2], 0.3) * 80;
+        camera_rotation.x += gameTimeDelta * threshold(gamepad.axes[3], 0.3) * 80;
+        camera_rotation.y += gameTimeDelta * threshold(gamepad.axes[2], 0.3) * 80;
       }
-      input_forward += getGamepadButtonState(GAMEPAD_BUTTON_UP) - getGamepadButtonState(GAMEPAD_BUTTON_DOWN) - threshold(axes[1], 0.2);
-      input_strafe += getGamepadButtonState(GAMEPAD_BUTTON_LEFT) - getGamepadButtonState(GAMEPAD_BUTTON_RIGHT) - threshold(axes[0], 0.2);
-      if (getGamepadButtonState(GAMEPAD_BUTTON_START))
+      input_forward += getGamepadButtonState(gamepad, GAMEPAD_BUTTON_UP) - getGamepadButtonState(gamepad, GAMEPAD_BUTTON_DOWN) - threshold(gamepad.axes[1], 0.2);
+      input_strafe += getGamepadButtonState(gamepad, GAMEPAD_BUTTON_LEFT) - getGamepadButtonState(gamepad, GAMEPAD_BUTTON_RIGHT) - threshold(gamepad.axes[0], 0.2);
+      if (getGamepadButtonState(gamepad, GAMEPAD_BUTTON_START))
         mainMenu(true);
-      const interactButtonPressed = getGamepadButtonState(GAMEPAD_BUTTON_X) || getGamepadButtonState(GAMEPAD_BUTTON_Y) || getGamepadButtonState(GAMEPAD_BUTTON_A) || getGamepadButtonState(GAMEPAD_BUTTON_B);
+      const interactButtonPressed = getGamepadButtonState(gamepad, GAMEPAD_BUTTON_X) || getGamepadButtonState(gamepad, GAMEPAD_BUTTON_Y) || getGamepadButtonState(gamepad, GAMEPAD_BUTTON_A) || getGamepadButtonState(gamepad, GAMEPAD_BUTTON_B);
       if (interactButtonPressed && !gamepadInteractPressed)
         interact_pressed = 1;
       gamepadInteractPressed = interactButtonPressed;
@@ -1599,7 +1598,6 @@ const startMainLoop = (groundTextureImage) => {
       updateInput();
       worldStateUpdate();
       eppur_si_muove();
-      resetInteractPressed();
       collisionShader();
       gl["b6o"](36160, collision_frameBuffer);
       gl["v5y"](0, 0, constDef_COLLISION_TEXTURE_SIZE, constDef_COLLISION_TEXTURE_SIZE);
@@ -1611,7 +1609,7 @@ const startMainLoop = (groundTextureImage) => {
       gl["cbf"](false, true, false, true);
       gl["uae"](collisionShader(uniformName_viewMatrix), false, matrixToArray(matrixCopy().translateSelf(-player_position_final.x, -player_position_final.y, -player_position_final.z - 0.3)));
       renderModels(collisionShader(uniformName_worldMatrices), 0, MODEL_ID_SOUL_COLLISION);
-      gl["f1s"]();
+      resetInteractPressed();
     }
     let cameraX = camera_position_x;
     let cameraY = camera_position_y;

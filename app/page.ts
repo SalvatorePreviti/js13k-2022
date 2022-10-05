@@ -228,7 +228,7 @@ export const initPage = () => {
 
   const TOUCH_SIZE = 20;
   const TOUCH_MOVE_THRESHOLD = 0.5;
-  const TOUCH_MOVE_SNAP = 0.2;
+  const TOUCH_MOVE_SNAP = 0.3;
 
   hC.ontouchmove = (e) => {
     if (!mainMenuVisible) {
@@ -298,38 +298,39 @@ export const initPage = () => {
     }
   };
 
+  const getGamepadButtonState = (gamepad: Gamepad, index: number) =>
+    gamepad.buttons[index]?.pressed || (gamepad.buttons[index]?.value as any) > 0 ? 1 : 0;
+
   updateInput = () => {
     input_forward = touch_movementY + (keyboard_downKeys[KEY_FRONT] ? 1 : 0) - (keyboard_downKeys[KEY_BACK] ? 1 : 0);
     input_strafe = touch_movementX + (keyboard_downKeys[KEY_LEFT] ? 1 : 0) - (keyboard_downKeys[KEY_RIGHT] ? 1 : 0);
 
     const gamepad = navigator.getGamepads()[0];
     if (gamepad) {
-      const { buttons, axes } = gamepad;
-      const getGamepadButtonState = (index: number) =>
-        buttons[index]?.pressed || (buttons[index]?.value as any) > 0 ? 1 : 0;
-
       if (player_first_person) {
-        camera_rotation.x += gameTimeDelta * threshold(axes[3], 0.3) * 80;
-        camera_rotation.y += gameTimeDelta * threshold(axes[2], 0.3) * 80;
+        camera_rotation.x += gameTimeDelta * threshold(gamepad.axes[3], 0.3) * 80;
+        camera_rotation.y += gameTimeDelta * threshold(gamepad.axes[2], 0.3) * 80;
       }
 
       input_forward +=
-        getGamepadButtonState(GAMEPAD_BUTTON_UP) - getGamepadButtonState(GAMEPAD_BUTTON_DOWN) - threshold(axes[1], 0.2);
+        getGamepadButtonState(gamepad, GAMEPAD_BUTTON_UP) -
+        getGamepadButtonState(gamepad, GAMEPAD_BUTTON_DOWN) -
+        threshold(gamepad.axes[1], 0.2);
 
       input_strafe +=
-        getGamepadButtonState(GAMEPAD_BUTTON_LEFT) -
-        getGamepadButtonState(GAMEPAD_BUTTON_RIGHT) -
-        threshold(axes[0], 0.2);
+        getGamepadButtonState(gamepad, GAMEPAD_BUTTON_LEFT) -
+        getGamepadButtonState(gamepad, GAMEPAD_BUTTON_RIGHT) -
+        threshold(gamepad.axes[0], 0.2);
 
-      if (getGamepadButtonState(GAMEPAD_BUTTON_START)) {
+      if (getGamepadButtonState(gamepad, GAMEPAD_BUTTON_START)) {
         mainMenu(true);
       }
 
       const interactButtonPressed =
-        getGamepadButtonState(GAMEPAD_BUTTON_X) ||
-        getGamepadButtonState(GAMEPAD_BUTTON_Y) ||
-        getGamepadButtonState(GAMEPAD_BUTTON_A) ||
-        getGamepadButtonState(GAMEPAD_BUTTON_B);
+        getGamepadButtonState(gamepad, GAMEPAD_BUTTON_X) ||
+        getGamepadButtonState(gamepad, GAMEPAD_BUTTON_Y) ||
+        getGamepadButtonState(gamepad, GAMEPAD_BUTTON_A) ||
+        getGamepadButtonState(gamepad, GAMEPAD_BUTTON_B);
 
       if (interactButtonPressed && !gamepadInteractPressed) {
         interact_pressed = 1;

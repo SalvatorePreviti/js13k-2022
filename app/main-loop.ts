@@ -160,9 +160,6 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
       eppur_si_muove();
 
-      // Reset interact button
-      resetInteractPressed();
-
       // *** COLLISION RENDERER ***
 
       collisionShader();
@@ -204,8 +201,8 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       );
       renderModels(collisionShader(uniformName_worldMatrices), 0, MODEL_ID_SOUL_COLLISION);
 
-      // Flushing collision render
-      gl.flush();
+      // Reset interact button
+      resetInteractPressed();
     }
 
     // view camera
