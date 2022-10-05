@@ -628,7 +628,8 @@ const newSoul = (transform, ...walkingPath) => {
         let isInside;
         let contextualVelocity = 1;
         let mindist = Infinity;
-        for (const c of walkingPath) {
+        for (let i = 0; i < len; i++) {
+          const c = walkingPath[i];
           const distance = hypot(targetX - c[0], targetZ - c[1]);
           const circleSDF = distance - c[2];
           isInside ||= circleSDF < 0;
@@ -671,6 +672,7 @@ const newSoul = (transform, ...walkingPath) => {
         matrixCopy(allModels[MODEL_ID_FIRST_BOAT].$matrix).translateSelf(index % 4 * 1.2 - 1.7 + /* @__PURE__ */ Math.sin(gameTime + index) / 7, -2, -5.5 + (index / 4 | 0) * 1.7 + abs(index % 4 - 2) + /* @__PURE__ */ Math.cos(gameTime / 1.5 + index) / 6);
     }
   };
+  const len = walkingPath.length;
   let circle = walkingPath[0];
   let [targetX, targetZ] = circle;
   let soulX = targetX;
@@ -1294,13 +1296,6 @@ const code = "#version 300 es\nprecision highp float;uniform vec3 j,k;uniform ma
 const uniformName_iResolution = "j";
 const worldMatricesBuffer = new Float32Array(624);
 const objectsMatricesBuffer = new Float32Array(624);
-const gl = hC.getContext("webgl2", {
-  powerPreference: "high-performance"
-});
-for (const s in gl)
-  gl[s[0] + [
-    ...s
-  ].reduce((p, c, i) => (p * i + c.charCodeAt(0)) % 434, 0).toString(36)] = gl[s];
 let modelsUpdateCounter;
 const modelsResetUpdateCounter = () => modelsUpdateCounter = 1;
 const modelsNextUpdate = () => matrixCopy(identity, allModels[++modelsUpdateCounter].$matrix);
@@ -1416,11 +1411,12 @@ const player_init = () => {
     }
     player_speed_collision_limiter = clamp(1 - max(abs(movX), abs(movZ)) * 0.02);
     movePlayer(movX / 255, movY / 255, movZ / 255);
+    currentModelId = 1;
+    player_position_global_y = 1;
   };
   const interpolate_with_hysteresis = (previous, desired, hysteresis, speed) => lerp(previous, desired, boot || (clamp(abs(desired - previous) ** 0.5 - hysteresis) + 1 / 7) * damp(speed * 1.5));
   player_update = () => {
     updatePlayerPositionFinal(currentModelId);
-    gl["r9r"](0, 0, constDef_COLLISION_TEXTURE_SIZE, constDef_COLLISION_TEXTURE_SIZE, 6408, 5121, collision_buffer);
     (/* @__PURE__ */ NO_INLINE(doCollisions))();
     if (player_respawned || currentModelId !== oldModelId) {
       oldModelId = currentModelId;
@@ -1545,6 +1541,13 @@ const eppur_si_muove = () => {
   for (let i4 = 0; i4 <= modelsUpdateCounter; ++i4)
     matrixToArray(allModels[i4].$matrix, worldMatricesBuffer, i4 - 1);
 };
+const gl = hC.getContext("webgl2", {
+  powerPreference: "high-performance"
+});
+for (const s in gl)
+  gl[s[0] + [
+    ...s
+  ].reduce((p, c, i) => (p * i + c.charCodeAt(0)) % 434, 0).toString(36)] = gl[s];
 const renderModels = (worldMatrixLoc, renderPlayer, soulModelId) => {
   if (mainMenuVisible) {
     if (hC.width > 1100) {

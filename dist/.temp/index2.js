@@ -625,7 +625,8 @@ const newSoul = (transform, ...walkingPath) => {
         let isInside;
         let contextualVelocity = 1;
         let mindist = 1 / 0;
-        for (const c of walkingPath) {
+        for (let i = 0; len > i; i++) {
+          const c = walkingPath[i];
           const distance = hypot(targetX - c[0], targetZ - c[1]);
           const circleSDF = distance - c[2];
           isInside ||= circleSDF < 0,
@@ -687,6 +688,7 @@ const newSoul = (transform, ...walkingPath) => {
         );
     },
   };
+  const len = walkingPath.length;
   let circle = walkingPath[0];
   let [targetX, targetZ] = circle;
   let soulX = targetX;
@@ -942,13 +944,14 @@ const player_init = () => {
       abs(right - left) > abs(movX) && (movX = right - left), abs(back - front) > abs(movZ) && (movZ = back - front);
     }
     player_speed_collision_limiter = clamp(1 - 0.02 * max(abs(movX), abs(movZ))),
-      movePlayer(movX / 255, movY / 255, movZ / 255);
+      movePlayer(movX / 255, movY / 255, movZ / 255),
+      currentModelId = 1,
+      player_position_global_y = 1;
   };
   const interpolate_with_hysteresis = (previous, desired, hysteresis, speed) =>
     lerp(previous, desired, boot || (clamp(abs(desired - previous) ** 0.5 - hysteresis) + 1 / 7) * damp(1.5 * speed));
   player_update = () => {
     updatePlayerPositionFinal(currentModelId),
-      gl["r9r"](0, 0, 128, 128, 6408, 5121, collision_buffer),
       NO_INLINE(doCollisions)(),
       !player_respawned && currentModelId === oldModelId
       || (oldModelId = currentModelId,

@@ -212,34 +212,34 @@ export const player_init = () => {
     // gl.invalidateFramebuffer(gl.READ_FRAMEBUFFER, [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT]);
     // gl.invalidateFramebuffer(gl.DRAW_FRAMEBUFFER, [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT]);
 
-    if (DEBUG) {
-      const debugCanvas = document.getElementById("debug-canvas") as HTMLCanvasElement;
+    // if (DEBUG) {
+    //   const debugCanvas = document.getElementById("debug-canvas") as HTMLCanvasElement;
 
-      const buf = new Uint8ClampedArray(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
+    //   const buf = new Uint8ClampedArray(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
 
-      if (debugCanvas) {
-        for (let y = 0; y < COLLISION_TEXTURE_SIZE; ++y) {
-          for (let x = 0; x < COLLISION_TEXTURE_SIZE; ++x) {
-            const i = ((COLLISION_TEXTURE_SIZE - y) * COLLISION_TEXTURE_SIZE + x) * 4;
-            const r = collision_buffer[i]!;
-            const g = collision_buffer[i + 1]!;
-            const b = collision_buffer[i + 2]!;
+    //   if (debugCanvas) {
+    //     for (let y = 0; y < COLLISION_TEXTURE_SIZE; ++y) {
+    //       for (let x = 0; x < COLLISION_TEXTURE_SIZE; ++x) {
+    //         const i = ((COLLISION_TEXTURE_SIZE - y) * COLLISION_TEXTURE_SIZE + x) * 4;
+    //         const r = collision_buffer[i]!;
+    //         const g = collision_buffer[i + 1]!;
+    //         const b = collision_buffer[i + 2]!;
 
-            buf[(y * COLLISION_TEXTURE_SIZE + x) * 4] = r;
-            buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 1] = g * 30;
-            buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 2] = b ? 200 : 0;
-            buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 3] = 255;
-          }
-        }
+    //         buf[(y * COLLISION_TEXTURE_SIZE + x) * 4] = r;
+    //         buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 1] = g * 30;
+    //         buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 2] = b ? 200 : 0;
+    //         buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 3] = 255;
+    //       }
+    //     }
 
-        const imgdata = new ImageData(buf, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
+    //     const imgdata = new ImageData(buf, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
 
-        if (!(window as any).debug2dctx) {
-          (window as any).debug2dctx = debugCanvas.getContext("2d")!;
-        }
-        (window as any).debug2dctx.putImageData(imgdata, 0, 0, 0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
-      }
-    }
+    //     if (!(window as any).debug2dctx) {
+    //       (window as any).debug2dctx = debugCanvas.getContext("2d")!;
+    //     }
+    //     (window as any).debug2dctx.putImageData(imgdata, 0, 0, 0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
+    //   }
+    // }
 
     // ------- process collision renderBuffer -------
 

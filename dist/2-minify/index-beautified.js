@@ -1,15 +1,15 @@
 let T,
   j,
   O,
-  M,
   I,
   k,
+  F,
   Q,
-  e1,
-  Y,
+  $,
   C,
-  a1,
   D,
+  e1,
+  a1,
   t1,
   l1,
   r,
@@ -28,12 +28,12 @@ let T,
   m1 = 0,
   h1 = 0,
   u1 = 0,
-  v1 = 0,
+  g1 = 0,
   H = 0,
   X = 0,
   q = 0,
-  g1 = 0,
-  F = 1,
+  v1 = 0,
+  Y = 1,
   R = 180,
   a = "data:image/svg+xml;base64,"
     + btoa(
@@ -57,7 +57,7 @@ let T,
     T = S.m11 * e + S.m21 * a + S.m31 * t + S.m41 * l,
       j = S.m12 * e + S.m22 * a + S.m32 * t + S.m42 * l,
       O = S.m13 * e + S.m23 * a + S.m33 * t + S.m43 * l,
-      M = S.m14 * e + S.m24 * a + S.m34 * t + S.m44 * l;
+      I = S.m14 * e + S.m24 * a + S.m34 * t + S.m44 * l;
   },
   p = (
     e,
@@ -158,17 +158,17 @@ let T,
       ][w = x1.reduce((e, { i: a }) => e + a, 0)] + " / XIII";
   },
   C1 = () => {
-    localStorage.DanteSP22 = JSON.stringify([L.map(({ i: e }) => e), x1.map(({ i: e }) => e), i1, B, Y]);
+    localStorage.DanteSP22 = JSON.stringify([L.map(({ i: e }) => e), x1.map(({ i: e }) => e), i1, B, C]);
   },
   h = (e, a, t, l = 0) => 255 * l << 24 | 255 * t << 16 | 255 * a << 8 | 255 * e,
   D1 = (e, a, t, l) =>
     new DOMMatrix([t, 0, 0, 0, 0, l, 0, 0, 0, 0, (a + e) / (e - a), -1, 0, 0, 2 * a * e / (e - a), 0]),
   u = (e, a = new DOMMatrix(), t) => r.o.push(...n(e, a, t)),
-  v = (e, a = 1) => {
+  g = (e, a = 1) => {
     let t = r;
     N.push(r = { m: new DOMMatrix(), G: a, o: [] }), e(), r = t;
   },
-  g = e => {
+  v = e => {
     let a = r,
       t = L.length,
       l = {
@@ -181,14 +181,14 @@ let T,
           l.g = V(l.g, l.i, 4),
             l.h = V(l.h, l.i, 1),
             K(a.m).multiplySelf(e),
-            C && (W(), M1(H - T, X - j, q - O) < 3) && (l.g < .3 || .7 < l.g)
-            && (l.i = l.i ? 0 : 1, t && 1 / 0 > F && (F = B + 1, h4.innerHTML = "* click *"), i1 = t, C1()),
+            D && (W(), M1(H - T, X - j, q - O) < 3) && (l.g < .3 || .7 < l.g)
+            && (l.i = l.i ? 0 : 1, t && 1 / 0 > Y && (Y = B + 1, h4.innerHTML = "* click *"), i1 = t, C1()),
             !t && l.i && .8 < l.g && (l.i = 0,
               w < 13
-                ? 1 / 0 > F && (F = B + 3, h4.innerHTML = "Not leaving now, there are souls to catch!")
+                ? 1 / 0 > Y && (Y = B + 3, h4.innerHTML = "Not leaving now, there are souls to catch!")
                 : n1
-                  || (1 / 0 > F
-                    && (F = B + 1 / 0, h4.innerHTML = "Well done. They will be punished.<br>Thanks for playing"),
+                  || (1 / 0 > Y
+                    && (Y = B + 1 / 0, h4.innerHTML = "Well done. They will be punished.<br>Thanks for playing"),
                     n1 = 1)),
             S.rotateSelf(60 * l.g - 30, 0).translateSelf(0, 1);
         },
@@ -204,34 +204,34 @@ let T,
       m,
       h = 0,
       u = 0,
-      v = 1,
-      g = 3,
+      g = 1,
+      v = 3,
       d = -1,
       p = {
         i: 0,
         F() {
           if (!p.i) {
             let e, a, t, l, r, s = 1, c = 1 / 0;
-            for (let t of n) {
-              let e = M1(S - t[0], A - t[1]), a = e - t[2];
-              r ||= a < 0, 0 < a && c > a && (c = a, b = t), s = d1(s, e / t[2]);
+            for (let l = 0; b > l; l++) {
+              let e = n[l], a = M1(A - e[0], M - e[1]), t = a - e[2];
+              r ||= t < 0, 0 < t && c > t && (c = t, S = e), s = d1(s, a / e[2]);
             }
             r
-            || (e = S - b[0],
-              a = A - b[1],
+            || (e = A - S[0],
+              a = M - S[1],
               t = M1(e, a),
               l = G1(-a, e),
-              v && (u = ($1() - .5) * G / 2, g = U(g / (1 + $1()))),
+              g && (u = ($1() - .5) * G / 2, v = U(v / (1 + $1()))),
               l += u,
               d = -Z(l),
               h = J(l),
-              .1 < t && (t = d1(t, b[2]) / t, S = e * t + b[0], A = a * t + b[1])),
-              v = r,
-              g = V(g, 6 * (1 - s) + 3, s + 3),
-              M = V(M, S = V(S, S + d, g), g),
-              I = V(I, A = V(A, A + h, g), g),
-              i = z1(i, G1(M - f, I - m) / ee - 180, F1(3)),
-              K(k).multiplySelf(o).translateSelf(f = M, 0, m = I).rotateSelf(0, i, 7 * J(1.7 * B)),
+              .1 < t && (t = d1(t, S[2]) / t, A = e * t + S[0], M = a * t + S[1])),
+              g = r,
+              v = V(v, 6 * (1 - s) + 3, s + 3),
+              I = V(I, A = V(A, A + d, v), v),
+              k = V(k, M = V(M, M + h, v), v),
+              i = z1(i, G1(I - f, k - m) / ee - 180, F1(3)),
+              K(F).multiplySelf(o).translateSelf(f = I, 0, m = k).rotateSelf(0, i, 7 * J(1.7 * B)),
               W(),
               M1(H - T, X - j, q - O) < 1.6
               && (p.i = 1,
@@ -250,7 +250,7 @@ let T,
                   ,
                   "Salvatore Previti<br>made this evil game<br><br>Done. Go back to the boat",
                 ][w] || "Catched a \"crypto bro\".<br>\"Web3\" is all scam, lies and grift",
-                1 / 0 > F && (F = B + (w && w < 12 ? 5 : 7), h4.innerHTML = e),
+                1 / 0 > Y && (Y = B + (w && w < 12 ? 5 : 7), h4.innerHTML = e),
                 Y1(),
                 C1());
           }
@@ -262,11 +262,12 @@ let T,
             );
         },
       },
-      b = n[0],
-      [S, A] = b,
-      M = S,
+      b = n.length,
+      S = n[0],
+      [A, M] = S,
       I = A,
-      k = r.m,
+      k = M,
+      F = r.m,
       e = x1.length;
     x1.push(p);
   },
@@ -356,24 +357,24 @@ let T,
     e.translateSelf(a + J(B + 2) / 5, t + J(.8 * B) / 3, l).rotateSelf(2 * J(B), J(.7 * B), J(.9 * B));
   },
   L1 = (e, a, t) => {
-    k
+    F
       ? 1100 < hC.width
         && (K().rotateSelf(0, 40 * J(z) - 80, -8),
           p(S, K1, 36),
           p(S, K1, 37),
           p(S, K1, 38),
-          $.uae(e, !1, K1),
-          $.d97(4, N[39].D - N[37].s, 5123, 2 * N[37].s))
-      : ($.uae(e, !1, K1),
-        $.d97(4, (a ? N[39].D : N[37].s) - 3, 5123, 6),
-        $.uae(e, !1, V1),
-        $.das(4, N[t].D - N[t].s, 5123, 2 * N[t].s, x1.length),
-        $.das(4, N[42].D - N[42].s, 5123, 2 * N[42].s, L.length));
+          M.uae(e, !1, K1),
+          M.d97(4, N[39].D - N[37].s, 5123, 2 * N[37].s))
+      : (M.uae(e, !1, K1),
+        M.d97(4, (a ? N[39].D : N[37].s) - 3, 5123, 6),
+        M.uae(e, !1, V1),
+        M.das(4, N[t].D - N[t].s, 5123, 2 * N[t].s, x1.length),
+        M.das(4, N[42].D - N[42].s, 5123, 2 * N[42].s, L.length));
   },
-  N1 = (e, a = 35633) => (a = $.c6x(a), $.s3c(a, e), $.c6a(a), a),
+  N1 = (e, a = 35633) => (a = M.c6x(a), M.s3c(a, e), M.c6a(a), a),
   P1 = (e, a) => {
-    let t = {}, l = $.c1h();
-    return $.abz(l, e), $.abz(l, N1(a, 35632)), $.l8l(l), e => e ? t[e] || (t[e] = $.gan(l, e)) : $.u7y(l);
+    let t = {}, l = M.c1h();
+    return M.abz(l, e), M.abz(l, N1(a, 35632)), M.l8l(l), e => e ? t[e] || (t[e] = M.gan(l, e)) : M.u7y(l);
   },
   E1 = e => {
     h4.innerHTML += ".", setTimeout(e);
@@ -389,8 +390,8 @@ let T,
   { PI: G, atan2: G1, sin: J, cos: Z, sqrt: J1, exp: Z1, random: $1 } = Math,
   ee = G / 180,
   ae = W1.createBufferSource(),
-  $ = hC.getContext("webgl2", { powerPreference: "high-performance" });
-for (let e in $) $[e[0] + [...e].reduce((e, a, t) => (e * t + a.charCodeAt(0)) % 434, 0).toString(36)] = $[e];
+  M = hC.getContext("webgl2", { powerPreference: "high-performance" });
+for (let e in M) M[e[0] + [...e].reduce((e, a, t) => (e * t + a.charCodeAt(0)) % 434, 0).toString(36)] = M[e];
 E1(() => {
   let e = 0,
     l = () => {
@@ -398,19 +399,19 @@ E1(() => {
         let h = [new Float32Array(16), new Float32Array(16)],
           l = e => {
             requestAnimationFrame(l);
-            let a = (e - (I || e)) / 1e3;
-            if (z += a, B += Q = k ? 0 : d1(.066, a), I = e, 0 < Q) {
+            let a = (e - (k || e)) / 1e3;
+            if (z += a, B += Q = F ? 0 : d1(.066, a), k = e, 0 < Q) {
               for (
                 l1(),
-                  F && B > F && (F = 0, h4.innerHTML = ""),
-                  e1 = V(e1, n1 ? V(e1, -9, 1.5) : U(B / 3), 1),
-                  Y = V(Y, L[9].h, .2 + .3 * P(2 * L[9].h - 1)),
+                  Y && B > Y && (Y = 0, h4.innerHTML = ""),
+                  $ = V($, n1 ? V($, -9, 1.5) : U(B / 3), 1),
+                  C = V(C, L[9].h, .2 + .3 * P(2 * L[9].h - 1)),
                   r1 = 1,
                   y = A1(L[12].g, L[13].g),
                   o1 = w1(V(o1, 0, 1), S1(o1 + 60 * Q), L[5].g - L[6].h),
                   s1 = w1(V(s1, 0, 5), S1(s1 + 56 * Q), y),
                   c1 = w1(V(c1, 0, 4), S1(c1 + 48 * Q), y),
-                  R1(_(), -12, 4.2, 40 * e1 - 66),
+                  R1(_(), -12, 4.2, 40 * $ - 66),
                   _().translateSelf(0, 0, -15).scaleSelf(1, U(1.22 - L[1].g), 1),
                   _().translateSelf(0, 0, 15).scaleSelf(1, U(1.22 - L[2].g), 1),
                   _().translateSelf(-99.7, -1.9, 63.5).scaleSelf(1, U(1.1 - L[6].g), 1),
@@ -434,7 +435,7 @@ E1(() => {
                   _().translateSelf(0, 5 * e * J(B) + 3.5 * (1 - E(L[6].g, L[7].g))),
                   _().translateSelf(0, 6 * e * J(B + 3), 6 * e * J(.6 * B + 1)),
                   _().translateSelf(0, -7.3 * L[7].h),
-                  R1(_(), -123, 1.4, 55 + -65 * Y),
+                  R1(_(), -123, 1.4, 55 + -65 * C),
                   e = A1(L[10].g, L[11].g),
                   _().translateSelf(0, -2, e * P(J(1.1 * B)) * -8.5 + 10),
                   _().translateSelf(0, -2, e * P(J(2.1 * B)) * -8.5 + 10),
@@ -479,58 +480,58 @@ E1(() => {
               }
               for (e = 0; e < 16; ++e) L[e].F(), p(S, V1, e + 13), V1[223 + 16 * e] = 1 - L[e].g;
               for (x(), e = 0; r1 >= e; ++e) p(N[e].m, K1, e - 1);
-              C = 0,
+              D = 0,
                 s(),
-                $.b6o(36160, i),
-                $.v5y(0, 0, 128, 128),
-                $.c4s(16640),
-                $.cbf(!0, !1, !0, !1),
-                $.uae(s("b"), !1, p(K().rotateSelf(0, 180).invertSelf().translateSelf(-H, -X, .3 - q))),
+                M.b6o(36160, i),
+                M.v5y(0, 0, 128, 128),
+                M.c4s(16640),
+                M.cbf(!0, !1, !0, !1),
+                M.uae(s("b"), !1, p(K().rotateSelf(0, 180).invertSelf().translateSelf(-H, -X, .3 - q))),
                 L1(s("c"), 0, 40),
-                $.c4s(256),
-                $.cbf(!1, !0, !1, !0),
-                $.uae(s("b"), !1, p(K().translateSelf(-H, -X, -q - .3))),
+                M.c4s(256),
+                M.cbf(!1, !0, !1, !0),
+                M.uae(s("b"), !1, p(K().translateSelf(-H, -X, -q - .3))),
                 L1(s("c"), 0, 40),
-                $.f1s();
+                M.f1s();
             }
             e = h1, a = u1;
-            let t = v1;
-            k
-              ? (K(D).invertSelf(),
+            let t = g1;
+            F
+              ? (K(a1).invertSelf(),
                 W(3.6, 3.5),
                 e = T,
                 a = j,
                 t = 5,
-                K(A, v).rotateSelf(-20, 0).invertSelf().translateSelf(-e, -a, -t).rotateSelf(0, 99))
-              : K(A, v).rotateSelf(-g1, -R).invertSelf().translateSelf(-e, -a, -t),
+                K(A, g).rotateSelf(-20, 0).invertSelf().translateSelf(-e, -a, -t).rotateSelf(0, 99))
+              : K(A, g).rotateSelf(-v1, -R).invertSelf().translateSelf(-e, -a, -t),
               d(),
-              $.b6o(36160, n),
-              $.v5y(0, 0, 2048, 2048),
+              M.b6o(36160, n),
+              M.v5y(0, 0, 2048, 2048),
               o[0](54.7 * 1.1),
               o[1](126 * 1.1),
               c(),
-              $.b6o(36160, null),
-              $.v5y(0, 0, $.drawingBufferWidth, $.drawingBufferHeight),
-              $.cbf(!0, !0, !0, !0),
-              $.c4s(16640),
-              $.uae(c("a"), !1, p(D)),
-              $.uae(c("b"), !1, p(v)),
-              $.uae(c("i"), !1, h[0]),
-              $.uae(c("j"), !1, h[1]),
-              $.ubu(c("k"), e, a, t),
-              L1(c("c"), !a1, 41),
+              M.b6o(36160, null),
+              M.v5y(0, 0, M.drawingBufferWidth, M.drawingBufferHeight),
+              M.cbf(!0, !0, !0, !0),
+              M.c4s(16640),
+              M.uae(c("a"), !1, p(a1)),
+              M.uae(c("b"), !1, p(g)),
+              M.uae(c("i"), !1, h[0]),
+              M.uae(c("j"), !1, h[1]),
+              M.ubu(c("k"), e, a, t),
+              L1(c("c"), !e1, 41),
               r(),
-              $.ubu(r("j"), $.drawingBufferWidth, $.drawingBufferHeight, z),
-              $.ubu(r("k"), e, a, t),
-              $.uae(r("b"), !1, p(K(v).invertSelf())),
-              $.d97(4, 3, 5123, 0),
-              $.b6o(36160, i),
-              $.f1s();
+              M.ubu(r("j"), M.drawingBufferWidth, M.drawingBufferHeight, z),
+              M.ubu(r("k"), e, a, t),
+              M.uae(r("b"), !1, p(K(g).invertSelf())),
+              M.d97(4, 3, 5123, 0),
+              M.b6o(36160, i),
+              M.f1s();
           },
           u = new DOMMatrix(),
-          v = new DOMMatrix(),
+          g = new DOMMatrix(),
           e = f,
-          g = m(8, () => ({})),
+          v = m(8, () => ({})),
           a = N1(`#version 300 es
 layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 a,b,c[39];void main(){mat4 i=c[max(0,abs(int(f.w))-1)+gl_InstanceID];l=mix(d,vec4(.7,1,.2,0),d.w>0.?0.:1.-i[3][3]),i[3][3]=1.,n=f,m=i*vec4(f.xyz,1),gl_Position=a*b*m,m.w=f.w,o=i*vec4(e,0);}`),
           d = P1(
@@ -556,36 +557,36 @@ precision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b
 precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform highp sampler2DShadow g,h;uniform highp sampler2D q;out vec4 O;void main(){vec4 s=vec4(m.xyz,1);vec3 e=normalize(o.xyz),v=l.w*(texture(q,n.yz*.035)*e.x+texture(q,n.xz*.035)*e.y+texture(q,n.xy*.035)*e.z).xyz;e=normalize(e+v*.5);float a=dot(e,vec3(-.656059,.666369,-.35431468)),t=1.,u=abs((b*s).z);vec4 r=(u<55.?i:j)*s;if(r=r/r.w*.5+.5,r.z<1.){t=0.;for(float e=-1.;e<=1.;++e)for(float a=-1.;a<=1.;++a){vec3 x=vec3(r.xy+vec2(e,a)/2048.,r.z-.00017439);t+=u<55.?texture(g,x):texture(h,x);}t/=9.;}vec3 x=l.xyz*(1.-v.x);float c=max(max(abs(e.x),abs(e.z))*.3-e.y,0.)*pow(max(0.,(8.-m.y)/48.),1.6);O=vec4(vec3(c,c*c*.5,0)+vec3(.09,.05,.11)*x+x*(max(0.,a)*.5+x*a*a*vec3(.5,.45,.3))*(t*.75+.25)+vec3(.6,.6,.5)*pow(max(0.,dot(normalize(m.xyz-k),reflect(vec3(-.656059,.666369,-.35431468),e))),35.)*t,1);}`,
           ),
           o = m(2, e => {
-            let a = $.c25();
-            return $.a4v(33984 + e),
-              $.b9j(3553, a),
-              $.t60(3553, 0, 33190, 2048, 2048, 0, 6402, 5125, null),
-              $.t2z(3553, 10241, 9729),
-              $.t2z(3553, 10240, 9729),
-              $.t2z(3553, 34893, 515),
-              $.t2z(3553, 34892, 34894),
-              $.t2z(3553, 10243, 33071),
-              $.t2z(3553, 10242, 33071),
+            let a = M.c25();
+            return M.a4v(33984 + e),
+              M.b9j(3553, a),
+              M.t60(3553, 0, 33190, 2048, 2048, 0, 6402, 5125, null),
+              M.t2z(3553, 10241, 9729),
+              M.t2z(3553, 10240, 9729),
+              M.t2z(3553, 34893, 515),
+              M.t2z(3553, 34892, 34894),
+              M.t2z(3553, 10243, 33071),
+              M.t2z(3553, 10242, 33071),
               l => {
                 let t = 0, r = 0, s = 0, c = 1 / 0, o = 1 / 0, n = 1 / 0, i = -1 / 0, f = -1 / 0, m = -1 / 0;
-                $.fas(36160, 36096, 3553, a, 0),
-                  $.c4s(256),
-                  K().scale3dSelf(l).multiplySelf(K(t1[e], u).multiplySelf(v).invertSelf());
+                M.fas(36160, 36096, 3553, a, 0),
+                  M.c4s(256),
+                  K().scale3dSelf(l).multiplySelf(K(t1[e], u).multiplySelf(g).invertSelf());
                 for (let a = 0; a < 8; ++a) {
-                  let e = g[a];
+                  let e = v[a];
                   W(4 & a ? 1 : -1, 2 & a ? 1 : -1, 1 & a ? 1 : -1),
-                    t -= e.x = (0 | T) / l / M,
-                    r -= e.y = (0 | j) / l / M,
-                    s -= e.z = (0 | O) / l / M;
+                    t -= e.x = (0 | T) / l / I,
+                    r -= e.y = (0 | j) / l / I,
+                    s -= e.z = (0 | O) / l / I;
                 }
                 for (K().rotateSelf(298, 139).translateSelf(t / 8, r / 8, s / 8), l = 0; l < 8; ++l) {
-                  let { x: e, y: a, z: t } = g[l];
+                  let { x: e, y: a, z: t } = v[l];
                   W(e, a, t), c = d1(c, T), i = E(i, T), o = d1(o, j), f = E(f, j), n = d1(n, O), m = E(m, O);
                 }
                 l = 10 + e,
                   n *= n < 0 ? l : 1 / l,
                   m *= 0 < m ? l : 1 / l,
-                  $.uae(
+                  M.uae(
                     d("b"),
                     !1,
                     p(
@@ -597,42 +598,42 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                       h[e],
                     ),
                   ),
-                  L1(d("c"), !a1, 41);
+                  L1(d("c"), !e1, 41);
               };
           }),
-          n = $.c5w(),
-          t = (a = $.c25(), $.c3z()),
-          i = $.c5w();
+          n = M.c5w(),
+          t = (a = M.c25(), M.c3z()),
+          i = M.c5w();
         s(),
-          $.uae(s("a"), !1, p(D1(1e-4, 2, 1.4, .4))),
+          M.uae(s("a"), !1, p(D1(1e-4, 2, 1.4, .4))),
           c(),
-          $.ubh(c("q"), 2),
-          $.ubh(c("h"), 1),
-          $.ubh(c("g"), 0),
+          M.ubh(c("q"), 2),
+          M.ubh(c("h"), 1),
+          M.ubh(c("g"), 0),
           r(),
-          $.ubh(r("q"), 2),
-          $.b6o(36160, n),
-          $.d45([0]),
-          $.r9l(0),
-          $.b6o(36160, i),
-          $.bb1(36161, t),
-          $.r4v(36161, 33190, 128, 128),
-          $.f8w(36160, 36096, 36161, t),
-          $.a4v(33986),
-          $.b9j(3553, a),
-          $.t60(3553, 0, 6408, 128, 128, 0, 6408, 5121, null),
-          $.fas(36160, 36064, 3553, a, 0),
-          $.b9j(3553, $.c25()),
-          $.t60(3553, 0, 6408, 1024, 1024, 0, 6408, 5121, e),
-          $.t2z(3553, 10241, 9987),
-          $.t2z(3553, 10240, 9729),
-          $.gbn(3553),
-          $.e8z(2929),
-          $.e8z(2884),
-          $.c70(1),
-          $.c7a(1029),
-          $.d4n(515),
-          $.c5t(0, 0, 0, 0),
+          M.ubh(r("q"), 2),
+          M.b6o(36160, n),
+          M.d45([0]),
+          M.r9l(0),
+          M.b6o(36160, i),
+          M.bb1(36161, t),
+          M.r4v(36161, 33190, 128, 128),
+          M.f8w(36160, 36096, 36161, t),
+          M.a4v(33986),
+          M.b9j(3553, a),
+          M.t60(3553, 0, 6408, 128, 128, 0, 6408, 5121, null),
+          M.fas(36160, 36064, 3553, a, 0),
+          M.b9j(3553, M.c25()),
+          M.t60(3553, 0, 6408, 1024, 1024, 0, 6408, 5121, e),
+          M.t2z(3553, 10241, 9987),
+          M.t2z(3553, 10240, 9729),
+          M.gbn(3553),
+          M.e8z(2929),
+          M.e8z(2884),
+          M.c70(1),
+          M.c7a(1029),
+          M.d4n(515),
+          M.c5t(0, 0, 0, 0),
           (() => {
             let e,
               n,
@@ -641,8 +642,8 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               m,
               h,
               u,
-              v,
               g,
+              v,
               d,
               p,
               b,
@@ -651,15 +652,15 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               a = !0,
               r = [],
               t = () => {
-                b4.innerHTML = "Music: " + a, k || !a ? ae.disconnect() : ae.connect(W1.destination);
+                b4.innerHTML = "Music: " + a, F || !a ? ae.disconnect() : ae.connect(W1.destination);
               },
               s = () => {
                 let e = (hC.height = innerHeight) / (hC.width = innerWidth) * 1.732051;
                 t1 = [D1(.3, 55, e, 1.732051), D1(55, 181, e, 1.732051)],
-                  D = D1(.3, 181, e, 1.732051),
-                  f = v = void 0,
+                  a1 = D1(.3, 181, e, 1.732051),
+                  f = g = void 0,
                   r.length =
-                    C =
+                    D =
                     l =
                     b =
                     S =
@@ -668,8 +669,8 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                       0;
               },
               c = (e, a = 0) => {
-                if (k !== e) {
-                  k = e, a1 = a, s(), document.body.className = e ? "l m" : "l";
+                if (F !== e) {
+                  F = e, e1 = a, s(), document.body.className = e ? "l m" : "l";
                   try {
                     e
                       ? (document.exitFullscreen().catch(() => 0), document.exitPointerLock())
@@ -689,7 +690,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 confirm("Restart game?") && (localStorage.DanteSP22 = "", location.reload());
               },
               onclick = e => {
-                if (!k && (e.target === hC && (C = 1), a1)) {
+                if (!F && (e.target === hC && (D = 1), e1)) {
                   try {
                     hC.requestPointerLock();
                   } catch {}
@@ -712,16 +713,16 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                     KeyS: 5,
                     ArrowDown: 5,
                   }[e.code],
-                    (r[a] = !!e.type[5] && !0) && (0 === a && (C = 1), 1 === a && c(!0)));
+                    (r[a] = !!e.type[5] && !0) && (0 === a && (D = 1), 1 === a && c(!0)));
               },
               onmousemove = ({ movementX: e, movementY: a }) => {
-                a1 && (e || a) && (R += .1 * e, g1 += .1 * a);
+                e1 && (e || a) && (R += .1 * e, v1 += .1 * a);
               },
               hC.ontouchstart = l => {
-                if (!k) {
+                if (!F) {
                   for (let { pageX: e, pageY: a, identifier: t } of l.changedTouches) {
-                    a1 && e > hC.clientWidth / 2
-                      ? void 0 === v && (g = 0, h = e, u = a, v = t, d = R, p = g1)
+                    e1 && e > hC.clientWidth / 2
+                      ? void 0 === g && (v = 0, h = e, u = a, g = t, d = R, p = v1)
                       : void 0 === f && (m = 0, n = e, i = a, f = t);
                   }
                   e = z;
@@ -729,9 +730,9 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               },
               hC.ontouchmove = l => {
                 let r, s, c, o;
-                if (!k) {
+                if (!F) {
                   for (let { pageX: e, pageY: a, identifier: t } of l.changedTouches) {
-                    v === t && (R = d + (e - h) / 2.3, g1 = p + (a - u) / 2.3, g = 1),
+                    g === t && (R = d + (e - h) / 2.3, v1 = p + (a - u) / 2.3, v = 1),
                       f === t
                       && (t = (n - e) / 20,
                         r = P(t),
@@ -749,13 +750,13 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 let t;
                 document.activeElement === document.body && a.preventDefault();
                 for (let e of a.changedTouches) {
-                  e.identifier === v
-                    ? (v = void 0, g || (t = 1), g = 0)
+                  e.identifier === g
+                    ? (g = void 0, v || (t = 1), v = 0)
                     : e.identifier === f
                     ? (f = void 0, S = b = 0, m || (t = 1), m = 0)
                     : t = 1;
                 }
-                a.target === hC && t && e && .02 < (a = z - e) && a < .7 && (C = 1);
+                a.target === hC && t && e && .02 < (a = z - e) && a < .7 && (D = 1);
               },
               l1 = () => {
                 f1 = S + (r[4] ? 1 : 0) - (r[5] ? 1 : 0), m1 = b + (r[2] ? 1 : 0) - (r[3] ? 1 : 0);
@@ -763,11 +764,11 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 if (t) {
                   let e = e => a[e]?.pressed || 0 < a[e]?.value ? 1 : 0, a = t.buttons;
                   t = t.axes,
-                    a1 && (g1 += Q * p1(t[3], .3) * 80, R += Q * p1(t[2], .3) * 80),
+                    e1 && (v1 += Q * p1(t[3], .3) * 80, R += Q * p1(t[2], .3) * 80),
                     f1 += e(12) - e(13) - p1(t[1], .2),
                     m1 += e(14) - e(15) - p1(t[0], .2),
                     e(9) && c(!0),
-                    (t = e(3) || e(2) || e(1) || e(0)) && !l && (C = 1),
+                    (t = e(3) || e(2) || e(1) || e(0)) && !l && (D = 1),
                     l = t;
                 }
               },
@@ -784,8 +785,8 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               m,
               u,
               h,
-              v,
               g,
+              v,
               d,
               p,
               b,
@@ -795,9 +796,9 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               I = 1,
               k = 2,
               F = 15,
-              Y = () => K((k ? L[i1] : N[g && 1 === N[g].G && g || 0]).m),
+              Y = () => K((k ? L[i1] : N[v && 1 === N[v].G && v || 0]).m),
               C = e => {
-                1 < k ? (K(L[i1].m).multiplySelf(L[i1].H), W(0, i1 || .9 < e1 ? 15 : 1, -2.4)) : (Y(), W(S, A, M)),
+                1 < k ? (K(L[i1].m).multiplySelf(L[i1].H), W(0, i1 || .9 < $ ? 15 : 1, -2.4)) : (Y(), W(S, A, M)),
                   e && (i = (T - H) / Q, f = (O - q) / Q),
                   H = T,
                   X = j,
@@ -807,8 +808,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
             x = () => {
               let e, a, t, l, r;
               for (
-                C(v),
-                  $.r9r(0, 0, 128, 128, 6408, 5121, _1),
+                C(g),
                   (() => {
                     let a, e, t, l, r, s, c = 0, o = 0, n = 0, i = 0, f = 0, m = 0, h = -1;
                     for (a = 0; a < 36; ++a) {
@@ -816,11 +816,11 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                         for (l = 0; l < 2; ++l) {
                           (r = _1[e + t + l]) > i && (i = r),
                             r + (s = _1[e + t + l + 2]) && (h < 0 || h === a)
-                            && (h = a, s === v ? ++c : o && o !== s || (o = s, ++n));
+                            && (h = a, s === g ? ++c : o && o !== s || (o = s, ++n));
                         }
                       }
                     }
-                    for (v = h < 0 ? 0 : n > 2 * c ? o : v, c = 36; c < 128; c += 1) {
+                    for (g = h < 0 ? 0 : n > 2 * c ? o : g, c = 36; c < 128; c += 1) {
                       for (
                         a =
                           h =
@@ -849,26 +849,27 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                       S += T,
                       A += i,
                       M += O,
-                      C();
+                      C(),
+                      A = g = 1;
                   })(),
-                  !k && v === g || (g = v, Y().invertSelf(), W(H, X, q), S = T, A = j, M = O),
-                  k = k && (v ? 0 : 1),
+                  !k && g === v || (v = g, Y().invertSelf(), W(H, X, q), S = T, A = j, M = O),
+                  k = k && (g ? 0 : 1),
                   (H < -20 || q < 109 ? -25 : -9) > X && (k = 2),
-                  1 === v && (L[9].i = H < -15 && q < 0 ? 1 : 0),
+                  1 === g && (L[9].i = H < -15 && q < 0 ? 1 : 0),
                   h = w1(V(h, X, 2), X, k || 8 * P(h - X)),
                   d = D(d, H, .5, 1),
                   p = D(p, h, 2, 1),
                   b = D(b, q, .5, 1),
-                  n = V(n, y * (27 < v && v < 32), 2),
-                  a1
-                    ? (e = k + F1(18), h1 = w1(h1, H, e), v1 = w1(v1, q, e), u1 = w1(u1, h + 1.5, e), R = S1(R))
+                  n = V(n, y * (27 < g && g < 32), 2),
+                  e1
+                    ? (e = k + F1(18), h1 = w1(h1, H, e), g1 = w1(g1, q, e), u1 = w1(u1, h + 1.5, e), R = S1(R))
                     : (h1 = D(h1, d, 1, 2 + n),
-                      v1 = D(v1, b + -18 + 5 * n, 1, 2 + n),
+                      g1 = D(g1, b + -18 + 5 * n, 1, 2 + n),
                       u1 = D(u1, E(p + U((-60 - q) / 8, 0, 20) + 13 + 9 * n, 6), 4, 2),
-                      e = d1(-6, -P(b - v1)),
+                      e = d1(-6, -P(b - g1)),
                       R = z1(R, 90 - S1(G1(e, a = d - h1) / ee), I + F1(10)),
-                      g1 = z1(g1, 90 - G1(M1(e, a), u1 - p) / ee, I + F1(10))),
-                  g1 = U(g1, -87, 87),
+                      v1 = z1(v1, 90 - G1(M1(e, a), u1 - p) / ee, I + F1(10))),
+                  v1 = U(v1, -87, 87),
                   I = 0,
                   e = U(f1, -1),
                   a = U(m1, -1),
@@ -887,11 +888,11 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 r = 9.1 * B - G * l,
                   K(N[37].m, _()).translateSelf(0, o * U(.45 * J(r - G / 2))).rotateSelf(o * J(r) * .25 / ee, 0);
               }
-              F = v ? 5 : V(F, k ? 13 : 19 - 2 * d1(0, X + 10), 2.2),
-                i = v || k ? 0 : V(i, 0, 3),
-                f = v || k ? 0 : V(f, 0, 3),
-                m = k ? 0 : V(m, v ? 7 * U(2 * t) * u : 0, v ? 9 : 1),
-                t = Q * (i + m * (a * Z(l = a1 ? (180 + R) * ee : 0) - e * J(l))),
+              F = g ? 5 : V(F, k ? 13 : 19 - 2 * d1(0, X + 10), 2.2),
+                i = g || k ? 0 : V(i, 0, 3),
+                f = g || k ? 0 : V(f, 0, 3),
+                m = k ? 0 : V(m, g ? 7 * U(2 * t) * u : 0, g ? 9 : 1),
+                t = Q * (i + m * (a * Z(l = e1 ? (180 + R) * ee : 0) - e * J(l))),
                 r = -F * Q,
                 e = Q * (f + m * (a * J(l) + e * Z(l))),
                 Y().invertSelf(),
@@ -921,9 +922,9 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 o,
                 n = 0,
                 i = 0,
-                v = [],
+                g = [],
                 f = new Int32Array(768 * m),
-                g = 2 ** (t - 9) / m,
+                v = 2 ** (t - 9) / m,
                 d = G * 2 ** (l - 8) / m,
                 p = q * m & -2;
               for (let l = 0; l <= 11; ++l) {
@@ -935,7 +936,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   let t = (32 * l + e) * m;
                   for (r = 0; r < 4; ++r) {
                     if (u = 0, a && (u = S[a - 1].charCodeAt(e + 32 * r) - 40, u += 0 < u ? 106 : 0), u) {
-                      if (!(h = v[u])) {
+                      if (!(h = g[u])) {
                         let l,
                           r,
                           s = 0,
@@ -962,7 +963,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                                   + (C ? (2 * $1() - 1) * C : 0))
                                 * e | 0;
                         }
-                        h = v[h] = f;
+                        h = g[h] = f;
                       }
                       for (let e = 0, a = 2 * t; h.length > e; ++e, a += 2) f[a] += h[e];
                     }
@@ -972,7 +973,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                       h = 2 * (t + a),
                       ((e = f[h]) || o)
                       && (c = .00308 * O,
-                        1 !== N && 4 !== N || (c *= J(g * h * G * 2) * R / 512 + .5),
+                        1 !== N && 4 !== N || (c *= J(v * h * G * 2) * R / 512 + .5),
                         c = 1.5 * J(c),
                         n += c * i,
                         i += c * (s = (1 - Q / 255) * (e - i) - n),
@@ -1053,36 +1054,36 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
             }
             e.o = null, e.s = t, e.D = t = r.length;
           }),
-            $.b11(34962, $.c1b()),
-            $.b2v(34962, new Float32Array(c), 35044),
-            $.v7s(0, 4, 5126, !1, 0, 0),
-            $.b11(34962, $.c1b()),
-            $.b2v(34962, new Int16Array(n), 35044),
-            $.v7s(1, 3, 5122, !0, 0, 0),
-            $.b11(34962, $.c1b()),
-            $.b2v(34962, new Uint32Array(o), 35044),
-            $.v7s(2, 4, 5121, !0, 0, 0),
-            $.b11(34963, $.c1b()),
-            $.b2v(34963, new Uint16Array(r), 35044),
-            $.e3x(0),
-            $.e3x(1),
-            $.e3x(2);
+            M.b11(34962, M.c1b()),
+            M.b2v(34962, new Float32Array(c), 35044),
+            M.v7s(0, 4, 5126, !1, 0, 0),
+            M.b11(34962, M.c1b()),
+            M.b2v(34962, new Int16Array(n), 35044),
+            M.v7s(1, 3, 5122, !0, 0, 0),
+            M.b11(34962, M.c1b()),
+            M.b2v(34962, new Uint32Array(o), 35044),
+            M.v7s(2, 4, 5121, !0, 0, 0),
+            M.b11(34963, M.c1b()),
+            M.b2v(34963, new Uint16Array(r), 35044),
+            M.e3x(0),
+            M.e3x(1),
+            M.e3x(2);
           try {
             let [t, l, e, a, r] = JSON.parse(localStorage.DanteSP22);
             L.map((e, a) => e.g = e.h = e.i = a ? 0 | t[a] : 0),
               x1.map((e, a) => e.i = 0 | l[a]),
               i1 = e,
-              Y = r,
+              C = r,
               B = a,
               Q = 0;
           } catch {}
-          Y1(), e1 = U(i1), E1(l);
+          Y1(), $ = U(i1), E1(l);
         }),
           m(10, e => k1(s(I1(18), a(e)).reverse(), s(I1(18), a(e + 1)), 1)).flat());
-      v(() => u([y1.slice(1)], o(-2).scale3d(3).rotate(90, 0)), 0),
-        v(() => {
+      g(() => u([y1.slice(1)], o(-2).scale3d(3).rotate(90, 0)), 0),
+        g(() => {
           let e = t =>
-              v(() => {
+              g(() => {
                 y1.map(({ x: e, z: a }) => {
                   u(i(11, 1), o(4 * e, 4, t + 4 * a).scale(.8, 3, .8), h(.5, .3, .7, .6)),
                     u(i(), o(4 * e, 7, t + 4 * a).scale(1, .3), h(.5, .5, .5, .3));
@@ -1099,16 +1100,16 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 n(i(), o(0, -e / 2 - 6).scale(4, e - 3, 4)),
                 n(i(32, 1), o(0, e / 2 - 9).rotate(90, 0, 90).scale3d(4)),
               ),
-            t = () => v(() => m(7, e => u(n(i(6, 1), o(4 * (e / 6 - .5), 3).scale(.2, 3, .2), h(.3, .3, .38))))),
+            t = () => g(() => m(7, e => u(n(i(6, 1), o(4 * (e / 6 - .5), 3).scale(.2, 3, .2), h(.3, .3, .38))))),
             l = b(
               n(i(30, 1, 1.15, 1), o(0, -3).scale(3.5, 1, 3.5), h(.7, .4, .25, .7)),
               n(i(30, 1, 1.3, 1), o(0, -2.5).scale(2.6, 1, 3), h(.7, .4, .25, .2)),
               n(i(), o(4, -1.2).scale3d(2), h(.7, .4, .25, .3)),
             ),
-            r = (v(() => {
-              u(l), g(o(0, -3, 4));
+            r = (g(() => {
+              u(l), v(o(0, -3, 4));
             }),
-              g(o(-5.4, 1.5, -19).rotate(0, -90)),
+              v(o(-5.4, 1.5, -19).rotate(0, -90)),
               d(o(-.5, 2.8, -20), [0, 0, 2.5], [0, -3, 2.5]),
               d(o(0, 2.8), [5, 10, 3], [-5, 10, 3], ...I1(18).map(({ x: e, z: a }) => [7 * e, 10 * a, 4.5 - 2 * P(e)])),
               y1.map(({ x: e, z: a }) => u(i(6), o(3 * e, 3, 15 * a).scale(.7, 4, .7), h(.6, .3, .3, .4))),
@@ -1141,11 +1142,11 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 n(i(), A.rotate(0, 60).translate(14, .7, -1).rotate(-35).scale(2, 2, 2), h(.5, .5, .5, .5)),
                 n(i(6), o(15, -1.5, 4).scale(3.5, 1, 3.5), h(.5, .5, .5, .5)),
               )),
-              v(() => {
-                u(i(5), o(0, -.2).scale(5, 1, 5), h(.6, .65, .7, .3)), g(o(0, 1.2));
+              g(() => {
+                u(i(5), o(0, -.2).scale(5, 1, 5), h(.6, .65, .7, .3)), v(o(0, 1.2));
               }),
-              g(o(15, -2, 4)),
-              v(() => {
+              v(o(15, -2, 4)),
+              g(() => {
                 u(
                   b(
                     q1(
@@ -1162,27 +1163,27 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               e(35),
               e(55),
               u(i(), o(-18.65, -3, 55).scale(2.45, 1.4, 2.7), h(.9, .9, .9, .2)),
-              v(() => {
+              g(() => {
                 u(i(3), o(-23, -1.7, 55.8).scale(5, .7, 8.3), h(.3, .6, .6, .2)),
                   u(i(8), o(-23, -2.2, 66.5).scale(1.5, 1.2, 1.5), h(.8, .8, .8, .2)),
                   u(i(), o(-23, -3, 55).scale(5.2, 1.7, 3), h(.5, .5, .5, .3)),
                   u(i(), o(-23, -2.2, 62).scale(3, 1, 4), h(.5, .5, .5, .3)),
-                  g(o(-23, -.5, 66.5));
+                  v(o(-23, -.5, 66.5));
               }),
-              v(() => {
+              g(() => {
                 u(i(), o(-22.55, -3, 55).scale(1.45, 1.4, 2.7), h(.7, .7, .7, .2)),
                   u(b(n(i(), A.scale(3, 1.4, 2.7)), n(i(), A.scale(1.2, 8, 1.2))), o(-33, -3, 55), h(.7, .7, .7, .2));
               }),
-              v(() => {
+              g(() => {
                 u(b(
                   n(i(), o(-27, -3, 55).scale(3, 1.4, 2.7), h(.9, .9, .9, .2)),
                   n(i(), o(-27, -3, 55).scale(1, 3), h(.9, .9, .9, .2)),
                 )), u(i(), o(-39, -3, 55).scale(3, 1.4, 2.7), h(.9, .9, .9, .2));
               }),
-              v(() => {
+              g(() => {
                 u(i(6), o(-44.5, 0, 55).rotate(0, 0, 90).scale(5.9, .5, 5.9), h(.7, .7, .7, .4));
               }),
-              g(o(-55, -1.1, 46).rotate(0, 90)),
+              v(o(-55, -1.1, 46).rotate(0, 90)),
               u(i(6), o(-61.3, -2.4, 49).scale(3, 1, 5), h(.4, .6, .6, .3)),
               u(i(7), o(-57, -2.6, 46).scale(4, 1, 4), h(.8, .8, .8, .3)),
               [
@@ -1196,7 +1197,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 ),
               ]),
             s = (u(r, o(-53, 0, 55)),
-              v(() => u(r), 2),
+              g(() => u(r), 2),
               u(i(), o(-88.3, -5.1, 55).rotate(-30).scale(5, 1.25, 4.5), h(.7, .7, .7, .2)),
               u(i(3, 0, -.5), o(-88.4, -3.9, 55).rotate(0, -90, 17).scale(3, 1.45, 5.9), h(.8, .8, .8, .2)),
               u(b(
@@ -1234,13 +1235,13 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               u(i(), o(-87, -9.5, 24).scale(7, 1, 3), h(.4, .5, .6, .4)),
               u(i(4), o(-86, -9.2, 27).scale(5, 1, 5), h(.5, .6, .7, .3)),
               u(i(12, 1), o(-86, -9, 31).scale(1.5, 1, 1.5), h(.3, .3, .4, .1)),
-              g(o(-86, -7.5, 31)),
-              v(() => {
+              v(o(-86, -7.5, 31)),
+              g(() => {
                 [0, 12, 24].map(e =>
                   u(i(), o(e - 76.9, e / -16 - 10, 24).rotate(0, 0, -2).skewX(-2).scale(2.8, 1.4, 3), h(.2, .5, .6, .2))
                 );
               }),
-              v(() => {
+              g(() => {
                 [6, 18].map(e =>
                   u(i(), o(e - 76.9, e / -16 - 10, 24).rotate(0, 0, -2).skewX(-2).scale(2.8, 1.4, 3), h(.1, .4, .5, .2))
                 );
@@ -1256,8 +1257,8 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 ),
                 o(-38.9, -11.3, 17),
               ),
-              g(o(-38.9, -9.6, 10)),
-              v(() => {
+              v(o(-38.9, -9.6, 10)),
+              g(() => {
                 u(
                   b(
                     q1(
@@ -1295,9 +1296,9 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               ),
               d(o(-38.9, -8.4, -21), [-7, -2.5, 6], [6, -3, 6], [0, -5, 7]),
               u(i(5), o(-84, -2, 85).scale(4, .8, 4).rotate(0, 10), h(.8, .1, .25, .4)),
-              g(o(-84, -.5, 85).rotate(0, 45)),
-              v(() => {
-                u(l), g(o(0, -3, -4).rotate(0, 180));
+              v(o(-84, -.5, 85).rotate(0, 45)),
+              g(() => {
+                u(l), v(o(0, -3, -4).rotate(0, 180));
               }),
               b(
                 n(i(), o(0, -.5, 1).scale(1.15, 1.2, 6.5), h(.25, .25, .35, .3)),
@@ -1307,14 +1308,14 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 ),
                 ...[-1, 1].map(e => n(i(), o(1.2 * e, -.5, 1).scale(.14, .3, 6.5), h(.7, .2, 0, .3))),
               ));
-          v(() =>
+          g(() =>
             m(2, e =>
               u(s, o(9 * e - 110 + (1 & e), 1.9, -12)))
           ),
-            v(() =>
+            g(() =>
               m(2, e => u(s, o(9 * (e + 2) - 110 + (1 & e), 1.9, -12)))
             ),
-            v(() =>
+            g(() =>
               m(3, e => u(s, o(9 * e - 106, 1.9, -12)))
             ),
             u(
@@ -1327,7 +1328,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               o(-123, .2, -12),
               h(.5, .5, .6, .2),
             ),
-            g(o(-116, -1.4, -18).rotate(0, 180)),
+            v(o(-116, -1.4, -18).rotate(0, 180)),
             u(i(), o(-116, -2.6, -12).scale(3.2, 1.1, 4).skewX(3), h(.8, .8, .8, .2)),
             u(i(6), o(-116, -2.6, -16.5).scale(3.2, .8, 3), h(.6, .5, .7, .2)),
             u(i(), o(-115.5, -17, -12).scale(.5, 15, 2.2), h(.6, .6, .6, .3)),
@@ -1350,7 +1351,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               n(i(), o(-93, -5.8, -40).scale(9, 1, 5), h(.8, .8, .8, .1)),
               n(i(9), o(-98, -5.8, -40).scale(3, 8, 3), h(.7, .7, .7, .2)),
             )),
-            g(o(-98, -4.4, -40).rotate(0, 90)),
+            v(o(-98, -4.4, -40).rotate(0, 90)),
             d(o(-115, .2, -12), [0, 0, 3.5]),
             d(o(-93, -3, -40).rotate(4), [0, -2, 3.5], [0, 2, 3.5]),
             u(b(
@@ -1361,7 +1362,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               n(i(5), o(-100, .7, 113).scale(4, 3, 4), h(.7, .7, .7, .2)),
             )),
             m(4, e =>
-              v(() =>
+              g(() =>
                 u(
                   i(6),
                   o(-14.6 - 4.8 * e - (2 < e ? 2 : 0), -e / 2.5 - .1, -21.5).rotate(0, 0, 3.5).skewX(3.5).scale(
@@ -1372,12 +1373,12 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   h(.5 - e / 8, e / 12 + .5, .7, .3),
                 )
               )),
-            v(() => {
+            g(() => {
               u(b(n(i(10), A.scale(6, 2, 6), h(.1, .6, .5, .3)), n(i(10), A.scale(3.3, 6, 3.3), h(.1, .6, .5, .5)))),
                 u(i(15, 1), o(-7.5).rotate(0, 90).scale(3, 2.3, 3), h(.4, .4, .4, .3)),
                 u(i(10), o(-7.5).rotate(0, 90).scale(2, 2.5, 2), h(.3, .8, .7, .3)),
                 u(i(5), o(-7.5).rotate(0, 90).scale(1, 3), h(.5, .5, .5, .5)),
-                g(o(-7.5).rotate(0, 90).translate(0, 3.4).rotate(0, 180)),
+                v(o(-7.5).rotate(0, 90).translate(0, 3.4).rotate(0, 180)),
                 [-1, 1].map(e =>
                   u(c, A.rotate(90 * e, 180, 90).translate(0, 5).rotate(40).scale(1.3, 10, 1.3), h(1, 1, .8, .2))
                 ),
@@ -1402,7 +1403,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               n(i(), o(-82.07, .8, 106).scale(11, .9, 2.2), h(.7, .7, .7, .1)),
               n(i(45, 1), o(-81, .7, 106).scale3d(7.7), h(.7, .7, .7, .1)),
             )),
-            v(() => {
+            g(() => {
               u(b(
                 n(i(45, 1), A.scale(7.5, 1, 7.5), h(.45, .45, .45, .2)),
                 n(i(), o(0, 0, -5.5).scale(1.5, 3, 2.7), h(.45, .45, .45, .2)),
@@ -1411,7 +1412,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 u(i(5), o(0, 2).scale(1, 2), h(.3, .3, .3, .2)),
                 d(o(0, 3), ...I1(14).map(({ x: e, z: a }) => [5.6 * e, 5.6 * a, 2]));
             }),
-            v(() => {
+            g(() => {
               [-1, 1].map(e =>
                 u(c, A.rotate(0, 90).translate(-5 * e, 1, -.5).scale(1.2, 10, 1.2).rotate(0, 90 * e + 90), h(1, 1, .8))
               ),
@@ -1422,7 +1423,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 u(n(i(28, 1), A.scale(7.5, 1, 7.5), h(.45, .45, .45, .2))),
                 u(n(i(5), o(0, 1).scale(1, .2), h(.3, .3, .3, .2)));
             }),
-            v(() => {
+            g(() => {
               u(b(
                 n(i(28, 1), o(0, 2).scale(7.5, 1, 7.5), h(.35, 0, 0, .3)),
                 n(i(), o(7).scale(9, 5, 2), h(.3, 0, 0, .3)),
@@ -1431,7 +1432,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 u(n(i(28, 1), A.scale(7.5, 1, 7.5), h(.45, .45, .45, .2))),
                 u(n(i(5), o(0, 1).scale(1, .2), h(.3, .3, .3, .2)));
             }),
-            v(() => {
+            g(() => {
               u(b(
                 n(i(28, 1), o(0, 2).scale(7.5, 1, 7.5), h(.35, 0, 0, .3)),
                 n(i(), o(7).scale(9, 5, 2), h(.3, 0, 0, .3)),
@@ -1444,10 +1445,10 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
             u(i(), o(-50.7, 1, 99).scale(2, .65, 1), h(.7, .7, .7, .2)),
             u(i(), o(-42, .4, 91).scale(5, 1, 2.5), h(.7, .7, .7, .3)),
             u(i(), o(-34.2, .4, 91).scale(3, 1, 3), h(.7, .7, .7, .3)),
-            g(o(-34, 2.7, 96).rotate(-12, 0)),
+            v(o(-34, 2.7, 96).rotate(-12, 0)),
             u(i(5), o(-34, .2, 96).scale(3, 2, 4).rotate(-20, 0), h(.2, .5, .5, .6)),
             [h(.1, .55, .45, .2), h(.2, .5, .5, .3), h(.3, .45, .55, .4)].map((e, a) =>
-              v(() => {
+              g(() => {
                 u(i(), o(-23.5, .5, 91 + 6.8 * a).scale(1 === a ? 2 : 3.3, 1, 3.3), e),
                   2 === a && u(i(), o(-29.1, .4, 91).scale(2.1, 1, 3), h(.7, .7, .7, .3)),
                   1 === a && u(i(), o(-16.1, .5, 103.5).rotate(-3.5).scale(3.9, .8, 2).skewX(-1), h(.6, .6, .7, .3));
@@ -1464,7 +1465,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               n(i(6, 0, 0, .3), o(0, -.92, 95).scale(14, 2, 14), h(.8, .8, .8, .2)),
               n(i(5), o(0, 0, 95).scale3d(6), h(.3, .3, .3, .5)),
             )),
-            g(o(0, 1.7, 82).rotate(0, 180)),
+            v(o(0, 1.7, 82).rotate(0, 180)),
             u(i(5), o(0, -15.7, 82).scale(2.5, 17, 2.5).rotate(0, 35), h(.5, .3, .3, .4)),
             u(i(6), o(0, 16, 121).scale(2.5, 1, 2.1).rotate(0, 90), h(.5, .6, .7, .3)),
             u(i(), o(0, 16, 129).scale(1.5, 1, 2), h(.5, .6, .7, .3)),
@@ -1476,22 +1477,22 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               ),
               n(i(5), o(0, 16, 103.5).scale(5.5, 5, 5.5), h(.5, .3, .3, .4)),
             )),
-            v(() => {
+            g(() => {
               u(i(3), o(0, -3, 118.8).scale(.8, .8, 18).rotate(90, 0, 60), h(.5, .3, .3, .4)),
                 [22, 30].map(e => {
                   u(i(6), o(0, 16, e + 95).scale(3, 1, 2.3).rotate(0, 90), h(.7, .7, .7, .4)),
                     u(i(), o(0, 6.2, e + 95).scale(.5, 11, .5), h(.5, .3, .3, .4));
                 });
             }),
-            v(() => {
+            g(() => {
               u(i(5), A.scale(5, 1.1, 5), h(.5, .3, .3, .4)),
                 u(i(5), A.scale(5.5, .9, 5.5), h(.25, .25, .25, .4)),
-                g(o(0, 1.5, -1).rotate(0, 180));
+                v(o(0, 1.5, -1).rotate(0, 180));
             }),
             d(o(0, 3, 95), ...I1(9).map(({ x: e, z: a }) => [9 * e, 9 * a, 4])),
             d(o(0, 19, 134), [0, 0, 3.5]);
         }),
-        v(() => {
+        g(() => {
           u(t(20), o(0, 1).scale3d(.5), h(1, .3, .4)),
             u(t(30), A.scale(.65, .8, .55), h(1, .3, .4)),
             u(i(), o(0, .9, .45).scale(.15, .02, .06), h(.3, .3, .3)),
@@ -1505,15 +1506,15 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   ),
                   o(.2 * e, 1.2, .4).rotate(0, 20 * e, 20 * e),
                 ),
-                v(() => {
+                g(() => {
                   u(i(20, 1), o(.3 * e, -.8).scale(.2, .7, .24), h(1, .3, .4));
                 });
             });
         }),
-        v(() => {
+        g(() => {
           u(i(6).slice(0, -1), A.scale(.77, 1, .77), h(1, .3, .5));
         }, 0),
-        v(() => {
+        g(() => {
           u(
             t(30, 24, (e, a, t) => {
               let l = a / 24, r = e * G * 2 / 30, s = J(l ** .6 * G / 2);
@@ -1526,7 +1527,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
             h(1, 1, 1),
           ), [-1, 1].map(e => u(t(12), o(.16 * e, .4, -.36).scale3d(.09)));
         }, 0),
-        v(() => {
+        g(() => {
           u(i(6, 1), A.scale(.13, 1.4, .13), h(.3, .3, .5, .1)),
             u(i(10), o(0, 1).scale(.21, .3, .21), h(1, .5, .2)),
             u(i(3), o(0, -1).rotate(90, 90).scale(.3, .4, .3), h(.2, .2, .2, .1));

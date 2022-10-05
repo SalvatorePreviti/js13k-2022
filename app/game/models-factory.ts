@@ -94,6 +94,7 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: Circle[]) 
   let velocity = 3;
   let wasInside: boolean | undefined | 1 = 1;
 
+  const len = walkingPath.length;
   let circle = walkingPath[0]!;
   let [targetX, targetZ] = circle;
   let soulX = targetX;
@@ -109,7 +110,8 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: Circle[]) 
         let contextualVelocity = 1;
         let mindist = Infinity;
 
-        for (const c of walkingPath) {
+        for (let i = 0; i < len; i++) {
+          const c = walkingPath[i]!;
           const distance = hypot(targetX - c[0], targetZ - c[1]);
           const circleSDF = distance - c[2];
           isInside ||= circleSDF < 0;
