@@ -16,7 +16,7 @@ export const zipBundleOptions = {
   /** If you chose zopfli (you should), here you can pass some options. */
   zopfli: {
     /** Maximum amount of times to rerun forward and backward pass to optimize LZ77 compression cost. The more, the slower. */
-    numiterations: 250, // 13312
+    numiterations: 13312,
 
     /** Maximum amount of blocks to split into (0 for unlimited, but this can give extreme results that hurt compression on some files). */
     blocksplittingmax: 30,

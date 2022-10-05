@@ -409,7 +409,7 @@ const initPage = () => {
   const KEY_FRONT = 4;
   const KEY_BACK = 5;
   const TOUCH_SIZE = 20;
-  const TOUCH_MOVE_SNAP = 0.2;
+  const TOUCH_MOVE_SNAP = 0.3;
   const TOUCH_MOVE_THRESHOLD = 0.5;
   const keyboard_downKeys = [];
   const updateMusicOnState = () => {

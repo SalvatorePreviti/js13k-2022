@@ -739,8 +739,8 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                         s = (i - a) / 20,
                         c = P(s),
                         (o = .5 < p1(r, c)) && (m = 1),
-                        b = (o && .2 < r) * E(t, -1),
-                        S = (o && .2 < c) * E(s, -1),
+                        b = (o && .3 < r) * E(t, -1),
+                        S = (o && .3 < c) * E(s, -1),
                         2 < r && (n = e + 20 * (t < 0 ? -1 : 1)),
                         2 < c && (i = a + 20 * (s < 0 ? -1 : 1)));
                   }

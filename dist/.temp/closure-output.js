@@ -96,7 +96,7 @@ b.m41 = a.m41, b.m42 = a.m42, b.m43 = a.m43, b.m44 = a.m44, b), n = NO_INLINE((a
       for (let {pageX:I, pageY:G, identifier:E} of q.changedTouches) {
         var z, N, Q, D;
         y === E && (Ya = A + (I - m) / 2.3, Xa = C + (G - v) / 2.3, x = 1);
-        k === E && (E = (b - I) / 20, z = Za(E), N = (f - G) / 20, Q = Za(N), (D = 0.5 < ab(z, Q)) && (r = 1), g = (D && 0.2 < z) * e(E, -1), u = (D && 0.2 < Q) * e(N, -1), 2 < z && (b = I + 20 * (0 > E ? -1 : 1)), 2 < Q && (f = G + 20 * (0 > N ? -1 : 1)));
+        k === E && (E = (b - I) / 20, z = Za(E), N = (f - G) / 20, Q = Za(N), (D = 0.5 < ab(z, Q)) && (r = 1), g = (D && 0.3 < z) * e(E, -1), u = (D && 0.3 < Q) * e(N, -1), 2 < z && (b = I + 20 * (0 > E ? -1 : 1)), 2 < Q && (f = G + 20 * (0 > N ? -1 : 1)));
       }
     }
   };

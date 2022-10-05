@@ -9,7 +9,7 @@ import { jsRemoveEndingSemicolons, stripUtf8BOM } from "../lib/code-utils";
 /**
  * LEVEL 1 is quick, LEVEL 2 to squeeze as much bytes as possible, is much slower.
  */
-const LEVEL = 1;
+const LEVEL = 2;
 
 export async function jsRoadroller(html: string): Promise<string> {
   return devLog.timed(

@@ -512,8 +512,8 @@ const initPage = () => {
               deltaY = (touchPosStartY - pageY) / 20,
               absDeltaY = abs(deltaY),
               (m = 0.5 < max(absDeltaX, absDeltaY)) && (touchPosMoved = 1),
-              touch_movementX = (m && 0.2 < absDeltaX) * clamp(identifier, -1),
-              touch_movementY = (m && 0.2 < absDeltaY) * clamp(deltaY, -1),
+              touch_movementX = (m && 0.3 < absDeltaX) * clamp(identifier, -1),
+              touch_movementY = (m && 0.3 < absDeltaY) * clamp(deltaY, -1),
               2 < absDeltaX && (touchPosStartX = pageX + 20 * (identifier < 0 ? -1 : 1)),
               2 < absDeltaY && (touchPosStartY = pageY + 20 * (deltaY < 0 ? -1 : 1)));
         }
