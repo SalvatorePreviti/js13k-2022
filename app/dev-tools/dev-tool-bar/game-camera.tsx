@@ -1,8 +1,8 @@
 import type { FC } from "react";
 import { useState, useEffect } from "react";
-import { camera_position, camera_rotation } from "../../camera";
-import { player_position_final } from "../../game/player-position";
 import { debug_camera_position, debug_camera_rotation, debug_camera_zero } from "../dev";
+import { camera_position_x, camera_position_y, camera_position_z } from "../../game/player";
+import { camera_rotation, player_position_final } from "../../game/world-state";
 
 let updateCounter = 0;
 
@@ -22,7 +22,10 @@ export const GameCameraComponent: FC = () => {
     return () => clearInterval(updateInterval);
   }, []);
 
-  const p = window.DEBUG_CAMERA ? debug_camera_position : camera_position;
+  const p = window.DEBUG_CAMERA
+    ? debug_camera_position
+    : { x: camera_position_x, y: camera_position_y, z: camera_position_z };
+
   const r = window.DEBUG_CAMERA ? debug_camera_rotation : camera_rotation;
 
   return (
@@ -38,7 +41,6 @@ export const GameCameraComponent: FC = () => {
           <div className="dev-tool-bar-camera-values-title">rot</div>
           <div>{formatNumber(r.x, 2)}</div>
           <div>{formatNumber(r.y, 2)}</div>
-          <div>{formatNumber(r.z, 2)}</div>
         </div>
       </div>
 
@@ -84,9 +86,11 @@ export const GameCameraComponent: FC = () => {
 };
 
 function formatNumber(value: number, digits: number) {
-  return value.toLocaleString("en", {
-    useGrouping: false,
-    minimumFractionDigits: digits,
-    maximumFractionDigits: digits,
-  });
+  return (
+    value?.toLocaleString("en", {
+      useGrouping: false,
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits,
+    }) || ""
+  );
 }

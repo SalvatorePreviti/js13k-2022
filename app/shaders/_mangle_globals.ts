@@ -3,6 +3,7 @@ export default {
   projectionMatrix: "a",
   viewMatrix: "b",
   worldMatrix: "c",
+  worldMatrices: "c",
   aColor: "d",
   aNormal: "e",
   aPosition: "f",
@@ -15,7 +16,6 @@ export default {
   FragPos: "m",
   UntransformedFragPos: "n",
   VNormal: "o",
-  modelId: "j",
   groundTexture: "q",
   iResolution: "j",
 };

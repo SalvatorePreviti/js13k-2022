@@ -8,7 +8,7 @@ const vec3 lightDir = vec3(-0.6560590289905073, 0.6663690071652679, -0.354314686
 
 #define zNear 0.3
 #define CSM_PLANE_DISTANCE 55.
-#define zFar 177.
+#define zFar 181.
 
 in highp vec4 VNormal;
 in highp vec4 FragPos;
@@ -27,6 +27,7 @@ uniform highp sampler2D groundTexture;
 out vec4 O;
 
 void main() {
+  vec4 fragPosVec4 = vec4(FragPos.xyz, 1);
   vec3 normal = normalize(VNormal.xyz);
 
   vec3 tex = Color.w *
@@ -40,10 +41,10 @@ void main() {
 
   float lambert = dot(normal, lightDir);
   float shadow = 1.;
-  float depthValue = abs((viewMatrix * FragPos).z);
+  float depthValue = abs((viewMatrix * fragPosVec4).z);
 
   // Gets the fragment position in light space
-  vec4 csmCoords = (depthValue < CSM_PLANE_DISTANCE ? csm_matrix0 : csm_matrix1) * FragPos;
+  vec4 csmCoords = (depthValue < CSM_PLANE_DISTANCE ? csm_matrix0 : csm_matrix1) * fragPosVec4;
 
   // perform perspective divide and transform to [0,1] range
   csmCoords = (csmCoords / csmCoords.w) * .5 + .5;
@@ -51,8 +52,8 @@ void main() {
   if (csmCoords.z < 1.) { // Only if inside far plane
     shadow = 0.;
 
-    // TODO: Shadow bias could be computed based on normal and light, something like 0.0003 * (1. -
-    // clamp(dot(normal, lightDir), 0., 1.))
+    // Shadow bias could be computed based on normal and light, something like
+    // 0.0003 * (1. - clamp(dot(normal, lightDir), 0., 1.))
 
     for (float x = -1.; x <= 1.; ++x) {
       for (float y = -1.; y <= 1.; ++y) {
@@ -70,13 +71,15 @@ void main() {
 
   vec3 rgbColor = Color.xyz * (1. - tex.x);
 
+  float lavaLight = max(max(abs(normal.x), abs(normal.z)) * .3 - normal.y, 0.) * pow(max(0., (8. - FragPos.y) / 48.), 1.6);
+
   O = vec4(
-    // ambient
-    vec3(.09, .05, .1) * rgbColor +
+    // lava light
+    vec3(lavaLight, lavaLight * lavaLight * .5, 0) +
+      // ambient
+      vec3(.09, .05, .11) * rgbColor +
       // diffuse
-      rgbColor * (max(0., lambert) * .5 + (rgbColor * lambert * lambert * vec3(.5, .45, .3))) * (shadow * .7 + .3) +
-      // lava light
-      rgbColor * max(dot(normal, normalize(vec3(.1, -1, -.1))), 0.) * max(0., 2. - FragPos.y) * (vec3(.6, .1, 0) / 14.) +
+      (rgbColor * (max(0., lambert) * .5 + (rgbColor * lambert * lambert * vec3(.5, .45, .3))) * (shadow * .75 + .25)) +
       // specular
       vec3(.6, .6, .5) * pow(max(0., dot(normalize(FragPos.xyz - viewPos), reflect(lightDir, normal))), 35.) * shadow,
     1

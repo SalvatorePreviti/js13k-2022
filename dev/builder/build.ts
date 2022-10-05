@@ -32,11 +32,13 @@ import resugarBlockScopePlugin from "@resugar/codemod-declarations-block-scope";
 import resugarFunctionsArrow from "@resugar/codemod-functions-arrow";
 import resugarObjectsShorthand from "@resugar/codemod-objects-shorthand";
 import resugarConcise from "@resugar/codemod-objects-concise";
-import { jsTdeMinify } from "./steps/js-tde-minify";
 import { babelPluginSimple } from "./steps/babel/babel-plugin-simple";
 import { jsEsbuildMinify } from "./steps/js-esbuild";
+import { jsRemoveEndingSemicolons } from "./lib/code-utils";
+import { babelPluginMath } from "./steps/babel/babel-plugin-math";
+import { jsTdeMinify } from "./steps/js-tde-minify";
 
-const resugarBlockScope = [resugarBlockScopePlugin, { "declarations.block-scope": { disableConst: true } }];
+const resugarBlockScope = [resugarBlockScopePlugin, { "declarations.block-scope": { disableConst: false } }];
 
 devLog.titlePaddingWidth = 18;
 
@@ -54,7 +56,7 @@ export async function build() {
 
     const includeDevTools = process.argv.includes("--with-dev-tools");
 
-    const sources = await buildWithVite({ stripDevTools: !includeDevTools, minifier: "terser" });
+    const sources = await buildWithVite({ stripDevTools: !includeDevTools, minifier: "esbuild" });
 
     devLog.logGreenBright(`\n📈 Stats: ${devLog.colors.whiteBright(path.join(outPath_build, "stats.html"))}\n`);
 
@@ -133,20 +135,42 @@ export async function build() {
   async function minifyJavascript(js: string): Promise<string> {
     js = await dprint(js);
 
+    js = await jsTerser(js, {
+      mangle: false,
+      final: false,
+      join_vars: true,
+      sequences: true,
+      computed_props: false,
+    });
+
+    js = await jsTransformSwc(js, false, swcPluginVars());
+
     js = await jsBabel(js, {
       minify: false,
       plugins: [
-        "babel-plugin-minify-dead-code-elimination",
         babelPluginSimple({ unmangleableProperties: "mark" }),
+        resugarBlockScope,
         resugarFunctionsArrow,
+        // "babel-plugin-minify-dead-code-elimination",
       ],
     });
+
+    js = await jsTransformSwc(js, false, swcPluginVars());
 
     js = await jsTerser(js, {
       mangle: false,
       final: false,
       join_vars: true,
       sequences: true,
+      computed_props: true,
+    });
+
+    js = await jsTransformSwc(js, false, swcPluginVars());
+
+    js = await jsEsbuildMinify(js, {
+      mangle: false,
+      minifySyntax: true,
+      minifyWhitespace: false,
       computed_props: true,
     });
 
@@ -162,7 +186,45 @@ export async function build() {
       inline: true,
     });
 
-    js = await jsTransformSwc(js, false, swcPluginVars({ floatRound: 6 }));
+    js = await jsTransformSwc(js, false, swcPluginVars());
+
+    js = await jsTerser(js, {
+      mangle: false,
+      final: false,
+      join_vars: true,
+      sequences: true,
+      computed_props: true,
+    });
+
+    js = await jsTransformSwc(js, false, swcPluginVars());
+
+    js = await jsUglify(js, {
+      varify: true,
+      final: false,
+      reduce_vars: true,
+      join_vars: true,
+      sequences: true,
+      computed_props: true,
+      inline: true,
+    });
+
+    js = await jsTransformSwc(js, false, swcPluginVars());
+
+    js = await jsBabel(js, {
+      minify: false,
+      plugins: [resugarBlockScope, resugarFunctionsArrow, "babel-plugin-minify-constant-folding"],
+    });
+
+    js = await jsTransformSwc(js, false, swcPluginVars());
+
+    js = await jsEsbuildMinify(js, {
+      mangle: false,
+      minifySyntax: true,
+      minifyWhitespace: false,
+      computed_props: true,
+    });
+
+    js = await jsTransformSwc(js, false, swcPluginVars());
 
     js = await jsBabel(js, {
       minify: false,
@@ -177,6 +239,8 @@ export async function build() {
       ],
     });
 
+    js = await jsTransformSwc(js, false, swcPluginVars({ floatRound: 6 }));
+
     // ===== Google closure compiler =====
 
     js = await streamedClosureCompiler.compileOne(js);
@@ -185,13 +249,21 @@ export async function build() {
 
     js = await jsBabel(js, {
       minify: false,
-      plugins: [resugarBlockScope, resugarConcise, resugarFunctionsArrow, resugarObjectsShorthand],
+      plugins: [
+        babelPluginMath(),
+        resugarBlockScope,
+        resugarConcise,
+        resugarFunctionsArrow,
+        resugarObjectsShorthand,
+        // "babel-plugin-minify-dead-code-elimination",
+        babelPluginSimple({ floatRound: 6 }),
+      ],
     });
 
-    js = await jsTransformSwc(js, false, swcPluginVars({ constToLet: true, floatRound: 6 }));
+    js = await jsTransformSwc(js, false, swcPluginVars({ floatRound: 6 }));
 
     js = await jsUglify(js, {
-      mangle: false,
+      mangle: true,
       varify: false,
       final: false,
       reduce_vars: true,
@@ -201,7 +273,7 @@ export async function build() {
       inline: true,
     });
 
-    js = await jsTransformSwc(js, false, swcPluginVars({ constToLet: true, floatRound: 6 }));
+    js = await jsTransformSwc(js, false, swcPluginVars({ floatRound: 6 }));
 
     js = await jsTerser(js, {
       mangle: false,
@@ -213,10 +285,38 @@ export async function build() {
 
     js = await jsBabel(js, {
       minify: false,
-      plugins: [resugarConcise, resugarObjectsShorthand, resugarFunctionsArrow, resugarBlockScope],
+      plugins: [
+        // "babel-plugin-minify-dead-code-elimination",
+        resugarConcise,
+        resugarObjectsShorthand,
+        resugarFunctionsArrow,
+        resugarBlockScope,
+      ],
     });
 
-    js = await jsTransformSwc(js, false, swcPluginVars({ constToLet: true, floatRound: 6 }));
+    js = await jsEsbuildMinify(js, {
+      mangle: false,
+      minifySyntax: true,
+      minifyWhitespace: false,
+      computed_props: true,
+    });
+
+    js = await jsTransformSwc(js, false, swcPluginVars({ floatRound: 6 }));
+
+    js = await jsBabel(js, {
+      minify: false,
+      plugins: [
+        "babel-plugin-minify-constant-folding",
+        // "babel-plugin-minify-dead-code-elimination",
+        resugarConcise,
+        resugarObjectsShorthand,
+        resugarFunctionsArrow,
+        resugarBlockScope,
+        babelPluginSimple({ removeNoInlineCall: true }),
+      ],
+    });
+
+    js = await jsTransformSwc(js, false, swcPluginVars({ floatRound: 6 }));
 
     js = await jsTerser(js, {
       mangle: "variables",
@@ -226,22 +326,39 @@ export async function build() {
       computed_props: true,
     });
 
-    js = await jsTransformSwc(js, false, swcPluginVars({ constToLet: true, floatRound: 6 }));
+    js = await jsTransformSwc(js, false, swcPluginVars({ floatRound: 6 }));
+
+    js = await jsUglify(js, {
+      varify: false,
+      final: true,
+      mangle: true,
+      reduce_vars: true,
+      join_vars: true,
+      sequences: true,
+      computed_props: true,
+      inline: false,
+    });
 
     js = await jsBabel(js, {
-      minify: true,
+      minify: false,
       plugins: [
         "babel-plugin-minify-constant-folding",
-        "babel-plugin-minify-dead-code-elimination",
+        // "babel-plugin-minify-dead-code-elimination",
         resugarConcise,
         resugarObjectsShorthand,
         resugarFunctionsArrow,
-        // resugarBlockScope,
-        babelPluginSimple({ removeNoInlineCall: true, constToLet: true }),
+        resugarBlockScope,
       ],
     });
 
     js = await jsTransformSwc(js, false, swcPluginVars({ constToLet: true, floatRound: 6 }));
+
+    js = await jsEsbuildMinify(js, {
+      mangle: false,
+      minifySyntax: true,
+      minifyWhitespace: true,
+      computed_props: true,
+    });
 
     js = await jsUglify(js, {
       varify: false,
@@ -256,13 +373,15 @@ export async function build() {
 
     js = await jsTdeMinify(js);
 
+    js = jsRemoveEndingSemicolons(js);
+
     return js;
   }
 }
 
 async function zipRoadRoller(sources: ViteBundledOutput) {
   const htmlCssJsBundle = await htmlCssToJs(sources);
-  const bundledHtmlBodyAndCss = await jsTdeMinify(htmlCssJsBundle.jsHtml);
+  const bundledHtmlBodyAndCss = htmlCssJsBundle.jsHtml;
   htmlCssJsBundle.jsHtml = "";
   if (bundledHtmlBodyAndCss) {
     htmlCssJsBundle.js = `${bundledHtmlBodyAndCss};${htmlCssJsBundle.js}`;

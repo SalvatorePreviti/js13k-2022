@@ -80,5 +80,11 @@
   "typescript.tsserver.experimental.enableProjectDiagnostics": true,
   "[svg]": {
     "editor.defaultFormatter": "jock.svg"
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/bower_components": true,
+    "**/*.code-search": true,
+    "dist": true
   }
 }

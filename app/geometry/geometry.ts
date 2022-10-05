@@ -1,53 +1,21 @@
-import { abs, integers_map, identity, type Vec3, type Vec3Optional } from "../math";
+import { abs } from "../math/math";
+import { translation } from "../math/matrix-transforms";
+import { integers_map } from "../math/integers-map";
+import { polygon_color, polygon_transform, type Polygon } from "./polygon";
+import type { Vec3 } from "../math/vectors";
 
-export const material = /* @__PURE__ */ (r: number, g: number, b: number, a: number = 0): number =>
-  ((a * 255) << 24) | ((b * 255) << 16) | ((g * 255) << 8) | (r * 255);
-
-export interface Polygon<TVec3 = Vec3> extends Array<TVec3> {
-  /** Polygon material */
-  $color?: number | undefined;
-
-  /** Smooth normals? */
-  $smooth?: 0 | 1 | undefined;
-}
-
-export const polygon_color = /* @__PURE__ */ (
-  polygon: Polygon,
-  color: number | undefined,
-  smooth?: 0 | 1 | undefined,
-): Polygon => {
-  polygon.$smooth = smooth;
-  polygon.$color = color;
-  return polygon;
-};
-
-export const vec3_transform = /* @__PURE__ */ ({ x, y, z }: Readonly<Vec3Optional>, m: DOMMatrixReadOnly): Vec3 => {
-  ({ x, y, z } = m.transformPoint({ x, y, z }));
-  return { x, y, z };
-};
-
-export const polygon_transform = /* @__PURE__ */ (
-  polygon: Polygon<Readonly<Vec3Optional>>,
-  m: DOMMatrixReadOnly,
-  color: number | undefined = polygon.$color,
-): Polygon =>
-  polygon_color(
-    polygon.map((p) => vec3_transform(p, m)),
-    color,
-    polygon.$smooth,
-  );
-
-export const polygons_transform = /* @__PURE__ */ (
-  polygons: Polygon<Readonly<Vec3Optional>>[],
-  m: DOMMatrixReadOnly,
-  color?: number | undefined,
-) => polygons.map((polygon) => polygon_transform(polygon, m, color));
+export const GQuad = [
+  { x: -1, z: 1 },
+  { x: 1, z: 1 },
+  { x: 1, z: -1 },
+  { x: -1, z: -1 },
+];
 
 /**
  * Creates a regular polygon
  * The polygon will face up (normal 0, -1, 0).
  */
-export const polygon_regular = /* @__PURE__ */ (segments: number, elongate: number = 0): Polygon =>
+export const polygon_regular = (segments: number, elongate: number = 0): Polygon =>
   integers_map(segments, (i) => {
     const z = Math.cos(Math.PI * 2 * (i / segments));
     return {
@@ -62,7 +30,7 @@ export const polygon_regular = /* @__PURE__ */ (segments: number, elongate: numb
  * Top and bottom polygons must have the same length.
  * Top polygon is supposed to be flipped.
  */
-export const cylinder_sides = /* @__PURE__ */ (btm: Polygon, top: Polygon, smooth?: 0 | 1 | undefined): Polygon[] =>
+export const cylinder_sides = (btm: Polygon, top: Polygon, smooth?: 0 | 1 | undefined): Polygon[] =>
   btm.map((btmi, i, { length }) =>
     polygon_color(
       [btmi, top[length - i - 1]!, top[length - ((i + 1) % length) - 1]!, btm[(i + 1) % length]!],
@@ -72,21 +40,14 @@ export const cylinder_sides = /* @__PURE__ */ (btm: Polygon, top: Polygon, smoot
   );
 
 /** Simplest composition of polygon functions. */
-export const cylinder = /* @__PURE__ */ (
-  segments: number | Vec3Optional[],
-  smooth?: 0 | 1,
-  topSize: number = 0,
-  elongate?: number,
-): Polygon[] => {
-  const points = (segments as Vec3Optional[]).length
-    ? (segments as Vec3Optional[])
-    : polygon_regular(segments as number, elongate);
-  const top = polygon_transform(points, identity.translate(0, 1).scale3d(topSize > 0 ? topSize : 1));
-  const bottom = polygon_transform(points, identity.translate(0, -1).scale3d(topSize < 0 ? -topSize : 1)).reverse();
-  return [...cylinder_sides(bottom as Polygon, top, smooth), bottom, top];
+export const cylinder = (segments?: number, smooth?: 0 | 1, topSize: number = 0, elongate?: number): Polygon[] => {
+  const points = segments ? polygon_regular(segments, elongate) : GQuad;
+  const top = polygon_transform(points, translation(0, 1).scale3d(topSize > 0 ? topSize : 1));
+  const bottom = polygon_transform(points, translation(0, -1).scale3d(topSize < 0 ? -topSize : 1)).reverse();
+  return [...cylinder_sides(bottom as Polygon, top, smooth), top, bottom];
 };
 
-export const sphere = /* @__PURE__ */ (
+export const sphere = (
   slices: number,
   stacks = slices,
   vertexFunc: (slice: number, stack: number, polygon: Polygon) => Vec3 = (x: number, y: number) => {
@@ -99,8 +60,8 @@ export const sphere = /* @__PURE__ */ (
   for (let i = 0; i < slices; i++) {
     for (let j = 0; j < stacks; j++) {
       const polygon = polygon_color([], 0, 1);
-      polygons.push(polygon);
       const vertex = (x: number, y: number) => polygon.push(vertexFunc(x, y, polygon));
+      polygons.push(polygon);
       vertex(i, j);
       if (j) {
         vertex((i + 1) % slices, j);

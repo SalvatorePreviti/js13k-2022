@@ -8,13 +8,13 @@ export const GAMEPAD_BUTTON_RIGHT = 15;
 
 export const GAMEPAD_BUTTON_START = 9;
 
-export const GAMEPAD_BUTTON_A = 1;
-
 export const GAMEPAD_BUTTON_B = 0;
 
-export const GAMEPAD_BUTTON_X = 3;
+export const GAMEPAD_BUTTON_A = 1;
 
 export const GAMEPAD_BUTTON_Y = 2;
+
+export const GAMEPAD_BUTTON_X = 3;
 
 export const GAMEPAD_BUTTON_LB = 4;
 

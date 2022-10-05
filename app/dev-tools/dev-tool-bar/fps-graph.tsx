@@ -44,7 +44,7 @@ export const FpsGraph: FC = () => {
 
       if (time >= msDisplayTime + 250) {
         msDisplayTime = time;
-        msGraph.updateGraph(durationMs, 30);
+        msGraph.updateGraph(durationMs, 40);
         msGraph.drawText("Frame:" + durationMs.toFixed(2).padStart(7) + "ms");
         durationMs = 0;
       }

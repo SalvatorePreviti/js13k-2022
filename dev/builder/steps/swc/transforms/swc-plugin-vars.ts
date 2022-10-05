@@ -1,6 +1,6 @@
 import type { BlockStatement, Expression, ModuleItem, Program, Statement, VariableDeclaration } from "@swc/core";
-import type { types as babelTypes } from "@babel/core";
 import SwcVisitor from "@swc/core/Visitor";
+import { browserPureFunctionsSet } from "../../../lib/js-config";
 import type { SwcSimpleTransformSettings } from "./swc-plugin-simple";
 import { swcPluginSimpleTransform } from "./swc-plugin-simple";
 
@@ -86,28 +86,27 @@ function isConstantExpr(expression?: Expression): boolean {
       return isConstantExpr(expression.left) && isConstantExpr(expression.right);
 
     case "CallExpression":
-      if (expression.callee.type !== "MemberExpression") {
-        return false;
+      if (expression.callee.type === "Identifier" && expression.callee.value === "NO_INLINE") {
+        return isConstantExpr(expression.arguments[0]?.expression);
       }
-      if (!isConstantExpr(expression.callee.object)) {
-        return false;
-      }
-      for (const arg of expression.arguments) {
-        if (arg && !isConstantExpr(arg.expression)) {
-          return false;
+      if (
+        (expression.callee.type === "Identifier" && browserPureFunctionsSet.has(expression.callee.value)) ||
+        (expression.callee.type === "MemberExpression" && isConstantExpr(expression.callee.object))
+      ) {
+        for (const arg of expression.arguments) {
+          if (arg && !isConstantExpr(arg.expression)) {
+            return false;
+          }
         }
+        return true;
       }
       break;
 
     case "MemberExpression":
-      if (expression.object.type === "Identifier") {
-        switch (expression.object.value) {
-          case "Math":
-          case "DOMMatrix":
-            return true;
-        }
+      if (expression.object.type === "Identifier" && browserPureFunctionsSet.has(expression.object.value)) {
+        return true;
       }
-      return false;
+      break;
 
     case "ObjectExpression":
       for (const property of expression.properties) {
@@ -162,7 +161,10 @@ function isConstantExpr(expression?: Expression): boolean {
           case "Map":
           case "Set":
           case "Array":
+          case "Image":
+          case "AudioContext":
           case "DOMMatrix":
+          case "DOMMatrixReadonly":
           case "Uint8Array":
           case "Uint16Array":
           case "Uint32Array":
@@ -194,124 +196,210 @@ function isConstantExpr(expression?: Expression): boolean {
   return false;
 }
 
-function compareBoolean(a: boolean, b: boolean) {
-  return !a && b ? -1 : a && !b ? 1 : 0;
-}
-
 function varKindOrdering(varKind: "var" | "let" | "const") {
   return varKind === "var" ? 0 : varKind === "let" ? 1 : 2;
 }
 
-function variableDeclarationSortCompare(
-  da: VariableDeclaration | babelTypes.VariableDeclaration,
-  db: VariableDeclaration | babelTypes.VariableDeclaration,
-) {
+function variableDeclarationSortCompare(da: VariableDeclaration, db: VariableDeclaration) {
   const a = da.declarations[0]!;
   const b = db.declarations[0]!;
 
-  let c = varKindOrdering(da.kind) - varKindOrdering(db.kind);
+  let c = 0;
+
+  c = varKindOrdering(da.kind) - varKindOrdering(db.kind);
   if (c) {
     return c;
   }
 
-  c = compareBoolean(!a.init, !b.init);
+  if (a.init !== b.init) {
+    if (!a.init) {
+      return -1;
+    }
+    if (!b.init) {
+      return 1;
+    }
+  }
+
+  if (a.init && b.init) {
+    c = compareExpressions(a.init, b.init);
+  }
+
+  // if (!c && a.id.type === "Identifier" && b.id.type === "Identifier") {
+  //   c = b.id.value.length - a.id.value.length || a.id.value.localeCompare(b.id.value);
+  // }
+
+  return c || ("span" in a && "span" in b ? a.span.start - b.span.start : 0);
+}
+
+function compareExpressions(a: Expression, b: Expression): number {
+  if (a === b) {
+    return 0;
+  }
+
+  if (a.type === "CallExpression" && a.callee.type === "Identifier" && a.callee.value === "NO_INLINE") {
+    a = a.arguments[0]!.expression;
+  }
+
+  if (b.type === "CallExpression" && b.callee.type === "Identifier" && b.callee.value === "NO_INLINE") {
+    b = b.arguments[0]!.expression;
+  }
+
+  const ta = exprTypeOrdering(a);
+  const tb = exprTypeOrdering(b);
+  if (ta && tb && ta !== tb) {
+    return ta - tb;
+  }
+
+  let c = 0;
+  if (a.type === "NumericLiteral" && b.type === "NumericLiteral") {
+    const va = a.value;
+    const vb = b.value;
+
+    if (va === (va | 0) && vb !== (vb | 0)) {
+      return -1;
+    }
+
+    if (va !== (va | 0) && vb === (vb | 0)) {
+      return 1;
+    }
+
+    c = va.toString().length - vb.toString().length;
+    if (c) {
+      return c;
+    }
+    c = va < vb ? -1 : va > vb ? 1 : 0;
+    if (c) {
+      return c;
+    }
+  }
+
+  if (a.type === "BooleanLiteral" && b.type === "BooleanLiteral") {
+    c = a.value < b.value ? -1 : a.value > b.value ? 1 : 0;
+    if (c) {
+      return c;
+    }
+  }
+
+  if (a.type === "StringLiteral" && b.type === "StringLiteral") {
+    c = a.value.localeCompare(b.value);
+    if (c) {
+      return c;
+    }
+  }
+
+  if (a.type === "UnaryExpression" && b.type === "UnaryExpression") {
+    c = compareExpressions(a.argument, b.argument);
+    if (c) {
+      return c;
+    }
+  }
+
+  if (a.type === "BinaryExpression" && b.type === "BinaryExpression") {
+    c =
+      a.operator.localeCompare(b.operator) ||
+      compareExpressions(a.left, b.left) ||
+      compareExpressions(a.right, b.right);
+    if (c) {
+      return c;
+    }
+  }
+
+  if (a.type === "NewExpression" && b.type === "NewExpression") {
+    if (a.callee.type === "Identifier" && b.callee.type === "Identifier") {
+      c = a.callee.value.localeCompare(b.callee.value);
+      if (c) {
+        return c;
+      }
+    }
+    c = compareExpressions(a.callee, b.callee);
+    if (c) {
+      return c;
+    }
+    const aa = a.arguments || [];
+    const ba = b.arguments || [];
+    for (let i = 0; i < aa.length; i++) {
+      const aexpr = aa[i]?.expression;
+      const bexpr = ba[i]?.expression;
+      if (aexpr && bexpr) {
+        c = compareExpressions(aexpr, bexpr);
+        if (c) {
+          return c;
+        }
+      }
+      if (aexpr) {
+        return 1;
+      }
+      if (bexpr) {
+        return -1;
+      }
+    }
+  }
+
+  if (a.type === "ArrayExpression" && b.type === "ArrayExpression") {
+    c = a.elements.length - b.elements.length;
+    if (c) {
+      return c;
+    }
+    for (let i = 0; i < a.elements.length; i++) {
+      const aexpr = a.elements[i]!.expression;
+      const bexpr = b.elements[i]!.expression;
+      if (aexpr && bexpr) {
+        c = compareExpressions(aexpr, bexpr);
+        if (c) {
+          return c;
+        }
+      }
+      if (aexpr) {
+        return 1;
+      }
+      if (bexpr) {
+        return -1;
+      }
+    }
+  }
+
   if (c) {
     return c;
   }
 
-  // if (a.init && b.init) {
-  // if (a.init.type === "NumericLiteral" && b.init.type === "NumericLiteral") {
-  //   return a.init.value < b.init.value ? -1 : a.init.value > b.init.value ? 1 : 0;
-  // }
-  // if (a.init.type === "BooleanLiteral" && b.init.type === "BooleanLiteral") {
-  //   return a.init.value < b.init.value ? -1 : a.init.value > b.init.value ? 1 : 0;
-  // }
-  // if (a.init.type === "StringLiteral" && b.init.type === "StringLiteral") {
-  //   return a.init.value.localeCompare(b.init.value);
-  // }
-  // c = constExpressionOrdering(a.init, false) - constExpressionOrdering(b.init, false);
-  // if (c) {
-  //   return c;
-  // }
-  // c = constExpressionOrdering(a.init, true) - constExpressionOrdering(b.init, true);
-  // if (c) {
-  //   return c;
-  // }
-  // if (a.init.type === "ArrayExpression" && b.init.type === "ArrayExpression") {
-  //   c = a.init.elements.length - b.init.elements.length;
-  //   if (c) {
-  //     return c;
-  //   }
-  //   for (let i = 0; i < a.init.elements.length; i++) {
-  //     const aexpr = (a.init.elements[i]! as any).expression;
-  //     const bexpr = (b.init.elements[i]! as any).expression;
-  //     if (aexpr && bexpr) {
-  //       c = constExpressionOrdering(aexpr, false) - constExpressionOrdering(bexpr, false);
-  //       if (c) {
-  //         return c;
-  //       }
-  //     }
-  //     if (aexpr) {
-  //       return 1;
-  //     }
-  //     if (bexpr) {
-  //       return -1;
-  //     }
-  //   }
-  // }
-  // }
-
-  if ("span" in a && "span" in b) {
-    return c || a.span.start - b.span.start;
+  if (a.type === "Identifier" && b.type === "Identifier") {
+    return a.value.localeCompare(b.value);
   }
-  if ("range" in a && "range" in b && a.range && b.range) {
-    return a.range[0] - b.range[0];
+
+  return "span" in a && "span" in b ? a.span.start - b.span.start : 0;
+}
+
+const expressionTypeOrdering: Expression["type"][] = [
+  "NumericLiteral",
+  "BigIntLiteral",
+  "BooleanLiteral",
+  "NullLiteral",
+  "BinaryExpression",
+  "UnaryExpression",
+  "StringLiteral",
+  "ArrayExpression",
+  "ObjectExpression",
+  "RegExpLiteral",
+  "MemberExpression",
+  "Identifier",
+  "ClassExpression",
+  "FunctionExpression",
+  "ArrowFunctionExpression",
+  "NewExpression",
+  "CallExpression",
+];
+
+function exprTypeOrdering(expression: Expression): number {
+  let idx = expressionTypeOrdering.indexOf(expression.type);
+  if (idx >= 0) {
+    if (
+      expression.type === "CallExpression" &&
+      expression.callee.type === "Identifier" &&
+      expression.callee.value === "NO_INLINE"
+    ) {
+      idx = expressionTypeOrdering.indexOf("ArrowFunctionExpression");
+    }
+    return idx + 1;
   }
   return 0;
 }
-
-// function constExpressionOrdering(
-//   expression: Expression | babelTypes.Expression | babelTypes.PrivateName,
-//   recursive: boolean,
-// ): number {
-//   switch (expression.type) {
-//     case "NullLiteral":
-//       return 1;
-//     case "BooleanLiteral":
-//       return 2;
-//     case "NumericLiteral":
-//       return 3;
-//     case "BigIntLiteral":
-//       return 4;
-//     case "StringLiteral":
-//       return 5;
-//     case "ArrayExpression":
-//       return 6;
-//     case "ObjectExpression":
-//       return 7;
-//     case "RegExpLiteral":
-//       return 8;
-//     case "MemberExpression":
-//       return 9;
-//     case "CallExpression":
-//       return 10;
-//     case "Identifier":
-//       return 11;
-//     case "ClassExpression":
-//       return 12;
-//     case "FunctionExpression":
-//       return 13;
-//     case "NewExpression":
-//       return 14;
-//     case "ArrowFunctionExpression":
-//       return 15;
-//     case "UnaryExpression":
-//       return recursive ? constExpressionOrdering(expression.argument, true) : 16;
-//     case "BinaryExpression":
-//       return recursive
-//         ? Math.max(constExpressionOrdering(expression.left, true), constExpressionOrdering(expression.right, true))
-//         : 17;
-//     default:
-//       return 100;
-//   }
-// }

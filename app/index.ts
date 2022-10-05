@@ -8,64 +8,57 @@ if (DEBUG) {
 
 import groundTextureSvg from "./groundTexture.svg";
 
-import { buildWorld } from "./game/level";
-import { newModel } from "./game/scene";
+import { build_life_the_universe_and_everything } from "./game/level";
 import { startMainLoop } from "./main-loop";
-import { song_numChannels } from "./music/song";
-import { soundbox_generate } from "./music/music-player";
-import { loadSong } from "./music/audio-context";
+import { loadGame } from "./game/world-state";
+import { loadStep } from "./load-step";
+import { loadSong } from "./music/music-player";
+import { initTriangleBuffers } from "./game/triangle-buffers";
 
-setTimeout(() => {
-  let songLoad = 0;
-  let thingsToLoad = 1 + song_numChannels;
+loadStep(() => {
   const image = new Image();
 
   if (DEBUG) {
-    console.time("SVG load");
-    console.time("song load");
     console.time("load");
   }
 
-  const onThingLoaded = () => {
-    h4.innerHTML += ".";
-    if (!--thingsToLoad) {
+  let loadStatus = 0;
+
+  const end = () => {
+    if (++loadStatus === 2) {
       if (DEBUG) {
         console.timeEnd("load");
       }
-      startMainLoop(image);
-    }
-  };
 
-  const asyncLoadSongChannels = () => {
-    if (songLoad < song_numChannels) {
-      soundbox_generate(songLoad++);
-      setTimeout(asyncLoadSongChannels);
-    } else {
-      loadSong();
       if (DEBUG) {
-        console.timeEnd("song load");
+        console.time("startMainLoop");
+      }
+
+      startMainLoop(image);
+
+      if (DEBUG) {
+        console.timeEnd("startMainLoop");
       }
     }
-    onThingLoaded();
   };
 
-  image.onload = image.onerror = () => {
-    onThingLoaded();
-    if (DEBUG) {
-      console.timeEnd("SVG load");
-    }
-  };
+  image.onload = image.onerror = end;
   image.src = groundTextureSvg;
 
-  if (DEBUG) {
-    for (let i = 0; i < song_numChannels; ++i) {
-      onThingLoaded();
-    }
-  } else {
-    setTimeout(asyncLoadSongChannels, 50);
-  }
+  const songLoaded = () => {
+    loadStep(() => {
+      initTriangleBuffers();
+      loadGame();
+      loadStep(end);
+    });
+    build_life_the_universe_and_everything();
+  };
 
-  newModel(NO_INLINE(buildWorld));
+  if (DEBUG_FLAG1) {
+    songLoaded();
+  } else {
+    NO_INLINE(loadSong)(songLoaded);
+  }
 
   if (DEBUG) {
     console.timeEnd("boot");

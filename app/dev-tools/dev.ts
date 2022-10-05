@@ -1,5 +1,13 @@
-import { camera_position, camera_rotation } from "../camera";
-import { angle_wrap_degrees, DEG_TO_RAD, type Vec3 } from "../math";
+window.NO_INLINE = (fn) => fn;
+window.DEBUG_CAMERA = false;
+
+const keyboard_downKeys = new Set<KEY_CODE>();
+window.dev_keyboard_downKeys = keyboard_downKeys;
+
+import { camera_rotation } from "../game/world-state";
+import { angle_wrap_degrees, DEG_TO_RAD } from "../math/math";
+import type { Vec3 } from "../math/vectors";
+import { camera_position_x, camera_position_y, camera_position_z, set_camera_position } from "../game/player";
 import type { KEY_CODE } from "../utils/keycodes";
 
 export const debug_camera_position: Vec3 = { x: 0, y: 0, z: 0 };
@@ -17,8 +25,6 @@ let debug_old_flag2 = !!window.DEBUG_FLAG2;
 let debug_old_flag3 = !!window.DEBUG_FLAG3;
 
 export let debug_camera_version = 0;
-
-const keyboard_downKeys = new Set<KEY_CODE>();
 
 let _mouseDown = false;
 let mouse_movementX = 0;
@@ -173,19 +179,15 @@ export function devInit() {
     }
 
     if (!window.DEBUG_CAMERA) {
-      debug_camera_position.x = camera_position.x;
-      debug_camera_position.y = camera_position.y;
-      debug_camera_position.z = camera_position.z;
+      debug_camera_position.x = camera_position_x;
+      debug_camera_position.y = camera_position_y;
+      debug_camera_position.z = camera_position_z;
       debug_camera_rotation.x = camera_rotation.x;
       debug_camera_rotation.y = camera_rotation.y;
-      debug_camera_rotation.z = camera_rotation.z;
     } else {
-      camera_position.x = debug_camera_position.x;
-      camera_position.y = debug_camera_position.y;
-      camera_position.z = debug_camera_position.z;
+      set_camera_position(debug_camera_position.x, debug_camera_position.y, debug_camera_position.z);
       camera_rotation.x = debug_camera_rotation.x;
       camera_rotation.y = debug_camera_rotation.y;
-      camera_rotation.z = debug_camera_rotation.z;
     }
 
     if (
@@ -195,7 +197,11 @@ export function devInit() {
       debug_camera_old_rotation.x !== debug_camera_rotation.x ||
       debug_camera_old_rotation.y !== debug_camera_rotation.y ||
       debug_camera_old_rotation.z !== debug_camera_rotation.z ||
-      debug_camera_old_enabled !== !!window.DEBUG_CAMERA
+      debug_camera_old_enabled !== !!window.DEBUG_CAMERA ||
+      debug_old_flag0 !== !!DEBUG_FLAG0 ||
+      debug_old_flag1 !== !!DEBUG_FLAG1 ||
+      debug_old_flag2 !== !!DEBUG_FLAG2 ||
+      debug_old_flag3 !== !!DEBUG_FLAG3
     ) {
       ++debug_camera_version;
       debug_camera_save();

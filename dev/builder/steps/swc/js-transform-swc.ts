@@ -15,6 +15,7 @@ export interface SwcMinifySettings {
   final: boolean;
   computed_props: boolean;
   timed?: boolean;
+  evaluate?: boolean;
 }
 
 export async function jsMinifySwc(
@@ -213,13 +214,13 @@ export function getSwcMinifyOptions(settings: SwcMinifySettings): JsMinifyOption
 
       // discard calls to console.* functions.
       // If you wish to drop a specific function call such as console.info
-      drop_console: false,
+      drop_console: true,
 
       // remove debugger; statements
-      drop_debugger: false,
+      drop_debugger: true,
 
       // attempt to evaluate constant expressions
-      evaluate: true,
+      evaluate: settings.evaluate ?? true,
 
       // Pass true to preserve completion values from terminal statements without return, e.g. in bookmarklets.
       expression: false,
@@ -417,6 +418,10 @@ export function getSwcMinifyOptions(settings: SwcMinifySettings): JsMinifyOption
 
       // false to omit comments in the output
       comments: settings.final ? false : "all",
+
+      keepQuotedProps: true,
+
+      preserve_annotations: true,
     },
   };
 }

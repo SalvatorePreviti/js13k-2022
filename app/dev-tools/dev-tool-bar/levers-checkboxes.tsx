@@ -1,6 +1,6 @@
 import type { FC } from "react";
 import { useEffect, useState } from "react";
-import { levers } from "../../game/world-state";
+import { levers } from "../../game/models";
 
 let leverStateInitialized = false;
 

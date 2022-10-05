@@ -5,6 +5,7 @@ import { GameCameraComponent } from "./game-camera";
 import { FpsGraph } from "./fps-graph";
 import { DebugFlagsComponent } from "./debug-flags";
 import { LeversComponent } from "./levers-checkboxes";
+import { resetGameTime } from "../../game/game-time";
 
 export const DevToolBar: FC = () => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -28,16 +29,19 @@ export const DevToolBar: FC = () => {
           <div className="dev-tool-bar-body">
             <FpsGraph />
             <GameCameraComponent />
+            <LeversComponent />
+            <DebugFlagsComponent />
+            <br />
+            <button onClick={() => resetGameTime(0)}>reset time</button>
+            <div id="dbg"></div>
+            <canvas
+              id="debug-canvas"
+              width={128}
+              height={128}
+              style={{ display: "block", marginLeft: 10, width: 128, height: 128 }}
+            ></canvas>
           </div>
         )}
-        <LeversComponent />
-        <DebugFlagsComponent />
-        <canvas
-          id="debug-canvas"
-          width={128}
-          height={128}
-          style={{ display: "block", marginLeft: 10, width: 128, height: 128 }}
-        ></canvas>
       </div>
     </Draggable>
   );
