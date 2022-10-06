@@ -11,15 +11,15 @@ export interface Model {
 export interface Lever {
   readonly $matrix: DOMMatrixReadOnly;
   readonly $transform: DOMMatrixReadOnly;
+  readonly _update: () => void;
   $value: 0 | 1;
   $lerpValue: number;
   $lerpValue2: number;
-  _update: () => void;
 }
 
 export interface Soul {
-  $value: 0 | 1;
   readonly _update: () => void;
+  $value: 0 | 1;
 }
 
 export type Circle = [number, number, number];

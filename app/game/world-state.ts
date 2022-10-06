@@ -42,7 +42,7 @@ const updateCollectedSoulsCounter = () => {
   h3.innerHTML =
     "Souls: " +
     [0, "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII"][
-      (souls_collected_count = souls.reduce((acc, { $value }) => acc + $value, 0))
+      (souls_collected_count = souls.reduce((acc, v) => acc + v.$value, 0))
     ]! +
     " / XIII";
 };
@@ -76,8 +76,8 @@ export const resetGame = () => {
 
 export const saveGame = () => {
   localStorage[LOCAL_STORAGE_SAVED_GAME_KEY] = JSON.stringify([
-    levers.map(({ $value }) => $value),
-    souls.map(({ $value }) => $value),
+    levers.map((v) => v.$value),
+    souls.map((v) => v.$value),
     player_last_pulled_lever,
     gameTime,
     secondBoatLerp,
@@ -101,7 +101,7 @@ export const onSoulCollected = () => {
       ,
       "Salvatore Previti<br>made this evil game<br><br>Done. Go back to the boat",
     ][souls_collected_count] || 'Catched a "crypto bro".<br>"Web3" is all scam, lies and grift',
-    souls_collected_count && souls_collected_count < 12 ? 5 : 7,
+    6,
   );
 
   updateCollectedSoulsCounter();
@@ -109,6 +109,7 @@ export const onSoulCollected = () => {
 };
 
 export const onPlayerPullLever = (leverIndex: number) => {
+  player_last_pulled_lever = leverIndex;
   if (DEBUG) {
     console.log("switch lever " + leverIndex + " = " + levers[leverIndex]?.$value);
   }
@@ -116,7 +117,6 @@ export const onPlayerPullLever = (leverIndex: number) => {
   if (leverIndex) {
     showMessage("* click *", 1);
   }
-  player_last_pulled_lever = leverIndex;
   saveGame();
 };
 

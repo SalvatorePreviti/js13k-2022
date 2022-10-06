@@ -132,19 +132,19 @@ export const eppur_si_muove = () => {
 
   // central sculpture/monument
 
-  modelsNextUpdate().translateSelf(0, levers[7]!.$lerpValue2 * -7.3);
+  modelsNextUpdate().translateSelf(0, -7.3 * levers[7]!.$lerpValue2);
 
   // second boat
 
-  boatAnimationMatrix(modelsNextUpdate(), -123, 1.4, 55 + secondBoatLerp * -65);
+  boatAnimationMatrix(modelsNextUpdate(), -123, 1.4, 55 - 65 * secondBoatLerp);
 
   // pushing rods
 
   oscillation = lerpneg(levers[10]!.$lerpValue, levers[11]!.$lerpValue);
 
-  modelsNextUpdate().translateSelf(0, -2, oscillation * abs(Math.sin(gameTime * 1.1)) * -8.5 + 10);
+  modelsNextUpdate().translateSelf(0, -2, 10 - 8.5 * oscillation * abs(Math.sin(gameTime * 1.1)));
 
-  modelsNextUpdate().translateSelf(0, -2, oscillation * abs(Math.sin(gameTime * 2.1)) * -8.5 + 10);
+  modelsNextUpdate().translateSelf(0, -2, 10 - 8.5 * oscillation * abs(Math.sin(gameTime * 2.1)));
 
   modelsNextUpdate().translateSelf(
     0,
@@ -177,7 +177,7 @@ export const eppur_si_muove = () => {
 
   modelsNextUpdate()
     .translateSelf(
-      (1 - oscillation) * 2.5 - 139.7,
+      2.5 * (1 - oscillation) - 139.7,
       -3 * (1 - levers[8]!.$lerpValue) - oscillation * Math.sin(gameTime * 0.8) - 1.8,
       93.5,
     )
@@ -243,10 +243,7 @@ export const eppur_si_muove = () => {
 
   for (let i = 0; i < LEVERS_COUNT; ++i) {
     levers[i]!._update();
-    matrixToArray(tempMatrix, objectsMatricesBuffer, i + SOULS_COUNT);
-
-    // Encode lerp value in matrix m44 so fragmemt shader can change the lever handle color
-    objectsMatricesBuffer[15 + SOULS_COUNT * 16 + 16 * i] = 1 - levers[i]!.$lerpValue;
+    matrixToArray(tempMatrix, objectsMatricesBuffer, SOULS_COUNT + i);
   }
 
   // Player body and legs

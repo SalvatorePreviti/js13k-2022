@@ -63,18 +63,23 @@ export const newLever = ($transform: DOMMatrixReadOnly): void => {
       matrixCopy(parentModel.$matrix).multiplySelf($transform);
 
       if (interact_pressed && distanceToPlayer() < LEVER_SENSITIVITY_RADIUS) {
-        if (lever.$lerpValue < 0.3 || lever.$lerpValue > 0.7) {
-          lever.$value = lever.$value ? 0 : 1;
+        if (lever.$value) {
+          if (lever.$lerpValue > 0.7) {
+            lever.$value = 0;
+            onPlayerPullLever(index);
+          }
+        } else if (lever.$lerpValue < 0.3) {
+          lever.$value = 1;
           onPlayerPullLever(index);
         }
-      }
-
-      if (!index && lever.$value && lever.$lerpValue > 0.8) {
+      } else if (lever.$value && lever.$lerpValue > 0.8 && !index) {
         lever.$value = 0;
         onLever0Pulled();
       }
 
-      tempMatrix.rotateSelf(lever.$lerpValue * 60 - 30, 0).translateSelf(0, 1);
+      // Prepare the matrix to be written to the uniform buffer for the lever stick.
+      // and encode lerp value in matrix m44 so fragmemt shader can change the lever handle color
+      tempMatrix.rotateSelf(lever.$lerpValue * 60 - 30, 0).translateSelf(0, 1).m44 = 1 - lever.$lerpValue;
     },
   };
   levers.push(lever);
@@ -91,14 +96,12 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: Circle[]) 
   let lookAngle: number;
   let prevX: number;
   let prevZ: number;
-  let velocity = 3;
-  let wasInside: boolean | undefined | 1 = 1;
+  let velocity: number;
+  let wasInside: 0 | 1 | undefined | 1 = 1;
 
-  const len = walkingPath.length;
   let circle = walkingPath[0]!;
   let [targetX, targetZ] = circle;
-  let soulX = targetX;
-  let soulZ = targetZ;
+  let [soulX, soulZ] = circle;
 
   const parentModelMatrix = currentEditModel.$matrix;
   const index = souls.length;
@@ -106,20 +109,20 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: Circle[]) 
     $value: 0,
     _update: () => {
       if (!soul.$value) {
-        let isInside: boolean | undefined;
+        let isInside: 0 | 1 | undefined;
         let contextualVelocity = 1;
         let mindist = Infinity;
-
-        for (let i = 0; i < len; i++) {
+        for (let i = 0; i < walkingPath.length; i++) {
           const c = walkingPath[i]!;
           const distance = hypot(targetX - c[0], targetZ - c[1]);
+          contextualVelocity = min(contextualVelocity, distance / c[2]);
           const circleSDF = distance - c[2];
-          isInside ||= circleSDF < 0;
-          if (circleSDF > 0 && circleSDF < mindist) {
+          if (circleSDF < 0) {
+            isInside = 1;
+          } else if (circleSDF < mindist) {
             mindist = circleSDF;
             circle = c;
           }
-          contextualVelocity = min(contextualVelocity, distance / c[2]);
         }
 
         if (!isInside) {
@@ -128,8 +131,8 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: Circle[]) 
           let magnitude = hypot(ax, az);
           let angle = Math.atan2(-az, ax);
           if (wasInside) {
-            randAngle = ((Math.random() - 0.5) * Math.PI) / 2;
             velocity = clamp(velocity / (1 + Math.random()));
+            randAngle = ((Math.random() - 0.5) * Math.PI) / 2;
           }
           angle += randAngle;
           dirX = -Math.cos(angle);
@@ -144,7 +147,7 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: Circle[]) 
 
         wasInside = isInside;
 
-        velocity = lerpDamp(velocity, (1 - contextualVelocity) * 6 + 3, contextualVelocity + 3);
+        velocity = lerpDamp(velocity, 3 + 6 * (1 - contextualVelocity), 3 + contextualVelocity);
         soulX = lerpDamp(soulX, (targetX = lerpDamp(targetX, targetX + dirX, velocity)), velocity);
         soulZ = lerpDamp(soulZ, (targetZ = lerpDamp(targetZ, targetZ + dirZ, velocity)), velocity);
 
@@ -153,7 +156,7 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: Circle[]) 
         matrixCopy(parentModelMatrix)
           .multiplySelf(transform)
           .translateSelf((prevX = soulX), 0, (prevZ = soulZ))
-          .rotateSelf(0, lookAngle, Math.sin(gameTime * 1.7) * 7);
+          .rotateSelf(0, lookAngle, 7 * Math.sin(gameTime * 1.7));
 
         if (distanceToPlayer() < SOUL_SENSITIVITY_RADIUS) {
           soul.$value = 1;
