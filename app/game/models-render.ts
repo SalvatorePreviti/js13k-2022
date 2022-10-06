@@ -21,7 +21,7 @@ export const renderModels = (
 ) => {
   if (mainMenuVisible) {
     if (hC.width > 1100) {
-      matrixCopy().rotateSelf(0, Math.sin(absoluteTime) * 40 - 80, -8);
+      matrixCopy().rotateSelf(0, 40 * Math.sin(absoluteTime) - 80, -8);
 
       matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_BODY - 1);
       matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_LEG0 - 1);

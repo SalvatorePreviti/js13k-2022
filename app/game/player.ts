@@ -154,7 +154,7 @@ export const player_init = () => {
       let right = 0;
       let front = 0;
       let back = 0;
-      const yindex = y * (COLLISION_TEXTURE_SIZE * 4);
+      const yindex = COLLISION_TEXTURE_SIZE * 4 * y;
       for (let tx = 0; tx < COLLISION_TEXTURE_SIZE; ++tx) {
         const index = yindex + tx * 4;
 
@@ -268,10 +268,10 @@ export const player_init = () => {
       player_position_global_x = matrixTransformPoint.x;
       player_position_global_y = matrixTransformPoint.y;
       player_position_global_z = matrixTransformPoint.z;
-    }
 
-    if (player_respawned) {
-      player_respawned = currentModelId ? 0 : 1;
+      if (player_respawned) {
+        player_respawned = currentModelId ? 0 : 1;
+      }
     }
 
     if (player_position_final.y < (player_position_final.x < -20 || player_position_final.z < 109 ? -25 : -9)) {
@@ -306,7 +306,7 @@ export const player_init = () => {
         const d = player_respawned + damp(18);
         camera_position_x = lerp(camera_position_x, player_position_final.x, d);
         camera_position_z = lerp(camera_position_z, player_position_final.z, d);
-        camera_position_y = lerp(camera_position_y, player_model_y + 1.5, d);
+        camera_position_y = lerp(camera_position_y, 1.6 + player_model_y, d);
         camera_rotation.y = angle_wrap_degrees(camera_rotation.y);
       } else {
         camera_position_x = interpolate_with_hysteresis(
@@ -414,12 +414,12 @@ export const player_init = () => {
     movePlayer(
       // x
       gameTimeDelta *
-        (player_fly_velocity_x + player_speed * (strafe * Math.cos(movAngle) - forward * Math.sin(movAngle))),
+        (player_fly_velocity_x + player_speed * (strafe * Math.cos(movAngle) - Math.sin(movAngle) * forward)),
       // y
-      -player_gravity * gameTimeDelta,
+      gameTimeDelta * -player_gravity,
       // z
       gameTimeDelta *
-        (player_fly_velocity_z + player_speed * (strafe * Math.sin(movAngle) + forward * Math.cos(movAngle))),
+        (player_fly_velocity_z + player_speed * (strafe * Math.sin(movAngle) + Math.cos(movAngle) * forward)),
     );
   };
 };

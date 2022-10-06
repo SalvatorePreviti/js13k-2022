@@ -108,17 +108,18 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     );
 
     [-15, 15].map((z, j) => {
-      // all 4 gate bars
+      // all 4 gate bars for the whole level
       gateBarsModel();
       gateBarsModel();
-
-      //  gate top
-      meshAdd(cylinder(), translation(0, 6.3, z).scale(4, 0.3, 1), material(0.3, 0.3, 0.3, 0.4));
-      //  gate bottom
-      meshAdd(cylinder(), translation(0, 1, z).scale(3, 0.2, 0.35), material(0.5, 0.5, 0.5, 0.3));
 
       // in and out
       meshAdd(cylinder(), translation(0, 0, j ? 22 : -23).scale(3, 1, 8), material(0.9, 0.9, 0.9, 0.2));
+
+      //  gate top
+      meshAdd(cylinder(), translation(0, 6.3, z).scale(4, 0.3, 1), material(0.3, 0.3, 0.3, 0.4));
+
+      //  gate bottom
+      meshAdd(cylinder(), translation(0, 1, z).scale(3, 0.2, 0.35), material(0.5, 0.5, 0.5, 0.3));
 
       // horns
       integers_map(5, (i) =>

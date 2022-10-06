@@ -1,7 +1,7 @@
 import { abs, clamp } from "../math/math";
 import type { Vec2, Vec3 } from "../math/vectors";
 import { levers, souls, SOULS_COUNT } from "./models";
-import { gameTime, lerpDamp, resetGameTime } from "./game-time";
+import { gameTime, lerpDamp, setGameTime } from "./game-time";
 
 export const player_position_final: Vec3 = { x: 0, y: 0, z: 0 };
 
@@ -58,8 +58,8 @@ export const loadGame = () => {
     );
     souls.map((soul, index) => (soul.$value = (savedSouls[index] | 0) as 0 | 1));
     player_last_pulled_lever = savedLastPulledLever;
+    setGameTime(savedGameTime);
     secondBoatLerp = savedSecondBoatLerp;
-    resetGameTime(savedGameTime);
   } catch (e) {
     if (DEBUG) {
       console.log(e);

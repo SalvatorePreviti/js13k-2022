@@ -1,6 +1,5 @@
 let _globalTime;
 let mainMenuVisible;
-let gameTimeDelta;
 let firstBoatLerp;
 let secondBoatLerp;
 let audioBuffer;
@@ -18,6 +17,7 @@ let rotatingPlatform2Rotation;
 let rotatingHexCorridorRotation;
 let gameTime = 0;
 let absoluteTime = 0;
+let gameTimeDelta = 0;
 let souls_collected_count = 0;
 let game_completed = 0;
 let player_last_pulled_lever = 0;
@@ -335,7 +335,7 @@ const sphere = (slices, stacks = slices, vertexFunc = (x, y) => (y *= Math.PI / 
   }
   return polygons;
 };
-const damp = NO_INLINE((speed) => 1 - Math.exp(-speed * gameTimeDelta));
+const damp = NO_INLINE((speed) => 1 - Math.exp(-gameTimeDelta * speed));
 const lerpDamp = NO_INLINE((from, to, speed) => lerp(from, to, damp(speed)));
 const showMessage = (message, duration) => {
   1 / 0 > _messageEndTime && (_messageEndTime = gameTime + duration, h4.innerHTML = message);
@@ -356,7 +356,7 @@ const updateCollectedSoulsCounter = () => {
     "XI",
     "XII",
     "XIII",
-  ][souls_collected_count = souls.reduce((acc, v) => v.$value + acc, 0)] + " / XIII";
+  ][souls_collected_count = souls.reduce((acc, v) => acc + v.$value, 0)] + " / XIII";
 };
 const saveGame = () => {
   localStorage["DanteSP22"] = JSON.stringify([
@@ -1097,8 +1097,8 @@ const player_init = () => {
         matrixTransformPoint(player_position_final.x, player_position_final.y, player_position_final.z),
         player_position_global_x = matrixTransformPoint.x,
         player_position_global_y = matrixTransformPoint.y,
-        player_position_global_z = matrixTransformPoint.z),
-      player_respawned = player_respawned && (currentModelId ? 0 : 1),
+        player_position_global_z = matrixTransformPoint.z,
+        player_respawned = player_respawned && (currentModelId ? 0 : 1)),
       (player_position_final.x < -20 || player_position_final.z < 109 ? -25 : -9) > player_position_final.y
       && (player_respawned = 2),
       currentModelId === 1 && (levers[9].$value = player_position_final.x < -15 && player_position_final.z < 0 ? 1 : 0),
@@ -1119,7 +1119,7 @@ const player_init = () => {
         ? (d = player_respawned + damp(18),
           camera_position_x = lerp(camera_position_x, player_position_final.x, d),
           camera_position_z = lerp(camera_position_z, player_position_final.z, d),
-          camera_position_y = lerp(camera_position_y, player_model_y + 1.5, d),
+          camera_position_y = lerp(camera_position_y, 1.6 + player_model_y, d),
           camera_rotation.y = angle_wrap_degrees(camera_rotation.y))
         : (camera_position_x = interpolate_with_hysteresis(
           camera_position_x,
@@ -1193,10 +1193,10 @@ const player_init = () => {
       movAngle = player_first_person ? (180 + camera_rotation.y) * DEG_TO_RAD : 0,
       movePlayer(
         gameTimeDelta
-          * (player_fly_velocity_x + player_speed * (viewDirDiffx * Math.cos(movAngle) - d * Math.sin(movAngle))),
-        -player_gravity * gameTimeDelta,
+          * (player_fly_velocity_x + player_speed * (viewDirDiffx * Math.cos(movAngle) - Math.sin(movAngle) * d)),
+        gameTimeDelta * -player_gravity,
         gameTimeDelta
-          * (player_fly_velocity_z + player_speed * (viewDirDiffx * Math.sin(movAngle) + d * Math.cos(movAngle))),
+          * (player_fly_velocity_z + player_speed * (viewDirDiffx * Math.sin(movAngle) + Math.cos(movAngle) * d)),
       );
   };
 };
@@ -1314,9 +1314,8 @@ loadStep(() => {
                 0,
                 levers[3].$lerpValue < 0.01
                   ? -500
-                  : (1 - levers[2].$lerpValue) * levers[3].$lerpValue2 * (5 * Math.cos(1.5 * gameTime) + 2)
+                  : (2 + 5 * Math.cos(1.5 * gameTime)) * (1 - levers[2].$lerpValue) * levers[3].$lerpValue2
                     + 15 * (levers[3].$lerpValue - 1),
-                0,
               );
             let oscillation = min(1 - levers[4].$lerpValue2, levers[2].$lerpValue2);
             modelsNextUpdate().translateSelf(oscillation * Math.sin(gameTime / 1.5 + 2) * 12),
@@ -1327,17 +1326,17 @@ loadStep(() => {
               modelsNextUpdate().translateSelf(0, oscillation * Math.sin(1.35 * gameTime) * 4),
               modelsNextUpdate().translateSelf(0, 0, oscillation * Math.sin(0.9 * gameTime) * 8),
               modelsNextUpdate().translateSelf(0, -6.5 * levers[4].$lerpValue2),
-              modelsNextUpdate().translateSelf(-75, (1 - levers[5].$lerpValue2) * (1 - levers[6].$lerpValue) * 3, 55)
+              modelsNextUpdate().translateSelf(-75, 3 * (1 - levers[5].$lerpValue2) * (1 - levers[6].$lerpValue), 55)
                 .rotateSelf(180 * (1 - levers[5].$lerpValue2) + rotatingHexCorridorRotation, 0),
               oscillation = lerpneg(levers[7].$lerpValue2, levers[6].$lerpValue2),
               modelsNextUpdate().translateSelf(
                 0,
-                5 * oscillation * Math.sin(gameTime) + 3.5 * (1 - max(levers[6].$lerpValue, levers[7].$lerpValue)),
+                oscillation * Math.sin(gameTime) * 5 + 3.5 * (1 - max(levers[6].$lerpValue, levers[7].$lerpValue)),
               ),
               modelsNextUpdate().translateSelf(
                 0,
-                6 * oscillation * Math.sin(gameTime + 3),
-                6 * oscillation * Math.sin(0.6 * gameTime + 1),
+                oscillation * Math.sin(gameTime + 3) * 6,
+                oscillation * Math.sin(0.6 * gameTime + 1) * 6,
               ),
               modelsNextUpdate().translateSelf(0, -7.3 * levers[7].$lerpValue2),
               boatAnimationMatrix(modelsNextUpdate(), -123, 1.4, 55 - 65 * secondBoatLerp),
@@ -1364,7 +1363,7 @@ loadStep(() => {
               2.5 * (1 - oscillation) - 139.7,
               -3 * (1 - levers[8].$lerpValue) - oscillation * Math.sin(0.8 * gameTime) - 1.8,
               93.5,
-            ).rotateSelf(Math.cos(1.3 * gameTime) * (3 * oscillation + 3), 0),
+            ).rotateSelf(Math.cos(1.3 * gameTime) * (3 + 3 * oscillation), 0),
               modelsNextUpdate().translateSelf(-81, 0.6, 106).rotateSelf(0, 40 + rotatingPlatform1Rotation),
               modelsNextUpdate().translateSelf(-65.8, 0.8, 106).rotateSelf(0, rotatingPlatform2Rotation),
               modelsNextUpdate().translateSelf(-50.7, 0.8, 106).rotateSelf(0, 180 - rotatingPlatform2Rotation),
@@ -1670,9 +1669,8 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
           ),
             souls.map((soul, index) => soul.$value = 0 | savedSouls[index]),
             player_last_pulled_lever = savedLastPulledLever,
-            secondBoatLerp = savedSecondBoatLerp,
             gameTime = savedGameTime,
-            gameTimeDelta = 0;
+            secondBoatLerp = savedSecondBoatLerp;
         } catch {}
         updateCollectedSoulsCounter(), firstBoatLerp = clamp(player_last_pulled_lever), loadStep(end);
       });
@@ -1787,9 +1785,9 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               ].map((z, j) => {
                 gateBarsModel(),
                   gateBarsModel(),
+                  meshAdd(cylinder(), translation(0, 0, j ? 22 : -23).scale(3, 1, 8), material(0.9, 0.9, 0.9, 0.2)),
                   meshAdd(cylinder(), translation(0, 6.3, z).scale(4, 0.3, 1), material(0.3, 0.3, 0.3, 0.4)),
                   meshAdd(cylinder(), translation(0, 1, z).scale(3, 0.2, 0.35), material(0.5, 0.5, 0.5, 0.3)),
-                  meshAdd(cylinder(), translation(0, 0, j ? 22 : -23).scale(3, 1, 8), material(0.9, 0.9, 0.9, 0.2)),
                   integers_map(5, (i) =>
                     meshAdd(
                       hornPolygons,
