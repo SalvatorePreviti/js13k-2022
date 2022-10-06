@@ -149,14 +149,6 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     meshAdd(cylinder(), translation(-3.4, -0.2, -19).scale(2, 1, 1.5).rotate(0, -90), material(0.75, 0.75, 0.75, 0.2));
     meshAdd(cylinder(5), translation(-5.4, 0, -19).scale(2, 1, 2).rotate(0, -90), material(0.6, 0.3, 0.3, 0.4));
 
-    // descent
-
-    meshAdd(
-      cylinder(),
-      identity.rotate(0, 60).translate(14.8, -1.46, -1).rotate(-30).scale(4, 0.6, 4.5),
-      material(0.8, 0.2, 0.2, 0.5),
-    );
-
     // base
 
     meshAdd(
@@ -169,28 +161,36 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
             material(0.7, 0.7, 0.7, 0.2),
           ),
 
-          // hole extension
-          polygons_transform(cylinder(6), translation(0, -8).scale(9, 8, 8), material(0.4, 0.2, 0.5, 0.5)),
-
           // middle base
-          polygons_transform(
-            cylinder(6, 0, 0, 0.3),
-            translation(0, -0.92).scale(13, 2, 13),
-            material(0.8, 0.8, 0.8, 0.2),
+          csg_polygons_subtract(
+            polygons_transform(
+              cylinder(6, 0, 0, 0.3),
+              translation(0, -0.92).scale(13, 2, 13),
+              material(0.8, 0.8, 0.8, 0.2),
+            ),
+            // descent cut
+            polygons_transform(
+              cylinder(),
+              identity.rotate(0, 60).translate(14, 0.5, -1).scale(2.4, 5, 2).rotate(-4),
+              material(0.5, 0.5, 0.5, 0.5),
+            ),
           ),
+
+          // descent
+          polygons_transform(
+            cylinder(),
+            identity.rotate(0, 60).translate(14.8, -1.46, -1).rotate(-30).translate(0, -1).scale(4.03, 1.6, 4.5),
+            material(0.8, 0.2, 0.2, 0.5),
+          ),
+
+          // hole extension
+          polygons_transform(cylinder(6), translation(0, -8).scale(9, 8, 7), material(0.2, 0.1, 0.4, 0.5)),
         ),
         // hole
         polygons_transform(cylinder(5), identity.scale(5, 30, 5), material(0.4, 0.2, 0.6, 0.5)),
 
         // smooth hole
         polygons_transform(cylinder(5, 0, 1.5), translation(0, 1).scale(4.5, 0.3, 4.5), material(0.7, 0.5, 0.9, 0.2)),
-
-        // descent cut
-        polygons_transform(
-          cylinder(),
-          identity.rotate(0, 60).translate(14, 0.7, -1).rotate(-35).scale(2, 2, 2),
-          material(0.5, 0.5, 0.5, 0.5),
-        ),
 
         // lower lever pad
         polygons_transform(cylinder(6), translation(15, -1.5, 4).scale(3.5, 1, 3.5), material(0.5, 0.5, 0.5, 0.5)),

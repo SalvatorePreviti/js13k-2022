@@ -31,7 +31,7 @@ export const CAMERA_PLAYER_Y_DIST = 13;
 
 export const CAMERA_PLAYER_Z_DIST = -18;
 
-export const PLAYER_LEGS_VELOCITY = 7 * 1.3;
+export const PLAYER_LEGS_VELOCITY = 9.1;
 
 export const PLAYER_RESPAWN_Z = -2.4;
 
@@ -378,7 +378,11 @@ export const player_init = () => {
     // Update player body and legs matrices
 
     modelsNextUpdate()
-      .translateSelf(player_position_final.x, player_model_y, player_position_final.z)
+      .translateSelf(
+        player_position_final.x,
+        0.06 * player_legs_speed * Math.cos(gameTime * (PLAYER_LEGS_VELOCITY * 2)) + player_model_y,
+        player_position_final.z,
+      )
       .rotateSelf(0, player_look_angle);
 
     for (let i = 0; i < 2; ++i) {

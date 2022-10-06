@@ -12,9 +12,9 @@ import {
 } from "./utils/keycodes";
 import { abs, clamp, max, threshold } from "./math/math";
 import { camera_rotation, resetGame } from "./game/world-state";
-import { songAudioSource, audioContext } from "./music/audio-context";
 import { CSM_PLANE_DISTANCE, fieldOfViewAmount, mat_perspective, zFar, zNear } from "./math/matrix-perspective";
 import { mainMenuVisible, setMainMenuVisible, absoluteTime, gameTimeDelta } from "./game/game-time";
+import { audioBuffer } from "./music/music-player";
 
 export let interact_pressed: 0 | 1;
 
@@ -64,13 +64,18 @@ export const initPage = () => {
   const KEY_FRONT = 4;
   const KEY_BACK = 5;
 
+  let audioContext: AudioContext | undefined;
+  let songAudioSource: AudioBufferSourceNode | undefined;
+
   const updateMusicOnState = () => {
     b4.innerHTML = "Music: " + music_on;
-    if (mainMenuVisible || !music_on) {
-      songAudioSource.disconnect();
-    } else {
-      // connect the AudioBufferSourceNode to the  destination so we can hear the sound
-      songAudioSource.connect(audioContext.destination);
+    if (songAudioSource) {
+      if (mainMenuVisible || !music_on) {
+        songAudioSource.disconnect();
+      } else {
+        // connect the AudioBufferSourceNode to the  destination so we can hear the sound
+        songAudioSource.connect(audioContext!.destination);
+      }
     }
   };
 
@@ -98,23 +103,41 @@ export const initPage = () => {
     }
   };
 
-  const mainMenu = (value: boolean, firstPerson: 0 | 1 = 0) => {
+  const mainMenu = (value: boolean) => {
     if (mainMenuVisible !== value) {
       setMainMenuVisible(value);
-      player_first_person = firstPerson;
       handleResize();
       document.body.className = value ? "l m" : "l";
-      try {
-        if (value) {
+      if (value) {
+        try {
           document.exitFullscreen().catch(() => 0);
           document.exitPointerLock();
-        } else {
-          document.body.requestFullscreen().catch(() => 0);
-          songAudioSource.start();
-        }
-      } catch {}
+        } catch {}
+      }
       updateMusicOnState();
     }
+  };
+
+  const start = (firstPerson?: 0 | 1 | undefined) => {
+    try {
+      if (!audioContext) {
+        audioContext = new AudioContext();
+        songAudioSource = audioContext.createBufferSource();
+
+        // Load the buffer into the audio source
+        songAudioSource.buffer = audioBuffer;
+
+        // Loop forever
+        songAudioSource.loop = true;
+
+        // Start
+        songAudioSource.start();
+      }
+
+      document.body.requestFullscreen().catch(() => 0);
+    } catch {}
+    mainMenu(false);
+    player_first_person = firstPerson;
   };
 
   if (!DEBUG) {
@@ -122,10 +145,14 @@ export const initPage = () => {
   }
 
   // "Play" button
-  b1.onclick = () => mainMenu(false);
+  b1.onclick = () => {
+    start();
+  };
 
   // "Play first person" button
-  b2.onclick = () => mainMenu(false, 1);
+  b2.onclick = () => {
+    start(1);
+  };
 
   // Menu hamburger button
   b5.onclick = () => mainMenu(true);
@@ -212,8 +239,8 @@ export const initPage = () => {
             touchRotX = pageX;
             touchRotY = pageY;
             touchRotIdentifier = identifier;
-            touchStartCameraRotX = camera_rotation.y;
             touchStartCameraRotY = camera_rotation.x;
+            touchStartCameraRotX = camera_rotation.y;
           }
         } else if (touchPosIdentifier === undefined) {
           touchPosMoved = 0;
@@ -234,8 +261,8 @@ export const initPage = () => {
     if (!mainMenuVisible) {
       for (const { pageX, pageY, identifier } of e.changedTouches) {
         if (touchRotIdentifier === identifier) {
-          camera_rotation.y = touchStartCameraRotX! + (pageX - touchRotX!) / 2.3;
           camera_rotation.x = touchStartCameraRotY! + (pageY - touchRotY!) / 2.3;
+          camera_rotation.y = touchStartCameraRotX! + (pageX - touchRotX!) / 2.3;
           touchRotMoved = 1;
         }
         if (touchPosIdentifier === identifier) {
@@ -255,10 +282,10 @@ export const initPage = () => {
 
           // Move the invisible joysticks
           if (absDeltaX > 2) {
-            touchPosStartX = pageX + (deltaX < 0 ? -1 : 1) * TOUCH_SIZE;
+            touchPosStartX = TOUCH_SIZE * (deltaX < 0 ? -1 : 1) + pageX;
           }
           if (absDeltaY > 2) {
-            touchPosStartY = pageY + (deltaY < 0 ? -1 : 1) * TOUCH_SIZE;
+            touchPosStartY = TOUCH_SIZE * (deltaY < 0 ? -1 : 1) + pageY;
           }
         }
       }

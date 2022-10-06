@@ -69,6 +69,11 @@ export const loadGame = () => {
   firstBoatLerp = clamp(player_last_pulled_lever);
 };
 
+export const resetGame = () => {
+  localStorage[LOCAL_STORAGE_SAVED_GAME_KEY] = "";
+  location.reload();
+};
+
 export const saveGame = () => {
   localStorage[LOCAL_STORAGE_SAVED_GAME_KEY] = JSON.stringify([
     levers.map(({ $value }) => $value),
@@ -77,32 +82,6 @@ export const saveGame = () => {
     gameTime,
     secondBoatLerp,
   ]);
-};
-
-export const resetGame = () => {
-  localStorage[LOCAL_STORAGE_SAVED_GAME_KEY] = "";
-  location.reload();
-};
-
-export const onPlayerPullLever = (leverIndex: number) => {
-  if (DEBUG) {
-    console.log("switch lever " + leverIndex + " = " + levers[leverIndex]?.$value);
-  }
-
-  if (leverIndex) {
-    showMessage("* click *", 1);
-  }
-  player_last_pulled_lever = leverIndex;
-  saveGame();
-};
-
-export const onLever0Pulled = () => {
-  if (souls_collected_count < SOULS_COUNT) {
-    showMessage("Not leaving now, there are souls to catch!", 3);
-  } else if (!game_completed) {
-    showMessage("Well done. They will be punished.<br>Thanks for playing", Infinity);
-    game_completed = 1;
-  }
 };
 
 export const onSoulCollected = () => {
@@ -127,4 +106,25 @@ export const onSoulCollected = () => {
 
   updateCollectedSoulsCounter();
   saveGame();
+};
+
+export const onPlayerPullLever = (leverIndex: number) => {
+  if (DEBUG) {
+    console.log("switch lever " + leverIndex + " = " + levers[leverIndex]?.$value);
+  }
+
+  if (leverIndex) {
+    showMessage("* click *", 1);
+  }
+  player_last_pulled_lever = leverIndex;
+  saveGame();
+};
+
+export const onLever0Pulled = () => {
+  if (souls_collected_count < SOULS_COUNT) {
+    showMessage("Not leaving now, there are souls to catch!", 3);
+  } else if (!game_completed) {
+    showMessage("Well done. They will be punished.<br>Thanks for playing", Infinity);
+    game_completed = 1;
+  }
 };

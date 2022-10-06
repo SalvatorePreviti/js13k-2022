@@ -39,17 +39,6 @@ export const renderModels = (
     return;
   }
 
-  // Render world
-
-  gl.uniformMatrix4fv(worldMatrixLoc, false, worldMatricesBuffer);
-
-  gl.drawElements(
-    gl.TRIANGLES,
-    (renderPlayer ? allModels[MODEL_ID_PLAYER_LEG1]!.$vertexEnd! : allModels[MODEL_ID_PLAYER_BODY]!.$vertexBegin!) - 3,
-    gl.UNSIGNED_SHORT,
-    3 * 2,
-  );
-
   gl.uniformMatrix4fv(worldMatrixLoc, false, objectsMatricesBuffer);
 
   // Render souls
@@ -70,5 +59,16 @@ export const renderModels = (
     gl.UNSIGNED_SHORT,
     allModels[MODEL_ID_LEVER]!.$vertexBegin! * 2,
     levers.length,
+  );
+
+  // Render world
+
+  gl.uniformMatrix4fv(worldMatrixLoc, false, worldMatricesBuffer);
+
+  gl.drawElements(
+    gl.TRIANGLES,
+    (renderPlayer ? allModels[MODEL_ID_PLAYER_LEG1]!.$vertexEnd! : allModels[MODEL_ID_PLAYER_BODY]!.$vertexBegin!) - 3,
+    gl.UNSIGNED_SHORT,
+    3 * 2,
   );
 };
