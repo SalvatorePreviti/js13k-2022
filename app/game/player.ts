@@ -31,7 +31,7 @@ export const CAMERA_PLAYER_Y_DIST = 13;
 
 export const CAMERA_PLAYER_Z_DIST = -18;
 
-export const PLAYER_LEGS_VELOCITY = 7 * 1.3;
+export const PLAYER_LEGS_VELOCITY = 9.1;
 
 export const PLAYER_RESPAWN_Z = -2.4;
 
@@ -87,7 +87,7 @@ export const player_init = () => {
   const updatePlayerPositionFinal = (updateVelocity?: unknown) => {
     if (player_respawned > 1) {
       matrixCopy(levers[player_last_pulled_lever]!.$matrix).multiplySelf(levers[player_last_pulled_lever]!.$transform);
-      matrixTransformPoint(0, player_last_pulled_lever || firstBoatLerp > 0.9 ? 15 : 1, PLAYER_RESPAWN_Z);
+      matrixTransformPoint(0, player_last_pulled_lever + firstBoatLerp > 0.9 ? 15 : 1, PLAYER_RESPAWN_Z);
     } else {
       loadReferenceMatrix();
       matrixTransformPoint(player_position_global_x, player_position_global_y, player_position_global_z);
@@ -154,7 +154,7 @@ export const player_init = () => {
       let right = 0;
       let front = 0;
       let back = 0;
-      const yindex = y * (COLLISION_TEXTURE_SIZE * 4);
+      const yindex = COLLISION_TEXTURE_SIZE * 4 * y;
       for (let tx = 0; tx < COLLISION_TEXTURE_SIZE; ++tx) {
         const index = yindex + tx * 4;
 
@@ -200,7 +200,9 @@ export const player_init = () => {
       }
     }
 
-    player_speed_collision_limiter = clamp(1 - max(abs(movX), abs(movZ)) * 0.02);
+    movX *= 0.7;
+
+    player_speed_collision_limiter = clamp(1 - max(abs(movX), abs(movZ)) * 0.01, 0.3);
 
     movePlayer(movX / 255, movY / 255, movZ / 255);
   };
@@ -268,10 +270,10 @@ export const player_init = () => {
       player_position_global_x = matrixTransformPoint.x;
       player_position_global_y = matrixTransformPoint.y;
       player_position_global_z = matrixTransformPoint.z;
-    }
 
-    if (player_respawned) {
-      player_respawned = currentModelId ? 0 : 1;
+      if (player_respawned) {
+        player_respawned = currentModelId ? 0 : 1;
+      }
     }
 
     if (player_position_final.y < (player_position_final.x < -20 || player_position_final.z < 109 ? -25 : -9)) {
@@ -306,7 +308,7 @@ export const player_init = () => {
         const d = player_respawned + damp(18);
         camera_position_x = lerp(camera_position_x, player_position_final.x, d);
         camera_position_z = lerp(camera_position_z, player_position_final.z, d);
-        camera_position_y = lerp(camera_position_y, player_model_y + 1.5, d);
+        camera_position_y = lerp(camera_position_y, 1.6 + player_model_y, d);
         camera_rotation.y = angle_wrap_degrees(camera_rotation.y);
       } else {
         camera_position_x = interpolate_with_hysteresis(
@@ -365,9 +367,6 @@ export const player_init = () => {
     const movAmount = threshold(hypot(forward, strafe) ** 0.5, 0.1);
     let movAngle = Math.atan2(forward, strafe);
 
-    forward = movAmount * abs(forward) * Math.sin(movAngle);
-    strafe = movAmount * abs(strafe) * Math.cos(movAngle);
-
     if (movAmount) {
       player_look_angle_target = 90 - movAngle / DEG_TO_RAD;
     }
@@ -378,7 +377,12 @@ export const player_init = () => {
     // Update player body and legs matrices
 
     modelsNextUpdate()
-      .translateSelf(player_position_final.x, player_model_y, player_position_final.z)
+      .translateSelf(
+        player_position_final.x,
+        0.06 * player_speed_collision_limiter * player_legs_speed * Math.cos(gameTime * (PLAYER_LEGS_VELOCITY * 2)) +
+          player_model_y,
+        player_position_final.z,
+      )
       .rotateSelf(0, player_look_angle);
 
     for (let i = 0; i < 2; ++i) {
@@ -400,22 +404,23 @@ export const player_init = () => {
       ? 0
       : lerpDamp(
           player_speed,
-          currentModelId ? clamp(2 * movAmount) * 7 * player_speed_collision_limiter : 0,
+          currentModelId ? 7 * clamp(2 * movAmount) * player_speed_collision_limiter : 0,
           currentModelId ? 9 : 1,
         );
+
+    forward = player_speed * movAmount * abs(forward) * Math.sin(movAngle);
+    strafe = player_speed * movAmount * abs(strafe) * Math.cos(movAngle);
 
     // Angle is dependant on where the player is looking in first person. Is 0 in third person
     movAngle = player_first_person ? (180 + camera_rotation.y) * DEG_TO_RAD : 0;
 
     movePlayer(
       // x
-      gameTimeDelta *
-        (player_fly_velocity_x + player_speed * (strafe * Math.cos(movAngle) - forward * Math.sin(movAngle))),
+      gameTimeDelta * (player_fly_velocity_x + (strafe * Math.cos(movAngle) - Math.sin(movAngle) * forward)),
       // y
-      -player_gravity * gameTimeDelta,
+      gameTimeDelta * -player_gravity,
       // z
-      gameTimeDelta *
-        (player_fly_velocity_z + player_speed * (strafe * Math.sin(movAngle) + forward * Math.cos(movAngle))),
+      gameTimeDelta * (player_fly_velocity_z + (strafe * Math.sin(movAngle) + Math.cos(movAngle) * forward)),
     );
   };
 };

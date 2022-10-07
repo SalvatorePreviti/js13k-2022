@@ -160,3 +160,6 @@ export const song_endPattern = 11
 // Number of channels
 export const song_numChannels = 5
 
+export const SONG_WORDS = song_patternLen * (song_endPattern + 1) * 2;
+
+export const SONG_TOTAL_WORDS = (song_rowLen0 + song_rowLen1 + song_rowLen2) * SONG_WORDS;

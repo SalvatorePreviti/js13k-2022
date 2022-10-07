@@ -27,7 +27,6 @@
 // This player plays only the game song and is modified.
 // This makes this version not compatible with default soundbox songs.
 
-import { audioContext, songAudioSource } from "./audio-context";
 import {
   song_endPattern,
   song_patternLen,
@@ -38,6 +37,8 @@ import {
   song_rowLen2,
   song_numChannels,
   song_columns,
+  SONG_TOTAL_WORDS,
+  SONG_WORDS,
 } from "./song";
 import { loadStep } from "../load-step";
 
@@ -58,21 +59,19 @@ const osc_tri = (value: number) => {
   return v2 < 2 ? v2 - 1 : 3 - v2;
 };
 
-const SONG_WORDS = song_patternLen * (song_endPattern + 1) * 2;
-const SONG_TOTAL_WORDS = (song_rowLen0 + song_rowLen1 + song_rowLen2) * SONG_WORDS;
+export let audioBuffer: AudioBuffer;
 
 export const loadSong = (done: () => void) => {
   let channelIndex = 0;
 
-  const audioBuffer = audioContext.createBuffer(2, SONG_TOTAL_WORDS / 2, 44100);
+  audioBuffer = new AudioBuffer({
+    numberOfChannels: 2,
+    sampleRate: 44100,
+    length: SONG_TOTAL_WORDS / 2,
+  });
+
   const mixBufferA = audioBuffer.getChannelData(0);
   const mixBufferB = audioBuffer.getChannelData(1);
-
-  // Load the buffer into the audio source
-  songAudioSource.buffer = audioBuffer;
-
-  // Loop forever
-  songAudioSource.loop = true;
 
   const next = () => {
     // Generate audio data for a single track/channel.
@@ -105,6 +104,24 @@ export const loadSong = (done: () => void) => {
     const ENV_RELEASE = _ENV_RELEASE ** 2 * 4;
 
     const make = (song_rowLen: number) => {
+      // Local variables
+      let n;
+      let t;
+      let f;
+
+      // Clear effect state
+      let low = 0;
+      let band = 0;
+      let high;
+      let filterActive: boolean | undefined;
+
+      const noteCache = [];
+      const chnBuf = new Int32Array(song_rowLen * SONG_WORDS);
+
+      const lfoFreq = 2 ** (LFO_FREQ - 9) / song_rowLen;
+      const panFreq = (Math.PI * 2 ** (FX_PAN_FREQ - 8)) / song_rowLen;
+      const dly = (FX_DELAY_TIME * song_rowLen) & ~1; // Must be an even number
+
       const createNote = (note: number) => {
         const OSC1_WAVEFORM = channelIndex < 2 ? osc_saw : osc_sin;
         const OSC2_WAVEFORM = channelIndex < 2 ? (channelIndex < 1 ? osc_square : osc_tri) : osc_sin;
@@ -152,24 +169,6 @@ export const loadSong = (done: () => void) => {
         }
         return noteBuf;
       };
-
-      // Local variables
-      let n;
-      let t;
-      let f;
-
-      // Clear effect state
-      let low = 0;
-      let band = 0;
-      let high;
-      let filterActive: boolean | undefined;
-
-      const noteCache = [];
-      const chnBuf = new Int32Array(song_rowLen * SONG_WORDS);
-
-      const lfoFreq = 2 ** (LFO_FREQ - 9) / song_rowLen;
-      const panFreq = (Math.PI * 2 ** (FX_PAN_FREQ - 8)) / song_rowLen;
-      const dly = (FX_DELAY_TIME * song_rowLen) & ~1; // Must be an even number
 
       // Patterns
       for (let p = 0; p <= song_endPattern; ++p) {

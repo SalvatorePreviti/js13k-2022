@@ -194,141 +194,24 @@ const sphere = (slices, stacks = slices, vertexFunc = (x, y) => {
 };
 let _globalTime;
 let mainMenuVisible;
-let gameTimeDelta;
 let gameTime = 0;
 let absoluteTime = 0;
-const GAME_TIME_MAX_DELTA_TIME = 0.066;
+let gameTimeDelta = 0;
+const GAME_TIME_MAX_DELTA_TIME = 0.055;
 const gameTimeUpdate = (time) => {
   const dt = (time - (_globalTime || time)) / 1e3;
   absoluteTime += dt;
   gameTime += gameTimeDelta = mainMenuVisible ? 0 : min(GAME_TIME_MAX_DELTA_TIME, dt);
   _globalTime = time;
 };
-const resetGameTime = (value) => {
+const setGameTime = (value) => {
   gameTime = value;
-  gameTimeDelta = 0;
 };
-const damp = /* @__PURE__ */ NO_INLINE((speed) => 1 - /* @__PURE__ */ Math.exp(-speed * gameTimeDelta));
+const damp = /* @__PURE__ */ NO_INLINE((speed) => 1 - /* @__PURE__ */ Math.exp(-gameTimeDelta * speed));
 const lerpDamp = /* @__PURE__ */ NO_INLINE((from, to, speed) => lerp(from, to, damp(speed)));
 const setMainMenuVisible = (visible) => {
   mainMenuVisible = visible;
 };
-let firstBoatLerp;
-let secondBoatLerp;
-let souls_collected_count = 0;
-let game_completed = 0;
-let player_last_pulled_lever = 0;
-let _messageEndTime = 1;
-const LOCAL_STORAGE_SAVED_GAME_KEY = "DanteSP22";
-const player_position_final = {
-  x: 0,
-  y: 0,
-  z: 0,
-};
-const camera_rotation = {
-  x: 0,
-  y: 180,
-};
-const showMessage = (message, duration) => {
-  if (_messageEndTime < Infinity) {
-    _messageEndTime = gameTime + duration;
-    h4.innerHTML = message;
-  }
-};
-const worldStateUpdate = () => {
-  if (_messageEndTime && gameTime > _messageEndTime) {
-    _messageEndTime = 0;
-    h4.innerHTML = "";
-  }
-  firstBoatLerp = lerpDamp(firstBoatLerp, game_completed ? lerpDamp(firstBoatLerp, -9, 1.5) : clamp(gameTime / 3), 1);
-  secondBoatLerp = lerpDamp(secondBoatLerp, levers[9].$lerpValue2, 0.2 + 0.3 * abs(levers[9].$lerpValue2 * 2 - 1));
-};
-const updateCollectedSoulsCounter = () => {
-  h3.innerHTML = "Souls: " + [
-    0,
-    "I",
-    "II",
-    "III",
-    "IV",
-    "V",
-    "VI",
-    "VII",
-    "VIII",
-    "IX",
-    "X",
-    "XI",
-    "XII",
-    "XIII",
-  ][souls_collected_count = souls.reduce((acc, { $value }) => acc + $value, 0)] + " / XIII";
-};
-const loadGame = () => {
-  try {
-    const [savedLevers, savedSouls, savedLastPulledLever, savedGameTime, savedSecondBoatLerp] = JSON.parse(
-      localStorage[LOCAL_STORAGE_SAVED_GAME_KEY],
-    );
-    levers.map((lever, index) =>
-      lever.$lerpValue = lever.$lerpValue2 = lever.$value = index ? savedLevers[index] | 0 : 0
-    );
-    souls.map((soul, index) => soul.$value = savedSouls[index] | 0);
-    player_last_pulled_lever = savedLastPulledLever;
-    secondBoatLerp = savedSecondBoatLerp;
-    resetGameTime(savedGameTime);
-  } catch (e) {
-  }
-  updateCollectedSoulsCounter();
-  firstBoatLerp = clamp(player_last_pulled_lever);
-};
-const saveGame = () => {
-  localStorage[LOCAL_STORAGE_SAVED_GAME_KEY] = JSON.stringify([
-    levers.map(({ $value }) => $value),
-    souls.map(({ $value }) => $value),
-    player_last_pulled_lever,
-    gameTime,
-    secondBoatLerp,
-  ]);
-};
-const resetGame = () => {
-  localStorage[LOCAL_STORAGE_SAVED_GAME_KEY] = "";
-  location.reload();
-};
-const onPlayerPullLever = (leverIndex) => {
-  if (leverIndex) {
-    showMessage("* click *", 1);
-  }
-  player_last_pulled_lever = leverIndex;
-  saveGame();
-};
-const onLever0Pulled = () => {
-  if (souls_collected_count < SOULS_COUNT) {
-    showMessage("Not leaving now, there are souls to catch!", 3);
-  } else if (!game_completed) {
-    showMessage("Well done. They will be punished.<br>Thanks for playing", Infinity);
-    game_completed = 1;
-  }
-};
-const onSoulCollected = () => {
-  showMessage(
-    [
-      ,
-      "Mark Zuckemberg<br>made the world worse",
-      "Giorgia Meloni<br>fascist",
-      "Andrzej Mazur<br>for the js13k competition",
-      "Donald Trump<br>lies",
-      "Kim Jong-un<br>Dictator, liked pineapple on pizza",
-      "Maxime Euziere<br>forced me to finish this game",
-      "She traded NFTs apes",
-      ,
-      "Vladimir Putin<br>evil war",
-      "He was not a good person",
-      ,
-      "Salvatore Previti<br>made this evil game<br><br>Done. Go back to the boat",
-    ][souls_collected_count] || "Catched a \"crypto bro\".<br>\"Web3\" is all scam, lies and grift",
-    souls_collected_count && souls_collected_count < 12 ? 5 : 7,
-  );
-  updateCollectedSoulsCounter();
-  saveGame();
-};
-const material = /* @__PURE__ */ NO_INLINE((r, g, b, a = 0) => a * 255 << 24 | b * 255 << 16 | g * 255 << 8 | r * 255);
 const GAMEPAD_BUTTON_B = 0;
 const GAMEPAD_BUTTON_A = 1;
 const GAMEPAD_BUTTON_Y = 2;
@@ -338,8 +221,6 @@ const GAMEPAD_BUTTON_UP = 12;
 const GAMEPAD_BUTTON_DOWN = 13;
 const GAMEPAD_BUTTON_LEFT = 14;
 const GAMEPAD_BUTTON_RIGHT = 15;
-const audioContext = new AudioContext();
-const songAudioSource = audioContext.createBufferSource();
 const code$6 =
   "#version 300 es\nprecision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform highp sampler2DShadow g,h;uniform highp sampler2D q;out vec4 O;void main(){vec4 s=vec4(m.xyz,1);vec3 e=normalize(o.xyz),v=l.w*(texture(q,n.yz*.035)*e.x+texture(q,n.xz*.035)*e.y+texture(q,n.xy*.035)*e.z).xyz;e=normalize(e+v*.5);float a=dot(e,vec3(-.656059,.666369,-.35431468)),t=1.,u=abs((b*s).z);vec4 r=(u<55.?i:j)*s;if(r=r/r.w*.5+.5,r.z<1.){t=0.;for(float e=-1.;e<=1.;++e)for(float a=-1.;a<=1.;++a){vec3 x=vec3(r.xy+vec2(e,a)/2048.,r.z-.00017439);t+=u<55.?texture(g,x):texture(h,x);}t/=9.;}vec3 x=l.xyz*(1.-v.x);float c=max(max(abs(e.x),abs(e.z))*.3-e.y,0.)*pow(max(0.,(8.-m.y)/48.),1.6);O=vec4(vec3(c,c*c*.5,0)+vec3(.09,.05,.11)*x+x*(max(0.,a)*.5+x*a*a*vec3(.5,.45,.3))*(t*.75+.25)+vec3(.6,.6,.5)*pow(max(0.,dot(normalize(m.xyz-k),reflect(vec3(-.656059,.666369,-.35431468),e))),35.)*t,1);}";
 const uniformName_csm_matrix0 = "i";
@@ -376,6 +257,307 @@ const zNear = constDef_zNear;
 const zFar = constDef_zFar;
 const fieldOfViewRadians = fieldOfViewDegrees * DEG_TO_RAD;
 const fieldOfViewAmount = 1 / /* @__PURE__ */ Math.tan(fieldOfViewRadians / 2);
+const song_numChannels = 5;
+const song_endPattern = 11;
+const song_patternLen = 32;
+const song_rowLen2 = 3891;
+const song_rowLen1 = 4562;
+const song_rowLen0 = 5513;
+const song_patterns = "000001234556112341234556011111111112011111111112000001111112";
+const song_columns = [
+  [
+    "(.15:15:=5:=A:=AF=AFIFIMRMRUY(Y(((((((((((((((((((((((((((((M(M(((((((((((((((((((((((((((((R(R(((((((((((((((((((((((((((((U(U",
+    "(059<59<A9<AE<AEHAEHMEHMQMQTY(Y",
+    "(5:>A:>AF>AFJAFJMFJMRJMRVMRVY(Y",
+    "(:?BFFKNRRWZ^(^((:=@FFILRRUX^(^",
+    "Q(M(M(O(Q(R(T(Q(T(R(W(U(T(R(Q(N(W((Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(X]",
+    "QN(M(N(M(N(M(N(M((((((((((((((((W(Y(Y(Y(Y(Y(Y(Y(Y(((((((((((((((]",
+  ],
+  [
+    ".(5(.(5(.(5(.(5(.(5(.(5(.(5(.(5",
+    "-(5(-(5(-(5(-(5(-(5(-(5(-(5(-(5",
+    ",(5(,(5(,(5(,(5(,(5(,(5(,(5(,(5",
+    "*(6(*(6(*(6(*(6(*(6(*(6(*(6(*(6",
+    "5(E(E(F(H(I(K(H(K(I(N(M(K(I(H(F(A(((((((((((((((((((((((((((((((5(((5(((5(((5(((5(((5(((5(((5",
+    "5(6(5(6(5(6(5(6(5((()(((((((((((A(B(A(B(A(B(A(B(A(((5",
+  ],
+  [
+    "9(((9(((9(((9(((9(((9(((9(((9",
+    "9(((Q(((Q(((Q",
+  ],
+  [
+    "9(9(9(9(9(9(9(999(9(9(9(999(9(9",
+    "9(9(9(9(9(999(9(((((Q",
+  ],
+  [
+    "((((Q(((((((Q(((((((Q(((((((Q",
+    "Q((Q((Q((Q((Q((Q((((Q",
+  ],
+];
+const song_instruments = [
+  [
+    69,
+    128,
+    0,
+    143,
+    128,
+    0,
+    0,
+    196,
+    100,
+    36,
+    0,
+    0,
+    149,
+    110,
+    31,
+    47,
+    3,
+    56,
+    2,
+    0,
+  ],
+  [
+    100,
+    128,
+    0,
+    201,
+    128,
+    0,
+    0,
+    100,
+    144,
+    35,
+    0,
+    6,
+    135,
+    0,
+    32,
+    147,
+    6,
+    0,
+    6,
+    195,
+  ],
+  [
+    255,
+    116,
+    85,
+    255,
+    116,
+    37,
+    14,
+    64,
+    144,
+    73,
+    99,
+    0,
+    136,
+    15,
+    32,
+    0,
+    0,
+    66,
+    6,
+    0,
+  ],
+  [
+    0,
+    140,
+    0,
+    0,
+    140,
+    0,
+    81,
+    64,
+    400,
+    47,
+    55,
+    5,
+    239,
+    135,
+    13,
+    176,
+    5,
+    16,
+    4,
+    187,
+  ],
+  [
+    221,
+    128,
+    64,
+    210,
+    128,
+    64,
+    255,
+    64,
+    144,
+    73,
+    79,
+    7,
+    195,
+    15,
+    21,
+    20,
+    0,
+    9,
+    3,
+    64,
+  ],
+];
+const SONG_WORDS = song_patternLen * (song_endPattern + 1) * 2;
+const SONG_TOTAL_WORDS = (song_rowLen0 + song_rowLen1 + song_rowLen2) * SONG_WORDS;
+const loadStep = (fn) => {
+  h4.innerHTML += ".";
+  setTimeout(fn);
+};
+let audioBuffer;
+const getnotefreq = (n) => 0.003959503758 * 2 ** ((n - 256) / 12);
+const osc_sin = (value) => /* @__PURE__ */ Math.sin(value * Math.PI * 2);
+const osc_square = (value) => value % 1 < 0.5 ? 1 : -1;
+const osc_saw = (value) => 2 * (value % 1) - 1;
+const osc_tri = (value) => {
+  const v2 = value % 1 * 4;
+  return v2 < 2 ? v2 - 1 : 3 - v2;
+};
+const loadSong = (done) => {
+  let channelIndex = 0;
+  const next = () => {
+    let mixIndex = 0;
+    const make = (song_rowLen) => {
+      let n;
+      let t;
+      let f;
+      let high;
+      let filterActive;
+      let low = 0;
+      let band = 0;
+      const noteCache = [];
+      const createNote = (note) => {
+        let o1t;
+        let o2t;
+        let c1 = 0;
+        let c2 = 0;
+        const OSC1_WAVEFORM = channelIndex < 2 ? osc_saw : osc_sin;
+        const OSC2_WAVEFORM = channelIndex < 2 ? channelIndex < 1 ? osc_square : osc_tri : osc_sin;
+        const noteBuf = new Int32Array(ENV_ATTACK + ENV_SUSTAIN + ENV_RELEASE);
+        for (let j1 = 0, j2 = 0; j1 < ENV_ATTACK + ENV_SUSTAIN + ENV_RELEASE; ++j1, ++j2) {
+          let e = 1;
+          if (j1 < ENV_ATTACK) {
+            e = j1 / ENV_ATTACK;
+          } else if (j1 >= ENV_ATTACK + ENV_SUSTAIN) {
+            e = (j1 - ENV_ATTACK - ENV_SUSTAIN) / ENV_RELEASE;
+            e = (1 - e) * 3 ** (-ENV_EXP_DECAY / 16 * e);
+          }
+          if (j2 >= 0) {
+            j2 -= song_rowLen * 4;
+            o1t = getnotefreq(note + OSC1_SEMI);
+            o2t = getnotefreq(note + OSC2_SEMI) * (1 + (channelIndex ? 0 : 8e-4 * 9));
+          }
+          noteBuf[j1] = 80
+              * (OSC1_WAVEFORM(c1 += o1t * e ** (OSC1_XENV / 32)) * OSC1_VOL
+                + OSC2_WAVEFORM(c2 += o2t * e ** (OSC2_XENV / 32)) * OSC2_VOL
+                + (NOISE_VOL ? (/* @__PURE__ */ Math.random() * 2 - 1) * NOISE_VOL : 0))
+              * e | 0;
+        }
+        return noteBuf;
+      };
+      const chnBuf = new Int32Array(song_rowLen * SONG_WORDS);
+      const lfoFreq = 2 ** (LFO_FREQ - 9) / song_rowLen;
+      const panFreq = Math.PI * 2 ** (FX_PAN_FREQ - 8) / song_rowLen;
+      const dly = FX_DELAY_TIME * song_rowLen & -2;
+      for (let p = 0; p <= song_endPattern; ++p) {
+        for (let row = 0, cp = +song_patterns[channelIndex * 12 + p]; row < song_patternLen; ++row) {
+          const rowStartSample = (p * song_patternLen + row) * song_rowLen;
+          for (let col = 0; col < 4; ++col) {
+            n = 0;
+            if (cp) {
+              n = COLUMNS[cp - 1].charCodeAt(row + col * song_patternLen) - 40;
+              n += n > 0 ? 106 : 0;
+            }
+            if (n) {
+              const noteBuf = noteCache[n] || (noteCache[n] = createNote(n));
+              for (let j = 0, i = rowStartSample * 2; j < noteBuf.length; ++j, i += 2) {
+                chnBuf[i] += noteBuf[j];
+              }
+            }
+          }
+          for (let j1 = 0, rsample; j1 < song_rowLen; ++j1) {
+            let lsample = 0;
+            let k = (rowStartSample + j1) * 2;
+            rsample = chnBuf[k];
+            if (rsample || filterActive) {
+              f = FX_FREQ * 0.003079991863530159;
+              if (channelIndex === 1 || channelIndex === 4) {
+                f *= osc_sin(lfoFreq * k) * LFO_AMT / 512 + 0.5;
+              }
+              f = 1.5 * /* @__PURE__ */ Math.sin(f);
+              low += f * band;
+              high = (1 - FX_RESONANCE / 255) * (rsample - band) - low;
+              band += f * high;
+              rsample = channelIndex === 4 ? band : channelIndex === 3 ? high : low;
+              if (!channelIndex) {
+                rsample *= 22e-5;
+                rsample = rsample < 1 ? rsample > -1 ? osc_sin(rsample / 4) : -1 : 1;
+                rsample /= 22e-5;
+              }
+              rsample *= FX_DRIVE / 32;
+              filterActive = rsample * rsample > 1e-5;
+              t = /* @__PURE__ */ Math.sin(panFreq * k) * FX_PAN_AMT / 512 + 0.5;
+              lsample = rsample * (1 - t);
+              rsample *= t;
+            }
+            if (k >= dly) {
+              lsample += chnBuf[k - dly + 1] * FX_DELAY_AMT / 255;
+              rsample += chnBuf[k - dly] * FX_DELAY_AMT / 255;
+            }
+            const mixBufferIndex = mixIndex + k >> 1;
+            mixBufferA[mixBufferIndex] += (chnBuf[k] = lsample) / 65536;
+            mixBufferB[mixBufferIndex] += (chnBuf[++k] = rsample) / 65536;
+          }
+        }
+      }
+      mixIndex += song_rowLen * SONG_WORDS;
+    };
+    const COLUMNS = song_columns[channelIndex];
+    const [
+      OSC1_VOL,
+      OSC1_SEMI,
+      OSC1_XENV,
+      OSC2_VOL,
+      OSC2_SEMI,
+      OSC2_XENV,
+      NOISE_VOL,
+      ENV_ATTACK,
+      ENV_SUSTAIN,
+      _ENV_RELEASE,
+      ENV_EXP_DECAY,
+      LFO_FREQ,
+      FX_FREQ,
+      FX_RESONANCE,
+      FX_DRIVE,
+      FX_PAN_AMT,
+      FX_PAN_FREQ,
+      FX_DELAY_AMT,
+      FX_DELAY_TIME,
+      LFO_AMT,
+    ] = song_instruments[channelIndex];
+    const ENV_RELEASE = _ENV_RELEASE ** 2 * 4;
+    make(song_rowLen0);
+    make(song_rowLen1);
+    make(song_rowLen2);
+    loadStep(++channelIndex < song_numChannels ? next : done);
+  };
+  audioBuffer = new AudioBuffer({
+    numberOfChannels: 2,
+    sampleRate: 44100,
+    length: SONG_TOTAL_WORDS / 2,
+  });
+  const mixBufferA = audioBuffer.getChannelData(0);
+  const mixBufferB = audioBuffer.getChannelData(1);
+  loadStep(next);
+};
 let interact_pressed;
 let player_first_person;
 let projection;
@@ -386,6 +568,7 @@ let input_strafe = 0;
 const resetInteractPressed = () => {
   interact_pressed = 0;
 };
+const exit_player_first_person = () => player_first_person = 0;
 const initPage = () => {
   let touchStartTime;
   let touchPosStartX;
@@ -401,6 +584,8 @@ const initPage = () => {
   let touch_movementX;
   let touch_movementY;
   let gamepadInteractPressed;
+  let audioContext;
+  let songAudioSource;
   let music_on = true;
   const KEY_INTERACT = 0;
   const KEY_MENU = 1;
@@ -414,10 +599,12 @@ const initPage = () => {
   const keyboard_downKeys = [];
   const updateMusicOnState = () => {
     b4.innerHTML = "Music: " + music_on;
-    if (mainMenuVisible || !music_on) {
-      songAudioSource.disconnect();
-    } else {
-      songAudioSource.connect(audioContext.destination);
+    if (songAudioSource) {
+      if (mainMenuVisible || !music_on) {
+        songAudioSource.disconnect();
+      } else {
+        songAudioSource.connect(audioContext.destination);
+      }
     }
   };
   const handleResize = () => {
@@ -437,30 +624,45 @@ const initPage = () => {
       input_strafe =
         0;
   };
-  const mainMenu = (value, firstPerson = 0) => {
+  const mainMenu = (value) => {
     if (mainMenuVisible !== value) {
       setMainMenuVisible(value);
-      player_first_person = firstPerson;
       handleResize();
       document.body.className = value ? "l m" : "l";
-      try {
-        if (value) {
+      if (value) {
+        try {
           document.exitFullscreen().catch(() => 0);
           document.exitPointerLock();
-        } else {
-          document.body.requestFullscreen().catch(() => 0);
-          songAudioSource.start();
+        } catch {
         }
-      } catch {
       }
       updateMusicOnState();
     }
   };
+  const start = (firstPerson) => {
+    try {
+      if (!audioContext) {
+        audioContext = new AudioContext();
+        songAudioSource = audioContext.createBufferSource();
+        songAudioSource.buffer = audioBuffer;
+        songAudioSource.loop = true;
+        songAudioSource.start();
+      }
+      document.body.requestFullscreen().catch(() => 0);
+    } catch {
+    }
+    mainMenu(false);
+    player_first_person = firstPerson;
+  };
   const getGamepadButtonState = (gamepad, index) =>
     gamepad.buttons[index]?.pressed || gamepad.buttons[index]?.value > 0 ? 1 : 0;
   oncontextmenu = () => false;
-  b1.onclick = () => mainMenu(false);
-  b2.onclick = () => mainMenu(false, 1);
+  b1.onclick = () => {
+    start();
+  };
+  b2.onclick = () => {
+    start(1);
+  };
   b5.onclick = () => mainMenu(true);
   b4.onclick = () => {
     music_on = !music_on;
@@ -527,8 +729,8 @@ const initPage = () => {
             touchRotX = pageX;
             touchRotY = pageY;
             touchRotIdentifier = identifier;
-            touchStartCameraRotX = camera_rotation.y;
             touchStartCameraRotY = camera_rotation.x;
+            touchStartCameraRotX = camera_rotation.y;
           }
         } else if (touchPosIdentifier === void 0) {
           touchPosMoved = 0;
@@ -544,8 +746,8 @@ const initPage = () => {
     if (!mainMenuVisible) {
       for (const { pageX, pageY, identifier } of e.changedTouches) {
         if (touchRotIdentifier === identifier) {
-          camera_rotation.y = touchStartCameraRotX + (pageX - touchRotX) / 2.3;
           camera_rotation.x = touchStartCameraRotY + (pageY - touchRotY) / 2.3;
+          camera_rotation.y = touchStartCameraRotX + (pageX - touchRotX) / 2.3;
           touchRotMoved = 1;
         }
         if (touchPosIdentifier === identifier) {
@@ -560,10 +762,10 @@ const initPage = () => {
           touch_movementX = +(m && absDeltaX > TOUCH_MOVE_SNAP) * clamp(deltaX, -1);
           touch_movementY = +(m && absDeltaY > TOUCH_MOVE_SNAP) * clamp(deltaY, -1);
           if (absDeltaX > 2) {
-            touchPosStartX = pageX + (deltaX < 0 ? -1 : 1) * TOUCH_SIZE;
+            touchPosStartX = TOUCH_SIZE * (deltaX < 0 ? -1 : 1) + pageX;
           }
           if (absDeltaY > 2) {
-            touchPosStartY = pageY + (deltaY < 0 ? -1 : 1) * TOUCH_SIZE;
+            touchPosStartY = TOUCH_SIZE * (deltaY < 0 ? -1 : 1) + pageY;
           }
         }
       }
@@ -627,6 +829,125 @@ const initPage = () => {
   document.onvisibilitychange = onblur = onresize = handleResize;
   mainMenu(true);
 };
+let firstBoatLerp;
+let secondBoatLerp;
+let souls_collected_count = 0;
+let game_completed = 0;
+let player_last_pulled_lever = 0;
+let _messageEndTime = 0.1;
+const LOCAL_STORAGE_SAVED_GAME_KEY = "DanteSP22";
+const player_position_final = {
+  x: 0,
+  y: 0,
+  z: 0,
+};
+const camera_rotation = {
+  x: 0,
+  y: 180,
+};
+const showMessage = (message, duration) => {
+  if (_messageEndTime < Infinity) {
+    _messageEndTime = gameTime + duration;
+    h4.innerHTML = message;
+  }
+};
+const worldStateUpdate = () => {
+  if (_messageEndTime && gameTime > _messageEndTime) {
+    _messageEndTime = 0;
+    h4.innerHTML = "";
+  }
+  if (game_completed) {
+    exit_player_first_person();
+  }
+  firstBoatLerp = game_completed ? lerpDamp(firstBoatLerp, -9, 0.015) : lerpDamp(firstBoatLerp, clamp(gameTime / 3), 1);
+  secondBoatLerp = lerpDamp(secondBoatLerp, levers[9].$lerpValue2, 0.2 + 0.3 * abs(levers[9].$lerpValue2 * 2 - 1));
+};
+const updateCollectedSoulsCounter = () => {
+  h3.innerHTML = "Souls: " + [
+    0,
+    "I",
+    "II",
+    "III",
+    "IV",
+    "V",
+    "VI",
+    "VII",
+    "VIII",
+    "IX",
+    "X",
+    "XI",
+    "XII",
+    "XIII",
+  ][souls_collected_count = souls.reduce((acc, v) => acc + v.$value, 0)] + " / XIII";
+};
+const loadGame = () => {
+  try {
+    const [savedLevers, savedSouls, savedLastPulledLever, savedGameTime, savedSecondBoatLerp] = JSON.parse(
+      localStorage[LOCAL_STORAGE_SAVED_GAME_KEY],
+    );
+    levers.map((lever, index) =>
+      lever.$lerpValue = lever.$lerpValue2 = lever.$value = index ? savedLevers[index] | 0 : 0
+    );
+    souls.map((soul, index) => soul.$value = savedSouls[index] | 0);
+    player_last_pulled_lever = savedLastPulledLever;
+    setGameTime(savedGameTime);
+    secondBoatLerp = savedSecondBoatLerp;
+  } catch (e) {
+  }
+  updateCollectedSoulsCounter();
+  firstBoatLerp = clamp(player_last_pulled_lever + souls_collected_count);
+};
+const resetGame = () => {
+  localStorage[LOCAL_STORAGE_SAVED_GAME_KEY] = "";
+  location.reload();
+};
+const saveGame = () => {
+  localStorage[LOCAL_STORAGE_SAVED_GAME_KEY] = JSON.stringify([
+    levers.map((v) => v.$value),
+    souls.map((v) => v.$value),
+    player_last_pulled_lever,
+    gameTime,
+    secondBoatLerp,
+  ]);
+};
+const onSoulCollected = () => {
+  showMessage(
+    [
+      ,
+      "Mark Zuckemberg<br>made the world worse",
+      "Giorgia Meloni<br>fascist",
+      "Andrzej Mazur<br>for the js13k competition",
+      "Donald Trump<br>lies",
+      "Kim Jong-un<br>Dictator, liked pineapple on pizza",
+      "Maxime Euziere<br>forced me to finish this game",
+      "She traded NFTs apes",
+      ,
+      "Vladimir Putin<br>evil war",
+      "He was not a good person",
+      ,
+      "Salvatore Previti<br>made this evil game<br><br>Done. Go back to the boat",
+    ][souls_collected_count] || "Catched a \"crypto bro\".<br>\"Web3\" is all scam, lies and grift",
+    6,
+  );
+  updateCollectedSoulsCounter();
+  saveGame();
+};
+const onPlayerPullLever = (leverIndex) => {
+  player_last_pulled_lever = leverIndex;
+  if (leverIndex) {
+    showMessage("* click *", 1);
+  }
+  saveGame();
+};
+const onLever0Pulled = () => {
+  if (souls_collected_count < SOULS_COUNT) {
+    showMessage("Not leaving now, there are souls to catch!", 3);
+  } else if (!game_completed) {
+    showMessage("Well done. They will be punished.<br>Thanks for playing", Infinity);
+    game_completed = 1;
+  }
+};
+const material = /* @__PURE__ */ NO_INLINE((r, g, b, a = 0) => a * 255 << 24 | b * 255 << 16 | g * 255 << 8 | r * 255);
 let currentEditModel;
 const LEVER_SENSITIVITY_RADIUS = 3;
 const SOUL_SENSITIVITY_RADIUS = 1.6;
@@ -666,16 +987,20 @@ const newLever = ($transform) => {
       lever.$lerpValue2 = lerpDamp(lever.$lerpValue2, lever.$value, 1);
       matrixCopy(parentModel.$matrix).multiplySelf($transform);
       if (interact_pressed && distanceToPlayer() < LEVER_SENSITIVITY_RADIUS) {
-        if (lever.$lerpValue < 0.3 || lever.$lerpValue > 0.7) {
-          lever.$value = lever.$value ? 0 : 1;
+        if (lever.$value) {
+          if (lever.$lerpValue > 0.7) {
+            lever.$value = 0;
+            onPlayerPullLever(index);
+          }
+        } else if (lever.$lerpValue < 0.3) {
+          lever.$value = 1;
           onPlayerPullLever(index);
         }
-      }
-      if (!index && lever.$value && lever.$lerpValue > 0.8) {
+      } else if (lever.$value && lever.$lerpValue > 0.8 && !index) {
         lever.$value = 0;
         onLever0Pulled();
       }
-      tempMatrix.rotateSelf(lever.$lerpValue * 60 - 30, 0).translateSelf(0, 1);
+      tempMatrix.rotateSelf(lever.$lerpValue * 50 - 25, 0).translateSelf(0, 1).m44 = 1 - lever.$lerpValue;
     },
   };
   levers.push(lever);
@@ -687,10 +1012,10 @@ const newSoul = (transform, ...walkingPath) => {
   let lookAngle;
   let prevX;
   let prevZ;
+  let velocity;
   let dirZ = 0;
   let randAngle = 0;
   let wasInside = 1;
-  let velocity = 3;
   let dirX = -1;
   const soul = {
     $value: 0,
@@ -699,16 +1024,17 @@ const newSoul = (transform, ...walkingPath) => {
         let isInside;
         let contextualVelocity = 1;
         let mindist = Infinity;
-        for (let i = 0; i < len; i++) {
+        for (let i = 0; i < walkingPath.length; i++) {
           const c = walkingPath[i];
           const distance = hypot(targetX - c[0], targetZ - c[1]);
+          contextualVelocity = min(contextualVelocity, distance / c[2]);
           const circleSDF = distance - c[2];
-          isInside ||= circleSDF < 0;
-          if (circleSDF > 0 && circleSDF < mindist) {
+          if (circleSDF < 0) {
+            isInside = 1;
+          } else if (circleSDF < mindist) {
             mindist = circleSDF;
             circle = c;
           }
-          contextualVelocity = min(contextualVelocity, distance / c[2]);
         }
         if (!isInside) {
           const ax = targetX - circle[0];
@@ -716,8 +1042,8 @@ const newSoul = (transform, ...walkingPath) => {
           let magnitude = hypot(ax, az);
           let angle = /* @__PURE__ */ Math.atan2(-az, ax);
           if (wasInside) {
-            randAngle = (/* @__PURE__ */ Math.random() - 0.5) * Math.PI / 2;
             velocity = clamp(velocity / (1 + /* @__PURE__ */ Math.random()));
+            randAngle = (/* @__PURE__ */ Math.random() - 0.5) * Math.PI / 2;
           }
           angle += randAngle;
           dirX = -/* @__PURE__ */ Math.cos(angle);
@@ -729,7 +1055,7 @@ const newSoul = (transform, ...walkingPath) => {
           }
         }
         wasInside = isInside;
-        velocity = lerpDamp(velocity, (1 - contextualVelocity) * 6 + 3, contextualVelocity + 3);
+        velocity = lerpDamp(velocity, 3 + 6 * (1 - contextualVelocity), 3 + contextualVelocity);
         soulX = lerpDamp(soulX, targetX = lerpDamp(targetX, targetX + dirX, velocity), velocity);
         soulZ = lerpDamp(soulZ, targetZ = lerpDamp(targetZ, targetZ + dirZ, velocity), velocity);
         lookAngle = angle_lerp_degrees(
@@ -740,7 +1066,7 @@ const newSoul = (transform, ...walkingPath) => {
         matrixCopy(parentModelMatrix).multiplySelf(transform).translateSelf(prevX = soulX, 0, prevZ = soulZ).rotateSelf(
           0,
           lookAngle,
-          /* @__PURE__ */ Math.sin(gameTime * 1.7) * 7,
+          7 * /* @__PURE__ */ Math.sin(gameTime * 1.7),
         );
         if (distanceToPlayer() < SOUL_SENSITIVITY_RADIUS) {
           soul.$value = 1;
@@ -756,11 +1082,9 @@ const newSoul = (transform, ...walkingPath) => {
       }
     },
   };
-  const len = walkingPath.length;
   let circle = walkingPath[0];
   let [targetX, targetZ] = circle;
-  let soulX = targetX;
-  let soulZ = targetZ;
+  let [soulX, soulZ] = circle;
   const parentModelMatrix = currentEditModel.$matrix;
   const index = souls.length;
   souls.push(soul);
@@ -982,16 +1306,17 @@ const csg_union = (...inputs) =>
   });
 const csg_polygons_subtract = (a, ...b) => csg_polygons(csg_tree_flip(csg_union(csg_tree_flip(csg_tree(a)), ...b)));
 const build_life_the_universe_and_everything = () => {
-  const HORN_STACKS = 10;
-  const hornMatrix = (i) =>
-    translation(/* @__PURE__ */ Math.sin(i / HORN_STACKS * Math.PI), i / HORN_STACKS).rotateSelf(10 * (i / HORN_STACKS))
-      .scaleSelf(1.0001 - i / HORN_STACKS, 0, 1 - i / HORN_STACKS);
+  const HORN_STACKS = 11;
+  const hornMatrix = (i) => {
+    i /= HORN_STACKS;
+    return translation(/* @__PURE__ */ Math.sin(i * Math.PI), i).rotateSelf(10 * i).scaleSelf(1.001 - i, 1, 1.001 - i);
+  };
   const hornPolygons = integers_map(
     HORN_STACKS,
     (i) =>
       cylinder_sides(
-        polygon_transform(polygon_regular(18), hornMatrix(i)).reverse(),
-        polygon_transform(polygon_regular(18), hornMatrix(i + 1)),
+        polygon_transform(polygon_regular(19), hornMatrix(i), material(1, 1, 0.8, 0.2)).reverse(),
+        polygon_transform(polygon_regular(19), hornMatrix(i + 1), material(1, 1, 0.8, 0.2)),
         1,
       ),
   ).flat();
@@ -1013,36 +1338,13 @@ const build_life_the_universe_and_everything = () => {
           (i) =>
             meshAdd(
               polygons_transform(
-                cylinder(6, 1),
+                cylinder(9, 1),
                 translation(4 * (i / 6 - 0.5), 3).scale(0.2, 3, 0.2),
                 material(0.3, 0.3, 0.38),
               ),
             ),
         )
       );
-    const blackPlatform = (pz) =>
-      newModel(() => {
-        GQuad.map(({ x, z }) => {
-          meshAdd(cylinder(11, 1), translation(x * 4, 4, pz + z * 4).scale(0.8, 3, 0.8), material(0.5, 0.3, 0.7, 0.6));
-          meshAdd(cylinder(), translation(x * 4, 7, pz + z * 4).scale(1, 0.3), material(0.5, 0.5, 0.5, 0.3));
-        });
-        meshAdd(
-          csg_polygons_subtract(
-            polygons_transform(cylinder(), translation(0, 0, pz).scale(5, 1, 5), material(0.8, 0.8, 0.8, 0.3)),
-            ...[
-              -1,
-              1,
-            ].map((i) =>
-              polygons_transform(
-                cylinder(),
-                translation(5 * i, 0.2, pz).rotate(i * -30).scale(4, 1, 2),
-                material(0.8, 0.8, 0.8, 0.3),
-              )
-            ),
-          ),
-        );
-        meshAdd(cylinder(), translation(0, -3, pz).scale(8, 2, 8), material(0.4, 0.4, 0.4, 0.3));
-      });
     const boatPolygons = csg_polygons_subtract(
       polygons_transform(
         cylinder(30, 1, 1.15, 1),
@@ -1084,25 +1386,21 @@ const build_life_the_universe_and_everything = () => {
         4.5 - abs(x) * 2,
       ]),
     );
-    GQuad.map(({ x, z }) =>
-      meshAdd(cylinder(6), translation(x * 3, 3, z * 15).scale(0.7, 4, 0.7), material(0.6, 0.3, 0.3, 0.4))
-    );
     [
       -15,
       15,
     ].map((z, j) => {
       gateBarsModel();
       gateBarsModel();
+      meshAdd(cylinder(), translation(0, 0, j ? 22 : -23).scale(3, 1, 8), material(0.9, 0.9, 0.9, 0.2));
       meshAdd(cylinder(), translation(0, 6.3, z).scale(4, 0.3, 1), material(0.3, 0.3, 0.3, 0.4));
       meshAdd(cylinder(), translation(0, 1, z).scale(3, 0.2, 0.35), material(0.5, 0.5, 0.5, 0.3));
-      meshAdd(cylinder(), translation(0, 0, j ? 22 : -23).scale(3, 1, 8), material(0.9, 0.9, 0.9, 0.2));
       integers_map(
         5,
         (i) =>
           meshAdd(
             hornPolygons,
             translation((j - 0.5) * 18.5, 0, i * 4.8 - 9.5).rotate(0, 180 - j * 180).scale(1.2, 10, 1.2),
-            material(1, 1, 0.8, 0.2),
           ),
       );
     });
@@ -1111,11 +1409,6 @@ const build_life_the_universe_and_everything = () => {
     meshAdd(cylinder(), translation(-3.4, -0.2, -19).scale(2, 1, 1.5).rotate(0, -90), material(0.75, 0.75, 0.75, 0.2));
     meshAdd(cylinder(5), translation(-5.4, 0, -19).scale(2, 1, 2).rotate(0, -90), material(0.6, 0.3, 0.3, 0.4));
     meshAdd(
-      cylinder(),
-      identity.rotate(0, 60).translate(14.8, -1.46, -1).rotate(-30).scale(4, 0.6, 4.5),
-      material(0.8, 0.2, 0.2, 0.5),
-    );
-    meshAdd(
       csg_polygons_subtract(
         csg_union(
           polygons_transform(
@@ -1123,20 +1416,27 @@ const build_life_the_universe_and_everything = () => {
             translation(8, -3, -4).scale(13, 1, 13),
             material(0.7, 0.7, 0.7, 0.2),
           ),
-          polygons_transform(cylinder(6), translation(0, -8).scale(9, 8, 8), material(0.4, 0.2, 0.5, 0.5)),
-          polygons_transform(
-            cylinder(6, 0, 0, 0.3),
-            translation(0, -0.92).scale(13, 2, 13),
-            material(0.8, 0.8, 0.8, 0.2),
+          csg_polygons_subtract(
+            polygons_transform(
+              cylinder(6, 0, 0, 0.3),
+              translation(0, -0.92).scale(13, 2, 13),
+              material(0.8, 0.8, 0.8, 0.2),
+            ),
+            polygons_transform(
+              cylinder(),
+              identity.rotate(0, 60).translate(14, 0.5, -1).scale(2.4, 5, 2),
+              material(0.5, 0.5, 0.5, 0.5),
+            ),
           ),
+          polygons_transform(
+            cylinder(),
+            identity.rotate(0, 60).translate(14.8, -1.46, -1).rotate(-30).translate(0, -1).scale(4.03, 1.6, 4.5),
+            material(0.8, 0.2, 0.2, 0.5),
+          ),
+          polygons_transform(cylinder(6), translation(0, -8).scale(9, 8, 7), material(0.2, 0.1, 0.4, 0.5)),
         ),
         polygons_transform(cylinder(5), identity.scale(5, 30, 5), material(0.4, 0.2, 0.6, 0.5)),
         polygons_transform(cylinder(5, 0, 1.5), translation(0, 1).scale(4.5, 0.3, 4.5), material(0.7, 0.5, 0.9, 0.2)),
-        polygons_transform(
-          cylinder(),
-          identity.rotate(0, 60).translate(14, 0.7, -1).rotate(-35).scale(2, 2, 2),
-          material(0.5, 0.5, 0.5, 0.5),
-        ),
         polygons_transform(cylinder(6), translation(15, -1.5, 4).scale(3.5, 1, 3.5), material(0.5, 0.5, 0.5, 0.5)),
       ),
     );
@@ -1145,6 +1445,29 @@ const build_life_the_universe_and_everything = () => {
       newLever(translation(0, 1.2));
     });
     newLever(translation(15, -2, 4));
+    integers_map(2, () =>
+      newModel(() => {
+        GQuad.map(({ x, z }) => {
+          meshAdd(cylinder(11, 1), translation(x * 4, 4, z * 4).scale(0.8, 3, 0.8), material(0.5, 0.3, 0.7, 0.6));
+          meshAdd(cylinder(), translation(x * 4, 7, z * 4).scale(1, 0.3), material(0.5, 0.5, 0.5, 0.3));
+        });
+        meshAdd(
+          csg_polygons_subtract(
+            polygons_transform(cylinder(), identity.scale(5, 1, 5), material(0.8, 0.8, 0.8, 0.3)),
+            ...[
+              -1,
+              1,
+            ].map((i) =>
+              polygons_transform(
+                cylinder(25, 1),
+                translation(5 * i, 0.2).rotate(i * -30).scale(4, 1, 3),
+                material(0.8, 0.8, 0.8, 0.3),
+              )
+            ),
+          ),
+        );
+        meshAdd(cylinder(), translation(0, -3).scale(8, 2, 8), material(0.4, 0.4, 0.4, 0.3));
+      }));
     newModel(() => {
       meshAdd(
         csg_polygons_subtract(
@@ -1160,16 +1483,13 @@ const build_life_the_universe_and_everything = () => {
           ),
           polygons_transform(cylinder(), identity.scale(1.3, 10, 1.3), material(0.2, 0.7, 0.4, 0.6)),
         ),
-        translation(0, 0, 45),
       );
-      newSoul(translation(0, 2.8, 45), [
+      newSoul(translation(0, 2.8), [
         0,
         0,
         4.5,
       ]);
     });
-    blackPlatform(35);
-    blackPlatform(55);
     meshAdd(cylinder(), translation(-21.1 + 2.45, -3, 55).scale(2.45, 1.4, 2.7), material(0.9, 0.9, 0.9, 0.2));
     newModel(() => {
       meshAdd(cylinder(3), translation(-23, -1.7, 55.8).scale(5, 0.7, 8.3), material(0.3, 0.6, 0.6, 0.2));
@@ -1206,8 +1526,8 @@ const build_life_the_universe_and_everything = () => {
       );
     });
     newLever(translation(-55, -1.1, 46).rotate(0, 90));
-    meshAdd(cylinder(6), translation(-61.3, -2.4, 49).scale(3, 1, 5), material(0.4, 0.6, 0.6, 0.3));
     meshAdd(cylinder(7), translation(-57, -2.6, 46).scale(4, 1, 4), material(0.8, 0.8, 0.8, 0.3));
+    meshAdd(cylinder(6), translation(-61.3, -2.4, 49).scale(3, 1, 5), material(0.4, 0.6, 0.6, 0.3));
     const hexCorridorPolygons = [
       ...polygons_transform(cylinder(), translation(0, -3).scale(11, 1.4, 3), material(0.9, 0.9, 0.9, 0.2)),
       ...polygons_transform(cylinder(), translation(0, -2.2).scale(7.7, 0.5, 4), material(0.5, 0.5, 0.5, 0.2)),
@@ -1220,9 +1540,9 @@ const build_life_the_universe_and_everything = () => {
         ),
         polygons_transform(cylinder(6), identity.rotate(90).scale(5, 12, 5), material(0.3, 0.6, 0.6, 0.3)),
         ...[
-          5,
-          0,
           -5,
+          0,
+          5,
         ].map((x) =>
           polygons_transform(
             cylinder(5),
@@ -1232,8 +1552,8 @@ const build_life_the_universe_and_everything = () => {
         ),
       ),
     ];
-    meshAdd(hexCorridorPolygons, translation(-53, 0, 55));
     newModel(() => meshAdd(hexCorridorPolygons), MODEL_KIND_GAME_NO_ATTACH_PLAYER);
+    meshAdd(hexCorridorPolygons, translation(-53, 0, 55));
     meshAdd(cylinder(), translation(-88.3, -5.1, 55).rotate(-30).scale(5, 1.25, 4.5), material(0.7, 0.7, 0.7, 0.2));
     meshAdd(
       cylinder(3, 0, -0.5),
@@ -1310,6 +1630,7 @@ const build_life_the_universe_and_everything = () => {
       ),
     );
     GQuad.map(({ x, z }) => {
+      meshAdd(cylinder(6), translation(x * 3, 3, z * 15).scale(0.7, 4, 0.7), material(0.6, 0.3, 0.3, 0.4));
       meshAdd(cylinder(6), translation(-100 + x * 7, -3, z * 7 + 55).scale(1, 8.1), material(0.6, 0.15, 0.15, 0.8));
       [
         4,
@@ -1319,6 +1640,17 @@ const build_life_the_universe_and_everything = () => {
           cylinder(6),
           translation(-100 + x * 7, i, z * 7 + 55).scale(1.3, 0.5, 1.3),
           material(0.4, 0.2, 0.2, 0.8),
+        )
+      );
+      meshAdd(cylinder(14, 1), translation(x * 9 - 38.9, -7.3, z * 11 + 17).scale(1, 4), material(0.25, 0.25, 0.25, 1));
+      [
+        1.5,
+        8,
+      ].map((y) =>
+        meshAdd(
+          cylinder(17, 1),
+          translation(x * 9 - 38.9, y - 11.3, z * 11 + 17).scale(1.5, 0.5, 1.5),
+          material(0.6, 0.6, 0.6, 0.3),
         )
       );
     });
@@ -1408,30 +1740,17 @@ const build_life_the_universe_and_everything = () => {
         ]),
       );
     });
-    GQuad.map(({ x, z }) => {
-      meshAdd(cylinder(14, 1), translation(x * 9 - 38.9, -7.3, z * 11 + 17).scale(1, 4), material(0.25, 0.25, 0.25, 1));
-      [
-        1.5,
-        8,
-      ].map((y) =>
-        meshAdd(
-          cylinder(17, 1),
-          translation(x * 9 - 38.9, y - 11.3, z * 11 + 17).scale(1.5, 0.5, 1.5),
-          material(0.6, 0.6, 0.6, 0.3),
-        )
-      );
-    });
     meshAdd(
       csg_polygons_subtract(
         csg_union(
-          polygons_transform(cylinder(6), translation(0, 0, -36).scale(15, 1.2, 15), material(0.7, 0.7, 0.7, 0.3)),
-          polygons_transform(cylinder(), translation(0, 0, -18).scale(4, 1.2, 6), material(0.45, 0.4, 0.6, 0.3)),
+          polygons_transform(cylinder(6), translation(0, 0, -18).scale(15, 1.2, 15), material(0.7, 0.7, 0.7, 0.3)),
+          polygons_transform(cylinder(), identity.scale(4, 1.2, 6), material(0.45, 0.4, 0.6, 0.3)),
         ),
         ...integers_map(6, (z) =>
           integers_map(6, (x) =>
             polygons_transform(
               cylinder(6),
-              translation(x * 4.6 - 12 + 2 * (z & 1), 0, z * 4.6 - 50 + /* @__PURE__ */ Math.sin(x * 4) * 2).scale(
+              translation(x * 4.6 - 12 + 2 * (z & 1), 0, z * 4.6 + /* @__PURE__ */ Math.sin(x * 4) * 2 - 32).scale(
                 2,
                 5,
                 2,
@@ -1439,7 +1758,7 @@ const build_life_the_universe_and_everything = () => {
               material(0.7, 0.7, 0.7, 0.3),
             ))).flat(),
       ),
-      translation(-38.9, -11.3, 17),
+      translation(-38.9, -11.3, -1),
     );
     newSoul(translation(-38.9, -8.4, -21), [
       -7,
@@ -1476,6 +1795,14 @@ const build_life_the_universe_and_everything = () => {
     newModel(() => integers_map(2, (x) => meshAdd(pushingRod, translation(-110 + x * 9 + (x & 1), 1.9, -12))));
     newModel(() => integers_map(2, (x) => meshAdd(pushingRod, translation(-110 + (x + 2) * 9 + (x & 1), 1.9, -12))));
     newModel(() => integers_map(3, (x) => meshAdd(pushingRod, translation(-106 + x * 9, 1.9, -12))));
+    integers_map(3, (i) => {
+      meshAdd(makeBigArcPolygons(16), translation(i * 12 - 109, -9, -12), material(0.6, 0.6, 0.6, 0.3));
+      meshAdd(
+        makeBigArcPolygons(16),
+        translation(-77, -9, i * -12 - 8 - 12).rotate(0, 90),
+        material(0.6, 0.6, 0.6, 0.3),
+      );
+    });
     meshAdd(
       csg_polygons_subtract(
         csg_union(
@@ -1495,26 +1822,18 @@ const build_life_the_universe_and_everything = () => {
       material(0.5, 0.5, 0.6, 0.2),
     );
     newLever(translation(-116, -1.4, -18).rotate(0, 180));
-    meshAdd(cylinder(), translation(-116, -2.6, -12).scale(3.2, 1.1, 4).skewX(3), material(0.8, 0.8, 0.8, 0.2));
     meshAdd(cylinder(6), translation(-116, -2.6, -16.5).scale(3.2, 0.8, 3), material(0.6, 0.5, 0.7, 0.2));
+    meshAdd(cylinder(), translation(-116, -2.6, -12).scale(3.2, 1.1, 4).skewX(3), material(0.8, 0.8, 0.8, 0.2));
     meshAdd(cylinder(), translation(-115.5, -17, -12).scale(0.5, 15, 2.2), material(0.6, 0.6, 0.6, 0.3));
     meshAdd(cylinder(8), translation(-114, -17, -2).scale(2, 15, 2), material(0.6, 0.6, 0.6, 0.3));
     meshAdd(cylinder(8), translation(-79, -17, -2).scale(2, 15, 2), material(1, 1, 1, 0.3));
     meshAdd(cylinder(), translation(-77, -17, -50.5).scale(2.2, 15, 0.5), material(0.6, 0.6, 0.6, 0.3));
-    integers_map(3, (i) => {
-      meshAdd(makeBigArcPolygons(16), translation(i * 12 - 109, -9, -12), material(0.6, 0.6, 0.6, 0.3));
-      meshAdd(
-        makeBigArcPolygons(16),
-        translation(-77, -9, i * -12 - 8 - 12).rotate(0, 90),
-        material(0.6, 0.6, 0.6, 0.3),
-      );
-    });
     meshAdd(
       csg_polygons_subtract(
         polygons_transform(cylinder(12), translation(-77, -14.5, -12).scale(4, 17.5, 4), material(0.7, 0.7, 0.7, 0.2)),
+        polygons_transform(cylinder(12), translation(-77, 3.1, -12).scale(3, 5, 3), material(0.4, 0.5, 0.6, 0.2)),
         polygons_transform(cylinder(), translation(-79, 0.1, -12).scale(3.5, 2, 1.3), material(0.4, 0.5, 0.6, 0.2)),
         polygons_transform(cylinder(), translation(-77, 0.1, -14).scale(1.5, 2, 2), material(0.4, 0.5, 0.6, 0.2)),
-        polygons_transform(cylinder(12), translation(-77, 3.1, -12).scale(3, 5, 3), material(0.4, 0.5, 0.6, 0.2)),
       ),
     );
     meshAdd(cylinder(), translation(-84.9, -4.3, -40).rotate(12).scale(6, 1, 3), material(0.6, 0.6, 0.6, 0.3));
@@ -1587,11 +1906,7 @@ const build_life_the_universe_and_everything = () => {
         -1,
         1,
       ].map((i) =>
-        meshAdd(
-          hornPolygons,
-          identity.rotate(i * 90, 180, 90).translate(0, 5).rotate(40).scale(1.3, 10, 1.3),
-          material(1, 1, 0.8, 0.2),
-        )
+        meshAdd(hornPolygons, identity.rotate(i * 90, 180, 90).translate(0, 5).rotate(40).scale(1.3, 10, 1.3))
       );
       newSoul(translation(-5, 4), [
         0,
@@ -1617,11 +1932,7 @@ const build_life_the_universe_and_everything = () => {
           material(0.5, 0.24, 0.2, 0.4),
         )
       );
-      meshAdd(
-        hornPolygons,
-        translation(x * -5 - 100, 1.7, 114.5).scale(1.2, 10, 1.2).rotate(0, 90 * x - 90),
-        material(1, 1, 0.8),
-      );
+      meshAdd(hornPolygons, translation(x * -5 - 100, 1.7, 114.5).scale(1.2, 10, 1.2).rotate(0, 90 * x - 90));
       meshAdd(cylinder(12, 1), translation(-7.5 * x - 100, 3.7, 96).scale(0.8, 4, 0.8), material(0.6, 0.24, 0.2, 0.5));
       meshAdd(
         csg_polygons_subtract(
@@ -1646,12 +1957,6 @@ const build_life_the_universe_and_everything = () => {
         translation(x - 100, 0.7, 97),
       );
     });
-    meshAdd(
-      csg_polygons_subtract(
-        polygons_transform(cylinder(), translation(-82.07, 0.8, 106).scale(11, 0.9, 2.2), material(0.7, 0.7, 0.7, 0.1)),
-        polygons_transform(cylinder(45, 1), translation(-81, 0.7, 106).scale3d(7.7), material(0.7, 0.7, 0.7, 0.1)),
-      ),
-    );
     newModel(() => {
       meshAdd(
         csg_polygons_subtract(
@@ -1678,7 +1983,6 @@ const build_life_the_universe_and_everything = () => {
         meshAdd(
           hornPolygons,
           identity.rotate(0, 90).translate(x * -5, 1, -0.5).scale(1.2, 10, 1.2).rotate(0, 90 * x + 90),
-          material(1, 1, 0.8),
         )
       );
       meshAdd(
@@ -1712,12 +2016,18 @@ const build_life_the_universe_and_everything = () => {
       meshAdd(polygons_transform(cylinder(28, 1), identity.scale(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2)));
       meshAdd(polygons_transform(cylinder(5), translation(0, 1).scale(1, 0.2), material(0.3, 0.3, 0.3, 0.2)));
     });
+    meshAdd(
+      csg_polygons_subtract(
+        polygons_transform(cylinder(), translation(-82.07, 0.8, 106).scale(11, 0.9, 2.2), material(0.7, 0.7, 0.7, 0.1)),
+        polygons_transform(cylinder(45, 1), translation(-81, 0.7, 106).scale3d(7.7), material(0.7, 0.7, 0.7, 0.1)),
+      ),
+    );
     meshAdd(cylinder(), translation(-58, 1, 106).scale(2, 0.65, 2), material(0.7, 0.7, 0.7, 0.2));
     meshAdd(cylinder(), translation(-50.7, 1, 99).scale(2, 0.65, 1), material(0.7, 0.7, 0.7, 0.2));
     meshAdd(cylinder(), translation(-42, 0.4, 91).scale(5, 1, 2.5), material(0.7, 0.7, 0.7, 0.3));
     meshAdd(cylinder(), translation(-34.2, 0.4, 91).scale(3, 1, 3), material(0.7, 0.7, 0.7, 0.3));
-    newLever(translation(-34, 2.7, 96).rotate(-12, 0));
     meshAdd(cylinder(5), translation(-34, 0.2, 96).scale(3, 2, 4).rotate(-20, 0), material(0.2, 0.5, 0.5, 0.6));
+    newLever(translation(-34, 2.7, 96).rotate(-12, 0));
     [
       material(0.1, 0.55, 0.45, 0.2),
       material(0.2, 0.5, 0.5, 0.3),
@@ -1740,9 +2050,7 @@ const build_life_the_universe_and_everything = () => {
     [
       -1,
       1,
-    ].map((x) =>
-      meshAdd(hornPolygons, translation(x * -8, 1, 85).scale(1.2, 10, 1.2).rotate(0, 90 * x + 90), material(1, 1, 0.8))
-    );
+    ].map((x) => meshAdd(hornPolygons, translation(x * -8, 1, 85).scale(1.2, 10, 1.2).rotate(0, 90 * x + 90)));
     integers_map(
       3,
       (i) =>
@@ -1868,8 +2176,8 @@ const build_life_the_universe_and_everything = () => {
     ].map((x) => meshAdd(sphere(12), translation(x * 0.16, 0.4, -0.36).scale3d(0.09)));
   }, MODEL_KIND_MESH);
   newModel(() => {
-    meshAdd(cylinder(6, 1), identity.scale(0.13, 1.4, 0.13), material(0.3, 0.3, 0.5, 0.1));
-    meshAdd(cylinder(10), translation(0, 1).scale(0.21, 0.3, 0.21), material(1, 0.5, 0.2));
+    meshAdd(cylinder(6, 1), identity.scale(0.12, 1.2, 0.12), material(0.3, 0.3, 0.5, 0.1));
+    meshAdd(cylinder(10), translation(0, 0.8).scale(0.2, 0.3, 0.2), material(1, 0.5, 0.2));
     meshAdd(cylinder(3), translation(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3), material(0.2, 0.2, 0.2, 0.1));
   }, MODEL_KIND_MESH);
 };
@@ -1881,7 +2189,7 @@ const uniformName_projectionMatrix = "a";
 const uniformName_viewMatrix = "b";
 const uniformName_worldMatrices = "c";
 const code$3 =
-  "#version 300 es\nprecision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(vec3(0,1.49,.3*b[0][0])+m.xyz,1);if(gl_FragCoord.y>36.){float e=abs(gl_FragCoord.x/64.-1.),v=clamp(a.z+.7,0.,1.);O=a.y<.6||a.y>4.?vec4(0):vec4(vec2(b[0][0]*sign(a.x)*o.x<0.?v*(.7-abs(a.x))*e:0.),vec2(b[0][0]*o.z>0.?v*(1.-e):0.));}else{float e=o.y>.45&&a.y<1.?a.y*clamp((a.z+.4)*50.,0.,1.):0.;O=vec4(vec2(e),vec2(e>0.?m.w/255.:0.));}}";
+  "#version 300 es\nprecision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(vec3(0,1.49,.3*b[0][0])+m.xyz,1);if(O=vec4(0),gl_FragCoord.y>36.){if(a.y>.6&&a.y<4.){float e=abs(gl_FragCoord.x/64.-1.),i=clamp(a.z+.7,0.,1.);O=vec4(vec2(b[0][0]*sign(a.x)*o.x<0.?i*(.7-abs(a.x))*e/.7:0.),vec2(b[0][0]*o.z>0.?i*(1.-e):0.));}}else if(o.y>.45&&a.y<1.){float e=a.y*clamp((a.z+.4)*50.,0.,1.)*clamp((-abs(a.x)+.2)*10.,0.,1.);O=vec4(vec2(e),vec2(e>0.?m.w/255.:0.));}}";
 const constDef_COLLISION_TEXTURE_SIZE = 128;
 const code$2 = "#version 300 es\nvoid main(){}";
 const code$1 = "#version 300 es\nin vec4 f;void main(){gl_Position=vec4(f.xy,1,1);}";
@@ -1941,7 +2249,7 @@ const player_init = () => {
   const updatePlayerPositionFinal = (updateVelocity) => {
     if (player_respawned > 1) {
       matrixCopy(levers[player_last_pulled_lever].$matrix).multiplySelf(levers[player_last_pulled_lever].$transform);
-      matrixTransformPoint(0, player_last_pulled_lever || firstBoatLerp > 0.9 ? 15 : 1, PLAYER_RESPAWN_Z);
+      matrixTransformPoint(0, player_last_pulled_lever + firstBoatLerp > 0.9 ? 15 : 1, PLAYER_RESPAWN_Z);
     } else {
       loadReferenceMatrix();
       matrixTransformPoint(player_position_global_x, player_position_global_y, player_position_global_z);
@@ -1997,7 +2305,7 @@ const player_init = () => {
       let right = 0;
       let front = 0;
       let back = 0;
-      const yindex1 = y1 * (constDef_COLLISION_TEXTURE_SIZE * 4);
+      const yindex1 = constDef_COLLISION_TEXTURE_SIZE * 4 * y1;
       for (let tx = 0; tx < constDef_COLLISION_TEXTURE_SIZE; ++tx) {
         const index = yindex1 + tx * 4;
         let v1 = collision_buffer[index];
@@ -2034,7 +2342,8 @@ const player_init = () => {
         movZ = back;
       }
     }
-    player_speed_collision_limiter = clamp(1 - max(abs(movX), abs(movZ)) * 0.02);
+    movX *= 0.7;
+    player_speed_collision_limiter = clamp(1 - max(abs(movX), abs(movZ)) * 0.01, 0.3);
     movePlayer(movX / 255, movY / 255, movZ / 255);
   };
   const interpolate_with_hysteresis = (previous, desired, hysteresis, speed) =>
@@ -2050,9 +2359,9 @@ const player_init = () => {
       player_position_global_x = matrixTransformPoint.x;
       player_position_global_y = matrixTransformPoint.y;
       player_position_global_z = matrixTransformPoint.z;
-    }
-    if (player_respawned) {
-      player_respawned = currentModelId ? 0 : 1;
+      if (player_respawned) {
+        player_respawned = currentModelId ? 0 : 1;
+      }
     }
     if (player_position_final.y < (player_position_final.x < -20 || player_position_final.z < 109 ? -25 : -9)) {
       player_respawned = 2;
@@ -2078,7 +2387,7 @@ const player_init = () => {
       const d = player_respawned + damp(18);
       camera_position_x = lerp(camera_position_x, player_position_final.x, d);
       camera_position_z = lerp(camera_position_z, player_position_final.z, d);
-      camera_position_y = lerp(camera_position_y, player_model_y + 1.5, d);
+      camera_position_y = lerp(camera_position_y, 1.6 + player_model_y, d);
       camera_rotation.y = angle_wrap_degrees(camera_rotation.y);
     } else {
       camera_position_x = interpolate_with_hysteresis(
@@ -2124,17 +2433,17 @@ const player_init = () => {
     let strafe = clamp(input_strafe, -1);
     const movAmount = threshold(hypot(forward, strafe) ** 0.5, 0.1);
     let movAngle = /* @__PURE__ */ Math.atan2(forward, strafe);
-    forward = movAmount * abs(forward) * /* @__PURE__ */ Math.sin(movAngle);
-    strafe = movAmount * abs(strafe) * /* @__PURE__ */ Math.cos(movAngle);
     if (movAmount) {
       player_look_angle_target = 90 - movAngle / DEG_TO_RAD;
     }
     player_look_angle = angle_lerp_degrees(player_look_angle, player_look_angle_target, damp(8));
     player_legs_speed = lerpDamp(player_legs_speed, movAmount, 10);
-    modelsNextUpdate().translateSelf(player_position_final.x, player_model_y, player_position_final.z).rotateSelf(
-      0,
-      player_look_angle,
-    );
+    modelsNextUpdate().translateSelf(
+      player_position_final.x,
+      0.06 * player_speed_collision_limiter * player_legs_speed
+          * /* @__PURE__ */ Math.cos(gameTime * (PLAYER_LEGS_VELOCITY * 2)) + player_model_y,
+      player_position_final.z,
+    ).rotateSelf(0, player_look_angle);
     for (let i = 0; i < 2; ++i) {
       const t = gameTime * PLAYER_LEGS_VELOCITY - Math.PI * i;
       matrixCopy(allModels[MODEL_ID_PLAYER_BODY].$matrix, modelsNextUpdate()).translateSelf(
@@ -2151,20 +2460,20 @@ const player_init = () => {
       ? 0
       : lerpDamp(
         player_speed,
-        currentModelId ? clamp(2 * movAmount) * 7 * player_speed_collision_limiter : 0,
+        currentModelId ? 7 * clamp(2 * movAmount) * player_speed_collision_limiter : 0,
         currentModelId ? 9 : 1,
       );
+    forward = player_speed * movAmount * abs(forward) * /* @__PURE__ */ Math.sin(movAngle);
+    strafe = player_speed * movAmount * abs(strafe) * /* @__PURE__ */ Math.cos(movAngle);
     movAngle = player_first_person ? (180 + camera_rotation.y) * DEG_TO_RAD : 0;
     movePlayer(
       gameTimeDelta
         * (player_fly_velocity_x
-          + player_speed
-            * (strafe * /* @__PURE__ */ Math.cos(movAngle) - forward * /* @__PURE__ */ Math.sin(movAngle))),
-      -player_gravity * gameTimeDelta,
+          + (strafe * /* @__PURE__ */ Math.cos(movAngle) - /* @__PURE__ */ Math.sin(movAngle) * forward)),
+      gameTimeDelta * -player_gravity,
       gameTimeDelta
         * (player_fly_velocity_z
-          + player_speed
-            * (strafe * /* @__PURE__ */ Math.sin(movAngle) + forward * /* @__PURE__ */ Math.cos(movAngle))),
+          + (strafe * /* @__PURE__ */ Math.sin(movAngle) + /* @__PURE__ */ Math.cos(movAngle) * forward)),
     );
   };
 };
@@ -2179,7 +2488,7 @@ const boatAnimationMatrix = (matrix, x, y, z) =>
     y + /* @__PURE__ */ Math.sin(gameTime * 0.8) / 3,
     z,
   ).rotateSelf(
-    /* @__PURE__ */ Math.sin(gameTime) * 2,
+    2 * /* @__PURE__ */ Math.sin(gameTime),
     /* @__PURE__ */ Math.sin(gameTime * 0.7),
     /* @__PURE__ */ Math.sin(gameTime * 0.9),
   );
@@ -2210,38 +2519,37 @@ const eppur_si_muove = () => {
     0,
     levers[3].$lerpValue < 0.01
       ? -500
-      : (1 - levers[2].$lerpValue) * levers[3].$lerpValue2 * (/* @__PURE__ */ Math.cos(gameTime * 1.5) * 5 + 2)
+      : (2 + 5 * /* @__PURE__ */ Math.cos(gameTime * 1.5)) * (1 - levers[2].$lerpValue) * levers[3].$lerpValue2
         + 15 * (levers[3].$lerpValue - 1),
-    0,
   );
   let oscillation = min(1 - levers[4].$lerpValue2, levers[2].$lerpValue2);
-  modelsNextUpdate().translateSelf(oscillation * /* @__PURE__ */ Math.sin(gameTime / 1.5 + 2) * 12);
-  modelsNextUpdate().translateSelf(oscillation * /* @__PURE__ */ Math.sin(gameTime * 0.7 + 2) * 12);
-  modelsNextUpdate().translateSelf(oscillation * /* @__PURE__ */ Math.sin(gameTime + 3) * 8.2);
-  modelsNextUpdate().translateSelf((1 - oscillation) * 9.8);
-  oscillation = clamp(1 - oscillation * 5) * lerpneg(levers[4].$lerpValue, levers[5].$lerpValue);
+  modelsNextUpdate().translateSelf(oscillation * /* @__PURE__ */ Math.sin(gameTime * 0.6 + 1.2) * 12, 0, 35);
+  modelsNextUpdate().translateSelf(oscillation * /* @__PURE__ */ Math.sin(gameTime * 0.6 - 1.2) * 8.2, 0, 55);
+  modelsNextUpdate().translateSelf(oscillation * /* @__PURE__ */ Math.sin(gameTime * 0.6) * 12, 0, 45);
+  modelsNextUpdate().translateSelf(9.8 * (1 - oscillation));
+  oscillation = clamp(1 - 5 * oscillation) * lerpneg(levers[4].$lerpValue, levers[5].$lerpValue);
   modelsNextUpdate().translateSelf(0, oscillation * /* @__PURE__ */ Math.sin(gameTime * 1.35) * 4);
   modelsNextUpdate().translateSelf(0, 0, oscillation * /* @__PURE__ */ Math.sin(gameTime * 0.9) * 8);
-  modelsNextUpdate().translateSelf(0, levers[4].$lerpValue2 * -6.5);
-  modelsNextUpdate().translateSelf(-75, (1 - levers[5].$lerpValue2) * (1 - levers[6].$lerpValue) * 3, 55).rotateSelf(
+  modelsNextUpdate().translateSelf(0, -6.5 * levers[4].$lerpValue2);
+  modelsNextUpdate().translateSelf(-75, 3 * (1 - levers[5].$lerpValue2) * (1 - levers[6].$lerpValue), 55).rotateSelf(
     180 * (1 - levers[5].$lerpValue2) + rotatingHexCorridorRotation,
     0,
   );
   oscillation = lerpneg(levers[7].$lerpValue2, levers[6].$lerpValue2);
   modelsNextUpdate().translateSelf(
     0,
-    5 * oscillation * /* @__PURE__ */ Math.sin(gameTime) + 3.5 * (1 - max(levers[6].$lerpValue, levers[7].$lerpValue)),
+    oscillation * /* @__PURE__ */ Math.sin(gameTime) * 5 + 3.5 * (1 - max(levers[6].$lerpValue, levers[7].$lerpValue)),
   );
   modelsNextUpdate().translateSelf(
     0,
-    6 * oscillation * /* @__PURE__ */ Math.sin(gameTime + 3),
-    6 * oscillation * /* @__PURE__ */ Math.sin(gameTime * 0.6 + 1),
+    oscillation * /* @__PURE__ */ Math.sin(gameTime + 3) * 6,
+    oscillation * /* @__PURE__ */ Math.sin(gameTime * 0.6 + 1) * 6,
   );
-  modelsNextUpdate().translateSelf(0, levers[7].$lerpValue2 * -7.3);
-  boatAnimationMatrix(modelsNextUpdate(), -123, 1.4, 55 + secondBoatLerp * -65);
+  modelsNextUpdate().translateSelf(0, -7.3 * levers[7].$lerpValue2);
+  boatAnimationMatrix(modelsNextUpdate(), -123, 1.4, 55 - 65 * secondBoatLerp);
   oscillation = lerpneg(levers[10].$lerpValue, levers[11].$lerpValue);
-  modelsNextUpdate().translateSelf(0, -2, oscillation * abs(/* @__PURE__ */ Math.sin(gameTime * 1.1)) * -8.5 + 10);
-  modelsNextUpdate().translateSelf(0, -2, oscillation * abs(/* @__PURE__ */ Math.sin(gameTime * 2.1)) * -8.5 + 10);
+  modelsNextUpdate().translateSelf(0, -2, 10 - 8.5 * oscillation * abs(/* @__PURE__ */ Math.sin(gameTime * 1.1)));
+  modelsNextUpdate().translateSelf(0, -2, 10 - 8.5 * oscillation * abs(/* @__PURE__ */ Math.sin(gameTime * 2.1)));
   modelsNextUpdate().translateSelf(
     0,
     -2,
@@ -2255,17 +2563,17 @@ const eppur_si_muove = () => {
   oscillation = lerpneg(levers[8].$lerpValue2, levers[12].$lerpValue2);
   for (let i = 0; i < 4; i++) {
     modelsNextUpdate().translateSelf(
-      (i > 2 ? (1 - oscillation) * 2 + oscillation : 0) - 100,
+      (i > 2 ? 2 * (1 - oscillation) + oscillation : 0) - 100,
       oscillation * /* @__PURE__ */ Math.sin(gameTime * 1.3 + i * 1.7) * (3 + i / 3) + 0.7,
       115 - 7 * (1 - levers[8].$lerpValue2) * (1 - levers[12].$lerpValue2) * (i & 1 ? -1 : 1)
         + max(0.05, oscillation) * /* @__PURE__ */ Math.cos(gameTime * 1.3 + i * 7) * (4 - 2 * (1 - i / 3)),
     );
   }
   modelsNextUpdate().translateSelf(
-    (1 - oscillation) * 2.5 - 139.7,
+    2.5 * (1 - oscillation) - 139.7,
     -3 * (1 - levers[8].$lerpValue) - oscillation * /* @__PURE__ */ Math.sin(gameTime * 0.8) - 1.8,
     93.5,
-  ).rotateSelf(/* @__PURE__ */ Math.cos(gameTime * 1.3) * (oscillation * 3 + 3), 0);
+  ).rotateSelf(/* @__PURE__ */ Math.cos(gameTime * 1.3) * (3 + 3 * oscillation), 0);
   modelsNextUpdate().translateSelf(-81, 0.6, 106).rotateSelf(0, 40 + rotatingPlatform1Rotation);
   modelsNextUpdate().translateSelf(-65.8, 0.8, 106).rotateSelf(0, rotatingPlatform2Rotation);
   modelsNextUpdate().translateSelf(-50.7, 0.8, 106).rotateSelf(0, 180 - rotatingPlatform2Rotation);
@@ -2285,15 +2593,14 @@ const eppur_si_muove = () => {
     lerpneg((levers[14].$lerpValue + levers[14].$lerpValue2) / 2, levers[13].$lerpValue2),
     (levers[15].$lerpValue + levers[15].$lerpValue2) / 2,
   );
-  modelsNextUpdate().translateSelf(0, 16 * floatingElevatorPad, 95 + 8.5 * clamp(2 * floatingElevatorPad - 1));
+  modelsNextUpdate().translateSelf(0, 16 * floatingElevatorPad, 95 + 8.5 * clamp(floatingElevatorPad * 2 - 1));
   for (let i2 = 0; i2 < SOULS_COUNT; ++i2) {
     souls[i2]._update();
     matrixToArray(tempMatrix, objectsMatricesBuffer, i2);
   }
   for (let i3 = 0; i3 < LEVERS_COUNT; ++i3) {
     levers[i3]._update();
-    matrixToArray(tempMatrix, objectsMatricesBuffer, i3 + SOULS_COUNT);
-    objectsMatricesBuffer[15 + SOULS_COUNT * 16 + 16 * i3] = 1 - levers[i3].$lerpValue;
+    matrixToArray(tempMatrix, objectsMatricesBuffer, SOULS_COUNT + i3);
   }
   player_update();
   for (let i4 = 0; i4 <= modelsUpdateCounter; ++i4) {
@@ -2303,7 +2610,7 @@ const eppur_si_muove = () => {
 const renderModels = (worldMatrixLoc, renderPlayer, soulModelId) => {
   if (mainMenuVisible) {
     if (hC.width > 1100) {
-      matrixCopy().rotateSelf(0, /* @__PURE__ */ Math.sin(absoluteTime) * 40 - 80, -8);
+      matrixCopy().rotateSelf(0, 40 * /* @__PURE__ */ Math.sin(absoluteTime) - 80, -8);
       matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_BODY - 1);
       matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_LEG0 - 1);
       matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_LEG1 - 1);
@@ -2317,13 +2624,6 @@ const renderModels = (worldMatrixLoc, renderPlayer, soulModelId) => {
     }
     return;
   }
-  gl["uae"](worldMatrixLoc, false, worldMatricesBuffer);
-  gl["d97"](
-    4,
-    (renderPlayer ? allModels[MODEL_ID_PLAYER_LEG1].$vertexEnd : allModels[MODEL_ID_PLAYER_BODY].$vertexBegin) - 3,
-    5123,
-    6,
-  );
   gl["uae"](worldMatrixLoc, false, objectsMatricesBuffer);
   gl["das"](
     4,
@@ -2338,6 +2638,13 @@ const renderModels = (worldMatrixLoc, renderPlayer, soulModelId) => {
     5123,
     allModels[MODEL_ID_LEVER].$vertexBegin * 2,
     levers.length,
+  );
+  gl["uae"](worldMatrixLoc, false, worldMatricesBuffer);
+  gl["d97"](
+    4,
+    (renderPlayer ? allModels[MODEL_ID_PLAYER_LEG1].$vertexEnd : allModels[MODEL_ID_PLAYER_BODY].$vertexBegin) - 3,
+    5123,
+    6,
   );
 };
 const loadShader = (source, type = 35633) => {
@@ -2515,7 +2822,7 @@ const startMainLoop = (groundTextureImage) => {
   const collision_renderBuffer = gl["c3z"]();
   const collision_frameBuffer = gl["c5w"]();
   collisionShader();
-  gl["uae"](collisionShader(uniformName_projectionMatrix), false, matrixToArray(mat_perspective(1e-4, 2, 1.4, 0.4)));
+  gl["uae"](collisionShader(uniformName_projectionMatrix), false, matrixToArray(mat_perspective(1e-4, 2, 1.2, 0.4)));
   mainShader();
   gl["ubh"](mainShader(uniformName_groundTexture), 2);
   gl["ubh"](mainShader(uniformName_csm_texture1), 1);
@@ -2550,304 +2857,6 @@ const startMainLoop = (groundTextureImage) => {
   (/* @__PURE__ */ NO_INLINE(player_init))();
   requestAnimationFrame(mainLoop);
 };
-const loadStep = (fn) => {
-  h4.innerHTML += ".";
-  setTimeout(fn);
-};
-const song_numChannels = 5;
-const song_endPattern = 11;
-const song_patternLen = 32;
-const song_rowLen2 = 3891;
-const song_rowLen1 = 4562;
-const song_rowLen0 = 5513;
-const song_patterns = "000001234556112341234556011111111112011111111112000001111112";
-const song_columns = [
-  [
-    "(.15:15:=5:=A:=AF=AFIFIMRMRUY(Y(((((((((((((((((((((((((((((M(M(((((((((((((((((((((((((((((R(R(((((((((((((((((((((((((((((U(U",
-    "(059<59<A9<AE<AEHAEHMEHMQMQTY(Y",
-    "(5:>A:>AF>AFJAFJMFJMRJMRVMRVY(Y",
-    "(:?BFFKNRRWZ^(^((:=@FFILRRUX^(^",
-    "Q(M(M(O(Q(R(T(Q(T(R(W(U(T(R(Q(N(W((Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(X]",
-    "QN(M(N(M(N(M(N(M((((((((((((((((W(Y(Y(Y(Y(Y(Y(Y(Y(((((((((((((((]",
-  ],
-  [
-    ".(5(.(5(.(5(.(5(.(5(.(5(.(5(.(5",
-    "-(5(-(5(-(5(-(5(-(5(-(5(-(5(-(5",
-    ",(5(,(5(,(5(,(5(,(5(,(5(,(5(,(5",
-    "*(6(*(6(*(6(*(6(*(6(*(6(*(6(*(6",
-    "5(E(E(F(H(I(K(H(K(I(N(M(K(I(H(F(A(((((((((((((((((((((((((((((((5(((5(((5(((5(((5(((5(((5(((5",
-    "5(6(5(6(5(6(5(6(5((()(((((((((((A(B(A(B(A(B(A(B(A(((5",
-  ],
-  [
-    "9(((9(((9(((9(((9(((9(((9(((9",
-    "9(((Q(((Q(((Q",
-  ],
-  [
-    "9(9(9(9(9(9(9(999(9(9(9(999(9(9",
-    "9(9(9(9(9(999(9(((((Q",
-  ],
-  [
-    "((((Q(((((((Q(((((((Q(((((((Q",
-    "Q((Q((Q((Q((Q((Q((((Q",
-  ],
-];
-const song_instruments = [
-  [
-    69,
-    128,
-    0,
-    143,
-    128,
-    0,
-    0,
-    196,
-    100,
-    36,
-    0,
-    0,
-    149,
-    110,
-    31,
-    47,
-    3,
-    56,
-    2,
-    0,
-  ],
-  [
-    100,
-    128,
-    0,
-    201,
-    128,
-    0,
-    0,
-    100,
-    144,
-    35,
-    0,
-    6,
-    135,
-    0,
-    32,
-    147,
-    6,
-    0,
-    6,
-    195,
-  ],
-  [
-    255,
-    116,
-    85,
-    255,
-    116,
-    37,
-    14,
-    64,
-    144,
-    73,
-    99,
-    0,
-    136,
-    15,
-    32,
-    0,
-    0,
-    66,
-    6,
-    0,
-  ],
-  [
-    0,
-    140,
-    0,
-    0,
-    140,
-    0,
-    81,
-    64,
-    400,
-    47,
-    55,
-    5,
-    239,
-    135,
-    13,
-    176,
-    5,
-    16,
-    4,
-    187,
-  ],
-  [
-    221,
-    128,
-    64,
-    210,
-    128,
-    64,
-    255,
-    64,
-    144,
-    73,
-    79,
-    7,
-    195,
-    15,
-    21,
-    20,
-    0,
-    9,
-    3,
-    64,
-  ],
-];
-const getnotefreq = (n) => 0.003959503758 * 2 ** ((n - 256) / 12);
-const osc_sin = (value) => /* @__PURE__ */ Math.sin(value * Math.PI * 2);
-const osc_square = (value) => value % 1 < 0.5 ? 1 : -1;
-const osc_saw = (value) => 2 * (value % 1) - 1;
-const osc_tri = (value) => {
-  const v2 = value % 1 * 4;
-  return v2 < 2 ? v2 - 1 : 3 - v2;
-};
-const loadSong = (done) => {
-  let channelIndex = 0;
-  const next = () => {
-    let mixIndex = 0;
-    const make = (song_rowLen) => {
-      let n;
-      let t;
-      let f;
-      let high;
-      let filterActive;
-      let low = 0;
-      let band = 0;
-      const noteCache = [];
-      const createNote = (note) => {
-        let o1t;
-        let o2t;
-        let c1 = 0;
-        let c2 = 0;
-        const OSC1_WAVEFORM = channelIndex < 2 ? osc_saw : osc_sin;
-        const OSC2_WAVEFORM = channelIndex < 2 ? channelIndex < 1 ? osc_square : osc_tri : osc_sin;
-        const noteBuf = new Int32Array(ENV_ATTACK + ENV_SUSTAIN + ENV_RELEASE);
-        for (let j1 = 0, j2 = 0; j1 < ENV_ATTACK + ENV_SUSTAIN + ENV_RELEASE; ++j1, ++j2) {
-          let e = 1;
-          if (j1 < ENV_ATTACK) {
-            e = j1 / ENV_ATTACK;
-          } else if (j1 >= ENV_ATTACK + ENV_SUSTAIN) {
-            e = (j1 - ENV_ATTACK - ENV_SUSTAIN) / ENV_RELEASE;
-            e = (1 - e) * 3 ** (-ENV_EXP_DECAY / 16 * e);
-          }
-          if (j2 >= 0) {
-            j2 -= song_rowLen * 4;
-            o1t = getnotefreq(note + OSC1_SEMI);
-            o2t = getnotefreq(note + OSC2_SEMI) * (1 + (channelIndex ? 0 : 8e-4 * 9));
-          }
-          noteBuf[j1] = 80
-              * (OSC1_WAVEFORM(c1 += o1t * e ** (OSC1_XENV / 32)) * OSC1_VOL
-                + OSC2_WAVEFORM(c2 += o2t * e ** (OSC2_XENV / 32)) * OSC2_VOL
-                + (NOISE_VOL ? (/* @__PURE__ */ Math.random() * 2 - 1) * NOISE_VOL : 0))
-              * e | 0;
-        }
-        return noteBuf;
-      };
-      const chnBuf = new Int32Array(song_rowLen * SONG_WORDS);
-      const lfoFreq = 2 ** (LFO_FREQ - 9) / song_rowLen;
-      const panFreq = Math.PI * 2 ** (FX_PAN_FREQ - 8) / song_rowLen;
-      const dly = FX_DELAY_TIME * song_rowLen & -2;
-      for (let p = 0; p <= song_endPattern; ++p) {
-        for (let row = 0, cp = +song_patterns[channelIndex * 12 + p]; row < song_patternLen; ++row) {
-          const rowStartSample = (p * song_patternLen + row) * song_rowLen;
-          for (let col = 0; col < 4; ++col) {
-            n = 0;
-            if (cp) {
-              n = COLUMNS[cp - 1].charCodeAt(row + col * song_patternLen) - 40;
-              n += n > 0 ? 106 : 0;
-            }
-            if (n) {
-              const noteBuf = noteCache[n] || (noteCache[n] = createNote(n));
-              for (let j = 0, i = rowStartSample * 2; j < noteBuf.length; ++j, i += 2) {
-                chnBuf[i] += noteBuf[j];
-              }
-            }
-          }
-          for (let j1 = 0, rsample; j1 < song_rowLen; ++j1) {
-            let lsample = 0;
-            let k = (rowStartSample + j1) * 2;
-            rsample = chnBuf[k];
-            if (rsample || filterActive) {
-              f = FX_FREQ * 0.003079991863530159;
-              if (channelIndex === 1 || channelIndex === 4) {
-                f *= osc_sin(lfoFreq * k) * LFO_AMT / 512 + 0.5;
-              }
-              f = 1.5 * /* @__PURE__ */ Math.sin(f);
-              low += f * band;
-              high = (1 - FX_RESONANCE / 255) * (rsample - band) - low;
-              band += f * high;
-              rsample = channelIndex === 4 ? band : channelIndex === 3 ? high : low;
-              if (!channelIndex) {
-                rsample *= 22e-5;
-                rsample = rsample < 1 ? rsample > -1 ? osc_sin(rsample / 4) : -1 : 1;
-                rsample /= 22e-5;
-              }
-              rsample *= FX_DRIVE / 32;
-              filterActive = rsample * rsample > 1e-5;
-              t = /* @__PURE__ */ Math.sin(panFreq * k) * FX_PAN_AMT / 512 + 0.5;
-              lsample = rsample * (1 - t);
-              rsample *= t;
-            }
-            if (k >= dly) {
-              lsample += chnBuf[k - dly + 1] * FX_DELAY_AMT / 255;
-              rsample += chnBuf[k - dly] * FX_DELAY_AMT / 255;
-            }
-            const mixBufferIndex = mixIndex + k >> 1;
-            mixBufferA[mixBufferIndex] += (chnBuf[k] = lsample) / 65536;
-            mixBufferB[mixBufferIndex] += (chnBuf[++k] = rsample) / 65536;
-          }
-        }
-      }
-      mixIndex += song_rowLen * SONG_WORDS;
-    };
-    const COLUMNS = song_columns[channelIndex];
-    const [
-      OSC1_VOL,
-      OSC1_SEMI,
-      OSC1_XENV,
-      OSC2_VOL,
-      OSC2_SEMI,
-      OSC2_XENV,
-      NOISE_VOL,
-      ENV_ATTACK,
-      ENV_SUSTAIN,
-      _ENV_RELEASE,
-      ENV_EXP_DECAY,
-      LFO_FREQ,
-      FX_FREQ,
-      FX_RESONANCE,
-      FX_DRIVE,
-      FX_PAN_AMT,
-      FX_PAN_FREQ,
-      FX_DELAY_AMT,
-      FX_DELAY_TIME,
-      LFO_AMT,
-    ] = song_instruments[channelIndex];
-    const ENV_RELEASE = _ENV_RELEASE ** 2 * 4;
-    make(song_rowLen0);
-    make(song_rowLen1);
-    make(song_rowLen2);
-    loadStep(++channelIndex < song_numChannels ? next : done);
-  };
-  const audioBuffer = audioContext.createBuffer(2, SONG_TOTAL_WORDS / 2, 44100);
-  const mixBufferA = audioBuffer.getChannelData(0);
-  const mixBufferB = audioBuffer.getChannelData(1);
-  songAudioSource.buffer = audioBuffer;
-  songAudioSource.loop = true;
-  loadStep(next);
-};
-const SONG_WORDS = song_patternLen * (song_endPattern + 1) * 2;
-const SONG_TOTAL_WORDS = (song_rowLen0 + song_rowLen1 + song_rowLen2) * SONG_WORDS;
 const initTriangleBuffers = () => {
   let meshFirstIndex = 0;
   const _triangleIndices = [];
@@ -2891,7 +2900,7 @@ const initTriangleBuffers = () => {
         _triangleIndices.push(a, b, b = getVertex(i));
       }
     }
-    model.$polygons = null;
+    model.$polygons = 0;
     model.$vertexBegin = meshFirstIndex;
     model.$vertexEnd = meshFirstIndex = _triangleIndices.length;
   });

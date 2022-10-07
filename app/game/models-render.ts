@@ -21,7 +21,7 @@ export const renderModels = (
 ) => {
   if (mainMenuVisible) {
     if (hC.width > 1100) {
-      matrixCopy().rotateSelf(0, Math.sin(absoluteTime) * 40 - 80, -8);
+      matrixCopy().rotateSelf(0, 40 * Math.sin(absoluteTime) - 80, -8);
 
       matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_BODY - 1);
       matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_LEG0 - 1);
@@ -38,17 +38,6 @@ export const renderModels = (
 
     return;
   }
-
-  // Render world
-
-  gl.uniformMatrix4fv(worldMatrixLoc, false, worldMatricesBuffer);
-
-  gl.drawElements(
-    gl.TRIANGLES,
-    (renderPlayer ? allModels[MODEL_ID_PLAYER_LEG1]!.$vertexEnd! : allModels[MODEL_ID_PLAYER_BODY]!.$vertexBegin!) - 3,
-    gl.UNSIGNED_SHORT,
-    3 * 2,
-  );
 
   gl.uniformMatrix4fv(worldMatrixLoc, false, objectsMatricesBuffer);
 
@@ -70,5 +59,16 @@ export const renderModels = (
     gl.UNSIGNED_SHORT,
     allModels[MODEL_ID_LEVER]!.$vertexBegin! * 2,
     levers.length,
+  );
+
+  // Render world
+
+  gl.uniformMatrix4fv(worldMatrixLoc, false, worldMatricesBuffer);
+
+  gl.drawElements(
+    gl.TRIANGLES,
+    (renderPlayer ? allModels[MODEL_ID_PLAYER_LEG1]!.$vertexEnd! : allModels[MODEL_ID_PLAYER_BODY]!.$vertexBegin!) - 3,
+    gl.UNSIGNED_SHORT,
+    3 * 2,
   );
 };

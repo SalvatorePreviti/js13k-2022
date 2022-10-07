@@ -18,7 +18,7 @@ let rotatingHexCorridorRotation: number;
 const boatAnimationMatrix = (matrix: DOMMatrix, x: number, y: number, z: number) =>
   matrix
     .translateSelf(x + Math.sin(gameTime + 2) / 5, y + Math.sin(gameTime * 0.8) / 3, z)
-    .rotateSelf(Math.sin(gameTime) * 2, Math.sin(gameTime * 0.7), Math.sin(gameTime * 0.9));
+    .rotateSelf(2 * Math.sin(gameTime), Math.sin(gameTime * 0.7), Math.sin(gameTime * 0.9));
 
 export const eppur_si_muove = () => {
   modelsResetUpdateCounter();
@@ -46,12 +46,12 @@ export const eppur_si_muove = () => {
   // first boad
   boatAnimationMatrix(modelsNextUpdate(), -12, 4.2, -66 + firstBoatLerp * 40);
 
-  // in and out gate bars
-
+  // in gate bars in first level
   modelsNextUpdate()
     .translateSelf(0, 0, -15)
     .scaleSelf(1, clamp(1.22 - levers[1]!.$lerpValue), 1);
 
+  // out gate bars in first level
   modelsNextUpdate()
     .translateSelf(0, 0, 15)
     .scaleSelf(1, clamp(1.22 - levers[2]!.$lerpValue), 1);
@@ -74,30 +74,29 @@ export const eppur_si_muove = () => {
     0,
     levers[3]!.$lerpValue < 0.01
       ? -500
-      : (1 - levers[2]!.$lerpValue) * levers[3]!.$lerpValue2 * (Math.cos(gameTime * 1.5) * 5 + 2) +
+      : (2 + 5 * Math.cos(gameTime * 1.5)) * (1 - levers[2]!.$lerpValue) * levers[3]!.$lerpValue2 +
           15 * (levers[3]!.$lerpValue - 1),
-    0,
   );
 
-  // central oscillating platform
+  // blackPlatforms in the second level
 
   let oscillation = min(1 - levers[4]!.$lerpValue2, levers[2]!.$lerpValue2);
 
-  modelsNextUpdate().translateSelf(oscillation * Math.sin(gameTime / 1.5 + 2) * 12);
+  modelsNextUpdate().translateSelf(oscillation * Math.sin(gameTime * 0.6 + 1.2) * 12, 0, 35);
 
-  // blackPlatforms
+  modelsNextUpdate().translateSelf(oscillation * Math.sin(gameTime * 0.6 - 1.2) * 8.2, 0, 55);
 
-  modelsNextUpdate().translateSelf(oscillation * Math.sin(gameTime * 0.7 + 2) * 12);
+  // central oscillating platform
 
-  modelsNextUpdate().translateSelf(oscillation * Math.sin(gameTime + 3) * 8.2);
+  modelsNextUpdate().translateSelf(oscillation * Math.sin(gameTime * 0.6) * 12, 0, 45);
 
   // triangle platform
 
-  modelsNextUpdate().translateSelf((1 - oscillation) * 9.8);
+  modelsNextUpdate().translateSelf(9.8 * (1 - oscillation));
 
   // vertically oscillating mini platforms
 
-  oscillation = clamp(1 - oscillation * 5) * lerpneg(levers[4]!.$lerpValue, levers[5]!.$lerpValue);
+  oscillation = clamp(1 - 5 * oscillation) * lerpneg(levers[4]!.$lerpValue, levers[5]!.$lerpValue);
 
   modelsNextUpdate().translateSelf(0, oscillation * Math.sin(gameTime * 1.35) * 4);
 
@@ -107,12 +106,12 @@ export const eppur_si_muove = () => {
 
   // hex corridor door
 
-  modelsNextUpdate().translateSelf(0, levers[4]!.$lerpValue2 * -6.5);
+  modelsNextUpdate().translateSelf(0, -6.5 * levers[4]!.$lerpValue2);
 
   // rotating hex corridor
 
   modelsNextUpdate()
-    .translateSelf(-75, (1 - levers[5]!.$lerpValue2) * (1 - levers[6]!.$lerpValue) * 3, 55)
+    .translateSelf(-75, 3 * (1 - levers[5]!.$lerpValue2) * (1 - levers[6]!.$lerpValue), 55)
     .rotateSelf(180 * (1 - levers[5]!.$lerpValue2) + rotatingHexCorridorRotation, 0);
 
   // elevators
@@ -121,30 +120,30 @@ export const eppur_si_muove = () => {
 
   modelsNextUpdate().translateSelf(
     0,
-    5 * oscillation * Math.sin(gameTime) + 3.5 * (1 - max(levers[6]!.$lerpValue, levers[7]!.$lerpValue)),
+    oscillation * Math.sin(gameTime) * 5 + 3.5 * (1 - max(levers[6]!.$lerpValue, levers[7]!.$lerpValue)),
   );
 
   modelsNextUpdate().translateSelf(
     0,
-    6 * oscillation * Math.sin(gameTime + 3),
-    6 * oscillation * Math.sin(gameTime * 0.6 + 1),
+    oscillation * Math.sin(gameTime + 3) * 6,
+    oscillation * Math.sin(gameTime * 0.6 + 1) * 6,
   );
 
   // central sculpture/monument
 
-  modelsNextUpdate().translateSelf(0, levers[7]!.$lerpValue2 * -7.3);
+  modelsNextUpdate().translateSelf(0, -7.3 * levers[7]!.$lerpValue2);
 
   // second boat
 
-  boatAnimationMatrix(modelsNextUpdate(), -123, 1.4, 55 + secondBoatLerp * -65);
+  boatAnimationMatrix(modelsNextUpdate(), -123, 1.4, 55 - 65 * secondBoatLerp);
 
   // pushing rods
 
   oscillation = lerpneg(levers[10]!.$lerpValue, levers[11]!.$lerpValue);
 
-  modelsNextUpdate().translateSelf(0, -2, oscillation * abs(Math.sin(gameTime * 1.1)) * -8.5 + 10);
+  modelsNextUpdate().translateSelf(0, -2, 10 - 8.5 * oscillation * abs(Math.sin(gameTime * 1.1)));
 
-  modelsNextUpdate().translateSelf(0, -2, oscillation * abs(Math.sin(gameTime * 2.1)) * -8.5 + 10);
+  modelsNextUpdate().translateSelf(0, -2, 10 - 8.5 * oscillation * abs(Math.sin(gameTime * 2.1)));
 
   modelsNextUpdate().translateSelf(
     0,
@@ -165,7 +164,7 @@ export const eppur_si_muove = () => {
 
   for (let i = 0; i < 4; i++) {
     modelsNextUpdate().translateSelf(
-      (i > 2 ? (1 - oscillation) * 2 + oscillation : 0) - 100,
+      (i > 2 ? 2 * (1 - oscillation) + oscillation : 0) - 100,
       oscillation * Math.sin(gameTime * 1.3 + i * 1.7) * (3 + i / 3) + 0.7,
       115 -
         7 * (1 - levers[8]!.$lerpValue2) * (1 - levers[12]!.$lerpValue2) * (i & 1 ? -1 : 1) +
@@ -177,11 +176,11 @@ export const eppur_si_muove = () => {
 
   modelsNextUpdate()
     .translateSelf(
-      (1 - oscillation) * 2.5 - 139.7,
+      2.5 * (1 - oscillation) - 139.7,
       -3 * (1 - levers[8]!.$lerpValue) - oscillation * Math.sin(gameTime * 0.8) - 1.8,
       93.5,
     )
-    .rotateSelf(Math.cos(gameTime * 1.3) * (oscillation * 3 + 3), 0);
+    .rotateSelf(Math.cos(gameTime * 1.3) * (3 + 3 * oscillation), 0);
 
   // First rotating platform (with hole)
 
@@ -230,7 +229,7 @@ export const eppur_si_muove = () => {
     (levers[15]!.$lerpValue + levers[15]!.$lerpValue2) / 2,
   );
 
-  modelsNextUpdate().translateSelf(0, 16 * floatingElevatorPad, 95 + 8.5 * clamp(2 * floatingElevatorPad - 1));
+  modelsNextUpdate().translateSelf(0, 16 * floatingElevatorPad, 95 + 8.5 * clamp(floatingElevatorPad * 2 - 1));
 
   // Update souls
 
@@ -243,10 +242,7 @@ export const eppur_si_muove = () => {
 
   for (let i = 0; i < LEVERS_COUNT; ++i) {
     levers[i]!._update();
-    matrixToArray(tempMatrix, objectsMatricesBuffer, i + SOULS_COUNT);
-
-    // Encode lerp value in matrix m44 so fragmemt shader can change the lever handle color
-    objectsMatricesBuffer[15 + SOULS_COUNT * 16 + 16 * i] = 1 - levers[i]!.$lerpValue;
+    matrixToArray(tempMatrix, objectsMatricesBuffer, SOULS_COUNT + i);
   }
 
   // Player body and legs

@@ -58,7 +58,7 @@ export const initTriangleBuffers = () => {
     }
 
     // free memory
-    model.$polygons = null;
+    model.$polygons = 0 as any;
 
     // write the indices offset and count
     model.$vertexBegin = meshFirstIndex;
