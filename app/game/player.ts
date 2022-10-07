@@ -87,7 +87,7 @@ export const player_init = () => {
   const updatePlayerPositionFinal = (updateVelocity?: unknown) => {
     if (player_respawned > 1) {
       matrixCopy(levers[player_last_pulled_lever]!.$matrix).multiplySelf(levers[player_last_pulled_lever]!.$transform);
-      matrixTransformPoint(0, player_last_pulled_lever || firstBoatLerp > 0.9 ? 15 : 1, PLAYER_RESPAWN_Z);
+      matrixTransformPoint(0, player_last_pulled_lever + firstBoatLerp > 0.9 ? 15 : 1, PLAYER_RESPAWN_Z);
     } else {
       loadReferenceMatrix();
       matrixTransformPoint(player_position_global_x, player_position_global_y, player_position_global_z);
@@ -200,7 +200,9 @@ export const player_init = () => {
       }
     }
 
-    player_speed_collision_limiter = clamp(1 - max(abs(movX), abs(movZ)) * 0.02);
+    movX *= 0.7;
+
+    player_speed_collision_limiter = clamp(1 - max(abs(movX), abs(movZ)) * 0.01, 0.3);
 
     movePlayer(movX / 255, movY / 255, movZ / 255);
   };

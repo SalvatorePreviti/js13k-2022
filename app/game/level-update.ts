@@ -82,9 +82,9 @@ export const eppur_si_muove = () => {
 
   let oscillation = min(1 - levers[4]!.$lerpValue2, levers[2]!.$lerpValue2);
 
-  modelsNextUpdate().translateSelf(oscillation * Math.sin(gameTime * 0.6 + 1.5) * 12, 0, 35);
+  modelsNextUpdate().translateSelf(oscillation * Math.sin(gameTime * 0.6 + 1.2) * 12, 0, 35);
 
-  modelsNextUpdate().translateSelf(oscillation * Math.sin(gameTime * 0.6 + 2) * 8.2, 0, 55);
+  modelsNextUpdate().translateSelf(oscillation * Math.sin(gameTime * 0.6 - 1.2) * 8.2, 0, 55);
 
   // central oscillating platform
 

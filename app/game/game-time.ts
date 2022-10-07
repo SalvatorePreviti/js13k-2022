@@ -4,7 +4,7 @@ let _globalTime: number | undefined;
 
 export let mainMenuVisible: boolean | undefined;
 
-export const GAME_TIME_MAX_DELTA_TIME = 0.06;
+export const GAME_TIME_MAX_DELTA_TIME = 0.055;
 
 export let gameTime = 0;
 

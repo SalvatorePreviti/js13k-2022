@@ -79,7 +79,7 @@ export const newLever = ($transform: DOMMatrixReadOnly): void => {
 
       // Prepare the matrix to be written to the uniform buffer for the lever stick.
       // and encode lerp value in matrix m44 so fragmemt shader can change the lever handle color
-      tempMatrix.rotateSelf(lever.$lerpValue * 60 - 30, 0).translateSelf(0, 1).m44 = 1 - lever.$lerpValue;
+      tempMatrix.rotateSelf(lever.$lerpValue * 50 - 25, 0).translateSelf(0, 1).m44 = 1 - lever.$lerpValue;
     },
   };
   levers.push(lever);

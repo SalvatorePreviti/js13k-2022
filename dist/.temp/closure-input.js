@@ -1,13 +1,13 @@
 let _globalTime;
 let mainMenuVisible;
-let firstBoatLerp;
-let secondBoatLerp;
 let audioBuffer;
 let interact_pressed;
 let player_first_person;
 let projection;
 let csm_projections;
 let updateInput;
+let firstBoatLerp;
+let secondBoatLerp;
 let currentEditModel;
 let modelsUpdateCounter;
 let player_update;
@@ -18,15 +18,15 @@ let rotatingHexCorridorRotation;
 let gameTime = 0;
 let absoluteTime = 0;
 let gameTimeDelta = 0;
+let input_forward = 0;
+let input_strafe = 0;
 let souls_collected_count = 0;
 let game_completed = 0;
 let player_last_pulled_lever = 0;
-let input_forward = 0;
-let input_strafe = 0;
 let camera_position_x = 0;
 let camera_position_y = 0;
 let camera_position_z = 0;
-let _messageEndTime = 1;
+let _messageEndTime = 0.1;
 const DEG_TO_RAD = Math.PI / 180;
 const groundTextureSvg = "data:image/svg+xml;base64,"
   + btoa(
@@ -337,40 +337,6 @@ const sphere = (slices, stacks = slices, vertexFunc = (x, y) => (y *= Math.PI / 
 };
 const damp = NO_INLINE((speed) => 1 - Math.exp(-gameTimeDelta * speed));
 const lerpDamp = NO_INLINE((from, to, speed) => lerp(from, to, damp(speed)));
-const showMessage = (message, duration) => {
-  1 / 0 > _messageEndTime && (_messageEndTime = gameTime + duration, h4.innerHTML = message);
-};
-const updateCollectedSoulsCounter = () => {
-  h3.innerHTML = "Souls: " + [
-    0,
-    "I",
-    "II",
-    "III",
-    "IV",
-    "V",
-    "VI",
-    "VII",
-    "VIII",
-    "IX",
-    "X",
-    "XI",
-    "XII",
-    "XIII",
-  ][souls_collected_count = souls.reduce((acc, v) => acc + v.$value, 0)] + " / XIII";
-};
-const saveGame = () => {
-  localStorage["DanteSP22"] = JSON.stringify([
-    levers.map((v) => v.$value),
-    souls.map((v) => v.$value),
-    player_last_pulled_lever,
-    gameTime,
-    secondBoatLerp,
-  ]);
-};
-const onPlayerPullLever = (leverIndex) => {
-  (player_last_pulled_lever = leverIndex) && showMessage("* click *", 1), saveGame();
-};
-const material = NO_INLINE((r, g, b, a = 0) => 255 * a << 24 | 255 * b << 16 | 255 * g << 8 | 255 * r);
 const mat_perspective = (near, far, mx, my) =>
   new DOMMatrix([
     mx,
@@ -590,7 +556,7 @@ const initPage = () => {
       music_on = !music_on, updateMusicOnState();
     },
     b3.onclick = () => {
-      confirm("Restart game?") && (localStorage["DanteSP22"] = "", location.reload());
+      confirm("Restart game?") && resetGame();
     },
     onclick = (e) => {
       if (!mainMenuVisible && (e.target === hC && (interact_pressed = 1), player_first_person)) {try {
@@ -696,6 +662,43 @@ const initPage = () => {
     document.onvisibilitychange = onblur = onresize = handleResize,
     mainMenu(!0);
 };
+const showMessage = (message, duration) => {
+  1 / 0 > _messageEndTime && (_messageEndTime = gameTime + duration, h4.innerHTML = message);
+};
+const updateCollectedSoulsCounter = () => {
+  h3.innerHTML = "Souls: " + [
+    0,
+    "I",
+    "II",
+    "III",
+    "IV",
+    "V",
+    "VI",
+    "VII",
+    "VIII",
+    "IX",
+    "X",
+    "XI",
+    "XII",
+    "XIII",
+  ][souls_collected_count = souls.reduce((acc, v) => acc + v.$value, 0)] + " / XIII";
+};
+const resetGame = () => {
+  localStorage["DanteSP22"] = "", location.reload();
+};
+const saveGame = () => {
+  localStorage["DanteSP22"] = JSON.stringify([
+    levers.map((v) => v.$value),
+    souls.map((v) => v.$value),
+    player_last_pulled_lever,
+    gameTime,
+    secondBoatLerp,
+  ]);
+};
+const onPlayerPullLever = (leverIndex) => {
+  (player_last_pulled_lever = leverIndex) && showMessage("* click *", 1), saveGame();
+};
+const material = NO_INLINE((r, g, b, a = 0) => 255 * a << 24 | 255 * b << 16 | 255 * g << 8 | 255 * r);
 const meshAdd = (polygons, transform = new DOMMatrix(), color) =>
   currentEditModel.$polygons.push(...polygons_transform(polygons, transform, color));
 const newModel = (fn, $kind = 1) => {
@@ -740,7 +743,7 @@ const newLever = ($transform) => {
                 : game_completed
                   || (showMessage("Well done. They will be punished.<br>Thanks for playing", 1 / 0),
                     game_completed = 1)),
-        tempMatrix.rotateSelf(60 * lever.$lerpValue - 30, 0).translateSelf(0, 1).m44 = 1 - lever.$lerpValue;
+        tempMatrix.rotateSelf(50 * lever.$lerpValue - 25, 0).translateSelf(0, 1).m44 = 1 - lever.$lerpValue;
     },
   };
   levers.push(lever),
@@ -1025,7 +1028,7 @@ const player_init = () => {
   const updatePlayerPositionFinal = (updateVelocity) => {
     1 < player_respawned
       ? (matrixCopy(levers[player_last_pulled_lever].$matrix).multiplySelf(levers[player_last_pulled_lever].$transform),
-        matrixTransformPoint(0, player_last_pulled_lever || 0.9 < firstBoatLerp ? 15 : 1, -2.4))
+        matrixTransformPoint(0, 0.9 < player_last_pulled_lever + firstBoatLerp ? 15 : 1, -2.4))
       : (loadReferenceMatrix(),
         matrixTransformPoint(player_position_global_x, player_position_global_y, player_position_global_z)),
       updateVelocity
@@ -1082,7 +1085,8 @@ const player_init = () => {
       }
       (right -= left) * right > movX * movX && (movX = right), (back -= front) * back > movZ * movZ && (movZ = back);
     }
-    player_speed_collision_limiter = clamp(1 - 0.02 * max(abs(movX), abs(movZ))),
+    movX *= 0.7,
+      player_speed_collision_limiter = clamp(1 - 0.01 * max(abs(movX), abs(movZ)), 0.3),
       movePlayer(movX / 255, movY / 255, movZ / 255);
   };
   const interpolate_with_hysteresis = (previous, desired, hysteresis, speed) =>
@@ -1268,17 +1272,16 @@ loadStep(() => {
         let dt = (globalTime - (_globalTime || globalTime)) / 1e3;
         if (
           absoluteTime += dt,
-            gameTime += gameTimeDelta = mainMenuVisible ? 0 : min(0.06, dt),
+            gameTime += gameTimeDelta = mainMenuVisible ? 0 : min(0.055, dt),
             _globalTime = globalTime,
             0 < gameTimeDelta
         ) {
           updateInput(),
             _messageEndTime && gameTime > _messageEndTime && (_messageEndTime = 0, h4.innerHTML = ""),
-            firstBoatLerp = lerpDamp(
-              firstBoatLerp,
-              game_completed ? lerpDamp(firstBoatLerp, -9, 1.5) : clamp(gameTime / 3),
-              1,
-            ),
+            game_completed && (player_first_person = 0),
+            firstBoatLerp = game_completed
+              ? lerpDamp(firstBoatLerp, -9, 0.015)
+              : lerpDamp(firstBoatLerp, clamp(gameTime / 3), 1),
             secondBoatLerp = lerpDamp(
               secondBoatLerp,
               levers[9].$lerpValue2,
@@ -1315,8 +1318,8 @@ loadStep(() => {
                     + 15 * (levers[3].$lerpValue - 1),
               );
             let oscillation = min(1 - levers[4].$lerpValue2, levers[2].$lerpValue2);
-            modelsNextUpdate().translateSelf(oscillation * Math.sin(0.6 * gameTime + 1.5) * 12, 0, 35),
-              modelsNextUpdate().translateSelf(oscillation * Math.sin(0.6 * gameTime + 2) * 8.2, 0, 55),
+            modelsNextUpdate().translateSelf(oscillation * Math.sin(0.6 * gameTime + 1.2) * 12, 0, 35),
+              modelsNextUpdate().translateSelf(oscillation * Math.sin(0.6 * gameTime - 1.2) * 8.2, 0, 55),
               modelsNextUpdate().translateSelf(oscillation * Math.sin(0.6 * gameTime) * 12, 0, 45),
               modelsNextUpdate().translateSelf(9.8 * (1 - oscillation)),
               oscillation = clamp(1 - 5 * oscillation) * lerpneg(levers[4].$lerpValue, levers[5].$lerpValue),
@@ -1482,7 +1485,7 @@ precision highp float;uniform vec3 j,k;uniform mat4 b;uniform highp sampler2D q;
       const collisionShader = initShaderProgram(
         mainVertexShader,
         `#version 300 es
-precision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(vec3(0,1.49,.3*b[0][0])+m.xyz,1);if(gl_FragCoord.y>36.){float e=abs(gl_FragCoord.x/64.-1.),v=clamp(a.z+.7,0.,1.);O=a.y<.6||a.y>4.?vec4(0):vec4(vec2(b[0][0]*sign(a.x)*o.x<0.?v*(.7-abs(a.x))*e:0.),vec2(b[0][0]*o.z>0.?v*(1.-e):0.));}else{float e=o.y>.45&&a.y<1.?a.y*clamp((a.z+.4)*50.,0.,1.):0.;O=vec4(vec2(e),vec2(e>0.?m.w/255.:0.));}}`,
+precision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(vec3(0,1.49,.3*b[0][0])+m.xyz,1);if(O=vec4(0),gl_FragCoord.y>36.){if(a.y>.6&&a.y<4.){float e=abs(gl_FragCoord.x/64.-1.),i=clamp(a.z+.7,0.,1.);O=vec4(vec2(b[0][0]*sign(a.x)*o.x<0.?i*(.7-abs(a.x))*e/.7:0.),vec2(b[0][0]*o.z>0.?i*(1.-e):0.));}}else if(o.y>.45&&a.y<1.){float e=a.y*clamp((a.z+.4)*50.,0.,1.)*clamp((-abs(a.x)+.2)*10.,0.,1.);O=vec4(vec2(e),vec2(e>0.?m.w/255.:0.));}}`,
       );
       const mainShader = initShaderProgram(
         mainVertexShader,
@@ -1556,7 +1559,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
       const collision_renderBuffer = gl["c3z"]();
       const collision_frameBuffer = gl["c5w"]();
       collisionShader(),
-        gl["uae"](collisionShader("a"), !1, matrixToArray(mat_perspective(1e-4, 2, 1.4, 0.4))),
+        gl["uae"](collisionShader("a"), !1, matrixToArray(mat_perspective(1e-4, 2, 1.2, 0.4))),
         mainShader(),
         gl["ubh"](mainShader("q"), 2),
         gl["ubh"](mainShader("h"), 1),
@@ -1669,7 +1672,9 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
             gameTime = savedGameTime,
             secondBoatLerp = savedSecondBoatLerp;
         } catch {}
-        updateCollectedSoulsCounter(), firstBoatLerp = clamp(player_last_pulled_lever), loadStep(end);
+        updateCollectedSoulsCounter(),
+          firstBoatLerp = clamp(player_last_pulled_lever + souls_collected_count),
+          loadStep(end);
       });
       {
         const hornMatrix = (i) =>
@@ -2741,8 +2746,8 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               ].map((x) => meshAdd(sphere(12), translation(0.16 * x, 0.4, -0.36).scale3d(0.09)));
           }, 0),
           newModel(() => {
-            meshAdd(cylinder(6, 1), identity.scale(0.14, 1.4, 0.14), material(0.3, 0.3, 0.5, 0.1)),
-              meshAdd(cylinder(10), translation(0, 1).scale(0.21, 0.3, 0.21), material(1, 0.5, 0.2)),
+            meshAdd(cylinder(6, 1), identity.scale(0.12, 1.2, 0.12), material(0.3, 0.3, 0.5, 0.1)),
+              meshAdd(cylinder(10), translation(0, 0.8).scale(0.2, 0.3, 0.2), material(1, 0.5, 0.2)),
               meshAdd(
                 cylinder(3),
                 translation(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3),

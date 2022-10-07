@@ -24,6 +24,8 @@ export const resetInteractPressed = () => {
 
 export let player_first_person: 0 | 1 | undefined;
 
+export const exit_player_first_person = () => (player_first_person = 0);
+
 export let input_forward = 0;
 
 export let input_strafe = 0;

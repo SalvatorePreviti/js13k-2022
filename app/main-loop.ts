@@ -278,8 +278,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   gl.uniformMatrix4fv(
     collisionShader(uniformName_projectionMatrix),
     false,
-    matrixToArray(mat_perspective(0.0001, 2, 1.4, 0.4)),
-    // matrixToArray(mat_perspective(0.0001, 10, 1.4, 0.59)),
+    matrixToArray(mat_perspective(0.0001, 2, 1.2, 0.4)),
   );
 
   mainShader();
