@@ -1165,15 +1165,18 @@ const csg_union = (...inputs) => inputs.reduce((a, b) => {
 });
 const csg_polygons_subtract = (a, ...b) => csg_polygons(csg_tree_flip(csg_union(csg_tree_flip(csg_tree(a)), ...b)));
 const build_life_the_universe_and_everything = () => {
-  const HORN_STACKS = 10;
-  const hornMatrix = (i) => translation(/* @__PURE__ */ Math.sin(i / HORN_STACKS * Math.PI), i / HORN_STACKS).rotateSelf(10 * (i / HORN_STACKS)).scaleSelf(1.0001 - i / HORN_STACKS, 0, 1 - i / HORN_STACKS);
-  const hornPolygons = integers_map(HORN_STACKS, (i) => cylinder_sides(polygon_transform(polygon_regular(18), hornMatrix(i), material(1, 1, 0.8, 0.2)).reverse(), polygon_transform(polygon_regular(18), hornMatrix(i + 1), material(1, 1, 0.8, 0.2)), 1)).flat();
+  const HORN_STACKS = 11;
+  const hornMatrix = (i) => {
+    i /= HORN_STACKS;
+    return translation(/* @__PURE__ */ Math.sin(i * Math.PI), i).rotateSelf(10 * i).scaleSelf(1.001 - i, 1, 1.001 - i);
+  };
+  const hornPolygons = integers_map(HORN_STACKS, (i) => cylinder_sides(polygon_transform(polygon_regular(19), hornMatrix(i), material(1, 1, 0.8, 0.2)).reverse(), polygon_transform(polygon_regular(19), hornMatrix(i + 1), material(1, 1, 0.8, 0.2)), 1)).flat();
   newModel(() => meshAdd([
     GQuad.slice(1)
   ], translation(-2).scale3d(3).rotate(90, 0)), MODEL_KIND_MESH);
   newModel(() => {
     const makeBigArcPolygons = (height) => csg_polygons_subtract(polygons_transform(cylinder(), translation(0, -height / 2).scale(6, height - 1, 2.2)), polygons_transform(cylinder(), translation(0, -height / 2 - 6).scale(4, height - 3, 4)), polygons_transform(cylinder(32, 1), translation(0, height / 2 - 9).rotate(90, 0, 90).scale3d(4)));
-    const gateBarsModel = () => newModel(() => integers_map(7, (i) => meshAdd(polygons_transform(cylinder(6, 1), translation(4 * (i / 6 - 0.5), 3).scale(0.2, 3, 0.2), material(0.3, 0.3, 0.38)))));
+    const gateBarsModel = () => newModel(() => integers_map(7, (i) => meshAdd(polygons_transform(cylinder(9, 1), translation(4 * (i / 6 - 0.5), 3).scale(0.2, 3, 0.2), material(0.3, 0.3, 0.38)))));
     const blackPlatform = (pz) => newModel(() => {
       GQuad.map(({ x, z }) => {
         meshAdd(cylinder(11, 1), translation(x * 4, 4, pz + z * 4).scale(0.8, 3, 0.8), material(0.5, 0.3, 0.7, 0.6));
@@ -1228,7 +1231,7 @@ const build_life_the_universe_and_everything = () => {
     meshAdd(cylinder(), translation(3, 1.5, -20).scale(0.5, 2, 5), material(0.7, 0.7, 0.7, 0.2));
     meshAdd(cylinder(), translation(-3.4, -0.2, -19).scale(2, 1, 1.5).rotate(0, -90), material(0.75, 0.75, 0.75, 0.2));
     meshAdd(cylinder(5), translation(-5.4, 0, -19).scale(2, 1, 2).rotate(0, -90), material(0.6, 0.3, 0.3, 0.4));
-    meshAdd(csg_polygons_subtract(csg_union(polygons_transform(cylinder(6, 0, 0, 0.3), translation(8, -3, -4).scale(13, 1, 13), material(0.7, 0.7, 0.7, 0.2)), csg_polygons_subtract(polygons_transform(cylinder(6, 0, 0, 0.3), translation(0, -0.92).scale(13, 2, 13), material(0.8, 0.8, 0.8, 0.2)), polygons_transform(cylinder(), identity.rotate(0, 60).translate(14, 0.5, -1).scale(2.4, 5, 2).rotate(-4), material(0.5, 0.5, 0.5, 0.5))), polygons_transform(cylinder(), identity.rotate(0, 60).translate(14.8, -1.46, -1).rotate(-30).translate(0, -1).scale(4.03, 1.6, 4.5), material(0.8, 0.2, 0.2, 0.5)), polygons_transform(cylinder(6), translation(0, -8).scale(9, 8, 7), material(0.2, 0.1, 0.4, 0.5))), polygons_transform(cylinder(5), identity.scale(5, 30, 5), material(0.4, 0.2, 0.6, 0.5)), polygons_transform(cylinder(5, 0, 1.5), translation(0, 1).scale(4.5, 0.3, 4.5), material(0.7, 0.5, 0.9, 0.2)), polygons_transform(cylinder(6), translation(15, -1.5, 4).scale(3.5, 1, 3.5), material(0.5, 0.5, 0.5, 0.5))));
+    meshAdd(csg_polygons_subtract(csg_union(polygons_transform(cylinder(6, 0, 0, 0.3), translation(8, -3, -4).scale(13, 1, 13), material(0.7, 0.7, 0.7, 0.2)), csg_polygons_subtract(polygons_transform(cylinder(6, 0, 0, 0.3), translation(0, -0.92).scale(13, 2, 13), material(0.8, 0.8, 0.8, 0.2)), polygons_transform(cylinder(), identity.rotate(0, 60).translate(14, 0.5, -1).scale(2.4, 5, 2), material(0.5, 0.5, 0.5, 0.5))), polygons_transform(cylinder(), identity.rotate(0, 60).translate(14.8, -1.46, -1).rotate(-30).translate(0, -1).scale(4.03, 1.6, 4.5), material(0.8, 0.2, 0.2, 0.5)), polygons_transform(cylinder(6), translation(0, -8).scale(9, 8, 7), material(0.2, 0.1, 0.4, 0.5))), polygons_transform(cylinder(5), identity.scale(5, 30, 5), material(0.4, 0.2, 0.6, 0.5)), polygons_transform(cylinder(5, 0, 1.5), translation(0, 1).scale(4.5, 0.3, 4.5), material(0.7, 0.5, 0.9, 0.2)), polygons_transform(cylinder(6), translation(15, -1.5, 4).scale(3.5, 1, 3.5), material(0.5, 0.5, 0.5, 0.5))));
     newModel(() => {
       meshAdd(cylinder(5), translation(0, -0.2).scale(5, 1, 5), material(0.6, 0.65, 0.7, 0.3));
       newLever(translation(0, 1.2));
@@ -1757,13 +1760,11 @@ const player_init = () => {
     let strafe = clamp(input_strafe, -1);
     const movAmount = threshold(hypot(forward, strafe) ** 0.5, 0.1);
     let movAngle = /* @__PURE__ */ Math.atan2(forward, strafe);
-    forward = movAmount * abs(forward) * /* @__PURE__ */ Math.sin(movAngle);
-    strafe = movAmount * abs(strafe) * /* @__PURE__ */ Math.cos(movAngle);
     if (movAmount)
       player_look_angle_target = 90 - movAngle / DEG_TO_RAD;
     player_look_angle = angle_lerp_degrees(player_look_angle, player_look_angle_target, damp(8));
     player_legs_speed = lerpDamp(player_legs_speed, movAmount, 10);
-    modelsNextUpdate().translateSelf(player_position_final.x, 0.06 * player_legs_speed * /* @__PURE__ */ Math.cos(gameTime * (PLAYER_LEGS_VELOCITY * 2)) + player_model_y, player_position_final.z).rotateSelf(0, player_look_angle);
+    modelsNextUpdate().translateSelf(player_position_final.x, 0.06 * player_speed_collision_limiter * player_legs_speed * /* @__PURE__ */ Math.cos(gameTime * (PLAYER_LEGS_VELOCITY * 2)) + player_model_y, player_position_final.z).rotateSelf(0, player_look_angle);
     for (let i = 0; i < 2; ++i) {
       const t = gameTime * PLAYER_LEGS_VELOCITY - Math.PI * i;
       matrixCopy(allModels[MODEL_ID_PLAYER_BODY].$matrix, modelsNextUpdate()).translateSelf(0, player_legs_speed * clamp(/* @__PURE__ */ Math.sin(t - Math.PI / 2) * 0.45)).rotateSelf(player_legs_speed * /* @__PURE__ */ Math.sin(t) * (0.25 / DEG_TO_RAD), 0);
@@ -1771,9 +1772,11 @@ const player_init = () => {
     player_gravity = currentModelId ? 5 : lerpDamp(player_gravity, player_respawned ? 13 : 19 - min(0, player_position_final.y + 10) * 2, 2.2);
     player_fly_velocity_x = currentModelId || player_respawned ? 0 : lerpDamp(player_fly_velocity_x, 0, 3);
     player_fly_velocity_z = currentModelId || player_respawned ? 0 : lerpDamp(player_fly_velocity_z, 0, 3);
-    player_speed = player_respawned ? 0 : lerpDamp(player_speed, currentModelId ? clamp(2 * movAmount) * 7 * player_speed_collision_limiter : 0, currentModelId ? 9 : 1);
+    player_speed = player_respawned ? 0 : lerpDamp(player_speed, currentModelId ? 7 * clamp(2 * movAmount) * player_speed_collision_limiter : 0, currentModelId ? 9 : 1);
+    forward = player_speed * movAmount * abs(forward) * /* @__PURE__ */ Math.sin(movAngle);
+    strafe = player_speed * movAmount * abs(strafe) * /* @__PURE__ */ Math.cos(movAngle);
     movAngle = player_first_person ? (180 + camera_rotation.y) * DEG_TO_RAD : 0;
-    movePlayer(gameTimeDelta * (player_fly_velocity_x + player_speed * (strafe * /* @__PURE__ */ Math.cos(movAngle) - /* @__PURE__ */ Math.sin(movAngle) * forward)), gameTimeDelta * -player_gravity, gameTimeDelta * (player_fly_velocity_z + player_speed * (strafe * /* @__PURE__ */ Math.sin(movAngle) + /* @__PURE__ */ Math.cos(movAngle) * forward)));
+    movePlayer(gameTimeDelta * (player_fly_velocity_x + (strafe * /* @__PURE__ */ Math.cos(movAngle) - /* @__PURE__ */ Math.sin(movAngle) * forward)), gameTimeDelta * -player_gravity, gameTimeDelta * (player_fly_velocity_z + (strafe * /* @__PURE__ */ Math.sin(movAngle) + /* @__PURE__ */ Math.cos(movAngle) * forward)));
   };
 };
 const collision_buffer = new Uint8Array(constDef_COLLISION_TEXTURE_SIZE * constDef_COLLISION_TEXTURE_SIZE * 4);

@@ -802,9 +802,11 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               },
               D = (e, a, t, l) => E(e, a, I || (P(L(a - e) ** .5 - t) + 1 / 7) * C1(1.5 * l));
             x = () => {
-              let e, a, t, l, r;
-              for (
-                C(g),
+              let e,
+                a,
+                t,
+                l,
+                r = (C(g),
                   Z.r9r(0, 0, 128, 128, 6408, 5121, G1),
                   (() => {
                     let a, t, l, r, s, c = 0, o = 0, n = 0, i = 0, e = 0, f = 0, m = -1;
@@ -870,31 +872,32 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   e = P(m1, -1),
                   a = P(h1, -1),
                   t = w1(k1(e, a) ** .5, .1),
-                  l = J1(e, a),
-                  e = t * L(e) * G(l),
-                  a = t * L(a) * J(l),
-                  t && (s = 90 - l / ae),
+                  J1(e, a));
+              for (
+                t && (s = 90 - r / ae),
                   c = M1(c, s, C1(8)),
                   o = K(o, t, 10),
-                  V().translateSelf(B, .06 * o * J(18.2 * Q) + u, X).rotateSelf(0, c),
+                  V().translateSelf(B, .06 * h * o * J(18.2 * Q) + u, X).rotateSelf(0, c),
                   l = 0;
                 l < 2;
                 ++l
               ) {
-                r = 9.1 * Q - _ * l,
-                  W(N[37].m, V()).translateSelf(0, o * P(.45 * G(r - _ / 2))).rotateSelf(o * G(r) * .25 / ae, 0);
+                let e = 9.1 * Q - _ * l;
+                W(N[37].m, V()).translateSelf(0, o * P(.45 * G(e - _ / 2))).rotateSelf(o * G(e) * .25 / ae, 0);
               }
               F = g ? 5 : K(F, k ? 13 : 19 - 2 * S1(0, R + 10), 2.2),
                 i = g || k ? 0 : K(i, 0, 3),
                 f = g || k ? 0 : K(f, 0, 3),
-                m = k ? 0 : K(m, g ? 7 * P(2 * t) * h : 0, g ? 9 : 1),
-                t = w * (i + m * (a * J(l = e1 ? (180 + q) * ae : 0) - G(l) * e)),
-                r = w * -F,
-                e = w * (f + m * (a * G(l) + J(l) * e)),
+                e = (m = k ? 0 : K(m, g ? 7 * P(2 * t) * h : 0, g ? 9 : 1)) * t * L(e) * G(r),
+                a = m * t * L(a) * J(r),
+                r = e1 ? (180 + q) * ae : 0,
+                t = w * (i + (a * J(r) - G(r) * e)),
+                l = w * -F,
+                e = w * (f + (a * G(r) + J(r) * e)),
                 Y().invertSelf(),
-                U(t, r, e, 0),
+                U(t, l, e, 0),
                 S += j,
-                A += r,
+                A += l,
                 M += O,
                 C();
             };
@@ -1022,7 +1025,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
         E = C.getChannelData(1);
       Q1(s);
     })(() => {
-      let a = e => o(G(e / 10 * _), e / 10).rotateSelf(+e).scaleSelf(1.0001 - e / 10, 0, 1 - e / 10),
+      let a = e => o(G((e /= 11) * _), e).rotateSelf(10 * e).scaleSelf(1.001 - e, 1, 1.001 - e),
         c = (Q1(() => {
           let t = 0,
             r = [],
@@ -1070,7 +1073,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
           }
           j1(), $ = P(f1), Q1(l);
         }),
-          m(10, e => Y1(s(F1(18), a(e), h(1, 1, .8, .2)).reverse(), s(F1(18), a(e + 1), h(1, 1, .8, .2)), 1)).flat());
+          m(11, e => Y1(s(F1(19), a(e), h(1, 1, .8, .2)).reverse(), s(F1(19), a(e + 1), h(1, 1, .8, .2)), 1)).flat());
       g(() => u([p1.slice(1)], o(-2).scale3d(3).rotate(90, 0)), 0),
         g(() => {
           let e = t =>
@@ -1091,7 +1094,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 n(i(), o(0, -e / 2 - 6).scale(4, e - 3, 4)),
                 n(i(32, 1), o(0, e / 2 - 9).rotate(90, 0, 90).scale3d(4)),
               ),
-            t = () => g(() => m(7, e => u(n(i(6, 1), o(4 * (e / 6 - .5), 3).scale(.2, 3, .2), h(.3, .3, .38))))),
+            t = () => g(() => m(7, e => u(n(i(9, 1), o(4 * (e / 6 - .5), 3).scale(.2, 3, .2), h(.3, .3, .38))))),
             l = S(
               n(i(30, 1, 1.15, 1), o(0, -3).scale(3.5, 1, 3.5), h(.7, .4, .25, .7)),
               n(i(30, 1, 1.3, 1), o(0, -2.5).scale(2.6, 1, 3), h(.7, .4, .25, .2)),
@@ -1120,7 +1123,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   n(i(6, 0, 0, .3), o(8, -3, -4).scale(13, 1, 13), h(.7, .7, .7, .2)),
                   S(
                     n(i(6, 0, 0, .3), o(0, -.92).scale(13, 2, 13), h(.8, .8, .8, .2)),
-                    n(i(), M.rotate(0, 60).translate(14, .5, -1).scale(2.4, 5, 2).rotate(-4), h(.5, .5, .5, .5)),
+                    n(i(), M.rotate(0, 60).translate(14, .5, -1).scale(2.4, 5, 2), h(.5, .5, .5, .5)),
                   ),
                   n(
                     i(),

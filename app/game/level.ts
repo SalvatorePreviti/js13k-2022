@@ -24,21 +24,23 @@ import { csg_union, csg_polygons_subtract } from "../geometry/csg";
 import { identity } from "../math/matrix";
 
 export const build_life_the_universe_and_everything = (): 42 | void => {
-  const HORN_STACKS = 10;
+  const HORN_STACKS = 11;
 
   if (DEBUG) {
     console.time("build_life_the_universe_and_everything");
   }
 
-  const hornMatrix = (i: number) =>
-    translation(Math.sin((i / HORN_STACKS) * Math.PI), i / HORN_STACKS)
-      .rotateSelf(10 * (i / HORN_STACKS))
-      .scaleSelf(1.0001 - i / HORN_STACKS, 0, 1 - i / HORN_STACKS);
+  const hornMatrix = (i: number) => {
+    i /= HORN_STACKS;
+    return translation(Math.sin(i * Math.PI), i)
+      .rotateSelf(10 * i)
+      .scaleSelf(1.001 - i, 1, 1.001 - i);
+  };
 
   const hornPolygons = integers_map(HORN_STACKS, (i) =>
     cylinder_sides(
-      polygon_transform(polygon_regular(18), hornMatrix(i), material(1, 1, 0.8, 0.2)).reverse(),
-      polygon_transform(polygon_regular(18), hornMatrix(i + 1), material(1, 1, 0.8, 0.2)),
+      polygon_transform(polygon_regular(19), hornMatrix(i), material(1, 1, 0.8, 0.2)).reverse(),
+      polygon_transform(polygon_regular(19), hornMatrix(i + 1), material(1, 1, 0.8, 0.2)),
       1,
     ),
   ).flat();
@@ -65,7 +67,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
         integers_map(7, (i) =>
           meshAdd(
             polygons_transform(
-              cylinder(6, 1),
+              cylinder(9, 1),
               translation(4 * (i / 6 - 0.5), 3).scale(0.2, 3, 0.2),
               material(0.3, 0.3, 0.38),
             ),
@@ -164,7 +166,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
             // descent cut
             polygons_transform(
               cylinder(),
-              identity.rotate(0, 60).translate(14, 0.5, -1).scale(2.4, 5, 2).rotate(-4),
+              identity.rotate(0, 60).translate(14, 0.5, -1).scale(2.4, 5, 2),
               material(0.5, 0.5, 0.5, 0.5),
             ),
           ),
@@ -1093,7 +1095,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
   newModel(() => {
     checkModelId("LEVER", MODEL_ID_LEVER);
-    meshAdd(cylinder(6, 1), identity.scale(0.13, 1.4, 0.13), material(0.3, 0.3, 0.5, 0.1));
+    meshAdd(cylinder(6, 1), identity.scale(0.14, 1.4, 0.14), material(0.3, 0.3, 0.5, 0.1));
     meshAdd(cylinder(10), translation(0, 1).scale(0.21, 0.3, 0.21), material(1, 0.5, 0.2));
     meshAdd(cylinder(3), translation(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3), material(0.2, 0.2, 0.2, 0.1));
   }, MODEL_KIND_MESH);

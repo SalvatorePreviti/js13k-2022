@@ -365,9 +365,6 @@ export const player_init = () => {
     const movAmount = threshold(hypot(forward, strafe) ** 0.5, 0.1);
     let movAngle = Math.atan2(forward, strafe);
 
-    forward = movAmount * abs(forward) * Math.sin(movAngle);
-    strafe = movAmount * abs(strafe) * Math.cos(movAngle);
-
     if (movAmount) {
       player_look_angle_target = 90 - movAngle / DEG_TO_RAD;
     }
@@ -380,7 +377,8 @@ export const player_init = () => {
     modelsNextUpdate()
       .translateSelf(
         player_position_final.x,
-        0.06 * player_legs_speed * Math.cos(gameTime * (PLAYER_LEGS_VELOCITY * 2)) + player_model_y,
+        0.06 * player_speed_collision_limiter * player_legs_speed * Math.cos(gameTime * (PLAYER_LEGS_VELOCITY * 2)) +
+          player_model_y,
         player_position_final.z,
       )
       .rotateSelf(0, player_look_angle);
@@ -404,22 +402,23 @@ export const player_init = () => {
       ? 0
       : lerpDamp(
           player_speed,
-          currentModelId ? clamp(2 * movAmount) * 7 * player_speed_collision_limiter : 0,
+          currentModelId ? 7 * clamp(2 * movAmount) * player_speed_collision_limiter : 0,
           currentModelId ? 9 : 1,
         );
+
+    forward = player_speed * movAmount * abs(forward) * Math.sin(movAngle);
+    strafe = player_speed * movAmount * abs(strafe) * Math.cos(movAngle);
 
     // Angle is dependant on where the player is looking in first person. Is 0 in third person
     movAngle = player_first_person ? (180 + camera_rotation.y) * DEG_TO_RAD : 0;
 
     movePlayer(
       // x
-      gameTimeDelta *
-        (player_fly_velocity_x + player_speed * (strafe * Math.cos(movAngle) - Math.sin(movAngle) * forward)),
+      gameTimeDelta * (player_fly_velocity_x + (strafe * Math.cos(movAngle) - Math.sin(movAngle) * forward)),
       // y
       gameTimeDelta * -player_gravity,
       // z
-      gameTimeDelta *
-        (player_fly_velocity_z + player_speed * (strafe * Math.sin(movAngle) + Math.cos(movAngle) * forward)),
+      gameTimeDelta * (player_fly_velocity_z + (strafe * Math.sin(movAngle) + Math.cos(movAngle) * forward)),
     );
   };
 };
