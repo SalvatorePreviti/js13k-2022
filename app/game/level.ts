@@ -206,6 +206,35 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
     // ******** LEVEL 2 ********
 
+    integers_map(2, () =>
+      // black platforms in the second level
+      newModel(() => {
+        GQuad.map(({ x, z }) => {
+          // column body
+          meshAdd(cylinder(11, 1), translation(x * 4, 4, z * 4).scale(0.8, 3, 0.8), material(0.5, 0.3, 0.7, 0.6));
+          // column top
+          meshAdd(cylinder(), translation(x * 4, 7, z * 4).scale(1, 0.3), material(0.5, 0.5, 0.5, 0.3));
+        });
+
+        meshAdd(
+          csg_polygons_subtract(
+            polygons_transform(cylinder(), identity.scale(5, 1, 5), material(0.8, 0.8, 0.8, 0.3)),
+            ...[-1, 1].map((i) =>
+              polygons_transform(
+                cylinder(25, 1),
+                translation(5 * i, 0.2)
+                  .rotate(i * -30)
+                  .scale(4, 1, 3),
+                material(0.8, 0.8, 0.8, 0.3),
+              ),
+            ),
+          ),
+        );
+        // bottom
+        meshAdd(cylinder(), translation(0, -3).scale(8, 2, 8), material(0.4, 0.4, 0.4, 0.3));
+      }),
+    );
+
     // central oscillating platform
     newModel(() => {
       meshAdd(
@@ -227,38 +256,6 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
       // SOUL 2 - soul over the central oscillating platform in the second level
       newSoul(translation(0, 2.8), [0, 0, 4.5]);
     });
-
-    // black platforms in the second level
-
-    const blackPlatform = (pz: number) =>
-      newModel(() => {
-        GQuad.map(({ x, z }) => {
-          // column body
-          meshAdd(cylinder(11, 1), translation(x * 4, 4, pz + z * 4).scale(0.8, 3, 0.8), material(0.5, 0.3, 0.7, 0.6));
-          // column top
-          meshAdd(cylinder(), translation(x * 4, 7, pz + z * 4).scale(1, 0.3), material(0.5, 0.5, 0.5, 0.3));
-        });
-
-        meshAdd(
-          csg_polygons_subtract(
-            polygons_transform(cylinder(), translation(0, 0, pz).scale(5, 1, 5), material(0.8, 0.8, 0.8, 0.3)),
-            ...[-1, 1].map((i) =>
-              polygons_transform(
-                cylinder(25, 1),
-                translation(5 * i, 0.2, pz)
-                  .rotate(i * -30)
-                  .scale(4, 1, 3),
-                material(0.8, 0.8, 0.8, 0.3),
-              ),
-            ),
-          ),
-        );
-        // bottom
-        meshAdd(cylinder(), translation(0, -3, pz).scale(8, 2, 8), material(0.4, 0.4, 0.4, 0.3));
-      });
-
-    blackPlatform(35);
-    blackPlatform(55);
 
     // fixed platform after triangle platform
 

@@ -46,12 +46,12 @@ export const eppur_si_muove = () => {
   // first boad
   boatAnimationMatrix(modelsNextUpdate(), -12, 4.2, -66 + firstBoatLerp * 40);
 
-  // in and out gate bars
-
+  // in gate bars in first level
   modelsNextUpdate()
     .translateSelf(0, 0, -15)
     .scaleSelf(1, clamp(1.22 - levers[1]!.$lerpValue), 1);
 
+  // out gate bars in first level
   modelsNextUpdate()
     .translateSelf(0, 0, 15)
     .scaleSelf(1, clamp(1.22 - levers[2]!.$lerpValue), 1);
@@ -78,17 +78,17 @@ export const eppur_si_muove = () => {
           15 * (levers[3]!.$lerpValue - 1),
   );
 
-  // central oscillating platform
+  // blackPlatforms in the second level
 
   let oscillation = min(1 - levers[4]!.$lerpValue2, levers[2]!.$lerpValue2);
 
+  modelsNextUpdate().translateSelf(oscillation * Math.sin(gameTime * 0.6 + 1.5) * 12, 0, 35);
+
+  modelsNextUpdate().translateSelf(oscillation * Math.sin(gameTime * 0.6 + 2) * 8.2, 0, 55);
+
+  // central oscillating platform
+
   modelsNextUpdate().translateSelf(oscillation * Math.sin(gameTime * 0.6) * 12, 0, 45);
-
-  // blackPlatforms
-
-  modelsNextUpdate().translateSelf(oscillation * Math.sin(gameTime * 0.6 + 1.5) * 12);
-
-  modelsNextUpdate().translateSelf(oscillation * Math.sin(gameTime * 0.6 + 2) * 8.2);
 
   // triangle platform
 
