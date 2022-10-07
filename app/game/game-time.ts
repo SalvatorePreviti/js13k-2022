@@ -4,8 +4,7 @@ let _globalTime: number | undefined;
 
 export let mainMenuVisible: boolean | undefined;
 
-/** Minimum 15.3 frames per second */
-export const GAME_TIME_MAX_DELTA_TIME = 0.066;
+export const GAME_TIME_MAX_DELTA_TIME = 0.06;
 
 export let gameTime = 0;
 

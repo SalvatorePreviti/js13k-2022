@@ -82,13 +82,13 @@ export const eppur_si_muove = () => {
 
   let oscillation = min(1 - levers[4]!.$lerpValue2, levers[2]!.$lerpValue2);
 
-  modelsNextUpdate().translateSelf(oscillation * Math.sin(gameTime / 1.5 + 2) * 12);
+  modelsNextUpdate().translateSelf(oscillation * Math.sin(gameTime * 0.6) * 12, 0, 45);
 
   // blackPlatforms
 
-  modelsNextUpdate().translateSelf(oscillation * Math.sin(gameTime * 0.7 + 2) * 12);
+  modelsNextUpdate().translateSelf(oscillation * Math.sin(gameTime * 0.6 + 1.5) * 12);
 
-  modelsNextUpdate().translateSelf(oscillation * Math.sin(gameTime + 3) * 8.2);
+  modelsNextUpdate().translateSelf(oscillation * Math.sin(gameTime * 0.6 + 2) * 8.2);
 
   // triangle platform
 

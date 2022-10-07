@@ -1268,7 +1268,7 @@ loadStep(() => {
         let dt = (globalTime - (_globalTime || globalTime)) / 1e3;
         if (
           absoluteTime += dt,
-            gameTime += gameTimeDelta = mainMenuVisible ? 0 : min(0.066, dt),
+            gameTime += gameTimeDelta = mainMenuVisible ? 0 : min(0.06, dt),
             _globalTime = globalTime,
             0 < gameTimeDelta
         ) {
@@ -1315,9 +1315,9 @@ loadStep(() => {
                     + 15 * (levers[3].$lerpValue - 1),
               );
             let oscillation = min(1 - levers[4].$lerpValue2, levers[2].$lerpValue2);
-            modelsNextUpdate().translateSelf(oscillation * Math.sin(gameTime / 1.5 + 2) * 12),
-              modelsNextUpdate().translateSelf(oscillation * Math.sin(0.7 * gameTime + 2) * 12),
-              modelsNextUpdate().translateSelf(oscillation * Math.sin(gameTime + 3) * 8.2),
+            modelsNextUpdate().translateSelf(oscillation * Math.sin(0.6 * gameTime) * 12, 0, 45),
+              modelsNextUpdate().translateSelf(oscillation * Math.sin(0.6 * gameTime + 1.5) * 12),
+              modelsNextUpdate().translateSelf(oscillation * Math.sin(0.6 * gameTime + 2) * 8.2),
               modelsNextUpdate().translateSelf(9.8 * (1 - oscillation)),
               oscillation = clamp(1 - 5 * oscillation) * lerpneg(levers[4].$lerpValue, levers[5].$lerpValue),
               modelsNextUpdate().translateSelf(0, oscillation * Math.sin(1.35 * gameTime) * 4),
@@ -1706,8 +1706,8 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                         1,
                       ].map((i) =>
                         polygons_transform(
-                          cylinder(),
-                          translation(5 * i, 0.2, pz).rotate(-30 * i).scale(4, 1, 2),
+                          cylinder(25, 1),
+                          translation(5 * i, 0.2, pz).rotate(-30 * i).scale(4, 1, 3),
                           material(0.8, 0.8, 0.8, 0.3),
                         )
                       ),
@@ -1871,9 +1871,8 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                     ),
                     polygons_transform(cylinder(), identity.scale(1.3, 10, 1.3), material(0.2, 0.7, 0.4, 0.6)),
                   ),
-                  translation(0, 0, 45),
                 ),
-                  newSoul(translation(0, 2.8, 45), [
+                  newSoul(translation(0, 2.8), [
                     0,
                     0,
                     4.5,
@@ -2748,7 +2747,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
               ].map((x) => meshAdd(sphere(12), translation(0.16 * x, 0.4, -0.36).scale3d(0.09)));
           }, 0),
           newModel(() => {
-            meshAdd(cylinder(6, 1), identity.scale(0.13, 1.4, 0.13), material(0.3, 0.3, 0.5, 0.1)),
+            meshAdd(cylinder(6, 1), identity.scale(0.14, 1.4, 0.14), material(0.3, 0.3, 0.5, 0.1)),
               meshAdd(cylinder(10), translation(0, 1).scale(0.21, 0.3, 0.21), material(1, 0.5, 0.2)),
               meshAdd(
                 cylinder(3),

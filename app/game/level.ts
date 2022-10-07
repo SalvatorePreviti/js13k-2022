@@ -222,11 +222,10 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
           ),
           polygons_transform(cylinder(), identity.scale(1.3, 10, 1.3), material(0.2, 0.7, 0.4, 0.6)),
         ),
-        translation(0, 0, 45),
       );
 
       // SOUL 2 - soul over the central oscillating platform in the second level
-      newSoul(translation(0, 2.8, 45), [0, 0, 4.5]);
+      newSoul(translation(0, 2.8), [0, 0, 4.5]);
     });
 
     // black platforms in the second level
@@ -245,10 +244,10 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
             polygons_transform(cylinder(), translation(0, 0, pz).scale(5, 1, 5), material(0.8, 0.8, 0.8, 0.3)),
             ...[-1, 1].map((i) =>
               polygons_transform(
-                cylinder(),
+                cylinder(25, 1),
                 translation(5 * i, 0.2, pz)
                   .rotate(i * -30)
-                  .scale(4, 1, 2),
+                  .scale(4, 1, 3),
                 material(0.8, 0.8, 0.8, 0.3),
               ),
             ),
