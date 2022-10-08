@@ -2,8 +2,6 @@ import type { Circle } from "./models";
 import {
   levers,
   souls,
-  MODEL_KIND_MESH,
-  MODEL_KIND_GAME_NO_ATTACH_PLAYER,
   MODEL_ID_FIRST_BOAT,
   MODEL_ID_PLAYER_BODY,
   MODEL_ID_PLAYER_LEG0,
@@ -47,7 +45,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
   // Initialize the full screen triangle for the sky. Must be the first model.
 
-  newModel(() => meshAdd([GQuad.slice(1)], translation(-2).scale3d(3).rotate(90, 0)), MODEL_KIND_MESH);
+  newModel(() => meshAdd([GQuad.slice(1)], translation(-2).scale3d(3).rotate(90, 0)));
 
   newModel(() => {
     const makeBigArcPolygons = (height: number) =>
@@ -342,7 +340,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
     // rotating hex corridor
 
-    newModel(() => meshAdd(hexCorridorPolygons), MODEL_KIND_GAME_NO_ATTACH_PLAYER);
+    newModel(() => meshAdd(hexCorridorPolygons));
 
     // hex corridor 1
 
@@ -1059,7 +1057,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
   newModel(() => {
     checkModelId("SOUL_COLLISION", MODEL_ID_SOUL_COLLISION);
     meshAdd(cylinder(6).slice(0, -1), identity.scale(0.77, 1, 0.77), material(1, 0.3, 0.5));
-  }, MODEL_KIND_MESH);
+  });
 
   newModel(() => {
     checkModelId("SOUL", MODEL_ID_SOUL);
@@ -1087,14 +1085,14 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
     // eyes
     [-1, 1].map((x) => meshAdd(sphere(12), translation(x * 0.16, 0.4, -0.36).scale3d(0.09)));
-  }, MODEL_KIND_MESH);
+  });
 
   newModel(() => {
     checkModelId("LEVER", MODEL_ID_LEVER);
     meshAdd(cylinder(6, 1), identity.scale(0.12, 1.2, 0.12), material(0.3, 0.3, 0.5, 0.1));
     meshAdd(cylinder(10), translation(0, 0.8).scale(0.2, 0.3, 0.2), material(1, 0.5, 0.2));
     meshAdd(cylinder(3), translation(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3), material(0.2, 0.2, 0.2, 0.1));
-  }, MODEL_KIND_MESH);
+  });
 
   if (DEBUG) {
     console.timeEnd("build_life_the_universe_and_everything");

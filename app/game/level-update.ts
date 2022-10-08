@@ -251,7 +251,7 @@ export const eppur_si_muove = () => {
 
   // Copy all models matrices to the world uniform buffer
 
-  for (let i = 0; i <= modelsUpdateCounter; ++i) {
-    matrixToArray(allModels[i]!.$matrix, worldMatricesBuffer, i - 1);
+  for (let i = 2; i <= modelsUpdateCounter; ++i) {
+    matrixToArray(allModels[i]!.$matrix, worldMatricesBuffer, i - 2);
   }
 };

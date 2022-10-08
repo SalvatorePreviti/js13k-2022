@@ -1,4 +1,4 @@
-import { allModels, souls, MODEL_ID_SOUL, SOULS_COUNT } from "./models";
+import { allModels, souls, MODEL_ID_SOUL, SOULS_COUNT, MODEL_ID_LEVER, MODEL_ID_SOUL_COLLISION } from "./models";
 import { gl } from "../gl";
 import { plane_fromPolygon } from "../math/vectors";
 import type { Polygon } from "../geometry/polygon";
@@ -44,7 +44,12 @@ export const initTriangleBuffers = () => {
       return vertexIndex;
     };
 
-    _vertexFloats[3] = index > MODEL_ID_SOUL ? -SOULS_COUNT - 1 : model.$kind && index;
+    _vertexFloats[3] =
+      index === MODEL_ID_SOUL || index === MODEL_ID_SOUL_COLLISION
+        ? -2
+        : index === MODEL_ID_LEVER
+        ? -SOULS_COUNT - 2
+        : index;
 
     for (polygon of model.$polygons!) {
       const { x, y, z } = plane_fromPolygon(polygon);
@@ -87,7 +92,6 @@ export const initTriangleBuffers = () => {
   if (DEBUG) {
     console.timeEnd("initTriangleBuffers");
     console.table({
-      "game models": allModels.filter((m) => !!m.$kind).length,
       "all models": allModels.length,
       "vertices": _vertexMap.size,
       "triangles": _triangleIndices.length / 3,

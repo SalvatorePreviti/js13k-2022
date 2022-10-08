@@ -6,10 +6,7 @@ const groundTextureSvg = `data:image/svg+xml;base64,${
     "<svg color-interpolation-filters=\"sRGB\" height=\"1024\" width=\"1024\" xmlns=\"http://www.w3.org/2000/svg\"><filter filterUnits=\"userSpaceOnUse\" height=\"1026\" id=\"a\" width=\"1026\" x=\"0\" y=\"0\"><feTurbulence baseFrequency=\".007\" height=\"1025\" numOctaves=\"6\" stitchTiles=\"stitch\" width=\"1025\" result=\"z\" type=\"fractalNoise\" x=\"1\" y=\"1\"/><feTile height=\"1024\" width=\"1024\" x=\"-1\" y=\"-1\"/><feTile/><feDiffuseLighting diffuseConstant=\"4\" lighting-color=\"red\" surfaceScale=\"5\"><feDistantLight azimuth=\"270\" elevation=\"5\"/></feDiffuseLighting><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"x\"/><feColorMatrix values=\"0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 1\" in=\"z\"/><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"z\"/><feTurbulence baseFrequency=\".01\" height=\"1024\" numOctaves=\"5\" stitchTiles=\"stitch\" width=\"1024\"/><feColorMatrix values=\"0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1\"/><feBlend in2=\"x\" mode=\"screen\"/><feBlend in2=\"z\" mode=\"screen\"/></filter><rect filter=\"url(#a)\" height=\"100%\" width=\"100%\"/></svg>",
   )
 }`;
-const MODEL_KIND_MESH = 0;
-const MODEL_KIND_GAME = 1;
 const MODEL_ID_STATIC_WORLD = 1;
-const MODEL_KIND_GAME_NO_ATTACH_PLAYER = 2;
 const MODEL_ID_FIRST_BOAT = 2;
 const SOULS_COUNT = 13;
 const LEVERS_COUNT = 16;
@@ -953,12 +950,11 @@ const LEVER_SENSITIVITY_RADIUS = 3;
 const SOUL_SENSITIVITY_RADIUS = 1.6;
 const meshAdd = (polygons, transform = new DOMMatrix(), color) =>
   currentEditModel.$polygons.push(...polygons_transform(polygons, transform, color));
-const newModel = (fn, $kind = MODEL_KIND_GAME) => {
+const newModel = (fn) => {
   const previousModel = currentEditModel;
   allModels.push(
     currentEditModel = {
       $matrix: new DOMMatrix(),
-      $kind,
       $polygons: [],
     },
   );
@@ -1323,7 +1319,8 @@ const build_life_the_universe_and_everything = () => {
   newModel(() =>
     meshAdd([
       GQuad.slice(1),
-    ], translation(-2).scale3d(3).rotate(90, 0)), MODEL_KIND_MESH);
+    ], translation(-2).scale3d(3).rotate(90, 0))
+  );
   newModel(() => {
     const makeBigArcPolygons = (height) =>
       csg_polygons_subtract(
@@ -1552,7 +1549,7 @@ const build_life_the_universe_and_everything = () => {
         ),
       ),
     ];
-    newModel(() => meshAdd(hexCorridorPolygons), MODEL_KIND_GAME_NO_ATTACH_PLAYER);
+    newModel(() => meshAdd(hexCorridorPolygons));
     meshAdd(hexCorridorPolygons, translation(-53, 0, 55));
     meshAdd(cylinder(), translation(-88.3, -5.1, 55).rotate(-30).scale(5, 1.25, 4.5), material(0.7, 0.7, 0.7, 0.2));
     meshAdd(
@@ -2145,7 +2142,7 @@ const build_life_the_universe_and_everything = () => {
   });
   newModel(() => {
     meshAdd(cylinder(6).slice(0, -1), identity.scale(0.77, 1, 0.77), material(1, 0.3, 0.5));
-  }, MODEL_KIND_MESH);
+  });
   newModel(() => {
     const GHOST_STACKS = 24;
     const GHOST_SLICES = 30;
@@ -2174,17 +2171,17 @@ const build_life_the_universe_and_everything = () => {
       -1,
       1,
     ].map((x) => meshAdd(sphere(12), translation(x * 0.16, 0.4, -0.36).scale3d(0.09)));
-  }, MODEL_KIND_MESH);
+  });
   newModel(() => {
     meshAdd(cylinder(6, 1), identity.scale(0.12, 1.2, 0.12), material(0.3, 0.3, 0.5, 0.1));
     meshAdd(cylinder(10), translation(0, 0.8).scale(0.2, 0.3, 0.2), material(1, 0.5, 0.2));
     meshAdd(cylinder(3), translation(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3), material(0.2, 0.2, 0.2, 0.1));
-  }, MODEL_KIND_MESH);
+  });
 };
 const code$5 =
-  "#version 300 es\nin vec4 f;uniform mat4 b,c[39];void main(){mat4 i=c[max(0,abs(int(f.w))-1)+gl_InstanceID];i[3][3]=1.,gl_Position=b*i*vec4(f.xyz,1);}";
+  "#version 300 es\nin vec4 f;uniform mat4 b,c[38];void main(){mat4 i=f.w==1.?mat4(1):c[abs(int(f.w))+gl_InstanceID-2];i[3][3]=1.,gl_Position=b*i*vec4(f.xyz,1);}";
 const code$4 =
-  "#version 300 es\nlayout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 a,b,c[39];void main(){mat4 i=c[max(0,abs(int(f.w))-1)+gl_InstanceID];l=mix(d,vec4(.7,1,.2,0),d.w>0.?0.:1.-i[3][3]),i[3][3]=1.,n=f,m=i*vec4(f.xyz,1),gl_Position=a*b*m,m.w=f.w,o=i*vec4(e,0);}";
+  "#version 300 es\nlayout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 a,b,c[38];void main(){mat4 i=f.w==1.?mat4(1):c[abs(int(f.w))+gl_InstanceID-2];l=mix(d,vec4(.7,1,.2,0),d.w>0.?0.:1.-i[3][3]),i[3][3]=1.,n=f,m=i*vec4(f.xyz,1),gl_Position=a*b*m,m.w=f.w,o=i*vec4(e,0);}";
 const uniformName_projectionMatrix = "a";
 const uniformName_viewMatrix = "b";
 const uniformName_worldMatrices = "c";
@@ -2196,8 +2193,8 @@ const code$1 = "#version 300 es\nin vec4 f;void main(){gl_Position=vec4(f.xy,1,1
 const code =
   "#version 300 es\nprecision highp float;uniform vec3 j,k;uniform mat4 b;uniform highp sampler2D q;out vec4 O;void main(){vec2 t=gl_FragCoord.xy/j.xy*2.-1.;vec3 e=(normalize(b*vec4(t.x*-(j.x/j.y),-t.y,1.73205,0.))).xyz;float i=(-32.-k.y)/e.y,o=1.-clamp(abs(i/9999.),0.,1.);if(O=vec4(0,0,0,1),o>.01){if(i>0.){float o=cos(j.z/30.),i=sin(j.z/30.);e.xz*=mat2(o,i,-i,o);vec3 t=abs(e);O.xyz=vec3(dot(vec2(texture(q,e.xy).z,texture(q,e.yz*2.).z),t.zx)*t.y);}else e=k+e*i,O.x=(o*=.9-texture(q,e.xz/150.+vec2(sin(e.z/35.+j.z),cos(e.x/25.+j.z))/80.).y),O.y=o*o*o;}}";
 const uniformName_iResolution = "j";
-const worldMatricesBuffer = new Float32Array(624);
-const objectsMatricesBuffer = new Float32Array(624);
+const worldMatricesBuffer = new Float32Array(608);
+const objectsMatricesBuffer = new Float32Array((SOULS_COUNT + LEVERS_COUNT) * 16);
 const gl = hC.getContext("webgl2", {
   powerPreference: "high-performance",
 });
@@ -2230,10 +2227,10 @@ const player_init = () => {
   let player_speed_collision_limiter;
   let player_model_y;
   let currentModelId;
-  let oldModelId;
   let camera_pos_lookat_x;
   let camera_pos_lookat_y;
   let camera_pos_lookat_z;
+  let oldModelId = 0;
   let player_position_global_x = 0;
   let player_position_global_y = 0;
   let player_position_global_z = 0;
@@ -2244,7 +2241,7 @@ const player_init = () => {
     matrixCopy(
       (player_respawned
         ? levers[player_last_pulled_lever]
-        : allModels[oldModelId && allModels[oldModelId].$kind === MODEL_KIND_GAME && oldModelId || 0]).$matrix,
+        : allModels[oldModelId !== MODEL_ID_ROTATING_PLATFORM ? oldModelId : 0]).$matrix,
     );
   const updatePlayerPositionFinal = (updateVelocity) => {
     if (player_respawned > 1) {
@@ -2603,17 +2600,17 @@ const eppur_si_muove = () => {
     matrixToArray(tempMatrix, objectsMatricesBuffer, SOULS_COUNT + i3);
   }
   player_update();
-  for (let i4 = 0; i4 <= modelsUpdateCounter; ++i4) {
-    matrixToArray(allModels[i4].$matrix, worldMatricesBuffer, i4 - 1);
+  for (let i4 = 2; i4 <= modelsUpdateCounter; ++i4) {
+    matrixToArray(allModels[i4].$matrix, worldMatricesBuffer, i4 - 2);
   }
 };
 const renderModels = (worldMatrixLoc, renderPlayer, soulModelId) => {
   if (mainMenuVisible) {
     if (hC.width > 1100) {
       matrixCopy().rotateSelf(0, 40 * /* @__PURE__ */ Math.sin(absoluteTime) - 80, -8);
-      matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_BODY - 1);
-      matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_LEG0 - 1);
-      matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_LEG1 - 1);
+      matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_BODY - 2);
+      matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_LEG0 - 2);
+      matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_LEG1 - 2);
       gl["uae"](worldMatrixLoc, false, worldMatricesBuffer);
       gl["d97"](
         4,
@@ -2889,7 +2886,11 @@ const initTriangleBuffers = () => {
       }
       return vertexIndex;
     };
-    _vertexFloats[3] = index > MODEL_ID_SOUL ? -SOULS_COUNT - 1 : model.$kind && index;
+    _vertexFloats[3] = index === MODEL_ID_SOUL || index === MODEL_ID_SOUL_COLLISION
+      ? -2
+      : index === MODEL_ID_LEVER
+      ? -SOULS_COUNT - 2
+      : index;
     for (polygon of model.$polygons) {
       const { x, y, z } = plane_fromPolygon(polygon);
       _vertexInts[4] = polygon.$color | 0;

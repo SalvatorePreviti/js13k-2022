@@ -23,9 +23,9 @@ export const renderModels = (
     if (hC.width > 1100) {
       matrixCopy().rotateSelf(0, 40 * Math.sin(absoluteTime) - 80, -8);
 
-      matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_BODY - 1);
-      matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_LEG0 - 1);
-      matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_LEG1 - 1);
+      matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_BODY - 2);
+      matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_LEG0 - 2);
+      matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_LEG1 - 2);
 
       gl.uniformMatrix4fv(worldMatrixLoc, false, worldMatricesBuffer);
       gl.drawElements(

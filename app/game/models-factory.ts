@@ -3,8 +3,6 @@ import {
   souls,
   allModels,
   MODEL_ID_FIRST_BOAT,
-  MODEL_KIND_GAME,
-  type MODEL_KIND,
   type Model,
   type Circle,
   type Lever,
@@ -28,9 +26,9 @@ export const meshAdd = (
   color?: number | undefined,
 ) => currentEditModel.$polygons!.push(...polygons_transform(polygons, transform, color));
 
-export const newModel = (fn: () => void, $kind: MODEL_KIND = MODEL_KIND_GAME): void => {
+export const newModel = (fn: () => void): void => {
   const previousModel = currentEditModel;
-  allModels.push((currentEditModel = { $matrix: new DOMMatrix(), $kind, $polygons: [] }));
+  allModels.push((currentEditModel = { $matrix: new DOMMatrix(), $polygons: [] }));
   fn();
   currentEditModel = previousModel;
 };

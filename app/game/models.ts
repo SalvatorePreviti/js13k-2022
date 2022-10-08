@@ -2,7 +2,6 @@ import type { Polygon } from "../geometry/polygon";
 
 export interface Model {
   readonly $matrix: DOMMatrix;
-  readonly $kind: MODEL_KIND;
   $polygons: Polygon[] | null;
   $vertexBegin?: number;
   $vertexEnd?: number;
@@ -35,14 +34,6 @@ export const souls: Soul[] = [];
 export const levers: Lever[] = [];
 
 export const allModels: Model[] = [];
-
-export const MODEL_KIND_MESH = 0;
-
-export const MODEL_KIND_GAME = 1;
-
-export const MODEL_KIND_GAME_NO_ATTACH_PLAYER = 2;
-
-export type MODEL_KIND = typeof MODEL_KIND_MESH | typeof MODEL_KIND_GAME | typeof MODEL_KIND_GAME_NO_ATTACH_PLAYER;
 
 export const MODEL_ID_STATIC_WORLD = 1;
 

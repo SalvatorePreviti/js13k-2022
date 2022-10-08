@@ -11,14 +11,7 @@ import {
   threshold,
   hypot,
 } from "../math/math";
-import {
-  levers,
-  allModels,
-  MODEL_KIND_GAME,
-  MODEL_ID_ROTATING_PLATFORM,
-  MODEL_ID_PLAYER_BODY,
-  MODEL_ID_STATIC_WORLD,
-} from "./models";
+import { levers, allModels, MODEL_ID_ROTATING_PLATFORM, MODEL_ID_PLAYER_BODY, MODEL_ID_STATIC_WORLD } from "./models";
 import { player_last_pulled_lever, camera_rotation, firstBoatLerp, player_position_final } from "./world-state";
 import { input_forward, input_strafe, player_first_person } from "../page";
 import { lerpDamp, gameTimeDelta, damp, gameTime } from "./game-time";
@@ -66,7 +59,7 @@ export const player_init = () => {
   let player_model_y: number;
 
   let currentModelId: number;
-  let oldModelId: number | undefined;
+  let oldModelId: number = 0;
 
   let camera_pos_lookat_x: number;
   let camera_pos_lookat_y: number;
@@ -80,7 +73,7 @@ export const player_init = () => {
     matrixCopy(
       (player_respawned
         ? levers[player_last_pulled_lever]!
-        : allModels[(oldModelId && allModels[oldModelId]!.$kind === MODEL_KIND_GAME && oldModelId) || 0]!
+        : allModels[oldModelId !== MODEL_ID_ROTATING_PLATFORM ? oldModelId : 0]!
       ).$matrix,
     );
 

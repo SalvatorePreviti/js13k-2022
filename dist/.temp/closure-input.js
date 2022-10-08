@@ -701,12 +701,11 @@ const onPlayerPullLever = (leverIndex) => {
 const material = NO_INLINE((r, g, b, a = 0) => 255 * a << 24 | 255 * b << 16 | 255 * g << 8 | 255 * r);
 const meshAdd = (polygons, transform = new DOMMatrix(), color) =>
   currentEditModel.$polygons.push(...polygons_transform(polygons, transform, color));
-const newModel = (fn, $kind = 1) => {
+const newModel = (fn) => {
   const previousModel = currentEditModel;
   allModels.push(
     currentEditModel = {
       $matrix: new DOMMatrix(),
-      $kind,
       $polygons: [],
     },
   ),
@@ -1009,10 +1008,10 @@ const player_init = () => {
   let player_speed_collision_limiter;
   let player_model_y;
   let currentModelId;
-  let oldModelId;
   let camera_pos_lookat_x;
   let camera_pos_lookat_y;
   let camera_pos_lookat_z;
+  let oldModelId = 0;
   let player_position_global_x = 0;
   let player_position_global_y = 0;
   let player_position_global_z = 0;
@@ -1021,9 +1020,7 @@ const player_init = () => {
   let player_gravity = 15;
   const loadReferenceMatrix = () =>
     matrixCopy(
-      (player_respawned
-        ? levers[player_last_pulled_lever]
-        : allModels[oldModelId && allModels[oldModelId].$kind === 1 && oldModelId || 0]).$matrix,
+      (player_respawned ? levers[player_last_pulled_lever] : allModels[oldModelId !== 28 ? oldModelId : 0]).$matrix,
     );
   const updatePlayerPositionFinal = (updateVelocity) => {
     1 < player_respawned
@@ -1211,9 +1208,9 @@ const renderModels = (worldMatrixLoc, renderPlayer, soulModelId) => {
   mainMenuVisible
     ? 1100 < hC.width
       && (matrixCopy().rotateSelf(0, 40 * Math.sin(absoluteTime) - 80, -8),
+        matrixToArray(tempMatrix, worldMatricesBuffer, 35),
         matrixToArray(tempMatrix, worldMatricesBuffer, 36),
         matrixToArray(tempMatrix, worldMatricesBuffer, 37),
-        matrixToArray(tempMatrix, worldMatricesBuffer, 38),
         gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer),
         gl["d97"](4, allModels[39].$vertexEnd - allModels[37].$vertexBegin, 5123, 2 * allModels[37].$vertexBegin))
     : (gl["uae"](worldMatrixLoc, !1, objectsMatricesBuffer),
@@ -1246,8 +1243,8 @@ const initShaderProgram = (vertexShader, sfsSource) => {
 const tempMatrix = new DOMMatrix();
 const identity = new DOMMatrix();
 const float32Array16Temp = new Float32Array(16);
-const worldMatricesBuffer = new Float32Array(624);
-const objectsMatricesBuffer = new Float32Array(624);
+const objectsMatricesBuffer = new Float32Array(464);
+const worldMatricesBuffer = new Float32Array(608);
 const collision_buffer = new Uint8Array(65536);
 const gl = hC.getContext("webgl2", {
   powerPreference: "high-performance",
@@ -1387,8 +1384,8 @@ loadStep(() => {
               levers[i3]._update(), matrixToArray(tempMatrix, objectsMatricesBuffer, 13 + i3);
             }
             player_update();
-            for (let i4 = 0; modelsUpdateCounter >= i4; ++i4) {
-              matrixToArray(allModels[i4].$matrix, worldMatricesBuffer, i4 - 1);
+            for (let i4 = 2; modelsUpdateCounter >= i4; ++i4) {
+              matrixToArray(allModels[i4].$matrix, worldMatricesBuffer, i4 - 2);
             }
           }
           collisionShader(),
@@ -1469,10 +1466,10 @@ loadStep(() => {
       const groundTextureImage = image;
       const csm_tempFrustumCorners = integers_map(8, () => ({}));
       var mainVertexShader = loadShader(`#version 300 es
-layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 a,b,c[39];void main(){mat4 i=c[max(0,abs(int(f.w))-1)+gl_InstanceID];l=mix(d,vec4(.7,1,.2,0),d.w>0.?0.:1.-i[3][3]),i[3][3]=1.,n=f,m=i*vec4(f.xyz,1),gl_Position=a*b*m,m.w=f.w,o=i*vec4(e,0);}`);
+layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 a,b,c[38];void main(){mat4 i=f.w==1.?mat4(1):c[abs(int(f.w))+gl_InstanceID-2];l=mix(d,vec4(.7,1,.2,0),d.w>0.?0.:1.-i[3][3]),i[3][3]=1.,n=f,m=i*vec4(f.xyz,1),gl_Position=a*b*m,m.w=f.w,o=i*vec4(e,0);}`);
       const csmShader = initShaderProgram(
         loadShader(`#version 300 es
-in vec4 f;uniform mat4 b,c[39];void main(){mat4 i=c[max(0,abs(int(f.w))-1)+gl_InstanceID];i[3][3]=1.,gl_Position=b*i*vec4(f.xyz,1);}`),
+in vec4 f;uniform mat4 b,c[38];void main(){mat4 i=f.w==1.?mat4(1):c[abs(int(f.w))+gl_InstanceID-2];i[3][3]=1.,gl_Position=b*i*vec4(f.xyz,1);}`),
         `#version 300 es
 void main(){}`,
       );
@@ -1631,7 +1628,10 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                   _vertexNormals.push(_vertexInts[5], _vertexInts[6], _vertexInts[7])),
                 vertexIndex;
             };
-            for (polygon of (_vertexFloats[3] = 41 < index ? -14 : model.$kind && index, model.$polygons)) {
+            for (
+              polygon
+                of (_vertexFloats[3] = index === 41 || index === 40 ? -2 : index === 42 ? -15 : index, model.$polygons)
+            ) {
               const { x, y, z } = plane_fromPolygon(polygon);
               _vertexInts[4] = 0 | polygon.$color,
                 _vertexInts[5] = 32767 * x,
@@ -1688,7 +1688,8 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
         newModel(() =>
           meshAdd([
             GQuad.slice(1),
-          ], translation(-2).scale3d(3).rotate(90, 0)), 0),
+          ], translation(-2).scale3d(3).rotate(90, 0))
+        ),
           newModel(() => {
             const makeBigArcPolygons = (height) =>
               csg_polygons_subtract(
@@ -1949,7 +1950,8 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 ),
               ]);
             const pushingRod = (newModel(() =>
-              meshAdd(hexCorridorPolygons), 2),
+              meshAdd(hexCorridorPolygons)
+            ),
               meshAdd(hexCorridorPolygons, translation(-53, 0, 55)),
               meshAdd(
                 cylinder(),
@@ -2717,7 +2719,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
           }),
           newModel(() => {
             meshAdd(cylinder(6).slice(0, -1), identity.scale(0.77, 1, 0.77), material(1, 0.3, 0.5));
-          }, 0),
+          }),
           newModel(() => {
             meshAdd(
               sphere(30, 24, (a, b, polygon) => {
@@ -2744,7 +2746,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 -1,
                 1,
               ].map((x) => meshAdd(sphere(12), translation(0.16 * x, 0.4, -0.36).scale3d(0.09)));
-          }, 0),
+          }),
           newModel(() => {
             meshAdd(cylinder(6, 1), identity.scale(0.12, 1.2, 0.12), material(0.3, 0.3, 0.5, 0.1)),
               meshAdd(cylinder(10), translation(0, 0.8).scale(0.2, 0.3, 0.2), material(1, 0.5, 0.2)),
@@ -2753,7 +2755,7 @@ precision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform 
                 translation(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3),
                 material(0.2, 0.2, 0.2, 0.1),
               );
-          }, 0);
+          });
       }
     });
 });
