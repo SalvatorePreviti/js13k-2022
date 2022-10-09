@@ -1,13 +1,4 @@
-import {
-  levers,
-  souls,
-  allModels,
-  MODEL_ID_FIRST_BOAT,
-  type Model,
-  type Circle,
-  type Lever,
-  type Soul,
-} from "./models";
+import { levers, souls, allModels, type Model, type Circle, type Lever, type Soul } from "./models";
 import { player_position_final, onLever0Pulled, onPlayerPullLever, onSoulCollected } from "./world-state";
 import type { Vec3Optional } from "../math/vectors";
 import { min, angle_lerp_degrees, DEG_TO_RAD, clamp, abs, hypot } from "../math/math";
@@ -17,6 +8,8 @@ import { polygons_transform, type Polygon } from "../geometry/polygon";
 import { cylinder } from "../geometry/geometry";
 import { material } from "../geometry/material";
 import { interact_pressed } from "../page";
+import { MODEL_ID_BOAT0 } from "./models-ids";
+import { devLeverAdd, devModelsAdd } from "../dev-tools/dev-models";
 
 export let currentEditModel: Model;
 
@@ -26,9 +19,12 @@ export const meshAdd = (
   color?: number | undefined,
 ) => currentEditModel.$polygons!.push(...polygons_transform(polygons, transform, color));
 
-export const newModel = (fn: () => void): void => {
+export const newModel = (fn: () => void, name: string): void => {
   const previousModel = currentEditModel;
   allModels.push((currentEditModel = { $matrix: new DOMMatrix(), $polygons: [] }));
+  if (DEBUG) {
+    devModelsAdd(allModels.length - 1, name);
+  }
   fn();
   currentEditModel = previousModel;
 };
@@ -45,7 +41,7 @@ const distanceToPlayer = (): number => {
   );
 };
 
-export const newLever = ($transform: DOMMatrixReadOnly): void => {
+export const newLever = ($transform: DOMMatrixReadOnly, name: string): void => {
   const parentModel = currentEditModel;
   const index = levers.length;
   const lever: Lever = {
@@ -81,6 +77,10 @@ export const newLever = ($transform: DOMMatrixReadOnly): void => {
     },
   };
   levers.push(lever);
+
+  if (DEBUG) {
+    devLeverAdd(index, name);
+  }
 
   meshAdd(cylinder(5), $transform.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
   meshAdd(cylinder(5), $transform.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
@@ -163,7 +163,7 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: Circle[]) 
       }
 
       if (soul.$value) {
-        matrixCopy(allModels[MODEL_ID_FIRST_BOAT]!.$matrix).translateSelf(
+        matrixCopy(allModels[MODEL_ID_BOAT0]!.$matrix).translateSelf(
           (index % 4) * 1.2 - 1.7 + Math.sin(gameTime + index) / 7,
           -2,
           -5.5 + ((index / 4) | 0) * 1.7 + abs((index % 4) - 2) + Math.cos(gameTime / 1.5 + index) / 6,
@@ -179,13 +179,3 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: Circle[]) 
     }
   }
 };
-
-export const checkModelId = DEBUG
-  ? (name: string, expectedId: number) => {
-      const modelId = allModels.length - 1;
-      console.log(`model ${name} id: ${modelId}`);
-      if (modelId !== expectedId) {
-        throw new Error(`Model ${name} id should be ${expectedId} but is ${modelId}`);
-      }
-    }
-  : () => {};

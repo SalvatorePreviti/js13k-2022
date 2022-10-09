@@ -11,7 +11,7 @@ import {
   threshold,
   hypot,
 } from "../math/math";
-import { levers, allModels, MODEL_ID_ROTATING_PLATFORM, MODEL_ID_PLAYER_BODY, MODEL_ID_STATIC_WORLD } from "./models";
+import { levers, allModels } from "./models";
 import { player_last_pulled_lever, camera_rotation, firstBoatLerp, player_position_final } from "./world-state";
 import { input_forward, input_strafe, player_first_person } from "../page";
 import { lerpDamp, gameTimeDelta, damp, gameTime } from "./game-time";
@@ -19,6 +19,8 @@ import { matrixCopy, matrixTransformPoint } from "../math/matrix";
 import { gl } from "../gl";
 import { shouldRotatePlatforms } from "./level-update";
 import { modelsNextUpdate } from "./models-next-update";
+import { MODEL_ID_PLAYER_BODY, MODEL_ID_ROTATING_PLATFORM0, MODEL_ID_STATIC_WORLD } from "./models-ids";
+import { LEVER_ID_BOAT1 } from "./levers-ids";
 
 export const CAMERA_PLAYER_Y_DIST = 13;
 
@@ -73,7 +75,7 @@ export const player_init = () => {
     matrixCopy(
       (player_respawned
         ? levers[player_last_pulled_lever]!
-        : allModels[oldModelId !== MODEL_ID_ROTATING_PLATFORM ? oldModelId : 0]!
+        : allModels[oldModelId !== MODEL_ID_ROTATING_PLATFORM0 ? oldModelId : 0]!
       ).$matrix,
     );
 
@@ -274,9 +276,9 @@ export const player_init = () => {
       player_respawned = 2;
     }
 
-    // Special handling for the second boat (lever 7) - the boat must be on the side of the map the player is
+    // Special handling for the second boat LEVER_SECOND_BOAT - the boat must be on the side of the map the player is
     if (currentModelId === MODEL_ID_STATIC_WORLD) {
-      levers[9]!.$value = player_position_final.x < -15 && player_position_final.z < 0 ? 1 : 0;
+      levers[LEVER_ID_BOAT1]!.$value = player_position_final.x < -15 && player_position_final.z < 0 ? 1 : 0;
     }
 
     player_model_y = lerp(
@@ -292,7 +294,7 @@ export const player_init = () => {
     player_on_rotating_platforms = lerpDamp(
       player_on_rotating_platforms,
       shouldRotatePlatforms *
-        ((currentModelId > MODEL_ID_ROTATING_PLATFORM - 1 && currentModelId < MODEL_ID_ROTATING_PLATFORM + 4) as any),
+        ((currentModelId > MODEL_ID_ROTATING_PLATFORM0 - 1 && currentModelId < MODEL_ID_ROTATING_PLATFORM0 + 4) as any),
       2,
     );
 

@@ -1,7 +1,8 @@
-import { allModels, souls, MODEL_ID_SOUL, SOULS_COUNT, MODEL_ID_LEVER, MODEL_ID_SOUL_COLLISION } from "./models";
+import { allModels, souls, SOULS_COUNT } from "./models";
 import { gl } from "../gl";
 import { plane_fromPolygon } from "../math/vectors";
 import type { Polygon } from "../geometry/polygon";
+import { MODEL_ID_SOUL, MODEL_ID_SOUL_COLLISION, MODEL_ID_LEVER } from "./models-ids";
 
 export const initTriangleBuffers = () => {
   const _triangleIndices: number[] = [];

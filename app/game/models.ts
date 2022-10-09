@@ -34,21 +34,3 @@ export const souls: Soul[] = [];
 export const levers: Lever[] = [];
 
 export const allModels: Model[] = [];
-
-export const MODEL_ID_STATIC_WORLD = 1;
-
-export const MODEL_ID_FIRST_BOAT = 2;
-
-export const MODEL_ID_ROTATING_PLATFORM = 28;
-
-export const MODEL_ID_PLAYER_BODY = 37;
-
-export const MODEL_ID_PLAYER_LEG0 = 38;
-
-export const MODEL_ID_PLAYER_LEG1 = 39;
-
-export const MODEL_ID_SOUL_COLLISION = 40;
-
-export const MODEL_ID_SOUL = 41;
-
-export const MODEL_ID_LEVER = 42;

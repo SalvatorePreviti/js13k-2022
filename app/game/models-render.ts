@@ -1,18 +1,10 @@
-import {
-  allModels,
-  levers,
-  souls,
-  MODEL_ID_LEVER,
-  MODEL_ID_PLAYER_BODY,
-  MODEL_ID_PLAYER_LEG0,
-  MODEL_ID_PLAYER_LEG1,
-  type MODEL_ID_SOUL,
-  type MODEL_ID_SOUL_COLLISION,
-} from "./models";
+import { allModels, levers, souls } from "./models";
 import { absoluteTime, mainMenuVisible } from "./game-time";
 import { matrixCopy, matrixToArray, tempMatrix } from "../math/matrix";
 import { gl } from "../gl";
 import { worldMatricesBuffer, objectsMatricesBuffer } from "./models-matrices";
+import type { MODEL_ID_SOUL, MODEL_ID_SOUL_COLLISION } from "./models-ids";
+import { MODEL_ID_PLAYER_BODY, MODEL_ID_PLAYER_LEG0, MODEL_ID_PLAYER_LEG1, MODEL_ID_LEVER } from "./models-ids";
 
 export const renderModels = (
   worldMatrixLoc: WebGLUniformLocation,

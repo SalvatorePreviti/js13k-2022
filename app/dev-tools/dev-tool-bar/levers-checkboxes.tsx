@@ -1,6 +1,7 @@
 import type { FC } from "react";
 import { useEffect, useState } from "react";
 import { levers } from "../../game/models";
+import { devLeverNames } from "../dev-models";
 
 let leverStateInitialized = false;
 
@@ -26,6 +27,7 @@ export const LeversComponent: FC = () => {
   }
 
   const [leverState, setLeverState] = useState<string>(() => levers.map((l) => l.$value).join(""));
+  const [leverName, setLeverName] = useState<string | undefined>();
 
   const update = () => {
     const newLeverState = levers.map((l) => l.$value).join("");
@@ -45,12 +47,23 @@ export const LeversComponent: FC = () => {
   return (
     <div style={{ maxWidth: 150 }}>
       <hr />
-      <div>levers:</div>
+      <div>
+        levers:<small>{leverName || ""}</small>
+      </div>
       {levers.map((lever, index) => {
         return (
           <span key={index}>
             {" "}
-            <label style={{ whiteSpace: "nowrap" }}>
+            <label
+              title={devLeverNames[index]}
+              style={{ whiteSpace: "nowrap" }}
+              onMouseOver={() => {
+                setLeverName((devLeverNames[index] || "").replace("LEVER_ID_", "").toLowerCase());
+              }}
+              onMouseOut={() => {
+                setLeverName(undefined);
+              }}
+            >
               {index}
               <input
                 type="checkbox"
