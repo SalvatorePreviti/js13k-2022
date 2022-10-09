@@ -19,7 +19,12 @@ import { matrixCopy, matrixTransformPoint } from "../math/matrix";
 import { gl } from "../gl";
 import { shouldRotatePlatforms } from "./level-update";
 import { modelsNextUpdate } from "./models-next-update";
-import { MODEL_ID_PLAYER_BODY, MODEL_ID_ROTATING_PLATFORM0, MODEL_ID_STATIC_WORLD } from "./models-ids";
+import {
+  MODEL_ID_PLAYER_BODY,
+  MODEL_ID_PLAYER_LEG0,
+  MODEL_ID_ROTATING_PLATFORM0,
+  MODEL_ID_STATIC_WORLD,
+} from "./models-ids";
 import { LEVER_ID_BOAT1 } from "./levers-ids";
 
 export const CAMERA_PLAYER_Y_DIST = 13;
@@ -371,7 +376,7 @@ export const player_init = () => {
 
     // Update player body and legs matrices
 
-    modelsNextUpdate()
+    modelsNextUpdate(MODEL_ID_PLAYER_BODY)
       .translateSelf(
         player_position_final.x,
         0.06 * player_speed_collision_limiter * player_legs_speed * Math.cos(gameTime * (PLAYER_LEGS_VELOCITY * 2)) +
@@ -382,7 +387,7 @@ export const player_init = () => {
 
     for (let i = 0; i < 2; ++i) {
       const t = gameTime * PLAYER_LEGS_VELOCITY - Math.PI * i;
-      matrixCopy(allModels[MODEL_ID_PLAYER_BODY]!.$matrix, modelsNextUpdate())
+      matrixCopy(allModels[MODEL_ID_PLAYER_BODY]!.$matrix, modelsNextUpdate(MODEL_ID_PLAYER_LEG0 + i))
         .translateSelf(0, player_legs_speed * clamp(Math.sin(t - Math.PI / 2) * 0.45))
         .rotateSelf(player_legs_speed * Math.sin(t) * (0.25 / DEG_TO_RAD), 0);
     }

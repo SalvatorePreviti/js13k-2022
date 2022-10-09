@@ -11,22 +11,24 @@ import { interact_pressed } from "../page";
 import { MODEL_ID_BOAT0 } from "./models-ids";
 import { devLeverAdd, devModelsAdd } from "../dev-tools/dev-models";
 
-export let currentEditModel: Model;
-
-export const meshAdd = (
+export let meshAdd: (
   polygons: Polygon<Readonly<Vec3Optional>>[],
-  transform: DOMMatrixReadOnly = new DOMMatrix(),
+  transform?: DOMMatrixReadOnly,
   color?: number | undefined,
-) => currentEditModel.$polygons!.push(...polygons_transform(polygons, transform, color));
+) => void;
 
-export const newModel = (fn: () => void, name: string): void => {
-  const previousModel = currentEditModel;
-  allModels.push((currentEditModel = { $matrix: new DOMMatrix(), $polygons: [] }));
+export const newModel = (name: string): void => {
+  const $polygons: Polygon[] = [];
+  const model: Model = { $matrix: new DOMMatrix(), $polygons };
+  meshAdd = (
+    polygons: Polygon<Readonly<Vec3Optional>>[],
+    transform: DOMMatrixReadOnly = new DOMMatrix(),
+    color?: number | undefined,
+  ) => $polygons.push(...polygons_transform(polygons, transform, color));
+  allModels.push(model);
   if (DEBUG) {
     devModelsAdd(allModels.length - 1, name);
   }
-  fn();
-  currentEditModel = previousModel;
 };
 
 const LEVER_SENSITIVITY_RADIUS = 3;
@@ -42,19 +44,19 @@ const distanceToPlayer = (): number => {
 };
 
 export const newLever = ($transform: DOMMatrixReadOnly, name: string): void => {
-  const parentModel = currentEditModel;
+  const parentModelMatrix = allModels.at(-1)!.$matrix;
   const index = levers.length;
   const lever: Lever = {
     $value: 0,
     $lerpValue: 0,
     $lerpValue2: 0,
-    $matrix: parentModel.$matrix,
+    $matrix: parentModelMatrix,
     $transform,
     _update: () => {
       lever.$lerpValue = lerpDamp(lever.$lerpValue, lever.$value, 4);
       lever.$lerpValue2 = lerpDamp(lever.$lerpValue2, lever.$value, 1);
 
-      matrixCopy(parentModel.$matrix).multiplySelf($transform);
+      matrixCopy(parentModelMatrix).multiplySelf($transform);
 
       if (interact_pressed && distanceToPlayer() < LEVER_SENSITIVITY_RADIUS) {
         if (lever.$value) {
@@ -101,7 +103,7 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: Circle[]) 
   let [targetX, targetZ] = circle;
   let [soulX, soulZ] = circle;
 
-  const parentModelMatrix = currentEditModel.$matrix;
+  const parentModelMatrix = allModels.at(-1)!.$matrix;
   const index = souls.length;
   const soul: Soul = {
     $value: 0,
