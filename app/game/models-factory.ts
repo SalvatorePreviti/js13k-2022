@@ -1,5 +1,5 @@
 import { levers, souls, allModels, type Model, type Circle, type Lever, type Soul } from "./models";
-import { player_position_final, onLever0Pulled, onPlayerPullLever, onSoulCollected } from "./world-state";
+import { player_position_final, onFirstBoatLeverPulled, onPlayerPullLever, onSoulCollected } from "./world-state";
 import type { Vec3Optional } from "../math/vectors";
 import { min, angle_lerp_degrees, DEG_TO_RAD, clamp, abs, hypot } from "../math/math";
 import { matrixCopy, matrixTransformPoint, tempMatrix } from "../math/matrix";
@@ -10,6 +10,7 @@ import { material } from "../geometry/material";
 import { interact_pressed } from "../page";
 import { MODEL_ID_BOAT0 } from "./models-ids";
 import { devLeverAdd, devModelsAdd } from "../dev-tools/dev-models";
+import { LEVER_ID_BOAT0 } from "./levers-ids";
 
 export let meshAdd: (
   polygons: Polygon<Readonly<Vec3Optional>>[],
@@ -68,9 +69,9 @@ export const newLever = ($transform: DOMMatrixReadOnly, name: string): void => {
           lever.$value = 1;
           onPlayerPullLever(index);
         }
-      } else if (lever.$value && lever.$lerpValue > 0.8 && !index) {
+      } else if (lever.$value && lever.$lerpValue > 0.8 && index === LEVER_ID_BOAT0) {
         lever.$value = 0;
-        onLever0Pulled();
+        onFirstBoatLeverPulled();
       }
 
       // Prepare the matrix to be written to the uniform buffer for the lever stick.

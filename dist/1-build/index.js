@@ -183,9 +183,10 @@ const GAMEPAD_BUTTON_UP = 12;
 const GAMEPAD_BUTTON_DOWN = 13;
 const GAMEPAD_BUTTON_LEFT = 14;
 const GAMEPAD_BUTTON_RIGHT = 15;
-const code$6 = "#version 300 es\nprecision highp float;in vec4 o,m,n,l;uniform mat4 b,h[2];uniform vec3 k;uniform highp sampler2DShadow g[2];uniform highp sampler2D q;out vec4 O;void main(){vec4 c=vec4(m.xyz,1);vec3 e=normalize(o.xyz),v=l.w*(texture(q,n.yz*.035)*e.x+texture(q,n.xz*.035)*e.y+texture(q,n.xy*.035)*e.z).xyz;e=normalize(e+v*.5);float t=dot(e,vec3(-.656059,.666369,-.35431468)),a=1.,i=abs((b*c).z);vec4 r=(i<55.?h[0]:h[1])*c;if(r=r/r.w*.5+.5,r.z<1.){a=0.;for(float e=-1.;e<=1.;++e)for(float t=-1.;t<=1.;++t){vec3 s=vec3(r.xy+vec2(e,t)/2048.,r.z-.00017439);a+=i<55.?texture(g[0],s):texture(g[1],s);}a/=9.;}vec3 s=l.xyz*(1.-v.x);float x=max(max(abs(e.x),abs(e.z))*.3-e.y,0.)*pow(max(0.,(8.-m.y)/48.),1.6);O=vec4(vec3(x,x*x*.5,0)+vec3(.09,.05,.11)*s+s*(max(0.,t)*.5+s*t*t*vec3(.5,.45,.3))*(a*.75+.25)+vec3(.6,.6,.5)*pow(max(0.,dot(normalize(m.xyz-k),reflect(vec3(-.656059,.666369,-.35431468),e))),35.)*a,1);}";
-const uniformName_csm_matrices = "h";
-const uniformName_csm_textures = "g";
+const code$4 = "#version 300 es\nprecision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sampler2DShadow g,h;uniform mat4 b,i[2];uniform vec3 k;out vec4 O;void main(){vec4 s=vec4(m.xyz,1);vec3 e=normalize(o.xyz),v=l.w*(texture(q,n.zy*.035)*e.x+texture(q,n.xz*.035)*e.y+texture(q,n.xy*.035)*e.z).xyz;e=normalize(e+v*.5);float a=dot(e,vec3(-.656059,.666369,-.35431468)),t=1.,u=abs((b*s).z);vec4 r=(u<55.?i[0]:i[1])*s;if(r=r/r.w*.5+.5,r.z<1.){t=0.;for(float e=-1.;e<=1.;++e)for(float a=-1.;a<=1.;++a){vec3 x=vec3(r.xy+vec2(e,a)/2048.,r.z-.00017439);t+=u<55.?texture(g,x):texture(h,x);}t/=9.;}vec3 x=l.xyz*(1.-v.x);float c=max(max(abs(e.x),abs(e.z))*.3-e.y,0.)*pow(max(0.,(8.-m.y)/48.),1.6);O=vec4(vec3(c,c*c*.5,0)+vec3(.09,.05,.11)*x+x*(max(0.,a)*.5+x*a*a*vec3(.5,.45,.3))*(t*.75+.25)+vec3(.6,.6,.5)*pow(max(0.,dot(normalize(m.xyz-k),reflect(vec3(-.656059,.666369,-.35431468),e))),35.)*t,1);}";
+const uniformName_csm_matrices = "i";
+const uniformName_csm_texture0 = "g";
+const uniformName_csm_texture1 = "h";
 const uniformName_groundTexture = "q";
 const uniformName_viewPos = "k";
 const constDef_CSM_TEXTURE_SIZE = 2048;
@@ -846,7 +847,7 @@ const onPlayerPullLever = (leverIndex) => {
     showMessage("* click *", 1);
   saveGame();
 };
-const onLever0Pulled = () => {
+const onFirstBoatLeverPulled = () => {
   if (souls_collected_count < SOULS_COUNT)
     showMessage("Not leaving now, there are souls to catch!", 3);
   else if (!game_completed) {
@@ -903,9 +904,9 @@ const newLever = ($transform, name) => {
           lever.$value = 1;
           onPlayerPullLever(index);
         }
-      } else if (lever.$value && lever.$lerpValue > 0.8 && !index) {
+      } else if (lever.$value && lever.$lerpValue > 0.8 && index === LEVER_ID_BOAT0) {
         lever.$value = 0;
-        onLever0Pulled();
+        onFirstBoatLeverPulled();
       }
       tempMatrix.rotateSelf(lever.$lerpValue * 50 - 25, 0).translateSelf(0, 1).m44 = 1 - lever.$lerpValue;
     }
@@ -1573,16 +1574,14 @@ const build_life_the_universe_and_everything = () => {
   meshAdd(cylinder(10), translation(0, 0.8).scale(0.2, 0.3, 0.2), material(1, 0.5, 0.2));
   meshAdd(cylinder(3), translation(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3), material(0.2, 0.2, 0.2, 0.1));
 };
-const code$5 = "#version 300 es\nin vec4 f;uniform mat4 b,c[38];void main(){mat4 i=f.w==1.?mat4(1):c[abs(int(f.w))+gl_InstanceID-2];i[3][3]=1.,gl_Position=b*i*vec4(f.xyz,1);}";
-const code$4 = "#version 300 es\nlayout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 b,a,c[38];void main(){mat4 i=f.w==1.?mat4(1):c[abs(int(f.w))+gl_InstanceID-2];l=mix(d,vec4(.7,1,.2,0),d.w>0.?0.:1.-i[3][3]),i[3][3]=1.,n=f,m=i*vec4(f.xyz,1),gl_Position=a*b*m,m.w=f.w,o=i*vec4(e,0);}";
+const code$3 = "#version 300 es\nlayout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 b,a,c[38];void main(){mat4 i=f.w==1.?mat4(1):c[abs(int(f.w))+gl_InstanceID-2];l=mix(d,vec4(.7,1,.2,0),d.w>0.?0.:1.-i[3][3]),i[3][3]=1.,n=f,m=i*vec4(f.xyz,1),gl_Position=a*b*m,m.w=f.w,o=i*vec4(e,0);}";
 const uniformName_projectionMatrix = "a";
 const uniformName_viewMatrix = "b";
 const uniformName_worldMatrices = "c";
-const code$3 = "#version 300 es\nprecision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(vec3(0,1.49,.3*b[0][0])+m.xyz,1);if(O=vec4(0),gl_FragCoord.y>36.){if(a.y>.6&&a.y<4.){float e=abs(gl_FragCoord.x/64.-1.),i=clamp(a.z+.7,0.,1.);O=vec4(vec2(b[0][0]*sign(a.x)*o.x<0.?i*(.7-abs(a.x))*e/.7:0.),vec2(b[0][0]*o.z>0.?i*(1.-e):0.));}}else if(o.y>.45&&a.y<1.){float e=a.y*clamp((a.z+.4)*50.,0.,1.)*clamp((-abs(a.x)+.2)*10.,0.,1.);O=vec4(vec2(e),vec2(e>0.?m.w/255.:0.));}}";
+const code$2 = "#version 300 es\nprecision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(vec3(0,1.49,.3*b[0][0])+m.xyz,1);if(O=vec4(0),gl_FragCoord.y>36.){if(a.y>.6&&a.y<4.){float e=abs(gl_FragCoord.x/64.-1.),i=clamp(a.z+.7,0.,1.);O=vec4(vec2(b[0][0]*sign(a.x)*o.x<0.?i*(.7-abs(a.x))*e/.7:0.),vec2(b[0][0]*o.z>0.?i*(1.-e):0.));}}else if(o.y>.45&&a.y<1.){float e=a.y*clamp((a.z+.4)*50.,0.,1.)*clamp((-abs(a.x)+.2)*10.,0.,1.);O=vec4(vec2(e),vec2(e>0.?m.w/255.:0.));}}";
 const constDef_COLLISION_TEXTURE_SIZE = 128;
-const code$2 = "#version 300 es\nvoid main(){}";
 const code$1 = "#version 300 es\nin vec4 f;void main(){gl_Position=vec4(f.xy,1,1);}";
-const code = "#version 300 es\nprecision highp float;uniform vec3 j,k;uniform mat4 b;uniform highp sampler2D q;out vec4 O;void main(){vec2 t=gl_FragCoord.xy/j.xy*2.-1.;vec3 e=(normalize(b*vec4(t.x*-(j.x/j.y),-t.y,1.73205,0.))).xyz;float i=(-32.-k.y)/e.y,o=1.-clamp(abs(i/9999.),0.,1.);if(O=vec4(0,0,0,1),o>.01){if(i>0.){float o=cos(j.z/30.),i=sin(j.z/30.);e.xz*=mat2(o,i,-i,o);vec3 t=abs(e);O.xyz=vec3(dot(vec2(texture(q,e.xy).z,texture(q,e.yz*2.).z),t.zx)*t.y);}else e=k+e*i,O.x=(o*=.9-texture(q,e.xz/150.+vec2(sin(e.z/35.+j.z),cos(e.x/25.+j.z))/80.).y),O.y=o*o*o;}}";
+const code = "#version 300 es\nprecision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;out vec4 O;void main(){vec2 t=gl_FragCoord.xy/j.xy*2.-1.;vec3 e=(normalize(b*vec4(t.x*-(j.x/j.y),-t.y,1.73205,0.))).xyz;float o=(-32.-b[3].y)/e.y,i=1.-clamp(abs(o/9999.),0.,1.);if(O=vec4(0,0,0,1),i>.01){if(o>0.){float i=cos(j.z/30.),o=sin(j.z/30.);e.xz*=mat2(i,o,-o,i);vec3 t=abs(e);O.xyz=vec3(dot(vec2(texture(q,e.xy).z,texture(q,e.yz*2.).z),t.zx)*t.y);}else e=b[3].xyz+e*o,O.x=(i*=.9-texture(q,e.xz/150.+vec2(sin(e.z/35.+j.z),cos(e.x/25.+j.z))/80.).y),O.y=i*i*i;}}";
 const uniformName_iResolution = "j";
 const worldMatricesBuffer = new Float32Array(608);
 const objectsMatricesBuffer = new Float32Array((SOULS_COUNT + LEVERS_COUNT) * 16);
@@ -1888,8 +1887,6 @@ const startMainLoop = (groundTextureImage) => {
       worldStateUpdate();
       eppur_si_muove();
       collisionShader();
-      gl["b6o"](36160, collision_frameBuffer);
-      gl["v5y"](0, 0, constDef_COLLISION_TEXTURE_SIZE, constDef_COLLISION_TEXTURE_SIZE);
       gl["c4s"](16640);
       gl["cbf"](true, false, true, false);
       gl["uae"](collisionShader(uniformName_viewMatrix), false, matrixToArray(matrixCopy().rotateSelf(0, 180).invertSelf().translateSelf(-player_position_final.x, -player_position_final.y, 0.3 - player_position_final.z)));
@@ -1912,38 +1909,41 @@ const startMainLoop = (groundTextureImage) => {
       matrixCopy(identity, camera_view).rotateSelf(-20, 0).invertSelf().translateSelf(-cameraX, -cameraY, -cameraZ).rotateSelf(0, 99);
     } else
       matrixCopy(identity, camera_view).rotateSelf(-camera_rotation.x, -camera_rotation.y).invertSelf().translateSelf(-cameraX, -cameraY, -cameraZ);
-    csmShader();
+    mainShader();
+    gl["ubu"](mainShader(uniformName_viewPos), cameraX, cameraY, cameraZ);
+    gl["uae"](mainShader(uniformName_projectionMatrix), false, matrixToArray(identity));
+    gl["ubh"](mainShader(uniformName_csm_texture0), 3);
+    gl["ubh"](mainShader(uniformName_csm_texture1), 3);
     gl["b6o"](36160, csm_framebuffer);
     gl["v5y"](0, 0, constDef_CSM_TEXTURE_SIZE, constDef_CSM_TEXTURE_SIZE);
     csm_render[0]((constDef_CSM_PLANE_DISTANCE - zNear) * 1.1);
     csm_render[1]((zFar - constDef_CSM_PLANE_DISTANCE) * 1.1);
-    mainShader();
     gl["b6o"](36160, null);
     gl["v5y"](0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
     gl["cbf"](true, true, true, true);
     gl["c4s"](16640);
-    gl["uae"](mainShader(uniformName_projectionMatrix), false, matrixToArray(projection));
     gl["uae"](mainShader(uniformName_viewMatrix), false, matrixToArray(camera_view));
     gl["uae"](mainShader(uniformName_csm_matrices), false, csm_lightSpaceMatrices);
-    gl["ubu"](mainShader(uniformName_viewPos), cameraX, cameraY, cameraZ);
+    gl["uae"](mainShader(uniformName_projectionMatrix), false, matrixToArray(projection));
+    gl["ubh"](mainShader(uniformName_csm_texture0), 0);
+    gl["ubh"](mainShader(uniformName_csm_texture1), 1);
     renderModels(mainShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL);
     skyShader();
     gl["ubu"](skyShader(uniformName_iResolution), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime);
-    gl["ubu"](skyShader(uniformName_viewPos), cameraX, cameraY, cameraZ);
     gl["uae"](skyShader(uniformName_viewMatrix), false, matrixToArray(matrixCopy(camera_view).invertSelf()));
     gl["d97"](4, 3, 5123, 0);
     gl["b6o"](36160, collision_frameBuffer);
+    gl["v5y"](0, 0, constDef_COLLISION_TEXTURE_SIZE, constDef_COLLISION_TEXTURE_SIZE);
     gl["f1s"]();
   };
   const csm_tempMatrix = new DOMMatrix();
   const camera_view = new DOMMatrix();
   const csm_lightSpaceMatrices = new Float32Array(32);
   const csm_tempFrustumCorners = integers_map(8, () => ({}));
-  const mainVertexShader = loadShader(code$4);
-  const csmShader = initShaderProgram(loadShader(code$5), code$2);
   const skyShader = initShaderProgram(loadShader(code$1), code);
-  const collisionShader = initShaderProgram(mainVertexShader, code$3);
-  const mainShader = initShaderProgram(mainVertexShader, code$6);
+  const mainVertexShader = loadShader(code$3);
+  const collisionShader = initShaderProgram(mainVertexShader, code$2);
+  const mainShader = initShaderProgram(mainVertexShader, code$4);
   const csm_render = integers_map(2, (split) => {
     const texture = gl["c25"]();
     gl["a4v"](33984 + split);
@@ -1989,8 +1989,8 @@ const startMainLoop = (groundTextureImage) => {
       const zMultiplier = 10 + split;
       near *= near < 0 ? zMultiplier : 1 / zMultiplier;
       far *= far > 0 ? zMultiplier : 1 / zMultiplier;
-      gl["uae"](csmShader(uniformName_viewMatrix), false, matrixToArray(matrixCopy(identity, csm_tempMatrix).scaleSelf(2 / (right - left), 2 / (top - bottom), 2 / (near - far)).translateSelf((right + left) / -2, (top + bottom) / -2, (near + far) / 2).multiplySelf(tempMatrix)));
-      renderModels(csmShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL);
+      gl["uae"](mainShader(uniformName_viewMatrix), false, matrixToArray(matrixCopy(identity, csm_tempMatrix).scaleSelf(2 / (right - left), 2 / (top - bottom), 2 / (near - far)).translateSelf((right + left) / -2, (top + bottom) / -2, (near + far) / 2).multiplySelf(tempMatrix)));
+      renderModels(mainShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL);
       csm_lightSpaceMatrices.set(float32Array16Temp, split * 16);
     };
   });
@@ -2002,10 +2002,6 @@ const startMainLoop = (groundTextureImage) => {
   gl["uae"](collisionShader(uniformName_projectionMatrix), false, matrixToArray(mat_perspective(1e-4, 2, 1.2, 0.4)));
   mainShader();
   gl["ubh"](mainShader(uniformName_groundTexture), 2);
-  gl["ua3"](mainShader(uniformName_csm_textures), [
-    0,
-    1
-  ]);
   skyShader();
   gl["ubh"](skyShader(uniformName_groundTexture), 2);
   gl["b6o"](36160, csm_framebuffer);

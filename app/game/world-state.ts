@@ -131,7 +131,7 @@ export const onPlayerPullLever = (leverIndex: number) => {
   saveGame();
 };
 
-export const onLever0Pulled = () => {
+export const onFirstBoatLeverPulled = () => {
   if (souls_collected_count < SOULS_COUNT) {
     showMessage("Not leaving now, there are souls to catch!", 3);
   } else if (!game_completed) {

@@ -1,5 +1,4 @@
 // shaders
-import csm_vsSource from "./shaders/csm-vertex.vert";
 import main_vsSource, {
   uniformName_projectionMatrix,
   uniformName_viewMatrix,
@@ -8,7 +7,8 @@ import main_vsSource, {
 import main_fsSource, {
   uniformName_viewPos,
   uniformName_csm_matrices,
-  uniformName_csm_textures,
+  uniformName_csm_texture0,
+  uniformName_csm_texture1,
   uniformName_groundTexture,
   constDef_CSM_TEXTURE_SIZE as CSM_TEXTURE_SIZE,
   constDef_CSM_PLANE_DISTANCE as CSM_PLANE_DISTANCE,
@@ -16,7 +16,6 @@ import main_fsSource, {
 import collider_fsSource, {
   constDef_COLLISION_TEXTURE_SIZE as COLLISION_TEXTURE_SIZE,
 } from "./shaders/collider-fragment.frag";
-import void_fsSource from "./shaders/void-fragment.frag";
 import sky_vsSource from "./shaders/sky-vertex.vert";
 import sky_fsSource, { uniformName_iResolution } from "./shaders/sky-fragment.frag";
 
@@ -52,9 +51,8 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   const csm_lightSpaceMatrices = new Float32Array(2 * 16);
   const csm_tempFrustumCorners: Vec3[] = integers_map(8, () => ({} as Vec3));
 
-  const mainVertexShader = loadShader(main_vsSource);
-  const csmShader = initShaderProgram(loadShader(csm_vsSource), void_fsSource);
   const skyShader = initShaderProgram(loadShader(sky_vsSource), sky_fsSource);
+  const mainVertexShader = loadShader(main_vsSource);
   const collisionShader = initShaderProgram(mainVertexShader, collider_fsSource);
   const mainShader = initShaderProgram(mainVertexShader, main_fsSource);
 
@@ -131,7 +129,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       // Build the ortographic matrix, multiply it with the light space view matrix.
 
       gl.uniformMatrix4fv(
-        csmShader(uniformName_viewMatrix),
+        mainShader(uniformName_viewMatrix),
         false,
         matrixToArray(
           matrixCopy(identity, csm_tempMatrix)
@@ -141,7 +139,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
         ),
       );
 
-      renderModels(csmShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL);
+      renderModels(mainShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL);
 
       csm_lightSpaceMatrices.set(float32Array16Temp, split * 16);
     };
@@ -169,9 +167,6 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       // *** COLLISION RENDERER ***
 
       collisionShader();
-
-      gl.bindFramebuffer(gl.FRAMEBUFFER, collision_frameBuffer);
-      gl.viewport(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
 
       // first collision render
 
@@ -235,9 +230,14 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
         .translateSelf(-cameraX, -cameraY, -cameraZ);
     }
 
+    mainShader();
+    gl.uniform3f(mainShader(uniformName_viewPos), cameraX, cameraY, cameraZ);
+
     // *** CASCADED SHADOWMAPS ***
 
-    csmShader();
+    gl.uniformMatrix4fv(mainShader(uniformName_projectionMatrix), false, matrixToArray(identity));
+    gl.uniform1i(mainShader(uniformName_csm_texture0), 3);
+    gl.uniform1i(mainShader(uniformName_csm_texture1), 3);
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, csm_framebuffer);
     gl.viewport(0, 0, CSM_TEXTURE_SIZE, CSM_TEXTURE_SIZE);
@@ -247,27 +247,24 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
     // *** MAIN RENDER ***
 
-    mainShader();
-
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
 
     gl.colorMask(true, true, true, true);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    gl.uniformMatrix4fv(mainShader(uniformName_projectionMatrix), false, matrixToArray(projection));
     gl.uniformMatrix4fv(mainShader(uniformName_viewMatrix), false, matrixToArray(camera_view));
     gl.uniformMatrix4fv(mainShader(uniformName_csm_matrices), false, csm_lightSpaceMatrices);
-    gl.uniform3f(mainShader(uniformName_viewPos), cameraX, cameraY, cameraZ);
+    gl.uniformMatrix4fv(mainShader(uniformName_projectionMatrix), false, matrixToArray(projection));
+    gl.uniform1i(mainShader(uniformName_csm_texture0), 0);
+    gl.uniform1i(mainShader(uniformName_csm_texture1), 1);
 
     renderModels(mainShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL);
 
     // *** SKY RENDER ***
 
     skyShader();
-
     gl.uniform3f(skyShader(uniformName_iResolution), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime);
-    gl.uniform3f(skyShader(uniformName_viewPos), cameraX, cameraY, cameraZ);
     gl.uniformMatrix4fv(skyShader(uniformName_viewMatrix), false, matrixToArray(matrixCopy(camera_view).invertSelf()));
 
     gl.drawElements(gl.TRIANGLES, 3, gl.UNSIGNED_SHORT, 0);
@@ -276,6 +273,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     // Flushing here increase the chance of the GPU finishing the rendering before we read the texture.
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, collision_frameBuffer);
+    gl.viewport(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
     gl.flush();
   };
 
@@ -288,7 +286,6 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
   mainShader();
   gl.uniform1i(mainShader(uniformName_groundTexture), 2);
-  gl.uniform1iv(mainShader(uniformName_csm_textures), [0, 1]);
 
   skyShader();
   gl.uniform1i(skyShader(uniformName_groundTexture), 2);

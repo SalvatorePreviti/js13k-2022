@@ -15,12 +15,13 @@ in highp vec4 FragPos;
 in highp vec4 UntransformedFragPos;
 in lowp vec4 Color;
 
+uniform highp sampler2D groundTexture;
+uniform highp sampler2DShadow csm_texture0;
+uniform highp sampler2DShadow csm_texture1;
+
 uniform mat4 viewMatrix;
 uniform mat4 csm_matrices[2];
 uniform vec3 viewPos;
-
-uniform highp sampler2DShadow csm_textures[2];
-uniform highp sampler2D groundTexture;
 
 out vec4 O;
 
@@ -29,7 +30,7 @@ void main() {
   vec3 normal = normalize(VNormal.xyz);
 
   vec3 tex = Color.w *
-    (texture(groundTexture, UntransformedFragPos.yz * .035) * normal.x +
+    (texture(groundTexture, UntransformedFragPos.zy * .035) * normal.x +
      texture(groundTexture, UntransformedFragPos.xz * .035) * normal.y +
      texture(groundTexture, UntransformedFragPos.xy * .035) * normal.z)
       .xyz;
@@ -61,7 +62,7 @@ void main() {
             // shadow bias
             (1. / CSM_TEXTURE_SIZE / 2.8)
         );
-        shadow += depthValue < CSM_PLANE_DISTANCE ? texture(csm_textures[0], c) : texture(csm_textures[1], c);
+        shadow += depthValue < CSM_PLANE_DISTANCE ? texture(csm_texture0, c) : texture(csm_texture1, c);
       }
     }
     shadow /= 9.;
