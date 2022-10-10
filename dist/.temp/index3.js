@@ -878,8 +878,8 @@ zb(() => {
             Z.ubh(z("h"), 1);
             jc(z("c"), !ia, 41);
             I();
-            Z.ubu(I("j"), Z.drawingBufferWidth, Z.drawingBufferHeight, xa);
             Z.uae(I("b"), !1, nb(ob(x).invertSelf()));
+            Z.ubu(I("j"), Z.drawingBufferWidth, Z.drawingBufferHeight, xa);
             Z.d97(4, 3, 5123, 0);
             Z.b6o(36160, T);
             Z.v5y(0, 0, 128, 128);

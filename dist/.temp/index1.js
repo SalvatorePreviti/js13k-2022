@@ -2719,8 +2719,8 @@ const startMainLoop = (groundTextureImage) => {
     gl["ubh"](mainShader(uniformName_csm_texture1), 1);
     renderModels(mainShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL);
     skyShader();
-    gl["ubu"](skyShader(uniformName_iResolution), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime);
     gl["uae"](skyShader(uniformName_viewMatrix), false, matrixToArray(matrixCopy(camera_view).invertSelf()));
+    gl["ubu"](skyShader(uniformName_iResolution), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime);
     gl["d97"](4, 3, 5123, 0);
     gl["b6o"](36160, collision_frameBuffer);
     gl["v5y"](0, 0, constDef_COLLISION_TEXTURE_SIZE, constDef_COLLISION_TEXTURE_SIZE);

@@ -99,9 +99,9 @@ export const initPage = () => {
       input_strafe =
         0;
 
-    if (document.hidden) {
+    if (document.hidden && !DEBUG) {
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
-      // mainMenu(true);
+      mainMenu(true);
     }
   };
 
