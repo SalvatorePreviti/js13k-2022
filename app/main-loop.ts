@@ -7,10 +7,8 @@ import main_vsSource, {
 } from "./shaders/main-vertex.vert";
 import main_fsSource, {
   uniformName_viewPos,
-  uniformName_csm_matrix0,
-  uniformName_csm_matrix1,
-  uniformName_csm_texture0,
-  uniformName_csm_texture1,
+  uniformName_csm_matrices,
+  uniformName_csm_textures,
   uniformName_groundTexture,
   constDef_CSM_TEXTURE_SIZE as CSM_TEXTURE_SIZE,
   constDef_CSM_PLANE_DISTANCE as CSM_PLANE_DISTANCE,
@@ -25,7 +23,14 @@ import sky_fsSource, { uniformName_iResolution } from "./shaders/sky-fragment.fr
 import { gameTimeUpdate, gameTimeDelta, mainMenuVisible, absoluteTime } from "./game/game-time";
 import { camera_rotation, player_position_final, worldStateUpdate } from "./game/world-state";
 import { integers_map } from "./math/integers-map";
-import { identity, matrixCopy, matrixToArray, matrixTransformPoint, tempMatrix } from "./math/matrix";
+import {
+  float32Array16Temp,
+  identity,
+  matrixCopy,
+  matrixToArray,
+  matrixTransformPoint,
+  tempMatrix,
+} from "./math/matrix";
 import { mat_perspective, zFar, zNear } from "./math/matrix-perspective";
 import { eppur_si_muove } from "./game/level-update";
 import { max, min } from "./math/math";
@@ -44,7 +49,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   const csm_tempMatrix = new DOMMatrix();
   const camera_view = new DOMMatrix();
 
-  const csm_lightSpaceMatrices = [new Float32Array(16), new Float32Array(16)];
+  const csm_lightSpaceMatrices = new Float32Array(2 * 16);
   const csm_tempFrustumCorners: Vec3[] = integers_map(8, () => ({} as Vec3));
 
   const mainVertexShader = loadShader(main_vsSource);
@@ -133,11 +138,12 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
             .scaleSelf(2 / (right - left), 2 / (top - bottom), 2 / (near - far))
             .translateSelf((right + left) / -2, (top + bottom) / -2, (near + far) / 2)
             .multiplySelf(tempMatrix),
-          csm_lightSpaceMatrices[split],
         ),
       );
 
       renderModels(csmShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL);
+
+      csm_lightSpaceMatrices.set(float32Array16Temp, split * 16);
     };
   });
 
@@ -251,8 +257,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
     gl.uniformMatrix4fv(mainShader(uniformName_projectionMatrix), false, matrixToArray(projection));
     gl.uniformMatrix4fv(mainShader(uniformName_viewMatrix), false, matrixToArray(camera_view));
-    gl.uniformMatrix4fv(mainShader(uniformName_csm_matrix0), false, csm_lightSpaceMatrices[0]!);
-    gl.uniformMatrix4fv(mainShader(uniformName_csm_matrix1), false, csm_lightSpaceMatrices[1]!);
+    gl.uniformMatrix4fv(mainShader(uniformName_csm_matrices), false, csm_lightSpaceMatrices);
     gl.uniform3f(mainShader(uniformName_viewPos), cameraX, cameraY, cameraZ);
 
     renderModels(mainShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL);
@@ -283,8 +288,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
   mainShader();
   gl.uniform1i(mainShader(uniformName_groundTexture), 2);
-  gl.uniform1i(mainShader(uniformName_csm_texture1), 1);
-  gl.uniform1i(mainShader(uniformName_csm_texture0), 0);
+  gl.uniform1iv(mainShader(uniformName_csm_textures), [0, 1]);
 
   skyShader();
   gl.uniform1i(skyShader(uniformName_groundTexture), 2);

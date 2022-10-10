@@ -210,11 +210,9 @@ const GAMEPAD_BUTTON_DOWN = 13;
 const GAMEPAD_BUTTON_LEFT = 14;
 const GAMEPAD_BUTTON_RIGHT = 15;
 const code$6 =
-  "#version 300 es\nprecision highp float;in vec4 o,m,n,l;uniform vec3 k;uniform mat4 b,i,j;uniform highp sampler2DShadow g,h;uniform highp sampler2D q;out vec4 O;void main(){vec4 s=vec4(m.xyz,1);vec3 e=normalize(o.xyz),v=l.w*(texture(q,n.yz*.035)*e.x+texture(q,n.xz*.035)*e.y+texture(q,n.xy*.035)*e.z).xyz;e=normalize(e+v*.5);float a=dot(e,vec3(-.656059,.666369,-.35431468)),t=1.,u=abs((b*s).z);vec4 r=(u<55.?i:j)*s;if(r=r/r.w*.5+.5,r.z<1.){t=0.;for(float e=-1.;e<=1.;++e)for(float a=-1.;a<=1.;++a){vec3 x=vec3(r.xy+vec2(e,a)/2048.,r.z-.00017439);t+=u<55.?texture(g,x):texture(h,x);}t/=9.;}vec3 x=l.xyz*(1.-v.x);float c=max(max(abs(e.x),abs(e.z))*.3-e.y,0.)*pow(max(0.,(8.-m.y)/48.),1.6);O=vec4(vec3(c,c*c*.5,0)+vec3(.09,.05,.11)*x+x*(max(0.,a)*.5+x*a*a*vec3(.5,.45,.3))*(t*.75+.25)+vec3(.6,.6,.5)*pow(max(0.,dot(normalize(m.xyz-k),reflect(vec3(-.656059,.666369,-.35431468),e))),35.)*t,1);}";
-const uniformName_csm_matrix0 = "i";
-const uniformName_csm_matrix1 = "j";
-const uniformName_csm_texture0 = "g";
-const uniformName_csm_texture1 = "h";
+  "#version 300 es\nprecision highp float;in vec4 o,m,n,l;uniform mat4 b,h[2];uniform vec3 k;uniform highp sampler2DShadow g[2];uniform highp sampler2D q;out vec4 O;void main(){vec4 c=vec4(m.xyz,1);vec3 e=normalize(o.xyz),v=l.w*(texture(q,n.yz*.035)*e.x+texture(q,n.xz*.035)*e.y+texture(q,n.xy*.035)*e.z).xyz;e=normalize(e+v*.5);float t=dot(e,vec3(-.656059,.666369,-.35431468)),a=1.,i=abs((b*c).z);vec4 r=(i<55.?h[0]:h[1])*c;if(r=r/r.w*.5+.5,r.z<1.){a=0.;for(float e=-1.;e<=1.;++e)for(float t=-1.;t<=1.;++t){vec3 s=vec3(r.xy+vec2(e,t)/2048.,r.z-.00017439);a+=i<55.?texture(g[0],s):texture(g[1],s);}a/=9.;}vec3 s=l.xyz*(1.-v.x);float x=max(max(abs(e.x),abs(e.z))*.3-e.y,0.)*pow(max(0.,(8.-m.y)/48.),1.6);O=vec4(vec3(x,x*x*.5,0)+vec3(.09,.05,.11)*s+s*(max(0.,t)*.5+s*t*t*vec3(.5,.45,.3))*(a*.75+.25)+vec3(.6,.6,.5)*pow(max(0.,dot(normalize(m.xyz-k),reflect(vec3(-.656059,.666369,-.35431468),e))),35.)*a,1);}";
+const uniformName_csm_matrices = "h";
+const uniformName_csm_textures = "g";
 const uniformName_groundTexture = "q";
 const uniformName_viewPos = "k";
 const constDef_CSM_TEXTURE_SIZE = 2048;
@@ -2144,7 +2142,7 @@ const build_life_the_universe_and_everything = () => {
 const code$5 =
   "#version 300 es\nin vec4 f;uniform mat4 b,c[38];void main(){mat4 i=f.w==1.?mat4(1):c[abs(int(f.w))+gl_InstanceID-2];i[3][3]=1.,gl_Position=b*i*vec4(f.xyz,1);}";
 const code$4 =
-  "#version 300 es\nlayout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 a,b,c[38];void main(){mat4 i=f.w==1.?mat4(1):c[abs(int(f.w))+gl_InstanceID-2];l=mix(d,vec4(.7,1,.2,0),d.w>0.?0.:1.-i[3][3]),i[3][3]=1.,n=f,m=i*vec4(f.xyz,1),gl_Position=a*b*m,m.w=f.w,o=i*vec4(e,0);}";
+  "#version 300 es\nlayout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 b,a,c[38];void main(){mat4 i=f.w==1.?mat4(1):c[abs(int(f.w))+gl_InstanceID-2];l=mix(d,vec4(.7,1,.2,0),d.w>0.?0.:1.-i[3][3]),i[3][3]=1.,n=f,m=i*vec4(f.xyz,1),gl_Position=a*b*m,m.w=f.w,o=i*vec4(e,0);}";
 const uniformName_projectionMatrix = "a";
 const uniformName_viewMatrix = "b";
 const uniformName_worldMatrices = "c";
@@ -2647,10 +2645,6 @@ const initShaderProgram = (vertexShader, sfsSource) => {
 const LIGHT_ROT_Y = 139;
 const LIGHT_ROT_X = 298;
 const startMainLoop = (groundTextureImage) => {
-  const csm_lightSpaceMatrices = [
-    new Float32Array(16),
-    new Float32Array(16),
-  ];
   const mainLoop = (globalTime) => {
     requestAnimationFrame(mainLoop);
     gameTimeUpdate(globalTime);
@@ -2721,8 +2715,7 @@ const startMainLoop = (groundTextureImage) => {
     gl["c4s"](16640);
     gl["uae"](mainShader(uniformName_projectionMatrix), false, matrixToArray(projection));
     gl["uae"](mainShader(uniformName_viewMatrix), false, matrixToArray(camera_view));
-    gl["uae"](mainShader(uniformName_csm_matrix0), false, csm_lightSpaceMatrices[0]);
-    gl["uae"](mainShader(uniformName_csm_matrix1), false, csm_lightSpaceMatrices[1]);
+    gl["uae"](mainShader(uniformName_csm_matrices), false, csm_lightSpaceMatrices);
     gl["ubu"](mainShader(uniformName_viewPos), cameraX, cameraY, cameraZ);
     renderModels(mainShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL);
     skyShader();
@@ -2735,6 +2728,7 @@ const startMainLoop = (groundTextureImage) => {
   };
   const csm_tempMatrix = new DOMMatrix();
   const camera_view = new DOMMatrix();
+  const csm_lightSpaceMatrices = new Float32Array(32);
   const csm_tempFrustumCorners = integers_map(8, () => ({}));
   const mainVertexShader = loadShader(code$4);
   const csmShader = initShaderProgram(loadShader(code$5), code$2);
@@ -2794,10 +2788,10 @@ const startMainLoop = (groundTextureImage) => {
         matrixToArray(
           matrixCopy(identity, csm_tempMatrix).scaleSelf(2 / (right - left), 2 / (top - bottom), 2 / (near - far))
             .translateSelf((right + left) / -2, (top + bottom) / -2, (near + far) / 2).multiplySelf(tempMatrix),
-          csm_lightSpaceMatrices[split],
         ),
       );
       renderModels(csmShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL);
+      csm_lightSpaceMatrices.set(float32Array16Temp, split * 16);
     };
   });
   const csm_framebuffer = gl["c5w"]();
@@ -2808,8 +2802,10 @@ const startMainLoop = (groundTextureImage) => {
   gl["uae"](collisionShader(uniformName_projectionMatrix), false, matrixToArray(mat_perspective(1e-4, 2, 1.2, 0.4)));
   mainShader();
   gl["ubh"](mainShader(uniformName_groundTexture), 2);
-  gl["ubh"](mainShader(uniformName_csm_texture1), 1);
-  gl["ubh"](mainShader(uniformName_csm_texture0), 0);
+  gl["ua3"](mainShader(uniformName_csm_textures), [
+    0,
+    1,
+  ]);
   skyShader();
   gl["ubh"](skyShader(uniformName_groundTexture), 2);
   gl["b6o"](36160, csm_framebuffer);

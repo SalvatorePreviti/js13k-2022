@@ -9,8 +9,8 @@ out vec4 FragPos;
 out vec4 UntransformedFragPos;
 out lowp vec4 Color;
 
-uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
+uniform mat4 projectionMatrix;
 uniform mat4 worldMatrices[38];
 
 #define modelId aPosition.w
