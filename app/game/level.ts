@@ -86,7 +86,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
   newModel("MODEL_ID_STATIC_WORLD");
 
-  // LEVER 1 - lever for the first gate, after the first boat
+  // LEVER for the first gate, after the first boat
   newLever(translation(-5.4, 1.5, -19).rotate(0, -90), "LEVER_ID_GATE0");
 
   [-15, 15].map((z, j) => {
@@ -168,7 +168,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     ),
   );
 
-  // LEVER 3, lever in the descent of the first level
+  // LEVER in the descent of the first level
   newLever(translation(15, -2, 4), "LEVER_ID_LEVEL1_DESCENT");
 
   // ******** LEVEL 2 ********
@@ -177,7 +177,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
   meshAdd(cylinder(), translation(-21.1 + 2.45, -3, 55).scale(2.45, 1.4, 2.7), material(0.9, 0.9, 0.9, 0.2));
 
-  // LEVER 5 - rotating corridor lever
+  // LEVER before the rotating corridor
   newLever(translation(-55, -1.1, 46).rotate(0, 90), "LEVER_ID_ROTATING_CORRIDOR");
 
   meshAdd(cylinder(7), translation(-57, -2.6, 46).scale(4, 1, 4), material(0.8, 0.8, 0.8, 0.3));
@@ -301,7 +301,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
   meshAdd(cylinder(12, 1), translation(-86, -9, 31).scale(1.5, 1, 1.5), material(0.3, 0.3, 0.4, 0.1));
 
-  // LEVER 6 - crystals lever
+  // LEVER crystals lever
   newLever(translation(-86, -7.5, 31), "LEVER_ID_CRYSTALS");
 
   // pad after elevators
@@ -321,7 +321,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     translation(-38.9, -11.3, 17),
   );
 
-  // LEVER 7 - sculpture/monument lever
+  // LEVER sculpture/monument lever
   newLever(translation(-38.9, -9.6, 10), "LEVER_ID_MONUMENT");
 
   // Grid with holes
@@ -349,7 +349,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
   // Detour lever pad
   meshAdd(cylinder(5), translation(-84, -2, 85).scale(4, 0.8, 4).rotate(0, 10), material(0.8, 0.1, 0.25, 0.4));
 
-  // LEVER 8 - detour lever
+  // LEVER detour lever
   newLever(translation(-84, -0.7, 85).rotate(0, 45), "LEVER_ID_DETOUR");
 
   // ******** LEVEL AFTER SECOND BOAT ********
@@ -379,7 +379,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     material(0.5, 0.5, 0.6, 0.2),
   );
 
-  // LEVER 10 - after second boat lever, before the pushing rods
+  // LEVER after second boat lever, before the pushing rods
   newLever(translation(-116, -1.4, -18).rotate(0, 180), "LEVER_ID_BEFORE_PUSHING_RODS");
 
   meshAdd(cylinder(6), translation(-116, -2.6, -16.5).scale(3.2, 0.8, 3), material(0.6, 0.5, 0.7, 0.2));
@@ -415,7 +415,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     ),
   );
 
-  // LEVER 11 - internal pad after the pushing blocks lever
+  // LEVER internal pad after the pushing blocks lever
   newLever(translation(-98, -4.4, -40).rotate(0, 90), "LEVER_ID_AFTER_PUSHING_RODS");
 
   // ******** LEVEL AFTER CENTRAL GATE ********
@@ -506,7 +506,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
   // lever pad
   meshAdd(cylinder(5), translation(-34, 0.2, 96).scale(3, 2, 4).rotate(-20, 0), material(0.2, 0.5, 0.5, 0.6));
 
-  // LEVER 13 - lever after rotating platforms
+  // LEVER lever after rotating platforms
   newLever(translation(-34, 2.7, 96).rotate(-12, 0), "LEVER_ID_AFTER_ROTATING_PLATFORMS");
 
   // ******** LEVEL AFTER THE ROTATING PLATFORMS ********
@@ -541,7 +541,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     ),
   );
 
-  // LEVER 14 - lever after jumping pads, before the pendulums
+  // LEVER lever after jumping pads, before the pendulums
   newLever(translation(0, 1.7, 82).rotate(0, 180), "LEVER_ID_AFTER_JUMPING_PADS");
 
   // lever pad
@@ -596,44 +596,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
   // =========== end of the world ===========//
 
-  // --- BOATS ---
-
-  integers_map(2, (i) => {
-    newModel("MODEL_ID_BOAT" + i);
-
-    meshAdd(
-      csg_polygons_subtract(
-        polygons_transform(
-          cylinder(30, 1, 1.15, 1),
-          translation(0, -3).scale(3.5, 1, 3.5),
-          material(0.7, 0.4, 0.25, 0.7),
-        ),
-        polygons_transform(
-          cylinder(30, 1, 1.3, 1),
-          translation(0, -2.5).scale(2.6, 1, 3),
-          material(0.7, 0.4, 0.25, 0.2),
-        ),
-        polygons_transform(cylinder(), translation(4, -1.2).scale3d(2), material(0.7, 0.4, 0.25, 0.3)),
-      ),
-    );
-    // LEVER 0, LEVER 1 - levers over the boats
-    newLever(translation(0, -3, 4), "LEVER_ID_BOAT" + i);
-  });
-
-  // --- GATES ---
-
-  integers_map(4, (gate) => {
-    newModel("MODEL_ID_GATE" + gate);
-    integers_map(7, (i) =>
-      meshAdd(
-        polygons_transform(
-          cylinder(9, 1),
-          translation(4 * (i / 6 - 0.5), 3).scale(0.2, 3, 0.2),
-          material(0.3, 0.3, 0.38),
-        ),
-      ),
-    );
-  });
+  /// ****** TRANSLATIONS ONLY ****** ///
 
   // moving central platform in the first level
 
@@ -740,12 +703,6 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
   meshAdd(cylinder(6), translation(-44.5, 0, 55).rotate(0, 0, 90).scale(5.9, 0.5, 5.9), material(0.7, 0.7, 0.7, 0.4));
 
-  // rotating hex corridor
-
-  newModel("MODEL_ID_LEVEL2_ROTATING_HEX_CORRIDOR");
-
-  meshAdd(hexCorridorPolygons);
-
   // elevators
 
   newModel("MODEL_ID_ELEVATORS0");
@@ -824,14 +781,77 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     );
   });
 
+  // jumping pads after rotating platforms
+
+  [material(0.1, 0.55, 0.45, 0.2), material(0.2, 0.5, 0.5, 0.3), material(0.3, 0.45, 0.55, 0.4)].map((m, i) => {
+    newModel("MODEL_ID_JUMPING_PAD" + i);
+    meshAdd(cylinder(), translation(-23.5, 0.5, 91 + 6.8 * i).scale(i === 1 ? 2 : 3.3, 1, 3.3), m);
+    if (i === 2) {
+      // in connection
+      meshAdd(cylinder(), translation(-29.1, 0.4, 91).scale(2.1, 1, 3), material(0.7, 0.7, 0.7, 0.3));
+    }
+    if (i === 1) {
+      // out connections
+      meshAdd(
+        cylinder(),
+        translation(-16.1, 0.5, 103.5).rotate(-3.5).scale(3.9, 0.8, 2).skewX(-1),
+        material(0.6, 0.6, 0.7, 0.3),
+      );
+    }
+  });
+
+  // floating elevator pad
+  newModel("MODEL_ID_FLOATING_ELEVATOR_PAD");
+  meshAdd(cylinder(5), identity.scale(5, 1.1, 5), material(0.5, 0.3, 0.3, 0.4));
+  meshAdd(cylinder(5), identity.scale(5.5, 0.9, 5.5), material(0.25, 0.25, 0.25, 0.4));
+
+  // LEVER 15 - lever in the floating elevator before the pendulums
+  newLever(translation(0, 1.5, -1).rotate(0, 180), "LEVER_ID_FLOATING_ELEVATOR");
+
+  /// **** FULL MATRIX TRANSFORMS **** ///
+
+  // BOATS
+  integers_map(2, (i) => {
+    newModel("MODEL_ID_BOAT" + i);
+    meshAdd(
+      csg_polygons_subtract(
+        polygons_transform(
+          cylinder(30, 1, 1.15, 1),
+          translation(0, -3).scale(3.5, 1, 3.5),
+          material(0.7, 0.4, 0.25, 0.7),
+        ),
+        polygons_transform(
+          cylinder(30, 1, 1.3, 1),
+          translation(0, -2.5).scale(2.6, 1, 3),
+          material(0.7, 0.4, 0.25, 0.2),
+        ),
+        polygons_transform(cylinder(), translation(4, -1.2).scale3d(2), material(0.7, 0.4, 0.25, 0.3)),
+      ),
+    );
+    // LEVER over the boats (two levers)
+    newLever(translation(0, -3, 4), "LEVER_ID_BOAT" + i);
+  });
+
+  // GATES
+  integers_map(4, (gate) => {
+    newModel("MODEL_ID_GATE" + gate);
+    integers_map(7, (i) =>
+      meshAdd(
+        polygons_transform(
+          cylinder(9, 1),
+          translation(4 * (i / 6 - 0.5), 3).scale(0.2, 3, 0.2),
+          material(0.3, 0.3, 0.38),
+        ),
+      ),
+    );
+  });
+
+  // rotating hex corridor
+  newModel("MODEL_ID_LEVEL2_ROTATING_HEX_CORRIDOR");
+  meshAdd(hexCorridorPolygons);
+
   // donut pad
   newModel("MODEL_ID_DONUT_PAD");
-  meshAdd(
-    csg_polygons_subtract(
-      polygons_transform(cylinder(10), identity.scale(6, 2, 6), material(0.1, 0.6, 0.5, 0.3)),
-      polygons_transform(cylinder(10), identity.scale(3.3, 6, 3.3), material(0.1, 0.6, 0.5, 0.5)),
-    ),
-  );
 
   // second pad
   meshAdd(cylinder(15, 1), translation(-7.5).rotate(0, 90).scale(3, 2.3, 3), material(0.4, 0.4, 0.4, 0.3));
@@ -855,6 +875,27 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
   // SOUL after the hex pads, in the hex donut with horns
   newSoul(translation(-5, 4), [0, -1.2, 1.7], [0, 1.2, 1.7]);
+
+  meshAdd(
+    csg_polygons_subtract(
+      polygons_transform(cylinder(10), identity.scale(6, 2, 6), material(0.1, 0.6, 0.5, 0.3)),
+      polygons_transform(cylinder(10), identity.scale(3.3, 6, 3.3), material(0.1, 0.6, 0.5, 0.5)),
+    ),
+  );
+
+  // pendulums
+  newModel("MODEL_ID_PENDULUMS");
+  meshAdd(cylinder(3), translation(0, -3, 118.8).scale(0.8, 0.8, 18).rotate(90, 0, 60), material(0.5, 0.3, 0.3, 0.4));
+  [22, 30].map((z) => {
+    meshAdd(
+      cylinder(6),
+      translation(0, 16, z + 95)
+        .scale(3, 1, 2.3)
+        .rotate(0, 90),
+      material(0.7, 0.7, 0.7, 0.4),
+    );
+    meshAdd(cylinder(), translation(0, 6.2, z + 95).scale(0.5, 11, 0.5), material(0.5, 0.3, 0.3, 0.4));
+  });
 
   // First rotating platform (with hole)
   newModel("MODEL_ID_ROTATING_PLATFORM0");
@@ -918,47 +959,6 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
   );
   meshAdd(polygons_transform(cylinder(28, 1), identity.scale(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2)));
   meshAdd(polygons_transform(cylinder(5), translation(0, 1).scale(1, 0.2), material(0.3, 0.3, 0.3, 0.2)));
-
-  // jumping pads after rotating platforms
-
-  [material(0.1, 0.55, 0.45, 0.2), material(0.2, 0.5, 0.5, 0.3), material(0.3, 0.45, 0.55, 0.4)].map((m, i) => {
-    newModel("MODEL_ID_JUMPING_PAD" + i);
-    meshAdd(cylinder(), translation(-23.5, 0.5, 91 + 6.8 * i).scale(i === 1 ? 2 : 3.3, 1, 3.3), m);
-    if (i === 2) {
-      // in connection
-      meshAdd(cylinder(), translation(-29.1, 0.4, 91).scale(2.1, 1, 3), material(0.7, 0.7, 0.7, 0.3));
-    }
-    if (i === 1) {
-      // out connections
-      meshAdd(
-        cylinder(),
-        translation(-16.1, 0.5, 103.5).rotate(-3.5).scale(3.9, 0.8, 2).skewX(-1),
-        material(0.6, 0.6, 0.7, 0.3),
-      );
-    }
-  });
-
-  // pendulums
-  newModel("MODEL_ID_PENDULUMS");
-  meshAdd(cylinder(3), translation(0, -3, 118.8).scale(0.8, 0.8, 18).rotate(90, 0, 60), material(0.5, 0.3, 0.3, 0.4));
-  [22, 30].map((z) => {
-    meshAdd(
-      cylinder(6),
-      translation(0, 16, z + 95)
-        .scale(3, 1, 2.3)
-        .rotate(0, 90),
-      material(0.7, 0.7, 0.7, 0.4),
-    );
-    meshAdd(cylinder(), translation(0, 6.2, z + 95).scale(0.5, 11, 0.5), material(0.5, 0.3, 0.3, 0.4));
-  });
-
-  // floating elevator pad
-  newModel("MODEL_ID_FLOATING_ELEVATOR_PAD");
-  meshAdd(cylinder(5), identity.scale(5, 1.1, 5), material(0.5, 0.3, 0.3, 0.4));
-  meshAdd(cylinder(5), identity.scale(5.5, 0.9, 5.5), material(0.25, 0.25, 0.25, 0.4));
-
-  // LEVER 15 - lever in the floating elevator before the pendulums
-  newLever(translation(0, 1.5, -1).rotate(0, 180), "LEVER_ID_FLOATING_ELEVATOR");
 
   // ------ End of game models ------
 

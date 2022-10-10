@@ -4,81 +4,87 @@ export const MODEL_ID_SKY = 0;
 
 export const MODEL_ID_STATIC_WORLD = 1;
 
-export const MODEL_ID_BOAT0 = 2;
+// translation only
 
-export const MODEL_ID_BOAT1 = 3;
+export const MODEL_ID_LEVEL1_CENTRAL_PLATFORM = 2;
 
-export const MODEL_ID_GATE0 = 4;
+export const MODEL_ID_LEVEL2_BLACK_PLATFORM0 = 3;
 
-export const MODEL_ID_GATE1 = 5;
+export const MODEL_ID_LEVEL2_BLACK_PLATFORM1 = 4;
 
-export const MODEL_ID_GATE2 = 6;
+export const MODEL_ID_LEVEL2_CENTRAL_PLATFORM = 5;
 
-export const MODEL_ID_GATE3 = 7;
+export const MODEL_ID_TRIANGLE_PLATFORM = 6;
 
-export const MODEL_ID_LEVEL1_CENTRAL_PLATFORM = 8;
+export const MODEL_ID_LEVEL2_MINI_PLATFORM_VERTICAL = 7;
 
-export const MODEL_ID_LEVEL2_BLACK_PLATFORM0 = 9;
+export const MODEL_ID_LEVEL2_MINI_PLATFORM_HORIZONTAL = 8;
 
-export const MODEL_ID_LEVEL2_BLACK_PLATFORM1 = 10;
+export const MODEL_ID_LEVEL2_HEX_CORRIDOR_DOOR = 9;
 
-export const MODEL_ID_LEVEL2_CENTRAL_PLATFORM = 11;
+export const MODEL_ID_ELEVATORS0 = 10;
 
-export const MODEL_ID_TRIANGLE_PLATFORM = 12;
+export const MODEL_ID_ELEVATORS1 = 11;
 
-export const MODEL_ID_LEVEL2_MINI_PLATFORM_VERTICAL = 13;
+export const MODEL_ID_MONUMENT = 12;
 
-export const MODEL_ID_LEVEL2_MINI_PLATFORM_HORIZONTAL = 14;
+export const MODEL_ID_PUSHING_ROD0 = 13;
 
-export const MODEL_ID_LEVEL2_HEX_CORRIDOR_DOOR = 15;
+export const MODEL_ID_PUSHING_ROD1 = 14;
 
-export const MODEL_ID_LEVEL2_ROTATING_HEX_CORRIDOR = 16;
+export const MODEL_ID_PUSHING_ROD2 = 15;
 
-export const MODEL_ID_ELEVATORS0 = 17;
+export const MODEL_ID_OSCILLATING_HEX_PAD0 = 16;
 
-export const MODEL_ID_ELEVATORS1 = 18;
+export const MODEL_ID_OSCILLATING_HEX_PAD1 = 17;
 
-export const MODEL_ID_MONUMENT = 19;
+export const MODEL_ID_OSCILLATING_HEX_PAD2 = 18;
 
-export const MODEL_ID_PUSHING_ROD0 = 20;
+export const MODEL_ID_OSCILLATING_HEX_PAD3 = 19;
 
-export const MODEL_ID_PUSHING_ROD1 = 21;
+export const MODEL_ID_JUMPING_PAD0 = 20;
 
-export const MODEL_ID_PUSHING_ROD2 = 22;
+export const MODEL_ID_JUMPING_PAD1 = 21;
 
-export const MODEL_ID_OSCILLATING_HEX_PAD0 = 23;
+export const MODEL_ID_JUMPING_PAD2 = 22;
 
-export const MODEL_ID_OSCILLATING_HEX_PAD1 = 24;
+export const MODEL_ID_FLOATING_ELEVATOR_PAD = 23;
 
-export const MODEL_ID_OSCILLATING_HEX_PAD2 = 25;
+// full matrices
 
-export const MODEL_ID_OSCILLATING_HEX_PAD3 = 26;
+export const MODEL_ID_BOAT0 = 24;
 
-export const MODEL_ID_DONUT_PAD = 27;
+export const MODEL_ID_BOAT1 = 25;
 
-export const MODEL_ID_ROTATING_PLATFORM0 = 28;
+export const MODEL_ID_GATE0 = 26;
 
-export const MODEL_ID_ROTATING_PLATFORM1 = 29;
+export const MODEL_ID_GATE1 = 27;
 
-export const MODEL_ID_ROTATING_PLATFORM2 = 30;
+export const MODEL_ID_GATE2 = 28;
 
-export const MODEL_ID_ROTATING_PLATFORM3 = 31;
+export const MODEL_ID_GATE3 = 29;
 
-export const MODEL_ID_JUMPING_PAD0 = 32;
+export const MODEL_ID_LEVEL2_ROTATING_HEX_CORRIDOR = 30;
 
-export const MODEL_ID_JUMPING_PAD1 = 33;
+export const MODEL_ID_DONUT_PAD = 31;
 
-export const MODEL_ID_JUMPING_PAD2 = 34;
+export const MODEL_ID_PENDULUMS = 32;
 
-export const MODEL_ID_PENDULUMS = 35;
+export const MODEL_ID_ROTATING_PLATFORM0 = 33;
 
-export const MODEL_ID_FLOATING_ELEVATOR_PAD = 36;
+export const MODEL_ID_ROTATING_PLATFORM1 = 34;
+
+export const MODEL_ID_ROTATING_PLATFORM2 = 35;
+
+export const MODEL_ID_ROTATING_PLATFORM3 = 36;
 
 export const MODEL_ID_PLAYER_BODY = 37;
 
 export const MODEL_ID_PLAYER_LEG0 = 38;
 
 export const MODEL_ID_PLAYER_LEG1 = 39;
+
+// objects
 
 export const MODEL_ID_SOUL_COLLISION = 40;
 

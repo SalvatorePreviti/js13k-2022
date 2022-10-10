@@ -89,38 +89,7 @@ export const eppur_si_muove = () => {
     shouldRotatePlatforms,
   );
 
-  const boatAnimationMatrix = (matrix: DOMMatrix, x: number, y: number, z: number) =>
-    matrix
-      .translateSelf(x + Math.sin(gameTime + 2) / 5, y + Math.sin(gameTime * 0.8) / 3, z)
-      .rotateSelf(2 * Math.sin(gameTime), Math.sin(gameTime * 0.7), Math.sin(gameTime * 0.9));
-
-  // first boad
-  boatAnimationMatrix(modelsNextUpdate(MODEL_ID_BOAT0), -12, 4.2, -66 + 40 * firstBoatLerp);
-
-  // second boat
-  boatAnimationMatrix(modelsNextUpdate(MODEL_ID_BOAT1), -123, 1.4, 55 - 65 * secondBoatLerp);
-
-  // in gate bars in first level
-  modelsNextUpdate(MODEL_ID_GATE0)
-    .translateSelf(0, 0, -15)
-    .scaleSelf(1, clamp(1.22 - levers[LEVER_ID_GATE0]!.$lerpValue), 1);
-
-  // out gate bars in first level
-  modelsNextUpdate(MODEL_ID_GATE1)
-    .translateSelf(0, 0, 15)
-    .scaleSelf(1, clamp(1.22 - levers[LEVER_ID_GATE1]!.$lerpValue), 1);
-
-  // central gate bars
-
-  modelsNextUpdate(MODEL_ID_GATE2)
-    .translateSelf(-99.7, -1.9, 63.5)
-    .scaleSelf(1, clamp(1.1 - levers[LEVER_ID_CRYSTALS]!.$lerpValue), 1);
-
-  // far arc gate bars
-
-  modelsNextUpdate(MODEL_ID_GATE3)
-    .translateSelf(-100, 0.6, 96.5)
-    .scaleSelf(0.88, 1.2 - levers[LEVER_ID_DONUT_PAD]!.$lerpValue);
+  /// ****** TRANSLATIONS ONLY ****** ///
 
   // moving central platform in the first level
 
@@ -180,16 +149,6 @@ export const eppur_si_muove = () => {
     -6.5 * levers[LEVER_ID_TRIANGLE_PLATFORM]!.$lerpValue2,
   );
 
-  // rotating hex corridor
-
-  modelsNextUpdate(MODEL_ID_LEVEL2_ROTATING_HEX_CORRIDOR)
-    .translateSelf(
-      -75,
-      3 * (1 - levers[LEVER_ID_ROTATING_CORRIDOR]!.$lerpValue2) * (1 - levers[LEVER_ID_CRYSTALS]!.$lerpValue),
-      55,
-    )
-    .rotateSelf(180 * (1 - levers[LEVER_ID_ROTATING_CORRIDOR]!.$lerpValue2) + rotatingHexCorridorRotation, 0);
-
   // elevators
 
   oscillation = lerpneg(levers[LEVER_ID_MONUMENT]!.$lerpValue2, levers[LEVER_ID_CRYSTALS]!.$lerpValue2);
@@ -236,30 +195,114 @@ export const eppur_si_muove = () => {
 
   // oscillating hex pads
 
-  oscillation = lerpneg(levers[LEVER_ID_DETOUR]!.$lerpValue2, levers[LEVER_ID_DONUT_PAD]!.$lerpValue2);
+  const hexPadsOscillation = lerpneg(levers[LEVER_ID_DETOUR]!.$lerpValue2, levers[LEVER_ID_DONUT_PAD]!.$lerpValue2);
 
   for (let i = 0; i < 4; i++) {
     modelsNextUpdate(MODEL_ID_OSCILLATING_HEX_PAD0 + i).translateSelf(
-      (i > 2 ? 2 * (1 - oscillation) + oscillation : 0) - 100,
-      oscillation * Math.sin(gameTime * 1.3 + i * 1.7) * (3 + i / 3) + 0.7,
+      (i > 2 ? 2 * (1 - hexPadsOscillation) + hexPadsOscillation : 0) - 100,
+      hexPadsOscillation * Math.sin(gameTime * 1.3 + i * 1.7) * (3 + i / 3) + 0.7,
       115 -
         7 *
           (1 - levers[LEVER_ID_DETOUR]!.$lerpValue2) *
           (1 - levers[LEVER_ID_DONUT_PAD]!.$lerpValue2) *
           (i & 1 ? -1 : 1) +
-        max(0.05, oscillation) * Math.cos(gameTime * 1.3 + i * 7) * (4 - 2 * (1 - i / 3)),
+        max(0.05, hexPadsOscillation) * Math.cos(gameTime * 1.3 + i * 7) * (4 - 2 * (1 - i / 3)),
     );
   }
+
+  // jumping pads
+
+  oscillation = lerpneg(
+    levers[LEVER_ID_AFTER_ROTATING_PLATFORMS]!.$lerpValue2,
+    levers[LEVER_ID_AFTER_JUMPING_PADS]!.$lerpValue2,
+  );
+
+  for (let i = 0; i < 3; ++i) {
+    modelsNextUpdate(MODEL_ID_JUMPING_PAD0 + i).translateSelf(
+      0,
+      oscillation * Math.sin(gameTime * 1.5 + i * 1.5) * 4 +
+        (i
+          ? 0
+          : 3 *
+            (1 - levers[LEVER_ID_AFTER_ROTATING_PLATFORMS]!.$lerpValue2) *
+            (1 - levers[LEVER_ID_AFTER_JUMPING_PADS]!.$lerpValue2)),
+    );
+  }
+
+  // floating elevator pad
+
+  const floatingElevatorPad = lerpneg(
+    lerpneg(
+      (levers[LEVER_ID_AFTER_JUMPING_PADS]!.$lerpValue + levers[LEVER_ID_AFTER_JUMPING_PADS]!.$lerpValue2) / 2,
+      levers[LEVER_ID_AFTER_ROTATING_PLATFORMS]!.$lerpValue2,
+    ),
+    (levers[LEVER_ID_FLOATING_ELEVATOR]!.$lerpValue + levers[LEVER_ID_FLOATING_ELEVATOR]!.$lerpValue2) / 2,
+  );
+
+  modelsNextUpdate(MODEL_ID_FLOATING_ELEVATOR_PAD).translateSelf(
+    0,
+    16 * floatingElevatorPad,
+    95 + 8.5 * clamp(floatingElevatorPad * 2 - 1),
+  );
+
+  /// **** FULL MATRIX TRANSFORMS **** ///
+
+  const boatAnimationMatrix = (matrix: DOMMatrix, x: number, y: number, z: number) =>
+    matrix
+      .translateSelf(x + Math.sin(gameTime + 2) / 5, y + Math.sin(gameTime * 0.8) / 3, z)
+      .rotateSelf(2 * Math.sin(gameTime), Math.sin(gameTime * 0.7), Math.sin(gameTime * 0.9));
+
+  // first boad
+  boatAnimationMatrix(modelsNextUpdate(MODEL_ID_BOAT0), -12, 4.2, -66 + 40 * firstBoatLerp);
+
+  // second boat
+  boatAnimationMatrix(modelsNextUpdate(MODEL_ID_BOAT1), -123, 1.4, 55 - 65 * secondBoatLerp);
+
+  // in gate bars in first level
+  modelsNextUpdate(MODEL_ID_GATE0)
+    .translateSelf(0, 0, -15)
+    .scaleSelf(1, clamp(1.22 - levers[LEVER_ID_GATE0]!.$lerpValue), 1);
+
+  // out gate bars in first level
+  modelsNextUpdate(MODEL_ID_GATE1)
+    .translateSelf(0, 0, 15)
+    .scaleSelf(1, clamp(1.22 - levers[LEVER_ID_GATE1]!.$lerpValue), 1);
+
+  // central gate bars
+  modelsNextUpdate(MODEL_ID_GATE2)
+    .translateSelf(-99.7, -1.9, 63.5)
+    .scaleSelf(1, clamp(1.1 - levers[LEVER_ID_CRYSTALS]!.$lerpValue), 1);
+
+  // far arc gate bars
+  modelsNextUpdate(MODEL_ID_GATE3)
+    .translateSelf(-100, 0.6, 96.5)
+    .scaleSelf(0.88, 1.2 - levers[LEVER_ID_DONUT_PAD]!.$lerpValue);
+
+  // rotating hex corridor
+
+  modelsNextUpdate(MODEL_ID_LEVEL2_ROTATING_HEX_CORRIDOR)
+    .translateSelf(
+      -75,
+      3 * (1 - levers[LEVER_ID_ROTATING_CORRIDOR]!.$lerpValue2) * (1 - levers[LEVER_ID_CRYSTALS]!.$lerpValue),
+      55,
+    )
+    .rotateSelf(180 * (1 - levers[LEVER_ID_ROTATING_CORRIDOR]!.$lerpValue2) + rotatingHexCorridorRotation, 0);
 
   // donut pad
 
   modelsNextUpdate(MODEL_ID_DONUT_PAD)
     .translateSelf(
-      2.5 * (1 - oscillation) - 139.7,
-      -3 * (1 - levers[LEVER_ID_DETOUR]!.$lerpValue) - oscillation * Math.sin(gameTime * 0.8) - 1.8,
+      2.5 * (1 - hexPadsOscillation) - 139.7,
+      -3 * (1 - levers[LEVER_ID_DETOUR]!.$lerpValue) - hexPadsOscillation * Math.sin(gameTime * 0.8) - 1.8,
       93.5,
     )
-    .rotateSelf(Math.cos(gameTime * 1.3) * (3 + 3 * oscillation), 0);
+    .rotateSelf(Math.cos(gameTime * 1.3) * (3 + 3 * hexPadsOscillation), 0);
+
+  // pendulums
+
+  modelsNextUpdate(MODEL_ID_PENDULUMS)
+    .translateSelf(-2 * Math.sin(gameTime))
+    .rotateSelf(25 * Math.sin(gameTime));
 
   // First rotating platform (with hole)
 
@@ -283,46 +326,7 @@ export const eppur_si_muove = () => {
     .translateSelf(-50.7, 0.8, 91)
     .rotateSelf(0, 270 + rotatingPlatform2Rotation);
 
-  // jumping pads
-
-  oscillation = lerpneg(
-    levers[LEVER_ID_AFTER_ROTATING_PLATFORMS]!.$lerpValue2,
-    levers[LEVER_ID_AFTER_JUMPING_PADS]!.$lerpValue2,
-  );
-
-  for (let i = 0; i < 3; ++i) {
-    modelsNextUpdate(MODEL_ID_JUMPING_PAD0 + i).translateSelf(
-      0,
-      oscillation * Math.sin(gameTime * 1.5 + i * 1.5) * 4 +
-        (i
-          ? 0
-          : 3 *
-            (1 - levers[LEVER_ID_AFTER_ROTATING_PLATFORMS]!.$lerpValue2) *
-            (1 - levers[LEVER_ID_AFTER_JUMPING_PADS]!.$lerpValue2)),
-    );
-  }
-
-  // pendulums
-
-  modelsNextUpdate(MODEL_ID_PENDULUMS)
-    .translateSelf(-2 * Math.sin(gameTime))
-    .rotateSelf(25 * Math.sin(gameTime));
-
-  // floating elevator pad
-
-  const floatingElevatorPad = lerpneg(
-    lerpneg(
-      (levers[LEVER_ID_AFTER_JUMPING_PADS]!.$lerpValue + levers[LEVER_ID_AFTER_JUMPING_PADS]!.$lerpValue2) / 2,
-      levers[LEVER_ID_AFTER_ROTATING_PLATFORMS]!.$lerpValue2,
-    ),
-    (levers[LEVER_ID_FLOATING_ELEVATOR]!.$lerpValue + levers[LEVER_ID_FLOATING_ELEVATOR]!.$lerpValue2) / 2,
-  );
-
-  modelsNextUpdate(MODEL_ID_FLOATING_ELEVATOR_PAD).translateSelf(
-    0,
-    16 * floatingElevatorPad,
-    95 + 8.5 * clamp(floatingElevatorPad * 2 - 1),
-  );
+  /// **** OBJECTS **** ///
 
   // Update souls
 
@@ -338,7 +342,7 @@ export const eppur_si_muove = () => {
     matrixToArray(tempMatrix, objectsMatricesBuffer, SOULS_COUNT + i);
   }
 
-  // Player body and legs
+  /// **** PLAYER **** ///
 
   player_update();
 

@@ -20,14 +20,14 @@ export const LEVER_ID_AFTER_ROTATING_PLATFORMS = 8;
 
 export const LEVER_ID_AFTER_JUMPING_PADS = 9;
 
-export const LEVER_ID_BOAT0 = 10;
+export const LEVER_ID_GATE1 = 10;
 
-export const LEVER_ID_BOAT1 = 11;
+export const LEVER_ID_TRIANGLE_PLATFORM = 11;
 
-export const LEVER_ID_GATE1 = 12;
+export const LEVER_ID_FLOATING_ELEVATOR = 12;
 
-export const LEVER_ID_TRIANGLE_PLATFORM = 13;
+export const LEVER_ID_BOAT0 = 13;
 
-export const LEVER_ID_DONUT_PAD = 14;
+export const LEVER_ID_BOAT1 = 14;
 
-export const LEVER_ID_FLOATING_ELEVATOR = 15;
+export const LEVER_ID_DONUT_PAD = 15;

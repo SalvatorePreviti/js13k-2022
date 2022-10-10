@@ -181,7 +181,7 @@ export const devAllModelsPrint = () => {
 
     for (let i = 0; i < devLeverNames.length; ++i) {
       if ((LEVER_IDS as any)[devLeverNames[i]!] !== i) {
-        console.log(
+        console.error(
           new Error(
             "Lever " +
               devModelNames[i] +
@@ -198,7 +198,8 @@ export const devAllModelsPrint = () => {
 
 export const devVerifyModelsNextUpdate = (currentId: number, expectedId: number) => {
   if (DEBUG && expectedId !== currentId && !_failedIds[currentId]) {
-    console.log(
+    _failedIds[currentId] = true;
+    console.error(
       new Error(
         `modelsNextUpdate(${devModelNames[expectedId]}) model id ${expectedId}, got ${currentId} (${devModelNames[currentId]})`,
       ),
