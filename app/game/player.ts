@@ -20,6 +20,7 @@ import { gl } from "../gl";
 import { shouldRotatePlatforms } from "./level-update";
 import { modelsNextUpdate, verifyModelsNextUpdate } from "./models-next-update";
 import {
+  MODEL_ID_LEVEL2_ROTATING_HEX_CORRIDOR,
   MODEL_ID_PLAYER_BODY,
   MODEL_ID_PLAYER_LEG0,
   MODEL_ID_ROTATING_PLATFORM0,
@@ -80,14 +81,14 @@ export const player_init = () => {
     matrixCopy(
       (player_respawned
         ? levers[player_last_pulled_lever]!
-        : allModels[oldModelId !== MODEL_ID_ROTATING_PLATFORM0 ? oldModelId : 0]!
+        : allModels[oldModelId !== MODEL_ID_LEVEL2_ROTATING_HEX_CORRIDOR ? oldModelId : 0]!
       ).$matrix,
     );
 
   const updatePlayerPositionFinal = (updateVelocity?: unknown) => {
     if (player_respawned > 1) {
       matrixCopy(levers[player_last_pulled_lever]!.$matrix).multiplySelf(levers[player_last_pulled_lever]!.$transform);
-      matrixTransformPoint(0, player_last_pulled_lever + firstBoatLerp > 0.9 ? 15 : 1, PLAYER_RESPAWN_Z);
+      matrixTransformPoint(0, firstBoatLerp > 0.9 ? 15 : 1, PLAYER_RESPAWN_Z);
     } else {
       loadReferenceMatrix();
       matrixTransformPoint(player_position_global_x, player_position_global_y, player_position_global_z);

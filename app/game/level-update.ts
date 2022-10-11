@@ -264,7 +264,7 @@ export const eppur_si_muove = () => {
 
   const boatAnimationMatrix = (matrix: DOMMatrix) =>
     matrix
-      .translateSelf(Math.sin(gameTime + 2) / 5, Math.sin(gameTime * 0.8) / 4)
+      .translateSelf(Math.sin(gameTime + 2) / 5, Math.sin(gameTime * 0.8) / 5)
       .rotateSelf(2 * Math.sin(gameTime), Math.sin(gameTime * 0.7), Math.sin(gameTime * 0.9));
 
   // first boad

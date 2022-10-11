@@ -22,14 +22,7 @@ import sky_fsSource, { uniformName_iResolution } from "./shaders/sky-fragment.fr
 import { gameTimeUpdate, gameTimeDelta, mainMenuVisible, absoluteTime } from "./game/game-time";
 import { camera_rotation, player_position_final, worldStateUpdate } from "./game/world-state";
 import { integers_map } from "./math/integers-map";
-import {
-  float32Array16Temp,
-  identity,
-  matrixCopy,
-  matrixToArray,
-  matrixTransformPoint,
-  tempMatrix,
-} from "./math/matrix";
+import { identity, matrixCopy, matrixToArray, matrixTransformPoint, tempMatrix } from "./math/matrix";
 import { mat_perspective, zFar, zNear } from "./math/matrix-perspective";
 import { eppur_si_muove } from "./game/level-update";
 import { max, min } from "./math/math";
@@ -41,6 +34,7 @@ import { player_init, camera_position_x, camera_position_y, camera_position_z } 
 import { gl } from "./gl";
 import { MODEL_ID_PLAYER_BODY, MODEL_ID_PLAYER_LEG0, MODEL_ID_PLAYER_LEG1 } from "./game/models-ids";
 import { transformsBuffer } from "./game/transforms-buffer";
+import { MODELS_WITH_SIMPLE_TRANSFORM } from "./game/models";
 
 const LIGHT_ROT_X = 298;
 const LIGHT_ROT_Y = 139;
@@ -57,7 +51,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   const collisionShader = initShaderProgram(mainVertexShader, collider_fsSource);
   const mainShader = initShaderProgram(mainVertexShader, main_fsSource);
 
-  const csm_render = integers_map(2, (split: number) => {
+  const [csm_render0, csm_render1] = integers_map(2, (split: number) => {
     const texture = gl.createTexture()!;
     gl.activeTexture(gl.TEXTURE0 + split);
     gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -84,7 +78,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       gl.clear(gl.DEPTH_BUFFER_BIT);
 
       matrixCopy()
-        .scale3dSelf(roundingRadius)
+        .scale3dSelf((roundingRadius *= 1.1))
         .multiplySelf(matrixCopy(csm_projections[split], csm_tempMatrix).multiplySelf(camera_view).invertSelf());
 
       let tx = 0;
@@ -137,12 +131,14 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
             .scaleSelf(2 / (right - left), 2 / (top - bottom), 2 / (near - far))
             .translateSelf((right + left) / -2, (top + bottom) / -2, (near + far) / 2)
             .multiplySelf(tempMatrix),
+          csm_lightSpaceMatrices,
+          split,
         ),
+        16 * split,
+        16,
       );
 
       renderModels(!player_first_person);
-
-      csm_lightSpaceMatrices.set(float32Array16Temp, split * 16);
     };
   });
 
@@ -228,9 +224,9 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
         .rotateSelf(0, 99);
 
       matrixCopy().rotateSelf(0, 40 * Math.sin(absoluteTime) - 80, -8);
-      matrixToArray(tempMatrix, transformsBuffer, MODEL_ID_PLAYER_BODY - 2);
-      matrixToArray(tempMatrix, transformsBuffer, MODEL_ID_PLAYER_LEG0 - 2);
-      matrixToArray(tempMatrix, transformsBuffer, MODEL_ID_PLAYER_LEG1 - 2);
+      matrixToArray(tempMatrix, transformsBuffer, MODEL_ID_PLAYER_BODY - MODELS_WITH_SIMPLE_TRANSFORM - 2);
+      matrixToArray(tempMatrix, transformsBuffer, MODEL_ID_PLAYER_LEG0 - MODELS_WITH_SIMPLE_TRANSFORM - 2);
+      matrixToArray(tempMatrix, transformsBuffer, MODEL_ID_PLAYER_LEG1 - MODELS_WITH_SIMPLE_TRANSFORM - 2);
     } else {
       matrixCopy(identity, camera_view)
         .rotateSelf(-camera_rotation.x, -camera_rotation.y)
@@ -251,8 +247,8 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     gl.bindFramebuffer(gl.FRAMEBUFFER, csm_framebuffer);
     gl.viewport(0, 0, CSM_TEXTURE_SIZE, CSM_TEXTURE_SIZE);
 
-    csm_render[0]!((CSM_PLANE_DISTANCE - zNear) * 1.1);
-    csm_render[1]!((zFar - CSM_PLANE_DISTANCE) * 1.1);
+    csm_render0!(CSM_PLANE_DISTANCE - zNear);
+    csm_render1!(zFar - CSM_PLANE_DISTANCE);
 
     // *** MAIN RENDER ***
 

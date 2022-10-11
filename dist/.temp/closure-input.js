@@ -195,14 +195,14 @@ const song_instruments = [
     64,
   ],
 ];
+const camera_rotation = {
+  x: 0,
+  y: 180,
+};
 const player_position_final = {
   x: 0,
   y: 0,
   z: 0,
-};
-const camera_rotation = {
-  x: 0,
-  y: 180,
 };
 const abs = NO_INLINE((a) => a < 0 ? -a : a);
 const min = NO_INLINE((a, b) => a < b ? a : b);
@@ -1010,12 +1010,12 @@ const player_init = () => {
   let player_gravity = 15;
   const loadReferenceMatrix = () =>
     matrixCopy(
-      (player_respawned ? levers[player_last_pulled_lever] : allModels[oldModelId !== 33 ? oldModelId : 0]).$matrix,
+      (player_respawned ? levers[player_last_pulled_lever] : allModels[oldModelId !== 30 ? oldModelId : 0]).$matrix,
     );
   const updatePlayerPositionFinal = (updateVelocity) => {
     1 < player_respawned
       ? (matrixCopy(levers[player_last_pulled_lever].$matrix).multiplySelf(levers[player_last_pulled_lever].$transform),
-        matrixTransformPoint(0, 0.9 < player_last_pulled_lever + firstBoatLerp ? 15 : 1, -2.4))
+        matrixTransformPoint(0, 0.9 < firstBoatLerp ? 15 : 1, -2.4))
       : (loadReferenceMatrix(),
         matrixTransformPoint(player_position_global_x, player_position_global_y, player_position_global_z)),
       updateVelocity
@@ -1248,7 +1248,7 @@ loadStep(() => {
             0 < gameTimeDelta
         ) {
           var dt = (matrix) =>
-            matrix.translateSelf(Math.sin(gameTime + 2) / 5, Math.sin(0.8 * gameTime) / 4).rotateSelf(
+            matrix.translateSelf(Math.sin(gameTime + 2) / 5, Math.sin(0.8 * gameTime) / 5).rotateSelf(
               2 * Math.sin(gameTime),
               Math.sin(0.7 * gameTime),
               Math.sin(0.9 * gameTime),
@@ -1416,9 +1416,9 @@ loadStep(() => {
               -cameraZ,
             ).rotateSelf(0, 99),
             matrixCopy().rotateSelf(0, 40 * Math.sin(absoluteTime) - 80, -8),
-            matrixToArray(tempMatrix, transformsBuffer, 35),
-            matrixToArray(tempMatrix, transformsBuffer, 36),
-            matrixToArray(tempMatrix, transformsBuffer, 37))
+            matrixToArray(tempMatrix, transformsBuffer, 9),
+            matrixToArray(tempMatrix, transformsBuffer, 10),
+            matrixToArray(tempMatrix, transformsBuffer, 11))
           : matrixCopy(identity, camera_view).rotateSelf(-camera_rotation.x, -camera_rotation.y).invertSelf()
             .translateSelf(-cameraX, -cameraY, -cameraZ),
           mainShader(),
@@ -1429,8 +1429,8 @@ loadStep(() => {
           gl["ubh"](mainShader("h"), 3),
           gl["b6o"](36160, csm_framebuffer),
           gl["v5y"](0, 0, 2048, 2048),
-          csm_render[0](60.17),
-          csm_render[1](138.6),
+          csm_render0(54.7),
+          csm_render1(126),
           gl["b6o"](36160, null),
           gl["v5y"](0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight),
           gl["cbf"](!0, !0, !0, !0),
@@ -1472,7 +1472,7 @@ precision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b
         `#version 300 es
 precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sampler2DShadow g,h;uniform mat4 b,i[2];uniform vec3 k;out vec4 O;void main(){vec4 s=vec4(m.xyz,1);vec3 e=normalize(o.xyz),v=l.w*(texture(q,n.zy*.035)*e.x+texture(q,n.xz*.035)*e.y+texture(q,n.xy*.035)*e.z).xyz;e=normalize(e+v*.5);float a=dot(e,vec3(-.656059,.666369,-.35431468)),t=1.,u=abs((b*s).z);vec4 r=(u<55.?i[0]:i[1])*s;if(r=r/r.w*.5+.5,r.z<1.){t=0.;for(float e=-1.;e<=1.;++e)for(float a=-1.;a<=1.;++a){vec3 x=vec3(r.xy+vec2(e,a)/2048.,r.z-.00017439);t+=u<55.?texture(g,x):texture(h,x);}t/=9.;}vec3 x=l.xyz*(1.-v.x);float c=max(max(abs(e.x),abs(e.z))*.3-e.y,0.)*pow(max(0.,(8.-m.y)/48.),1.6);O=vec4(vec3(c,c*c*.5,0)+vec3(.09,.05,.11)*x+x*(max(0.,a)*.5+x*a*a*vec3(.5,.45,.3))*(t*.75+.25)+vec3(.6,.6,.5)*pow(max(0.,dot(normalize(m.xyz-k),reflect(vec3(-.656059,.666369,-.35431468),e))),35.)*t,1);}`,
       );
-      const csm_render = integers_map(2, (split) => {
+      const [csm_render0, csm_render1] = integers_map(2, (split) => {
         const texture = gl["c25"]();
         return gl["a4v"](33984 + split),
           gl["b9j"](3553, texture),
@@ -1495,7 +1495,7 @@ precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sa
             let far = -1 / 0;
             gl["fas"](36160, 36096, 3553, texture, 0),
               gl["c4s"](256),
-              matrixCopy().scale3dSelf(roundingRadius).multiplySelf(
+              matrixCopy().scale3dSelf(roundingRadius *= 1.1).multiplySelf(
                 matrixCopy(csm_projections[split], csm_tempMatrix).multiplySelf(camera_view).invertSelf(),
               );
             for (let i = 0; i < 8; ++i) {
@@ -1528,10 +1528,13 @@ precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sa
                     2 / (top - bottom),
                     2 / (near - far),
                   ).translateSelf((right + left) / -2, (top + bottom) / -2, (near + far) / 2).multiplySelf(tempMatrix),
+                  csm_lightSpaceMatrices,
+                  split,
                 ),
+                16 * split,
+                16,
               ),
-              renderModels(!player_first_person),
-              csm_lightSpaceMatrices.set(float32Array16Temp, 16 * split);
+              renderModels(!player_first_person);
           };
       });
       const csm_framebuffer = gl["c5w"]();
@@ -1642,7 +1645,7 @@ precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sa
           let _savedLevers = [];
           let _savedSouls = [];
           try {
-            const [savedLastPulledLever, savedSecondBoatLerp, savedGameTime, savedLevers, savedSouls] = JSON.parse(
+            const [savedLevers, savedSouls, savedLastPulledLever, savedSecondBoatLerp, savedGameTime] = JSON.parse(
               localStorage["spdnt22"],
             );
             _savedLevers = savedLevers,
@@ -1656,7 +1659,7 @@ precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sa
           ),
             souls.map((soul, index) => soul.$value = _savedSouls[index] ? 1 : 0),
             updateCollectedSoulsCounter(),
-            firstBoatLerp = player_last_pulled_lever !== 13 || souls_collected_count ? 1 : 0;
+            firstBoatLerp = souls_collected_count || player_last_pulled_lever !== 13 ? 1 : 0;
         }
         loadStep(end);
       });

@@ -6,13 +6,11 @@ import { exit_player_first_person } from "../page";
 import { LEVER_ID_BOAT0 } from "./levers-ids";
 import { devLeverNames } from "../dev-tools/dev-models";
 
-export const player_position_final: Vec3 = { x: 0, y: 0, z: 0 };
-
 export const camera_rotation: Vec2 = { x: 0, y: 180 } as Vec2;
 
-export let souls_collected_count = 0;
+export const player_position_final: Vec3 = { x: 0, y: 0, z: 0 };
 
-let _messageEndTime = 0.1;
+export let souls_collected_count = 0;
 
 export const LOCAL_STORAGE_SAVED_GAME_KEY = "spdnt22";
 
@@ -23,6 +21,8 @@ export let player_last_pulled_lever = LEVER_ID_BOAT0;
 export let firstBoatLerp: number;
 
 export let secondBoatLerp: number;
+
+let _messageEndTime = 0.1;
 
 export const showMessage = (message: string, duration: number) => {
   if (_messageEndTime < Infinity) {
@@ -62,7 +62,7 @@ export const loadGame = () => {
   let _savedLevers: number[] = [];
   let _savedSouls: number[] = [];
   try {
-    const [savedLastPulledLever, savedSecondBoatLerp, savedGameTime, savedLevers, savedSouls] = JSON.parse(
+    const [savedLevers, savedSouls, savedLastPulledLever, savedSecondBoatLerp, savedGameTime] = JSON.parse(
       localStorage[LOCAL_STORAGE_SAVED_GAME_KEY]!,
     );
     _savedLevers = savedLevers;
@@ -83,7 +83,7 @@ export const loadGame = () => {
   souls.map((soul, index) => (soul.$value = _savedSouls[index]! ? 1 : 0));
 
   updateCollectedSoulsCounter();
-  firstBoatLerp = player_last_pulled_lever !== LEVER_ID_BOAT0 || souls_collected_count ? 1 : 0;
+  firstBoatLerp = souls_collected_count || player_last_pulled_lever !== LEVER_ID_BOAT0 ? 1 : 0;
 };
 
 export const resetGame = () => {

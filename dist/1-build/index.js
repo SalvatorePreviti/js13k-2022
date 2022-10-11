@@ -756,14 +756,14 @@ let souls_collected_count = 0;
 let game_completed = 0;
 let _messageEndTime = 0.1;
 const LOCAL_STORAGE_SAVED_GAME_KEY = "spdnt22";
+const camera_rotation = {
+  x: 0,
+  y: 180
+};
 const player_position_final = {
   x: 0,
   y: 0,
   z: 0
-};
-const camera_rotation = {
-  x: 0,
-  y: 180
 };
 const showMessage = (message, duration) => {
   if (_messageEndTime < Infinity) {
@@ -803,7 +803,7 @@ const loadGame = () => {
   let _savedLevers = [];
   let _savedSouls = [];
   try {
-    const [savedLastPulledLever, savedSecondBoatLerp, savedGameTime, savedLevers, savedSouls] = JSON.parse(localStorage[LOCAL_STORAGE_SAVED_GAME_KEY]);
+    const [savedLevers, savedSouls, savedLastPulledLever, savedSecondBoatLerp, savedGameTime] = JSON.parse(localStorage[LOCAL_STORAGE_SAVED_GAME_KEY]);
     _savedLevers = savedLevers;
     _savedSouls = savedSouls;
     player_last_pulled_lever = savedLastPulledLever;
@@ -814,7 +814,7 @@ const loadGame = () => {
   levers.map((lever, index) => lever.$lerpValue = lever.$lerpValue2 = lever.$value = index !== LEVER_ID_BOAT0 && _savedLevers[index] ? 1 : 0);
   souls.map((soul, index) => soul.$value = _savedSouls[index] ? 1 : 0);
   updateCollectedSoulsCounter();
-  firstBoatLerp = player_last_pulled_lever !== LEVER_ID_BOAT0 || souls_collected_count ? 1 : 0;
+  firstBoatLerp = souls_collected_count || player_last_pulled_lever !== LEVER_ID_BOAT0 ? 1 : 0;
 };
 const resetGame = () => {
   localStorage[LOCAL_STORAGE_SAVED_GAME_KEY] = "";
@@ -866,6 +866,7 @@ let player_last_pulled_lever = LEVER_ID_BOAT0;
 const material = /* @__PURE__ */ NO_INLINE((r, g, b, a = 0) => a * 255 << 24 | b * 255 << 16 | g * 255 << 8 | r * 255);
 const MODEL_ID_STATIC_WORLD = 1;
 const MODEL_ID_BOAT0 = 28;
+const MODEL_ID_LEVEL2_ROTATING_HEX_CORRIDOR = 30;
 const MODEL_ID_ROTATING_PLATFORM0 = 33;
 const MODEL_ID_PLAYER_BODY = 37;
 const MODEL_ID_PLAYER_LEG0 = 38;
@@ -1628,11 +1629,11 @@ const player_init = () => {
   let boot = 1;
   let player_respawned = 2;
   let player_gravity = 15;
-  const loadReferenceMatrix = () => matrixCopy((player_respawned ? levers[player_last_pulled_lever] : allModels[oldModelId !== MODEL_ID_ROTATING_PLATFORM0 ? oldModelId : 0]).$matrix);
+  const loadReferenceMatrix = () => matrixCopy((player_respawned ? levers[player_last_pulled_lever] : allModels[oldModelId !== MODEL_ID_LEVEL2_ROTATING_HEX_CORRIDOR ? oldModelId : 0]).$matrix);
   const updatePlayerPositionFinal = (updateVelocity) => {
     if (player_respawned > 1) {
       matrixCopy(levers[player_last_pulled_lever].$matrix).multiplySelf(levers[player_last_pulled_lever].$transform);
-      matrixTransformPoint(0, player_last_pulled_lever + firstBoatLerp > 0.9 ? 15 : 1, PLAYER_RESPAWN_Z);
+      matrixTransformPoint(0, firstBoatLerp > 0.9 ? 15 : 1, PLAYER_RESPAWN_Z);
     } else {
       loadReferenceMatrix();
       matrixTransformPoint(player_position_global_x, player_position_global_y, player_position_global_z);
@@ -1789,7 +1790,7 @@ let rotatingPlatform1Rotation;
 let rotatingPlatform2Rotation;
 let rotatingHexCorridorRotation;
 const eppur_si_muove = () => {
-  const boatAnimationMatrix = (matrix) => matrix.translateSelf(/* @__PURE__ */ Math.sin(gameTime + 2) / 5, /* @__PURE__ */ Math.sin(gameTime * 0.8) / 4).rotateSelf(2 * /* @__PURE__ */ Math.sin(gameTime), /* @__PURE__ */ Math.sin(gameTime * 0.7), /* @__PURE__ */ Math.sin(gameTime * 0.9));
+  const boatAnimationMatrix = (matrix) => matrix.translateSelf(/* @__PURE__ */ Math.sin(gameTime + 2) / 5, /* @__PURE__ */ Math.sin(gameTime * 0.8) / 5).rotateSelf(2 * /* @__PURE__ */ Math.sin(gameTime), /* @__PURE__ */ Math.sin(gameTime * 0.7), /* @__PURE__ */ Math.sin(gameTime * 0.9));
   modelsResetUpdateCounter();
   shouldRotatePlatforms = lerpneg(levers[LEVER_ID_DONUT_PAD].$lerpValue, levers[LEVER_ID_AFTER_ROTATING_PLATFORMS].$lerpValue);
   rotatingHexCorridorRotation = lerp(lerpDamp(rotatingHexCorridorRotation, 0, 1), angle_wrap_degrees(rotatingHexCorridorRotation + gameTimeDelta * 60), levers[LEVER_ID_ROTATING_CORRIDOR].$lerpValue - levers[LEVER_ID_CRYSTALS].$lerpValue2);
@@ -1912,9 +1913,9 @@ const startMainLoop = (groundTextureImage) => {
       cameraZ = 5;
       matrixCopy(identity, camera_view).rotateSelf(-20, 0).invertSelf().translateSelf(-cameraX, -cameraY, -cameraZ).rotateSelf(0, 99);
       matrixCopy().rotateSelf(0, 40 * /* @__PURE__ */ Math.sin(absoluteTime) - 80, -8);
-      matrixToArray(tempMatrix, transformsBuffer, MODEL_ID_PLAYER_BODY - 2);
-      matrixToArray(tempMatrix, transformsBuffer, MODEL_ID_PLAYER_LEG0 - 2);
-      matrixToArray(tempMatrix, transformsBuffer, MODEL_ID_PLAYER_LEG1 - 2);
+      matrixToArray(tempMatrix, transformsBuffer, MODEL_ID_PLAYER_BODY - MODELS_WITH_SIMPLE_TRANSFORM - 2);
+      matrixToArray(tempMatrix, transformsBuffer, MODEL_ID_PLAYER_LEG0 - MODELS_WITH_SIMPLE_TRANSFORM - 2);
+      matrixToArray(tempMatrix, transformsBuffer, MODEL_ID_PLAYER_LEG1 - MODELS_WITH_SIMPLE_TRANSFORM - 2);
     } else
       matrixCopy(identity, camera_view).rotateSelf(-camera_rotation.x, -camera_rotation.y).invertSelf().translateSelf(-cameraX, -cameraY, -cameraZ);
     mainShader();
@@ -1925,8 +1926,8 @@ const startMainLoop = (groundTextureImage) => {
     gl["ubh"](mainShader(uniformName_csm_texture1), 3);
     gl["b6o"](36160, csm_framebuffer);
     gl["v5y"](0, 0, constDef_CSM_TEXTURE_SIZE, constDef_CSM_TEXTURE_SIZE);
-    csm_render[0]((constDef_CSM_PLANE_DISTANCE - zNear) * 1.1);
-    csm_render[1]((zFar - constDef_CSM_PLANE_DISTANCE) * 1.1);
+    csm_render0(constDef_CSM_PLANE_DISTANCE - zNear);
+    csm_render1(zFar - constDef_CSM_PLANE_DISTANCE);
     gl["b6o"](36160, null);
     gl["v5y"](0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
     gl["cbf"](true, true, true, true);
@@ -1953,7 +1954,7 @@ const startMainLoop = (groundTextureImage) => {
   const mainVertexShader = loadShader(code$3);
   const collisionShader = initShaderProgram(mainVertexShader, code$2);
   const mainShader = initShaderProgram(mainVertexShader, code$4);
-  const csm_render = integers_map(2, (split) => {
+  const [csm_render0, csm_render1] = integers_map(2, (split) => {
     const texture = gl["c25"]();
     gl["a4v"](33984 + split);
     gl["b9j"](3553, texture);
@@ -1970,7 +1971,7 @@ const startMainLoop = (groundTextureImage) => {
       let tz = 0;
       gl["fas"](36160, 36096, 3553, texture, 0);
       gl["c4s"](256);
-      matrixCopy().scale3dSelf(roundingRadius).multiplySelf(matrixCopy(csm_projections[split], csm_tempMatrix).multiplySelf(camera_view).invertSelf());
+      matrixCopy().scale3dSelf(roundingRadius *= 1.1).multiplySelf(matrixCopy(csm_projections[split], csm_tempMatrix).multiplySelf(camera_view).invertSelf());
       for (let i = 0; i < 8; ++i) {
         const p = csm_tempFrustumCorners[i];
         matrixTransformPoint(4 & i ? 1 : -1, 2 & i ? 1 : -1, 1 & i ? 1 : -1);
@@ -1998,9 +1999,8 @@ const startMainLoop = (groundTextureImage) => {
       const zMultiplier = 10 + split;
       near *= near < 0 ? zMultiplier : 1 / zMultiplier;
       far *= far > 0 ? zMultiplier : 1 / zMultiplier;
-      gl["uae"](mainShader(uniformName_viewMatrix), false, matrixToArray(matrixCopy(identity, csm_tempMatrix).scaleSelf(2 / (right - left), 2 / (top - bottom), 2 / (near - far)).translateSelf((right + left) / -2, (top + bottom) / -2, (near + far) / 2).multiplySelf(tempMatrix)));
+      gl["uae"](mainShader(uniformName_viewMatrix), false, matrixToArray(matrixCopy(identity, csm_tempMatrix).scaleSelf(2 / (right - left), 2 / (top - bottom), 2 / (near - far)).translateSelf((right + left) / -2, (top + bottom) / -2, (near + far) / 2).multiplySelf(tempMatrix), csm_lightSpaceMatrices, split), 16 * split, 16);
       renderModels(!player_first_person);
-      csm_lightSpaceMatrices.set(float32Array16Temp, split * 16);
     };
   });
   const csm_framebuffer = gl["c5w"]();
