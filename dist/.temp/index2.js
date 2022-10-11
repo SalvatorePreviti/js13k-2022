@@ -1210,16 +1210,15 @@ const renderModels = (xgl, renderPlayer) => {
       ),
       xgl["d97"](4, (renderPlayer ? allModels[39].$vertexEnd : allModels[37].$vertexBegin) - 3, 5123, 6));
 };
-const loadShader = (
-  xgl,
-  source,
-  type = 35633,
-) => (type = xgl["c6x"](type), xgl["s3c"](type, source), xgl["c6a"](type), type);
-const initShaderProgram = (xgl, vertexShader, sfsSource) => {
+const initShaderProgram = (xgl, vfsSource, sfsSource) => {
   const uniforms = {};
+  const loadShader = (
+    source,
+    type = 35633,
+  ) => (type = xgl["c6x"](type), xgl["s3c"](type, source), xgl["c6a"](type), type);
   const program = xgl["c1h"]();
-  return xgl["abz"](program, vertexShader),
-    xgl["abz"](program, loadShader(xgl, sfsSource, 35632)),
+  return xgl["abz"](program, loadShader(vfsSource, 35633)),
+    xgl["abz"](program, loadShader(sfsSource, 35632)),
     xgl["l8l"](program),
     (name) => name ? uniforms[name] || (uniforms[name] = xgl["gan"](program, name)) : xgl["u7y"](program);
 };
@@ -1383,11 +1382,9 @@ loadStep(() => {
           }
           player_update();
           for (let i5 = 0; i5 < 12; ++i5) matrixToArray(allModels[28 + i5].$matrix, transformsBuffer, i5);
-          collisionShader(),
-            cgl["u3a"](collisionShader("j"), transformsBuffer),
-            cgl["v5y"](0, 0, 128, 128),
-            cgl["cbf"](!0, !0, !0, !0),
+          cgl["cbf"](!0, !0, !0, !0),
             cgl["c4s"](16640),
+            cgl["u3a"](collisionShader("j"), transformsBuffer),
             cgl["cbf"](!0, !1, !0, !1),
             cgl["uae"](
               collisionShader("b"),
@@ -1415,6 +1412,7 @@ loadStep(() => {
               ),
             ),
             renderModels(cgl),
+            cgl["f1s"](),
             interact_pressed = 0;
         }
         let cameraX = camera_position_x;
@@ -1460,8 +1458,7 @@ loadStep(() => {
           skyShader(),
           gl["uae"](skyShader("b"), !1, matrixToArray(matrixCopy(camera_view).invertSelf())),
           gl["ubu"](skyShader("j"), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime),
-          gl["d97"](4, 3, 5123, 0),
-          cgl["f1s"]();
+          gl["d97"](4, 3, 5123, 0);
       };
       const csm_tempMatrix = new DOMMatrix();
       const camera_view = new DOMMatrix();
@@ -1470,26 +1467,22 @@ loadStep(() => {
       const csm_tempFrustumCorners = integers_map(8, () => ({}));
       const skyShader = initShaderProgram(
         gl,
-        loadShader(
-          gl,
-          `#version 300 es
+        `#version 300 es
 in vec4 f;void main(){gl_Position=vec4(f.xy,1,1);}`,
-        ),
         `#version 300 es
 precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;out vec4 O;void main(){vec2 t=gl_FragCoord.xy/j.xy*2.-1.;vec3 e=(normalize(b*vec4(t.x*-(j.x/j.y),-t.y,1.73205,0.))).xyz;float o=(-32.-b[3].y)/e.y,i=1.-clamp(abs(o/9999.),0.,1.);if(O=vec4(0,0,0,1),i>.01){if(o>0.){float i=cos(j.z/30.),o=sin(j.z/30.);e.xz*=mat2(i,o,-o,i);vec3 t=abs(e);O.xyz=vec3(dot(vec2(texture(q,e.xy).z,texture(q,e.yz*2.).z),t.zx)*t.y);}else e=b[3].xyz+e*o,O.x=(i*=.9-texture(q,e.xz/150.+vec2(sin(e.z/35.+j.z),cos(e.x/25.+j.z))/80.).y),O.y=i*i*i;}}`,
       );
-      var mainVertexShader = loadShader(gl, code$3);
-      const collisionShader = initShaderProgram(
-        cgl,
-        loadShader(cgl, code$3),
-        `#version 300 es
-precision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(vec3(0,1.49,.3*b[0][0])+m.xyz,1);if(O=vec4(0),gl_FragCoord.y>36.){if(a.y>.6&&a.y<4.){float e=abs(gl_FragCoord.x/64.-1.),i=clamp(a.z+.7,0.,1.);O=vec4(vec2(b[0][0]*sign(a.x)*o.x<0.?i*(.7-abs(a.x))*e/.7:0.),vec2(b[0][0]*o.z>0.?i*(1.-e):0.));}}else if(o.y>.45&&a.y<1.){float e=a.y*clamp((a.z+.4)*50.,0.,1.)*clamp((-abs(a.x)+.2)*10.,0.,1.);O=vec4(vec2(e),vec2(e>0.?m.w/255.:0.));}}`,
-      );
       const mainShader = initShaderProgram(
         gl,
-        mainVertexShader,
+        code$3,
         `#version 300 es
 precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sampler2DShadow g,h;uniform mat4 b,i[2];uniform vec3 k;out vec4 O;void main(){vec4 s=vec4(m.xyz,1);vec3 e=normalize(o.xyz),v=l.w*(texture(q,n.zy*.035)*e.x+texture(q,n.xz*.035)*e.y+texture(q,n.xy*.035)*e.z).xyz;e=normalize(e+v*.5);float a=dot(e,vec3(-.656059,.666369,-.35431468)),t=1.,u=abs((b*s).z);vec4 r=(u<55.?i[0]:i[1])*s;if(r=r/r.w*.5+.5,r.z<1.){t=0.;for(float e=-1.;e<=1.;++e)for(float a=-1.;a<=1.;++a){vec3 x=vec3(r.xy+vec2(e,a)/2048.,r.z-.00017439);t+=u<55.?texture(g,x):texture(h,x);}t/=9.;}vec3 x=l.xyz*(1.-v.x);float c=max(max(abs(e.x),abs(e.z))*.3-e.y,0.)*pow(max(0.,(8.-m.y)/48.),1.6);O=vec4(vec3(c,c*c*.5,0)+vec3(.09,.05,.11)*x+x*(max(0.,a)*.5+x*a*a*vec3(.5,.45,.3))*(t*.75+.25)+vec3(.6,.6,.5)*pow(max(0.,dot(normalize(m.xyz-k),reflect(vec3(-.656059,.666369,-.35431468),e))),35.)*t,1);}`,
+      );
+      const collisionShader = initShaderProgram(
+        cgl,
+        code$3,
+        `#version 300 es
+precision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(vec3(0,1.49,.3*b[0][0])+m.xyz,1);if(O=vec4(0),gl_FragCoord.y>36.){if(a.y>.6&&a.y<4.){float e=abs(gl_FragCoord.x/64.-1.),i=clamp(a.z+.7,0.,1.);O=vec4(vec2(b[0][0]*sign(a.x)*o.x<0.?i*(.7-abs(a.x))*e/.7:0.),vec2(b[0][0]*o.z>0.?i*(1.-e):0.));}}else if(o.y>.45&&a.y<1.){float e=a.y*clamp((a.z+.4)*50.,0.,1.)*clamp((-abs(a.x)+.2)*10.,0.,1.);O=vec4(vec2(e),vec2(e>0.?m.w/255.:0.));}}`,
       );
       const [csm_render0, csm_render1] = integers_map(2, (split) => {
         const texture = gl["c25"]();
@@ -1557,7 +1550,7 @@ precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sa
           };
       });
       const csm_framebuffer = gl["c5w"]();
-      var mainVertexShader = cgl["c25"]();
+      const collision_texture = cgl["c25"]();
       const collision_renderBuffer = cgl["c3z"]();
       const collision_frameBuffer = cgl["c5w"]();
       mainShader(),
@@ -1571,13 +1564,14 @@ precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sa
           0,
         ]),
         gl["r9l"](0),
+        cgl["v5y"](0, 0, 128, 128),
         cgl["b6o"](36160, collision_frameBuffer),
         cgl["bb1"](36161, collision_renderBuffer),
         cgl["r4v"](36161, 33190, 128, 128),
         cgl["f8w"](36160, 36096, 36161, collision_renderBuffer),
-        cgl["b9j"](3553, mainVertexShader),
+        cgl["b9j"](3553, collision_texture),
         cgl["t60"](3553, 0, 6408, 128, 128, 0, 6408, 5121, null),
-        cgl["fas"](36160, 36064, 3553, mainVertexShader, 0),
+        cgl["fas"](36160, 36064, 3553, collision_texture, 0),
         cgl["c5t"](0, 0, 0, 0),
         gl["a4v"](33986),
         gl["b9j"](3553, gl["c25"]()),

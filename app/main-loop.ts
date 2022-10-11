@@ -28,7 +28,7 @@ import { eppur_si_muove } from "./game/level-update";
 import { max, min } from "./math/math";
 import type { Vec3 } from "./math/vectors";
 import { renderModels } from "./game/models-render";
-import { loadShader, initShaderProgram } from "./shaders-utils";
+import { initShaderProgram } from "./shaders-utils";
 import { initPage, csm_projections, player_first_person, projection, resetInteractPressed, updateInput } from "./page";
 import { player_init, camera_position_x, camera_position_y, camera_position_z } from "./game/player";
 import { cgl, gl } from "./gl";
@@ -46,10 +46,9 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   const csm_lightSpaceMatrices = new Float32Array(2 * 16);
   const csm_tempFrustumCorners: Vec3[] = integers_map(8, () => ({} as Vec3));
 
-  const skyShader = initShaderProgram(gl, loadShader(gl, sky_vsSource), sky_fsSource);
-  const mainVertexShader = loadShader(gl, main_vsSource);
-  const collisionShader = initShaderProgram(cgl, loadShader(cgl, main_vsSource), collider_fsSource);
-  const mainShader = initShaderProgram(gl, mainVertexShader, main_fsSource);
+  const skyShader = initShaderProgram(gl, sky_vsSource, sky_fsSource);
+  const mainShader = initShaderProgram(gl, main_vsSource, main_fsSource);
+  const collisionShader = initShaderProgram(cgl, main_vsSource, collider_fsSource);
 
   const [csm_render0, csm_render1] = integers_map(2, (split: number) => {
     const texture = gl.createTexture()!;
@@ -164,13 +163,10 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
       // *** COLLISION RENDERER ***
 
-      collisionShader();
-
-      cgl.uniform4fv(collisionShader(uniformName_worldTransforms), transformsBuffer);
-      cgl.viewport(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
-
       cgl.colorMask(true, true, true, true);
       cgl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+      cgl.uniform4fv(collisionShader(uniformName_worldTransforms), transformsBuffer);
 
       // first collision render
 
@@ -204,6 +200,8 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
         ),
       );
       renderModels(cgl);
+
+      cgl.flush();
 
       // Reset interact button
       resetInteractPressed();
@@ -277,12 +275,6 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     gl.uniform3f(skyShader(uniformName_iResolution), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime);
 
     gl.drawElements(gl.TRIANGLES, 3, gl.UNSIGNED_SHORT, 0);
-
-    // Prepare for collision reading on next frame.
-    // Flushing here increase the chance of the GPU finishing the rendering before we read the texture.
-
-    // gl.bindFramebuffer(gl.FRAMEBUFFER, collision_frameBuffer);
-    cgl.flush();
   };
 
   mainShader();
@@ -305,7 +297,9 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   gl.drawBuffers([gl.NONE]);
   gl.readBuffer(gl.NONE);
 
-  // Collision framebuffer
+  // Collision context
+
+  cgl.viewport(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
 
   cgl.bindFramebuffer(cgl.FRAMEBUFFER, collision_frameBuffer);
   cgl.bindRenderbuffer(cgl.RENDERBUFFER, collision_renderBuffer);
