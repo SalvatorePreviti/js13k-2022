@@ -18,7 +18,7 @@ export const LOCAL_STORAGE_SAVED_GAME_KEY = "spdnt22";
 
 export let game_completed: 0 | 1 = 0;
 
-export let player_last_pulled_lever = 0;
+export let player_last_pulled_lever = LEVER_ID_BOAT0;
 
 export let firstBoatLerp: number;
 
@@ -77,7 +77,7 @@ export const loadGame = () => {
     }
   }
   updateCollectedSoulsCounter();
-  firstBoatLerp = clamp(player_last_pulled_lever + souls_collected_count);
+  firstBoatLerp = player_last_pulled_lever === LEVER_ID_BOAT0 ? 0 : clamp(souls_collected_count);
 };
 
 export const resetGame = () => {

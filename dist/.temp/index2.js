@@ -22,10 +22,10 @@ let input_forward = 0;
 let input_strafe = 0;
 let souls_collected_count = 0;
 let game_completed = 0;
-let player_last_pulled_lever = 0;
 let camera_position_x = 0;
 let camera_position_y = 0;
 let camera_position_z = 0;
+let player_last_pulled_lever = 13;
 let _messageEndTime = 0.1;
 const DEG_TO_RAD = Math.PI / 180;
 const groundTextureSvg = "data:image/svg+xml;base64,"
@@ -739,7 +739,7 @@ const newLever = ($transform) => {
                 : game_completed
                   || (showMessage("Well done. They will be punished.<br>Thanks for playing", 1 / 0),
                     game_completed = 1)),
-        tempMatrix.rotateSelf(50 * lever.$lerpValue - 25, 0).translateSelf(0, 1).m44 = 1 - lever.$lerpValue;
+        tempMatrix.rotateSelf(50 * lever.$lerpValue - 25, 0).translateSelf(0, 1).m44 = lever.$lerpValue;
     },
   };
   levers.push(lever),
@@ -1196,23 +1196,17 @@ const player_init = () => {
       );
   };
 };
-const renderModels = (worldMatrixLoc, renderPlayer, soulModelId) => {
+const renderModels = (renderPlayer, soulModelId) => {
   mainMenuVisible
     ? 1100 < hC.width
-      && (matrixCopy().rotateSelf(0, 40 * Math.sin(absoluteTime) - 80, -8),
-        matrixToArray(tempMatrix, worldMatricesBuffer, 35),
-        matrixToArray(tempMatrix, worldMatricesBuffer, 36),
-        matrixToArray(tempMatrix, worldMatricesBuffer, 37),
-        gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer),
-        gl["d97"](4, allModels[39].$vertexEnd - allModels[37].$vertexBegin, 5123, 2 * allModels[37].$vertexBegin))
-    : (gl["uae"](worldMatrixLoc, !1, objectsMatricesBuffer),
-      gl["das"](
-        4,
-        allModels[soulModelId].$vertexEnd - allModels[soulModelId].$vertexBegin,
-        5123,
-        2 * allModels[soulModelId].$vertexBegin,
-        souls.length,
-      ),
+      && gl["d97"](4, allModels[39].$vertexEnd - allModels[37].$vertexBegin, 5123, 2 * allModels[37].$vertexBegin)
+    : (gl["das"](
+      4,
+      allModels[soulModelId].$vertexEnd - allModels[soulModelId].$vertexBegin,
+      5123,
+      2 * allModels[soulModelId].$vertexBegin,
+      souls.length,
+    ),
       gl["das"](
         4,
         allModels[42].$vertexEnd - allModels[42].$vertexBegin,
@@ -1220,7 +1214,6 @@ const renderModels = (worldMatrixLoc, renderPlayer, soulModelId) => {
         2 * allModels[42].$vertexBegin,
         levers.length,
       ),
-      gl["uae"](worldMatrixLoc, !1, worldMatricesBuffer),
       gl["d97"](4, (renderPlayer ? allModels[39].$vertexEnd : allModels[37].$vertexBegin) - 3, 5123, 6));
 };
 const loadShader = (source, type = 35633) => (type = gl["c6x"](type), gl["s3c"](type, source), gl["c6a"](type), type);
@@ -1235,8 +1228,8 @@ const initShaderProgram = (vertexShader, sfsSource) => {
 const tempMatrix = new DOMMatrix();
 const identity = new DOMMatrix();
 const float32Array16Temp = new Float32Array(16);
-const objectsMatricesBuffer = new Float32Array(464);
-const worldMatricesBuffer = new Float32Array(608);
+const simpleTransformsBuffer = new Float32Array(352);
+const worldMatricesBuffer = new Float32Array(720);
 const collision_buffer = new Uint8Array(65536);
 const gl = hC.getContext("webgl2", {
   powerPreference: "high-performance",
@@ -1284,7 +1277,7 @@ loadStep(() => {
               rotatingHexCorridorRotation = lerp(
                 lerpDamp(rotatingHexCorridorRotation, 0, 1),
                 angle_wrap_degrees(rotatingHexCorridorRotation + 60 * gameTimeDelta),
-                levers[11].$lerpValue - levers[2].$lerpValue2,
+                levers[2].$lerpValue - levers[3].$lerpValue2,
               ),
               rotatingPlatform1Rotation = lerp(
                 lerpDamp(rotatingPlatform1Rotation, 0, 5),
@@ -1306,7 +1299,7 @@ loadStep(() => {
               modelsNextUpdate().translateSelf(oscillation * Math.sin(0.6 * gameTime - 1.2) * 8.2, 0, 55),
               modelsNextUpdate().translateSelf(oscillation * Math.sin(0.6 * gameTime) * 12, 0, 45),
               modelsNextUpdate().translateSelf(9.8 * (1 - oscillation)),
-              oscillation = clamp(1 - 5 * oscillation) * lerpneg(levers[10].$lerpValue, levers[11].$lerpValue),
+              oscillation = clamp(1 - 5 * oscillation) * lerpneg(levers[11].$lerpValue, levers[2].$lerpValue),
               modelsNextUpdate().translateSelf(0, oscillation * Math.sin(1.35 * gameTime) * 4),
               modelsNextUpdate().translateSelf(0, 0, oscillation * Math.sin(0.9 * gameTime) * 8),
               modelsNextUpdate().translateSelf(0, -6.5 * levers[11].$lerpValue2),
@@ -1371,15 +1364,18 @@ loadStep(() => {
             modelsNextUpdate().translateSelf(-65.8, 0.8, 106).rotateSelf(0, rotatingPlatform2Rotation),
             modelsNextUpdate().translateSelf(-50.7, 0.8, 106).rotateSelf(0, 180 - rotatingPlatform2Rotation),
             modelsNextUpdate().translateSelf(-50.7, 0.8, 91).rotateSelf(0, 270 + rotatingPlatform2Rotation);
-          for (let i2 = 0; i2 < 13; ++i2) souls[i2]._update(), matrixToArray(tempMatrix, objectsMatricesBuffer, i2);
-          for (let i3 = 0; i3 < 16; ++i3) {
-            levers[i3]._update(), matrixToArray(tempMatrix, objectsMatricesBuffer, 13 + i3);
-          }
+          for (let i2 = 0; i2 < 13; ++i2) souls[i2]._update(), matrixToArray(tempMatrix, worldMatricesBuffer, 16 + i2);
+          for (let i3 = 0; i3 < 16; ++i3) levers[i3]._update(), matrixToArray(tempMatrix, worldMatricesBuffer, 29 + i3);
           player_update();
-          for (let i4 = 2; modelsUpdateCounter >= i4; ++i4) {
-            matrixToArray(allModels[i4].$matrix, worldMatricesBuffer, i4 - 2);
+          for (let i4 = 2, j = 0; i4 <= 23; ++i4, j++) {
+            simpleTransformsBuffer[j++] = allModels[i4].$matrix.m41,
+              simpleTransformsBuffer[j++] = allModels[i4].$matrix.m42,
+              simpleTransformsBuffer[j++] = allModels[i4].$matrix.m43;
           }
+          for (let i5 = 24, j1 = 0; i5 <= 39; ++i5, j1++) matrixToArray(allModels[i5].$matrix, worldMatricesBuffer, j1);
           collisionShader(),
+            gl["u3a"](collisionShader("j"), simpleTransformsBuffer),
+            gl["uae"](collisionShader("c"), !1, worldMatricesBuffer),
             gl["c4s"](16640),
             gl["cbf"](!0, !1, !0, !1),
             gl["uae"](
@@ -1393,7 +1389,7 @@ loadStep(() => {
                 ),
               ),
             ),
-            renderModels(collisionShader("c"), 0, 40),
+            renderModels(0, 40),
             gl["c4s"](256),
             gl["cbf"](!1, !0, !1, !0),
             gl["uae"](
@@ -1407,7 +1403,7 @@ loadStep(() => {
                 ),
               ),
             ),
-            renderModels(collisionShader("c"), 0, 40),
+            renderModels(0, 40),
             interact_pressed = 0;
         }
         let cameraX = camera_position_x;
@@ -1423,11 +1419,17 @@ loadStep(() => {
               -cameraX,
               -cameraY,
               -cameraZ,
-            ).rotateSelf(0, 99))
+            ).rotateSelf(0, 99),
+            matrixCopy().rotateSelf(0, 40 * Math.sin(absoluteTime) - 80, -8),
+            matrixToArray(tempMatrix, worldMatricesBuffer, 35),
+            matrixToArray(tempMatrix, worldMatricesBuffer, 36),
+            matrixToArray(tempMatrix, worldMatricesBuffer, 37))
           : matrixCopy(identity, camera_view).rotateSelf(-camera_rotation.x, -camera_rotation.y).invertSelf()
             .translateSelf(-cameraX, -cameraY, -cameraZ),
           mainShader(),
           gl["ubu"](mainShader("k"), cameraX, cameraY, cameraZ),
+          gl["u3a"](mainShader("j"), simpleTransformsBuffer),
+          gl["uae"](mainShader("c"), !1, worldMatricesBuffer),
           gl["uae"](mainShader("a"), !1, matrixToArray(identity)),
           gl["ubh"](mainShader("g"), 3),
           gl["ubh"](mainShader("h"), 3),
@@ -1440,11 +1442,11 @@ loadStep(() => {
           gl["cbf"](!0, !0, !0, !0),
           gl["c4s"](16640),
           gl["uae"](mainShader("b"), !1, matrixToArray(camera_view)),
-          gl["uae"](mainShader("i"), !1, csm_lightSpaceMatrices),
           gl["uae"](mainShader("a"), !1, matrixToArray(projection)),
+          gl["uae"](mainShader("i"), !1, csm_lightSpaceMatrices),
           gl["ubh"](mainShader("g"), 0),
           gl["ubh"](mainShader("h"), 1),
-          renderModels(mainShader("c"), !player_first_person, 41),
+          renderModels(!player_first_person, 41),
           skyShader(),
           gl["uae"](skyShader("b"), !1, matrixToArray(matrixCopy(camera_view).invertSelf())),
           gl["ubu"](skyShader("j"), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime),
@@ -1465,7 +1467,7 @@ in vec4 f;void main(){gl_Position=vec4(f.xy,1,1);}`),
 precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;out vec4 O;void main(){vec2 t=gl_FragCoord.xy/j.xy*2.-1.;vec3 e=(normalize(b*vec4(t.x*-(j.x/j.y),-t.y,1.73205,0.))).xyz;float o=(-32.-b[3].y)/e.y,i=1.-clamp(abs(o/9999.),0.,1.);if(O=vec4(0,0,0,1),i>.01){if(o>0.){float i=cos(j.z/30.),o=sin(j.z/30.);e.xz*=mat2(i,o,-o,i);vec3 t=abs(e);O.xyz=vec3(dot(vec2(texture(q,e.xy).z,texture(q,e.yz*2.).z),t.zx)*t.y);}else e=b[3].xyz+e*o,O.x=(i*=.9-texture(q,e.xz/150.+vec2(sin(e.z/35.+j.z),cos(e.x/25.+j.z))/80.).y),O.y=i*i*i;}}`,
       );
       var mainVertexShader = loadShader(`#version 300 es
-layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 b,a,c[38];void main(){mat4 i=f.w==1.?mat4(1):c[abs(int(f.w))+gl_InstanceID-2];l=mix(d,vec4(.7,1,.2,0),d.w>0.?0.:1.-i[3][3]),i[3][3]=1.,n=f,m=i*vec4(f.xyz,1),gl_Position=a*b*m,m.w=f.w,o=i*vec4(e,0);}`);
+layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 b,a;uniform vec4 j[22];uniform mat4 c[45];void main(){mat4 i=mat4(1);if(f.w!=1.){if(f.w<1.)i=c[gl_InstanceID-int(f.w)];else if(f.w>1.&&f.w<24.)i[3].xyz=j[int(f.w)-2].xyz;else i=c[int(f.w)-24];}l=mix(d,vec4(.7,1,.2,0),d.w==0.&&f.w==-29.?i[3][3]:0.),i[3][3]=1.,n=f,m=i*vec4(f.xyz,1),gl_Position=a*b*m,m.w=f.w,o=i*vec4(e,0);}`);
       const collisionShader = initShaderProgram(
         mainVertexShader,
         `#version 300 es
@@ -1534,7 +1536,7 @@ precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sa
                   ).translateSelf((right + left) / -2, (top + bottom) / -2, (near + far) / 2).multiplySelf(tempMatrix),
                 ),
               ),
-              renderModels(mainShader("c"), !player_first_person, 41),
+              renderModels(!player_first_person, 41),
               csm_lightSpaceMatrices.set(float32Array16Temp, 16 * split);
           };
       });
@@ -1615,7 +1617,7 @@ precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sa
             };
             for (
               polygon
-                of (_vertexFloats[3] = index === 41 || index === 40 ? -2 : index === 42 ? -15 : index, model.$polygons)
+                of (_vertexFloats[3] = index === 41 || index === 40 ? -16 : index === 42 ? -29 : index, model.$polygons)
             ) {
               const { x, y, z } = plane_fromPolygon(polygon);
               _vertexInts[4] = 0 | polygon.$color,
@@ -1658,7 +1660,7 @@ precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sa
             secondBoatLerp = savedSecondBoatLerp;
         } catch {}
         updateCollectedSoulsCounter(),
-          firstBoatLerp = clamp(player_last_pulled_lever + souls_collected_count),
+          firstBoatLerp = player_last_pulled_lever === 13 ? 0 : clamp(souls_collected_count),
           loadStep(end);
       });
       {
@@ -1679,6 +1681,12 @@ precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sa
         const hexCorridorPolygons = [
           ...polygons_transform(cylinder(), translation(0, -3).scale(11, 1.4, 3), material(0.9, 0.9, 0.9, 0.2)),
           ...polygons_transform(cylinder(), translation(0, -2.2).scale(7.7, 0.5, 4), material(0.5, 0.5, 0.5, 0.2)),
+          ...integers_map(12, (i) =>
+            polygons_transform(
+              cylinder(),
+              identity.translate(i - 5.5, 4.4).scale(0.1, 0.1, 2),
+              material(0.6, 0.5, 0.4, 0.3),
+            )).flat(),
           ...csg_polygons_subtract(
             polygons_transform(cylinder(6), identity.rotate(90).scale(6, 8, 6), material(0.3, 0.6, 0.6, 0.3)),
             polygons_transform(

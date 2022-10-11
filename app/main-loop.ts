@@ -3,6 +3,7 @@ import main_vsSource, {
   uniformName_projectionMatrix,
   uniformName_viewMatrix,
   uniformName_worldMatrices,
+  uniformName_simpleTransforms,
 } from "./shaders/main-vertex.vert";
 import main_fsSource, {
   uniformName_viewPos,
@@ -39,7 +40,14 @@ import { loadShader, initShaderProgram } from "./shaders-utils";
 import { initPage, csm_projections, player_first_person, projection, resetInteractPressed, updateInput } from "./page";
 import { player_init, camera_position_x, camera_position_y, camera_position_z } from "./game/player";
 import { gl } from "./gl";
-import { MODEL_ID_SOUL, MODEL_ID_SOUL_COLLISION } from "./game/models-ids";
+import {
+  MODEL_ID_PLAYER_BODY,
+  MODEL_ID_PLAYER_LEG0,
+  MODEL_ID_PLAYER_LEG1,
+  MODEL_ID_SOUL,
+  MODEL_ID_SOUL_COLLISION,
+} from "./game/models-ids";
+import { simpleTransformsBuffer, worldMatricesBuffer } from "./game/models-matrices";
 
 const LIGHT_ROT_X = 298;
 const LIGHT_ROT_Y = 139;
@@ -139,7 +147,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
         ),
       );
 
-      renderModels(mainShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL);
+      renderModels(!player_first_person, MODEL_ID_SOUL);
 
       csm_lightSpaceMatrices.set(float32Array16Temp, split * 16);
     };
@@ -168,6 +176,9 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
       collisionShader();
 
+      gl.uniform4fv(collisionShader(uniformName_simpleTransforms), simpleTransformsBuffer);
+      gl.uniformMatrix4fv(collisionShader(uniformName_worldMatrices), false, worldMatricesBuffer);
+
       // first collision render
 
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -183,7 +194,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
             .translateSelf(-player_position_final.x, -player_position_final.y, 0.3 - player_position_final.z),
         ),
       );
-      renderModels(collisionShader(uniformName_worldMatrices), 0, MODEL_ID_SOUL_COLLISION);
+      renderModels(0, MODEL_ID_SOUL_COLLISION);
 
       // second collision render
 
@@ -200,7 +211,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
           ),
         ),
       );
-      renderModels(collisionShader(uniformName_worldMatrices), 0, MODEL_ID_SOUL_COLLISION);
+      renderModels(0, MODEL_ID_SOUL_COLLISION);
 
       // Reset interact button
       resetInteractPressed();
@@ -223,6 +234,11 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
         .invertSelf()
         .translateSelf(-cameraX, -cameraY, -cameraZ)
         .rotateSelf(0, 99);
+
+      matrixCopy().rotateSelf(0, 40 * Math.sin(absoluteTime) - 80, -8);
+      matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_BODY - 2);
+      matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_LEG0 - 2);
+      matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_LEG1 - 2);
     } else {
       matrixCopy(identity, camera_view)
         .rotateSelf(-camera_rotation.x, -camera_rotation.y)
@@ -232,6 +248,8 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
     mainShader();
     gl.uniform3f(mainShader(uniformName_viewPos), cameraX, cameraY, cameraZ);
+    gl.uniform4fv(mainShader(uniformName_simpleTransforms), simpleTransformsBuffer);
+    gl.uniformMatrix4fv(mainShader(uniformName_worldMatrices), false, worldMatricesBuffer);
 
     // *** CASCADED SHADOWMAPS ***
 
@@ -254,12 +272,12 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     gl.uniformMatrix4fv(mainShader(uniformName_viewMatrix), false, matrixToArray(camera_view));
-    gl.uniformMatrix4fv(mainShader(uniformName_csm_matrices), false, csm_lightSpaceMatrices);
     gl.uniformMatrix4fv(mainShader(uniformName_projectionMatrix), false, matrixToArray(projection));
+    gl.uniformMatrix4fv(mainShader(uniformName_csm_matrices), false, csm_lightSpaceMatrices);
     gl.uniform1i(mainShader(uniformName_csm_texture0), 0);
     gl.uniform1i(mainShader(uniformName_csm_texture1), 1);
 
-    renderModels(mainShader(uniformName_worldMatrices), !player_first_person, MODEL_ID_SOUL);
+    renderModels(!player_first_person, MODEL_ID_SOUL);
 
     // *** SKY RENDER ***
 

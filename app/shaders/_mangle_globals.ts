@@ -4,6 +4,7 @@ export default {
   viewMatrix: "b",
   worldMatrix: "c",
   worldMatrices: "c",
+  simpleTransforms: "j",
   aColor: "d",
   aNormal: "e",
   aPosition: "f",

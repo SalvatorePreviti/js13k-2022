@@ -1,11 +1,11 @@
 import { clamp, max, abs, lerpneg, min, angle_wrap_degrees, lerp } from "../math/math";
 import { allModels, levers, LEVERS_COUNT, souls, SOULS_COUNT } from "./models";
-import { objectsMatricesBuffer, worldMatricesBuffer } from "./models-matrices";
+import { worldMatricesBuffer, simpleTransformsBuffer } from "./models-matrices";
 import { matrixToArray, tempMatrix } from "../math/matrix";
 import { gameTime, gameTimeDelta, lerpDamp } from "./game-time";
 import { firstBoatLerp, secondBoatLerp } from "./world-state";
 import { player_update } from "./player";
-import { modelsNextUpdate, modelsUpdateCounter, modelsResetUpdateCounter } from "./models-next-update";
+import { modelsNextUpdate, modelsResetUpdateCounter } from "./models-next-update";
 import {
   LEVER_ID_GATE0,
   LEVER_ID_GATE1,
@@ -45,6 +45,7 @@ import {
   MODEL_ID_MONUMENT,
   MODEL_ID_OSCILLATING_HEX_PAD0,
   MODEL_ID_PENDULUMS,
+  MODEL_ID_PLAYER_LEG1,
   MODEL_ID_PUSHING_ROD0,
   MODEL_ID_PUSHING_ROD1,
   MODEL_ID_PUSHING_ROD2,
@@ -74,7 +75,7 @@ export const eppur_si_muove = () => {
   rotatingHexCorridorRotation = lerp(
     lerpDamp(rotatingHexCorridorRotation, 0, 1),
     angle_wrap_degrees(rotatingHexCorridorRotation + gameTimeDelta * 60),
-    levers[LEVER_ID_TRIANGLE_PLATFORM]!.$lerpValue - levers[LEVER_ID_ROTATING_CORRIDOR]!.$lerpValue2,
+    levers[LEVER_ID_ROTATING_CORRIDOR]!.$lerpValue - levers[LEVER_ID_CRYSTALS]!.$lerpValue2,
   );
 
   rotatingPlatform1Rotation = lerp(
@@ -127,7 +128,7 @@ export const eppur_si_muove = () => {
 
   oscillation =
     clamp(1 - 5 * oscillation) *
-    lerpneg(levers[LEVER_ID_GATE1]!.$lerpValue, levers[LEVER_ID_TRIANGLE_PLATFORM]!.$lerpValue);
+    lerpneg(levers[LEVER_ID_TRIANGLE_PLATFORM]!.$lerpValue, levers[LEVER_ID_ROTATING_CORRIDOR]!.$lerpValue);
 
   modelsNextUpdate(MODEL_ID_LEVEL2_MINI_PLATFORM_VERTICAL).translateSelf(
     0,
@@ -332,14 +333,14 @@ export const eppur_si_muove = () => {
 
   for (let i = 0; i < SOULS_COUNT; ++i) {
     souls[i]!._update();
-    matrixToArray(tempMatrix, objectsMatricesBuffer, i);
+    matrixToArray(tempMatrix, worldMatricesBuffer, 16 + i);
   }
 
   // Update levers
 
   for (let i = 0; i < LEVERS_COUNT; ++i) {
     levers[i]!._update();
-    matrixToArray(tempMatrix, objectsMatricesBuffer, SOULS_COUNT + i);
+    matrixToArray(tempMatrix, worldMatricesBuffer, 16 + SOULS_COUNT + i);
   }
 
   /// **** PLAYER **** ///
@@ -348,7 +349,13 @@ export const eppur_si_muove = () => {
 
   // Copy all models matrices to the world uniform buffer
 
-  for (let i = 2; i <= modelsUpdateCounter; ++i) {
-    matrixToArray(allModels[i]!.$matrix, worldMatricesBuffer, i - 2);
+  for (let i = 2, j = 0; i <= MODEL_ID_FLOATING_ELEVATOR_PAD; ++i, j++) {
+    simpleTransformsBuffer[j++] = allModels[i]!.$matrix.m41;
+    simpleTransformsBuffer[j++] = allModels[i]!.$matrix.m42;
+    simpleTransformsBuffer[j++] = allModels[i]!.$matrix.m43;
+  }
+
+  for (let i = MODEL_ID_BOAT0, j = 0; i <= MODEL_ID_PLAYER_LEG1; ++i, j++) {
+    matrixToArray(allModels[i]!.$matrix, worldMatricesBuffer, j);
   }
 };

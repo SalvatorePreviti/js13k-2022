@@ -11,14 +11,25 @@ out lowp vec4 Color;
 
 uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
-uniform mat4 worldMatrices[38];
+uniform vec4 simpleTransforms[22];
+uniform mat4 worldMatrices[16 + 16 + 13];
 
 #define modelId aPosition.w
 
 void main() {
-  mat4 worldMatrix = modelId == 1. ? mat4(1) : worldMatrices[abs(int(modelId)) + gl_InstanceID - 2];
-  // trick - use worldMatrix[3][3] that normally is 1 as a way to color the handle of pulled levers
-  Color = mix(aColor, vec4(0.7, 1, 0.2, 0), aColor.w > 0. ? 0. : 1. - worldMatrix[3][3]);
+  mat4 worldMatrix = mat4(1);
+  if (modelId != 1.) {
+    if (modelId < 1.) {
+      worldMatrix = worldMatrices[gl_InstanceID - int(modelId)];
+    } else if (modelId > 1. && modelId < 24.) {
+      worldMatrix[3].xyz = simpleTransforms[int(modelId) - 2].xyz;
+    } else {
+      worldMatrix = worldMatrices[int(modelId) - 24];
+    }
+  }
+
+  // MODEL_ID_LEVER - get the color for the lever
+  Color = mix(aColor, vec4(0.7, 1, 0.2, 0), aColor.w == 0. && modelId == -29. ? worldMatrix[3][3] : 0.);
   worldMatrix[3][3] = 1.;
   UntransformedFragPos = aPosition;
   FragPos = worldMatrix * vec4(aPosition.xyz, 1);

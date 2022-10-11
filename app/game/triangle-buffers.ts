@@ -47,9 +47,9 @@ export const initTriangleBuffers = () => {
 
     _vertexFloats[3] =
       index === MODEL_ID_SOUL || index === MODEL_ID_SOUL_COLLISION
-        ? -2
+        ? -16
         : index === MODEL_ID_LEVER
-        ? -SOULS_COUNT - 2
+        ? -16 - SOULS_COUNT
         : index;
 
     for (polygon of model.$polygons!) {

@@ -1,5 +1,3 @@
-import { LEVERS_COUNT, SOULS_COUNT } from "./models";
+export const worldMatricesBuffer = new Float32Array((16 + 16 + 13) * 16);
 
-export const worldMatricesBuffer = new Float32Array(38 * 16);
-
-export const objectsMatricesBuffer = new Float32Array((SOULS_COUNT + LEVERS_COUNT) * 16);
+export const simpleTransformsBuffer = new Float32Array(22 * 16);
