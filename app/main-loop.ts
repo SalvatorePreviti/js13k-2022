@@ -155,9 +155,9 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     gameTimeUpdate(globalTime);
 
     if (gameTimeDelta > 0) {
-      updateInput();
-
       worldStateUpdate();
+
+      updateInput();
 
       eppur_si_muove();
 

@@ -371,11 +371,11 @@ T1(() => {
             let e = (t - (I || t)) / 1e3;
             if (w += e, z += B = j ? 0 : y1(.055, e), I = t, 0 < B) {
               e = (e, t, a) => V(e + _(z + 2) / 5, t + _(.8 * z) / 5, a).rotateSelf(2 * _(z), _(.7 * z), _(.9 * z)),
-                $(),
                 v1 && z > v1 && (v1 = 0, h4.innerHTML = ""),
                 n1 && (Q = 0),
                 e1 = n1 ? P(e1, -9, .015) : P(e1, U(z / 3), 1),
                 t1 = P(t1, N[14].h, .2 + .3 * E(2 * N[14].h - 1)),
+                $(),
                 a1 = 1,
                 l1 = M1(N[13].g, N[8].g),
                 s1 = A1(P(s1, 0, 1), w1(s1 + 60 * B), N[2].g - N[3].h),
@@ -444,8 +444,7 @@ T1(() => {
               for (x(), e = 0; e < 12; ++e) {
                 p(L[28 + e].m, A, e);
               }
-              s(),
-                Z.u3a(s("j"), A),
+              Z.u3a(s("j"), A),
                 Z.v5y(0, 0, 128, 128),
                 Z.c4s(16640),
                 Z.cbf(!0, !1, !0, !1),
@@ -497,6 +496,7 @@ T1(() => {
               Z.ubu(r("j"), Z.drawingBufferWidth, Z.drawingBufferHeight, w),
               Z.d97(4, 3, 5123, 0),
               Z.b6o(36160, n),
+              s(),
               Z.f1s();
           },
           h = new DOMMatrix(),
@@ -1420,10 +1420,10 @@ precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sa
         s(i(5), c(0, 2).scale(1, 2), n(.3, .3, .3, .2)),
         v(c(0, 3), ...Y1(14).map(({ x: e, z: t }) => [5.6 * e, 5.6 * t, 2])),
         h(),
+        [-1, 1].map(e => s(l, S.rotate(0, 90).translate(-5 * e, 1, -.5).scale(1.2, 10, 1.2).rotate(0, 90 * e + 90))),
         s(d(o(i(28, 1), c(0, 2).scale(7.5, 1, 7.5), n(.35, 0, 0, .3)), o(i(), S.scale(9, 5, 2), n(.3, 0, 0, .3)))),
         s(o(i(28, 1), S.scale(7.5, 1, 7.5), n(.45, .45, .45, .2))),
         s(o(i(5), c(0, 1).scale(1, .2), n(.3, .3, .3, .2))),
-        [-1, 1].map(e => s(l, S.rotate(0, 90).translate(-5 * e, 1, -.5).scale(1.2, 10, 1.2).rotate(0, 90 * e + 90))),
         h(),
         s(d(
           o(i(28, 1), c(0, 2).scale(7.5, 1, 7.5), n(.35, 0, 0, .3)),

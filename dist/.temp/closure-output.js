@@ -403,11 +403,11 @@ zb(() => {
         var w = (u - (aa || u)) / 1e3;
         if (wa += w, d += xa = ca ? 0 : Za(0.055, w), aa = u, 0 < xa) {
           w = (G, L, p) => Y(G + Math.sin(d + 2) / 5, L + Math.sin(0.8 * d) / 5, p).rotateSelf(2 * Math.sin(d), Math.sin(0.7 * d), Math.sin(0.9 * d),);
-          ma();
           Ja && d > Ja && (Ja = 0, h4.innerHTML = "");
           Da && (ha = 0);
           na = Da ? xb(na, -9, 0.015) : xb(na, bb(d / 3), 1);
           oa = xb(oa, e[14].h, 0.2 + 0.3 * Ya(2 * e[14].h - 1),);
+          ma();
           u = (pa = 1, sa = fb(e[13].g, e[8].g), va = eb(xb(va, 0, 1), cb(va + 60 * xa), e[2].g - e[3].h,), ta = eb(xb(ta, 0, 5), cb(ta + 56 * xa), sa,), ua = eb(xb(ua, 0, 4), cb(ua + 48 * xa), sa,), Y(0, 270 * (e[1].g - 1) + (2 + 5 * Math.cos(1.5 * d)) * (1 - e[10].g),), Za(1 - e[11].h, e[10].h));
           var v = (Y(u * Math.sin(0.6 * d + 1.2) * 12, 0, 35), Y(u * Math.sin(0.6 * d - 1.2) * 8.2, 0, 55), Y(u * Math.sin(0.6 * d) * 12, 0, 45), Y(9.8 * (1 - u)), u = bb(1 - 5 * u) * fb(e[11].g, e[2].g), Y(0, u * Math.sin(1.35 * d) * 4), Y(0, 0, u * Math.sin(0.9 * d) * 8), Y(0, -6.5 * e[11].h), u = fb(e[4].h, e[3].h), Y(0, u * Math.sin(d) * 5 + 3.5 * (1 - $a(e[3].g, e[4].g)),), Y(0, u * Math.sin(d + 3) * 6, u * Math.sin(0.6 * d + 1) * 6,), Y(0, -7.3 * e[4].h), u = fb(e[6].g, e[7].g), Y(0, -2, 10 - 
           8.5 * u * Ya(Math.sin(1.1 * d))), Y(0, -2, 10 - 8.5 * u * Ya(Math.sin(2.1 * d))), Y(0, -2, 10 - 8.5 * $a(u * Ya(Math.sin(1.5 * d)), (1 - e[6].g) * (1 - u)),), fb(e[5].h, e[13].h));
@@ -446,7 +446,6 @@ zb(() => {
           for (w = 0; 12 > w; ++w) {
             nb(h[28 + w].m, kc, w);
           }
-          H();
           Z.u3a(H("j"), kc);
           Z.v5y(0, 0, 128, 128);
           Z.c4s(16640);
@@ -488,6 +487,7 @@ zb(() => {
         Z.ubu(J("j"), Z.drawingBufferWidth, Z.drawingBufferHeight, wa);
         Z.d97(4, 3, 5123, 0);
         Z.b6o(36160, T);
+        H();
         Z.f1s();
       }, n = new DOMMatrix(), x = new DOMMatrix(), B = new Float32Array(32), f = g, t = D(8, () => ({})), J = jc(ic("#version 300 es\nin vec4 f;void main(){gl_Position=vec4(f.xy,1,1);}"), "#version 300 es\nprecision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;out vec4 O;void main(){vec2 t=gl_FragCoord.xy/j.xy*2.-1.;vec3 e=(normalize(b*vec4(t.x*-(j.x/j.y),-t.y,1.73205,0.))).xyz;float o=(-32.-b[3].y)/e.y,i=1.-clamp(abs(o/9999.),0.,1.);if(O=vec4(0,0,0,1),i>.01){if(o>0.){float i=cos(j.z/30.),o=sin(j.z/30.);e.xz*=mat2(i,o,-o,i);vec3 t=abs(e);O.xyz=vec3(dot(vec2(texture(q,e.xy).z,texture(q,e.yz*2.).z),t.zx)*t.y);}else e=b[3].xyz+e*o,O.x=(i*=.9-texture(q,e.xz/150.+vec2(sin(e.z/35.+j.z),cos(e.x/25.+j.z))/80.).y),O.y=i*i*i;}}",
       );
@@ -797,10 +797,10 @@ zb(() => {
     c(M(5), y(0, 2).scale(1, 2), N(0.3, 0.3, 0.3, 0.2));
     Mb(y(0, 3), ...rb(14).map(({x:f, z:t}) => [5.6 * f, 5.6 * t, 2,]),);
     P();
+    [-1, 1,].map(f => c(n, m.rotate(0, 90).translate(-5 * f, 1, -0.5).scale(1.2, 10, 1.2).rotate(0, 90 * f + 90),));
     c(U(I(M(28, 1), y(0, 2).scale(7.5, 1, 7.5), N(0.35, 0, 0, 0.3)), I(M(), m.scale(9, 5, 2), N(0.3, 0, 0, 0.3)),),);
     c(I(M(28, 1), m.scale(7.5, 1, 7.5), N(0.45, 0.45, 0.45, 0.2)));
     c(I(M(5), y(0, 1).scale(1, 0.2), N(0.3, 0.3, 0.3, 0.2)));
-    [-1, 1,].map(f => c(n, m.rotate(0, 90).translate(-5 * f, 1, -0.5).scale(1.2, 10, 1.2).rotate(0, 90 * f + 90),));
     P();
     c(U(I(M(28, 1), y(0, 2).scale(7.5, 1, 7.5), N(0.35, 0, 0, 0.3)), I(M(), y(7).scale(9, 5, 2), N(0.3, 0, 0, 0.3)), I(M(), y(0, 0, 7).scale(2, 5, 9), N(0.3, 0, 0, 0.3)),),);
     c(I(M(28, 1), m.scale(7.5, 1, 7.5), N(0.45, 0.45, 0.45, 0.2)));

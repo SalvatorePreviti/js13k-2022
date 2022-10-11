@@ -752,11 +752,11 @@ zb(() => {
                   Math.sin(0.7 * d),
                   Math.sin(0.9 * d),
                 );
-              ma();
               Ja && d > Ja && (Ja = 0, h4.innerHTML = "");
               Da && (ha = 0);
               na = Da ? xb(na, -9, 0.015) : xb(na, bb(d / 3), 1);
               oa = xb(oa, e[14].h, 0.2 + 0.3 * Ya(2 * e[14].h - 1));
+              ma();
               u =
                 (pa = 1,
                   sa = fb(e[13].g, e[8].g),
@@ -831,7 +831,6 @@ zb(() => {
               for (w = 0; 12 > w; ++w) {
                 nb(h[28 + w].m, kc, w);
               }
-              H();
               Z.u3a(H("j"), kc);
               Z.v5y(0, 0, 128, 128);
               Z.c4s(16640);
@@ -884,6 +883,7 @@ zb(() => {
             Z.ubu(J("j"), Z.drawingBufferWidth, Z.drawingBufferHeight, wa);
             Z.d97(4, 3, 5123, 0);
             Z.b6o(36160, T);
+            H();
             Z.f1s();
           },
           n = new DOMMatrix(),
@@ -1418,10 +1418,10 @@ zb(() => {
     c(M(5), y(0, 2).scale(1, 2), N(0.3, 0.3, 0.3, 0.2));
     Mb(y(0, 3), ...rb(14).map(({ x: f, z: t }) => [5.6 * f, 5.6 * t, 2]));
     P();
+    [-1, 1].map(f => c(n, m.rotate(0, 90).translate(-5 * f, 1, -0.5).scale(1.2, 10, 1.2).rotate(0, 90 * f + 90)));
     c(U(I(M(28, 1), y(0, 2).scale(7.5, 1, 7.5), N(0.35, 0, 0, 0.3)), I(M(), m.scale(9, 5, 2), N(0.3, 0, 0, 0.3))));
     c(I(M(28, 1), m.scale(7.5, 1, 7.5), N(0.45, 0.45, 0.45, 0.2)));
     c(I(M(5), y(0, 1).scale(1, 0.2), N(0.3, 0.3, 0.3, 0.2)));
-    [-1, 1].map(f => c(n, m.rotate(0, 90).translate(-5 * f, 1, -0.5).scale(1.2, 10, 1.2).rotate(0, 90 * f + 90)));
     P();
     c(U(
       I(M(28, 1), y(0, 2).scale(7.5, 1, 7.5), N(0.35, 0, 0, 0.3)),

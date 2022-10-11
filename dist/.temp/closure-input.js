@@ -1253,8 +1253,7 @@ loadStep(() => {
               Math.sin(0.7 * gameTime),
               Math.sin(0.9 * gameTime),
             );
-          updateInput(),
-            _messageEndTime && gameTime > _messageEndTime && (_messageEndTime = 0, h4.innerHTML = ""),
+          _messageEndTime && gameTime > _messageEndTime && (_messageEndTime = 0, h4.innerHTML = ""),
             game_completed && (player_first_person = 0),
             firstBoatLerp = game_completed
               ? lerpDamp(firstBoatLerp, -9, 0.015)
@@ -1263,7 +1262,8 @@ loadStep(() => {
               secondBoatLerp,
               levers[14].$lerpValue2,
               0.2 + 0.3 * abs(2 * levers[14].$lerpValue2 - 1),
-            );
+            ),
+            updateInput();
           let oscillation =
             (modelsUpdateCounter = 1,
               shouldRotatePlatforms = lerpneg(levers[13].$lerpValue, levers[8].$lerpValue),
@@ -1369,8 +1369,7 @@ loadStep(() => {
           }
           player_update();
           for (let i5 = 0; i5 < 12; ++i5) matrixToArray(allModels[28 + i5].$matrix, transformsBuffer, i5);
-          collisionShader(),
-            gl["u3a"](collisionShader("j"), transformsBuffer),
+          gl["u3a"](collisionShader("j"), transformsBuffer),
             gl["v5y"](0, 0, 128, 128),
             gl["c4s"](16640),
             gl["cbf"](!0, !1, !0, !1),
@@ -1447,6 +1446,7 @@ loadStep(() => {
           gl["ubu"](skyShader("j"), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime),
           gl["d97"](4, 3, 5123, 0),
           gl["b6o"](36160, collision_frameBuffer),
+          collisionShader(),
           gl["f1s"]();
       };
       const csm_tempMatrix = new DOMMatrix();
@@ -2477,14 +2477,6 @@ precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sa
             ]),
           ),
           newModel(),
-          meshAdd(
-            csg_polygons_subtract(
-              polygons_transform(cylinder(28, 1), translation(0, 2).scale(7.5, 1, 7.5), material(0.35, 0, 0, 0.3)),
-              polygons_transform(cylinder(), identity.scale(9, 5, 2), material(0.3, 0, 0, 0.3)),
-            ),
-          ),
-          meshAdd(polygons_transform(cylinder(28, 1), identity.scale(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2))),
-          meshAdd(polygons_transform(cylinder(5), translation(0, 1).scale(1, 0.2), material(0.3, 0.3, 0.3, 0.2))),
           [
             -1,
             1,
@@ -2494,6 +2486,14 @@ precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sa
               identity.rotate(0, 90).translate(-5 * x, 1, -0.5).scale(1.2, 10, 1.2).rotate(0, 90 * x + 90),
             )
           ),
+          meshAdd(
+            csg_polygons_subtract(
+              polygons_transform(cylinder(28, 1), translation(0, 2).scale(7.5, 1, 7.5), material(0.35, 0, 0, 0.3)),
+              polygons_transform(cylinder(), identity.scale(9, 5, 2), material(0.3, 0, 0, 0.3)),
+            ),
+          ),
+          meshAdd(polygons_transform(cylinder(28, 1), identity.scale(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2))),
+          meshAdd(polygons_transform(cylinder(5), translation(0, 1).scale(1, 0.2), material(0.3, 0.3, 0.3, 0.2))),
           newModel(),
           meshAdd(
             csg_polygons_subtract(
