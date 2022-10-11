@@ -582,9 +582,9 @@ const initPage = () => {
   const KEY_RIGHT = 3;
   const KEY_FRONT = 4;
   const KEY_BACK = 5;
-  const TOUCH_SIZE = 20;
-  const TOUCH_MOVE_SNAP = 0.3;
-  const TOUCH_MOVE_THRESHOLD = 0.5;
+  const TOUCH_SIZE = 19;
+  const TOUCH_MOVE_SNAP = 0.2;
+  const TOUCH_MOVE_THRESHOLD = 0.3;
   const keyboard_downKeys = [];
   const updateMusicOnState = () => {
     b4.innerHTML = "Music: " + music_on;
@@ -837,10 +837,10 @@ const LEVER_ID_FLOATING_ELEVATOR = 12;
 const LEVER_ID_DONUT_PAD = 13;
 const LEVER_ID_BOAT0 = 14;
 const LEVER_ID_BOAT1 = 15;
+let souls_collected_count;
+let game_completed;
 let firstBoatLerp;
 let secondBoatLerp;
-let souls_collected_count = 0;
-let game_completed = 0;
 let _messageEndTime = 0.1;
 const LOCAL_STORAGE_SAVED_GAME_KEY = "spdnt22";
 const camera_rotation = {
@@ -863,15 +863,17 @@ const worldStateUpdate = () => {
     _messageEndTime = 0;
     h4.innerHTML = "";
   }
-  if (game_completed) {
-    exit_player_first_person();
-  }
-  firstBoatLerp = game_completed ? lerpDamp(firstBoatLerp, -9, 0.015) : lerpDamp(firstBoatLerp, clamp(gameTime / 3), 1);
   secondBoatLerp = lerpDamp(
     secondBoatLerp,
-    levers[LEVER_ID_BOAT0].$lerpValue2,
-    0.2 + 0.3 * abs(levers[LEVER_ID_BOAT0].$lerpValue2 * 2 - 1),
+    levers[LEVER_ID_BOAT1].$lerpValue2,
+    0.2 + 0.3 * abs(levers[LEVER_ID_BOAT1].$lerpValue2 * 2 - 1),
   );
+  if (game_completed) {
+    firstBoatLerp = lerpDamp(firstBoatLerp, -9, 0.015);
+    exit_player_first_person();
+  } else {
+    firstBoatLerp = lerpDamp(firstBoatLerp, clamp(gameTime / 3), 1);
+  }
 };
 const updateCollectedSoulsCounter = () => {
   h3.innerHTML = "Souls: " + [
@@ -1349,7 +1351,7 @@ const build_life_the_universe_and_everything = () => {
         polygons_transform(
           cylinder(),
           identity.translate(i - 5.5, 4.4).scale(0.1, 0.1, 2),
-          material(0.6, 0.5, 0.4, 0.3),
+          material(0.6, 0.5, 0.3, 0.2),
         ),
     ).flat(),
     ...csg_polygons_subtract(
@@ -2157,25 +2159,25 @@ const uniformName_iResolution = "j";
 const transformsBuffer = new Float32Array(
   (4 * (MODELS_WITH_FULL_TRANSFORM + LEVERS_COUNT + SOULS_COUNT) + MODELS_WITH_SIMPLE_TRANSFORM) * 4,
 );
+const gl = hC.getContext("webgl2", {
+  powerPreference: "high-performance",
+});
 const cgl = hD.getContext("webgl2", {
   powerPreference: "high-performance",
   preserveDrawingBuffer: true,
   antialias: false,
 });
-const gl = hC.getContext("webgl2", {
-  powerPreference: "high-performance",
-});
-for (const s in gl) {
-  gl[
-    s[0] + [
-      ...s,
-    ].reduce((p, c, i) => (p * i + c.charCodeAt(0)) % 434, 0).toString(36)
-  ] = gl[s];
-  cgl[
-    s[0] + [
-      ...s,
-    ].reduce((p, c, i) => (p * i + c.charCodeAt(0)) % 434, 0).toString(36)
-  ] = cgl[s];
+for (const s in cgl) {
+  [
+    gl,
+    cgl,
+  ].map((xgl) =>
+    xgl[
+      s[0] + [
+        ...s,
+      ].reduce((p, c, i) => (p * i + c.charCodeAt(0)) % 434, 0).toString(36)
+    ] = xgl[s]
+  );
 }
 let modelsUpdateCounter;
 const modelsResetUpdateCounter = () => modelsUpdateCounter = 1;
@@ -2345,20 +2347,24 @@ const player_init = () => {
     if (currentModelId === MODEL_ID_STATIC_WORLD) {
       levers[LEVER_ID_BOAT1].$value = player_position_final.x < -15 && player_position_final.z < 0 ? 1 : 0;
     }
-    player_model_y = lerp(
-      lerpDamp(player_model_y, player_position_final.y, 2),
-      player_position_final.y,
-      player_respawned || abs(player_model_y - player_position_final.y) * 8,
-    );
-    camera_pos_lookat_x = interpolate_with_hysteresis(camera_pos_lookat_x, player_position_final.x, 0.5, 1);
-    camera_pos_lookat_y = interpolate_with_hysteresis(camera_pos_lookat_y, player_model_y, 2, 1);
-    camera_pos_lookat_z = interpolate_with_hysteresis(camera_pos_lookat_z, player_position_final.z, 0.5, 1);
     player_on_rotating_platforms = lerpDamp(
       player_on_rotating_platforms,
       shouldRotatePlatforms
         * (currentModelId > MODEL_ID_ROTATING_PLATFORM0 - 1 && currentModelId < MODEL_ID_ROTATING_PLATFORM0 + 4),
       2,
     );
+    camera_pos_lookat_x = interpolate_with_hysteresis(camera_pos_lookat_x, player_position_final.x, 0.5, 1);
+    camera_pos_lookat_y = interpolate_with_hysteresis(
+      camera_pos_lookat_y,
+      player_model_y = lerp(
+        lerpDamp(player_model_y, player_position_final.y, 2),
+        player_position_final.y,
+        player_respawned || abs(player_model_y - player_position_final.y) * 8,
+      ),
+      2,
+      1,
+    );
+    camera_pos_lookat_z = interpolate_with_hysteresis(camera_pos_lookat_z, player_position_final.z, 0.5, 1);
     if (player_first_person) {
       const d = player_respawned + damp(18);
       camera_position_x = lerp(camera_position_x, player_position_final.x, d);
@@ -2897,12 +2903,10 @@ const initTriangleBuffers = () => {
     model.$vertexBegin = meshFirstIndex;
     model.$vertexEnd = meshFirstIndex = _triangleIndices.length;
   });
-  for (
-    const xgl of [
-      gl,
-      cgl,
-    ]
-  ) {
+  [
+    gl,
+    cgl,
+  ].map((xgl) => {
     xgl["b11"](34962, xgl["c1b"]());
     xgl["b2v"](34962, new Float32Array(_vertexPositions), 35044);
     xgl["v7s"](0, 4, 5126, false, 0, 0);
@@ -2917,7 +2921,7 @@ const initTriangleBuffers = () => {
     xgl["e3x"](0);
     xgl["e3x"](1);
     xgl["e3x"](2);
-  }
+  });
 };
 loadStep(() => {
   let loadStatus = 0;

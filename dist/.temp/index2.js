@@ -6,6 +6,8 @@ let player_first_person;
 let projection;
 let csm_projections;
 let updateInput;
+let souls_collected_count;
+let game_completed;
 let firstBoatLerp;
 let secondBoatLerp;
 let meshAdd;
@@ -20,8 +22,6 @@ let absoluteTime = 0;
 let gameTimeDelta = 0;
 let input_forward = 0;
 let input_strafe = 0;
-let souls_collected_count = 0;
-let game_completed = 0;
 let camera_position_x = 0;
 let camera_position_y = 0;
 let camera_position_z = 0;
@@ -616,15 +616,15 @@ const initPage = () => {
             camera_rotation.y = touchStartCameraRotX + (pageX - touchRotX) / 2.3,
             touchRotMoved = 1),
             touchPosIdentifier === identifier
-            && (identifier = (touchPosStartX - pageX) / 20,
+            && (identifier = (touchPosStartX - pageX) / 19,
               absDeltaX = abs(identifier),
-              deltaY = (touchPosStartY - pageY) / 20,
+              deltaY = (touchPosStartY - pageY) / 19,
               absDeltaY = abs(deltaY),
-              (m = 0.5 < max(absDeltaX, absDeltaY)) && (touchPosMoved = 1),
-              touch_movementX = (m && 0.3 < absDeltaX) * clamp(identifier, -1),
-              touch_movementY = (m && 0.3 < absDeltaY) * clamp(deltaY, -1),
-              2 < absDeltaX && (touchPosStartX = 20 * (identifier < 0 ? -1 : 1) + pageX),
-              2 < absDeltaY && (touchPosStartY = 20 * (deltaY < 0 ? -1 : 1) + pageY));
+              (m = 0.3 < max(absDeltaX, absDeltaY)) && (touchPosMoved = 1),
+              touch_movementX = (m && 0.2 < absDeltaX) * clamp(identifier, -1),
+              touch_movementY = (m && 0.2 < absDeltaY) * clamp(deltaY, -1),
+              2 < absDeltaX && (touchPosStartX = 19 * (identifier < 0 ? -1 : 1) + pageX),
+              2 < absDeltaY && (touchPosStartY = 19 * (deltaY < 0 ? -1 : 1) + pageY));
         }
       }
     },
@@ -1094,19 +1094,23 @@ const player_init = () => {
       && (player_respawned = 2),
       currentModelId === 1
       && (levers[15].$value = player_position_final.x < -15 && player_position_final.z < 0 ? 1 : 0),
-      player_model_y = lerp(
-        lerpDamp(player_model_y, player_position_final.y, 2),
-        player_position_final.y,
-        player_respawned || 8 * abs(player_model_y - player_position_final.y),
-      ),
-      camera_pos_lookat_x = interpolate_with_hysteresis(camera_pos_lookat_x, player_position_final.x, 0.5, 1),
-      camera_pos_lookat_y = interpolate_with_hysteresis(camera_pos_lookat_y, player_model_y, 2, 1),
-      camera_pos_lookat_z = interpolate_with_hysteresis(camera_pos_lookat_z, player_position_final.z, 0.5, 1),
       player_on_rotating_platforms = lerpDamp(
         player_on_rotating_platforms,
         shouldRotatePlatforms * (30 < currentModelId && currentModelId < 35),
         2,
       ),
+      camera_pos_lookat_x = interpolate_with_hysteresis(camera_pos_lookat_x, player_position_final.x, 0.5, 1),
+      camera_pos_lookat_y = interpolate_with_hysteresis(
+        camera_pos_lookat_y,
+        player_model_y = lerp(
+          lerpDamp(player_model_y, player_position_final.y, 2),
+          player_position_final.y,
+          player_respawned || 8 * abs(player_model_y - player_position_final.y),
+        ),
+        2,
+        1,
+      ),
+      camera_pos_lookat_z = interpolate_with_hysteresis(camera_pos_lookat_z, player_position_final.z, 0.5, 1),
       player_first_person
         ? (d = player_respawned + damp(18),
           camera_position_x = lerp(camera_position_x, player_position_final.x, d),
@@ -1230,25 +1234,25 @@ const transformsBuffer = new Float32Array(760);
 const collision_buffer = new Uint8Array(65536);
 const code$3 = `#version 300 es
 layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 b,a;uniform vec4 j[190];void main(){mat4 r=mat4(1);lowp int i=int(f.w);if(l=d,m=vec4(f.xyz,1),f.w>1.&&f.w<28.)m+=(r[3]=j[i+162]);else if(f.w!=1.){if(i=(i<1?gl_InstanceID-i:i-28)*4,r[0]=j[i],r[1]=j[i+1],r[2]=j[i+2],r[3]=j[i+3],f.w==-25.&&l.w==0.)l=mix(l,vec4(.7,1,.2,0),r[3][3]);r[3][3]=1.,m=r*m;}gl_Position=a*b*m,m.w=f.w,o=r*vec4(e,0),n=f;}`;
+const gl = hC.getContext("webgl2", {
+  powerPreference: "high-performance",
+});
 const cgl = hD.getContext("webgl2", {
   powerPreference: "high-performance",
   preserveDrawingBuffer: !0,
   antialias: !1,
 });
-const gl = hC.getContext("webgl2", {
-  powerPreference: "high-performance",
-});
-for (const s in gl) {
-  gl[
-    s[0] + [
-      ...s,
-    ].reduce((p, c, i) => (p * i + c.charCodeAt(0)) % 434, 0).toString(36)
-  ] = gl[s],
-    cgl[
+for (const s in cgl) {
+  [
+    gl,
+    cgl,
+  ].map((xgl) =>
+    xgl[
       s[0] + [
         ...s,
       ].reduce((p, c, i) => (p * i + c.charCodeAt(0)) % 434, 0).toString(36)
-    ] = cgl[s];
+    ] = xgl[s]
+  );
 }
 loadStep(() => {
   let loadStatus = 0;
@@ -1270,15 +1274,14 @@ loadStep(() => {
               Math.sin(0.9 * gameTime),
             );
           _messageEndTime && gameTime > _messageEndTime && (_messageEndTime = 0, h4.innerHTML = ""),
-            game_completed && (player_first_person = 0),
-            firstBoatLerp = game_completed
-              ? lerpDamp(firstBoatLerp, -9, 0.015)
-              : lerpDamp(firstBoatLerp, clamp(gameTime / 3), 1),
             secondBoatLerp = lerpDamp(
               secondBoatLerp,
-              levers[14].$lerpValue2,
-              0.2 + 0.3 * abs(2 * levers[14].$lerpValue2 - 1),
+              levers[15].$lerpValue2,
+              0.2 + 0.3 * abs(2 * levers[15].$lerpValue2 - 1),
             ),
+            game_completed
+              ? (firstBoatLerp = lerpDamp(firstBoatLerp, -9, 0.015), player_first_person = 0)
+              : firstBoatLerp = lerpDamp(firstBoatLerp, clamp(gameTime / 3), 1),
             updateInput();
           let oscillation =
             (modelsUpdateCounter = 1,
@@ -1633,28 +1636,26 @@ precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;ou
             model.$polygons = 0,
               model.$vertexBegin = meshFirstIndex,
               model.$vertexEnd = meshFirstIndex = _triangleIndices.length;
-          });
-          for (
-            const xgl of [
+          }),
+            [
               gl,
               cgl,
-            ]
-          ) {
-            xgl["b11"](34962, xgl["c1b"]()),
-              xgl["b2v"](34962, new Float32Array(_vertexPositions), 35044),
-              xgl["v7s"](0, 4, 5126, !1, 0, 0),
+            ].map((xgl) => {
               xgl["b11"](34962, xgl["c1b"]()),
-              xgl["b2v"](34962, new Int16Array(_vertexNormals), 35044),
-              xgl["v7s"](1, 3, 5122, !0, 0, 0),
-              xgl["b11"](34962, xgl["c1b"]()),
-              xgl["b2v"](34962, new Uint32Array(_vertexColors), 35044),
-              xgl["v7s"](2, 4, 5121, !0, 0, 0),
-              xgl["b11"](34963, xgl["c1b"]()),
-              xgl["b2v"](34963, new Uint16Array(_triangleIndices), 35044),
-              xgl["e3x"](0),
-              xgl["e3x"](1),
-              xgl["e3x"](2);
-          }
+                xgl["b2v"](34962, new Float32Array(_vertexPositions), 35044),
+                xgl["v7s"](0, 4, 5126, !1, 0, 0),
+                xgl["b11"](34962, xgl["c1b"]()),
+                xgl["b2v"](34962, new Int16Array(_vertexNormals), 35044),
+                xgl["v7s"](1, 3, 5122, !0, 0, 0),
+                xgl["b11"](34962, xgl["c1b"]()),
+                xgl["b2v"](34962, new Uint32Array(_vertexColors), 35044),
+                xgl["v7s"](2, 4, 5121, !0, 0, 0),
+                xgl["b11"](34963, xgl["c1b"]()),
+                xgl["b2v"](34963, new Uint16Array(_triangleIndices), 35044),
+                xgl["e3x"](0),
+                xgl["e3x"](1),
+                xgl["e3x"](2);
+            });
         }
         {
           let _savedLevers = [];
@@ -1700,7 +1701,7 @@ precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;ou
             polygons_transform(
               cylinder(),
               identity.translate(i - 5.5, 4.4).scale(0.1, 0.1, 2),
-              material(0.6, 0.5, 0.4, 0.3),
+              material(0.6, 0.5, 0.3, 0.2),
             )).flat(),
           ...csg_polygons_subtract(
             polygons_transform(cylinder(6), identity.rotate(90).scale(6, 8, 6), material(0.3, 0.6, 0.6, 0.3)),

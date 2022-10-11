@@ -287,15 +287,6 @@ export const player_init = () => {
       levers[LEVER_ID_BOAT1]!.$value = player_position_final.x < -15 && player_position_final.z < 0 ? 1 : 0;
     }
 
-    player_model_y = lerp(
-      lerpDamp(player_model_y, player_position_final.y, 2),
-      player_position_final.y,
-      player_respawned || abs(player_model_y - player_position_final.y) * 8,
-    );
-    camera_pos_lookat_x = interpolate_with_hysteresis(camera_pos_lookat_x, player_position_final.x, 0.5, 1);
-    camera_pos_lookat_y = interpolate_with_hysteresis(camera_pos_lookat_y, player_model_y, 2, 1);
-    camera_pos_lookat_z = interpolate_with_hysteresis(camera_pos_lookat_z, player_position_final.z, 0.5, 1);
-
     // Special handling for the rotating platforms, better camera for mobile that allows to see more
     player_on_rotating_platforms = lerpDamp(
       player_on_rotating_platforms,
@@ -303,6 +294,19 @@ export const player_init = () => {
         ((currentModelId > MODEL_ID_ROTATING_PLATFORM0 - 1 && currentModelId < MODEL_ID_ROTATING_PLATFORM0 + 4) as any),
       2,
     );
+
+    camera_pos_lookat_x = interpolate_with_hysteresis(camera_pos_lookat_x, player_position_final.x, 0.5, 1);
+    camera_pos_lookat_y = interpolate_with_hysteresis(
+      camera_pos_lookat_y,
+      (player_model_y = lerp(
+        lerpDamp(player_model_y, player_position_final.y, 2),
+        player_position_final.y,
+        player_respawned || abs(player_model_y - player_position_final.y) * 8,
+      )),
+      2,
+      1,
+    );
+    camera_pos_lookat_z = interpolate_with_hysteresis(camera_pos_lookat_z, player_position_final.z, 0.5, 1);
 
     if (!DEBUG_CAMERA) {
       if (player_first_person) {

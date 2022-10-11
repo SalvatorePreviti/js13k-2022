@@ -3,18 +3,18 @@ import type { Vec2, Vec3 } from "../math/vectors";
 import { levers, souls, SOULS_COUNT } from "./models";
 import { gameTime, lerpDamp, setGameTime } from "./game-time";
 import { exit_player_first_person } from "../page";
-import { LEVER_ID_BOAT0 } from "./levers-ids";
+import { LEVER_ID_BOAT0, LEVER_ID_BOAT1 } from "./levers-ids";
 import { devLeverNames } from "../dev-tools/dev-models";
+
+export const LOCAL_STORAGE_SAVED_GAME_KEY = "spdnt22";
 
 export const camera_rotation: Vec2 = { x: 0, y: 180 } as Vec2;
 
 export const player_position_final: Vec3 = { x: 0, y: 0, z: 0 };
 
-export let souls_collected_count = 0;
+export let souls_collected_count: number;
 
-export const LOCAL_STORAGE_SAVED_GAME_KEY = "spdnt22";
-
-export let game_completed: 0 | 1 = 0;
+export let game_completed: 0 | 1 | undefined;
 
 export let player_last_pulled_lever = LEVER_ID_BOAT0;
 
@@ -37,16 +37,18 @@ export const worldStateUpdate = () => {
     h4.innerHTML = "";
   }
 
-  if (game_completed) {
-    exit_player_first_person();
-  }
-
-  firstBoatLerp = game_completed ? lerpDamp(firstBoatLerp, -9, 0.015) : lerpDamp(firstBoatLerp, clamp(gameTime / 3), 1);
   secondBoatLerp = lerpDamp(
     secondBoatLerp,
-    levers[LEVER_ID_BOAT0]!.$lerpValue2,
-    0.2 + 0.3 * abs(levers[LEVER_ID_BOAT0]!.$lerpValue2 * 2 - 1),
+    levers[LEVER_ID_BOAT1]!.$lerpValue2,
+    0.2 + 0.3 * abs(levers[LEVER_ID_BOAT1]!.$lerpValue2 * 2 - 1),
   );
+
+  if (game_completed) {
+    exit_player_first_person();
+    firstBoatLerp = lerpDamp(firstBoatLerp, -9, 0.015);
+  } else {
+    firstBoatLerp = lerpDamp(firstBoatLerp, clamp(gameTime / 3), 1);
+  }
 };
 
 const updateCollectedSoulsCounter = () => {

@@ -255,9 +255,9 @@ export const initPage = () => {
     }
   };
 
-  const TOUCH_SIZE = 20;
-  const TOUCH_MOVE_THRESHOLD = 0.5;
-  const TOUCH_MOVE_SNAP = 0.3;
+  const TOUCH_SIZE = 19;
+  const TOUCH_MOVE_THRESHOLD = 0.3;
+  const TOUCH_MOVE_SNAP = 0.2;
 
   hC.ontouchmove = (e) => {
     if (!mainMenuVisible) {

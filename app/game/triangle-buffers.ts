@@ -71,7 +71,7 @@ export const initTriangleBuffers = () => {
     model.$vertexEnd = meshFirstIndex = _triangleIndices.length;
   });
 
-  for (const xgl of [gl, cgl]) {
+  [gl, cgl].map((xgl) => {
     xgl.bindBuffer(xgl.ARRAY_BUFFER, xgl.createBuffer());
     xgl.bufferData(xgl.ARRAY_BUFFER, new Float32Array(_vertexPositions), xgl.STATIC_DRAW);
     xgl.vertexAttribPointer(0, 4, xgl.FLOAT, false, 0, 0);
@@ -90,7 +90,7 @@ export const initTriangleBuffers = () => {
     xgl.enableVertexAttribArray(0);
     xgl.enableVertexAttribArray(1);
     xgl.enableVertexAttribArray(2);
-  }
+  });
 
   if (DEBUG) {
     console.timeEnd("initTriangleBuffers");
