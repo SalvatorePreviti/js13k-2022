@@ -747,9 +747,9 @@ const LEVER_ID_AFTER_JUMPING_PADS = 9;
 const LEVER_ID_GATE1 = 10;
 const LEVER_ID_TRIANGLE_PLATFORM = 11;
 const LEVER_ID_FLOATING_ELEVATOR = 12;
-const LEVER_ID_BOAT0 = 13;
-const LEVER_ID_BOAT1 = 14;
-const LEVER_ID_DONUT_PAD = 15;
+const LEVER_ID_DONUT_PAD = 13;
+const LEVER_ID_BOAT0 = 14;
+const LEVER_ID_BOAT1 = 15;
 let firstBoatLerp;
 let secondBoatLerp;
 let souls_collected_count = 0;
@@ -865,9 +865,9 @@ const onFirstBoatLeverPulled = () => {
 let player_last_pulled_lever = LEVER_ID_BOAT0;
 const material = /* @__PURE__ */ NO_INLINE((r, g, b, a = 0) => a * 255 << 24 | b * 255 << 16 | g * 255 << 8 | r * 255);
 const MODEL_ID_STATIC_WORLD = 1;
-const MODEL_ID_BOAT0 = 28;
-const MODEL_ID_LEVEL2_ROTATING_HEX_CORRIDOR = 30;
-const MODEL_ID_ROTATING_PLATFORM0 = 33;
+const MODEL_ID_LEVEL2_ROTATING_HEX_CORRIDOR = 28;
+const MODEL_ID_ROTATING_PLATFORM0 = 31;
+const MODEL_ID_BOAT0 = 35;
 const MODEL_ID_PLAYER_BODY = 37;
 const MODEL_ID_PLAYER_LEG0 = 38;
 const MODEL_ID_PLAYER_LEG1 = 39;
@@ -1470,11 +1470,6 @@ const build_life_the_universe_and_everything = () => {
     newModel();
     integers_map(7, (i) => meshAdd(polygons_transform(cylinder(9, 1), translation((gate > 2 ? 3.5 : 4) * (i / 6 - 0.5), 3).scale(0.2, gate > 2 ? 4 : 3, 0.2), material(0.3, 0.3, 0.38))));
   });
-  integers_map(2, (i) => {
-    newModel();
-    meshAdd(csg_polygons_subtract(polygons_transform(cylinder(30, 1, 1.15, 1), translation(0, -3).scale(3.5, 1, 3.5), material(0.7, 0.4, 0.25, 0.7)), polygons_transform(cylinder(30, 1, 1.3, 1), translation(0, -2.5).scale(2.6, 1, 3), material(0.7, 0.4, 0.25, 0.2)), polygons_transform(cylinder(), translation(4, -1.2).scale3d(2), material(0.7, 0.4, 0.25, 0.3))));
-    newLever(translation(0, -3, 4));
-  });
   newModel();
   meshAdd(hexCorridorPolygons);
   newModel();
@@ -1530,6 +1525,11 @@ const build_life_the_universe_and_everything = () => {
   meshAdd(csg_polygons_subtract(polygons_transform(cylinder(28, 1), translation(0, 2).scale(7.5, 1, 7.5), material(0.35, 0, 0, 0.3)), polygons_transform(cylinder(), translation(7).scale(9, 5, 2), material(0.3, 0, 0, 0.3)), polygons_transform(cylinder(), translation(0, 0, -7).scale(2, 5, 9), material(0.3, 0, 0, 0.3))));
   meshAdd(polygons_transform(cylinder(28, 1), identity.scale(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2)));
   meshAdd(polygons_transform(cylinder(5), translation(0, 1).scale(1, 0.2), material(0.3, 0.3, 0.3, 0.2)));
+  integers_map(2, (i) => {
+    newModel();
+    meshAdd(csg_polygons_subtract(polygons_transform(cylinder(30, 1, 1.15, 1), translation(0, -3).scale(3.5, 1, 3.5), material(0.7, 0.4, 0.25, 0.7)), polygons_transform(cylinder(30, 1, 1.3, 1), translation(0, -2.5).scale(2.6, 1, 3), material(0.7, 0.4, 0.25, 0.2)), polygons_transform(cylinder(), translation(4, -1.2).scale3d(2), material(0.7, 0.4, 0.25, 0.3))));
+    newLever(translation(0, -3, 4));
+  });
   newModel();
   meshAdd(sphere(20), translation(0, 1).scale3d(0.5), material(1, 0.3, 0.4));
   meshAdd(sphere(30), identity.scale(0.65, 0.8, 0.55), material(1, 0.3, 0.4));
@@ -1828,8 +1828,6 @@ const eppur_si_muove = () => {
   modelsNextUpdate(0, -4.7 * levers[LEVER_ID_GATE1].$lerpValue, 15);
   modelsNextUpdate(-99.7, -1.9 - 5.5 * levers[LEVER_ID_CRYSTALS].$lerpValue, 63.5);
   modelsNextUpdate(-100, 0.6 - 5.8 * levers[LEVER_ID_DONUT_PAD].$lerpValue, 96.5);
-  boatUpdate(-12, 4.2, -66 + 40 * firstBoatLerp);
-  boatUpdate(-123, 1.4, 55 - 65 * secondBoatLerp);
   modelsNextUpdate(-75, 3 * (1 - levers[LEVER_ID_ROTATING_CORRIDOR].$lerpValue2) * (1 - levers[LEVER_ID_CRYSTALS].$lerpValue), 55).rotateSelf(180 * (1 - levers[LEVER_ID_ROTATING_CORRIDOR].$lerpValue2) + rotatingHexCorridorRotation, 0);
   modelsNextUpdate(2.5 * (1 - hexPadsOscillation) - 139.7, -3 * (1 - levers[LEVER_ID_DETOUR].$lerpValue) - hexPadsOscillation * /* @__PURE__ */ Math.sin(gameTime * 0.8) - 1.8, 93.5).rotateSelf(/* @__PURE__ */ Math.cos(gameTime * 1.3) * (3 + 3 * hexPadsOscillation), 0);
   modelsNextUpdate(-2 * /* @__PURE__ */ Math.sin(gameTime)).rotateSelf(25 * /* @__PURE__ */ Math.sin(gameTime));
@@ -1837,6 +1835,8 @@ const eppur_si_muove = () => {
   modelsNextUpdate(-65.8, 0.8, 106).rotateSelf(0, rotatingPlatform2Rotation);
   modelsNextUpdate(-50.7, 0.8, 106).rotateSelf(0, 180 - rotatingPlatform2Rotation);
   modelsNextUpdate(-50.7, 0.8, 91).rotateSelf(0, 270 + rotatingPlatform2Rotation);
+  boatUpdate(-12, 4.2, -66 + 40 * firstBoatLerp);
+  boatUpdate(-123, 1.4, 55 - 65 * secondBoatLerp);
   for (let i2 = 0; i2 < SOULS_COUNT; ++i2) {
     souls[i2]();
     matrixToArray(tempMatrix, transformsBuffer, MODELS_WITH_FULL_TRANSFORM + i2);

@@ -60,23 +60,23 @@ export const MODEL_ID_GATE3 = 27;
 
 // full matrices
 
-export const MODEL_ID_BOAT0 = 28;
+export const MODEL_ID_LEVEL2_ROTATING_HEX_CORRIDOR = 28;
 
-export const MODEL_ID_BOAT1 = 29;
+export const MODEL_ID_DONUT_PAD = 29;
 
-export const MODEL_ID_LEVEL2_ROTATING_HEX_CORRIDOR = 30;
+export const MODEL_ID_PENDULUMS = 30;
 
-export const MODEL_ID_DONUT_PAD = 31;
+export const MODEL_ID_ROTATING_PLATFORM0 = 31;
 
-export const MODEL_ID_PENDULUMS = 32;
+export const MODEL_ID_ROTATING_PLATFORM1 = 32;
 
-export const MODEL_ID_ROTATING_PLATFORM0 = 33;
+export const MODEL_ID_ROTATING_PLATFORM2 = 33;
 
-export const MODEL_ID_ROTATING_PLATFORM1 = 34;
+export const MODEL_ID_ROTATING_PLATFORM3 = 34;
 
-export const MODEL_ID_ROTATING_PLATFORM2 = 35;
+export const MODEL_ID_BOAT0 = 35;
 
-export const MODEL_ID_ROTATING_PLATFORM3 = 36;
+export const MODEL_ID_BOAT1 = 36;
 
 export const MODEL_ID_PLAYER_BODY = 37;
 

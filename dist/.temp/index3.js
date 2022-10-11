@@ -25,7 +25,7 @@ let aa,
   Ea = 0,
   Fa = 0,
   Ga = 0,
-  Ia = 13,
+  Ia = 14,
   Ja = 0.1;
 const Ka = Math.PI / 180,
   La = "data:image/svg+xml;base64,"
@@ -423,7 +423,7 @@ const nb = (
           ? a.i
             ? 0.7 < a.g && (a.i = 0, (Ia = k) && Ib("* click *", 1), Kb())
             : 0.3 > a.g && (a.i = 1, (Ia = k) && Ib("* click *", 1), Kb())
-          : a.i && 0.8 < a.g && 13 === k && (a.i = 0,
+          : a.i && 0.8 < a.g && 14 === k && (a.i = 0,
             13 > Ca
               ? Ib("Not leaving now, there are souls to catch!", 3)
               : Da || (Ib("Well done. They will be punished.<br>Thanks for playing", 1 / 0), Da = 1));
@@ -489,7 +489,7 @@ const nb = (
             Kb());
       }
       K.i
-        && ob(h[28].m).translateSelf(
+        && ob(h[35].m).translateSelf(
           T % 4 * 1.2 - 1.7 + Math.sin(d + T) / 7,
           -2,
           1.7 * (T / 4 | 0) - 5.5 + Ya(T % 4 - 2) + Math.cos(d / 1.5 + T) / 6,
@@ -610,7 +610,7 @@ const nb = (
   },
   ac = () => {
     let b, a, g, k, q, n, x, B, f, t, K, H, C, F = 0, W = 0, R = 0, S = 0, T = 1, u = 2, w = 15;
-    const v = () => ob((u ? e[Ia] : h[30 !== F ? F : 0]).m),
+    const v = () => ob((u ? e[Ia] : h[28 !== F ? F : 0]).m),
       G = r => {
         1 < u ? (ob(e[Ia].m).multiplySelf(e[Ia].F), lb(0, 0.9 < na ? 15 : 1, -2.4)) : (v(), lb(W, R, S));
         r && (q = (hb - Va) / xa, n = (jb - Xa) / xa);
@@ -670,12 +670,12 @@ const nb = (
       NO_INLINE(L)();
       !u && t === F || (F = t, v().invertSelf(), lb(Va, Wa, Xa), W = hb, R = ib, S = jb, u = u && (t ? 0 : 1));
       (-20 > Va || 109 > Xa ? -25 : -9) > Wa && (u = 2);
-      1 === t && (e[14].i = -15 > Va && 0 > Xa ? 1 : 0);
+      1 === t && (e[15].i = -15 > Va && 0 > Xa ? 1 : 0);
       f = eb(xb(f, Wa, 2), Wa, u || 8 * Ya(f - Wa));
       K = p(K, Va, 0.5, 1);
       H = p(H, f, 2, 1);
       C = p(C, Xa, 0.5, 1);
-      k = xb(k, sa * (32 < t && 37 > t), 2);
+      k = xb(k, sa * (30 < t && 35 > t), 2);
       ha
         ? (r = u + wb(18), Ea = eb(Ea, Va, r), Ga = eb(Ga, Xa, r), Fa = eb(Fa, 1.6 + f, r), Ua = cb(Ua))
         : (Ea = p(Ea, K, 1, 2 + k),
@@ -756,10 +756,10 @@ zb(() => {
               Ja && d > Ja && (Ja = 0, h4.innerHTML = "");
               Da && (ha = 0);
               na = Da ? xb(na, -9, 0.015) : xb(na, bb(d / 3), 1);
-              oa = xb(oa, e[13].h, 0.2 + 0.3 * Ya(2 * e[13].h - 1));
+              oa = xb(oa, e[14].h, 0.2 + 0.3 * Ya(2 * e[14].h - 1));
               u =
                 (pa = 1,
-                  sa = fb(e[15].g, e[8].g),
+                  sa = fb(e[13].g, e[8].g),
                   va = eb(xb(va, 0, 1), cb(va + 60 * xa), e[2].g - e[3].h),
                   ta = eb(xb(ta, 0, 5), cb(ta + 56 * xa), sa),
                   ua = eb(xb(ua, 0, 4), cb(ua + 48 * xa), sa),
@@ -787,12 +787,12 @@ zb(() => {
                   ),
                   Y(0, -2, 10 - 8.5 * u * Ya(Math.sin(2.1 * d))),
                   Y(0, -2, 10 - 8.5 * $a(u * Ya(Math.sin(1.5 * d)), (1 - e[6].g) * (1 - u))),
-                  fb(e[5].h, e[15].h));
+                  fb(e[5].h, e[13].h));
               for (u = 0; 4 > u; u++) {
                 Y(
                   (2 < u ? 2 * (1 - v) + v : 0) - 100,
                   v * Math.sin(1.3 * d + 1.7 * u) * (3 + u / 3) + 0.7,
-                  115 - 7 * (1 - e[5].h) * (1 - e[15].h) * (1 & u ? -1 : 1)
+                  115 - 7 * (1 - e[5].h) * (1 - e[13].h) * (1 & u ? -1 : 1)
                     + $a(0.05, v) * Math.cos(1.3 * d + 7 * u) * (4 - 2 * (1 - u / 3)),
                 );
               }
@@ -805,9 +805,7 @@ zb(() => {
               Y(0, -4.7 * e[0].g, -15);
               Y(0, -4.7 * e[10].g, 15);
               Y(-99.7, -1.9 - 5.5 * e[3].g, 63.5);
-              Y(-100, 0.6 - 5.8 * e[15].g, 96.5);
-              w(-12, 4.2, 40 * na - 66);
-              w(-123, 1.4, 55 - 65 * oa);
+              Y(-100, 0.6 - 5.8 * e[13].g, 96.5);
               Y(-75, 3 * (1 - e[2].h) * (1 - e[3].g), 55).rotateSelf(180 * (1 - e[2].h) + va, 0);
               Y(2.5 * (1 - v) - 139.7, -3 * (1 - e[5].g) - v * Math.sin(0.8 * d) - 1.8, 93.5).rotateSelf(
                 Math.cos(1.3 * d) * (3 + 3 * v),
@@ -818,6 +816,8 @@ zb(() => {
               Y(-65.8, 0.8, 106).rotateSelf(0, ua);
               Y(-50.7, 0.8, 106).rotateSelf(0, 180 - ua);
               Y(-50.7, 0.8, 91).rotateSelf(0, 270 + ua);
+              w(-12, 4.2, 40 * na - 66);
+              w(-123, 1.4, 55 - 65 * oa);
               for (w = 0; 13 > w; ++w) {
                 Ma[w](), nb(l, kc, 12 + w);
               }
@@ -1058,10 +1058,10 @@ zb(() => {
         d = p;
       } catch {
       }
-      e.map((w, v) => w.g = w.h = w.i = 13 !== v && T[v] ? 1 : 0);
+      e.map((w, v) => w.g = w.h = w.i = 14 !== v && T[v] ? 1 : 0);
       Ma.map((w, v) => w.i = u[v] ? 1 : 0);
       Jb();
-      na = Ca || 13 !== Ia ? 1 : 0;
+      na = Ca || 14 !== Ia ? 1 : 0;
       zb(a);
     });
     const k = f => y(Math.sin((f /= 11) * Math.PI), f).rotateSelf(10 * f).scaleSelf(1.002 - f, 1, 1.002 - f),
@@ -1397,15 +1397,6 @@ zb(() => {
         t => c(I(M(9, 1), y((2 < f ? 3.5 : 4) * (t / 6 - 0.5), 3).scale(0.2, 2 < f ? 4 : 3, 0.2), N(0.3, 0.3, 0.38))),
       );
     });
-    D(2, () => {
-      P();
-      c(U(
-        I(M(30, 1, 1.15, 1), y(0, -3).scale(3.5, 1, 3.5), N(0.7, 0.4, 0.25, 0.7)),
-        I(M(30, 1, 1.3, 1), y(0, -2.5).scale(2.6, 1, 3), N(0.7, 0.4, 0.25, 0.2)),
-        I(M(), y(4, -1.2).scale3d(2), N(0.7, 0.4, 0.25, 0.3)),
-      ));
-      Lb(y(0, -3, 4));
-    });
     P();
     c(x);
     P();
@@ -1451,6 +1442,15 @@ zb(() => {
     ));
     c(I(M(28, 1), m.scale(7.5, 1, 7.5), N(0.45, 0.45, 0.45, 0.2)));
     c(I(M(5), y(0, 1).scale(1, 0.2), N(0.3, 0.3, 0.3, 0.2)));
+    D(2, () => {
+      P();
+      c(U(
+        I(M(30, 1, 1.15, 1), y(0, -3).scale(3.5, 1, 3.5), N(0.7, 0.4, 0.25, 0.7)),
+        I(M(30, 1, 1.3, 1), y(0, -2.5).scale(2.6, 1, 3), N(0.7, 0.4, 0.25, 0.2)),
+        I(M(), y(4, -1.2).scale3d(2), N(0.7, 0.4, 0.25, 0.3)),
+      ));
+      Lb(y(0, -3, 4));
+    });
     P();
     c(vb(20), y(0, 1).scale3d(0.5), N(1, 0.3, 0.4));
     c(vb(30), m.scale(0.65, 0.8, 0.55), N(1, 0.3, 0.4));

@@ -26,8 +26,8 @@ export const LEVER_ID_TRIANGLE_PLATFORM = 11;
 
 export const LEVER_ID_FLOATING_ELEVATOR = 12;
 
-export const LEVER_ID_BOAT0 = 13;
+export const LEVER_ID_DONUT_PAD = 13;
 
-export const LEVER_ID_BOAT1 = 14;
+export const LEVER_ID_BOAT0 = 14;
 
-export const LEVER_ID_DONUT_PAD = 15;
+export const LEVER_ID_BOAT1 = 15;

@@ -33,7 +33,7 @@ let D,
   R = 0,
   X = 0,
   q = 0,
-  g1 = 13,
+  g1 = 14,
   H = 180,
   v1 = .1,
   a = "data:image/svg+xml;base64,"
@@ -171,7 +171,7 @@ let D,
             ? a.i
               ? .7 < a.g && (a.i = 0, (g1 = l) && Q1("* click *", 1), R1())
               : a.g < .3 && (a.i = 1, (g1 = l) && Q1("* click *", 1), R1())
-            : a.i && .8 < a.g && 13 === l && (a.i = 0,
+            : a.i && .8 < a.g && 14 === l && (a.i = 0,
               i1 < 13
                 ? Q1("Not leaving now, there are souls to catch!", 3)
                 : n1 || (Q1("Well done. They will be punished.<br>Thanks for playing", 1 / 0), n1 = 1)),
@@ -243,7 +243,7 @@ let D,
               R1());
         }
         p.i
-          && K(L[28].m).translateSelf(
+          && K(L[35].m).translateSelf(
             e % 4 * 1.2 - 1.7 + _(z + e) / 7,
             -2,
             1.7 * (e / 4 | 0) - 5.5 + E(e % 4 - 2) + G(z / 1.5 + e) / 6,
@@ -375,9 +375,9 @@ T1(() => {
                 v1 && z > v1 && (v1 = 0, h4.innerHTML = ""),
                 n1 && (Q = 0),
                 e1 = n1 ? P(e1, -9, .015) : P(e1, U(z / 3), 1),
-                a1 = P(a1, N[13].h, .2 + .3 * E(2 * N[13].h - 1)),
+                a1 = P(a1, N[14].h, .2 + .3 * E(2 * N[14].h - 1)),
                 t1 = 1,
-                l1 = M1(N[15].g, N[8].g),
+                l1 = M1(N[13].g, N[8].g),
                 s1 = A1(P(s1, 0, 1), w1(s1 + 60 * B), N[2].g - N[3].h),
                 r1 = A1(P(r1, 0, 5), w1(r1 + 56 * B), l1),
                 y = A1(P(y, 0, 4), w1(y + 48 * B), l1),
@@ -399,12 +399,12 @@ T1(() => {
                 V(0, -2, 10 - 8.5 * a * E(_(1.1 * z))),
                 V(0, -2, 10 - 8.5 * a * E(_(2.1 * z))),
                 V(0, -2, 10 - 8.5 * y1(a * E(_(1.5 * z)), (1 - N[6].g) * (1 - a)));
-              var t = M1(N[5].h, N[15].h);
+              var t = M1(N[5].h, N[13].h);
               for (a = 0; a < 4; a++) {
                 V(
                   (2 < a ? 2 * (1 - t) + t : 0) - 100,
                   t * _(1.3 * z + 1.7 * a) * (3 + a / 3) + .7,
-                  115 - 7 * (1 - N[5].h) * (1 - N[15].h) * (1 & a ? -1 : 1)
+                  115 - 7 * (1 - N[5].h) * (1 - N[13].h) * (1 & a ? -1 : 1)
                     + y1(.05, t) * G(1.3 * z + 7 * a) * (4 - 2 * (1 - a / 3)),
                 );
               }
@@ -418,9 +418,7 @@ T1(() => {
                   V(0, -4.7 * N[0].g, -15),
                   V(0, -4.7 * N[10].g, 15),
                   V(-99.7, -1.9 - 5.5 * N[3].g, 63.5),
-                  V(-100, .6 - 5.8 * N[15].g, 96.5),
-                  e(-12, 4.2, 40 * e1 - 66),
-                  e(-123, 1.4, 55 - 65 * a1),
+                  V(-100, .6 - 5.8 * N[13].g, 96.5),
                   V(-75, 3 * (1 - N[2].h) * (1 - N[3].g), 55).rotateSelf(180 * (1 - N[2].h) + s1, 0),
                   V(2.5 * (1 - t) - 139.7, -3 * (1 - N[5].g) - t * _(.8 * z) - 1.8, 93.5).rotateSelf(
                     G(1.3 * z) * (3 + 3 * t),
@@ -431,6 +429,8 @@ T1(() => {
                   V(-65.8, .8, 106).rotateSelf(0, y),
                   V(-50.7, .8, 106).rotateSelf(0, 180 - y),
                   V(-50.7, .8, 91).rotateSelf(0, 270 + y),
+                  e(-12, 4.2, 40 * e1 - 66),
+                  e(-123, 1.4, 55 - 65 * a1),
                   e = 0;
                 e < 13;
                 ++e
@@ -774,7 +774,7 @@ precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sa
               I = 1,
               j = 2,
               Y = 15,
-              C = () => K((j ? N[g1] : L[30 !== b ? b : 0]).m),
+              C = () => K((j ? N[g1] : L[28 !== b ? b : 0]).m),
               k = e => {
                 1 < j ? (K(N[g1].m).multiplySelf(N[g1].F), W(0, .9 < e1 ? 15 : 1, -2.4)) : (C(), W(S, A, M)),
                   e && (n = (D - R) / B, m = (O - q) / B),
@@ -836,12 +836,12 @@ precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sa
                   })(),
                   !j && g === b || (b = g, C().invertSelf(), W(R, X, q), S = D, A = T, M = O, j = j && (g ? 0 : 1)),
                   (R < -20 || q < 109 ? -25 : -9) > X && (j = 2),
-                  1 === g && (N[14].i = R < -15 && q < 0 ? 1 : 0),
+                  1 === g && (N[15].i = R < -15 && q < 0 ? 1 : 0),
                   u = A1(P(u, X, 2), X, j || 8 * E(u - X)),
                   v = F(v, R, .5, 1),
                   d = F(d, u, 2, 1),
                   p = F(p, q, .5, 1),
-                  i = P(i, l1 * (32 < g && g < 37), 2),
+                  i = P(i, l1 * (30 < g && g < 35), 2),
                   Q
                     ? (e = j + F1(18), m1 = A1(m1, R, e), h1 = A1(h1, q, e), f1 = A1(f1, 1.6 + u, e), H = w1(H))
                     : (m1 = F(m1, v, 1, 2 + i),
@@ -1061,10 +1061,10 @@ precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sa
             let [e, a, t, l, r] = JSON.parse(localStorage.spdnt22);
             s = e, c = a, g1 = t, a1 = l, z = r;
           } catch {}
-          N.map((e, a) => e.g = e.h = e.i = 13 !== a && s[a] ? 1 : 0),
+          N.map((e, a) => e.g = e.h = e.i = 14 !== a && s[a] ? 1 : 0),
             x1.map((e, a) => e.i = c[a] ? 1 : 0),
             B1(),
-            e1 = i1 || 13 !== g1 ? 1 : 0,
+            e1 = i1 || 14 !== g1 ? 1 : 0,
             T1(g);
         }),
           f(11, e => C1(j1(Y1(18), a(e), n(1, 1, .8, .2)).reverse(), j1(Y1(18), a(e + 1), n(1, 1, .8, .2)), 1)).flat()),
@@ -1399,15 +1399,6 @@ precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sa
               e => s(o(i(9, 1), c((2 < a ? 3.5 : 4) * (e / 6 - .5), 3).scale(.2, 2 < a ? 4 : 3, .2), n(.3, .3, .38))),
             );
         }),
-        f(2, () => {
-          h(),
-            s(d(
-              o(i(30, 1, 1.15, 1), c(0, -3).scale(3.5, 1, 3.5), n(.7, .4, .25, .7)),
-              o(i(30, 1, 1.3, 1), c(0, -2.5).scale(2.6, 1, 3), n(.7, .4, .25, .2)),
-              o(i(), c(4, -1.2).scale3d(2), n(.7, .4, .25, .3)),
-            )),
-            u(c(0, -3, 4));
-        }),
         h(),
         s(e),
         h(),
@@ -1453,6 +1444,15 @@ precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sa
         )),
         s(o(i(28, 1), S.scale(7.5, 1, 7.5), n(.45, .45, .45, .2))),
         s(o(i(5), c(0, 1).scale(1, .2), n(.3, .3, .3, .2))),
+        f(2, () => {
+          h(),
+            s(d(
+              o(i(30, 1, 1.15, 1), c(0, -3).scale(3.5, 1, 3.5), n(.7, .4, .25, .7)),
+              o(i(30, 1, 1.3, 1), c(0, -2.5).scale(2.6, 1, 3), n(.7, .4, .25, .2)),
+              o(i(), c(4, -1.2).scale3d(2), n(.7, .4, .25, .3)),
+            )),
+            u(c(0, -3, 4));
+        }),
         h(),
         s(k1(20), c(0, 1).scale3d(.5), n(1, .3, .4)),
         s(k1(30), S.scale(.65, .8, .55), n(1, .3, .4)),

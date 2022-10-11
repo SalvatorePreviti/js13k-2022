@@ -826,28 +826,6 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
   /// **** FULL MATRIX TRANSFORMS **** ///
 
-  // BOATS
-  integers_map(2, (i) => {
-    newModel("MODEL_ID_BOAT" + i);
-    meshAdd(
-      csg_polygons_subtract(
-        polygons_transform(
-          cylinder(30, 1, 1.15, 1),
-          translation(0, -3).scale(3.5, 1, 3.5),
-          material(0.7, 0.4, 0.25, 0.7),
-        ),
-        polygons_transform(
-          cylinder(30, 1, 1.3, 1),
-          translation(0, -2.5).scale(2.6, 1, 3),
-          material(0.7, 0.4, 0.25, 0.2),
-        ),
-        polygons_transform(cylinder(), translation(4, -1.2).scale3d(2), material(0.7, 0.4, 0.25, 0.3)),
-      ),
-    );
-    // LEVER over the boats (two levers)
-    newLever(translation(0, -3, 4), "LEVER_ID_BOAT" + i);
-  });
-
   // rotating hex corridor
   newModel("MODEL_ID_LEVEL2_ROTATING_HEX_CORRIDOR");
   meshAdd(hexCorridorPolygons);
@@ -961,6 +939,28 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
   );
   meshAdd(polygons_transform(cylinder(28, 1), identity.scale(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2)));
   meshAdd(polygons_transform(cylinder(5), translation(0, 1).scale(1, 0.2), material(0.3, 0.3, 0.3, 0.2)));
+
+  // BOATS
+  integers_map(2, (i) => {
+    newModel("MODEL_ID_BOAT" + i);
+    meshAdd(
+      csg_polygons_subtract(
+        polygons_transform(
+          cylinder(30, 1, 1.15, 1),
+          translation(0, -3).scale(3.5, 1, 3.5),
+          material(0.7, 0.4, 0.25, 0.7),
+        ),
+        polygons_transform(
+          cylinder(30, 1, 1.3, 1),
+          translation(0, -2.5).scale(2.6, 1, 3),
+          material(0.7, 0.4, 0.25, 0.2),
+        ),
+        polygons_transform(cylinder(), translation(4, -1.2).scale3d(2), material(0.7, 0.4, 0.25, 0.3)),
+      ),
+    );
+    // LEVER over the boats (two levers)
+    newLever(translation(0, -3, 4), "LEVER_ID_BOAT" + i);
+  });
 
   // ------ End of game models ------
 
