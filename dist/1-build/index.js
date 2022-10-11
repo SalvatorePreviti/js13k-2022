@@ -1578,18 +1578,16 @@ const build_life_the_universe_and_everything = () => {
   meshAdd(cylinder(10), translation(0, 0.8).scale(0.2, 0.3, 0.2), material(1, 0.5, 0.2));
   meshAdd(cylinder(3), translation(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3), material(0.2, 0.2, 0.2, 0.1));
 };
-const code$3 = "#version 300 es\nlayout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 b,a;uniform vec4 j[22];uniform mat4 c[45];void main(){mat4 i=mat4(1);if(f.w!=1.){if(f.w<1.)i=c[gl_InstanceID-int(f.w)];else if(f.w>1.&&f.w<24.)i[3].xyz=j[int(f.w)-2].xyz;else i=c[int(f.w)-24];}l=mix(d,vec4(.7,1,.2,0),d.w==0.&&f.w==-29.?i[3][3]:0.),i[3][3]=1.,n=f,m=i*vec4(f.xyz,1),gl_Position=a*b*m,m.w=f.w,o=i*vec4(e,0);}";
+const code$3 = "#version 300 es\nlayout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 b,a;uniform vec4 j[202];void main(){mat4 r=mat4(1);lowp int i=int(f.w);if(l=d,m=vec4(f.xyz,1),f.w>1.&&f.w<24.)m.xyz+=(r[3].xyz=j[i+178].xyz);else if(f.w!=1.)i=(i<1?gl_InstanceID-i:i-24)*4,r[0]=j[i],r[1]=j[i+1],r[2]=j[i+2],r[3]=j[i+3],l=mix(l,vec4(.7,1,.2,0),l.w==0.&&f.w==-29.?r[3][3]:0.),r[3][3]=1.,m=r*m;gl_Position=a*b*m,m.w=f.w,o=r*vec4(e,0),n=f;}";
 const uniformName_projectionMatrix = "a";
-const uniformName_simpleTransforms = "j";
 const uniformName_viewMatrix = "b";
-const uniformName_worldMatrices = "c";
+const uniformName_worldTransforms = "j";
 const code$2 = "#version 300 es\nprecision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(vec3(0,1.49,.3*b[0][0])+m.xyz,1);if(O=vec4(0),gl_FragCoord.y>36.){if(a.y>.6&&a.y<4.){float e=abs(gl_FragCoord.x/64.-1.),i=clamp(a.z+.7,0.,1.);O=vec4(vec2(b[0][0]*sign(a.x)*o.x<0.?i*(.7-abs(a.x))*e/.7:0.),vec2(b[0][0]*o.z>0.?i*(1.-e):0.));}}else if(o.y>.45&&a.y<1.){float e=a.y*clamp((a.z+.4)*50.,0.,1.)*clamp((-abs(a.x)+.2)*10.,0.,1.);O=vec4(vec2(e),vec2(e>0.?m.w/255.:0.));}}";
 const constDef_COLLISION_TEXTURE_SIZE = 128;
 const code$1 = "#version 300 es\nin vec4 f;void main(){gl_Position=vec4(f.xy,1,1);}";
 const code = "#version 300 es\nprecision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;out vec4 O;void main(){vec2 t=gl_FragCoord.xy/j.xy*2.-1.;vec3 e=(normalize(b*vec4(t.x*-(j.x/j.y),-t.y,1.73205,0.))).xyz;float o=(-32.-b[3].y)/e.y,i=1.-clamp(abs(o/9999.),0.,1.);if(O=vec4(0,0,0,1),i>.01){if(o>0.){float i=cos(j.z/30.),o=sin(j.z/30.);e.xz*=mat2(i,o,-o,i);vec3 t=abs(e);O.xyz=vec3(dot(vec2(texture(q,e.xy).z,texture(q,e.yz*2.).z),t.zx)*t.y);}else e=b[3].xyz+e*o,O.x=(i*=.9-texture(q,e.xz/150.+vec2(sin(e.z/35.+j.z),cos(e.x/25.+j.z))/80.).y),O.y=i*i*i;}}";
 const uniformName_iResolution = "j";
-const simpleTransformsBuffer = new Float32Array(352);
-const worldMatricesBuffer = new Float32Array(720);
+const worldMatricesBuffer = new Float32Array(808);
 const gl = hC.getContext("webgl2", {
   powerPreference: "high-performance"
 });
@@ -1846,10 +1844,10 @@ const eppur_si_muove = () => {
     matrixToArray(tempMatrix, worldMatricesBuffer, 16 + SOULS_COUNT + i3);
   }
   player_update();
-  for (let i4 = 2, j = 0; i4 <= MODEL_ID_FLOATING_ELEVATOR_PAD; ++i4, j++) {
-    simpleTransformsBuffer[j++] = allModels[i4].$matrix.m41;
-    simpleTransformsBuffer[j++] = allModels[i4].$matrix.m42;
-    simpleTransformsBuffer[j++] = allModels[i4].$matrix.m43;
+  for (let i4 = 2, j = 720; i4 <= MODEL_ID_FLOATING_ELEVATOR_PAD; ++i4, j++) {
+    worldMatricesBuffer[j++] = allModels[i4].$matrix.m41;
+    worldMatricesBuffer[j++] = allModels[i4].$matrix.m42;
+    worldMatricesBuffer[j++] = allModels[i4].$matrix.m43;
   }
   for (let i5 = MODEL_ID_BOAT0, j1 = 0; i5 <= MODEL_ID_PLAYER_LEG1; ++i5, j1++)
     matrixToArray(allModels[i5].$matrix, worldMatricesBuffer, j1);
@@ -1889,8 +1887,7 @@ const startMainLoop = (groundTextureImage) => {
       worldStateUpdate();
       eppur_si_muove();
       collisionShader();
-      gl["u3a"](collisionShader(uniformName_simpleTransforms), simpleTransformsBuffer);
-      gl["uae"](collisionShader(uniformName_worldMatrices), false, worldMatricesBuffer);
+      gl["u3a"](collisionShader(uniformName_worldTransforms), worldMatricesBuffer);
       gl["c4s"](16640);
       gl["cbf"](true, false, true, false);
       gl["uae"](collisionShader(uniformName_viewMatrix), false, matrixToArray(matrixCopy().rotateSelf(0, 180).invertSelf().translateSelf(-player_position_final.x, -player_position_final.y, 0.3 - player_position_final.z)));
@@ -1919,8 +1916,7 @@ const startMainLoop = (groundTextureImage) => {
       matrixCopy(identity, camera_view).rotateSelf(-camera_rotation.x, -camera_rotation.y).invertSelf().translateSelf(-cameraX, -cameraY, -cameraZ);
     mainShader();
     gl["ubu"](mainShader(uniformName_viewPos), cameraX, cameraY, cameraZ);
-    gl["u3a"](mainShader(uniformName_simpleTransforms), simpleTransformsBuffer);
-    gl["uae"](mainShader(uniformName_worldMatrices), false, worldMatricesBuffer);
+    gl["u3a"](mainShader(uniformName_worldTransforms), worldMatricesBuffer);
     gl["uae"](mainShader(uniformName_projectionMatrix), false, matrixToArray(identity));
     gl["ubh"](mainShader(uniformName_csm_texture0), 3);
     gl["ubh"](mainShader(uniformName_csm_texture1), 3);

@@ -2,8 +2,7 @@
 import main_vsSource, {
   uniformName_projectionMatrix,
   uniformName_viewMatrix,
-  uniformName_worldMatrices,
-  uniformName_simpleTransforms,
+  uniformName_worldTransforms,
 } from "./shaders/main-vertex.vert";
 import main_fsSource, {
   uniformName_viewPos,
@@ -47,7 +46,7 @@ import {
   MODEL_ID_SOUL,
   MODEL_ID_SOUL_COLLISION,
 } from "./game/models-ids";
-import { simpleTransformsBuffer, worldMatricesBuffer } from "./game/models-matrices";
+import { worldMatricesBuffer } from "./game/models-matrices";
 
 const LIGHT_ROT_X = 298;
 const LIGHT_ROT_Y = 139;
@@ -176,8 +175,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
       collisionShader();
 
-      gl.uniform4fv(collisionShader(uniformName_simpleTransforms), simpleTransformsBuffer);
-      gl.uniformMatrix4fv(collisionShader(uniformName_worldMatrices), false, worldMatricesBuffer);
+      gl.uniform4fv(collisionShader(uniformName_worldTransforms), worldMatricesBuffer);
 
       // first collision render
 
@@ -248,8 +246,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
     mainShader();
     gl.uniform3f(mainShader(uniformName_viewPos), cameraX, cameraY, cameraZ);
-    gl.uniform4fv(mainShader(uniformName_simpleTransforms), simpleTransformsBuffer);
-    gl.uniformMatrix4fv(mainShader(uniformName_worldMatrices), false, worldMatricesBuffer);
+    gl.uniform4fv(mainShader(uniformName_worldTransforms), worldMatricesBuffer);
 
     // *** CASCADED SHADOWMAPS ***
 

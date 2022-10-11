@@ -1,6 +1,6 @@
 import { clamp, max, abs, lerpneg, min, angle_wrap_degrees, lerp } from "../math/math";
 import { allModels, levers, LEVERS_COUNT, souls, SOULS_COUNT } from "./models";
-import { worldMatricesBuffer, simpleTransformsBuffer } from "./models-matrices";
+import { worldMatricesBuffer } from "./models-matrices";
 import { matrixToArray, tempMatrix } from "../math/matrix";
 import { gameTime, gameTimeDelta, lerpDamp } from "./game-time";
 import { firstBoatLerp, secondBoatLerp } from "./world-state";
@@ -349,10 +349,10 @@ export const eppur_si_muove = () => {
 
   // Copy all models matrices to the world uniform buffer
 
-  for (let i = 2, j = 0; i <= MODEL_ID_FLOATING_ELEVATOR_PAD; ++i, j++) {
-    simpleTransformsBuffer[j++] = allModels[i]!.$matrix.m41;
-    simpleTransformsBuffer[j++] = allModels[i]!.$matrix.m42;
-    simpleTransformsBuffer[j++] = allModels[i]!.$matrix.m43;
+  for (let i = 2, j = (16 + 16 + 13) * 16; i <= MODEL_ID_FLOATING_ELEVATOR_PAD; ++i, j++) {
+    worldMatricesBuffer[j++] = allModels[i]!.$matrix.m41;
+    worldMatricesBuffer[j++] = allModels[i]!.$matrix.m42;
+    worldMatricesBuffer[j++] = allModels[i]!.$matrix.m43;
   }
 
   for (let i = MODEL_ID_BOAT0, j = 0; i <= MODEL_ID_PLAYER_LEG1; ++i, j++) {
