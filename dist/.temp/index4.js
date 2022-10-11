@@ -169,8 +169,8 @@ let D,
           K(t).multiplySelf(e),
           C && (W(), I1(R - D, X - T, q - O) < 3)
             ? a.i
-              ? .7 < a.g && (a.i = 0, (g1 = l) && Q1("* click *", 1), R1())
-              : a.g < .3 && (a.i = 1, (g1 = l) && Q1("* click *", 1), R1())
+              ? .7 < a.g && (a.i = 0, g1 = l, Q1("* click *", 1), R1())
+              : a.g < .3 && (a.i = 1, g1 = l, Q1("* click *", 1), R1())
             : a.i && .8 < a.g && 14 === l && (a.i = 0,
               i1 < 13
                 ? Q1("Not leaving now, there are souls to catch!", 3)

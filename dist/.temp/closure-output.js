@@ -190,7 +190,7 @@ a.m41 = b.m41, a.m42 = b.m42, a.m43 = b.m43, a.m44 = b.m44, a), y = NO_INLINE((b
     a.g = xb(a.g, a.i, 4);
     a.h = xb(a.h, a.i, 1);
     ob(g).multiplySelf(b);
-    ea && 3 > (lb(), gb(Va - hb, Wa - ib, Xa - jb,)) ? a.i ? 0.7 < a.g && (a.i = 0, (Ia = k) && Ib("* click *", 1), Kb()) : 0.3 > a.g && (a.i = 1, (Ia = k) && Ib("* click *", 1), Kb()) : a.i && 0.8 < a.g && 14 === k && (a.i = 0, 13 > Ca ? Ib("Not leaving now, there are souls to catch!", 3) : Da || (Ib("Well done. They will be punished.<br>Thanks for playing", 1 / 0), Da = 1));
+    ea && 3 > (lb(), gb(Va - hb, Wa - ib, Xa - jb,)) ? a.i ? 0.7 < a.g && (a.i = 0, Ia = k, Ib("* click *", 1), Kb()) : 0.3 > a.g && (a.i = 1, Ia = k, Ib("* click *", 1), Kb()) : a.i && 0.8 < a.g && 14 === k && (a.i = 0, 13 > Ca ? Ib("Not leaving now, there are souls to catch!", 3) : Da || (Ib("Well done. They will be punished.<br>Thanks for playing", 1 / 0), Da = 1));
     l.rotateSelf(50 * a.g - 25, 0).translateSelf(0, 1).m44 = a.g;
   }, g = h.at(-1).m, k = e.length;
   a.m = g;

@@ -850,8 +850,7 @@ const onSoulCollected = () => {
 };
 const onPlayerPullLever = (leverIndex) => {
   player_last_pulled_lever = leverIndex;
-  if (leverIndex)
-    showMessage("* click *", 1);
+  showMessage("* click *", 1);
   saveGame();
 };
 const onFirstBoatLeverPulled = () => {

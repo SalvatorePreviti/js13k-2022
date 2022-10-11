@@ -421,8 +421,8 @@ const nb = (
         ob(g).multiplySelf(b);
         ea && 3 > (lb(), gb(Va - hb, Wa - ib, Xa - jb))
           ? a.i
-            ? 0.7 < a.g && (a.i = 0, (Ia = k) && Ib("* click *", 1), Kb())
-            : 0.3 > a.g && (a.i = 1, (Ia = k) && Ib("* click *", 1), Kb())
+            ? 0.7 < a.g && (a.i = 0, Ia = k, Ib("* click *", 1), Kb())
+            : 0.3 > a.g && (a.i = 1, Ia = k, Ib("* click *", 1), Kb())
           : a.i && 0.8 < a.g && 14 === k && (a.i = 0,
             13 > Ca
               ? Ib("Not leaving now, there are souls to catch!", 3)

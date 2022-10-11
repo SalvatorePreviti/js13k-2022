@@ -697,7 +697,7 @@ const saveGame = () => {
   ]);
 };
 const onPlayerPullLever = (leverIndex) => {
-  (player_last_pulled_lever = leverIndex) && showMessage("* click *", 1), saveGame();
+  player_last_pulled_lever = leverIndex, showMessage("* click *", 1), saveGame();
 };
 const material = NO_INLINE((r, g, b, a = 0) => 255 * a << 24 | 255 * b << 16 | 255 * g << 8 | 255 * r);
 const newModel = () => {

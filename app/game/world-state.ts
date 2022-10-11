@@ -131,9 +131,7 @@ export const onPlayerPullLever = (leverIndex: number) => {
     console.log((devLeverNames[leverIndex] || "LEVER") + " " + leverIndex + " = " + levers[leverIndex]?.$value);
   }
 
-  if (leverIndex) {
-    showMessage("* click *", 1);
-  }
+  showMessage("* click *", 1);
   saveGame();
 };
 
