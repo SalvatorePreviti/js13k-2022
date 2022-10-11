@@ -25,7 +25,9 @@ export const setGameTime = (value: number) => {
 
 export const damp = NO_INLINE((speed: number) => 1 - Math.exp(-gameTimeDelta * speed));
 
-export const lerpDamp = NO_INLINE((from: number, to: number, speed: number) => lerp(from, to, damp(speed)));
+export const lerpDamp = NO_INLINE((from: number | undefined, to: number | undefined, speed: number) =>
+  lerp(from, to, damp(speed)),
+);
 
 export const setMainMenuVisible = (visible: boolean) => {
   mainMenuVisible = visible;

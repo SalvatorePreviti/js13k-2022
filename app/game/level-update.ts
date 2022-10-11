@@ -322,14 +322,14 @@ export const eppur_si_muove = () => {
   // Update souls
 
   for (let i = 0; i < SOULS_COUNT; ++i) {
-    souls[i]!._update();
+    souls[i]!();
     matrixToArray(tempMatrix, transformsBuffer, MODELS_WITH_FULL_TRANSFORM + i);
   }
 
   // Update levers
 
   for (let i = 0; i < LEVERS_COUNT; ++i) {
-    levers[i]!._update();
+    levers[i]!();
     matrixToArray(tempMatrix, transformsBuffer, MODELS_WITH_FULL_TRANSFORM + SOULS_COUNT + i);
   }
 

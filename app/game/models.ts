@@ -8,16 +8,16 @@ export interface Model {
 }
 
 export interface Lever {
-  readonly $matrix: DOMMatrixReadOnly;
-  readonly $transform: DOMMatrixReadOnly;
-  readonly _update: () => void;
+  (): void;
+  $matrix: DOMMatrixReadOnly;
+  $transform: DOMMatrixReadOnly;
   $value: 0 | 1;
   $lerpValue: number;
   $lerpValue2: number;
 }
 
 export interface Soul {
-  readonly _update: () => void;
+  (): void;
   $value: 0 | 1;
 }
 

@@ -47,38 +47,34 @@ const distanceToPlayer = (): number => {
 export const newLever = ($transform: DOMMatrixReadOnly, name: string): void => {
   const parentModelMatrix = allModels.at(-1)!.$matrix;
   const index = levers.length;
-  const lever: Lever = {
-    $value: 0,
-    $lerpValue: 0,
-    $lerpValue2: 0,
-    $matrix: parentModelMatrix,
-    $transform,
-    _update: () => {
-      lever.$lerpValue = lerpDamp(lever.$lerpValue, lever.$value, 4);
-      lever.$lerpValue2 = lerpDamp(lever.$lerpValue2, lever.$value, 1);
+  const lever: Lever = (() => {
+    lever.$lerpValue = lerpDamp(lever.$lerpValue, lever.$value, 4);
+    lever.$lerpValue2 = lerpDamp(lever.$lerpValue2, lever.$value, 1);
 
-      matrixCopy(parentModelMatrix).multiplySelf($transform);
+    matrixCopy(parentModelMatrix).multiplySelf($transform);
 
-      if (interact_pressed && distanceToPlayer() < LEVER_SENSITIVITY_RADIUS) {
-        if (lever.$value) {
-          if (lever.$lerpValue > 0.7) {
-            lever.$value = 0;
-            onPlayerPullLever(index);
-          }
-        } else if (lever.$lerpValue < 0.3) {
-          lever.$value = 1;
+    if (interact_pressed && distanceToPlayer() < LEVER_SENSITIVITY_RADIUS) {
+      if (lever.$value) {
+        if (lever.$lerpValue > 0.7) {
+          lever.$value = 0;
           onPlayerPullLever(index);
         }
-      } else if (lever.$value && lever.$lerpValue > 0.8 && index === LEVER_ID_BOAT0) {
-        lever.$value = 0;
-        onFirstBoatLeverPulled();
+      } else if (lever.$lerpValue < 0.3) {
+        lever.$value = 1;
+        onPlayerPullLever(index);
       }
+    } else if (lever.$value && lever.$lerpValue > 0.8 && index === LEVER_ID_BOAT0) {
+      lever.$value = 0;
+      onFirstBoatLeverPulled();
+    }
 
-      // Prepare the matrix to be written to the uniform buffer for the lever stick.
-      // and encode lerp value in matrix m44 so fragmemt shader can change the lever handle color
-      tempMatrix.rotateSelf(lever.$lerpValue * 50 - 25, 0).translateSelf(0, 1).m44 = lever.$lerpValue;
-    },
-  };
+    // Prepare the matrix to be written to the uniform buffer for the lever stick.
+    // and encode lerp value in matrix m44 so fragmemt shader can change the lever handle color
+    tempMatrix.rotateSelf(lever.$lerpValue * 50 - 25, 0).translateSelf(0, 1).m44 = lever.$lerpValue;
+  }) as Lever;
+  lever.$matrix = parentModelMatrix;
+  lever.$transform = $transform;
+
   levers.push(lever);
 
   if (DEBUG) {
@@ -106,74 +102,73 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: Circle[]) 
 
   const parentModelMatrix = allModels.at(-1)!.$matrix;
   const index = souls.length;
-  const soul: Soul = {
-    $value: 0,
-    _update: () => {
-      if (!soul.$value) {
-        let isInside: 0 | 1 | undefined;
-        let contextualVelocity = 1;
-        let mindist = Infinity;
-        for (let i = 0; i < walkingPath.length; i++) {
-          const c = walkingPath[i]!;
-          const distance = hypot(targetX - c[0], targetZ - c[1]);
-          contextualVelocity = min(contextualVelocity, distance / c[2]);
-          const circleSDF = distance - c[2];
-          if (circleSDF < 0) {
-            isInside = 1;
-          } else if (circleSDF < mindist) {
-            mindist = circleSDF;
-            circle = c;
-          }
-        }
 
-        if (!isInside) {
-          const ax = targetX - circle[0];
-          const az = targetZ - circle[1];
-          let magnitude = hypot(ax, az);
-          let angle = Math.atan2(-az, ax);
-          if (wasInside) {
-            velocity = clamp(velocity / (1 + Math.random()));
-            randAngle = ((Math.random() - 0.5) * Math.PI) / 2;
-          }
-          angle += randAngle;
-          dirX = -Math.cos(angle);
-          dirZ = Math.sin(angle);
-          if (magnitude > 0.1) {
-            // limit the vector length to the circle radius, ghost cannot escape by mistake
-            magnitude = min(magnitude, circle[2]) / magnitude;
-            targetX = ax * magnitude + circle[0];
-            targetZ = az * magnitude + circle[1];
-          }
-        }
-
-        wasInside = isInside;
-
-        velocity = lerpDamp(velocity, 3 + 6 * (1 - contextualVelocity), 3 + contextualVelocity);
-        soulX = lerpDamp(soulX, (targetX = lerpDamp(targetX, targetX + dirX, velocity)), velocity);
-        soulZ = lerpDamp(soulZ, (targetZ = lerpDamp(targetZ, targetZ + dirZ, velocity)), velocity);
-
-        lookAngle = angle_lerp_degrees(lookAngle, Math.atan2(soulX - prevX, soulZ - prevZ) / DEG_TO_RAD - 180, damp(3));
-
-        matrixCopy(parentModelMatrix)
-          .multiplySelf(transform)
-          .translateSelf((prevX = soulX), 0, (prevZ = soulZ))
-          .rotateSelf(0, lookAngle, 7 * Math.sin(gameTime * 1.7));
-
-        if (distanceToPlayer() < SOUL_SENSITIVITY_RADIUS) {
-          soul.$value = 1;
-          onSoulCollected();
+  const soul: Soul = (() => {
+    if (!soul.$value) {
+      let isInside: 0 | 1 | undefined;
+      let contextualVelocity = 1;
+      let mindist = Infinity;
+      for (let i = 0; i < walkingPath.length; i++) {
+        const c = walkingPath[i]!;
+        const distance = hypot(targetX - c[0], targetZ - c[1]);
+        contextualVelocity = min(contextualVelocity, distance / c[2]);
+        const circleSDF = distance - c[2];
+        if (circleSDF < 0) {
+          isInside = 1;
+        } else if (circleSDF < mindist) {
+          mindist = circleSDF;
+          circle = c;
         }
       }
 
-      if (soul.$value) {
-        matrixCopy(allModels[MODEL_ID_BOAT0]!.$matrix).translateSelf(
-          (index % 4) * 1.2 - 1.7 + Math.sin(gameTime + index) / 7,
-          -2,
-          -5.5 + ((index / 4) | 0) * 1.7 + abs((index % 4) - 2) + Math.cos(gameTime / 1.5 + index) / 6,
-        );
+      if (!isInside) {
+        const ax = targetX - circle[0];
+        const az = targetZ - circle[1];
+        let magnitude = hypot(ax, az);
+        let angle = Math.atan2(-az, ax);
+        if (wasInside) {
+          velocity = clamp(velocity / (1 + Math.random()));
+          randAngle = ((Math.random() - 0.5) * Math.PI) / 2;
+        }
+        angle += randAngle;
+        dirX = -Math.cos(angle);
+        dirZ = Math.sin(angle);
+        if (magnitude > 0.1) {
+          // limit the vector length to the circle radius, ghost cannot escape by mistake
+          magnitude = min(magnitude, circle[2]) / magnitude;
+          targetX = ax * magnitude + circle[0];
+          targetZ = az * magnitude + circle[1];
+        }
       }
-    },
-  };
+
+      wasInside = isInside;
+
+      velocity = lerpDamp(velocity, 3 + 6 * (1 - contextualVelocity), 3 + contextualVelocity);
+      soulX = lerpDamp(soulX, (targetX = lerpDamp(targetX, targetX + dirX, velocity)), velocity);
+      soulZ = lerpDamp(soulZ, (targetZ = lerpDamp(targetZ, targetZ + dirZ, velocity)), velocity);
+
+      lookAngle = angle_lerp_degrees(lookAngle, Math.atan2(soulX - prevX, soulZ - prevZ) / DEG_TO_RAD - 180, damp(3));
+
+      matrixCopy(parentModelMatrix)
+        .multiplySelf(transform)
+        .translateSelf((prevX = soulX), 0, (prevZ = soulZ))
+        .rotateSelf(0, lookAngle, 7 * Math.sin(gameTime * 1.7));
+
+      if (distanceToPlayer() < SOUL_SENSITIVITY_RADIUS) {
+        soul.$value = 1;
+        onSoulCollected();
+      }
+    }
+
+    if (soul.$value) {
+      matrixCopy(allModels[MODEL_ID_BOAT0]!.$matrix).translateSelf(
+        (index % 4) * 1.2 - 1.7 + Math.sin(gameTime + index) / 7,
+        -2,
+        -5.5 + ((index / 4) | 0) * 1.7 + abs((index % 4) - 2) + Math.cos(gameTime / 1.5 + index) / 6,
+      );
+    }
+  }) as Soul;
+
   souls.push(soul);
 
   if (DEBUG_FLAG0) {

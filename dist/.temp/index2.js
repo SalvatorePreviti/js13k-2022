@@ -214,7 +214,7 @@ const angle_wrap_degrees = (degrees) =>
 const angle_lerp_degrees = (a0, a1, t) => a0 + (2 * (a1 = (a1 - a0) % 360) % 360 - a1) * clamp(t) || 0;
 const lerp = (a, b, t) => (0 < t ? t < 1 ? a + (b - a) * t : b : a) || 0;
 const lerpneg = (v, t) => (v = clamp(v), lerp(v, 1 - v, t));
-const hypot = (a, b, c = 0) => Math.sqrt(a * a + b * b + c * c);
+const hypot = (a, b, c = 0) => (a * a + b * b + c * c) ** 0.5;
 const matrixTransformPoint = (x = 0, y = 0, z = 0, w = 1) => {
   matrixTransformPoint.x = tempMatrix.m11 * x + tempMatrix.m21 * y + tempMatrix.m31 * z + tempMatrix.m41 * w,
     matrixTransformPoint.y = tempMatrix.m12 * x + tempMatrix.m22 * y + tempMatrix.m32 * z + tempMatrix.m42 * w,
@@ -692,8 +692,8 @@ const saveGame = () => {
     levers.map((v) => v.$value),
     souls.map((v) => v.$value),
     player_last_pulled_lever,
-    gameTime,
     secondBoatLerp,
+    gameTime,
   ]);
 };
 const onPlayerPullLever = (leverIndex) => {
@@ -716,33 +716,27 @@ const distanceToPlayer = () => (matrixTransformPoint(),
     player_position_final.z - matrixTransformPoint.z,
   ));
 const newLever = ($transform) => {
+  const lever = () => {
+    lever.$lerpValue = lerpDamp(lever.$lerpValue, lever.$value, 4),
+      lever.$lerpValue2 = lerpDamp(lever.$lerpValue2, lever.$value, 1),
+      matrixCopy(parentModelMatrix).multiplySelf($transform),
+      interact_pressed && distanceToPlayer() < 3
+        ? lever.$value
+          ? 0.7 < lever.$lerpValue && (lever.$value = 0, onPlayerPullLever(index))
+          : lever.$lerpValue < 0.3 && (lever.$value = 1, onPlayerPullLever(index))
+        : lever.$value && 0.8 < lever.$lerpValue && index === 13
+          && (lever.$value = 0,
+            souls_collected_count < 13
+              ? showMessage("Not leaving now, there are souls to catch!", 3)
+              : game_completed
+                || (showMessage("Well done. They will be punished.<br>Thanks for playing", 1 / 0), game_completed = 1)),
+      tempMatrix.rotateSelf(50 * lever.$lerpValue - 25, 0).translateSelf(0, 1).m44 = lever.$lerpValue;
+  };
   const parentModelMatrix = allModels.at(-1).$matrix;
   const index = levers.length;
-  const lever = {
-    $value: 0,
-    $lerpValue: 0,
-    $lerpValue2: 0,
-    $matrix: parentModelMatrix,
-    $transform,
-    _update() {
-      lever.$lerpValue = lerpDamp(lever.$lerpValue, lever.$value, 4),
-        lever.$lerpValue2 = lerpDamp(lever.$lerpValue2, lever.$value, 1),
-        matrixCopy(parentModelMatrix).multiplySelf($transform),
-        interact_pressed && distanceToPlayer() < 3
-          ? lever.$value
-            ? 0.7 < lever.$lerpValue && (lever.$value = 0, onPlayerPullLever(index))
-            : lever.$lerpValue < 0.3 && (lever.$value = 1, onPlayerPullLever(index))
-          : lever.$value && 0.8 < lever.$lerpValue && index === 13
-            && (lever.$value = 0,
-              souls_collected_count < 13
-                ? showMessage("Not leaving now, there are souls to catch!", 3)
-                : game_completed
-                  || (showMessage("Well done. They will be punished.<br>Thanks for playing", 1 / 0),
-                    game_completed = 1)),
-        tempMatrix.rotateSelf(50 * lever.$lerpValue - 25, 0).translateSelf(0, 1).m44 = lever.$lerpValue;
-    },
-  };
-  levers.push(lever),
+  lever.$matrix = parentModelMatrix,
+    lever.$transform = $transform,
+    levers.push(lever),
     meshAdd(cylinder(5), $transform.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5)),
     meshAdd(cylinder(5), $transform.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5)),
     meshAdd(cylinder(), $transform.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
@@ -756,77 +750,73 @@ const newSoul = (transform, ...walkingPath) => {
   let randAngle = 0;
   let wasInside = 1;
   let dirX = -1;
-  const soul = {
-    $value: 0,
-    _update() {
-      if (!soul.$value) {
-        let ax;
-        let az;
-        let magnitude;
-        let angle;
-        let isInside;
-        let contextualVelocity = 1;
-        let mindist = 1 / 0;
-        for (let i = 0; walkingPath.length > i; i++) {
-          const c = walkingPath[i];
-          let distance = hypot(targetX - c[0], targetZ - c[1]);
-          contextualVelocity = min(contextualVelocity, distance / c[2]),
-            (distance -= c[2]) < 0 ? isInside = 1 : mindist > distance && (mindist = distance, circle = c);
-        }
-        isInside
-        || (ax = targetX - circle[0],
-          az = targetZ - circle[1],
-          magnitude = hypot(ax, az),
-          angle = Math.atan2(-az, ax),
-          wasInside
-          && (velocity = clamp(velocity / (1 + Math.random())), randAngle = (Math.random() - 0.5) * Math.PI / 2),
-          angle += randAngle,
-          dirX = -Math.cos(angle),
-          dirZ = Math.sin(angle),
-          0.1 < magnitude
-          && (magnitude = min(magnitude, circle[2]) / magnitude,
-            targetX = ax * magnitude + circle[0],
-            targetZ = az * magnitude + circle[1])),
-          wasInside = isInside,
-          velocity = lerpDamp(velocity, 3 + 6 * (1 - contextualVelocity), 3 + contextualVelocity),
-          soulX = lerpDamp(soulX, targetX = lerpDamp(targetX, targetX + dirX, velocity), velocity),
-          soulZ = lerpDamp(soulZ, targetZ = lerpDamp(targetZ, targetZ + dirZ, velocity), velocity),
-          lookAngle = angle_lerp_degrees(
-            lookAngle,
-            Math.atan2(soulX - prevX, soulZ - prevZ) / DEG_TO_RAD - 180,
-            damp(3),
-          ),
-          matrixCopy(parentModelMatrix).multiplySelf(transform).translateSelf(prevX = soulX, 0, prevZ = soulZ)
-            .rotateSelf(0, lookAngle, 7 * Math.sin(1.7 * gameTime)),
-          distanceToPlayer() < 1.6 && (soul.$value = 1,
-            showMessage(
-              [
-                ,
-                "Mark Zuckemberg<br>made the world worse",
-                "Giorgia Meloni<br>fascist",
-                "Andrzej Mazur<br>for the js13k competition",
-                "Donald Trump<br>lies",
-                "Kim Jong-un<br>Dictator, liked pineapple on pizza",
-                "Maxime Euziere<br>forced me to finish this game",
-                "She traded NFTs apes",
-                ,
-                "Vladimir Putin<br>evil war",
-                "He was not a good person",
-                ,
-                "Salvatore Previti<br>made this evil game<br><br>Done. Go back to the boat",
-              ][souls_collected_count] || "Catched a \"crypto bro\".<br>\"Web3\" is all scam, lies and grift",
-              6,
-            ),
-            updateCollectedSoulsCounter(),
-            saveGame());
+  const soul = () => {
+    if (!soul.$value) {
+      let ax;
+      let az;
+      let magnitude;
+      let angle;
+      let isInside;
+      let contextualVelocity = 1;
+      let mindist = 1 / 0;
+      for (let i = 0; walkingPath.length > i; i++) {
+        const c = walkingPath[i];
+        let distance = hypot(targetX - c[0], targetZ - c[1]);
+        contextualVelocity = min(contextualVelocity, distance / c[2]),
+          (distance -= c[2]) < 0 ? isInside = 1 : mindist > distance && (mindist = distance, circle = c);
       }
-      soul.$value
-        && matrixCopy(allModels[28].$matrix).translateSelf(
-          index % 4 * 1.2 - 1.7 + Math.sin(gameTime + index) / 7,
-          -2,
-          1.7 * (index / 4 | 0) - 5.5 + abs(index % 4 - 2) + Math.cos(gameTime / 1.5 + index) / 6,
-        );
-    },
+      isInside
+      || (ax = targetX - circle[0],
+        az = targetZ - circle[1],
+        magnitude = hypot(ax, az),
+        angle = Math.atan2(-az, ax),
+        wasInside
+        && (velocity = clamp(velocity / (1 + Math.random())), randAngle = (Math.random() - 0.5) * Math.PI / 2),
+        angle += randAngle,
+        dirX = -Math.cos(angle),
+        dirZ = Math.sin(angle),
+        0.1 < magnitude
+        && (magnitude = min(magnitude, circle[2]) / magnitude,
+          targetX = ax * magnitude + circle[0],
+          targetZ = az * magnitude + circle[1])),
+        wasInside = isInside,
+        velocity = lerpDamp(velocity, 3 + 6 * (1 - contextualVelocity), 3 + contextualVelocity),
+        soulX = lerpDamp(soulX, targetX = lerpDamp(targetX, targetX + dirX, velocity), velocity),
+        soulZ = lerpDamp(soulZ, targetZ = lerpDamp(targetZ, targetZ + dirZ, velocity), velocity),
+        lookAngle = angle_lerp_degrees(lookAngle, Math.atan2(soulX - prevX, soulZ - prevZ) / DEG_TO_RAD - 180, damp(3)),
+        matrixCopy(parentModelMatrix).multiplySelf(transform).translateSelf(prevX = soulX, 0, prevZ = soulZ).rotateSelf(
+          0,
+          lookAngle,
+          7 * Math.sin(1.7 * gameTime),
+        ),
+        distanceToPlayer() < 1.6 && (soul.$value = 1,
+          showMessage(
+            [
+              ,
+              "Mark Zuckemberg<br>made the world worse",
+              "Giorgia Meloni<br>fascist",
+              "Andrzej Mazur<br>for the js13k competition",
+              "Donald Trump<br>lies",
+              "Kim Jong-un<br>Dictator, liked pineapple on pizza",
+              "Maxime Euziere<br>forced me to finish this game",
+              "She traded NFTs apes",
+              ,
+              "Vladimir Putin<br>evil war",
+              "He was not a good person",
+              ,
+              "Salvatore Previti<br>made this evil game<br><br>Done. Go back to the boat",
+            ][souls_collected_count] || "Catched a \"crypto bro\".<br>\"Web3\" is all scam, lies and grift",
+            6,
+          ),
+          updateCollectedSoulsCounter(),
+          saveGame());
+    }
+    soul.$value
+      && matrixCopy(allModels[28].$matrix).translateSelf(
+        index % 4 * 1.2 - 1.7 + Math.sin(gameTime + index) / 7,
+        -2,
+        1.7 * (index / 4 | 0) - 5.5 + abs(index % 4 - 2) + Math.cos(gameTime / 1.5 + index) / 6,
+      );
   };
   let circle = walkingPath[0];
   let [targetX, targetZ] = circle;
@@ -1369,8 +1359,8 @@ loadStep(() => {
             modelsNextUpdate(-65.8, 0.8, 106).rotateSelf(0, rotatingPlatform2Rotation),
             modelsNextUpdate(-50.7, 0.8, 106).rotateSelf(0, 180 - rotatingPlatform2Rotation),
             modelsNextUpdate(-50.7, 0.8, 91).rotateSelf(0, 270 + rotatingPlatform2Rotation);
-          for (let i2 = 0; i2 < 13; ++i2) souls[i2]._update(), matrixToArray(tempMatrix, transformsBuffer, 12 + i2);
-          for (let i3 = 0; i3 < 16; ++i3) levers[i3]._update(), matrixToArray(tempMatrix, transformsBuffer, 25 + i3);
+          for (let i2 = 0; i2 < 13; ++i2) souls[i2](), matrixToArray(tempMatrix, transformsBuffer, 12 + i2);
+          for (let i3 = 0; i3 < 16; ++i3) levers[i3](), matrixToArray(tempMatrix, transformsBuffer, 25 + i3);
           for (let m, i4 = 0, j = 656; i4 < 26; ++i4, ++j) {
             m = allModels[2 + i4].$matrix,
               transformsBuffer[j++] = m.m41,
@@ -1648,21 +1638,27 @@ precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sa
             gl["e3x"](1),
             gl["e3x"](2);
         }
-        try {
-          const [savedLevers, savedSouls, savedLastPulledLever, savedGameTime, savedSecondBoatLerp] = JSON.parse(
-            localStorage["spdnt22"],
-          );
+        {
+          let _savedLevers = [];
+          let _savedSouls = [];
+          try {
+            const [savedLastPulledLever, savedSecondBoatLerp, savedGameTime, savedLevers, savedSouls] = JSON.parse(
+              localStorage["spdnt22"],
+            );
+            _savedLevers = savedLevers,
+              _savedSouls = savedSouls,
+              player_last_pulled_lever = savedLastPulledLever,
+              secondBoatLerp = savedSecondBoatLerp,
+              gameTime = savedGameTime;
+          } catch {}
           levers.map((lever, index) =>
-            lever.$lerpValue = lever.$lerpValue2 = lever.$value = index ? 0 | savedLevers[index] : 0
+            lever.$lerpValue = lever.$lerpValue2 = lever.$value = index !== 13 && _savedLevers[index] ? 1 : 0
           ),
-            souls.map((soul, index) => soul.$value = 0 | savedSouls[index]),
-            player_last_pulled_lever = savedLastPulledLever,
-            gameTime = savedGameTime,
-            secondBoatLerp = savedSecondBoatLerp;
-        } catch {}
-        updateCollectedSoulsCounter(),
-          firstBoatLerp = player_last_pulled_lever === 13 ? 0 : clamp(souls_collected_count),
-          loadStep(end);
+            souls.map((soul, index) => soul.$value = _savedSouls[index] ? 1 : 0),
+            updateCollectedSoulsCounter(),
+            firstBoatLerp = player_last_pulled_lever !== 13 || souls_collected_count ? 1 : 0;
+        }
+        loadStep(end);
       });
       {
         const hornMatrix = (i) =>

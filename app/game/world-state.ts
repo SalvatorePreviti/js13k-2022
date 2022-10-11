@@ -59,25 +59,31 @@ const updateCollectedSoulsCounter = () => {
 };
 
 export const loadGame = () => {
+  let _savedLevers: number[] = [];
+  let _savedSouls: number[] = [];
   try {
-    const [savedLevers, savedSouls, savedLastPulledLever, savedGameTime, savedSecondBoatLerp] = JSON.parse(
+    const [savedLastPulledLever, savedSecondBoatLerp, savedGameTime, savedLevers, savedSouls] = JSON.parse(
       localStorage[LOCAL_STORAGE_SAVED_GAME_KEY]!,
     );
-    levers.map(
-      (lever, index) =>
-        (lever.$lerpValue = lever.$lerpValue2 = lever.$value = index ? ((savedLevers[index] | 0) as 0 | 1) : 0),
-    );
-    souls.map((soul, index) => (soul.$value = (savedSouls[index] | 0) as 0 | 1));
+    _savedLevers = savedLevers;
+    _savedSouls = savedSouls;
     player_last_pulled_lever = savedLastPulledLever;
-    setGameTime(savedGameTime);
     secondBoatLerp = savedSecondBoatLerp;
+    setGameTime(savedGameTime);
   } catch (e) {
     if (DEBUG) {
       console.log(e);
     }
   }
+
+  levers.map(
+    (lever, index) =>
+      (lever.$lerpValue = lever.$lerpValue2 = lever.$value = index !== LEVER_ID_BOAT0 && _savedLevers[index]! ? 1 : 0),
+  );
+  souls.map((soul, index) => (soul.$value = _savedSouls[index]! ? 1 : 0));
+
   updateCollectedSoulsCounter();
-  firstBoatLerp = player_last_pulled_lever === LEVER_ID_BOAT0 ? 0 : clamp(souls_collected_count);
+  firstBoatLerp = player_last_pulled_lever !== LEVER_ID_BOAT0 || souls_collected_count ? 1 : 0;
 };
 
 export const resetGame = () => {
@@ -90,8 +96,8 @@ export const saveGame = () => {
     levers.map((v) => v.$value),
     souls.map((v) => v.$value),
     player_last_pulled_lever,
-    gameTime,
     secondBoatLerp,
+    gameTime,
   ]);
 };
 

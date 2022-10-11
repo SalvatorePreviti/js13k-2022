@@ -26,7 +26,7 @@ const lerpneg = (v, t) => {
   v = clamp(v);
   return lerp(v, 1 - v, t);
 };
-const hypot = (a, b, c = 0) => /* @__PURE__ */ Math.sqrt(a * a + b * b + c * c);
+const hypot = (a, b, c = 0) => (a * a + b * b + c * c) ** 0.5;
 const matrixTransformPoint = (x = 0, y = 0, z = 0, w = 1) => {
   matrixTransformPoint.x = tempMatrix.m11 * x + tempMatrix.m21 * y + tempMatrix.m31 * z + tempMatrix.m41 * w;
   matrixTransformPoint.y = tempMatrix.m12 * x + tempMatrix.m22 * y + tempMatrix.m32 * z + tempMatrix.m42 * w;
@@ -892,21 +892,25 @@ const updateCollectedSoulsCounter = () => {
   ][souls_collected_count = souls.reduce((acc, v) => acc + v.$value, 0)] + " / XIII";
 };
 const loadGame = () => {
+  let _savedLevers = [];
+  let _savedSouls = [];
   try {
-    const [savedLevers, savedSouls, savedLastPulledLever, savedGameTime, savedSecondBoatLerp] = JSON.parse(
+    const [savedLastPulledLever, savedSecondBoatLerp, savedGameTime, savedLevers, savedSouls] = JSON.parse(
       localStorage[LOCAL_STORAGE_SAVED_GAME_KEY],
     );
-    levers.map((lever, index) =>
-      lever.$lerpValue = lever.$lerpValue2 = lever.$value = index ? savedLevers[index] | 0 : 0
-    );
-    souls.map((soul, index) => soul.$value = savedSouls[index] | 0);
+    _savedLevers = savedLevers;
+    _savedSouls = savedSouls;
     player_last_pulled_lever = savedLastPulledLever;
-    setGameTime(savedGameTime);
     secondBoatLerp = savedSecondBoatLerp;
+    setGameTime(savedGameTime);
   } catch (e) {
   }
+  levers.map((lever, index) =>
+    lever.$lerpValue = lever.$lerpValue2 = lever.$value = index !== LEVER_ID_BOAT0 && _savedLevers[index] ? 1 : 0
+  );
+  souls.map((soul, index) => soul.$value = _savedSouls[index] ? 1 : 0);
   updateCollectedSoulsCounter();
-  firstBoatLerp = player_last_pulled_lever === LEVER_ID_BOAT0 ? 0 : clamp(souls_collected_count);
+  firstBoatLerp = player_last_pulled_lever !== LEVER_ID_BOAT0 || souls_collected_count ? 1 : 0;
 };
 const resetGame = () => {
   localStorage[LOCAL_STORAGE_SAVED_GAME_KEY] = "";
@@ -917,8 +921,8 @@ const saveGame = () => {
     levers.map((v) => v.$value),
     souls.map((v) => v.$value),
     player_last_pulled_lever,
-    gameTime,
     secondBoatLerp,
+    gameTime,
   ]);
 };
 const onSoulCollected = () => {
@@ -990,35 +994,30 @@ const distanceToPlayer = () => {
   );
 };
 const newLever = ($transform, name) => {
-  const parentModelMatrix = allModels.at(-1).$matrix;
-  const index = levers.length;
-  const lever = {
-    $value: 0,
-    $lerpValue: 0,
-    $lerpValue2: 0,
-    $matrix: parentModelMatrix,
-    $transform,
-    _update: () => {
-      lever.$lerpValue = lerpDamp(lever.$lerpValue, lever.$value, 4);
-      lever.$lerpValue2 = lerpDamp(lever.$lerpValue2, lever.$value, 1);
-      matrixCopy(parentModelMatrix).multiplySelf($transform);
-      if (interact_pressed && distanceToPlayer() < LEVER_SENSITIVITY_RADIUS) {
-        if (lever.$value) {
-          if (lever.$lerpValue > 0.7) {
-            lever.$value = 0;
-            onPlayerPullLever(index);
-          }
-        } else if (lever.$lerpValue < 0.3) {
-          lever.$value = 1;
+  const lever = () => {
+    lever.$lerpValue = lerpDamp(lever.$lerpValue, lever.$value, 4);
+    lever.$lerpValue2 = lerpDamp(lever.$lerpValue2, lever.$value, 1);
+    matrixCopy(parentModelMatrix).multiplySelf($transform);
+    if (interact_pressed && distanceToPlayer() < LEVER_SENSITIVITY_RADIUS) {
+      if (lever.$value) {
+        if (lever.$lerpValue > 0.7) {
+          lever.$value = 0;
           onPlayerPullLever(index);
         }
-      } else if (lever.$value && lever.$lerpValue > 0.8 && index === LEVER_ID_BOAT0) {
-        lever.$value = 0;
-        onFirstBoatLeverPulled();
+      } else if (lever.$lerpValue < 0.3) {
+        lever.$value = 1;
+        onPlayerPullLever(index);
       }
-      tempMatrix.rotateSelf(lever.$lerpValue * 50 - 25, 0).translateSelf(0, 1).m44 = lever.$lerpValue;
-    },
+    } else if (lever.$value && lever.$lerpValue > 0.8 && index === LEVER_ID_BOAT0) {
+      lever.$value = 0;
+      onFirstBoatLeverPulled();
+    }
+    tempMatrix.rotateSelf(lever.$lerpValue * 50 - 25, 0).translateSelf(0, 1).m44 = lever.$lerpValue;
   };
+  const parentModelMatrix = allModels.at(-1).$matrix;
+  const index = levers.length;
+  lever.$matrix = parentModelMatrix;
+  lever.$transform = $transform;
   levers.push(lever);
   meshAdd(cylinder(5), $transform.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
   meshAdd(cylinder(5), $transform.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
@@ -1033,70 +1032,67 @@ const newSoul = (transform, ...walkingPath) => {
   let randAngle = 0;
   let wasInside = 1;
   let dirX = -1;
-  const soul = {
-    $value: 0,
-    _update: () => {
-      if (!soul.$value) {
-        let isInside;
-        let contextualVelocity = 1;
-        let mindist = Infinity;
-        for (let i = 0; i < walkingPath.length; i++) {
-          const c = walkingPath[i];
-          const distance = hypot(targetX - c[0], targetZ - c[1]);
-          contextualVelocity = min(contextualVelocity, distance / c[2]);
-          const circleSDF = distance - c[2];
-          if (circleSDF < 0) {
-            isInside = 1;
-          } else if (circleSDF < mindist) {
-            mindist = circleSDF;
-            circle = c;
-          }
-        }
-        if (!isInside) {
-          const ax = targetX - circle[0];
-          const az = targetZ - circle[1];
-          let magnitude = hypot(ax, az);
-          let angle = /* @__PURE__ */ Math.atan2(-az, ax);
-          if (wasInside) {
-            velocity = clamp(velocity / (1 + /* @__PURE__ */ Math.random()));
-            randAngle = (/* @__PURE__ */ Math.random() - 0.5) * Math.PI / 2;
-          }
-          angle += randAngle;
-          dirX = -/* @__PURE__ */ Math.cos(angle);
-          dirZ = /* @__PURE__ */ Math.sin(angle);
-          if (magnitude > 0.1) {
-            magnitude = min(magnitude, circle[2]) / magnitude;
-            targetX = ax * magnitude + circle[0];
-            targetZ = az * magnitude + circle[1];
-          }
-        }
-        wasInside = isInside;
-        velocity = lerpDamp(velocity, 3 + 6 * (1 - contextualVelocity), 3 + contextualVelocity);
-        soulX = lerpDamp(soulX, targetX = lerpDamp(targetX, targetX + dirX, velocity), velocity);
-        soulZ = lerpDamp(soulZ, targetZ = lerpDamp(targetZ, targetZ + dirZ, velocity), velocity);
-        lookAngle = angle_lerp_degrees(
-          lookAngle,
-          /* @__PURE__ */ Math.atan2(soulX - prevX, soulZ - prevZ) / DEG_TO_RAD - 180,
-          damp(3),
-        );
-        matrixCopy(parentModelMatrix).multiplySelf(transform).translateSelf(prevX = soulX, 0, prevZ = soulZ).rotateSelf(
-          0,
-          lookAngle,
-          7 * /* @__PURE__ */ Math.sin(gameTime * 1.7),
-        );
-        if (distanceToPlayer() < SOUL_SENSITIVITY_RADIUS) {
-          soul.$value = 1;
-          onSoulCollected();
+  const soul = () => {
+    if (!soul.$value) {
+      let isInside;
+      let contextualVelocity = 1;
+      let mindist = Infinity;
+      for (let i = 0; i < walkingPath.length; i++) {
+        const c = walkingPath[i];
+        const distance = hypot(targetX - c[0], targetZ - c[1]);
+        contextualVelocity = min(contextualVelocity, distance / c[2]);
+        const circleSDF = distance - c[2];
+        if (circleSDF < 0) {
+          isInside = 1;
+        } else if (circleSDF < mindist) {
+          mindist = circleSDF;
+          circle = c;
         }
       }
-      if (soul.$value) {
-        matrixCopy(allModels[MODEL_ID_BOAT0].$matrix).translateSelf(
-          index % 4 * 1.2 - 1.7 + /* @__PURE__ */ Math.sin(gameTime + index) / 7,
-          -2,
-          -5.5 + (index / 4 | 0) * 1.7 + abs(index % 4 - 2) + /* @__PURE__ */ Math.cos(gameTime / 1.5 + index) / 6,
-        );
+      if (!isInside) {
+        const ax = targetX - circle[0];
+        const az = targetZ - circle[1];
+        let magnitude = hypot(ax, az);
+        let angle = /* @__PURE__ */ Math.atan2(-az, ax);
+        if (wasInside) {
+          velocity = clamp(velocity / (1 + /* @__PURE__ */ Math.random()));
+          randAngle = (/* @__PURE__ */ Math.random() - 0.5) * Math.PI / 2;
+        }
+        angle += randAngle;
+        dirX = -/* @__PURE__ */ Math.cos(angle);
+        dirZ = /* @__PURE__ */ Math.sin(angle);
+        if (magnitude > 0.1) {
+          magnitude = min(magnitude, circle[2]) / magnitude;
+          targetX = ax * magnitude + circle[0];
+          targetZ = az * magnitude + circle[1];
+        }
       }
-    },
+      wasInside = isInside;
+      velocity = lerpDamp(velocity, 3 + 6 * (1 - contextualVelocity), 3 + contextualVelocity);
+      soulX = lerpDamp(soulX, targetX = lerpDamp(targetX, targetX + dirX, velocity), velocity);
+      soulZ = lerpDamp(soulZ, targetZ = lerpDamp(targetZ, targetZ + dirZ, velocity), velocity);
+      lookAngle = angle_lerp_degrees(
+        lookAngle,
+        /* @__PURE__ */ Math.atan2(soulX - prevX, soulZ - prevZ) / DEG_TO_RAD - 180,
+        damp(3),
+      );
+      matrixCopy(parentModelMatrix).multiplySelf(transform).translateSelf(prevX = soulX, 0, prevZ = soulZ).rotateSelf(
+        0,
+        lookAngle,
+        7 * /* @__PURE__ */ Math.sin(gameTime * 1.7),
+      );
+      if (distanceToPlayer() < SOUL_SENSITIVITY_RADIUS) {
+        soul.$value = 1;
+        onSoulCollected();
+      }
+    }
+    if (soul.$value) {
+      matrixCopy(allModels[MODEL_ID_BOAT0].$matrix).translateSelf(
+        index % 4 * 1.2 - 1.7 + /* @__PURE__ */ Math.sin(gameTime + index) / 7,
+        -2,
+        -5.5 + (index / 4 | 0) * 1.7 + abs(index % 4 - 2) + /* @__PURE__ */ Math.cos(gameTime / 1.5 + index) / 6,
+      );
+    }
   };
   let circle = walkingPath[0];
   let [targetX, targetZ] = circle;
@@ -2582,11 +2578,11 @@ const eppur_si_muove = () => {
   modelsNextUpdate(-50.7, 0.8, 106).rotateSelf(0, 180 - rotatingPlatform2Rotation);
   modelsNextUpdate(-50.7, 0.8, 91).rotateSelf(0, 270 + rotatingPlatform2Rotation);
   for (let i2 = 0; i2 < SOULS_COUNT; ++i2) {
-    souls[i2]._update();
+    souls[i2]();
     matrixToArray(tempMatrix, transformsBuffer, MODELS_WITH_FULL_TRANSFORM + i2);
   }
   for (let i3 = 0; i3 < LEVERS_COUNT; ++i3) {
-    levers[i3]._update();
+    levers[i3]();
     matrixToArray(tempMatrix, transformsBuffer, MODELS_WITH_FULL_TRANSFORM + SOULS_COUNT + i3);
   }
   for (
