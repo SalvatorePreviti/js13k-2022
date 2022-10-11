@@ -1386,6 +1386,7 @@ loadStep(() => {
           collisionShader(),
             cgl["u3a"](collisionShader("j"), transformsBuffer),
             cgl["v5y"](0, 0, 128, 128),
+            cgl["cbf"](!0, !0, !0, !0),
             cgl["c4s"](16640),
             cgl["cbf"](!0, !1, !0, !1),
             cgl["uae"](
@@ -1400,9 +1401,9 @@ loadStep(() => {
               ),
             ),
             renderModels(cgl),
-            gl["c4s"](256),
-            gl["cbf"](!1, !0, !1, !0),
-            gl["uae"](
+            cgl["c4s"](256),
+            cgl["cbf"](!1, !0, !1, !0),
+            cgl["uae"](
               collisionShader("b"),
               !1,
               matrixToArray(
@@ -1577,19 +1578,21 @@ precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sa
         cgl["b9j"](3553, mainVertexShader),
         cgl["t60"](3553, 0, 6408, 128, 128, 0, 6408, 5121, null),
         cgl["fas"](36160, 36064, 3553, mainVertexShader, 0),
+        cgl["c5t"](0, 0, 0, 0),
         gl["a4v"](33986),
         gl["b9j"](3553, gl["c25"]()),
         gl["t60"](3553, 0, 6408, 1024, 1024, 0, 6408, 5121, groundTextureImage),
         gl["t2z"](3553, 10241, 9987),
         gl["t2z"](3553, 10240, 9729),
-        gl["gbn"](3553);
+        gl["gbn"](3553),
+        gl["c5t"](0, 0, 0, 1);
       for (
         const xgl of [
           gl,
           cgl,
         ]
       ) {
-        xgl["e8z"](2929), xgl["e8z"](2884), xgl["c70"](1), xgl["d4n"](515), xgl["c5t"](0, 0, 0, 0);
+        xgl["e8z"](2929), xgl["e8z"](2884), xgl["c70"](1), xgl["d4n"](515);
       }
       NO_INLINE(initPage)(), NO_INLINE(player_init)(), requestAnimationFrame(mainLoop);
     }

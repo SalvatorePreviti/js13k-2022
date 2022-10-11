@@ -169,9 +169,11 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       cgl.uniform4fv(collisionShader(uniformName_worldTransforms), transformsBuffer);
       cgl.viewport(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
 
+      cgl.colorMask(true, true, true, true);
+      cgl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
       // first collision render
 
-      cgl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
       cgl.colorMask(true, false, true, false);
 
       cgl.uniformMatrix4fv(
@@ -325,6 +327,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   );
 
   cgl.framebufferTexture2D(cgl.FRAMEBUFFER, cgl.COLOR_ATTACHMENT0, cgl.TEXTURE_2D, collision_texture, 0);
+  cgl.clearColor(0, 0, 0, 0); // Clear to black, alpha 0 as is used for collision, it will be in any case overwritten when rendering triangles with 1.
 
   // Ground texture
 
@@ -338,6 +341,8 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
   // GL Setup
 
+  gl.clearColor(0, 0, 0, 1);
+
   for (const xgl of [gl, cgl]) {
     xgl.enable(xgl.DEPTH_TEST); // Enable depth testing
     xgl.enable(xgl.CULL_FACE); // Don't render triangle backs
@@ -345,7 +350,6 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     xgl.clearDepth(1); // Clear everything. Default value is 1
     // gl.cullFace(gl.BACK); // Default value is already BACK
     xgl.depthFunc(xgl.LEQUAL); // LEQUAL to make sky works
-    xgl.clearColor(0, 0, 0, 0); // Clear to black, alpha 0 as is used for collision, it will be in any case overwritten when rendering triangles with 1.
   }
 
   NO_INLINE(initPage)();

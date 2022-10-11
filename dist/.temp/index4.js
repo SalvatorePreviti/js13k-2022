@@ -451,13 +451,14 @@ O1(() => {
               s(),
                 G.u3a(s("j"), A),
                 G.v5y(0, 0, 128, 128),
+                G.cbf(!0, !0, !0, !0),
                 G.c4s(16640),
                 G.cbf(!0, !1, !0, !1),
                 G.uae(s("b"), !1, p(W().rotateSelf(0, 180).invertSelf().translateSelf(-R, -X, .3 - q))),
                 K1(G),
-                M.c4s(256),
-                M.cbf(!1, !0, !1, !0),
-                M.uae(s("b"), !1, p(W().translateSelf(-R, -X, -q - .3))),
+                G.c4s(256),
+                G.cbf(!1, !0, !1, !0),
+                G.uae(s("b"), !1, p(W().translateSelf(-R, -X, -q - .3))),
                 K1(G),
                 k = 0;
             }
@@ -605,13 +606,15 @@ precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sa
           G.b9j(3553, t),
           G.t60(3553, 0, 6408, 128, 128, 0, 6408, 5121, null),
           G.fas(36160, 36064, 3553, t, 0),
+          G.c5t(0, 0, 0, 0),
           M.a4v(33986),
           M.b9j(3553, M.c25()),
           M.t60(3553, 0, 6408, 1024, 1024, 0, 6408, 5121, e),
           M.t2z(3553, 10241, 9987),
           M.t2z(3553, 10240, 9729),
-          M.gbn(3553);
-        for (let e of [M, G]) e.e8z(2929), e.e8z(2884), e.c70(1), e.d4n(515), e.c5t(0, 0, 0, 0);
+          M.gbn(3553),
+          M.c5t(0, 0, 0, 1);
+        for (let e of [M, G]) e.e8z(2929), e.e8z(2884), e.c70(1), e.d4n(515);
         (() => {
           let e,
             i,

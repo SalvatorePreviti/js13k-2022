@@ -2665,6 +2665,7 @@ const startMainLoop = (groundTextureImage) => {
       collisionShader();
       cgl["u3a"](collisionShader(uniformName_worldTransforms), transformsBuffer);
       cgl["v5y"](0, 0, constDef_COLLISION_TEXTURE_SIZE, constDef_COLLISION_TEXTURE_SIZE);
+      cgl["cbf"](true, true, true, true);
       cgl["c4s"](16640);
       cgl["cbf"](true, false, true, false);
       cgl["uae"](
@@ -2679,9 +2680,9 @@ const startMainLoop = (groundTextureImage) => {
         ),
       );
       renderModels(cgl);
-      gl["c4s"](256);
-      gl["cbf"](false, true, false, true);
-      gl["uae"](
+      cgl["c4s"](256);
+      cgl["cbf"](false, true, false, true);
+      cgl["uae"](
         collisionShader(uniformName_viewMatrix),
         false,
         matrixToArray(
@@ -2835,12 +2836,14 @@ const startMainLoop = (groundTextureImage) => {
   cgl["b9j"](3553, collision_texture);
   cgl["t60"](3553, 0, 6408, constDef_COLLISION_TEXTURE_SIZE, constDef_COLLISION_TEXTURE_SIZE, 0, 6408, 5121, null);
   cgl["fas"](36160, 36064, 3553, collision_texture, 0);
+  cgl["c5t"](0, 0, 0, 0);
   gl["a4v"](33986);
   gl["b9j"](3553, gl["c25"]());
   gl["t60"](3553, 0, 6408, 1024, 1024, 0, 6408, 5121, groundTextureImage);
   gl["t2z"](3553, 10241, 9987);
   gl["t2z"](3553, 10240, 9729);
   gl["gbn"](3553);
+  gl["c5t"](0, 0, 0, 1);
   for (
     const xgl of [
       gl,
@@ -2851,7 +2854,6 @@ const startMainLoop = (groundTextureImage) => {
     xgl["e8z"](2884);
     xgl["c70"](1);
     xgl["d4n"](515);
-    xgl["c5t"](0, 0, 0, 0);
   }
   (/* @__PURE__ */ NO_INLINE(initPage))();
   (/* @__PURE__ */ NO_INLINE(player_init))();
