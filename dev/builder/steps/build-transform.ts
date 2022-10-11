@@ -9,7 +9,7 @@ import { swcPluginVars } from "./swc/transforms/swc-plugin-vars";
 class Transformer extends SwcVisitor {
   override visitMemberExpression(n: MemberExpression): MemberExpression {
     if (n.property.type === "Identifier") {
-      if (n.object.type === "Identifier" && (n.object.value === "gl" || n.object.value === "glcontext")) {
+      if (n.object.type === "Identifier" && (n.object.value.endsWith("gl") || n.object.value === "glcontext")) {
         const glConstant = glConstants.get(n.property.value);
         if (typeof glConstant === "number") {
           return { type: "NumericLiteral", value: glConstant, span: n.span } as unknown as MemberExpression;
@@ -18,7 +18,7 @@ class Transformer extends SwcVisitor {
         if (
           n.object.type === "Identifier" &&
           glFunctions.has(n.property.value) &&
-          (n.object.value === "gl" || n.object.value === "glcontext")
+          (n.object.value.endsWith("gl") || n.object.value === "glcontext")
         ) {
           return {
             ...n,

@@ -16,7 +16,7 @@ import { player_last_pulled_lever, camera_rotation, firstBoatLerp, player_positi
 import { input_forward, input_strafe, player_first_person } from "../page";
 import { lerpDamp, gameTimeDelta, damp, gameTime } from "./game-time";
 import { matrixCopy, matrixTransformPoint } from "../math/matrix";
-import { gl } from "../gl";
+import { cgl, gl } from "../gl";
 import { shouldRotatePlatforms } from "./level-update";
 import { modelsNextUpdate, verifyModelsNextUpdate } from "./models-next-update";
 import {
@@ -222,7 +222,7 @@ export const player_init = () => {
     // ------- read collision renderBuffer -------
 
     // gl.finish();
-    gl.readPixels(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE, gl.RGBA, gl.UNSIGNED_BYTE, collision_buffer);
+    cgl.readPixels(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE, gl.RGBA, gl.UNSIGNED_BYTE, collision_buffer);
     // gl.invalidateFramebuffer(gl.READ_FRAMEBUFFER, [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT]);
     // gl.invalidateFramebuffer(gl.DRAW_FRAMEBUFFER, [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT]);
 

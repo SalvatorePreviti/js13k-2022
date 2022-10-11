@@ -1582,10 +1582,17 @@ const transformsBuffer = new Float32Array((4 * (MODELS_WITH_FULL_TRANSFORM + LEV
 const gl = hC.getContext("webgl2", {
   powerPreference: "high-performance"
 });
-for (const s in gl)
+const cgl = hD.getContext("webgl2", {
+  powerPreference: "high-performance"
+});
+for (const s in gl) {
   gl[s[0] + [
     ...s
   ].reduce((p, c, i) => (p * i + c.charCodeAt(0)) % 434, 0).toString(36)] = gl[s];
+  cgl[s[0] + [
+    ...s
+  ].reduce((p, c, i) => (p * i + c.charCodeAt(0)) % 434, 0).toString(36)] = cgl[s];
+}
 let modelsUpdateCounter;
 const modelsResetUpdateCounter = () => modelsUpdateCounter = 1;
 const modelsNextUpdate = (x, y = 0, z = 0) => {
@@ -1719,7 +1726,7 @@ const player_init = () => {
   const interpolate_with_hysteresis = (previous, desired, hysteresis, speed) => lerp(previous, desired, boot || (clamp(abs(desired - previous) ** 0.5 - hysteresis) + 1 / 7) * damp(speed * 1.5));
   player_update = () => {
     updatePlayerPositionFinal(currentModelId);
-    gl["r9r"](0, 0, constDef_COLLISION_TEXTURE_SIZE, constDef_COLLISION_TEXTURE_SIZE, 6408, 5121, collision_buffer);
+    cgl["r9r"](0, 0, constDef_COLLISION_TEXTURE_SIZE, constDef_COLLISION_TEXTURE_SIZE, 6408, 5121, collision_buffer);
     (/* @__PURE__ */ NO_INLINE(doCollisions))();
     if (player_respawned || currentModelId !== oldModelId) {
       oldModelId = currentModelId;
@@ -1851,30 +1858,30 @@ const eppur_si_muove = () => {
   for (let i5 = 0; i5 < MODELS_WITH_FULL_TRANSFORM; ++i5)
     matrixToArray(allModels[2 + MODELS_WITH_SIMPLE_TRANSFORM + i5].$matrix, transformsBuffer, i5);
 };
-const renderModels = (renderPlayer) => {
+const renderModels = (xgl, renderPlayer) => {
   if (mainMenuVisible) {
     if (hC.width > 1100)
-      gl["d97"](4, allModels[MODEL_ID_PLAYER_LEG1].$vertexEnd - allModels[MODEL_ID_PLAYER_BODY].$vertexBegin, 5123, allModels[MODEL_ID_PLAYER_BODY].$vertexBegin * 2);
+      xgl["d97"](4, allModels[MODEL_ID_PLAYER_LEG1].$vertexEnd - allModels[MODEL_ID_PLAYER_BODY].$vertexBegin, 5123, allModels[MODEL_ID_PLAYER_BODY].$vertexBegin * 2);
   } else {
     if (renderPlayer !== void 0)
-      gl["das"](4, allModels[MODEL_ID_SOUL].$vertexEnd - allModels[MODEL_ID_SOUL].$vertexBegin, 5123, allModels[MODEL_ID_SOUL].$vertexBegin * 2, souls.length);
-    gl["das"](4, allModels[MODEL_ID_LEVER].$vertexEnd - allModels[MODEL_ID_LEVER].$vertexBegin, 5123, allModels[MODEL_ID_LEVER].$vertexBegin * 2, levers.length);
-    gl["d97"](4, (renderPlayer ? allModels[MODEL_ID_PLAYER_LEG1].$vertexEnd : allModels[MODEL_ID_PLAYER_BODY].$vertexBegin) - 3, 5123, 6);
+      xgl["das"](4, allModels[MODEL_ID_SOUL].$vertexEnd - allModels[MODEL_ID_SOUL].$vertexBegin, 5123, allModels[MODEL_ID_SOUL].$vertexBegin * 2, souls.length);
+    xgl["das"](4, allModels[MODEL_ID_LEVER].$vertexEnd - allModels[MODEL_ID_LEVER].$vertexBegin, 5123, allModels[MODEL_ID_LEVER].$vertexBegin * 2, levers.length);
+    xgl["d97"](4, (renderPlayer ? allModels[MODEL_ID_PLAYER_LEG1].$vertexEnd : allModels[MODEL_ID_PLAYER_BODY].$vertexBegin) - 3, 5123, 6);
   }
 };
-const loadShader = (source, type = 35633) => {
-  const shader = gl["c6x"](type);
-  gl["s3c"](shader, source);
-  gl["c6a"](shader);
+const loadShader = (xgl, source, type = 35633) => {
+  const shader = xgl["c6x"](type);
+  xgl["s3c"](shader, source);
+  xgl["c6a"](shader);
   return shader;
 };
-const initShaderProgram = (vertexShader, sfsSource) => {
+const initShaderProgram = (xgl, vertexShader, sfsSource) => {
   const uniforms = {};
-  const program = gl["c1h"]();
-  gl["abz"](program, vertexShader);
-  gl["abz"](program, loadShader(sfsSource, 35632));
-  gl["l8l"](program);
-  return (name) => name ? uniforms[name] || (uniforms[name] = gl["gan"](program, name)) : gl["u7y"](program);
+  const program = xgl["c1h"]();
+  xgl["abz"](program, vertexShader);
+  xgl["abz"](program, loadShader(xgl, sfsSource, 35632));
+  xgl["l8l"](program);
+  return (name) => name ? uniforms[name] || (uniforms[name] = xgl["gan"](program, name)) : xgl["u7y"](program);
 };
 const LIGHT_ROT_Y = 139;
 const LIGHT_ROT_X = 298;
@@ -1886,16 +1893,17 @@ const startMainLoop = (groundTextureImage) => {
       worldStateUpdate();
       updateInput();
       eppur_si_muove();
-      gl["u3a"](collisionShader(uniformName_worldTransforms), transformsBuffer);
-      gl["v5y"](0, 0, constDef_COLLISION_TEXTURE_SIZE, constDef_COLLISION_TEXTURE_SIZE);
-      gl["c4s"](16640);
-      gl["cbf"](true, false, true, false);
-      gl["uae"](collisionShader(uniformName_viewMatrix), false, matrixToArray(matrixCopy().rotateSelf(0, 180).invertSelf().translateSelf(-player_position_final.x, -player_position_final.y, 0.3 - player_position_final.z)));
-      renderModels();
+      collisionShader();
+      cgl["u3a"](collisionShader(uniformName_worldTransforms), transformsBuffer);
+      cgl["v5y"](0, 0, constDef_COLLISION_TEXTURE_SIZE, constDef_COLLISION_TEXTURE_SIZE);
+      cgl["c4s"](16640);
+      cgl["cbf"](true, false, true, false);
+      cgl["uae"](collisionShader(uniformName_viewMatrix), false, matrixToArray(matrixCopy().rotateSelf(0, 180).invertSelf().translateSelf(-player_position_final.x, -player_position_final.y, 0.3 - player_position_final.z)));
+      renderModels(cgl);
       gl["c4s"](256);
       gl["cbf"](false, true, false, true);
       gl["uae"](collisionShader(uniformName_viewMatrix), false, matrixToArray(matrixCopy().translateSelf(-player_position_final.x, -player_position_final.y, -player_position_final.z - 0.3)));
-      renderModels();
+      renderModels(cgl);
       resetInteractPressed();
     }
     let cameraX = camera_position_x;
@@ -1933,23 +1941,21 @@ const startMainLoop = (groundTextureImage) => {
     gl["uae"](mainShader(uniformName_csm_matrices), false, csm_lightSpaceMatrices);
     gl["ubh"](mainShader(uniformName_csm_texture0), 0);
     gl["ubh"](mainShader(uniformName_csm_texture1), 1);
-    renderModels(!player_first_person);
+    renderModels(gl, !player_first_person);
     skyShader();
     gl["uae"](skyShader(uniformName_viewMatrix), false, matrixToArray(matrixCopy(camera_view).invertSelf()));
     gl["ubu"](skyShader(uniformName_iResolution), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime);
     gl["d97"](4, 3, 5123, 0);
-    gl["b6o"](36160, collision_frameBuffer);
-    collisionShader();
-    gl["f1s"]();
+    cgl["f1s"]();
   };
   const csm_tempMatrix = new DOMMatrix();
   const camera_view = new DOMMatrix();
   const csm_lightSpaceMatrices = new Float32Array(32);
   const csm_tempFrustumCorners = integers_map(8, () => ({}));
-  const skyShader = initShaderProgram(loadShader(code$1), code);
-  const mainVertexShader = loadShader(code$3);
-  const collisionShader = initShaderProgram(mainVertexShader, code$2);
-  const mainShader = initShaderProgram(mainVertexShader, code$4);
+  const skyShader = initShaderProgram(gl, loadShader(gl, code$1), code);
+  const mainVertexShader = loadShader(gl, code$3);
+  const collisionShader = initShaderProgram(cgl, loadShader(cgl, code$3), code$2);
+  const mainShader = initShaderProgram(gl, mainVertexShader, code$4);
   const [csm_render0, csm_render1] = integers_map(2, (split) => {
     const texture = gl["c25"]();
     gl["a4v"](33984 + split);
@@ -1996,43 +2002,47 @@ const startMainLoop = (groundTextureImage) => {
       near *= near < 0 ? zMultiplier : 1 / zMultiplier;
       far *= far > 0 ? zMultiplier : 1 / zMultiplier;
       gl["uae"](mainShader(uniformName_viewMatrix), false, matrixToArray(matrixCopy(identity, csm_tempMatrix).scaleSelf(2 / (right - left), 2 / (top - bottom), 2 / (near - far)).translateSelf((right + left) / -2, (top + bottom) / -2, (near + far) / 2).multiplySelf(tempMatrix), csm_lightSpaceMatrices, split), 16 * split, 16);
-      renderModels(!player_first_person);
+      renderModels(gl, !player_first_person);
     };
   });
   const csm_framebuffer = gl["c5w"]();
-  const collision_texture = gl["c25"]();
-  const collision_renderBuffer = gl["c3z"]();
-  const collision_frameBuffer = gl["c5w"]();
+  const collision_texture = cgl["c25"]();
+  const collision_renderBuffer = cgl["c3z"]();
+  const collision_frameBuffer = cgl["c5w"]();
   mainShader();
   gl["ubh"](mainShader(uniformName_groundTexture), 2);
   skyShader();
   gl["ubh"](skyShader(uniformName_groundTexture), 2);
   collisionShader();
-  gl["uae"](collisionShader(uniformName_projectionMatrix), false, matrixToArray(mat_perspective(1e-4, 2, 1.2, 0.4)));
+  cgl["uae"](collisionShader(uniformName_projectionMatrix), false, matrixToArray(mat_perspective(1e-4, 2, 1.2, 0.4)));
   gl["b6o"](36160, csm_framebuffer);
   gl["d45"]([
     0
   ]);
   gl["r9l"](0);
-  gl["b6o"](36160, collision_frameBuffer);
-  gl["bb1"](36161, collision_renderBuffer);
-  gl["r4v"](36161, 33190, constDef_COLLISION_TEXTURE_SIZE, constDef_COLLISION_TEXTURE_SIZE);
-  gl["f8w"](36160, 36096, 36161, collision_renderBuffer);
+  cgl["b6o"](36160, collision_frameBuffer);
+  cgl["bb1"](36161, collision_renderBuffer);
+  cgl["r4v"](36161, 33190, constDef_COLLISION_TEXTURE_SIZE, constDef_COLLISION_TEXTURE_SIZE);
+  cgl["f8w"](36160, 36096, 36161, collision_renderBuffer);
+  cgl["b9j"](3553, collision_texture);
+  cgl["t60"](3553, 0, 6408, constDef_COLLISION_TEXTURE_SIZE, constDef_COLLISION_TEXTURE_SIZE, 0, 6408, 5121, null);
+  cgl["fas"](36160, 36064, 3553, collision_texture, 0);
   gl["a4v"](33986);
-  gl["b9j"](3553, collision_texture);
-  gl["t60"](3553, 0, 6408, constDef_COLLISION_TEXTURE_SIZE, constDef_COLLISION_TEXTURE_SIZE, 0, 6408, 5121, null);
-  gl["fas"](36160, 36064, 3553, collision_texture, 0);
   gl["b9j"](3553, gl["c25"]());
   gl["t60"](3553, 0, 6408, 1024, 1024, 0, 6408, 5121, groundTextureImage);
   gl["t2z"](3553, 10241, 9987);
   gl["t2z"](3553, 10240, 9729);
   gl["gbn"](3553);
-  gl["e8z"](2929);
-  gl["e8z"](2884);
-  gl["c70"](1);
-  gl["c7a"](1029);
-  gl["d4n"](515);
-  gl["c5t"](0, 0, 0, 0);
+  for (const xgl of [
+    gl,
+    cgl
+  ]) {
+    xgl["e8z"](2929);
+    xgl["e8z"](2884);
+    xgl["c70"](1);
+    xgl["d4n"](515);
+    xgl["c5t"](0, 0, 0, 0);
+  }
   (/* @__PURE__ */ NO_INLINE(initPage))();
   (/* @__PURE__ */ NO_INLINE(player_init))();
   requestAnimationFrame(mainLoop);
@@ -2083,20 +2093,25 @@ const initTriangleBuffers = () => {
     model.$vertexBegin = meshFirstIndex;
     model.$vertexEnd = meshFirstIndex = _triangleIndices.length;
   });
-  gl["b11"](34962, gl["c1b"]());
-  gl["b2v"](34962, new Float32Array(_vertexPositions), 35044);
-  gl["v7s"](0, 4, 5126, false, 0, 0);
-  gl["b11"](34962, gl["c1b"]());
-  gl["b2v"](34962, new Int16Array(_vertexNormals), 35044);
-  gl["v7s"](1, 3, 5122, true, 0, 0);
-  gl["b11"](34962, gl["c1b"]());
-  gl["b2v"](34962, new Uint32Array(_vertexColors), 35044);
-  gl["v7s"](2, 4, 5121, true, 0, 0);
-  gl["b11"](34963, gl["c1b"]());
-  gl["b2v"](34963, new Uint16Array(_triangleIndices), 35044);
-  gl["e3x"](0);
-  gl["e3x"](1);
-  gl["e3x"](2);
+  for (const xgl of [
+    gl,
+    cgl
+  ]) {
+    xgl["b11"](34962, xgl["c1b"]());
+    xgl["b2v"](34962, new Float32Array(_vertexPositions), 35044);
+    xgl["v7s"](0, 4, 5126, false, 0, 0);
+    xgl["b11"](34962, xgl["c1b"]());
+    xgl["b2v"](34962, new Int16Array(_vertexNormals), 35044);
+    xgl["v7s"](1, 3, 5122, true, 0, 0);
+    xgl["b11"](34962, xgl["c1b"]());
+    xgl["b2v"](34962, new Uint32Array(_vertexColors), 35044);
+    xgl["v7s"](2, 4, 5121, true, 0, 0);
+    xgl["b11"](34963, xgl["c1b"]());
+    xgl["b2v"](34963, new Uint16Array(_triangleIndices), 35044);
+    xgl["e3x"](0);
+    xgl["e3x"](1);
+    xgl["e3x"](2);
+  }
 };
 loadStep(() => {
   let loadStatus = 0;

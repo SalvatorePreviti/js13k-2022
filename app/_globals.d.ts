@@ -26,8 +26,11 @@ declare module "*.frag";
 
 declare module "*.vert";
 
-/** HTMLCanvas element declared in the page */
+/** Main HTMLCanvas element declared in the page */
 declare const hC: HTMLCanvasElement;
+
+/** Collisions HTMLCanvas element declared in the page */
+declare const hD: HTMLCanvasElement;
 
 declare const b1: HTMLElement;
 declare const b2: HTMLElement;
