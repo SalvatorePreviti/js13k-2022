@@ -1371,6 +1371,7 @@ loadStep(() => {
           for (let i5 = 0; i5 < 12; ++i5) matrixToArray(allModels[28 + i5].$matrix, transformsBuffer, i5);
           collisionShader(),
             gl["u3a"](collisionShader("j"), transformsBuffer),
+            gl["v5y"](0, 0, 128, 128),
             gl["c4s"](16640),
             gl["cbf"](!0, !1, !0, !1),
             gl["uae"](
@@ -1446,7 +1447,6 @@ loadStep(() => {
           gl["ubu"](skyShader("j"), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime),
           gl["d97"](4, 3, 5123, 0),
           gl["b6o"](36160, collision_frameBuffer),
-          gl["v5y"](0, 0, 128, 128),
           gl["f1s"]();
       };
       const csm_tempMatrix = new DOMMatrix();
@@ -1541,12 +1541,12 @@ precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sa
       var mainVertexShader = gl["c25"]();
       const collision_renderBuffer = gl["c3z"]();
       const collision_frameBuffer = gl["c5w"]();
-      collisionShader(),
-        gl["uae"](collisionShader("a"), !1, matrixToArray(mat_perspective(1e-4, 2, 1.2, 0.4))),
-        mainShader(),
+      mainShader(),
         gl["ubh"](mainShader("q"), 2),
         skyShader(),
         gl["ubh"](skyShader("q"), 2),
+        collisionShader(),
+        gl["uae"](collisionShader("a"), !1, matrixToArray(mat_perspective(1e-4, 2, 1.2, 0.4))),
         gl["b6o"](36160, csm_framebuffer),
         gl["d45"]([
           0,

@@ -833,6 +833,7 @@ zb(() => {
               }
               H();
               Z.u3a(H("j"), kc);
+              Z.v5y(0, 0, 128, 128);
               Z.c4s(16640);
               Z.cbf(!0, !1, !0, !1);
               Z.uae(H("b"), !1, nb(ob().rotateSelf(0, 180).invertSelf().translateSelf(-Va, -Wa, 0.3 - Xa)));
@@ -883,7 +884,6 @@ zb(() => {
             Z.ubu(K("j"), Z.drawingBufferWidth, Z.drawingBufferHeight, wa);
             Z.d97(4, 3, 5123, 0);
             Z.b6o(36160, T);
-            Z.v5y(0, 0, 128, 128);
             Z.f1s();
           },
           n = new DOMMatrix(),
@@ -964,12 +964,12 @@ zb(() => {
           R = Z.c5w();
         k = Z.c25();
         const S = Z.c3z(), T = Z.c5w();
-        H();
-        Z.uae(H("a"), !1, nb(yb(1e-4, 2, 1.2, 0.4)));
         C();
         Z.ubh(C("q"), 2);
         K();
         Z.ubh(K("q"), 2);
+        H();
+        Z.uae(H("a"), !1, nb(yb(1e-4, 2, 1.2, 0.4)));
         Z.b6o(36160, R);
         Z.d45([0]);
         Z.r9l(0);

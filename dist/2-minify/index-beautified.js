@@ -446,6 +446,7 @@ T1(() => {
               }
               s(),
                 Z.u3a(s("j"), A),
+                Z.v5y(0, 0, 128, 128),
                 Z.c4s(16640),
                 Z.cbf(!0, !1, !0, !1),
                 Z.uae(s("b"), !1, p(K().rotateSelf(0, 180).invertSelf().translateSelf(-R, -X, .3 - q))),
@@ -496,7 +497,6 @@ T1(() => {
               Z.ubu(r("j"), Z.drawingBufferWidth, Z.drawingBufferHeight, w),
               Z.d97(4, 3, 5123, 0),
               Z.b6o(36160, n),
-              Z.v5y(0, 0, 128, 128),
               Z.f1s();
           },
           h = new DOMMatrix(),
@@ -573,12 +573,12 @@ precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sa
           i = Z.c5w(),
           t = (a = Z.c25(), Z.c3z()),
           n = Z.c5w();
-        s(),
-          Z.uae(s("a"), !1, p(D1(1e-4, 2, 1.2, .4))),
-          d(),
+        d(),
           Z.ubh(d("q"), 2),
           r(),
           Z.ubh(r("q"), 2),
+          s(),
+          Z.uae(s("a"), !1, p(D1(1e-4, 2, 1.2, .4))),
           Z.b6o(36160, i),
           Z.d45([0]),
           Z.r9l(0),

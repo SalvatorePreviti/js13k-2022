@@ -1892,6 +1892,7 @@ const startMainLoop = (groundTextureImage) => {
       eppur_si_muove();
       collisionShader();
       gl["u3a"](collisionShader(uniformName_worldTransforms), transformsBuffer);
+      gl["v5y"](0, 0, constDef_COLLISION_TEXTURE_SIZE, constDef_COLLISION_TEXTURE_SIZE);
       gl["c4s"](16640);
       gl["cbf"](true, false, true, false);
       gl["uae"](collisionShader(uniformName_viewMatrix), false, matrixToArray(matrixCopy().rotateSelf(0, 180).invertSelf().translateSelf(-player_position_final.x, -player_position_final.y, 0.3 - player_position_final.z)));
@@ -1943,7 +1944,6 @@ const startMainLoop = (groundTextureImage) => {
     gl["ubu"](skyShader(uniformName_iResolution), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime);
     gl["d97"](4, 3, 5123, 0);
     gl["b6o"](36160, collision_frameBuffer);
-    gl["v5y"](0, 0, constDef_COLLISION_TEXTURE_SIZE, constDef_COLLISION_TEXTURE_SIZE);
     gl["f1s"]();
   };
   const csm_tempMatrix = new DOMMatrix();
@@ -2007,12 +2007,12 @@ const startMainLoop = (groundTextureImage) => {
   const collision_texture = gl["c25"]();
   const collision_renderBuffer = gl["c3z"]();
   const collision_frameBuffer = gl["c5w"]();
-  collisionShader();
-  gl["uae"](collisionShader(uniformName_projectionMatrix), false, matrixToArray(mat_perspective(1e-4, 2, 1.2, 0.4)));
   mainShader();
   gl["ubh"](mainShader(uniformName_groundTexture), 2);
   skyShader();
   gl["ubh"](skyShader(uniformName_groundTexture), 2);
+  collisionShader();
+  gl["uae"](collisionShader(uniformName_projectionMatrix), false, matrixToArray(mat_perspective(1e-4, 2, 1.2, 0.4)));
   gl["b6o"](36160, csm_framebuffer);
   gl["d45"]([
     0

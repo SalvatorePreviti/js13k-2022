@@ -448,6 +448,7 @@ zb(() => {
           }
           H();
           Z.u3a(H("j"), kc);
+          Z.v5y(0, 0, 128, 128);
           Z.c4s(16640);
           Z.cbf(!0, !1, !0, !1);
           Z.uae(H("b"), !1, nb(ob().rotateSelf(0, 180).invertSelf().translateSelf(-Va, -Wa, 0.3 - Xa,),),);
@@ -487,7 +488,6 @@ zb(() => {
         Z.ubu(K("j"), Z.drawingBufferWidth, Z.drawingBufferHeight, wa);
         Z.d97(4, 3, 5123, 0);
         Z.b6o(36160, T);
-        Z.v5y(0, 0, 128, 128);
         Z.f1s();
       }, n = new DOMMatrix(), x = new DOMMatrix(), B = new Float32Array(32), f = g, t = D(8, () => ({})), K = jc(ic("#version 300 es\nin vec4 f;void main(){gl_Position=vec4(f.xy,1,1);}"), "#version 300 es\nprecision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;out vec4 O;void main(){vec2 t=gl_FragCoord.xy/j.xy*2.-1.;vec3 e=(normalize(b*vec4(t.x*-(j.x/j.y),-t.y,1.73205,0.))).xyz;float o=(-32.-b[3].y)/e.y,i=1.-clamp(abs(o/9999.),0.,1.);if(O=vec4(0,0,0,1),i>.01){if(o>0.){float i=cos(j.z/30.),o=sin(j.z/30.);e.xz*=mat2(i,o,-o,i);vec3 t=abs(e);O.xyz=vec3(dot(vec2(texture(q,e.xy).z,texture(q,e.yz*2.).z),t.zx)*t.y);}else e=b[3].xyz+e*o,O.x=(i*=.9-texture(q,e.xz/150.+vec2(sin(e.z/35.+j.z),cos(e.x/25.+j.z))/80.).y),O.y=i*i*i;}}",
       );
@@ -528,12 +528,12 @@ zb(() => {
       }), R = Z.c5w();
       k = Z.c25();
       const S = Z.c3z(), T = Z.c5w();
-      H();
-      Z.uae(H("a"), !1, nb(yb(1e-4, 2, 1.2, 0.4)));
       C();
       Z.ubh(C("q"), 2);
       K();
       Z.ubh(K("q"), 2);
+      H();
+      Z.uae(H("a"), !1, nb(yb(1e-4, 2, 1.2, 0.4)));
       Z.b6o(36160, R);
       Z.d45([0,]);
       Z.r9l(0);

@@ -166,6 +166,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       collisionShader();
 
       gl.uniform4fv(collisionShader(uniformName_worldTransforms), transformsBuffer);
+      gl.viewport(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
 
       // first collision render
 
@@ -278,9 +279,14 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     // Flushing here increase the chance of the GPU finishing the rendering before we read the texture.
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, collision_frameBuffer);
-    gl.viewport(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
     gl.flush();
   };
+
+  mainShader();
+  gl.uniform1i(mainShader(uniformName_groundTexture), 2);
+
+  skyShader();
+  gl.uniform1i(skyShader(uniformName_groundTexture), 2);
 
   collisionShader();
   gl.uniformMatrix4fv(
@@ -288,12 +294,6 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     false,
     matrixToArray(mat_perspective(0.0001, 2, 1.2, 0.4)),
   );
-
-  mainShader();
-  gl.uniform1i(mainShader(uniformName_groundTexture), 2);
-
-  skyShader();
-  gl.uniform1i(skyShader(uniformName_groundTexture), 2);
 
   // Shadows framebuffer
 
