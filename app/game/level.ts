@@ -26,8 +26,8 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
   const hornPolygons = integers_map(HORN_STACKS, (i) =>
     cylinder_sides(
-      polygon_transform(polygon_regular(18), hornMatrix(i), material(1, 1, 0.8, 0.2)).reverse(),
-      polygon_transform(polygon_regular(18), hornMatrix(i + 1), material(1, 1, 0.8, 0.2)),
+      polygon_transform(polygon_regular(16), hornMatrix(i), material(1, 1, 0.8, 0.2)).reverse(),
+      polygon_transform(polygon_regular(16), hornMatrix(i + 1), material(1, 1, 0.8, 0.2)),
       1,
     ),
   ).flat();
@@ -38,7 +38,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     ...polygons_transform(cylinder(), translation(0, -3).scale(11, 1.4, 3), material(0.9, 0.9, 0.9, 0.2)),
     ...polygons_transform(cylinder(), translation(0, -2.2).scale(7.7, 0.5, 4), material(0.5, 0.5, 0.5, 0.2)),
     ...integers_map(12, (i) =>
-      polygons_transform(cylinder(), identity.translate(i - 5.5, 4.4).scale(0.1, 0.1, 2), material(0.6, 0.5, 0.4, 0.3)),
+      polygons_transform(cylinder(), identity.translate(i - 5.5, 4.4).scale(0.1, 0.1, 2), material(0.6, 0.5, 0.3, 0.2)),
     ).flat(),
     ...csg_polygons_subtract(
       polygons_transform(cylinder(6), identity.rotate(90).scale(6, 8, 6), material(0.3, 0.6, 0.6, 0.3)),
@@ -63,7 +63,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
       polygons_transform(cylinder(), translation(0, -height / 2).scale(6, height - 1, 2.2)),
       polygons_transform(cylinder(), translation(0, -height / 2 - 6).scale(4, height - 3, 4)),
       polygons_transform(
-        cylinder(32, 1),
+        cylinder(28, 1),
         translation(0, height / 2 - 9)
           .rotate(90, 0, 90)
           .scale3d(4),
@@ -458,7 +458,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     // after the hex pads horns
     meshAdd(
       hornPolygons,
-      translation(x * -5 - 100, 1.7, 114.5)
+      translation(x * -5 - 100, 1.7, 110)
         .scale(1.2, 10, 1.2)
         .rotate(0, 90 * x - 90),
     );
@@ -1004,7 +1004,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
   newModel("MODEL_ID_LEVER");
 
   meshAdd(cylinder(6, 1), identity.scale(0.12, 1.2, 0.12), material(0.3, 0.3, 0.5, 0.1));
-  meshAdd(cylinder(10), translation(0, 0.8).scale(0.2, 0.3, 0.2), material(1, 0.5, 0.2));
+  meshAdd(cylinder(9, 1), translation(0, 0.8).scale(0.2, 0.3, 0.2), material(1, 0.5, 0.2));
   meshAdd(cylinder(3), translation(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3), material(0.2, 0.2, 0.2, 0.1));
 
   newModel("MODEL_ID_SOUL_COLLISION");

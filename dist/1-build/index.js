@@ -1185,8 +1185,8 @@ const build_life_the_universe_and_everything = () => {
     i /= HORN_STACKS;
     return translation(/* @__PURE__ */ Math.sin(i * Math.PI), i).rotateSelf(10 * i).scaleSelf(1.002 - i, 1, 1.002 - i);
   };
-  const makeBigArcPolygons = (height) => csg_polygons_subtract(polygons_transform(cylinder(), translation(0, -height / 2).scale(6, height - 1, 2.2)), polygons_transform(cylinder(), translation(0, -height / 2 - 6).scale(4, height - 3, 4)), polygons_transform(cylinder(32, 1), translation(0, height / 2 - 9).rotate(90, 0, 90).scale3d(4)));
-  const hornPolygons = integers_map(HORN_STACKS, (i) => cylinder_sides(polygon_transform(polygon_regular(18), hornMatrix(i), material(1, 1, 0.8, 0.2)).reverse(), polygon_transform(polygon_regular(18), hornMatrix(i + 1), material(1, 1, 0.8, 0.2)), 1)).flat();
+  const makeBigArcPolygons = (height) => csg_polygons_subtract(polygons_transform(cylinder(), translation(0, -height / 2).scale(6, height - 1, 2.2)), polygons_transform(cylinder(), translation(0, -height / 2 - 6).scale(4, height - 3, 4)), polygons_transform(cylinder(28, 1), translation(0, height / 2 - 9).rotate(90, 0, 90).scale3d(4)));
+  const hornPolygons = integers_map(HORN_STACKS, (i) => cylinder_sides(polygon_transform(polygon_regular(16), hornMatrix(i), material(1, 1, 0.8, 0.2)).reverse(), polygon_transform(polygon_regular(16), hornMatrix(i + 1), material(1, 1, 0.8, 0.2)), 1)).flat();
   const hexCorridorPolygons = [
     ...polygons_transform(cylinder(), translation(0, -3).scale(11, 1.4, 3), material(0.9, 0.9, 0.9, 0.2)),
     ...polygons_transform(cylinder(), translation(0, -2.2).scale(7.7, 0.5, 4), material(0.5, 0.5, 0.5, 0.2)),
@@ -1279,7 +1279,7 @@ const build_life_the_universe_and_everything = () => {
       1.5
     ].map((y) => meshAdd(cylinder(15, 1), translation(-7.5 * x - 100, y + 0.7, 96).scale(1.1, 0.5, 1.1), material(0.5, 0.24, 0.2, 0.4)));
     meshAdd(hornPolygons, translation(x * -8, 1, 85).scale(1.2, 10, 1.2).rotate(0, 90 * x + 90));
-    meshAdd(hornPolygons, translation(x * -5 - 100, 1.7, 114.5).scale(1.2, 10, 1.2).rotate(0, 90 * x - 90));
+    meshAdd(hornPolygons, translation(x * -5 - 100, 1.7, 110).scale(1.2, 10, 1.2).rotate(0, 90 * x - 90));
     integers_map(5, (i) => meshAdd(hornPolygons, translation((j - 0.5) * 18.5, 0, i * 4.8 - 9.5).rotate(0, 180 - j * 180).scale(1.2, 10, 1.2)));
   });
   meshAdd(csg_polygons_subtract(polygons_transform(cylinder(), translation(-82.07, 0.8, 106).scale(11, 0.9, 2.2), material(0.7, 0.7, 0.7, 0.1)), polygons_transform(cylinder(45, 1), translation(-81, 0.7, 106).scale3d(7.7), material(0.7, 0.7, 0.7, 0.1))));
@@ -1547,7 +1547,7 @@ const build_life_the_universe_and_everything = () => {
   });
   newModel();
   meshAdd(cylinder(6, 1), identity.scale(0.12, 1.2, 0.12), material(0.3, 0.3, 0.5, 0.1));
-  meshAdd(cylinder(10), translation(0, 0.8).scale(0.2, 0.3, 0.2), material(1, 0.5, 0.2));
+  meshAdd(cylinder(9, 1), translation(0, 0.8).scale(0.2, 0.3, 0.2), material(1, 0.5, 0.2));
   meshAdd(cylinder(3), translation(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3), material(0.2, 0.2, 0.2, 0.1));
   newModel();
   meshAdd(cylinder(6).slice(0, -1), identity.scale(0.77, 1, 0.77), material(1, 0.3, 0.5));
@@ -2010,16 +2010,16 @@ const startMainLoop = (groundTextureImage) => {
     };
   });
   const csm_framebuffer = gl["c5w"]();
+  mainShader();
+  gl["ubh"](mainShader(uniformName_groundTexture), 2);
+  skyShader();
+  gl["ubh"](skyShader(uniformName_groundTexture), 2);
   collisionShader();
   cgl["uae"](collisionShader(uniformName_projectionMatrix), false, matrixToArray(mat_perspective(1e-4, 2, 1.2, 0.4)));
   cgl["c5t"](0, 0, 0, 0);
   cgl["v5y"](0, 0, constDef_COLLISION_TEXTURE_SIZE, constDef_COLLISION_TEXTURE_SIZE);
   cgl["e8z"](2929);
   cgl["e8z"](2884);
-  mainShader();
-  gl["ubh"](mainShader(uniformName_groundTexture), 2);
-  skyShader();
-  gl["ubh"](skyShader(uniformName_groundTexture), 2);
   gl["b6o"](36160, csm_framebuffer);
   gl["d45"]([
     0

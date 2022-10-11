@@ -1554,16 +1554,16 @@ precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;ou
           };
       });
       const csm_framebuffer = gl["c5w"]();
-      collisionShader(),
+      mainShader(),
+        gl["ubh"](mainShader("q"), 2),
+        skyShader(),
+        gl["ubh"](skyShader("q"), 2),
+        collisionShader(),
         cgl["uae"](collisionShader("a"), !1, matrixToArray(mat_perspective(1e-4, 2, 1.2, 0.4))),
         cgl["c5t"](0, 0, 0, 0),
         cgl["v5y"](0, 0, 128, 128),
         cgl["e8z"](2929),
         cgl["e8z"](2884),
-        mainShader(),
-        gl["ubh"](mainShader("q"), 2),
-        skyShader(),
-        gl["ubh"](skyShader("q"), 2),
         gl["b6o"](36160, csm_framebuffer),
         gl["d45"]([
           0,
@@ -1685,12 +1685,12 @@ precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;ou
           csg_polygons_subtract(
             polygons_transform(cylinder(), translation(0, -height / 2).scale(6, height - 1, 2.2)),
             polygons_transform(cylinder(), translation(0, -height / 2 - 6).scale(4, height - 3, 4)),
-            polygons_transform(cylinder(32, 1), translation(0, height / 2 - 9).rotate(90, 0, 90).scale3d(4)),
+            polygons_transform(cylinder(28, 1), translation(0, height / 2 - 9).rotate(90, 0, 90).scale3d(4)),
           );
         const hornPolygons = integers_map(11, (i) =>
           cylinder_sides(
-            polygon_transform(polygon_regular(18), hornMatrix(i), material(1, 1, 0.8, 0.2)).reverse(),
-            polygon_transform(polygon_regular(18), hornMatrix(i + 1), material(1, 1, 0.8, 0.2)),
+            polygon_transform(polygon_regular(16), hornMatrix(i), material(1, 1, 0.8, 0.2)).reverse(),
+            polygon_transform(polygon_regular(16), hornMatrix(i + 1), material(1, 1, 0.8, 0.2)),
             1,
           )).flat();
         const hexCorridorPolygons = [
@@ -2062,7 +2062,7 @@ precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;ou
                 )
               ),
               meshAdd(hornPolygons, translation(-8 * x, 1, 85).scale(1.2, 10, 1.2).rotate(0, 90 * x + 90)),
-              meshAdd(hornPolygons, translation(-5 * x - 100, 1.7, 114.5).scale(1.2, 10, 1.2).rotate(0, 90 * x - 90)),
+              meshAdd(hornPolygons, translation(-5 * x - 100, 1.7, 110).scale(1.2, 10, 1.2).rotate(0, 90 * x - 90)),
               integers_map(5, (i) =>
                 meshAdd(
                   hornPolygons,
@@ -2582,7 +2582,7 @@ precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;ou
           }),
           newModel(),
           meshAdd(cylinder(6, 1), identity.scale(0.12, 1.2, 0.12), material(0.3, 0.3, 0.5, 0.1)),
-          meshAdd(cylinder(10), translation(0, 0.8).scale(0.2, 0.3, 0.2), material(1, 0.5, 0.2)),
+          meshAdd(cylinder(9, 1), translation(0, 0.8).scale(0.2, 0.3, 0.2), material(1, 0.5, 0.2)),
           meshAdd(cylinder(3), translation(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3), material(0.2, 0.2, 0.2, 0.1)),
           newModel(),
           meshAdd(cylinder(6).slice(0, -1), identity.scale(0.77, 1, 0.77), material(1, 0.3, 0.5)),

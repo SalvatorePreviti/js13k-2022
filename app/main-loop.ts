@@ -276,6 +276,12 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     gl.drawElements(gl.TRIANGLES, 3, gl.UNSIGNED_SHORT, 0);
   };
 
+  mainShader();
+  gl.uniform1i(mainShader(uniformName_groundTexture), 2);
+
+  skyShader();
+  gl.uniform1i(skyShader(uniformName_groundTexture), 2);
+
   collisionShader();
   cgl.uniformMatrix4fv(
     collisionShader(uniformName_projectionMatrix),
@@ -287,12 +293,6 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   cgl.viewport(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
   cgl.enable(cgl.DEPTH_TEST); // Enable depth testing
   cgl.enable(cgl.CULL_FACE); // Don't render triangle backs
-
-  mainShader();
-  gl.uniform1i(mainShader(uniformName_groundTexture), 2);
-
-  skyShader();
-  gl.uniform1i(skyShader(uniformName_groundTexture), 2);
 
   // Shadows framebuffer
 
