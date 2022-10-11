@@ -1363,13 +1363,14 @@ loadStep(() => {
             modelsNextUpdate().translateSelf(-65.8, 0.8, 106).rotateSelf(0, rotatingPlatform2Rotation),
             modelsNextUpdate().translateSelf(-50.7, 0.8, 106).rotateSelf(0, 180 - rotatingPlatform2Rotation),
             modelsNextUpdate().translateSelf(-50.7, 0.8, 91).rotateSelf(0, 270 + rotatingPlatform2Rotation);
-          for (let i2 = 0; i2 < 13; ++i2) souls[i2]._update(), matrixToArray(tempMatrix, worldMatricesBuffer, 16 + i2);
-          for (let i3 = 0; i3 < 16; ++i3) levers[i3]._update(), matrixToArray(tempMatrix, worldMatricesBuffer, 29 + i3);
+          for (let i2 = 0; i2 < 16; ++i2) levers[i2]._update(), matrixToArray(tempMatrix, worldMatricesBuffer, 29 + i2);
+          for (let i3 = 0; i3 < 13; ++i3) souls[i3]._update(), matrixToArray(tempMatrix, worldMatricesBuffer, 16 + i3);
           player_update();
-          for (let i4 = 2, j = 720; i4 <= 23; ++i4, j++) {
-            worldMatricesBuffer[j++] = allModels[i4].$matrix.m41,
-              worldMatricesBuffer[j++] = allModels[i4].$matrix.m42,
-              worldMatricesBuffer[j++] = allModels[i4].$matrix.m43;
+          for (let m, i4 = 2, j = 720; i4 <= 23; ++i4, ++j) {
+            m = allModels[i4].$matrix,
+              worldMatricesBuffer[j++] = m.m41,
+              worldMatricesBuffer[j++] = m.m42,
+              worldMatricesBuffer[j++] = m.m43;
           }
           for (let i5 = 24, j1 = 0; i5 <= 39; ++i5, j1++) matrixToArray(allModels[i5].$matrix, worldMatricesBuffer, j1);
           collisionShader(),
@@ -1464,7 +1465,7 @@ in vec4 f;void main(){gl_Position=vec4(f.xy,1,1);}`),
 precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;out vec4 O;void main(){vec2 t=gl_FragCoord.xy/j.xy*2.-1.;vec3 e=(normalize(b*vec4(t.x*-(j.x/j.y),-t.y,1.73205,0.))).xyz;float o=(-32.-b[3].y)/e.y,i=1.-clamp(abs(o/9999.),0.,1.);if(O=vec4(0,0,0,1),i>.01){if(o>0.){float i=cos(j.z/30.),o=sin(j.z/30.);e.xz*=mat2(i,o,-o,i);vec3 t=abs(e);O.xyz=vec3(dot(vec2(texture(q,e.xy).z,texture(q,e.yz*2.).z),t.zx)*t.y);}else e=b[3].xyz+e*o,O.x=(i*=.9-texture(q,e.xz/150.+vec2(sin(e.z/35.+j.z),cos(e.x/25.+j.z))/80.).y),O.y=i*i*i;}}`,
       );
       var mainVertexShader = loadShader(`#version 300 es
-layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 b,a;uniform vec4 j[202];void main(){mat4 r=mat4(1);lowp int i=int(f.w);if(l=d,m=vec4(f.xyz,1),f.w>1.&&f.w<24.){vec4 s=j[i+178];m.x=m.x*cos(s.w)-m.z*sin(s.w),m.z=m.x*sin(s.w)+m.z*cos(s.w),m.xyz+=(r[3].xyz=s.xyz);}else if(f.w!=1.)i=(i<1?gl_InstanceID-i:i-24)*4,r[0]=j[i],r[1]=j[i+1],r[2]=j[i+2],r[3]=j[i+3],l=mix(l,vec4(.7,1,.2,0),l.w==0.&&f.w==-29.?r[3][3]:0.),r[3][3]=1.,m=r*m;gl_Position=a*b*m,m.w=f.w,o=r*vec4(e,0),n=f;}`);
+layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 b,a;uniform vec4 j[202];void main(){mat4 r=mat4(1);lowp int i=int(f.w);if(l=d,m=vec4(f.xyz,1),f.w>1.&&f.w<24.){vec4 s=j[i+178];m.xyz+=(r[3].xyz=s.xyz);}else if(f.w!=1.)i=(i<1?gl_InstanceID-i:i-24)*4,r[0]=j[i],r[1]=j[i+1],r[2]=j[i+2],r[3]=j[i+3],l=mix(l,vec4(.7,1,.2,0),l.w==0.&&f.w==-29.?r[3][3]:0.),r[3][3]=1.,m=r*m;gl_Position=a*b*m,m.w=f.w,o=r*vec4(e,0),n=f;}`);
       const collisionShader = initShaderProgram(
         mainVertexShader,
         `#version 300 es

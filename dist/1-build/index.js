@@ -1578,7 +1578,7 @@ const build_life_the_universe_and_everything = () => {
   meshAdd(cylinder(10), translation(0, 0.8).scale(0.2, 0.3, 0.2), material(1, 0.5, 0.2));
   meshAdd(cylinder(3), translation(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3), material(0.2, 0.2, 0.2, 0.1));
 };
-const code$3 = "#version 300 es\nlayout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 b,a;uniform vec4 j[202];void main(){mat4 r=mat4(1);lowp int i=int(f.w);if(l=d,m=vec4(f.xyz,1),f.w>1.&&f.w<24.){vec4 s=j[i+178];m.x=m.x*cos(s.w)-m.z*sin(s.w),m.z=m.x*sin(s.w)+m.z*cos(s.w),m.xyz+=(r[3].xyz=s.xyz);}else if(f.w!=1.)i=(i<1?gl_InstanceID-i:i-24)*4,r[0]=j[i],r[1]=j[i+1],r[2]=j[i+2],r[3]=j[i+3],l=mix(l,vec4(.7,1,.2,0),l.w==0.&&f.w==-29.?r[3][3]:0.),r[3][3]=1.,m=r*m;gl_Position=a*b*m,m.w=f.w,o=r*vec4(e,0),n=f;}";
+const code$3 = "#version 300 es\nlayout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 b,a;uniform vec4 j[202];void main(){mat4 r=mat4(1);lowp int i=int(f.w);if(l=d,m=vec4(f.xyz,1),f.w>1.&&f.w<24.){vec4 s=j[i+178];m.xyz+=(r[3].xyz=s.xyz);}else if(f.w!=1.)i=(i<1?gl_InstanceID-i:i-24)*4,r[0]=j[i],r[1]=j[i+1],r[2]=j[i+2],r[3]=j[i+3],l=mix(l,vec4(.7,1,.2,0),l.w==0.&&f.w==-29.?r[3][3]:0.),r[3][3]=1.,m=r*m;gl_Position=a*b*m,m.w=f.w,o=r*vec4(e,0),n=f;}";
 const uniformName_projectionMatrix = "a";
 const uniformName_viewMatrix = "b";
 const uniformName_worldTransforms = "j";
@@ -1835,19 +1835,20 @@ const eppur_si_muove = () => {
   modelsNextUpdate().translateSelf(-65.8, 0.8, 106).rotateSelf(0, rotatingPlatform2Rotation);
   modelsNextUpdate().translateSelf(-50.7, 0.8, 106).rotateSelf(0, 180 - rotatingPlatform2Rotation);
   modelsNextUpdate().translateSelf(-50.7, 0.8, 91).rotateSelf(0, 270 + rotatingPlatform2Rotation);
-  for (let i2 = 0; i2 < SOULS_COUNT; ++i2) {
-    souls[i2]._update();
-    matrixToArray(tempMatrix, worldMatricesBuffer, 16 + i2);
+  for (let i2 = 0; i2 < LEVERS_COUNT; ++i2) {
+    levers[i2]._update();
+    matrixToArray(tempMatrix, worldMatricesBuffer, 16 + SOULS_COUNT + i2);
   }
-  for (let i3 = 0; i3 < LEVERS_COUNT; ++i3) {
-    levers[i3]._update();
-    matrixToArray(tempMatrix, worldMatricesBuffer, 16 + SOULS_COUNT + i3);
+  for (let i3 = 0; i3 < SOULS_COUNT; ++i3) {
+    souls[i3]._update();
+    matrixToArray(tempMatrix, worldMatricesBuffer, 16 + i3);
   }
   player_update();
-  for (let i4 = 2, j = 720; i4 <= MODEL_ID_FLOATING_ELEVATOR_PAD; ++i4, j++) {
-    worldMatricesBuffer[j++] = allModels[i4].$matrix.m41;
-    worldMatricesBuffer[j++] = allModels[i4].$matrix.m42;
-    worldMatricesBuffer[j++] = allModels[i4].$matrix.m43;
+  for (let i4 = 2, j = 720, m; i4 <= MODEL_ID_FLOATING_ELEVATOR_PAD; ++i4, ++j) {
+    m = allModels[i4].$matrix;
+    worldMatricesBuffer[j++] = m.m41;
+    worldMatricesBuffer[j++] = m.m42;
+    worldMatricesBuffer[j++] = m.m43;
   }
   for (let i5 = MODEL_ID_BOAT0, j1 = 0; i5 <= MODEL_ID_PLAYER_LEG1; ++i5, j1++)
     matrixToArray(allModels[i5].$matrix, worldMatricesBuffer, j1);

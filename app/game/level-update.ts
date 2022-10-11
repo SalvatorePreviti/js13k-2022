@@ -343,18 +343,18 @@ export const eppur_si_muove = () => {
     matrixToArray(tempMatrix, worldMatricesBuffer, 16 + SOULS_COUNT + i);
   }
 
-  /// **** PLAYER **** ///
+  // Update player
 
   player_update();
 
   // Copy all models matrices to the world uniform buffer
 
-  for (let i = 2, j = (16 + 16 + 13) * 16; i <= MODEL_ID_FLOATING_ELEVATOR_PAD; ++i, j++) {
-    worldMatricesBuffer[j++] = allModels[i]!.$matrix.m41;
-    worldMatricesBuffer[j++] = allModels[i]!.$matrix.m42;
-    worldMatricesBuffer[j++] = allModels[i]!.$matrix.m43;
+  for (let i = 2, j = (16 + 16 + 13) * 16, m: DOMMatrix; i <= MODEL_ID_FLOATING_ELEVATOR_PAD; ++i, ++j) {
+    m = allModels[i]!.$matrix;
+    worldMatricesBuffer[j++] = m.m41;
+    worldMatricesBuffer[j++] = m.m42;
+    worldMatricesBuffer[j++] = m.m43;
   }
-
   for (let i = MODEL_ID_BOAT0, j = 0; i <= MODEL_ID_PLAYER_LEG1; ++i, j++) {
     matrixToArray(allModels[i]!.$matrix, worldMatricesBuffer, j);
   }

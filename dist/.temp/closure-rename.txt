@@ -1,10 +1,10 @@
-$back:l
+$back:j
 $color:u
 $flipped:v
-$front:m
+$front:l
 $lerpValue:g
 $lerpValue2:h
-$matrix:j
+$matrix:m
 $parent:A
 $polygon:B
 $polygons:o
