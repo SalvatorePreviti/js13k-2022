@@ -58,6 +58,7 @@ import {
   MODEL_ID_ROTATING_PLATFORM3,
   MODEL_ID_SKY,
   MODEL_ID_SOUL,
+  MODEL_ID_SOUL_COLLISION,
   MODEL_ID_STATIC_WORLD,
   MODEL_ID_TRIANGLE_PLATFORM,
 } from "../game/models-ids";
@@ -128,8 +129,9 @@ const MODEL_IDS = {
   MODEL_ID_PLAYER_BODY,
   MODEL_ID_PLAYER_LEG0,
   MODEL_ID_PLAYER_LEG1,
-  MODEL_ID_SOUL,
   MODEL_ID_LEVER,
+  MODEL_ID_SOUL,
+  MODEL_ID_SOUL_COLLISION,
 };
 
 export const devModelsAdd = (index: number, name: string) => {

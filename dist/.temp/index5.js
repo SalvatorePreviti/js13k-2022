@@ -342,10 +342,12 @@ let F,
     return W(S, l), l.m41 = e, l.m42 = t, l.m43 = a, l;
   },
   P1 = (e, t) => {
+    let a;
     C
       ? 1100 < hC.width && e.d97(4, N[39].D - N[37].s, 5123, 2 * N[37].s)
-      : (void 0 !== t && e.das(4, N[40].D - N[40].s, 5123, 2 * N[40].s, x1.length),
-        e.das(4, N[41].D - N[41].s, 5123, 2 * N[41].s, H.length),
+      : (a = void 0 === t ? 41 : 42,
+        e.das(4, N[a].D - N[a].s, 5123, 2 * N[a].s, x1.length),
+        e.das(4, N[40].D - N[40].s, 5123, 2 * N[40].s, H.length),
         e.d97(4, (t ? N[39].D : N[37].s) - 3, 5123, 6));
   },
   V1 = (a, e, t) => {
@@ -1034,7 +1036,7 @@ precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;ou
                   : (m.set(e, r = m.size), o.push(t, a, l, u[3]), i.push(f[4]), n.push(f[5], f[6], f[7])),
                   r;
               };
-            for (s of (u[3] = 40 === t ? -12 : 41 === t ? -25 : t, e.o)) {
+            for (s of (u[3] = 40 < t ? -12 : 39 < t ? -25 : t, e.o)) {
               let { x: e, y: t, z: a } = q1(s);
               f[4] = 0 | s.u, f[5] = 32767 * e, f[6] = 32767 * t, f[7] = 32767 * a;
               for (let e = 2, t = l(0), a = l(1); s.length > e; ++e) r.push(t, a, a = l(e));
@@ -1464,6 +1466,12 @@ precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;ou
           m(), s(i(20, 1), c(.3 * e, -.8).scale(.2, .7, .24), f(1, .3, .4));
         }),
         m(),
+        s(i(6, 1), S.scale(.12, 1.2, .12), f(.3, .3, .5, .1)),
+        s(i(10), c(0, .8).scale(.2, .3, .2), f(1, .5, .2)),
+        s(i(3), c(0, -1).rotate(90, 90).scale(.3, .4, .3), f(.2, .2, .2, .1)),
+        m(),
+        s(i(6).slice(0, -1), S.scale(.77, 1, .77), f(1, .3, .5)),
+        m(),
         s(
           k1(30, 24, (e, t, a) => {
             let l = t / 24, r = e * V * 2 / 30, s = _(l ** .6 * V / 2);
@@ -1475,10 +1483,6 @@ precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;ou
           S.scale(.7, .7, .7),
           f(1, 1, 1),
         ),
-        [-1, 1].map(e => s(k1(12), c(.16 * e, .4, -.36).scale3d(.09))),
-        m(),
-        s(i(6, 1), S.scale(.12, 1.2, .12), f(.3, .3, .5, .1)),
-        s(i(10), c(0, .8).scale(.2, .3, .2), f(1, .5, .2)),
-        s(i(3), c(0, -1).rotate(90, 90).scale(.3, .4, .3), f(.2, .2, .2, .1));
+        [-1, 1].map(e => s(k1(12), c(.16 * e, .4, -.36).scale3d(.09)));
     });
 });

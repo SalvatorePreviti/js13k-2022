@@ -2,7 +2,7 @@ import { allModels, MODELS_WITH_FULL_TRANSFORM, souls, SOULS_COUNT } from "./mod
 import { cgl, gl } from "../gl";
 import { plane_fromPolygon } from "../math/vectors";
 import type { Polygon } from "../geometry/polygon";
-import { MODEL_ID_SOUL, MODEL_ID_LEVER } from "./models-ids";
+import { MODEL_ID_LEVER, MODEL_ID_SOUL_COLLISION } from "./models-ids";
 
 export const initTriangleBuffers = () => {
   const _triangleIndices: number[] = [];
@@ -46,9 +46,9 @@ export const initTriangleBuffers = () => {
     };
 
     _vertexFloats[3] =
-      index === MODEL_ID_SOUL
+      index > MODEL_ID_SOUL_COLLISION - 1
         ? -MODELS_WITH_FULL_TRANSFORM
-        : index === MODEL_ID_LEVER
+        : index > MODEL_ID_LEVER - 1
         ? -MODELS_WITH_FULL_TRANSFORM - SOULS_COUNT
         : index;
 

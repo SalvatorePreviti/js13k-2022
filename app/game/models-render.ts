@@ -1,6 +1,12 @@
 import { allModels, levers, souls } from "./models";
 import { mainMenuVisible } from "./game-time";
-import { MODEL_ID_PLAYER_BODY, MODEL_ID_PLAYER_LEG1, MODEL_ID_LEVER, MODEL_ID_SOUL } from "./models-ids";
+import {
+  MODEL_ID_PLAYER_BODY,
+  MODEL_ID_PLAYER_LEG1,
+  MODEL_ID_LEVER,
+  MODEL_ID_SOUL,
+  MODEL_ID_SOUL_COLLISION,
+} from "./models-ids";
 
 export const renderModels = (xgl: WebGL2RenderingContext, renderPlayer?: boolean) => {
   if (mainMenuVisible) {
@@ -14,16 +20,15 @@ export const renderModels = (xgl: WebGL2RenderingContext, renderPlayer?: boolean
       );
     }
   } else {
-    if (renderPlayer !== undefined) {
-      // Render souls
-      xgl.drawElementsInstanced(
-        xgl.TRIANGLES,
-        allModels[MODEL_ID_SOUL]!.$vertexEnd! - allModels[MODEL_ID_SOUL]!.$vertexBegin!,
-        xgl.UNSIGNED_SHORT,
-        allModels[MODEL_ID_SOUL]!.$vertexBegin! * 2,
-        souls.length,
-      );
-    }
+    const soulModelId = renderPlayer === undefined ? MODEL_ID_SOUL_COLLISION : MODEL_ID_SOUL;
+    // Render souls
+    xgl.drawElementsInstanced(
+      xgl.TRIANGLES,
+      allModels[soulModelId]!.$vertexEnd! - allModels[soulModelId]!.$vertexBegin!,
+      xgl.UNSIGNED_SHORT,
+      allModels[soulModelId]!.$vertexBegin! * 2,
+      souls.length,
+    );
 
     // Render levers
 

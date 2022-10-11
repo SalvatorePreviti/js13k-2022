@@ -961,8 +961,6 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
   // ------ End of game models ------
 
-  // ------ player model and legs, must be declared just after level model ------
-
   newModel("MODEL_ID_PLAYER_BODY");
   // head
   meshAdd(sphere(20), translation(0, 1).scale3d(0.5), material(1, 0.3, 0.4));
@@ -1003,6 +1001,16 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     meshAdd(cylinder(20, 1), translation(0.3 * v, -0.8).scale(0.2, 0.7, 0.24), material(1, 0.3, 0.4));
   });
 
+  newModel("MODEL_ID_LEVER");
+
+  meshAdd(cylinder(6, 1), identity.scale(0.12, 1.2, 0.12), material(0.3, 0.3, 0.5, 0.1));
+  meshAdd(cylinder(10), translation(0, 0.8).scale(0.2, 0.3, 0.2), material(1, 0.5, 0.2));
+  meshAdd(cylinder(3), translation(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3), material(0.2, 0.2, 0.2, 0.1));
+
+  newModel("MODEL_ID_SOUL_COLLISION");
+
+  meshAdd(cylinder(6).slice(0, -1), identity.scale(0.77, 1, 0.77), material(1, 0.3, 0.5));
+
   newModel("MODEL_ID_SOUL");
 
   const GHOST_SLICES = 30;
@@ -1029,12 +1037,6 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
   // eyes
   [-1, 1].map((x) => meshAdd(sphere(12), translation(x * 0.16, 0.4, -0.36).scale3d(0.09)));
-
-  newModel("MODEL_ID_LEVER");
-
-  meshAdd(cylinder(6, 1), identity.scale(0.12, 1.2, 0.12), material(0.3, 0.3, 0.5, 0.1));
-  meshAdd(cylinder(10), translation(0, 0.8).scale(0.2, 0.3, 0.2), material(1, 0.5, 0.2));
-  meshAdd(cylinder(3), translation(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3), material(0.2, 0.2, 0.2, 0.1));
 
   if (DEBUG) {
     console.timeEnd("build_life_the_universe_and_everything");

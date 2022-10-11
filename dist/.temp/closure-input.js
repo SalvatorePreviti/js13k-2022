@@ -1190,22 +1190,23 @@ const player_init = () => {
   };
 };
 const renderModels = (xgl, renderPlayer) => {
+  let soulModelId;
   mainMenuVisible
     ? 1100 < hC.width
       && xgl["d97"](4, allModels[39].$vertexEnd - allModels[37].$vertexBegin, 5123, 2 * allModels[37].$vertexBegin)
-    : (renderPlayer !== void 0
-      && xgl["das"](
+    : (soulModelId = renderPlayer === void 0 ? 41 : 42,
+      xgl["das"](
         4,
-        allModels[40].$vertexEnd - allModels[40].$vertexBegin,
+        allModels[soulModelId].$vertexEnd - allModels[soulModelId].$vertexBegin,
         5123,
-        2 * allModels[40].$vertexBegin,
+        2 * allModels[soulModelId].$vertexBegin,
         souls.length,
       ),
       xgl["das"](
         4,
-        allModels[41].$vertexEnd - allModels[41].$vertexBegin,
+        allModels[40].$vertexEnd - allModels[40].$vertexBegin,
         5123,
-        2 * allModels[41].$vertexBegin,
+        2 * allModels[40].$vertexBegin,
         levers.length,
       ),
       xgl["d97"](4, (renderPlayer ? allModels[39].$vertexEnd : allModels[37].$vertexBegin) - 3, 5123, 6));
@@ -1619,7 +1620,7 @@ precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;ou
                   _vertexNormals.push(_vertexInts[5], _vertexInts[6], _vertexInts[7])),
                 vertexIndex;
             };
-            for (polygon of (_vertexFloats[3] = index === 40 ? -12 : index === 41 ? -25 : index, model.$polygons)) {
+            for (polygon of (_vertexFloats[3] = 40 < index ? -12 : 39 < index ? -25 : index, model.$polygons)) {
               const { x, y, z } = plane_fromPolygon(polygon);
               _vertexInts[4] = 0 | polygon.$color,
                 _vertexInts[5] = 32767 * x,
@@ -2580,6 +2581,12 @@ precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;ou
               meshAdd(cylinder(20, 1), translation(0.3 * v, -0.8).scale(0.2, 0.7, 0.24), material(1, 0.3, 0.4));
           }),
           newModel(),
+          meshAdd(cylinder(6, 1), identity.scale(0.12, 1.2, 0.12), material(0.3, 0.3, 0.5, 0.1)),
+          meshAdd(cylinder(10), translation(0, 0.8).scale(0.2, 0.3, 0.2), material(1, 0.5, 0.2)),
+          meshAdd(cylinder(3), translation(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3), material(0.2, 0.2, 0.2, 0.1)),
+          newModel(),
+          meshAdd(cylinder(6).slice(0, -1), identity.scale(0.77, 1, 0.77), material(1, 0.3, 0.5)),
+          newModel(),
           meshAdd(
             sphere(30, 24, (a, b, polygon) => {
               const bm = b / 24;
@@ -2604,11 +2611,7 @@ precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;ou
           [
             -1,
             1,
-          ].map((x) => meshAdd(sphere(12), translation(0.16 * x, 0.4, -0.36).scale3d(0.09))),
-          newModel(),
-          meshAdd(cylinder(6, 1), identity.scale(0.12, 1.2, 0.12), material(0.3, 0.3, 0.5, 0.1)),
-          meshAdd(cylinder(10), translation(0, 0.8).scale(0.2, 0.3, 0.2), material(1, 0.5, 0.2)),
-          meshAdd(cylinder(3), translation(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3), material(0.2, 0.2, 0.2, 0.1));
+          ].map((x) => meshAdd(sphere(12), translation(0.16 * x, 0.4, -0.36).scale3d(0.09)));
       }
     });
 });

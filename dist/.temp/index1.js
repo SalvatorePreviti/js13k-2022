@@ -969,8 +969,9 @@ const MODEL_ID_BOAT0 = 35;
 const MODEL_ID_PLAYER_BODY = 37;
 const MODEL_ID_PLAYER_LEG0 = 38;
 const MODEL_ID_PLAYER_LEG1 = 39;
-const MODEL_ID_SOUL = 40;
-const MODEL_ID_LEVER = 41;
+const MODEL_ID_LEVER = 40;
+const MODEL_ID_SOUL_COLLISION = 41;
+const MODEL_ID_SOUL = 42;
 let meshAdd;
 const LEVER_SENSITIVITY_RADIUS = 3;
 const SOUL_SENSITIVITY_RADIUS = 1.6;
@@ -2109,6 +2110,12 @@ const build_life_the_universe_and_everything = () => {
     meshAdd(cylinder(20, 1), translation(0.3 * v, -0.8).scale(0.2, 0.7, 0.24), material(1, 0.3, 0.4));
   });
   newModel();
+  meshAdd(cylinder(6, 1), identity.scale(0.12, 1.2, 0.12), material(0.3, 0.3, 0.5, 0.1));
+  meshAdd(cylinder(10), translation(0, 0.8).scale(0.2, 0.3, 0.2), material(1, 0.5, 0.2));
+  meshAdd(cylinder(3), translation(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3), material(0.2, 0.2, 0.2, 0.1));
+  newModel();
+  meshAdd(cylinder(6).slice(0, -1), identity.scale(0.77, 1, 0.77), material(1, 0.3, 0.5));
+  newModel();
   meshAdd(
     sphere(GHOST_SLICES, GHOST_STACKS, (a, b, polygon) => {
       const bm = b / GHOST_STACKS;
@@ -2134,10 +2141,6 @@ const build_life_the_universe_and_everything = () => {
     -1,
     1,
   ].map((x) => meshAdd(sphere(12), translation(x * 0.16, 0.4, -0.36).scale3d(0.09)));
-  newModel();
-  meshAdd(cylinder(6, 1), identity.scale(0.12, 1.2, 0.12), material(0.3, 0.3, 0.5, 0.1));
-  meshAdd(cylinder(10), translation(0, 0.8).scale(0.2, 0.3, 0.2), material(1, 0.5, 0.2));
-  meshAdd(cylinder(3), translation(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3), material(0.2, 0.2, 0.2, 0.1));
 };
 const code$3 =
   "#version 300 es\nlayout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 b,a;uniform vec4 j[190];void main(){mat4 r=mat4(1);lowp int i=int(f.w);if(l=d,m=vec4(f.xyz,1),f.w>1.&&f.w<28.)m+=(r[3]=j[i+162]);else if(f.w!=1.){if(i=(i<1?gl_InstanceID-i:i-28)*4,r[0]=j[i],r[1]=j[i+1],r[2]=j[i+2],r[3]=j[i+3],f.w==-25.&&l.w==0.)l=mix(l,vec4(.7,1,.2,0),r[3][3]);r[3][3]=1.,m=r*m;}gl_Position=a*b*m,m.w=f.w,o=r*vec4(e,0),n=f;}";
@@ -2616,15 +2619,14 @@ const renderModels = (xgl, renderPlayer) => {
       );
     }
   } else {
-    if (renderPlayer !== void 0) {
-      xgl["das"](
-        4,
-        allModels[MODEL_ID_SOUL].$vertexEnd - allModels[MODEL_ID_SOUL].$vertexBegin,
-        5123,
-        allModels[MODEL_ID_SOUL].$vertexBegin * 2,
-        souls.length,
-      );
-    }
+    const soulModelId = renderPlayer === void 0 ? MODEL_ID_SOUL_COLLISION : MODEL_ID_SOUL;
+    xgl["das"](
+      4,
+      allModels[soulModelId].$vertexEnd - allModels[soulModelId].$vertexBegin,
+      5123,
+      allModels[soulModelId].$vertexBegin * 2,
+      souls.length,
+    );
     xgl["das"](
       4,
       allModels[MODEL_ID_LEVER].$vertexEnd - allModels[MODEL_ID_LEVER].$vertexBegin,
@@ -2876,9 +2878,9 @@ const initTriangleBuffers = () => {
       }
       return vertexIndex;
     };
-    _vertexFloats[3] = index === MODEL_ID_SOUL
+    _vertexFloats[3] = index > MODEL_ID_SOUL_COLLISION - 1
       ? -MODELS_WITH_FULL_TRANSFORM
-      : index === MODEL_ID_LEVER
+      : index > MODEL_ID_LEVER - 1
       ? -MODELS_WITH_FULL_TRANSFORM - SOULS_COUNT
       : index;
     for (polygon of model.$polygons) {
