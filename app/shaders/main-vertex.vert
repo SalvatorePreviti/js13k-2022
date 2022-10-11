@@ -21,7 +21,8 @@ void main() {
   Color = aColor;
   FragPos = vec4(aPosition.xyz, 1);
   if (modelId > 1. && modelId < 24.) {
-    FragPos.xyz += worldMatrix[3].xyz = worldTransforms[idx + ((16 + 16 + 13) * 4 - 2)].xyz;
+    vec4 t = worldTransforms[idx + ((16 + 16 + 13) * 4 - 2)];
+    FragPos.xyz += worldMatrix[3].xyz = t.xyz;
   } else if (modelId != 1.) {
     idx = (idx < 1 ? gl_InstanceID - idx : idx - 24) * 4;
     worldMatrix[0] = worldTransforms[idx];
