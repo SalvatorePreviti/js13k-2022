@@ -46,11 +46,11 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   const csm_lightSpaceMatrices = new Float32Array(2 * 16);
   const csm_tempFrustumCorners: Vec3[] = integers_map(8, () => ({} as Vec3));
 
-  const skyShader = initShaderProgram(gl, sky_vsSource, sky_fsSource);
-  const mainShader = initShaderProgram(gl, main_vsSource, main_fsSource);
   const collisionShader = initShaderProgram(cgl, main_vsSource, collider_fsSource);
+  const mainShader = initShaderProgram(gl, main_vsSource, main_fsSource);
+  const skyShader = initShaderProgram(gl, sky_vsSource, sky_fsSource);
 
-  const [csm_render0, csm_render1] = integers_map(2, (split: number) => {
+  const [csm0, csm1] = integers_map(2, (split: number) => {
     const texture = gl.createTexture()!;
     gl.activeTexture(gl.TEXTURE0 + split);
     gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -136,20 +136,12 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
         16 * split,
         16,
       );
-
-      renderModels(gl, !player_first_person);
     };
   });
 
   const csm_framebuffer = gl.createFramebuffer();
 
-  const collision_texture = cgl.createTexture()!;
-  const collision_renderBuffer = cgl.createRenderbuffer();
-  const collision_frameBuffer = cgl.createFramebuffer()!;
-
   const mainLoop = (globalTime: number) => {
-    // gl.flush();
-
     requestAnimationFrame(mainLoop);
 
     gameTimeUpdate(globalTime);
@@ -179,9 +171,10 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
           matrixCopy()
             .rotateSelf(0, 180)
             .invertSelf()
-            .translateSelf(-player_position_final.x, -player_position_final.y, 0.3 - player_position_final.z),
+            .translateSelf(-player_position_final.x, -player_position_final.y, -player_position_final.z + 0.3),
         ),
       );
+
       renderModels(cgl);
 
       // second collision render
@@ -199,6 +192,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
           ),
         ),
       );
+
       renderModels(cgl);
 
       cgl.flush();
@@ -237,8 +231,9 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     }
 
     mainShader();
-    gl.uniform3f(mainShader(uniformName_viewPos), cameraX, cameraY, cameraZ);
+
     gl.uniform4fv(mainShader(uniformName_worldTransforms), transformsBuffer);
+    gl.uniform3f(mainShader(uniformName_viewPos), cameraX, cameraY, cameraZ);
 
     // *** CASCADED SHADOWMAPS ***
 
@@ -249,8 +244,11 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     gl.bindFramebuffer(gl.FRAMEBUFFER, csm_framebuffer);
     gl.viewport(0, 0, CSM_TEXTURE_SIZE, CSM_TEXTURE_SIZE);
 
-    csm_render0!(CSM_PLANE_DISTANCE - zNear);
-    csm_render1!(zFar - CSM_PLANE_DISTANCE);
+    csm0!(CSM_PLANE_DISTANCE - zNear);
+    renderModels(gl, !player_first_person);
+
+    csm1!(zFar - CSM_PLANE_DISTANCE);
+    renderModels(gl, !player_first_person);
 
     // *** MAIN RENDER ***
 
@@ -271,17 +269,12 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     // *** SKY RENDER ***
 
     skyShader();
+
     gl.uniformMatrix4fv(skyShader(uniformName_viewMatrix), false, matrixToArray(matrixCopy(camera_view).invertSelf()));
     gl.uniform3f(skyShader(uniformName_iResolution), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime);
 
     gl.drawElements(gl.TRIANGLES, 3, gl.UNSIGNED_SHORT, 0);
   };
-
-  mainShader();
-  gl.uniform1i(mainShader(uniformName_groundTexture), 2);
-
-  skyShader();
-  gl.uniform1i(skyShader(uniformName_groundTexture), 2);
 
   collisionShader();
   cgl.uniformMatrix4fv(
@@ -290,38 +283,23 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     matrixToArray(mat_perspective(0.0001, 2, 1.2, 0.4)),
   );
 
+  cgl.clearColor(0, 0, 0, 0);
+  cgl.viewport(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
+  cgl.enable(cgl.DEPTH_TEST); // Enable depth testing
+  cgl.enable(cgl.CULL_FACE); // Don't render triangle backs
+
+  mainShader();
+  gl.uniform1i(mainShader(uniformName_groundTexture), 2);
+
+  skyShader();
+  gl.uniform1i(skyShader(uniformName_groundTexture), 2);
+
   // Shadows framebuffer
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, csm_framebuffer);
   // Disable rendering to the csm color buffer, we just need the depth buffer
   gl.drawBuffers([gl.NONE]);
   gl.readBuffer(gl.NONE);
-
-  // Collision context
-
-  cgl.viewport(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
-
-  cgl.bindFramebuffer(cgl.FRAMEBUFFER, collision_frameBuffer);
-  cgl.bindRenderbuffer(cgl.RENDERBUFFER, collision_renderBuffer);
-
-  cgl.renderbufferStorage(cgl.RENDERBUFFER, cgl.DEPTH_COMPONENT24, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
-  cgl.framebufferRenderbuffer(cgl.FRAMEBUFFER, cgl.DEPTH_ATTACHMENT, cgl.RENDERBUFFER, collision_renderBuffer);
-
-  cgl.bindTexture(cgl.TEXTURE_2D, collision_texture);
-  cgl.texImage2D(
-    cgl.TEXTURE_2D,
-    0,
-    cgl.RGBA,
-    COLLISION_TEXTURE_SIZE,
-    COLLISION_TEXTURE_SIZE,
-    0,
-    cgl.RGBA,
-    cgl.UNSIGNED_BYTE,
-    null,
-  );
-
-  cgl.framebufferTexture2D(cgl.FRAMEBUFFER, cgl.COLOR_ATTACHMENT0, cgl.TEXTURE_2D, collision_texture, 0);
-  cgl.clearColor(0, 0, 0, 0); // Clear to black, alpha 0 as is used for collision, it will be in any case overwritten when rendering triangles with 1.
 
   // Ground texture
 
@@ -336,15 +314,9 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   // GL Setup
 
   gl.clearColor(0, 0, 0, 1);
-
-  for (const xgl of [gl, cgl]) {
-    xgl.enable(xgl.DEPTH_TEST); // Enable depth testing
-    xgl.enable(xgl.CULL_FACE); // Don't render triangle backs
-
-    xgl.clearDepth(1); // Clear everything. Default value is 1
-    // gl.cullFace(gl.BACK); // Default value is already BACK
-    xgl.depthFunc(xgl.LEQUAL); // LEQUAL to make sky works
-  }
+  gl.enable(gl.DEPTH_TEST); // Enable depth testing
+  gl.enable(gl.CULL_FACE); // Don't render triangle backs
+  gl.depthFunc(gl.LEQUAL); // LEQUAL to make sky works. Default is LESS
 
   NO_INLINE(initPage)();
 

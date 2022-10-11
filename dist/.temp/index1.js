@@ -1,5 +1,5 @@
 NO_INLINE(
-  "<!DOCTYPE html><html><head>\n    <title>666</title>\n    <meta name=\"viewport\" content=\"width=device-width,initial-scale=1,user-scalable=0\">\n    \n    \n    \n  <link rel=\"stylesheet\" href=\"/index.css\"></head>\n\n  <body>\n    <canvas id=\"hD\" height=\"128\" width=\"128\"></canvas>\n    <canvas id=\"hC\"></canvas>\n    <h4 id=\"h4\">loading</h4>\n    <b id=\"b5\">☰</b>\n    <h3 id=\"h3\"></h3>\n    <main>\n      <nav>\n        <h2>DANTE</h2>\n        Lucifer:\n        <i>\"Damn. Infernal delivery service failed again. A delivery of evil souls fell in an area under construction.\n          Dante, take them where they belong, to the 8th circle.\"</i>\n        <ul>\n          <li id=\"b1\">Play</li>\n          <li id=\"b2\">Play first person</li>\n          <li id=\"b3\">Restart</li>\n          <li id=\"b4\"></li>\n        </ul>\n        <p>move WASD/arrows, levers E/click, menu Esc</p>\n        <p>\n          <a target=\"_blank\" href=\"https://github.com/SalvatorePreviti/js13k-2022\">© 2022 Salvatore Previti</a> -\n          <a target=\"_blank\" href=\"https://twitter.com/ryanmalm\">music Ryan Malm</a>\n        </p>\n      </nav>\n    </main>\n    \n  \n\n<script type=\"module\" src=\"/index.js\" crossorigin=\"\"></script></body></html> * {\n  -webkit-user-select: none;\n  user-select: none;\n  color: #fda;\n  font-weight: 100;\n  touch-action: none;\n  overscroll-behavior: contain;\n}\nhtml,\nbody {\n  background: #000;\n  margin: 0;\n  font-family: \"Times New Roman\", serif;\n  font-size: max(min(3.8vw, 3.8vh), 15px);\n  text-shadow: 4px 4px 2px #000, -2px -2px 8px #000;\n}\np {\n  font-size: 0.7em;\n}\nbody > * {\n  position: absolute;\n}\nh2 {\n  color: #f61;\n  margin: 0 0 0.7em;\n}\nh4 {\n  left: 0;\n  top: 0;\n  right: 0;\n  text-align: center;\n}\nh3,\nh4 {\n  pointer-events: none;\n}\n.m main {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  top: 0;\n  right: 0;\n  bottom: 0;\n  min-width: 70%;\n}\nnav {\n  background: #00000080;\n  border-radius: 1em;\n  max-width: max(780px, 50vw);\n  padding: 1em;\n}\n#b5,\nh3 {\n  padding: 10px;\n}\nh3 {\n  text-align: right;\n  right: 5%;\n  bottom: 0;\n}\na,\nli {\n  cursor: pointer;\n  margin-bottom: 0.5em;\n  text-decoration: none;\n  border-bottom: 3px solid #00000000;\n}\nh2,\na:hover,\nli:hover {\n  border-bottom: 3px solid;\n}\nmain,\n.m h4 {\n  display: none;\n}\n",
+  "<!DOCTYPE html><html><head>\n    <title>666</title>\n    <meta name=\"viewport\" content=\"width=device-width,initial-scale=1,user-scalable=0\">\n    \n    \n    \n  <link rel=\"stylesheet\" href=\"/index.css\"></head>\n\n  <body>\n    <canvas id=\"hD\" height=\"128\" width=\"128\"></canvas>\n    <canvas id=\"hC\"></canvas>\n    <h4 id=\"h4\">loading</h4>\n    <b id=\"b5\">☰</b>\n    <h3 id=\"h3\"></h3>\n    <main>\n      <nav>\n        <h2>DANTE</h2>\n        Lucifer:\n        <i>\"Damn. Infernal delivery service failed again. A delivery of evil souls fell in an area under construction.\n          Dante, take them where they belong, to the 8th circle.\"</i>\n        <ul>\n          <li id=\"b1\">Play</li>\n          <li id=\"b2\">Play first person</li>\n          <li id=\"b3\">Restart</li>\n          <li id=\"b4\"></li>\n        </ul>\n        <p>move WASD/arrows, levers E/click, menu Esc</p>\n        <p>\n          <a target=\"_blank\" href=\"https://github.com/SalvatorePreviti/js13k-2022\">© 2022 Salvatore Previti</a> -\n          <a target=\"_blank\" href=\"https://twitter.com/ryanmalm\">music Ryan Malm</a>\n        </p>\n      </nav>\n    </main>\n    \n  \n\n<script type=\"module\" src=\"/index.js\" crossorigin=\"\"></script></body></html> * {\n  -webkit-user-select: none;\n  user-select: none;\n  color: #fda;\n  font-weight: 100;\n  touch-action: none;\n  overscroll-behavior: contain;\n}\nhtml,\nbody {\n  background: #000;\n  margin: 0;\n  font-family: \"Times New Roman\", serif;\n  font-size: max(min(3.8vw, 3.8vh), 15px);\n  text-shadow: 4px 4px 2px #000, -2px -2px 8px #000;\n}\np {\n  font-size: 0.7em;\n}\nbody > * {\n  position: absolute;\n}\nh2 {\n  color: #f61;\n  margin: 0 0 0.7em;\n}\nh4 {\n  left: 0;\n  top: 0;\n  right: 0;\n  text-align: center;\n}\nh3,\nh4 {\n  pointer-events: none;\n}\n.m main {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  top: 0;\n  right: 0;\n  bottom: 0;\n  min-width: 70%;\n}\nnav {\n  background: #00000080;\n  border-radius: 1em;\n  max-width: max(780px, 50vw);\n  padding: 1em;\n}\n#b5,\nh3 {\n  padding: 10px;\n}\nh3 {\n  text-align: right;\n  right: 5%;\n  bottom: 0;\n}\na,\nli {\n  cursor: pointer;\n  margin-bottom: 0.5em;\n  text-decoration: none;\n  border-bottom: 3px solid #00000000;\n}\nh2,\na:hover,\nli:hover {\n  border-bottom: 3px solid;\n}\nmain,\n.m h4,\n#hD {\n  display: none;\n}\n",
 );
 const groundTextureSvg = `data:image/svg+xml;base64,${
   /* @__PURE__ */ btoa(
@@ -2154,10 +2154,12 @@ const uniformName_iResolution = "j";
 const transformsBuffer = new Float32Array(
   (4 * (MODELS_WITH_FULL_TRANSFORM + LEVERS_COUNT + SOULS_COUNT) + MODELS_WITH_SIMPLE_TRANSFORM) * 4,
 );
-const gl = hC.getContext("webgl2", {
-  powerPreference: "high-performance",
-});
 const cgl = hD.getContext("webgl2", {
+  powerPreference: "high-performance",
+  preserveDrawingBuffer: true,
+  antialias: false,
+});
+const gl = hC.getContext("webgl2", {
   powerPreference: "high-performance",
 });
 for (const s in gl) {
@@ -2673,7 +2675,7 @@ const startMainLoop = (groundTextureImage) => {
           matrixCopy().rotateSelf(0, 180).invertSelf().translateSelf(
             -player_position_final.x,
             -player_position_final.y,
-            0.3 - player_position_final.z,
+            -player_position_final.z + 0.3,
           ),
         ),
       );
@@ -2718,15 +2720,17 @@ const startMainLoop = (groundTextureImage) => {
       );
     }
     mainShader();
-    gl["ubu"](mainShader(uniformName_viewPos), cameraX, cameraY, cameraZ);
     gl["u3a"](mainShader(uniformName_worldTransforms), transformsBuffer);
+    gl["ubu"](mainShader(uniformName_viewPos), cameraX, cameraY, cameraZ);
     gl["uae"](mainShader(uniformName_projectionMatrix), false, matrixToArray(identity));
     gl["ubh"](mainShader(uniformName_csm_texture0), 3);
     gl["ubh"](mainShader(uniformName_csm_texture1), 3);
     gl["b6o"](36160, csm_framebuffer);
     gl["v5y"](0, 0, constDef_CSM_TEXTURE_SIZE, constDef_CSM_TEXTURE_SIZE);
-    csm_render0(constDef_CSM_PLANE_DISTANCE - zNear);
-    csm_render1(zFar - constDef_CSM_PLANE_DISTANCE);
+    csm0(constDef_CSM_PLANE_DISTANCE - zNear);
+    renderModels(gl, !player_first_person);
+    csm1(zFar - constDef_CSM_PLANE_DISTANCE);
+    renderModels(gl, !player_first_person);
     gl["b6o"](36160, null);
     gl["v5y"](0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
     gl["cbf"](true, true, true, true);
@@ -2746,10 +2750,10 @@ const startMainLoop = (groundTextureImage) => {
   const camera_view = new DOMMatrix();
   const csm_lightSpaceMatrices = new Float32Array(32);
   const csm_tempFrustumCorners = integers_map(8, () => ({}));
-  const skyShader = initShaderProgram(gl, code$1, code);
-  const mainShader = initShaderProgram(gl, code$3, code$4);
   const collisionShader = initShaderProgram(cgl, code$3, code$2);
-  const [csm_render0, csm_render1] = integers_map(2, (split) => {
+  const mainShader = initShaderProgram(gl, code$3, code$4);
+  const skyShader = initShaderProgram(gl, code$1, code);
+  const [csm0, csm1] = integers_map(2, (split) => {
     const texture = gl["c25"]();
     gl["a4v"](33984 + split);
     gl["b9j"](3553, texture);
@@ -2808,33 +2812,24 @@ const startMainLoop = (groundTextureImage) => {
         16 * split,
         16,
       );
-      renderModels(gl, !player_first_person);
     };
   });
   const csm_framebuffer = gl["c5w"]();
-  const collision_texture = cgl["c25"]();
-  const collision_renderBuffer = cgl["c3z"]();
-  const collision_frameBuffer = cgl["c5w"]();
+  collisionShader();
+  cgl["uae"](collisionShader(uniformName_projectionMatrix), false, matrixToArray(mat_perspective(1e-4, 2, 1.2, 0.4)));
+  cgl["c5t"](0, 0, 0, 0);
+  cgl["v5y"](0, 0, constDef_COLLISION_TEXTURE_SIZE, constDef_COLLISION_TEXTURE_SIZE);
+  cgl["e8z"](2929);
+  cgl["e8z"](2884);
   mainShader();
   gl["ubh"](mainShader(uniformName_groundTexture), 2);
   skyShader();
   gl["ubh"](skyShader(uniformName_groundTexture), 2);
-  collisionShader();
-  cgl["uae"](collisionShader(uniformName_projectionMatrix), false, matrixToArray(mat_perspective(1e-4, 2, 1.2, 0.4)));
   gl["b6o"](36160, csm_framebuffer);
   gl["d45"]([
     0,
   ]);
   gl["r9l"](0);
-  cgl["v5y"](0, 0, constDef_COLLISION_TEXTURE_SIZE, constDef_COLLISION_TEXTURE_SIZE);
-  cgl["b6o"](36160, collision_frameBuffer);
-  cgl["bb1"](36161, collision_renderBuffer);
-  cgl["r4v"](36161, 33190, constDef_COLLISION_TEXTURE_SIZE, constDef_COLLISION_TEXTURE_SIZE);
-  cgl["f8w"](36160, 36096, 36161, collision_renderBuffer);
-  cgl["b9j"](3553, collision_texture);
-  cgl["t60"](3553, 0, 6408, constDef_COLLISION_TEXTURE_SIZE, constDef_COLLISION_TEXTURE_SIZE, 0, 6408, 5121, null);
-  cgl["fas"](36160, 36064, 3553, collision_texture, 0);
-  cgl["c5t"](0, 0, 0, 0);
   gl["a4v"](33986);
   gl["b9j"](3553, gl["c25"]());
   gl["t60"](3553, 0, 6408, 1024, 1024, 0, 6408, 5121, groundTextureImage);
@@ -2842,17 +2837,9 @@ const startMainLoop = (groundTextureImage) => {
   gl["t2z"](3553, 10240, 9729);
   gl["gbn"](3553);
   gl["c5t"](0, 0, 0, 1);
-  for (
-    const xgl of [
-      gl,
-      cgl,
-    ]
-  ) {
-    xgl["e8z"](2929);
-    xgl["e8z"](2884);
-    xgl["c70"](1);
-    xgl["d4n"](515);
-  }
+  gl["e8z"](2929);
+  gl["e8z"](2884);
+  gl["d4n"](515);
   (/* @__PURE__ */ NO_INLINE(initPage))();
   (/* @__PURE__ */ NO_INLINE(player_init))();
   requestAnimationFrame(mainLoop);
