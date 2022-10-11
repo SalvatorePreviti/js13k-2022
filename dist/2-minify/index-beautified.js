@@ -349,11 +349,11 @@ let D,
     let l = L[++a1].m;
     return K(S, l), l.m41 = e, l.m42 = t, l.m43 = a, l;
   },
-  W1 = (e, t) => {
+  W1 = e => {
     j
       ? 1100 < hC.width && Z.d97(4, L[39].D - L[37].s, 5123, 2 * L[37].s)
-      : (Z.das(4, L[t].D - L[t].s, 5123, 2 * L[t].s, x1.length),
-        Z.das(4, L[42].D - L[42].s, 5123, 2 * L[42].s, N.length),
+      : (void 0 !== e && Z.das(4, L[40].D - L[40].s, 5123, 2 * L[40].s, x1.length),
+        Z.das(4, L[41].D - L[41].s, 5123, 2 * L[41].s, N.length),
         Z.d97(4, (e ? L[39].D : L[37].s) - 3, 5123, 6));
   },
   K1 = (e, t = 35633) => (t = Z.c6x(t), Z.s3c(t, e), Z.c6a(t), t),
@@ -457,11 +457,11 @@ T1(() => {
                 Z.c4s(16640),
                 Z.cbf(!0, !1, !0, !1),
                 Z.uae(s("b"), !1, p(K().rotateSelf(0, 180).invertSelf().translateSelf(-R, -X, .3 - q))),
-                W1(0, 40),
+                W1(),
                 Z.c4s(256),
                 Z.cbf(!1, !0, !1, !0),
                 Z.uae(s("b"), !1, p(K().translateSelf(-R, -X, -q - .3))),
-                W1(0, 40),
+                W1(),
                 C = 0;
             }
             e = f1,
@@ -498,7 +498,7 @@ T1(() => {
               Z.uae(d("i"), !1, g),
               Z.ubh(d("g"), 0),
               Z.ubh(d("h"), 1),
-              W1(!Q, 41),
+              W1(!Q),
               r(),
               Z.uae(r("b"), !1, p(K(u).invertSelf())),
               Z.ubu(r("j"), Z.drawingBufferWidth, Z.drawingBufferHeight, w),
@@ -571,7 +571,7 @@ precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sa
                       ).multiplySelf(b),
                     ),
                   ),
-                  W1(!Q, 41),
+                  W1(!Q),
                   g.set(V1, 16 * e);
               };
           }),
@@ -1013,7 +1013,7 @@ precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sa
         U = Y.getChannelData(1);
       T1(s);
     })(() => {
-      let t = e => o(G((e /= 11) * J), e).rotateSelf(10 * e).scaleSelf(1.001 - e, 1, 1.001 - e),
+      let t = e => o(G((e /= 11) * J), e).rotateSelf(10 * e).scaleSelf(1.002 - e, 1, 1.002 - e),
         a = e =>
           d(
             i(m(), o(0, -e / 2).scale(6, e - 1, 2.2)),
@@ -1039,7 +1039,7 @@ precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sa
                   : (f.set(e, r = f.size), c.push(t, a, l, h[3]), o.push(n[4]), i.push(n[5], n[6], n[7])),
                   r;
               };
-            for (s of (h[3] = 41 === t || 40 === t ? -12 : 42 === t ? -25 : t, e.o)) {
+            for (s of (h[3] = 40 === t ? -12 : 41 === t ? -25 : t, e.o)) {
               let { x: e, y: t, z: a } = q1(s);
               n[4] = 0 | s.u, n[5] = 32767 * e, n[6] = 32767 * t, n[7] = 32767 * a;
               for (let e = 2, t = l(0), a = l(1); s.length > e; ++e) r.push(t, a, a = l(e));
@@ -1070,7 +1070,7 @@ precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sa
           } catch {}
           B1(), e1 = 13 === g1 ? 0 : U(i1), T1(s);
         }),
-          f(11, e => C1(j1(Y1(19), t(e), h(1, 1, .8, .2)).reverse(), j1(Y1(19), t(e + 1), h(1, 1, .8, .2)), 1)).flat()),
+          f(11, e => C1(j1(Y1(18), t(e), h(1, 1, .8, .2)).reverse(), j1(Y1(18), t(e + 1), h(1, 1, .8, .2)), 1)).flat()),
         e = [
           ...i(m(), o(0, -3).scale(11, 1.4, 3), h(.9, .9, .9, .2)),
           ...i(m(), o(0, -2.2).scale(7.7, .5, 4), h(.5, .5, .5, .2)),
@@ -1470,8 +1470,6 @@ precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sa
         [-1, 1].map(e => {
           u(), c(m(20, 1), o(.3 * e, -.8).scale(.2, .7, .24), h(1, .3, .4));
         }),
-        u(),
-        c(m(6).slice(0, -1), S.scale(.77, 1, .77), h(1, .3, .5)),
         u(),
         c(
           F1(30, 24, (e, t, a) => {

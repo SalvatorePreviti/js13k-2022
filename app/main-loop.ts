@@ -39,13 +39,7 @@ import { loadShader, initShaderProgram } from "./shaders-utils";
 import { initPage, csm_projections, player_first_person, projection, resetInteractPressed, updateInput } from "./page";
 import { player_init, camera_position_x, camera_position_y, camera_position_z } from "./game/player";
 import { gl } from "./gl";
-import {
-  MODEL_ID_PLAYER_BODY,
-  MODEL_ID_PLAYER_LEG0,
-  MODEL_ID_PLAYER_LEG1,
-  MODEL_ID_SOUL,
-  MODEL_ID_SOUL_COLLISION,
-} from "./game/models-ids";
+import { MODEL_ID_PLAYER_BODY, MODEL_ID_PLAYER_LEG0, MODEL_ID_PLAYER_LEG1 } from "./game/models-ids";
 import { transformsBuffer } from "./game/transforms-buffer";
 
 const LIGHT_ROT_X = 298;
@@ -146,7 +140,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
         ),
       );
 
-      renderModels(!player_first_person, MODEL_ID_SOUL);
+      renderModels(!player_first_person);
 
       csm_lightSpaceMatrices.set(float32Array16Temp, split * 16);
     };
@@ -192,7 +186,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
             .translateSelf(-player_position_final.x, -player_position_final.y, 0.3 - player_position_final.z),
         ),
       );
-      renderModels(0, MODEL_ID_SOUL_COLLISION);
+      renderModels();
 
       // second collision render
 
@@ -209,7 +203,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
           ),
         ),
       );
-      renderModels(0, MODEL_ID_SOUL_COLLISION);
+      renderModels();
 
       // Reset interact button
       resetInteractPressed();
@@ -274,7 +268,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     gl.uniform1i(mainShader(uniformName_csm_texture0), 0);
     gl.uniform1i(mainShader(uniformName_csm_texture1), 1);
 
-    renderModels(!player_first_person, MODEL_ID_SOUL);
+    renderModels(!player_first_person);
 
     // *** SKY RENDER ***
 

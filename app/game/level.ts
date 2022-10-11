@@ -21,13 +21,13 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     i /= HORN_STACKS;
     return translation(Math.sin(i * Math.PI), i)
       .rotateSelf(10 * i)
-      .scaleSelf(1.001 - i, 1, 1.001 - i);
+      .scaleSelf(1.002 - i, 1, 1.002 - i);
   };
 
   const hornPolygons = integers_map(HORN_STACKS, (i) =>
     cylinder_sides(
-      polygon_transform(polygon_regular(19), hornMatrix(i), material(1, 1, 0.8, 0.2)).reverse(),
-      polygon_transform(polygon_regular(19), hornMatrix(i + 1), material(1, 1, 0.8, 0.2)),
+      polygon_transform(polygon_regular(18), hornMatrix(i), material(1, 1, 0.8, 0.2)).reverse(),
+      polygon_transform(polygon_regular(18), hornMatrix(i + 1), material(1, 1, 0.8, 0.2)),
       1,
     ),
   ).flat();
@@ -1005,10 +1005,6 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
     meshAdd(cylinder(20, 1), translation(0.3 * v, -0.8).scale(0.2, 0.7, 0.24), material(1, 0.3, 0.4));
   });
-
-  newModel("MODEL_ID_SOUL_COLLISION");
-
-  meshAdd(cylinder(6).slice(0, -1), identity.scale(0.77, 1, 0.77), material(1, 0.3, 0.5));
 
   newModel("MODEL_ID_SOUL");
 

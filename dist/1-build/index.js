@@ -866,9 +866,8 @@ const MODEL_ID_ROTATING_PLATFORM0 = 33;
 const MODEL_ID_PLAYER_BODY = 37;
 const MODEL_ID_PLAYER_LEG0 = 38;
 const MODEL_ID_PLAYER_LEG1 = 39;
-const MODEL_ID_SOUL_COLLISION = 40;
-const MODEL_ID_SOUL = 41;
-const MODEL_ID_LEVER = 42;
+const MODEL_ID_SOUL = 40;
+const MODEL_ID_LEVER = 41;
 let meshAdd;
 const LEVER_SENSITIVITY_RADIUS = 3;
 const SOUL_SENSITIVITY_RADIUS = 1.6;
@@ -1187,10 +1186,10 @@ const build_life_the_universe_and_everything = () => {
   const GHOST_SLICES = 30;
   const hornMatrix = (i) => {
     i /= HORN_STACKS;
-    return translation(/* @__PURE__ */ Math.sin(i * Math.PI), i).rotateSelf(10 * i).scaleSelf(1.001 - i, 1, 1.001 - i);
+    return translation(/* @__PURE__ */ Math.sin(i * Math.PI), i).rotateSelf(10 * i).scaleSelf(1.002 - i, 1, 1.002 - i);
   };
   const makeBigArcPolygons = (height) => csg_polygons_subtract(polygons_transform(cylinder(), translation(0, -height / 2).scale(6, height - 1, 2.2)), polygons_transform(cylinder(), translation(0, -height / 2 - 6).scale(4, height - 3, 4)), polygons_transform(cylinder(32, 1), translation(0, height / 2 - 9).rotate(90, 0, 90).scale3d(4)));
-  const hornPolygons = integers_map(HORN_STACKS, (i) => cylinder_sides(polygon_transform(polygon_regular(19), hornMatrix(i), material(1, 1, 0.8, 0.2)).reverse(), polygon_transform(polygon_regular(19), hornMatrix(i + 1), material(1, 1, 0.8, 0.2)), 1)).flat();
+  const hornPolygons = integers_map(HORN_STACKS, (i) => cylinder_sides(polygon_transform(polygon_regular(18), hornMatrix(i), material(1, 1, 0.8, 0.2)).reverse(), polygon_transform(polygon_regular(18), hornMatrix(i + 1), material(1, 1, 0.8, 0.2)), 1)).flat();
   const hexCorridorPolygons = [
     ...polygons_transform(cylinder(), translation(0, -3).scale(11, 1.4, 3), material(0.9, 0.9, 0.9, 0.2)),
     ...polygons_transform(cylinder(), translation(0, -2.2).scale(7.7, 0.5, 4), material(0.5, 0.5, 0.5, 0.2)),
@@ -1553,8 +1552,6 @@ const build_life_the_universe_and_everything = () => {
     meshAdd(cylinder(20, 1), translation(0.3 * v, -0.8).scale(0.2, 0.7, 0.24), material(1, 0.3, 0.4));
   });
   newModel();
-  meshAdd(cylinder(6).slice(0, -1), identity.scale(0.77, 1, 0.77), material(1, 0.3, 0.5));
-  newModel();
   meshAdd(sphere(GHOST_SLICES, GHOST_STACKS, (a, b, polygon) => {
     const bm = b / GHOST_STACKS;
     const theta = a * (Math.PI * (2 / GHOST_SLICES));
@@ -1861,15 +1858,16 @@ const eppur_si_muove = () => {
   for (let i5 = 0; i5 < MODELS_WITH_FULL_TRANSFORM; ++i5)
     matrixToArray(allModels[2 + MODELS_WITH_SIMPLE_TRANSFORM + i5].$matrix, transformsBuffer, i5);
 };
-const renderModels = (renderPlayer, soulModelId) => {
+const renderModels = (renderPlayer) => {
   if (mainMenuVisible) {
     if (hC.width > 1100)
       gl["d97"](4, allModels[MODEL_ID_PLAYER_LEG1].$vertexEnd - allModels[MODEL_ID_PLAYER_BODY].$vertexBegin, 5123, allModels[MODEL_ID_PLAYER_BODY].$vertexBegin * 2);
-    return;
+  } else {
+    if (renderPlayer !== void 0)
+      gl["das"](4, allModels[MODEL_ID_SOUL].$vertexEnd - allModels[MODEL_ID_SOUL].$vertexBegin, 5123, allModels[MODEL_ID_SOUL].$vertexBegin * 2, souls.length);
+    gl["das"](4, allModels[MODEL_ID_LEVER].$vertexEnd - allModels[MODEL_ID_LEVER].$vertexBegin, 5123, allModels[MODEL_ID_LEVER].$vertexBegin * 2, levers.length);
+    gl["d97"](4, (renderPlayer ? allModels[MODEL_ID_PLAYER_LEG1].$vertexEnd : allModels[MODEL_ID_PLAYER_BODY].$vertexBegin) - 3, 5123, 6);
   }
-  gl["das"](4, allModels[soulModelId].$vertexEnd - allModels[soulModelId].$vertexBegin, 5123, allModels[soulModelId].$vertexBegin * 2, souls.length);
-  gl["das"](4, allModels[MODEL_ID_LEVER].$vertexEnd - allModels[MODEL_ID_LEVER].$vertexBegin, 5123, allModels[MODEL_ID_LEVER].$vertexBegin * 2, levers.length);
-  gl["d97"](4, (renderPlayer ? allModels[MODEL_ID_PLAYER_LEG1].$vertexEnd : allModels[MODEL_ID_PLAYER_BODY].$vertexBegin) - 3, 5123, 6);
 };
 const loadShader = (source, type = 35633) => {
   const shader = gl["c6x"](type);
@@ -1900,11 +1898,11 @@ const startMainLoop = (groundTextureImage) => {
       gl["c4s"](16640);
       gl["cbf"](true, false, true, false);
       gl["uae"](collisionShader(uniformName_viewMatrix), false, matrixToArray(matrixCopy().rotateSelf(0, 180).invertSelf().translateSelf(-player_position_final.x, -player_position_final.y, 0.3 - player_position_final.z)));
-      renderModels(0, MODEL_ID_SOUL_COLLISION);
+      renderModels();
       gl["c4s"](256);
       gl["cbf"](false, true, false, true);
       gl["uae"](collisionShader(uniformName_viewMatrix), false, matrixToArray(matrixCopy().translateSelf(-player_position_final.x, -player_position_final.y, -player_position_final.z - 0.3)));
-      renderModels(0, MODEL_ID_SOUL_COLLISION);
+      renderModels();
       resetInteractPressed();
     }
     let cameraX = camera_position_x;
@@ -1942,7 +1940,7 @@ const startMainLoop = (groundTextureImage) => {
     gl["uae"](mainShader(uniformName_csm_matrices), false, csm_lightSpaceMatrices);
     gl["ubh"](mainShader(uniformName_csm_texture0), 0);
     gl["ubh"](mainShader(uniformName_csm_texture1), 1);
-    renderModels(!player_first_person, MODEL_ID_SOUL);
+    renderModels(!player_first_person);
     skyShader();
     gl["uae"](skyShader(uniformName_viewMatrix), false, matrixToArray(matrixCopy(camera_view).invertSelf()));
     gl["ubu"](skyShader(uniformName_iResolution), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime);
@@ -2005,7 +2003,7 @@ const startMainLoop = (groundTextureImage) => {
       near *= near < 0 ? zMultiplier : 1 / zMultiplier;
       far *= far > 0 ? zMultiplier : 1 / zMultiplier;
       gl["uae"](mainShader(uniformName_viewMatrix), false, matrixToArray(matrixCopy(identity, csm_tempMatrix).scaleSelf(2 / (right - left), 2 / (top - bottom), 2 / (near - far)).translateSelf((right + left) / -2, (top + bottom) / -2, (near + far) / 2).multiplySelf(tempMatrix)));
-      renderModels(!player_first_person, MODEL_ID_SOUL);
+      renderModels(!player_first_person);
       csm_lightSpaceMatrices.set(float32Array16Temp, split * 16);
     };
   });
@@ -2079,7 +2077,7 @@ const initTriangleBuffers = () => {
       }
       return vertexIndex;
     };
-    _vertexFloats[3] = index === MODEL_ID_SOUL || index === MODEL_ID_SOUL_COLLISION ? -MODELS_WITH_FULL_TRANSFORM : index === MODEL_ID_LEVER ? -MODELS_WITH_FULL_TRANSFORM - SOULS_COUNT : index;
+    _vertexFloats[3] = index === MODEL_ID_SOUL ? -MODELS_WITH_FULL_TRANSFORM : index === MODEL_ID_LEVER ? -MODELS_WITH_FULL_TRANSFORM - SOULS_COUNT : index;
     for (polygon of model.$polygons) {
       const { x, y, z } = plane_fromPolygon(polygon);
       _vertexInts[4] = polygon.$color | 0;

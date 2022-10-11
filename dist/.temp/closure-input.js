@@ -1199,22 +1199,23 @@ const player_init = () => {
       );
   };
 };
-const renderModels = (renderPlayer, soulModelId) => {
+const renderModels = (renderPlayer) => {
   mainMenuVisible
     ? 1100 < hC.width
       && gl["d97"](4, allModels[39].$vertexEnd - allModels[37].$vertexBegin, 5123, 2 * allModels[37].$vertexBegin)
-    : (gl["das"](
-      4,
-      allModels[soulModelId].$vertexEnd - allModels[soulModelId].$vertexBegin,
-      5123,
-      2 * allModels[soulModelId].$vertexBegin,
-      souls.length,
-    ),
+    : (renderPlayer !== void 0
+      && gl["das"](
+        4,
+        allModels[40].$vertexEnd - allModels[40].$vertexBegin,
+        5123,
+        2 * allModels[40].$vertexBegin,
+        souls.length,
+      ),
       gl["das"](
         4,
-        allModels[42].$vertexEnd - allModels[42].$vertexBegin,
+        allModels[41].$vertexEnd - allModels[41].$vertexBegin,
         5123,
-        2 * allModels[42].$vertexBegin,
+        2 * allModels[41].$vertexBegin,
         levers.length,
       ),
       gl["d97"](4, (renderPlayer ? allModels[39].$vertexEnd : allModels[37].$vertexBegin) - 3, 5123, 6));
@@ -1393,7 +1394,7 @@ loadStep(() => {
                 ),
               ),
             ),
-            renderModels(0, 40),
+            renderModels(),
             gl["c4s"](256),
             gl["cbf"](!1, !0, !1, !0),
             gl["uae"](
@@ -1407,7 +1408,7 @@ loadStep(() => {
                 ),
               ),
             ),
-            renderModels(0, 40),
+            renderModels(),
             interact_pressed = 0;
         }
         let cameraX = camera_position_x;
@@ -1449,7 +1450,7 @@ loadStep(() => {
           gl["uae"](mainShader("i"), !1, csm_lightSpaceMatrices),
           gl["ubh"](mainShader("g"), 0),
           gl["ubh"](mainShader("h"), 1),
-          renderModels(!player_first_person, 41),
+          renderModels(!player_first_person),
           skyShader(),
           gl["uae"](skyShader("b"), !1, matrixToArray(matrixCopy(camera_view).invertSelf())),
           gl["ubu"](skyShader("j"), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime),
@@ -1539,7 +1540,7 @@ precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sa
                   ).translateSelf((right + left) / -2, (top + bottom) / -2, (near + far) / 2).multiplySelf(tempMatrix),
                 ),
               ),
-              renderModels(!player_first_person, 41),
+              renderModels(!player_first_person),
               csm_lightSpaceMatrices.set(float32Array16Temp, 16 * split);
           };
       });
@@ -1618,10 +1619,7 @@ precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sa
                   _vertexNormals.push(_vertexInts[5], _vertexInts[6], _vertexInts[7])),
                 vertexIndex;
             };
-            for (
-              polygon
-                of (_vertexFloats[3] = index === 41 || index === 40 ? -12 : index === 42 ? -25 : index, model.$polygons)
-            ) {
+            for (polygon of (_vertexFloats[3] = index === 40 ? -12 : index === 41 ? -25 : index, model.$polygons)) {
               const { x, y, z } = plane_fromPolygon(polygon);
               _vertexInts[4] = 0 | polygon.$color,
                 _vertexInts[5] = 32767 * x,
@@ -1668,7 +1666,7 @@ precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sa
       });
       {
         const hornMatrix = (i) =>
-          translation(Math.sin((i /= 11) * Math.PI), i).rotateSelf(10 * i).scaleSelf(1.001 - i, 1, 1.001 - i);
+          translation(Math.sin((i /= 11) * Math.PI), i).rotateSelf(10 * i).scaleSelf(1.002 - i, 1, 1.002 - i);
         const makeBigArcPolygons = (height) =>
           csg_polygons_subtract(
             polygons_transform(cylinder(), translation(0, -height / 2).scale(6, height - 1, 2.2)),
@@ -1677,8 +1675,8 @@ precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sa
           );
         const hornPolygons = integers_map(11, (i) =>
           cylinder_sides(
-            polygon_transform(polygon_regular(19), hornMatrix(i), material(1, 1, 0.8, 0.2)).reverse(),
-            polygon_transform(polygon_regular(19), hornMatrix(i + 1), material(1, 1, 0.8, 0.2)),
+            polygon_transform(polygon_regular(18), hornMatrix(i), material(1, 1, 0.8, 0.2)).reverse(),
+            polygon_transform(polygon_regular(18), hornMatrix(i + 1), material(1, 1, 0.8, 0.2)),
             1,
           )).flat();
         const hexCorridorPolygons = [
@@ -2575,8 +2573,6 @@ precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sa
             newModel(),
               meshAdd(cylinder(20, 1), translation(0.3 * v, -0.8).scale(0.2, 0.7, 0.24), material(1, 0.3, 0.4));
           }),
-          newModel(),
-          meshAdd(cylinder(6).slice(0, -1), identity.scale(0.77, 1, 0.77), material(1, 0.3, 0.5)),
           newModel(),
           meshAdd(
             sphere(30, 24, (a, b, polygon) => {

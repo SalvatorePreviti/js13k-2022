@@ -86,8 +86,6 @@ export const MODEL_ID_PLAYER_LEG1 = 39;
 
 // objects
 
-export const MODEL_ID_SOUL_COLLISION = 40;
+export const MODEL_ID_SOUL = 40;
 
-export const MODEL_ID_SOUL = 41;
-
-export const MODEL_ID_LEVER = 42;
+export const MODEL_ID_LEVER = 41;
