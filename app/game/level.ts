@@ -101,16 +101,6 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
     //  gate bottom
     meshAdd(cylinder(), translation(0, 1, z).scale(3, 0.2, 0.35), material(0.5, 0.5, 0.5, 0.3));
-
-    // horns
-    integers_map(5, (i) =>
-      meshAdd(
-        hornPolygons,
-        translation((j - 0.5) * 18.5, 0, i * 4.8 - 9.5)
-          .rotate(0, 180 - j * 180)
-          .scale(1.2, 10, 1.2),
-      ),
-    );
   });
 
   // first boat attachment
@@ -357,14 +347,6 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
   // ******** LEVEL AFTER SECOND BOAT ********
 
-  // arcs
-
-  integers_map(3, (i) => {
-    meshAdd(makeBigArcPolygons(16), translation(i * 12 - 109, -9, -12), material(0.6, 0.6, 0.6, 0.3));
-
-    meshAdd(makeBigArcPolygons(16), translation(-77, -9, i * -12 - 8 - 12).rotate(0, 90), material(0.6, 0.6, 0.6, 0.3));
-  });
-
   // pushing rods container
 
   meshAdd(
@@ -408,9 +390,6 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
   // internal pad
 
-  meshAdd(cylinder(), translation(-84.9, -4.3, -40).rotate(12).scale(6, 1, 3), material(0.6, 0.6, 0.6, 0.3));
-  meshAdd(cylinder(9), translation(-98, -18.4, -40).scale(2.5, 13.5, 2.5), material(0.5, 0.5, 0.5, 0.3));
-
   meshAdd(
     csg_polygons_subtract(
       polygons_transform(cylinder(), translation(-93, -5.8, -40).scale(9, 1, 5), material(0.8, 0.8, 0.8, 0.1)),
@@ -418,48 +397,18 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     ),
   );
 
+  meshAdd(cylinder(), translation(-84.9, -4.3, -40).rotate(12).scale(6, 1, 3), material(0.6, 0.6, 0.6, 0.3));
+  meshAdd(cylinder(9), translation(-98, -18.4, -40).scale(2.5, 13.5, 2.5), material(0.5, 0.5, 0.5, 0.3));
+
   // LEVER internal pad after the pushing blocks lever
   newLever(translation(-98, -4.4, -40).rotate(0, 90), "LEVER_ID_AFTER_PUSHING_RODS");
 
   // ******** LEVEL AFTER CENTRAL GATE ********
 
-  // base
-
-  meshAdd(
-    csg_polygons_subtract(
-      csg_union(
-        polygons_transform(
-          cylinder(6, 0, 0, 0.6),
-          translation(-100, 0.7, 105.5).scale(8, 1, 11),
-          material(0.7, 0.7, 0.7, 0.2),
-        ),
-        polygons_transform(cylinder(), translation(-101.5, 0.7, 93.5).scale(10.5, 1, 2), material(0.7, 0.7, 0.7, 0.2)),
-      ),
-      polygons_transform(cylinder(5), translation(-100, 0.7, 113).scale(4, 3, 4), material(0.7, 0.7, 0.7, 0.2)),
-    ),
-  );
-
   // after the hex pads
 
-  [-1, 1].map((x) => {
-    // far arc gate
-    [7.2, 1.5].map((y) =>
-      meshAdd(
-        cylinder(15, 1),
-        translation(-7.5 * x - 100, y + 0.7, 96).scale(1.1, 0.5, 1.1),
-        material(0.5, 0.24, 0.2, 0.4),
-      ),
-    );
-
-    meshAdd(
-      hornPolygons,
-      translation(x * -5 - 100, 1.7, 114.5)
-        .scale(1.2, 10, 1.2)
-        .rotate(0, 90 * x - 90),
-    );
-
-    meshAdd(cylinder(12, 1), translation(-7.5 * x - 100, 3.7, 96).scale(0.8, 4, 0.8), material(0.6, 0.24, 0.2, 0.5));
-
+  [-1, 1].map((x, j) => {
+    // level after central gate, after the hex pads
     meshAdd(
       csg_polygons_subtract(
         polygons_transform(cylinder(), translation(x * -4, 3.5, -0.5).scale(4, 4, 0.7), material(0.5, 0.5, 0.5, 0.4)),
@@ -486,6 +435,43 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
       ),
       translation(x - 100, 0.7, 97),
     );
+
+    meshAdd(cylinder(12, 1), translation(-7.5 * x - 100, 3.7, 96).scale(0.8, 4, 0.8), material(0.6, 0.24, 0.2, 0.5));
+
+    // far arc gate
+    [7.2, 1.5].map((y) =>
+      meshAdd(
+        cylinder(15, 1),
+        translation(-7.5 * x - 100, y + 0.7, 96).scale(1.1, 0.5, 1.1),
+        material(0.5, 0.24, 0.2, 0.4),
+      ),
+    );
+
+    // LEVEL AFTER THE ROTATING PLATFORMS horns
+    meshAdd(
+      hornPolygons,
+      translation(x * -8, 1, 85)
+        .scale(1.2, 10, 1.2)
+        .rotate(0, 90 * x + 90),
+    );
+
+    // after the hex pads horns
+    meshAdd(
+      hornPolygons,
+      translation(x * -5 - 100, 1.7, 114.5)
+        .scale(1.2, 10, 1.2)
+        .rotate(0, 90 * x - 90),
+    );
+
+    // first level horns
+    integers_map(5, (i) =>
+      meshAdd(
+        hornPolygons,
+        translation((j - 0.5) * 18.5, 0, i * 4.8 - 9.5)
+          .rotate(0, 180 - j * 180)
+          .scale(1.2, 10, 1.2),
+      ),
+    );
   });
 
   // left continuation with hole for first rotating platform
@@ -510,25 +496,36 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
   // LEVER lever after rotating platforms
   newLever(translation(-34, 2.7, 96).rotate(-12, 0), "LEVER_ID_AFTER_ROTATING_PLATFORMS");
 
+  // base
+
+  meshAdd(
+    csg_polygons_subtract(
+      csg_union(
+        polygons_transform(
+          cylinder(6, 0, 0, 0.6),
+          translation(-100, 0.7, 105.5).scale(8, 1, 11),
+          material(0.7, 0.7, 0.7, 0.2),
+        ),
+        polygons_transform(cylinder(), translation(-101.5, 0.7, 93.5).scale(10.5, 1, 2), material(0.7, 0.7, 0.7, 0.2)),
+      ),
+      polygons_transform(cylinder(5), translation(-100, 0.7, 113).scale(4, 3, 4), material(0.7, 0.7, 0.7, 0.2)),
+    ),
+  );
+
   // ******** LEVEL AFTER THE ROTATING PLATFORMS ********
 
-  [-1, 1].map((x) =>
-    // LEVEL AFTER THE ROTATING PLATFORMS horns
-    meshAdd(
-      hornPolygons,
-      translation(x * -8, 1, 85)
-        .scale(1.2, 10, 1.2)
-        .rotate(0, 90 * x + 90),
-    ),
-  );
+  integers_map(3, (i) => {
+    // The big arcs in the level after second boat
+    meshAdd(makeBigArcPolygons(16), translation(-77, -9, i * -12 - 8 - 12).rotate(0, 90), material(0.6, 0.6, 0.6, 0.3));
+    meshAdd(makeBigArcPolygons(16), translation(i * 12 - 109, -9, -12), material(0.6, 0.6, 0.6, 0.3));
 
-  integers_map(3, (i) =>
+    // Big arcs in the level after rotating platforms
     meshAdd(
-      makeBigArcPolygons(16 + 8.7 - (i & 1) * 0.7),
-      translation(i * 6 - 6, 4 - (i & 1), 111 - 0.2 * (i & 1)),
+      makeBigArcPolygons(24.7 - 0.7 * (i & 1)),
+      translation(6 * i - 6, 4 - (i & 1), 111 - 0.2 * (i & 1)),
       i & 1 ? material(0.5, 0.5, 0.5, 0.3) : material(0.35, 0.35, 0.35, 0.5),
-    ),
-  );
+    );
+  });
 
   // middle base
   meshAdd(

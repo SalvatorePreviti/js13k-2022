@@ -162,7 +162,7 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: Circle[]) 
 
     if (soul.$value) {
       matrixCopy(allModels[MODEL_ID_BOAT0]!.$matrix).translateSelf(
-        (index % 4) * 1.2 - 1.7 + Math.sin(gameTime + index) / 7,
+        1.2 * (index % 4) - 1.7 + Math.sin(gameTime + index) / 7,
         -2,
         -5.5 + ((index / 4) | 0) * 1.7 + abs((index % 4) - 2) + Math.cos(gameTime / 1.5 + index) / 6,
       );

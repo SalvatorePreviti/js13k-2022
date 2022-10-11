@@ -1087,7 +1087,7 @@ const newSoul = (transform, ...walkingPath) => {
     }
     if (soul.$value) {
       matrixCopy(allModels[MODEL_ID_BOAT0].$matrix).translateSelf(
-        index % 4 * 1.2 - 1.7 + /* @__PURE__ */ Math.sin(gameTime + index) / 7,
+        1.2 * (index % 4) - 1.7 + /* @__PURE__ */ Math.sin(gameTime + index) / 7,
         -2,
         -5.5 + (index / 4 | 0) * 1.7 + abs(index % 4 - 2) + /* @__PURE__ */ Math.cos(gameTime / 1.5 + index) / 6,
       );
@@ -1398,14 +1398,6 @@ const build_life_the_universe_and_everything = () => {
     meshAdd(cylinder(), translation(0, 0, j ? 22 : -23).scale(3, 1, 8), material(0.9, 0.9, 0.9, 0.2));
     meshAdd(cylinder(), translation(0, 6.3, z).scale(4, 0.3, 1), material(0.3, 0.3, 0.3, 0.4));
     meshAdd(cylinder(), translation(0, 1, z).scale(3, 0.2, 0.35), material(0.5, 0.5, 0.5, 0.3));
-    integers_map(
-      5,
-      (i) =>
-        meshAdd(
-          hornPolygons,
-          translation((j - 0.5) * 18.5, 0, i * 4.8 - 9.5).rotate(0, 180 - j * 180).scale(1.2, 10, 1.2),
-        ),
-    );
   });
   meshAdd(cylinder(), translation(-5, -0.2, -26).scale(3.2, 1, 2.5).skewX(3), material(0.8, 0.8, 0.8, 0.2));
   meshAdd(cylinder(), translation(3, 1.5, -20).scale(0.5, 2, 5), material(0.7, 0.7, 0.7, 0.2));
@@ -1572,10 +1564,6 @@ const build_life_the_universe_and_everything = () => {
   );
   meshAdd(cylinder(5), translation(-84, -2, 85).scale(4, 0.8, 4).rotate(0, 10), material(0.8, 0.1, 0.25, 0.4));
   newLever(translation(-84, -0.7, 85).rotate(0, 45));
-  integers_map(3, (i) => {
-    meshAdd(makeBigArcPolygons(16), translation(i * 12 - 109, -9, -12), material(0.6, 0.6, 0.6, 0.3));
-    meshAdd(makeBigArcPolygons(16), translation(-77, -9, i * -12 - 8 - 12).rotate(0, 90), material(0.6, 0.6, 0.6, 0.3));
-  });
   meshAdd(
     csg_polygons_subtract(
       csg_union(
@@ -1606,44 +1594,19 @@ const build_life_the_universe_and_everything = () => {
       polygons_transform(cylinder(), translation(-77, 0.1, -14).scale(1.5, 2, 2), material(0.4, 0.5, 0.6, 0.2)),
     ),
   );
-  meshAdd(cylinder(), translation(-84.9, -4.3, -40).rotate(12).scale(6, 1, 3), material(0.6, 0.6, 0.6, 0.3));
-  meshAdd(cylinder(9), translation(-98, -18.4, -40).scale(2.5, 13.5, 2.5), material(0.5, 0.5, 0.5, 0.3));
   meshAdd(
     csg_polygons_subtract(
       polygons_transform(cylinder(), translation(-93, -5.8, -40).scale(9, 1, 5), material(0.8, 0.8, 0.8, 0.1)),
       polygons_transform(cylinder(9), translation(-98, -5.8, -40).scale(3, 8, 3), material(0.7, 0.7, 0.7, 0.2)),
     ),
   );
+  meshAdd(cylinder(), translation(-84.9, -4.3, -40).rotate(12).scale(6, 1, 3), material(0.6, 0.6, 0.6, 0.3));
+  meshAdd(cylinder(9), translation(-98, -18.4, -40).scale(2.5, 13.5, 2.5), material(0.5, 0.5, 0.5, 0.3));
   newLever(translation(-98, -4.4, -40).rotate(0, 90));
-  meshAdd(
-    csg_polygons_subtract(
-      csg_union(
-        polygons_transform(
-          cylinder(6, 0, 0, 0.6),
-          translation(-100, 0.7, 105.5).scale(8, 1, 11),
-          material(0.7, 0.7, 0.7, 0.2),
-        ),
-        polygons_transform(cylinder(), translation(-101.5, 0.7, 93.5).scale(10.5, 1, 2), material(0.7, 0.7, 0.7, 0.2)),
-      ),
-      polygons_transform(cylinder(5), translation(-100, 0.7, 113).scale(4, 3, 4), material(0.7, 0.7, 0.7, 0.2)),
-    ),
-  );
   [
     -1,
     1,
-  ].map((x) => {
-    [
-      7.2,
-      1.5,
-    ].map((y) =>
-      meshAdd(
-        cylinder(15, 1),
-        translation(-7.5 * x - 100, y + 0.7, 96).scale(1.1, 0.5, 1.1),
-        material(0.5, 0.24, 0.2, 0.4),
-      )
-    );
-    meshAdd(hornPolygons, translation(x * -5 - 100, 1.7, 114.5).scale(1.2, 10, 1.2).rotate(0, 90 * x - 90));
-    meshAdd(cylinder(12, 1), translation(-7.5 * x - 100, 3.7, 96).scale(0.8, 4, 0.8), material(0.6, 0.24, 0.2, 0.5));
+  ].map((x, j) => {
     meshAdd(
       csg_polygons_subtract(
         polygons_transform(cylinder(), translation(x * -4, 3.5, -0.5).scale(4, 4, 0.7), material(0.5, 0.5, 0.5, 0.4)),
@@ -1666,6 +1629,27 @@ const build_life_the_universe_and_everything = () => {
       ),
       translation(x - 100, 0.7, 97),
     );
+    meshAdd(cylinder(12, 1), translation(-7.5 * x - 100, 3.7, 96).scale(0.8, 4, 0.8), material(0.6, 0.24, 0.2, 0.5));
+    [
+      7.2,
+      1.5,
+    ].map((y) =>
+      meshAdd(
+        cylinder(15, 1),
+        translation(-7.5 * x - 100, y + 0.7, 96).scale(1.1, 0.5, 1.1),
+        material(0.5, 0.24, 0.2, 0.4),
+      )
+    );
+    meshAdd(hornPolygons, translation(x * -8, 1, 85).scale(1.2, 10, 1.2).rotate(0, 90 * x + 90));
+    meshAdd(hornPolygons, translation(x * -5 - 100, 1.7, 114.5).scale(1.2, 10, 1.2).rotate(0, 90 * x - 90));
+    integers_map(
+      5,
+      (i) =>
+        meshAdd(
+          hornPolygons,
+          translation((j - 0.5) * 18.5, 0, i * 4.8 - 9.5).rotate(0, 180 - j * 180).scale(1.2, 10, 1.2),
+        ),
+    );
   });
   meshAdd(
     csg_polygons_subtract(
@@ -1679,19 +1663,28 @@ const build_life_the_universe_and_everything = () => {
   meshAdd(cylinder(), translation(-34.2, 0.4, 91).scale(3, 1, 3), material(0.7, 0.7, 0.7, 0.3));
   meshAdd(cylinder(5), translation(-34, 0.2, 96).scale(3, 2, 4).rotate(-20, 0), material(0.2, 0.5, 0.5, 0.6));
   newLever(translation(-34, 2.7, 96).rotate(-12, 0));
-  [
-    -1,
-    1,
-  ].map((x) => meshAdd(hornPolygons, translation(x * -8, 1, 85).scale(1.2, 10, 1.2).rotate(0, 90 * x + 90)));
-  integers_map(
-    3,
-    (i) =>
-      meshAdd(
-        makeBigArcPolygons(24.7 - (i & 1) * 0.7),
-        translation(i * 6 - 6, 4 - (i & 1), 111 - 0.2 * (i & 1)),
-        i & 1 ? material(0.5, 0.5, 0.5, 0.3) : material(0.35, 0.35, 0.35, 0.5),
+  meshAdd(
+    csg_polygons_subtract(
+      csg_union(
+        polygons_transform(
+          cylinder(6, 0, 0, 0.6),
+          translation(-100, 0.7, 105.5).scale(8, 1, 11),
+          material(0.7, 0.7, 0.7, 0.2),
+        ),
+        polygons_transform(cylinder(), translation(-101.5, 0.7, 93.5).scale(10.5, 1, 2), material(0.7, 0.7, 0.7, 0.2)),
       ),
+      polygons_transform(cylinder(5), translation(-100, 0.7, 113).scale(4, 3, 4), material(0.7, 0.7, 0.7, 0.2)),
+    ),
   );
+  integers_map(3, (i) => {
+    meshAdd(makeBigArcPolygons(16), translation(-77, -9, i * -12 - 8 - 12).rotate(0, 90), material(0.6, 0.6, 0.6, 0.3));
+    meshAdd(makeBigArcPolygons(16), translation(i * 12 - 109, -9, -12), material(0.6, 0.6, 0.6, 0.3));
+    meshAdd(
+      makeBigArcPolygons(24.7 - 0.7 * (i & 1)),
+      translation(6 * i - 6, 4 - (i & 1), 111 - 0.2 * (i & 1)),
+      i & 1 ? material(0.5, 0.5, 0.5, 0.3) : material(0.35, 0.35, 0.35, 0.5),
+    );
+  });
   meshAdd(
     csg_polygons_subtract(
       polygons_transform(
@@ -2033,12 +2026,6 @@ const build_life_the_universe_and_everything = () => {
     ]),
   );
   newModel();
-  [
-    -1,
-    1,
-  ].map((x) =>
-    meshAdd(hornPolygons, identity.rotate(0, 90).translate(x * -5, 1, -0.5).scale(1.2, 10, 1.2).rotate(0, 90 * x + 90))
-  );
   meshAdd(
     csg_polygons_subtract(
       polygons_transform(cylinder(28, 1), translation(0, 2).scale(7.5, 1, 7.5), material(0.35, 0, 0, 0.3)),
@@ -2047,6 +2034,12 @@ const build_life_the_universe_and_everything = () => {
   );
   meshAdd(polygons_transform(cylinder(28, 1), identity.scale(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2)));
   meshAdd(polygons_transform(cylinder(5), translation(0, 1).scale(1, 0.2), material(0.3, 0.3, 0.3, 0.2)));
+  [
+    -1,
+    1,
+  ].map((x) =>
+    meshAdd(hornPolygons, identity.rotate(0, 90).translate(x * -5, 1, -0.5).scale(1.2, 10, 1.2).rotate(0, 90 * x + 90))
+  );
   newModel();
   meshAdd(
     csg_polygons_subtract(
