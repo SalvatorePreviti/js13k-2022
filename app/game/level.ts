@@ -465,7 +465,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
         polygons_transform(cylinder(), translation(x * -4, 3.5, -0.5).scale(4, 4, 0.7), material(0.5, 0.5, 0.5, 0.4)),
         polygons_transform(cylinder(), identity.scale(3, 3, 10), material(0.6, 0.24, 0.2, 0.5)),
         polygons_transform(
-          cylinder(28, 1),
+          cylinder(32, 1),
           translation(0, 3, -5).scale(3, 4, 10).rotate(90, 0),
           material(0.6, 0.24, 0.2, 0.5),
         ),
@@ -487,8 +487,6 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
       translation(x - 100, 0.7, 97),
     );
   });
-
-  // rotating platforms
 
   // left continuation with hole for first rotating platform
   meshAdd(
@@ -548,12 +546,13 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
   newLever(translation(0, 1.7, 82).rotate(0, 180), "LEVER_ID_AFTER_JUMPING_PADS");
 
   // lever pad
-
   meshAdd(cylinder(5), translation(0, -15.7, 82).scale(2.5, 17, 2.5).rotate(0, 35), material(0.5, 0.3, 0.3, 0.4));
 
+  // pendulums supports
+
   meshAdd(cylinder(6), translation(0, 16, 121).scale(2.5, 1, 2.1).rotate(0, 90), material(0.5, 0.6, 0.7, 0.3));
-  meshAdd(cylinder(), translation(0, 16, 129).scale(1.5, 1, 2), material(0.5, 0.6, 0.7, 0.3));
-  meshAdd(cylinder(7), translation(0, 16.2, 133).scale(5, 1, 5), material(0.4, 0.5, 0.6, 0.4));
+  meshAdd(cylinder(), translation(0, 16, 127.8).scale(1.5, 1, 0.7), material(0.5, 0.6, 0.7, 0.3));
+  meshAdd(cylinder(7), translation(0, 15.1, 133).scale(5, 2, 5), material(0.4, 0.5, 0.6, 0.4));
 
   meshAdd(
     csg_polygons_subtract(
@@ -607,7 +606,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
   meshAdd(cylinder(5), translation(0, -0.2).scale(5, 1, 5), material(0.6, 0.65, 0.7, 0.3));
 
-  // LEVER 2 - lever over the central moving platform
+  // LEVER over the central moving platform
   newLever(translation(0, 1.2), "LEVER_ID_GATE1");
 
   integers_map(2, (blackPlatform) => {
@@ -669,7 +668,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
   meshAdd(cylinder(), translation(-23, -3, 55).scale(5.2, 1.7, 3), material(0.5, 0.5, 0.5, 0.3));
   meshAdd(cylinder(), translation(-23, -2.2, 62).scale(3, 1, 4), material(0.5, 0.5, 0.5, 0.3));
 
-  // LEVER 4 - triangle platform lever
+  // LEVER over the triangle platform
   newLever(translation(-23, -0.5, 66.5), "LEVER_ID_TRIANGLE_PLATFORM");
 
   // vertically oscillating mini platforms
@@ -808,8 +807,22 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
   meshAdd(cylinder(5), identity.scale(5, 1.1, 5), material(0.5, 0.3, 0.3, 0.4));
   meshAdd(cylinder(5), identity.scale(5.5, 0.9, 5.5), material(0.25, 0.25, 0.25, 0.4));
 
-  // LEVER 15 - lever in the floating elevator before the pendulums
+  // LEVER in the floating elevator before the pendulums
   newLever(translation(0, 1.5, -1).rotate(0, 180), "LEVER_ID_FLOATING_ELEVATOR");
+
+  // GATES
+  integers_map(4, (gate) => {
+    newModel("MODEL_ID_GATE" + gate);
+    integers_map(7, (i) =>
+      meshAdd(
+        polygons_transform(
+          cylinder(9, 1),
+          translation((gate > 2 ? 3.5 : 4) * (i / 6 - 0.5), 3).scale(0.2, gate > 2 ? 4 : 3, 0.2),
+          material(0.3, 0.3, 0.38),
+        ),
+      ),
+    );
+  });
 
   /// **** FULL MATRIX TRANSFORMS **** ///
 
@@ -835,20 +848,6 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     newLever(translation(0, -3, 4), "LEVER_ID_BOAT" + i);
   });
 
-  // GATES
-  integers_map(4, (gate) => {
-    newModel("MODEL_ID_GATE" + gate);
-    integers_map(7, (i) =>
-      meshAdd(
-        polygons_transform(
-          cylinder(9, 1),
-          translation(4 * (i / 6 - 0.5), 3).scale(0.2, 3, 0.2),
-          material(0.3, 0.3, 0.38),
-        ),
-      ),
-    );
-  });
-
   // rotating hex corridor
   newModel("MODEL_ID_LEVEL2_ROTATING_HEX_CORRIDOR");
   meshAdd(hexCorridorPolygons);
@@ -861,7 +860,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
   meshAdd(cylinder(10), translation(-7.5).rotate(0, 90).scale(2, 2.5, 2), material(0.3, 0.8, 0.7, 0.3));
   meshAdd(cylinder(5), translation(-7.5).rotate(0, 90).scale(1, 3), material(0.5, 0.5, 0.5, 0.5));
 
-  // LEVER 12 - donut pad lever
+  // LEVER over the donut pad
   newLever(translation(-7.5).rotate(0, 90).translate(0, 3.4).rotate(0, 180), "LEVER_ID_DONUT_PAD");
 
   // lateral horns
@@ -876,9 +875,6 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     ),
   );
 
-  // SOUL after the hex pads, in the hex donut with horns
-  newSoul(translation(-5, 4), [0, -1.2, 1.7], [0, 1.2, 1.7]);
-
   meshAdd(
     csg_polygons_subtract(
       polygons_transform(cylinder(10), identity.scale(6, 2, 6), material(0.1, 0.6, 0.5, 0.3)),
@@ -886,9 +882,12 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     ),
   );
 
+  // SOUL after the hex pads, in the hex donut with horns
+  newSoul(translation(-5, 4), [0, -1.2, 1.7], [0, 1.2, 1.7]);
+
   // pendulums
   newModel("MODEL_ID_PENDULUMS");
-  meshAdd(cylinder(3), translation(0, -3, 118.8).scale(0.8, 0.8, 18).rotate(90, 0, 60), material(0.5, 0.3, 0.3, 0.4));
+  meshAdd(cylinder(3), translation(0, -3, 118.8).scale(0.8, 0.8, 8).rotate(90, 0, 60), material(0.5, 0.3, 0.3, 0.4));
   [22, 30].map((z) => {
     meshAdd(
       cylinder(6),

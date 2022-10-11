@@ -46,7 +46,7 @@ import {
   MODEL_ID_SOUL,
   MODEL_ID_SOUL_COLLISION,
 } from "./game/models-ids";
-import { worldMatricesBuffer } from "./game/models-matrices";
+import { transformsBuffer } from "./game/transforms-buffer";
 
 const LIGHT_ROT_X = 298;
 const LIGHT_ROT_Y = 139;
@@ -175,7 +175,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
       collisionShader();
 
-      gl.uniform4fv(collisionShader(uniformName_worldTransforms), worldMatricesBuffer);
+      gl.uniform4fv(collisionShader(uniformName_worldTransforms), transformsBuffer);
 
       // first collision render
 
@@ -234,9 +234,9 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
         .rotateSelf(0, 99);
 
       matrixCopy().rotateSelf(0, 40 * Math.sin(absoluteTime) - 80, -8);
-      matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_BODY - 2);
-      matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_LEG0 - 2);
-      matrixToArray(tempMatrix, worldMatricesBuffer, MODEL_ID_PLAYER_LEG1 - 2);
+      matrixToArray(tempMatrix, transformsBuffer, MODEL_ID_PLAYER_BODY - 2);
+      matrixToArray(tempMatrix, transformsBuffer, MODEL_ID_PLAYER_LEG0 - 2);
+      matrixToArray(tempMatrix, transformsBuffer, MODEL_ID_PLAYER_LEG1 - 2);
     } else {
       matrixCopy(identity, camera_view)
         .rotateSelf(-camera_rotation.x, -camera_rotation.y)
@@ -246,7 +246,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
     mainShader();
     gl.uniform3f(mainShader(uniformName_viewPos), cameraX, cameraY, cameraZ);
-    gl.uniform4fv(mainShader(uniformName_worldTransforms), worldMatricesBuffer);
+    gl.uniform4fv(mainShader(uniformName_worldTransforms), transformsBuffer);
 
     // *** CASCADED SHADOWMAPS ***
 

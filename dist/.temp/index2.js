@@ -821,7 +821,7 @@ const newSoul = (transform, ...walkingPath) => {
             saveGame());
       }
       soul.$value
-        && matrixCopy(allModels[24].$matrix).translateSelf(
+        && matrixCopy(allModels[28].$matrix).translateSelf(
           index % 4 * 1.2 - 1.7 + Math.sin(gameTime + index) / 7,
           -2,
           1.7 * (index / 4 | 0) - 5.5 + abs(index % 4 - 2) + Math.cos(gameTime / 1.5 + index) / 6,
@@ -1231,7 +1231,7 @@ const initShaderProgram = (vertexShader, sfsSource) => {
 const tempMatrix = new DOMMatrix();
 const identity = new DOMMatrix();
 const float32Array16Temp = new Float32Array(16);
-const worldMatricesBuffer = new Float32Array(808);
+const transformsBuffer = new Float32Array(760);
 const collision_buffer = new Uint8Array(65536);
 const gl = hC.getContext("webgl2", {
   powerPreference: "high-performance",
@@ -1348,12 +1348,12 @@ loadStep(() => {
             (levers[12].$lerpValue + levers[12].$lerpValue2) / 2,
           ),
             modelsNextUpdate(0, 16 * globalTime, 95 + 8.5 * clamp(2 * globalTime - 1)),
+            modelsNextUpdate(0, -4.7 * levers[0].$lerpValue, -15),
+            modelsNextUpdate(0, -4.7 * levers[10].$lerpValue, 15),
+            modelsNextUpdate(-99.7, -1.9 - 5.5 * levers[3].$lerpValue, 63.5),
+            modelsNextUpdate(-100, 0.6 - 5.8 * levers[15].$lerpValue, 96.5),
             dt(modelsNextUpdate(-12, 4.2, 40 * firstBoatLerp - 66)),
             dt(modelsNextUpdate(-123, 1.4, 55 - 65 * secondBoatLerp)),
-            modelsNextUpdate(0, 0, -15).scaleSelf(1, clamp(1.22 - levers[0].$lerpValue), 1),
-            modelsNextUpdate(0, 0, 15).scaleSelf(1, clamp(1.22 - levers[10].$lerpValue), 1),
-            modelsNextUpdate(-99.7, -1.9, 63.5).scaleSelf(1, clamp(1.1 - levers[3].$lerpValue), 1),
-            modelsNextUpdate(-100, 0.6, 96.5).scaleSelf(0.88, 1.2 - levers[15].$lerpValue),
             modelsNextUpdate(-75, 3 * (1 - levers[2].$lerpValue2) * (1 - levers[3].$lerpValue), 55).rotateSelf(
               180 * (1 - levers[2].$lerpValue2) + rotatingHexCorridorRotation,
               0,
@@ -1368,18 +1368,18 @@ loadStep(() => {
             modelsNextUpdate(-65.8, 0.8, 106).rotateSelf(0, rotatingPlatform2Rotation),
             modelsNextUpdate(-50.7, 0.8, 106).rotateSelf(0, 180 - rotatingPlatform2Rotation),
             modelsNextUpdate(-50.7, 0.8, 91).rotateSelf(0, 270 + rotatingPlatform2Rotation);
-          for (let i2 = 0; i2 < 13; ++i2) souls[i2]._update(), matrixToArray(tempMatrix, worldMatricesBuffer, 16 + i2);
-          for (let i3 = 0; i3 < 16; ++i3) levers[i3]._update(), matrixToArray(tempMatrix, worldMatricesBuffer, 29 + i3);
-          player_update();
-          for (let m, i4 = 2, j = 720; i4 <= 23; ++i4, ++j) {
-            m = allModels[i4].$matrix,
-              worldMatricesBuffer[j++] = m.m41,
-              worldMatricesBuffer[j++] = m.m42,
-              worldMatricesBuffer[j++] = m.m43;
+          for (let i2 = 0; i2 < 13; ++i2) souls[i2]._update(), matrixToArray(tempMatrix, transformsBuffer, 12 + i2);
+          for (let i3 = 0; i3 < 16; ++i3) levers[i3]._update(), matrixToArray(tempMatrix, transformsBuffer, 25 + i3);
+          for (let m, i4 = 0, j = 656; i4 < 26; ++i4, ++j) {
+            m = allModels[2 + i4].$matrix,
+              transformsBuffer[j++] = m.m41,
+              transformsBuffer[j++] = m.m42,
+              transformsBuffer[j++] = m.m43;
           }
-          for (let i5 = 24, j1 = 0; i5 <= 39; ++i5, j1++) matrixToArray(allModels[i5].$matrix, worldMatricesBuffer, j1);
+          player_update();
+          for (let i5 = 0; i5 < 12; ++i5) matrixToArray(allModels[28 + i5].$matrix, transformsBuffer, i5);
           collisionShader(),
-            gl["u3a"](collisionShader("j"), worldMatricesBuffer),
+            gl["u3a"](collisionShader("j"), transformsBuffer),
             gl["c4s"](16640),
             gl["cbf"](!0, !1, !0, !1),
             gl["uae"](
@@ -1425,14 +1425,14 @@ loadStep(() => {
               -cameraZ,
             ).rotateSelf(0, 99),
             matrixCopy().rotateSelf(0, 40 * Math.sin(absoluteTime) - 80, -8),
-            matrixToArray(tempMatrix, worldMatricesBuffer, 35),
-            matrixToArray(tempMatrix, worldMatricesBuffer, 36),
-            matrixToArray(tempMatrix, worldMatricesBuffer, 37))
+            matrixToArray(tempMatrix, transformsBuffer, 35),
+            matrixToArray(tempMatrix, transformsBuffer, 36),
+            matrixToArray(tempMatrix, transformsBuffer, 37))
           : matrixCopy(identity, camera_view).rotateSelf(-camera_rotation.x, -camera_rotation.y).invertSelf()
             .translateSelf(-cameraX, -cameraY, -cameraZ),
           mainShader(),
           gl["ubu"](mainShader("k"), cameraX, cameraY, cameraZ),
-          gl["u3a"](mainShader("j"), worldMatricesBuffer),
+          gl["u3a"](mainShader("j"), transformsBuffer),
           gl["uae"](mainShader("a"), !1, matrixToArray(identity)),
           gl["ubh"](mainShader("g"), 3),
           gl["ubh"](mainShader("h"), 3),
@@ -1470,7 +1470,7 @@ in vec4 f;void main(){gl_Position=vec4(f.xy,1,1);}`),
 precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;out vec4 O;void main(){vec2 t=gl_FragCoord.xy/j.xy*2.-1.;vec3 e=(normalize(b*vec4(t.x*-(j.x/j.y),-t.y,1.73205,0.))).xyz;float o=(-32.-b[3].y)/e.y,i=1.-clamp(abs(o/9999.),0.,1.);if(O=vec4(0,0,0,1),i>.01){if(o>0.){float i=cos(j.z/30.),o=sin(j.z/30.);e.xz*=mat2(i,o,-o,i);vec3 t=abs(e);O.xyz=vec3(dot(vec2(texture(q,e.xy).z,texture(q,e.yz*2.).z),t.zx)*t.y);}else e=b[3].xyz+e*o,O.x=(i*=.9-texture(q,e.xz/150.+vec2(sin(e.z/35.+j.z),cos(e.x/25.+j.z))/80.).y),O.y=i*i*i;}}`,
       );
       var mainVertexShader = loadShader(`#version 300 es
-layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 b,a;uniform vec4 j[202];void main(){mat4 r=mat4(1);lowp int i=int(f.w);if(l=d,m=vec4(f.xyz,1),f.w>1.&&f.w<24.){vec4 s=j[i+178];m.xyz+=(r[3].xyz=s.xyz);}else if(f.w!=1.)i=(i<1?gl_InstanceID-i:i-24)*4,r[0]=j[i],r[1]=j[i+1],r[2]=j[i+2],r[3]=j[i+3],l=mix(l,vec4(.7,1,.2,0),l.w==0.&&f.w==-29.?r[3][3]:0.),r[3][3]=1.,m=r*m;gl_Position=a*b*m,m.w=f.w,o=r*vec4(e,0),n=f;}`);
+layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 b,a;uniform vec4 j[190];void main(){mat4 r=mat4(1);lowp int i=int(f.w);if(l=d,m=vec4(f.xyz,1),f.w>1.&&f.w<28.)m+=(r[3]=j[i+162]);else if(f.w!=1.){if(i=(i<1?gl_InstanceID-i:i-28)*4,r[0]=j[i],r[1]=j[i+1],r[2]=j[i+2],r[3]=j[i+3],f.w==-25.&&l.w==0.)l=mix(l,vec4(.7,1,.2,0),r[3][3]);r[3][3]=1.,m=r*m;}gl_Position=a*b*m,m.w=f.w,o=r*vec4(e,0),n=f;}`);
       const collisionShader = initShaderProgram(
         mainVertexShader,
         `#version 300 es
@@ -1620,7 +1620,7 @@ precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sa
             };
             for (
               polygon
-                of (_vertexFloats[3] = index === 41 || index === 40 ? -16 : index === 42 ? -29 : index, model.$polygons)
+                of (_vertexFloats[3] = index === 41 || index === 40 ? -12 : index === 42 ? -25 : index, model.$polygons)
             ) {
               const { x, y, z } = plane_fromPolygon(polygon);
               _vertexInts[4] = 0 | polygon.$color,
@@ -2063,7 +2063,7 @@ precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sa
                   ),
                   polygons_transform(cylinder(), identity.scale(3, 3, 10), material(0.6, 0.24, 0.2, 0.5)),
                   polygons_transform(
-                    cylinder(28, 1),
+                    cylinder(32, 1),
                     translation(0, 3, -5).scale(3, 4, 10).rotate(90, 0),
                     material(0.6, 0.24, 0.2, 0.5),
                   ),
@@ -2131,8 +2131,8 @@ precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sa
             material(0.5, 0.3, 0.3, 0.4),
           ),
           meshAdd(cylinder(6), translation(0, 16, 121).scale(2.5, 1, 2.1).rotate(0, 90), material(0.5, 0.6, 0.7, 0.3)),
-          meshAdd(cylinder(), translation(0, 16, 129).scale(1.5, 1, 2), material(0.5, 0.6, 0.7, 0.3)),
-          meshAdd(cylinder(7), translation(0, 16.2, 133).scale(5, 1, 5), material(0.4, 0.5, 0.6, 0.4)),
+          meshAdd(cylinder(), translation(0, 16, 127.8).scale(1.5, 1, 0.7), material(0.5, 0.6, 0.7, 0.3)),
+          meshAdd(cylinder(7), translation(0, 15.1, 133).scale(5, 2, 5), material(0.4, 0.5, 0.6, 0.4)),
           meshAdd(
             csg_polygons_subtract(
               csg_union(
@@ -2407,6 +2407,20 @@ precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sa
           meshAdd(cylinder(5), identity.scale(5, 1.1, 5), material(0.5, 0.3, 0.3, 0.4)),
           meshAdd(cylinder(5), identity.scale(5.5, 0.9, 5.5), material(0.25, 0.25, 0.25, 0.4)),
           newLever(translation(0, 1.5, -1).rotate(0, 180)),
+          integers_map(4, (gate) => {
+            newModel(),
+              integers_map(
+                7,
+                (i) =>
+                  meshAdd(
+                    polygons_transform(
+                      cylinder(9, 1),
+                      translation((2 < gate ? 3.5 : 4) * (i / 6 - 0.5), 3).scale(0.2, 2 < gate ? 4 : 3, 0.2),
+                      material(0.3, 0.3, 0.38),
+                    ),
+                  ),
+              );
+          }),
           integers_map(2, () => {
             newModel(),
               meshAdd(
@@ -2426,20 +2440,6 @@ precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sa
               ),
               newLever(translation(0, -3, 4));
           }),
-          integers_map(4, () => {
-            newModel(),
-              integers_map(
-                7,
-                (i) =>
-                  meshAdd(
-                    polygons_transform(
-                      cylinder(9, 1),
-                      translation(4 * (i / 6 - 0.5), 3).scale(0.2, 3, 0.2),
-                      material(0.3, 0.3, 0.38),
-                    ),
-                  ),
-              );
-          }),
           newModel(),
           meshAdd(hexCorridorPolygons),
           newModel(),
@@ -2453,6 +2453,12 @@ precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sa
           ].map((i) =>
             meshAdd(hornPolygons, identity.rotate(90 * i, 180, 90).translate(0, 5).rotate(40).scale(1.3, 10, 1.3))
           ),
+          meshAdd(
+            csg_polygons_subtract(
+              polygons_transform(cylinder(10), identity.scale(6, 2, 6), material(0.1, 0.6, 0.5, 0.3)),
+              polygons_transform(cylinder(10), identity.scale(3.3, 6, 3.3), material(0.1, 0.6, 0.5, 0.5)),
+            ),
+          ),
           newSoul(translation(-5, 4), [
             0,
             -1.2,
@@ -2462,16 +2468,10 @@ precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sa
             1.2,
             1.7,
           ]),
-          meshAdd(
-            csg_polygons_subtract(
-              polygons_transform(cylinder(10), identity.scale(6, 2, 6), material(0.1, 0.6, 0.5, 0.3)),
-              polygons_transform(cylinder(10), identity.scale(3.3, 6, 3.3), material(0.1, 0.6, 0.5, 0.5)),
-            ),
-          ),
           newModel(),
           meshAdd(
             cylinder(3),
-            translation(0, -3, 118.8).scale(0.8, 0.8, 18).rotate(90, 0, 60),
+            translation(0, -3, 118.8).scale(0.8, 0.8, 8).rotate(90, 0, 60),
             material(0.5, 0.3, 0.3, 0.4),
           ),
           [

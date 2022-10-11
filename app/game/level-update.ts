@@ -1,6 +1,14 @@
 import { clamp, max, abs, lerpneg, min, angle_wrap_degrees, lerp } from "../math/math";
-import { allModels, levers, LEVERS_COUNT, souls, SOULS_COUNT } from "./models";
-import { worldMatricesBuffer } from "./models-matrices";
+import {
+  allModels,
+  levers,
+  LEVERS_COUNT,
+  MODELS_WITH_FULL_TRANSFORM,
+  MODELS_WITH_SIMPLE_TRANSFORM,
+  souls,
+  SOULS_COUNT,
+} from "./models";
+import { transformsBuffer } from "./transforms-buffer";
 import { matrixToArray, tempMatrix } from "../math/matrix";
 import { gameTime, gameTimeDelta, lerpDamp } from "./game-time";
 import { firstBoatLerp, secondBoatLerp } from "./world-state";
@@ -45,7 +53,6 @@ import {
   MODEL_ID_MONUMENT,
   MODEL_ID_OSCILLATING_HEX_PAD0,
   MODEL_ID_PENDULUMS,
-  MODEL_ID_PLAYER_LEG1,
   MODEL_ID_PUSHING_ROD0,
   MODEL_ID_PUSHING_ROD1,
   MODEL_ID_PUSHING_ROD2,
@@ -237,6 +244,22 @@ export const eppur_si_muove = () => {
   verifyModelsNextUpdate(MODEL_ID_FLOATING_ELEVATOR_PAD);
   modelsNextUpdate(0, 16 * floatingElevatorPad, 95 + 8.5 * clamp(floatingElevatorPad * 2 - 1));
 
+  // in gate bars in first level
+  verifyModelsNextUpdate(MODEL_ID_GATE0);
+  modelsNextUpdate(0, -4.7 * levers[LEVER_ID_GATE0]!.$lerpValue, -15);
+
+  // out gate bars in first level
+  verifyModelsNextUpdate(MODEL_ID_GATE1);
+  modelsNextUpdate(0, -4.7 * levers[LEVER_ID_GATE1]!.$lerpValue, 15);
+
+  // central gate bars
+  verifyModelsNextUpdate(MODEL_ID_GATE2);
+  modelsNextUpdate(-99.7, -1.9 - 5.5 * levers[LEVER_ID_CRYSTALS]!.$lerpValue, 63.5);
+
+  // far arc gate bars
+  verifyModelsNextUpdate(MODEL_ID_GATE3);
+  modelsNextUpdate(-100, 0.6 - 5.8 * levers[LEVER_ID_DONUT_PAD]!.$lerpValue, 96.5);
+
   /// **** FULL MATRIX TRANSFORMS **** ///
 
   const boatAnimationMatrix = (matrix: DOMMatrix) =>
@@ -251,22 +274,6 @@ export const eppur_si_muove = () => {
   // second boat
   verifyModelsNextUpdate(MODEL_ID_BOAT1);
   boatAnimationMatrix(modelsNextUpdate(-123, 1.4, 55 - 65 * secondBoatLerp));
-
-  // in gate bars in first level
-  verifyModelsNextUpdate(MODEL_ID_GATE0);
-  modelsNextUpdate(0, 0, -15).scaleSelf(1, clamp(1.22 - levers[LEVER_ID_GATE0]!.$lerpValue), 1);
-
-  // out gate bars in first level
-  verifyModelsNextUpdate(MODEL_ID_GATE1);
-  modelsNextUpdate(0, 0, 15).scaleSelf(1, clamp(1.22 - levers[LEVER_ID_GATE1]!.$lerpValue), 1);
-
-  // central gate bars
-  verifyModelsNextUpdate(MODEL_ID_GATE2);
-  modelsNextUpdate(-99.7, -1.9, 63.5).scaleSelf(1, clamp(1.1 - levers[LEVER_ID_CRYSTALS]!.$lerpValue), 1);
-
-  // far arc gate bars
-  verifyModelsNextUpdate(MODEL_ID_GATE3);
-  modelsNextUpdate(-100, 0.6, 96.5).scaleSelf(0.88, 1.2 - levers[LEVER_ID_DONUT_PAD]!.$lerpValue);
 
   // rotating hex corridor
 
@@ -316,29 +323,35 @@ export const eppur_si_muove = () => {
 
   for (let i = 0; i < SOULS_COUNT; ++i) {
     souls[i]!._update();
-    matrixToArray(tempMatrix, worldMatricesBuffer, 16 + i);
+    matrixToArray(tempMatrix, transformsBuffer, MODELS_WITH_FULL_TRANSFORM + i);
   }
 
   // Update levers
 
   for (let i = 0; i < LEVERS_COUNT; ++i) {
     levers[i]!._update();
-    matrixToArray(tempMatrix, worldMatricesBuffer, 16 + SOULS_COUNT + i);
+    matrixToArray(tempMatrix, transformsBuffer, MODELS_WITH_FULL_TRANSFORM + SOULS_COUNT + i);
+  }
+
+  // Copy all models simple translation transform to the world uniform buffer
+  for (
+    let i = 0, j = (MODELS_WITH_FULL_TRANSFORM + LEVERS_COUNT + SOULS_COUNT) * 16, m: DOMMatrix;
+    i < MODELS_WITH_SIMPLE_TRANSFORM;
+    ++i, ++j
+  ) {
+    m = allModels[2 + i]!.$matrix;
+    transformsBuffer[j++] = m.m41;
+    transformsBuffer[j++] = m.m42;
+    transformsBuffer[j++] = m.m43;
   }
 
   // Update player
 
   player_update();
 
-  // Copy all models matrices to the world uniform buffer
+  // Copy all models full matrices to the world uniform buffer
 
-  for (let i = 2, j = (16 + 16 + 13) * 16, m: DOMMatrix; i <= MODEL_ID_FLOATING_ELEVATOR_PAD; ++i, ++j) {
-    m = allModels[i]!.$matrix;
-    worldMatricesBuffer[j++] = m.m41;
-    worldMatricesBuffer[j++] = m.m42;
-    worldMatricesBuffer[j++] = m.m43;
-  }
-  for (let i = MODEL_ID_BOAT0, j = 0; i <= MODEL_ID_PLAYER_LEG1; ++i, j++) {
-    matrixToArray(allModels[i]!.$matrix, worldMatricesBuffer, j);
+  for (let i = 0; i < MODELS_WITH_FULL_TRANSFORM; ++i) {
+    matrixToArray(allModels[2 + MODELS_WITH_SIMPLE_TRANSFORM + i]!.$matrix, transformsBuffer, i);
   }
 };

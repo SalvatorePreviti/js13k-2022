@@ -1,4 +1,4 @@
-// models
+// static models
 
 export const MODEL_ID_SKY = 0;
 
@@ -50,19 +50,19 @@ export const MODEL_ID_JUMPING_PAD2 = 22;
 
 export const MODEL_ID_FLOATING_ELEVATOR_PAD = 23;
 
+export const MODEL_ID_GATE0 = 24;
+
+export const MODEL_ID_GATE1 = 25;
+
+export const MODEL_ID_GATE2 = 26;
+
+export const MODEL_ID_GATE3 = 27;
+
 // full matrices
 
-export const MODEL_ID_BOAT0 = 24;
+export const MODEL_ID_BOAT0 = 28;
 
-export const MODEL_ID_BOAT1 = 25;
-
-export const MODEL_ID_GATE0 = 26;
-
-export const MODEL_ID_GATE1 = 27;
-
-export const MODEL_ID_GATE2 = 28;
-
-export const MODEL_ID_GATE3 = 29;
+export const MODEL_ID_BOAT1 = 29;
 
 export const MODEL_ID_LEVEL2_ROTATING_HEX_CORRIDOR = 30;
 

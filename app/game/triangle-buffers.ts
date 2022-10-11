@@ -1,4 +1,4 @@
-import { allModels, souls, SOULS_COUNT } from "./models";
+import { allModels, MODELS_WITH_FULL_TRANSFORM, souls, SOULS_COUNT } from "./models";
 import { gl } from "../gl";
 import { plane_fromPolygon } from "../math/vectors";
 import type { Polygon } from "../geometry/polygon";
@@ -47,9 +47,9 @@ export const initTriangleBuffers = () => {
 
     _vertexFloats[3] =
       index === MODEL_ID_SOUL || index === MODEL_ID_SOUL_COLLISION
-        ? -16
+        ? -MODELS_WITH_FULL_TRANSFORM
         : index === MODEL_ID_LEVER
-        ? -16 - SOULS_COUNT
+        ? -MODELS_WITH_FULL_TRANSFORM - SOULS_COUNT
         : index;
 
     for (polygon of model.$polygons!) {

@@ -1,5 +1,17 @@
 #version 300 es
 
+/** Fixed number of models that have a simple translation transformation */
+#define MODELS_WITH_SIMPLE_TRANSFORM 26
+
+/** Fixed number of models that have a full transformation matrix */
+#define MODELS_WITH_FULL_TRANSFORM 12
+
+/** Fixed number of souls */
+#define SOULS_COUNT 13
+
+/** Fixed number of levers */
+#define LEVERS_COUNT 16
+
 layout(location = 0) in vec4 aPosition;
 layout(location = 1) in vec3 aNormal;
 layout(location = 2) in vec4 aColor;
@@ -11,7 +23,7 @@ out lowp vec4 Color;
 
 uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
-uniform vec4 worldTransforms[22 + (16 + 16 + 13) * 4];
+uniform vec4 worldTransforms[4 * (MODELS_WITH_FULL_TRANSFORM + LEVERS_COUNT + SOULS_COUNT) + MODELS_WITH_SIMPLE_TRANSFORM];
 
 #define modelId aPosition.w
 
@@ -20,18 +32,19 @@ void main() {
   lowp int idx = int(modelId);
   Color = aColor;
   FragPos = vec4(aPosition.xyz, 1);
-  if (modelId > 1. && modelId < 24.) {
-    vec4 t = worldTransforms[idx + ((16 + 16 + 13) * 4 - 2)];
-    FragPos.xyz += worldMatrix[3].xyz = t.xyz;
+  if (modelId > 1. && modelId < float(MODELS_WITH_SIMPLE_TRANSFORM + 2)) {
+    FragPos += worldMatrix[3] = worldTransforms[idx + ((MODELS_WITH_FULL_TRANSFORM + LEVERS_COUNT + SOULS_COUNT) * 4 - 2)];
   } else if (modelId != 1.) {
-    idx = (idx < 1 ? gl_InstanceID - idx : idx - 24) * 4;
+    idx = (idx < 1 ? gl_InstanceID - idx : idx - (MODELS_WITH_SIMPLE_TRANSFORM + 2)) * 4;
     worldMatrix[0] = worldTransforms[idx];
     worldMatrix[1] = worldTransforms[idx + 1];
     worldMatrix[2] = worldTransforms[idx + 2];
     worldMatrix[3] = worldTransforms[idx + 3];
 
     // trick - m44 is used to store the value of the lever.
-    Color = mix(Color, vec4(0.7, 1, 0.2, 0), Color.w == 0. && modelId == -29. ? worldMatrix[3][3] : 0.);
+    if (modelId == float(-MODELS_WITH_FULL_TRANSFORM - SOULS_COUNT) && Color.w == 0.) {
+      Color = mix(Color, vec4(0.7, 1, 0.2, 0), worldMatrix[3][3]);
+    }
     worldMatrix[3][3] = 1.;
 
     FragPos = worldMatrix * FragPos;
