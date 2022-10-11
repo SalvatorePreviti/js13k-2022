@@ -18,7 +18,7 @@ import { lerpDamp, gameTimeDelta, damp, gameTime } from "./game-time";
 import { matrixCopy, matrixTransformPoint } from "../math/matrix";
 import { gl } from "../gl";
 import { shouldRotatePlatforms } from "./level-update";
-import { modelsNextUpdate } from "./models-next-update";
+import { modelsNextUpdate, verifyModelsNextUpdate } from "./models-next-update";
 import {
   MODEL_ID_PLAYER_BODY,
   MODEL_ID_PLAYER_LEG0,
@@ -376,18 +376,18 @@ export const player_init = () => {
 
     // Update player body and legs matrices
 
-    modelsNextUpdate(MODEL_ID_PLAYER_BODY)
-      .translateSelf(
-        player_position_final.x,
-        0.06 * player_speed_collision_limiter * player_legs_speed * Math.cos(gameTime * (PLAYER_LEGS_VELOCITY * 2)) +
-          player_model_y,
-        player_position_final.z,
-      )
-      .rotateSelf(0, player_look_angle);
+    verifyModelsNextUpdate(MODEL_ID_PLAYER_BODY);
+    modelsNextUpdate(
+      player_position_final.x,
+      0.06 * player_speed_collision_limiter * player_legs_speed * Math.cos(gameTime * (PLAYER_LEGS_VELOCITY * 2)) +
+        player_model_y,
+      player_position_final.z,
+    ).rotateSelf(0, player_look_angle);
 
     for (let i = 0; i < 2; ++i) {
       const t = gameTime * PLAYER_LEGS_VELOCITY - Math.PI * i;
-      matrixCopy(allModels[MODEL_ID_PLAYER_BODY]!.$matrix, modelsNextUpdate(MODEL_ID_PLAYER_LEG0 + i))
+      verifyModelsNextUpdate(MODEL_ID_PLAYER_LEG0 + i);
+      matrixCopy(allModels[MODEL_ID_PLAYER_BODY]!.$matrix, modelsNextUpdate(0))
         .translateSelf(0, player_legs_speed * clamp(Math.sin(t - Math.PI / 2) * 0.45))
         .rotateSelf(player_legs_speed * Math.sin(t) * (0.25 / DEG_TO_RAD), 0);
     }

@@ -993,7 +993,10 @@ const csg_polygons_subtract = (a, ...b) => {
       });
   }
 };
-const modelsNextUpdate = () => matrixCopy(identity, allModels[++modelsUpdateCounter].$matrix);
+const modelsNextUpdate = (x, y = 0, z = 0) => {
+  const m = allModels[++modelsUpdateCounter].$matrix;
+  return matrixCopy(identity, m), m.m41 = x, m.m42 = y, m.m43 = z, m;
+};
 const player_init = () => {
   let player_look_angle_target;
   let player_look_angle;
@@ -1163,14 +1166,14 @@ const player_init = () => {
     movAmount && (player_look_angle_target = 90 - movAngle / DEG_TO_RAD),
       player_look_angle = angle_lerp_degrees(player_look_angle, player_look_angle_target, damp(8)),
       player_legs_speed = lerpDamp(player_legs_speed, movAmount, 10),
-      modelsNextUpdate().translateSelf(
+      modelsNextUpdate(
         player_position_final.x,
         0.06 * player_speed_collision_limiter * player_legs_speed * Math.cos(18.2 * gameTime) + player_model_y,
         player_position_final.z,
       ).rotateSelf(0, player_look_angle);
     for (let i = 0; i < 2; ++i) {
       const t = 9.1 * gameTime - Math.PI * i;
-      matrixCopy(allModels[37].$matrix, modelsNextUpdate()).translateSelf(
+      matrixCopy(allModels[37].$matrix, modelsNextUpdate(0)).translateSelf(
         0,
         player_legs_speed * clamp(0.45 * Math.sin(t - Math.PI / 2)),
       ).rotateSelf(player_legs_speed * Math.sin(t) * 0.25 / DEG_TO_RAD, 0);
@@ -1253,8 +1256,8 @@ loadStep(() => {
             _globalTime = globalTime,
             0 < gameTimeDelta
         ) {
-          var dt = (matrix, x, y, z) =>
-            matrix.translateSelf(x + Math.sin(gameTime + 2) / 5, y + Math.sin(0.8 * gameTime) / 3, z).rotateSelf(
+          var dt = (matrix) =>
+            matrix.translateSelf(Math.sin(gameTime + 2) / 5, Math.sin(0.8 * gameTime) / 4).rotateSelf(
               2 * Math.sin(gameTime),
               Math.sin(0.7 * gameTime),
               Math.sin(0.9 * gameTime),
@@ -1288,35 +1291,35 @@ loadStep(() => {
                 angle_wrap_degrees(rotatingPlatform2Rotation + 48 * gameTimeDelta),
                 shouldRotatePlatforms,
               ),
-              modelsNextUpdate().translateSelf(
+              modelsNextUpdate(
                 0,
                 270 * (levers[1].$lerpValue - 1) + (2 + 5 * Math.cos(1.5 * gameTime)) * (1 - levers[10].$lerpValue),
-              ),
+              ).translateSelf(0),
               min(1 - levers[11].$lerpValue2, levers[10].$lerpValue2));
           const hexPadsOscillation =
-            (modelsNextUpdate().translateSelf(oscillation * Math.sin(0.6 * gameTime + 1.2) * 12, 0, 35),
-              modelsNextUpdate().translateSelf(oscillation * Math.sin(0.6 * gameTime - 1.2) * 8.2, 0, 55),
-              modelsNextUpdate().translateSelf(oscillation * Math.sin(0.6 * gameTime) * 12, 0, 45),
-              modelsNextUpdate().translateSelf(9.8 * (1 - oscillation)),
+            (modelsNextUpdate(oscillation * Math.sin(0.6 * gameTime + 1.2) * 12, 0, 35),
+              modelsNextUpdate(oscillation * Math.sin(0.6 * gameTime - 1.2) * 8.2, 0, 55),
+              modelsNextUpdate(oscillation * Math.sin(0.6 * gameTime) * 12, 0, 45),
+              modelsNextUpdate(9.8 * (1 - oscillation)),
               oscillation = clamp(1 - 5 * oscillation) * lerpneg(levers[11].$lerpValue, levers[2].$lerpValue),
-              modelsNextUpdate().translateSelf(0, oscillation * Math.sin(1.35 * gameTime) * 4),
-              modelsNextUpdate().translateSelf(0, 0, oscillation * Math.sin(0.9 * gameTime) * 8),
-              modelsNextUpdate().translateSelf(0, -6.5 * levers[11].$lerpValue2),
+              modelsNextUpdate(0, oscillation * Math.sin(1.35 * gameTime) * 4),
+              modelsNextUpdate(0, 0, oscillation * Math.sin(0.9 * gameTime) * 8),
+              modelsNextUpdate(0, -6.5 * levers[11].$lerpValue2),
               oscillation = lerpneg(levers[4].$lerpValue2, levers[3].$lerpValue2),
-              modelsNextUpdate().translateSelf(
+              modelsNextUpdate(
                 0,
                 oscillation * Math.sin(gameTime) * 5 + 3.5 * (1 - max(levers[3].$lerpValue, levers[4].$lerpValue)),
               ),
-              modelsNextUpdate().translateSelf(
+              modelsNextUpdate(
                 0,
                 oscillation * Math.sin(gameTime + 3) * 6,
                 oscillation * Math.sin(0.6 * gameTime + 1) * 6,
               ),
-              modelsNextUpdate().translateSelf(0, -7.3 * levers[4].$lerpValue2),
+              modelsNextUpdate(0, -7.3 * levers[4].$lerpValue2),
               oscillation = lerpneg(levers[6].$lerpValue, levers[7].$lerpValue),
-              modelsNextUpdate().translateSelf(0, -2, 10 - 8.5 * oscillation * abs(Math.sin(1.1 * gameTime))),
-              modelsNextUpdate().translateSelf(0, -2, 10 - 8.5 * oscillation * abs(Math.sin(2.1 * gameTime))),
-              modelsNextUpdate().translateSelf(
+              modelsNextUpdate(0, -2, 10 - 8.5 * oscillation * abs(Math.sin(1.1 * gameTime))),
+              modelsNextUpdate(0, -2, 10 - 8.5 * oscillation * abs(Math.sin(2.1 * gameTime))),
+              modelsNextUpdate(
                 0,
                 -2,
                 10
@@ -1325,7 +1328,7 @@ loadStep(() => {
               ),
               lerpneg(levers[5].$lerpValue2, levers[15].$lerpValue2));
           for (let i = 0; i < 4; i++) {
-            modelsNextUpdate().translateSelf(
+            modelsNextUpdate(
               (2 < i ? 2 * (1 - hexPadsOscillation) + hexPadsOscillation : 0) - 100,
               hexPadsOscillation * Math.sin(1.3 * gameTime + 1.7 * i) * (3 + i / 3) + 0.7,
               115 - 7 * (1 - levers[5].$lerpValue2) * (1 - levers[15].$lerpValue2) * (1 & i ? -1 : 1)
@@ -1334,7 +1337,7 @@ loadStep(() => {
           }
           oscillation = lerpneg(levers[8].$lerpValue2, levers[9].$lerpValue2);
           for (let i1 = 0; i1 < 3; ++i1) {
-            modelsNextUpdate().translateSelf(
+            modelsNextUpdate(
               0,
               oscillation * Math.sin(1.5 * gameTime + 1.5 * i1) * 4
                 + (i1 ? 0 : 3 * (1 - levers[8].$lerpValue2) * (1 - levers[9].$lerpValue2)),
@@ -1344,27 +1347,29 @@ loadStep(() => {
             lerpneg((levers[9].$lerpValue + levers[9].$lerpValue2) / 2, levers[8].$lerpValue2),
             (levers[12].$lerpValue + levers[12].$lerpValue2) / 2,
           ),
-            modelsNextUpdate().translateSelf(0, 16 * globalTime, 95 + 8.5 * clamp(2 * globalTime - 1)),
-            dt(modelsNextUpdate(), -12, 4.2, 40 * firstBoatLerp - 66),
-            dt(modelsNextUpdate(), -123, 1.4, 55 - 65 * secondBoatLerp),
-            modelsNextUpdate().translateSelf(0, 0, -15).scaleSelf(1, clamp(1.22 - levers[0].$lerpValue), 1),
-            modelsNextUpdate().translateSelf(0, 0, 15).scaleSelf(1, clamp(1.22 - levers[10].$lerpValue), 1),
-            modelsNextUpdate().translateSelf(-99.7, -1.9, 63.5).scaleSelf(1, clamp(1.1 - levers[3].$lerpValue), 1),
-            modelsNextUpdate().translateSelf(-100, 0.6, 96.5).scaleSelf(0.88, 1.2 - levers[15].$lerpValue),
-            modelsNextUpdate().translateSelf(-75, 3 * (1 - levers[2].$lerpValue2) * (1 - levers[3].$lerpValue), 55)
-              .rotateSelf(180 * (1 - levers[2].$lerpValue2) + rotatingHexCorridorRotation, 0),
-            modelsNextUpdate().translateSelf(
+            modelsNextUpdate(0, 16 * globalTime, 95 + 8.5 * clamp(2 * globalTime - 1)),
+            dt(modelsNextUpdate(-12, 4.2, 40 * firstBoatLerp - 66)),
+            dt(modelsNextUpdate(-123, 1.4, 55 - 65 * secondBoatLerp)),
+            modelsNextUpdate(0, 0, -15).scaleSelf(1, clamp(1.22 - levers[0].$lerpValue), 1),
+            modelsNextUpdate(0, 0, 15).scaleSelf(1, clamp(1.22 - levers[10].$lerpValue), 1),
+            modelsNextUpdate(-99.7, -1.9, 63.5).scaleSelf(1, clamp(1.1 - levers[3].$lerpValue), 1),
+            modelsNextUpdate(-100, 0.6, 96.5).scaleSelf(0.88, 1.2 - levers[15].$lerpValue),
+            modelsNextUpdate(-75, 3 * (1 - levers[2].$lerpValue2) * (1 - levers[3].$lerpValue), 55).rotateSelf(
+              180 * (1 - levers[2].$lerpValue2) + rotatingHexCorridorRotation,
+              0,
+            ),
+            modelsNextUpdate(
               2.5 * (1 - hexPadsOscillation) - 139.7,
               -3 * (1 - levers[5].$lerpValue) - hexPadsOscillation * Math.sin(0.8 * gameTime) - 1.8,
               93.5,
             ).rotateSelf(Math.cos(1.3 * gameTime) * (3 + 3 * hexPadsOscillation), 0),
-            modelsNextUpdate().translateSelf(-2 * Math.sin(gameTime)).rotateSelf(25 * Math.sin(gameTime)),
-            modelsNextUpdate().translateSelf(-81, 0.6, 106).rotateSelf(0, 40 + rotatingPlatform1Rotation),
-            modelsNextUpdate().translateSelf(-65.8, 0.8, 106).rotateSelf(0, rotatingPlatform2Rotation),
-            modelsNextUpdate().translateSelf(-50.7, 0.8, 106).rotateSelf(0, 180 - rotatingPlatform2Rotation),
-            modelsNextUpdate().translateSelf(-50.7, 0.8, 91).rotateSelf(0, 270 + rotatingPlatform2Rotation);
-          for (let i2 = 0; i2 < 16; ++i2) levers[i2]._update(), matrixToArray(tempMatrix, worldMatricesBuffer, 29 + i2);
-          for (let i3 = 0; i3 < 13; ++i3) souls[i3]._update(), matrixToArray(tempMatrix, worldMatricesBuffer, 16 + i3);
+            modelsNextUpdate(-2 * Math.sin(gameTime)).rotateSelf(25 * Math.sin(gameTime)),
+            modelsNextUpdate(-81, 0.6, 106).rotateSelf(0, 40 + rotatingPlatform1Rotation),
+            modelsNextUpdate(-65.8, 0.8, 106).rotateSelf(0, rotatingPlatform2Rotation),
+            modelsNextUpdate(-50.7, 0.8, 106).rotateSelf(0, 180 - rotatingPlatform2Rotation),
+            modelsNextUpdate(-50.7, 0.8, 91).rotateSelf(0, 270 + rotatingPlatform2Rotation);
+          for (let i2 = 0; i2 < 13; ++i2) souls[i2]._update(), matrixToArray(tempMatrix, worldMatricesBuffer, 16 + i2);
+          for (let i3 = 0; i3 < 16; ++i3) levers[i3]._update(), matrixToArray(tempMatrix, worldMatricesBuffer, 29 + i3);
           player_update();
           for (let m, i4 = 2, j = 720; i4 <= 23; ++i4, ++j) {
             m = allModels[i4].$matrix,

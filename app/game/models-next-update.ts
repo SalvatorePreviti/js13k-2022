@@ -6,9 +6,17 @@ export let modelsUpdateCounter: number;
 
 export const modelsResetUpdateCounter = () => (modelsUpdateCounter = 1);
 
-export const modelsNextUpdate = (expectedId: number) => {
+export const verifyModelsNextUpdate = (expectedId: number) => {
   if (DEBUG) {
     devVerifyModelsNextUpdate(modelsUpdateCounter + 1, expectedId);
   }
-  return matrixCopy(identity, allModels[++modelsUpdateCounter]!.$matrix);
+};
+
+export const modelsNextUpdate = (x: number, y = 0, z = 0) => {
+  const m = allModels[++modelsUpdateCounter]!.$matrix;
+  matrixCopy(identity, m);
+  m.m41 = x;
+  m.m42 = y;
+  m.m43 = z;
+  return m;
 };
