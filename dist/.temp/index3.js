@@ -763,7 +763,7 @@ zb(() => {
                   va = eb(xb(va, 0, 1), cb(va + 60 * xa), e[2].g - e[3].h),
                   ta = eb(xb(ta, 0, 5), cb(ta + 56 * xa), sa),
                   ua = eb(xb(ua, 0, 4), cb(ua + 48 * xa), sa),
-                  Y(0, 270 * (e[1].g - 1) + (2 + 5 * Math.cos(1.5 * d)) * (1 - e[10].g)).translateSelf(0),
+                  Y(0, 270 * (e[1].g - 1) + (2 + 5 * Math.cos(1.5 * d)) * (1 - e[10].g)),
                   Za(1 - e[11].h, e[10].h));
               var v =
                 (Y(u * Math.sin(0.6 * d + 1.2) * 12, 0, 35),

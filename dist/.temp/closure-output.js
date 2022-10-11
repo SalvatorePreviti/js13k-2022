@@ -408,7 +408,7 @@ zb(() => {
           Da && (ha = 0);
           na = Da ? xb(na, -9, 0.015) : xb(na, bb(d / 3), 1);
           oa = xb(oa, e[13].h, 0.2 + 0.3 * Ya(2 * e[13].h - 1),);
-          u = (pa = 1, sa = fb(e[15].g, e[8].g), va = eb(xb(va, 0, 1), cb(va + 60 * xa), e[2].g - e[3].h,), ta = eb(xb(ta, 0, 5), cb(ta + 56 * xa), sa,), ua = eb(xb(ua, 0, 4), cb(ua + 48 * xa), sa,), Y(0, 270 * (e[1].g - 1) + (2 + 5 * Math.cos(1.5 * d)) * (1 - e[10].g),).translateSelf(0), Za(1 - e[11].h, e[10].h));
+          u = (pa = 1, sa = fb(e[15].g, e[8].g), va = eb(xb(va, 0, 1), cb(va + 60 * xa), e[2].g - e[3].h,), ta = eb(xb(ta, 0, 5), cb(ta + 56 * xa), sa,), ua = eb(xb(ua, 0, 4), cb(ua + 48 * xa), sa,), Y(0, 270 * (e[1].g - 1) + (2 + 5 * Math.cos(1.5 * d)) * (1 - e[10].g),), Za(1 - e[11].h, e[10].h));
           var v = (Y(u * Math.sin(0.6 * d + 1.2) * 12, 0, 35), Y(u * Math.sin(0.6 * d - 1.2) * 8.2, 0, 55), Y(u * Math.sin(0.6 * d) * 12, 0, 45), Y(9.8 * (1 - u)), u = bb(1 - 5 * u) * fb(e[11].g, e[2].g), Y(0, u * Math.sin(1.35 * d) * 4), Y(0, 0, u * Math.sin(0.9 * d) * 8), Y(0, -6.5 * e[11].h), u = fb(e[4].h, e[3].h), Y(0, u * Math.sin(d) * 5 + 3.5 * (1 - $a(e[3].g, e[4].g)),), Y(0, u * Math.sin(d + 3) * 6, u * Math.sin(0.6 * d + 1) * 6,), Y(0, -7.3 * e[4].h), u = fb(e[6].g, e[7].g), Y(0, -2, 10 - 
           8.5 * u * Ya(Math.sin(1.1 * d))), Y(0, -2, 10 - 8.5 * u * Ya(Math.sin(2.1 * d))), Y(0, -2, 10 - 8.5 * $a(u * Ya(Math.sin(1.5 * d)), (1 - e[6].g) * (1 - u)),), fb(e[5].h, e[15].h));
           for (u = 0; 4 > u; u++) {

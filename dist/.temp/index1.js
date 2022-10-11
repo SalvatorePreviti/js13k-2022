@@ -2486,7 +2486,7 @@ const eppur_si_muove = () => {
     0,
     270 * (levers[LEVER_ID_LEVEL1_DESCENT].$lerpValue - 1)
       + (2 + 5 * /* @__PURE__ */ Math.cos(gameTime * 1.5)) * (1 - levers[LEVER_ID_GATE1].$lerpValue),
-  ).translateSelf(0);
+  );
   let oscillation = min(1 - levers[LEVER_ID_TRIANGLE_PLATFORM].$lerpValue2, levers[LEVER_ID_GATE1].$lerpValue2);
   modelsNextUpdate(oscillation * /* @__PURE__ */ Math.sin(gameTime * 0.6 + 1.2) * 12, 0, 35);
   modelsNextUpdate(oscillation * /* @__PURE__ */ Math.sin(gameTime * 0.6 - 1.2) * 8.2, 0, 55);

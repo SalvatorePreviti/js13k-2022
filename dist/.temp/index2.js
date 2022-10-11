@@ -1285,7 +1285,7 @@ loadStep(() => {
               modelsNextUpdate(
                 0,
                 270 * (levers[1].$lerpValue - 1) + (2 + 5 * Math.cos(1.5 * gameTime)) * (1 - levers[10].$lerpValue),
-              ).translateSelf(0),
+              ),
               min(1 - levers[11].$lerpValue2, levers[10].$lerpValue2));
           const hexPadsOscillation =
             (modelsNextUpdate(oscillation * Math.sin(0.6 * gameTime + 1.2) * 12, 0, 35),

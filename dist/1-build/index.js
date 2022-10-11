@@ -1796,7 +1796,7 @@ const eppur_si_muove = () => {
   rotatingHexCorridorRotation = lerp(lerpDamp(rotatingHexCorridorRotation, 0, 1), angle_wrap_degrees(rotatingHexCorridorRotation + gameTimeDelta * 60), levers[LEVER_ID_ROTATING_CORRIDOR].$lerpValue - levers[LEVER_ID_CRYSTALS].$lerpValue2);
   rotatingPlatform1Rotation = lerp(lerpDamp(rotatingPlatform1Rotation, 0, 5), angle_wrap_degrees(rotatingPlatform1Rotation + gameTimeDelta * 56), shouldRotatePlatforms);
   rotatingPlatform2Rotation = lerp(lerpDamp(rotatingPlatform2Rotation, 0, 4), angle_wrap_degrees(rotatingPlatform2Rotation + gameTimeDelta * 48), shouldRotatePlatforms);
-  modelsNextUpdate(0, 270 * (levers[LEVER_ID_LEVEL1_DESCENT].$lerpValue - 1) + (2 + 5 * /* @__PURE__ */ Math.cos(gameTime * 1.5)) * (1 - levers[LEVER_ID_GATE1].$lerpValue)).translateSelf(0);
+  modelsNextUpdate(0, 270 * (levers[LEVER_ID_LEVEL1_DESCENT].$lerpValue - 1) + (2 + 5 * /* @__PURE__ */ Math.cos(gameTime * 1.5)) * (1 - levers[LEVER_ID_GATE1].$lerpValue));
   let oscillation = min(1 - levers[LEVER_ID_TRIANGLE_PLATFORM].$lerpValue2, levers[LEVER_ID_GATE1].$lerpValue2);
   modelsNextUpdate(oscillation * /* @__PURE__ */ Math.sin(gameTime * 0.6 + 1.2) * 12, 0, 35);
   modelsNextUpdate(oscillation * /* @__PURE__ */ Math.sin(gameTime * 0.6 - 1.2) * 8.2, 0, 55);

@@ -106,7 +106,7 @@ export const eppur_si_muove = () => {
     0,
     270 * (levers[LEVER_ID_LEVEL1_DESCENT]!.$lerpValue - 1) +
       (2 + 5 * Math.cos(gameTime * 1.5)) * (1 - levers[LEVER_ID_GATE1]!.$lerpValue),
-  ).translateSelf(0);
+  );
 
   // blackPlatforms in the second level
 
