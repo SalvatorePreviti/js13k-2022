@@ -262,18 +262,20 @@ export const eppur_si_muove = () => {
 
   /// **** FULL MATRIX TRANSFORMS **** ///
 
-  const boatAnimationMatrix = (matrix: DOMMatrix) =>
-    matrix
-      .translateSelf(Math.sin(gameTime + 2) / 5, Math.sin(gameTime * 0.8) / 5)
-      .rotateSelf(2 * Math.sin(gameTime), Math.sin(gameTime * 0.7), Math.sin(gameTime * 0.9));
+  const boatUpdate = (x: number, y: number, z: number) =>
+    modelsNextUpdate(x + Math.sin(gameTime + 2) / 5, y + Math.sin(gameTime * 0.8) / 5, z).rotateSelf(
+      2 * Math.sin(gameTime),
+      Math.sin(gameTime * 0.7),
+      Math.sin(gameTime * 0.9),
+    );
 
   // first boad
   verifyModelsNextUpdate(MODEL_ID_BOAT0);
-  boatAnimationMatrix(modelsNextUpdate(-12, 4.2, -66 + 40 * firstBoatLerp));
+  boatUpdate(-12, 4.2, -66 + 40 * firstBoatLerp);
 
   // second boat
   verifyModelsNextUpdate(MODEL_ID_BOAT1);
-  boatAnimationMatrix(modelsNextUpdate(-123, 1.4, 55 - 65 * secondBoatLerp));
+  boatUpdate(-123, 1.4, 55 - 65 * secondBoatLerp);
 
   // rotating hex corridor
 

@@ -1247,8 +1247,8 @@ loadStep(() => {
             _globalTime = globalTime,
             0 < gameTimeDelta
         ) {
-          var dt = (matrix) =>
-            matrix.translateSelf(Math.sin(gameTime + 2) / 5, Math.sin(0.8 * gameTime) / 5).rotateSelf(
+          var dt = (x, y, z) =>
+            modelsNextUpdate(x + Math.sin(gameTime + 2) / 5, y + Math.sin(0.8 * gameTime) / 5, z).rotateSelf(
               2 * Math.sin(gameTime),
               Math.sin(0.7 * gameTime),
               Math.sin(0.9 * gameTime),
@@ -1343,8 +1343,8 @@ loadStep(() => {
             modelsNextUpdate(0, -4.7 * levers[10].$lerpValue, 15),
             modelsNextUpdate(-99.7, -1.9 - 5.5 * levers[3].$lerpValue, 63.5),
             modelsNextUpdate(-100, 0.6 - 5.8 * levers[15].$lerpValue, 96.5),
-            dt(modelsNextUpdate(-12, 4.2, 40 * firstBoatLerp - 66)),
-            dt(modelsNextUpdate(-123, 1.4, 55 - 65 * secondBoatLerp)),
+            dt(-12, 4.2, 40 * firstBoatLerp - 66),
+            dt(-123, 1.4, 55 - 65 * secondBoatLerp),
             modelsNextUpdate(-75, 3 * (1 - levers[2].$lerpValue2) * (1 - levers[3].$lerpValue), 55).rotateSelf(
               180 * (1 - levers[2].$lerpValue2) + rotatingHexCorridorRotation,
               0,

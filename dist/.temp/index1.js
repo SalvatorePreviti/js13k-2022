@@ -2455,13 +2455,16 @@ let rotatingPlatform1Rotation;
 let rotatingPlatform2Rotation;
 let rotatingHexCorridorRotation;
 const eppur_si_muove = () => {
-  const boatAnimationMatrix = (matrix) =>
-    matrix.translateSelf(/* @__PURE__ */ Math.sin(gameTime + 2) / 5, /* @__PURE__ */ Math.sin(gameTime * 0.8) / 5)
-      .rotateSelf(
-        2 * /* @__PURE__ */ Math.sin(gameTime),
-        /* @__PURE__ */ Math.sin(gameTime * 0.7),
-        /* @__PURE__ */ Math.sin(gameTime * 0.9),
-      );
+  const boatUpdate = (x, y, z) =>
+    modelsNextUpdate(
+      x + /* @__PURE__ */ Math.sin(gameTime + 2) / 5,
+      y + /* @__PURE__ */ Math.sin(gameTime * 0.8) / 5,
+      z,
+    ).rotateSelf(
+      2 * /* @__PURE__ */ Math.sin(gameTime),
+      /* @__PURE__ */ Math.sin(gameTime * 0.7),
+      /* @__PURE__ */ Math.sin(gameTime * 0.9),
+    );
   modelsResetUpdateCounter();
   shouldRotatePlatforms = lerpneg(
     levers[LEVER_ID_DONUT_PAD].$lerpValue,
@@ -2561,8 +2564,8 @@ const eppur_si_muove = () => {
   modelsNextUpdate(0, -4.7 * levers[LEVER_ID_GATE1].$lerpValue, 15);
   modelsNextUpdate(-99.7, -1.9 - 5.5 * levers[LEVER_ID_CRYSTALS].$lerpValue, 63.5);
   modelsNextUpdate(-100, 0.6 - 5.8 * levers[LEVER_ID_DONUT_PAD].$lerpValue, 96.5);
-  boatAnimationMatrix(modelsNextUpdate(-12, 4.2, -66 + 40 * firstBoatLerp));
-  boatAnimationMatrix(modelsNextUpdate(-123, 1.4, 55 - 65 * secondBoatLerp));
+  boatUpdate(-12, 4.2, -66 + 40 * firstBoatLerp);
+  boatUpdate(-123, 1.4, 55 - 65 * secondBoatLerp);
   modelsNextUpdate(
     -75,
     3 * (1 - levers[LEVER_ID_ROTATING_CORRIDOR].$lerpValue2) * (1 - levers[LEVER_ID_CRYSTALS].$lerpValue),
