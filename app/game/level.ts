@@ -2,13 +2,13 @@ import type { Circle } from "./models";
 import { abs } from "../math/math";
 import { GQuad, cylinder, polygon_regular, sphere, cylinder_sides } from "../geometry/geometry";
 import { polygon_transform, polygons_transform, type Polygon } from "../geometry/polygon";
-import { integers_map } from "../math/integers-map";
 import { meshAdd, newLever, newModel, newSoul } from "./models-factory";
 import { material } from "../geometry/material";
 import { csg_union, csg_polygons_subtract } from "../geometry/csg";
 import { identity } from "../math/matrix";
 import { devAllModelsPrint } from "../dev-tools/dev-models";
 import { translation } from "../math/matrix-transforms";
+import { integers_map } from "../math/integers-map";
 
 export const build_life_the_universe_and_everything = (): 42 | void => {
   const HORN_STACKS = 11;
@@ -1003,7 +1003,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
   newModel("MODEL_ID_LEVER");
 
-  meshAdd(cylinder(6, 1), identity.scale(0.12, 1.2, 0.12), material(0.3, 0.3, 0.5, 0.1));
+  meshAdd(cylinder(6, 1).slice(0, -1), identity.scale(0.12, 1.2, 0.12), material(0.3, 0.3, 0.5, 0.1));
   meshAdd(cylinder(9, 1), translation(0, 0.8).scale(0.2, 0.3, 0.2), material(1, 0.5, 0.2));
   meshAdd(cylinder(3), translation(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3), material(0.2, 0.2, 0.2, 0.1));
 

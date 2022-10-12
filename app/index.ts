@@ -7,7 +7,6 @@ if (DEBUG) {
 }
 
 import groundTextureSvg from "./groundTexture.svg";
-
 import { build_life_the_universe_and_everything } from "./game/level";
 import { startMainLoop } from "./main-loop";
 import { loadGame } from "./game/world-state";
@@ -34,7 +33,7 @@ loadStep(() => {
         console.time("startMainLoop");
       }
 
-      startMainLoop(image);
+      NO_INLINE(startMainLoop)(image);
 
       if (DEBUG) {
         console.timeEnd("startMainLoop");
@@ -42,7 +41,7 @@ loadStep(() => {
     }
   };
 
-  image.onload = image.onerror = end;
+  image.onerror = image.onload = end;
   image.src = groundTextureSvg;
 
   const songLoaded = () => {
@@ -54,7 +53,7 @@ loadStep(() => {
     build_life_the_universe_and_everything();
   };
 
-  if (DEBUG_FLAG1) {
+  if (DEBUG && DEBUG_FLAG1) {
     songLoaded();
   } else {
     NO_INLINE(loadSong)(songLoaded);

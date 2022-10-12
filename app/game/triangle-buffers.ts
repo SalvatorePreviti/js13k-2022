@@ -52,7 +52,7 @@ export const initTriangleBuffers = () => {
         ? -MODELS_WITH_FULL_TRANSFORM - SOULS_COUNT
         : index;
 
-    for (polygon of model.$polygons!) {
+    for (polygon of model.$polygon!) {
       const { x, y, z } = plane_fromPolygon(polygon);
       _vertexInts[4] = polygon.$color! | 0;
       _vertexInts[5] = x * 32767;
@@ -64,7 +64,7 @@ export const initTriangleBuffers = () => {
     }
 
     // free memory
-    model.$polygons = 0 as any;
+    model.$polygon = 0 as any;
 
     // write the indices offset and count
     model.$vertexBegin = meshFirstIndex;

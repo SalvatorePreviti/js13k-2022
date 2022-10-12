@@ -179,11 +179,7 @@ class SwcSimpleTransformer extends SwcVisitor {
         continue;
       }
 
-      // if (
-      //   statement.type === "ExpressionStatement" &&
-      //   this.settings.splitVarsAndSequences &&
-      //   statement.expression.type === "SequenceExpression"
-      // ) {
+      // if (statement.type === "ExpressionStatement" && statement.expression.type === "SequenceExpression") {
       //   // Split simple sequences
       //   for (const expression of statement.expression.expressions) {
       //     resultStatements.push({ ...statement, expression });

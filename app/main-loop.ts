@@ -23,7 +23,6 @@ import { gameTimeUpdate, gameTimeDelta, mainMenuVisible, absoluteTime } from "./
 import { camera_rotation, player_position_final, worldStateUpdate } from "./game/world-state";
 import { integers_map } from "./math/integers-map";
 import { identity, matrixCopy, matrixToArray, matrixTransformPoint, tempMatrix } from "./math/matrix";
-import { mat_perspective, zFar, zNear } from "./math/matrix-perspective";
 import { eppur_si_muove } from "./game/level-update";
 import { max, min } from "./math/math";
 import type { Vec3 } from "./math/vectors";
@@ -40,6 +39,7 @@ import {
 } from "./game/models-ids";
 import { transformsBuffer } from "./game/transforms-buffer";
 import { MODELS_WITH_SIMPLE_TRANSFORM } from "./game/models";
+import { mat_perspective, zFar, zNear } from "./math/matrix-perspective";
 
 const LIGHT_ROT_X = 298;
 const LIGHT_ROT_Y = 139;
@@ -315,6 +315,16 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     gl.drawElements(gl.TRIANGLES, 3, gl.UNSIGNED_SHORT, 0);
   };
 
+  // Ground texture
+
+  gl.activeTexture(gl.TEXTURE2);
+
+  gl.bindTexture(gl.TEXTURE_2D, gl.createTexture());
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1024, 1024, 0, gl.RGBA, gl.UNSIGNED_BYTE, groundTextureImage);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.generateMipmap(gl.TEXTURE_2D);
+
   // Shadows framebuffer
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, csm_framebuffer);
@@ -327,16 +337,6 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
   skyShader();
   gl.uniform1i(skyShader(uniformName_groundTexture), 2);
-
-  // Ground texture
-
-  gl.activeTexture(gl.TEXTURE2);
-
-  gl.bindTexture(gl.TEXTURE_2D, gl.createTexture());
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1024, 1024, 0, gl.RGBA, gl.UNSIGNED_BYTE, groundTextureImage);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  gl.generateMipmap(gl.TEXTURE_2D);
 
   // Setup rendering context
 

@@ -18,7 +18,7 @@ export interface CSGPolygon {
 
 export interface CSGNode extends Plane {
   /** Coplanar polygons */
-  $polygons: CSGPolygon[];
+  $polygon: CSGPolygon[];
   /** Front child */
   $front: CSGNode | 0;
   /** Back child */
@@ -97,7 +97,7 @@ const csg_tree_addPolygon = (
   if (node) {
     const { x: front, y: back } = CSGPolygon_split(node, polygon);
     if (!front && !back) {
-      node.$polygons.push(polygon); // Coplanar
+      node.$polygon.push(polygon); // Coplanar
     }
     if (front) {
       node.$front = csg_tree_addPolygon(node.$front, front, plane);
@@ -106,7 +106,7 @@ const csg_tree_addPolygon = (
       node.$back = csg_tree_addPolygon(node.$back, back, plane);
     }
   } else {
-    node = { x: plane.x, y: plane.y, z: plane.z, w: plane.w, $polygons: [polygon], $front: 0, $back: 0 };
+    node = { x: plane.x, y: plane.y, z: plane.z, w: plane.w, $polygon: [polygon], $front: 0, $back: 0 };
   }
   return node;
 };
@@ -134,7 +134,7 @@ const csg_tree_clipNode = (anode: CSGNode, bnode: CSGNode, polygonPlaneFlipped: 
     }
   };
 
-  for (const polygon of bnode.$polygons) {
+  for (const polygon of bnode.$polygon) {
     recursion(anode, polygon);
   }
   return result;
@@ -154,7 +154,7 @@ export const csg_tree_flip = <T extends CSGNode | 0 | undefined>(root: T): T => 
     node.y *= -1;
     node.z *= -1;
     node.w *= -1;
-    for (const polygon of node.$polygons) {
+    for (const polygon of node.$polygon) {
       polygon.$flipped = !polygon.$flipped;
     }
   });
@@ -184,7 +184,7 @@ export const csg_polygons = (tree: CSGNode): Polygon[] => {
   };
 
   csg_tree_each(tree, (node) => {
-    for (const polygon of node.$polygons) {
+    for (const polygon of node.$polygon) {
       allPolygons.set(add(polygon), polygon.$flipped);
     }
   });
@@ -221,7 +221,7 @@ export const csg_union = (...inputs: CSGInput[]): CSGNode =>
       b = csg_tree(b);
 
       // clip to a, b
-      csg_tree_each(a, (node) => (node.$polygons = csg_tree_clipNode(b as CSGNode, node, 1)));
+      csg_tree_each(a, (node) => (node.$polygon = csg_tree_clipNode(b as CSGNode, node, 1)));
 
       // get the list of polygons to be added from b clipped to a
       csg_tree_each(b, (node) => polygonsToAdd.push([node, csg_tree_clipNode(a as CSGNode, node, -1)]));

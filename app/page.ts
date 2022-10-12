@@ -12,9 +12,9 @@ import {
 } from "./utils/keycodes";
 import { abs, clamp, max, threshold } from "./math/math";
 import { camera_rotation, resetGame } from "./game/world-state";
-import { CSM_PLANE_DISTANCE, fieldOfViewAmount, mat_perspective, zFar, zNear } from "./math/matrix-perspective";
 import { mainMenuVisible, setMainMenuVisible, absoluteTime, gameTimeDelta } from "./game/game-time";
 import { audioBuffer } from "./music/music-player";
+import { CSM_PLANE_DISTANCE, fieldOfViewAmount, mat_perspective, zFar, zNear } from "./math/matrix-perspective";
 
 export let interact_pressed: 0 | 1;
 

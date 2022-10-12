@@ -359,21 +359,21 @@ function compareExpressions(a: Expression, b: Expression): number {
 }
 
 const expressionTypeOrdering: Expression["type"][] = [
+  "NullLiteral",
+  "BooleanLiteral",
   "NumericLiteral",
   "BigIntLiteral",
-  "BooleanLiteral",
-  "NullLiteral",
-  "BinaryExpression",
-  "UnaryExpression",
   "StringLiteral",
-  "ArrayExpression",
+  "UnaryExpression",
+  "BinaryExpression",
   "ObjectExpression",
+  "ArrayExpression",
   "RegExpLiteral",
   "MemberExpression",
   "Identifier",
   "ClassExpression",
-  "FunctionExpression",
   "ArrowFunctionExpression",
+  "FunctionExpression",
   "NewExpression",
   "CallExpression",
 ];

@@ -6,7 +6,7 @@ import { exit_player_first_person } from "../page";
 import { LEVER_ID_BOAT0, LEVER_ID_BOAT1 } from "./levers-ids";
 import { devLeverNames } from "../dev-tools/dev-models";
 
-export const LOCAL_STORAGE_SAVED_GAME_KEY = "spdnt22";
+export const LOCAL_STORAGE_SAVED_GAME_KEY = "Dante-22";
 
 export const camera_rotation: Vec2 = { x: 0, y: 180 } as Vec2;
 

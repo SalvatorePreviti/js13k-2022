@@ -1,6 +1,6 @@
-import { allModels, levers, souls } from "./models";
-import { mainMenuVisible } from "./game-time";
 import { MODEL_ID_PLAYER_BODY, MODEL_ID_PLAYER_LEG1, MODEL_ID_LEVER } from "./models-ids";
+import { mainMenuVisible } from "./game-time";
+import { allModels, levers, souls } from "./models";
 
 export const renderModels = (xgl: WebGL2RenderingContext, soulModelId: number, renderPlayer?: boolean) => {
   if (mainMenuVisible) {

@@ -2,7 +2,10 @@ import type { Polygon } from "../geometry/polygon";
 
 export interface Model {
   readonly $matrix: DOMMatrix;
-  $polygons: Polygon[] | null;
+
+  /** The temporary list of polygons, will be cleared out when building triangles */
+  $polygon: Polygon[] | null;
+
   $vertexBegin?: number;
   $vertexEnd?: number;
 }

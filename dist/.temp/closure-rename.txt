@@ -4,13 +4,11 @@ $flipped:v
 $front:o
 $lerpValue:g
 $lerpValue2:h
-$matrix:j
+$matrix:l
 $parent:A
-$polygon:C
-$polygons:l
+$polygon:j
 $smooth:B
-$transform:G
+$transform:D
 $value:i
 $vertexBegin:s
-$vertexEnd:D
-spdnt22:F
+$vertexEnd:C

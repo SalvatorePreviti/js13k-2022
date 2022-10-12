@@ -73,9 +73,12 @@ export const player_init = () => {
   let camera_pos_lookat_y: number;
   let camera_pos_lookat_z: number;
 
-  let player_position_global_x = 0;
-  let player_position_global_y = 0;
-  let player_position_global_z = 0;
+  let player_position_global_x: number;
+  let player_position_global_y: number;
+  let player_position_global_z: number;
+
+  const interpolate_with_hysteresis = (previous: number, desired: number, hysteresis: number, speed: number) =>
+    lerp(previous, desired, boot || (clamp(abs(desired - previous) ** 0.5 - hysteresis) + 1 / 7) * damp(speed * 1.5));
 
   const loadReferenceMatrix = () =>
     matrixCopy(
@@ -208,18 +211,13 @@ export const player_init = () => {
     movePlayer(movX / 255, movY / 255, movZ / 255);
   };
 
-  const interpolate_with_hysteresis = (previous: number, desired: number, hysteresis: number, speed: number) =>
-    lerp(previous, desired, boot || (clamp(abs(desired - previous) ** 0.5 - hysteresis) + 1 / 7) * damp(speed * 1.5));
-
   player_update = () => {
     updatePlayerPositionFinal(currentModelId);
 
     // ------- read collision renderBuffer -------
 
-    // gl.finish();
+    // This is here because we want to read the collision results as late as possible, to give the GPU time to finish
     cgl.readPixels(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE, gl.RGBA, gl.UNSIGNED_BYTE, collision_buffer);
-    // gl.invalidateFramebuffer(gl.READ_FRAMEBUFFER, [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT]);
-    // gl.invalidateFramebuffer(gl.DRAW_FRAMEBUFFER, [gl.COLOR_ATTACHMENT0, gl.DEPTH_ATTACHMENT]);
 
     // if (DEBUG) {
     //   const debugCanvas = document.getElementById("debug-canvas") as HTMLCanvasElement;
@@ -416,11 +414,11 @@ export const player_init = () => {
 
     movePlayer(
       // x
-      gameTimeDelta * (player_fly_velocity_x + (strafe * Math.cos(movAngle) - Math.sin(movAngle) * forward)),
+      gameTimeDelta * (player_fly_velocity_x + (Math.cos(movAngle) * strafe - Math.sin(movAngle) * forward)),
       // y
       gameTimeDelta * -player_gravity,
       // z
-      gameTimeDelta * (player_fly_velocity_z + (strafe * Math.sin(movAngle) + Math.cos(movAngle) * forward)),
+      gameTimeDelta * (player_fly_velocity_z + (Math.sin(movAngle) * strafe + Math.cos(movAngle) * forward)),
     );
   };
 };

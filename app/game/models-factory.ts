@@ -19,13 +19,13 @@ export let meshAdd: (
 ) => void;
 
 export const newModel = NO_INLINE((name: string): void => {
-  const $polygons: Polygon[] = [];
-  const model: Model = { $matrix: new DOMMatrix(), $polygons };
+  const $polygon: Polygon[] = [];
+  const model: Model = { $matrix: new DOMMatrix(), $polygon };
   meshAdd = (
     polygons: Polygon<Readonly<Vec3Optional>>[],
     transform: DOMMatrixReadOnly = identity,
     color?: number | undefined,
-  ) => $polygons.push(...polygons_transform(polygons, transform, color));
+  ) => $polygon.push(...polygons_transform(polygons, transform, color));
   allModels.push(model);
   if (DEBUG) {
     devModelsAdd(allModels.length - 1, name);
@@ -44,14 +44,14 @@ const distanceToPlayer = (): number => {
   );
 };
 
-export const newLever = ($transform: DOMMatrixReadOnly, name: string): void => {
+export const newLever = (transform: DOMMatrixReadOnly, name: string): void => {
   const parentModelMatrix = allModels.at(-1)!.$matrix;
   const index = levers.length;
   const lever: Lever = (() => {
     lever.$lerpValue = lerpDamp(lever.$lerpValue, lever.$value, 4);
     lever.$lerpValue2 = lerpDamp(lever.$lerpValue2, lever.$value, 1);
 
-    matrixCopy(parentModelMatrix).multiplySelf($transform);
+    matrixCopy(parentModelMatrix).multiplySelf(transform);
 
     if (interact_pressed && distanceToPlayer() < LEVER_SENSITIVITY_RADIUS) {
       if (lever.$value) {
@@ -73,7 +73,7 @@ export const newLever = ($transform: DOMMatrixReadOnly, name: string): void => {
     tempMatrix.rotateSelf(lever.$lerpValue * 50 - 25, 0).translateSelf(0, 1).m44 = lever.$lerpValue;
   }) as Lever;
   lever.$matrix = parentModelMatrix;
-  lever.$transform = $transform;
+  lever.$transform = transform;
 
   levers.push(lever);
 
@@ -81,9 +81,9 @@ export const newLever = ($transform: DOMMatrixReadOnly, name: string): void => {
     devLeverAdd(index, name);
   }
 
-  meshAdd(cylinder(5), $transform.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
-  meshAdd(cylinder(5), $transform.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
-  meshAdd(cylinder(), $transform.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
+  meshAdd(cylinder(5), transform.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
+  meshAdd(cylinder(5), transform.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
+  meshAdd(cylinder(), transform.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
 };
 
 export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: Circle[]) => {
