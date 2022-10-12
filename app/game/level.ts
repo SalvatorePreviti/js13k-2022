@@ -197,7 +197,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
       csg_union(
         // base
         polygons_transform(cylinder(), translation(-100, -2.4, 55).scale(8, 0.9, 8), material(0.8, 0.8, 0.8, 0.2)),
-        // right path to the boat
+        // right path to the boat, second boat attachment
         polygons_transform(
           cylinder(),
           translation(-113, -2.6, 55).scale(6.2, 1.1, 3).skewX(3),
@@ -368,7 +368,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
   newLever(translation(-116, -1.4, -18).rotate(0, 180), "LEVER_ID_BEFORE_PUSHING_RODS");
 
   meshAdd(cylinder(6), translation(-116, -2.6, -16.5).scale(3.2, 0.8, 3), material(0.6, 0.5, 0.7, 0.2));
-  // boat attachment
+  // second boat attachment, over the arcs
   meshAdd(cylinder(), translation(-116, -2.6, -12).scale(3.2, 1.1, 4).skewX(3), material(0.8, 0.8, 0.8, 0.2));
 
   meshAdd(cylinder(), translation(-115.5, -17, -12).scale(0.5, 15, 2.2), material(0.6, 0.6, 0.6, 0.3));
