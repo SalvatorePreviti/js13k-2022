@@ -190,65 +190,69 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     material(0.8, 0.8, 0.8, 0.2),
   );
 
+  // first arc door
+
+  meshAdd(
+    csg_polygons_subtract(
+      polygons_transform(cylinder(), translation(-100, 1, 63).scale(7.5, 4), material(0.5, 0.5, 0.5, 0.4)),
+      polygons_transform(cylinder(), translation(-100, 0, 63).scale(2, 2, 4), material(0.5, 0.5, 0.5, 0.4)),
+      polygons_transform(
+        cylinder(20, 1),
+        translation(-100, 2, 70).scale(2, 2, 10).rotate(90, 0),
+        material(0.5, 0.5, 0.5, 0.4),
+      ),
+    ),
+  );
+
   // platform after the rotating hex corridor
 
   meshAdd(
     csg_polygons_subtract(
       csg_union(
+        // straiht line
+        polygons_transform(cylinder(), translation(-100, -2.6, 70).scale(3, 1.1, 7), material(0.8, 0.8, 0.8, 0.2)),
+
         // base
         polygons_transform(cylinder(), translation(-100, -2.4, 55).scale(8, 0.9, 8), material(0.8, 0.8, 0.8, 0.2)),
+
         // right path to the boat, second boat attachment
         polygons_transform(
           cylinder(),
           translation(-113, -2.6, 55).scale(6.2, 1.1, 3).skewX(3),
           material(0.8, 0.8, 0.8, 0.2),
         ),
-        // straiht line
-        polygons_transform(cylinder(), translation(-100, -2.6, 70).scale(3, 1.1, 7), material(0.8, 0.8, 0.8, 0.2)),
-        // 45 degrees detour
-        polygons_transform(
-          cylinder(),
-          translation(-96, -2.6, 73).rotate(0, 45).scale(3, 1.1, 5),
-          material(0.8, 0.8, 0.8, 0.2),
-        ),
+
         // 45 degrees detour hexagon
         polygons_transform(
           cylinder(6),
           translation(-88.79, -2.6, 80.21).scale(6, 1.1, 6).rotate(0, 15),
           material(0.6, 0.6, 0.6, 0.3),
         ),
+        // 45 degrees detour
+        polygons_transform(
+          cylinder(),
+          translation(-96, -2.6, 73).rotate(0, 45).scale(3, 1.1, 5),
+          material(0.8, 0.8, 0.8, 0.2),
+        ),
 
+        // ascension continuation
+        polygons_transform(cylinder(), translation(-100, 0.42, 92).scale(3, 1.1, 4.1), material(0.8, 0.8, 0.8, 0.2)),
         // ascension
         polygons_transform(
           cylinder(),
           translation(-100, -1.1, 82.39).rotate(-15, 0).scale(3, 1.1, 6),
           material(0.8, 0.8, 0.8, 0.2),
         ),
-        // ascension continuation
-        polygons_transform(cylinder(), translation(-100, 0.42, 92).scale(3, 1.1, 4.1), material(0.8, 0.8, 0.8, 0.2)),
       ),
 
-      // decorative octagon
+      // decorative octagons
+
       polygons_transform(cylinder(8), translation(-100, -1, 55).scale(7, 0.9, 7), material(0.3, 0.3, 0.3, 0.4)),
       polygons_transform(cylinder(8), translation(-100, -2, 55).scale(4, 0.3, 4), material(0.4, 0.4, 0.4, 0.5)),
       polygons_transform(
         cylinder(8, 0, -3.1),
         translation(-100, -3, 55).scale(0.4, 1, 0.4),
         material(0.4, 0.4, 0.4, 0.5),
-      ),
-    ),
-  );
-
-  // first arc door
-
-  meshAdd(
-    csg_polygons_subtract(
-      polygons_transform(cylinder(), translation(-100, 1, 63).scale(7.5, 4), material(0.5, 0.5, 0.5, 0.4)),
-      polygons_transform(cylinder(), translation(-100, 0, 70).scale(2, 2, 10), material(0.5, 0.5, 0.5, 0.4)),
-      polygons_transform(
-        cylinder(20, 1),
-        translation(-100, 2, 70).scale(2, 2, 10).rotate(90, 0),
-        material(0.5, 0.5, 0.5, 0.4),
       ),
     ),
   );
@@ -279,7 +283,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
   integers_map(7, (i) => {
     meshAdd(
       cylinder(((i * 23 + 1) % 5) + 5, 0, 0.5),
-      translation(-101 + Math.sin(i) * 5 + i, -2.3 - i, 44.9 - i * 2.8).scaleSelf(5 + i / 2, 1 + i / 6, 5 + i / 3),
+      translation(-101 + Math.sin(i) * 5 + i, -2.3 - i, 44.9 - i * 2.8).scaleSelf(5 + i / 2, 1.1 + i / 6, 5 + i / 3),
       material(0.5 - i / 17, 0.5 - (i & 1) / 9, 0.6, 0.3),
     );
   });
