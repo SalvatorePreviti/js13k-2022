@@ -1389,8 +1389,8 @@ const build_life_the_universe_and_everything = () => {
   ].flat();
   const makeBigArc = (height) =>
     csg_polygons_subtract(
-      polygons_transform(cylinder(), translation(0, -height / 2).scale(6, height - 1, 2.2)),
-      polygons_transform(cylinder(), translation(0, -height / 2 - 6).scale(4, height - 3, 4)),
+      polygons_transform(cylinder().slice(0, -1), translation(0, -height / 2).scale(6, height - 1, 2.2)),
+      polygons_transform(cylinder().slice(0, -1), translation(0, -height / 2 - 4).scale(4, height - 5, 4)),
       polygons_transform(cylinder(28, 1), translation(0, height / 2 - 9).rotate(90, 0, 90).scale3d(4)),
     );
   newModel("MODEL_ID_SKY");
@@ -1405,7 +1405,7 @@ const build_life_the_universe_and_everything = () => {
   ].map((z, j) => {
     meshAdd(cylinder(), translation(0, 0, j ? 22 : -23).scale(3, 1, 8), material(0.9, 0.9, 0.9, 0.2));
     meshAdd(cylinder(), translation(0, 6.3, z).scale(4, 0.3, 1), material(0.3, 0.3, 0.3, 0.4));
-    meshAdd(cylinder(), translation(0, 1, z).scale(3, 0.2, 0.35), material(0.5, 0.5, 0.5, 0.3));
+    meshAdd(cylinder().slice(0, -1), translation(0, 1, z).scale(3, 0.2, 0.35), material(0.5, 0.5, 0.5, 0.3));
   });
   meshAdd(cylinder(), translation(-5, -0.2, -26).scale(3.2, 1, 2.5).skewX(3), material(0.8, 0.8, 0.8, 0.2));
   meshAdd(cylinder(), translation(3, 1.5, -20).scale(0.5, 2, 5), material(0.7, 0.7, 0.7, 0.2));
@@ -1542,18 +1542,17 @@ const build_life_the_universe_and_everything = () => {
   meshAdd(cylinder(4), translation(-86, -9.2, 27).scale(5, 1, 5), material(0.5, 0.6, 0.7, 0.3));
   meshAdd(cylinder(12, 1), translation(-86, -9, 31).scale(1.5, 1, 1.5), material(0.3, 0.3, 0.4, 0.1));
   newLever(translation(-86, -7.5, 31));
+  meshAdd(cylinder(5), translation(-38.9, -11.1, 10).scale(2, 1.2, 2), material(0.2, 0.4, 0.7, 0.3));
   meshAdd(
     csg_polygons_subtract(
       csg_union(
-        polygons_transform(cylinder(5), translation(0, 0, -7).scale(2, 1.2, 2), material(0.2, 0.4, 0.7, 0.3)),
-        polygons_transform(cylinder(), identity.scale(11, 1, 13), material(0.3, 0.4, 0.6, 0.3)),
-        polygons_transform(cylinder(5), identity.scale(9, 1.2, 9), material(0, 0.2, 0.3, 0.5)),
+        polygons_transform(cylinder(), translation(-38.9, -11.3, 17).scale(11, 1, 13), material(0.3, 0.4, 0.6, 0.3)),
+        polygons_transform(cylinder(5), translation(-38.9, -11.1, 17).scale(9, 1, 9), material(0, 0.2, 0.3, 0.5)),
       ),
-      polygons_transform(cylinder(5), identity.scale(5.4, 5, 5.4), material(0, 0.2, 0.3, 0.5)),
+      polygons_transform(cylinder(5), translation(-38.9, -11.1, 17).scale3d(5.4), material(0, 0.2, 0.3, 0.5)),
     ),
-    translation(-38.9, -11.3, 17),
   );
-  newLever(translation(-38.9, -9.6, 10));
+  newLever(translation(-38.9, -9.4, 10));
   meshAdd(
     csg_polygons_subtract(
       csg_union(
@@ -1584,13 +1583,17 @@ const build_life_the_universe_and_everything = () => {
   newLever(translation(-116, -1.4, -18).rotate(0, 180));
   meshAdd(cylinder(6), translation(-116, -2.6, -16.5).scale(3.2, 0.8, 3), material(0.6, 0.5, 0.7, 0.2));
   meshAdd(cylinder(), translation(-116, -2.6, -12).scale(3.2, 1.1, 4).skewX(3), material(0.8, 0.8, 0.8, 0.2));
-  meshAdd(cylinder(), translation(-115.5, -17, -12).scale(0.5, 15, 2.2), material(0.6, 0.6, 0.6, 0.3));
-  meshAdd(cylinder(8), translation(-114, -17, -2).scale(2, 15, 2), material(0.6, 0.6, 0.6, 0.3));
-  meshAdd(cylinder(8), translation(-79, -17, -2).scale(2, 15, 2), material(1, 1, 1, 0.3));
-  meshAdd(cylinder(), translation(-77, -17, -50.5).scale(2.2, 15, 0.5), material(0.6, 0.6, 0.6, 0.3));
+  meshAdd(cylinder().slice(0, -1), translation(-115.5, -17, -12).scale(0.5, 15, 2.2), material(0.6, 0.6, 0.6, 0.3));
+  meshAdd(cylinder(8).slice(0, -2), translation(-114, -17, -2).scale(2, 15, 2), material(0.6, 0.6, 0.6, 0.3));
+  meshAdd(cylinder(8).slice(0, -2), translation(-79, -17, -2).scale(2, 15, 2), material(1, 1, 1, 0.3));
+  meshAdd(cylinder().slice(0, -1), translation(-77, -17, -50.5).scale(2.2, 15, 0.5), material(0.6, 0.6, 0.6, 0.3));
   meshAdd(
     csg_polygons_subtract(
-      polygons_transform(cylinder(12), translation(-77, -14.5, -12).scale(4, 17.5, 4), material(0.7, 0.7, 0.7, 0.2)),
+      polygons_transform(
+        cylinder(12).slice(0, -1),
+        translation(-77, -14.5, -12).scale(4, 17.5, 4),
+        material(0.7, 0.7, 0.7, 0.2),
+      ),
       polygons_transform(cylinder(12), translation(-77, 3.1, -12).scale(3, 5, 3), material(0.4, 0.5, 0.6, 0.2)),
       polygons_transform(cylinder(), translation(-79, 0.1, -12).scale(3.5, 2, 1.3), material(0.4, 0.5, 0.6, 0.2)),
       polygons_transform(cylinder(), translation(-77, 0.1, -14).scale(1.5, 2, 2), material(0.4, 0.5, 0.6, 0.2)),
@@ -1603,7 +1606,7 @@ const build_life_the_universe_and_everything = () => {
     ),
   );
   meshAdd(cylinder(), translation(-84.9, -4.3, -40).rotate(12).scale(6, 1, 3), material(0.6, 0.6, 0.6, 0.3));
-  meshAdd(cylinder(9), translation(-98, -18.4, -40).scale(2.5, 13.5, 2.5), material(0.5, 0.5, 0.5, 0.3));
+  meshAdd(cylinder(9).slice(0, -1), translation(-98, -18.4, -40).scale(2.5, 13.5, 2.5), material(0.5, 0.5, 0.5, 0.3));
   newLever(translation(-98, -4.4, -40).rotate(0, 90));
   [
     -1,
@@ -1806,7 +1809,11 @@ const build_life_the_universe_and_everything = () => {
   integers_map(2, (blackPlatform) => {
     newModel("MODEL_ID_LEVEL2_BLACK_PLATFORM" + blackPlatform);
     GQuad.map(({ x, z }) => {
-      meshAdd(cylinder(11, 1), translation(x * 4, 4, z * 4).scale(0.8, 3, 0.8), material(0.5, 0.3, 0.7, 0.6));
+      meshAdd(
+        cylinder(11, 1).slice(0, -2),
+        translation(x * 4, 4, z * 4).scale(0.8, 3, 0.8),
+        material(0.5, 0.3, 0.7, 0.6),
+      );
       meshAdd(cylinder(), translation(x * 4, 7, z * 4).scale(1, 0.3), material(0.5, 0.5, 0.5, 0.3));
     });
     meshAdd(
@@ -1959,7 +1966,7 @@ const build_life_the_universe_and_everything = () => {
       (i) =>
         meshAdd(
           polygons_transform(
-            cylinder(9, 1),
+            cylinder(8, 1).slice(0, -1),
             translation((gate > 2 ? 3.5 : 4) * (i / 6 - 0.5), 3).scale(0.2, gate > 2 ? 4 : 3, 0.2),
             material(0.3, 0.3, 0.38),
           ),
@@ -1970,8 +1977,12 @@ const build_life_the_universe_and_everything = () => {
   meshAdd(hexCorridor);
   newModel("MODEL_ID_DONUT_PAD");
   meshAdd(cylinder(15, 1), translation(-7.5).rotate(0, 90).scale(3, 2.3, 3), material(0.4, 0.4, 0.4, 0.3));
-  meshAdd(cylinder(10), translation(-7.5).rotate(0, 90).scale(2, 2.5, 2), material(0.3, 0.8, 0.7, 0.3));
-  meshAdd(cylinder(5), translation(-7.5).rotate(0, 90).scale(1, 3), material(0.5, 0.5, 0.5, 0.5));
+  meshAdd(
+    cylinder(10).slice(0, -1),
+    translation(-7.5, 2.4).rotate(0, 90).scale(2, 0.1, 2),
+    material(0.3, 0.8, 0.7, 0.3),
+  );
+  meshAdd(cylinder(5).slice(0, -1), translation(-7.5, 2.7).rotate(0, 90).scale(1, 0.2), material(0.5, 0.5, 0.5, 0.5));
   newLever(translation(-7.5).rotate(0, 90).translate(0, 3.4).rotate(0, 180));
   [
     -1,
@@ -2008,8 +2019,8 @@ const build_life_the_universe_and_everything = () => {
       polygons_transform(cylinder(), translation(0, 0, -5.5).scale(1.5, 3, 2.7), material(0.45, 0.45, 0.45, 0.2)),
     ),
   );
-  meshAdd(cylinder(8), translation(0, 2).scale(3, 1.5, 3).rotate(0, 22), material(0.7, 0.7, 0.7, 0.1));
-  meshAdd(cylinder(5), translation(0, 2).scale(1, 2), material(0.3, 0.3, 0.3, 0.2));
+  meshAdd(cylinder(8).slice(0, -1), translation(0, 2).scale(3, 1.5, 3).rotate(0, 22), material(0.7, 0.7, 0.7, 0.1));
+  meshAdd(cylinder(5).slice(0, -1), translation(0, 2).scale(1, 2), material(0.3, 0.3, 0.3, 0.2));
   newSoul(
     translation(0, 3),
     ...polygon_regular(14).map(({ x, z }) => [
@@ -2032,7 +2043,7 @@ const build_life_the_universe_and_everything = () => {
     ),
   );
   meshAdd(cylinder(28, 1), identity.scale(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2));
-  meshAdd(cylinder(5), translation(0, 1).scale(1, 0.2), material(0.3, 0.3, 0.3, 0.2));
+  meshAdd(cylinder(5).slice(0, -1), translation(0, 1).scale(1, 0.2), material(0.3, 0.3, 0.3, 0.2));
   newModel("MODEL_ID_ROTATING_PLATFORM2");
   meshAdd(
     csg_polygons_subtract(
@@ -2042,7 +2053,7 @@ const build_life_the_universe_and_everything = () => {
     ),
   );
   meshAdd(cylinder(28, 1), identity.scale(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2));
-  meshAdd(cylinder(5), translation(0, 1).scale(1, 0.2), material(0.3, 0.3, 0.3, 0.2));
+  meshAdd(cylinder(5).slice(0, -1), translation(0, 1).scale(1, 0.2), material(0.3, 0.3, 0.3, 0.2));
   newModel("MODEL_ID_ROTATING_PLATFORM3");
   meshAdd(
     csg_polygons_subtract(
@@ -2052,7 +2063,7 @@ const build_life_the_universe_and_everything = () => {
     ),
   );
   meshAdd(cylinder(28, 1), identity.scale(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2));
-  meshAdd(cylinder(5), translation(0, 1).scale(1, 0.2), material(0.3, 0.3, 0.3, 0.2));
+  meshAdd(cylinder(5).slice(0, -1), translation(0, 1).scale(1, 0.2), material(0.3, 0.3, 0.3, 0.2));
   integers_map(2, (i) => {
     newModel("MODEL_ID_BOAT" + i);
     meshAdd(
