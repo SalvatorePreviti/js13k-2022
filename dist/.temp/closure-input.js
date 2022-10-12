@@ -738,9 +738,9 @@ const newLever = (transform) => {
   lever.$matrix = parentModelMatrix,
     lever.$transform = transform,
     levers.push(lever),
-    meshAdd(cylinder(5), transform.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5)),
     meshAdd(cylinder(5), transform.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5)),
-    meshAdd(cylinder(), transform.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
+    meshAdd(cylinder(5), transform.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5)),
+    meshAdd(cylinder().slice(0, -1), transform.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
 };
 const newSoul = (transform, ...walkingPath) => {
   let lookAngle;
@@ -752,7 +752,13 @@ const newSoul = (transform, ...walkingPath) => {
   let wasInside = 1;
   let dirX = -1;
   const soul = () => {
-    if (!soul.$value) {
+    if (soul.$value) {
+      matrixCopy(allModels[35].$matrix).translateSelf(
+        index % 4 * 1.2 - 1.7 + Math.sin(gameTime + index) / 7,
+        -2,
+        1.7 * (index >> 2) - 5.5 + abs(index % 4 - 2) + Math.cos(gameTime / 1.5 + index) / 6,
+      );
+    } else {
       let isInside;
       let ax;
       let az;
@@ -812,12 +818,7 @@ const newSoul = (transform, ...walkingPath) => {
           updateCollectedSoulsCounter(),
           saveGame());
     }
-    soul.$value
-    && matrixCopy(allModels[35].$matrix).translateSelf(
-      index % 4 * 1.2 - 1.7 + Math.sin(gameTime + index) / 7,
-      -2,
-      1.7 * (index / 4 | 0) - 5.5 + abs(index % 4 - 2) + Math.cos(gameTime / 1.5 + index) / 6,
-    ), matrixToArray(tempMatrix, transformsBuffer, MODELS_WITH_FULL_TRANSFORM + index);
+    matrixToArray(tempMatrix, transformsBuffer, MODELS_WITH_FULL_TRANSFORM + index);
   };
   let circle = walkingPath[0];
   let [targetX, targetZ] = circle;
@@ -1787,6 +1788,9 @@ loadStep(() => {
             polygons_transform(cylinder(), translation(0, -height / 2 - 6).scale(4, height - 3, 4)),
             polygons_transform(cylinder(28, 1), translation(0, height / 2 - 9).rotate(90, 0, 90).scale3d(4)),
           );
+        const elevatorsMatrix = NO_INLINE((x) =>
+          translation(x - 76.9, x / -16 - 10, 24).rotate(0, 0, -2).skewX(-2).scale(2.8, 1.4, 3)
+        );
         const hornPolygons = integers_map(11, (i) =>
           cylinder_sides(
             polygon_transform(polygon_regular(16), hornMatrix(i), material(1, 1, 0.8, 0.2)).reverse(),
@@ -1860,12 +1864,12 @@ loadStep(() => {
           }),
           meshAdd(cylinder(), translation(-5, -0.2, -26).scale(3.2, 1, 2.5).skewX(3), material(0.8, 0.8, 0.8, 0.2)),
           meshAdd(cylinder(), translation(3, 1.5, -20).scale(0.5, 2, 5), material(0.7, 0.7, 0.7, 0.2)),
+          meshAdd(cylinder(5), translation(-5.4, 0, -19).scale(2, 1, 2).rotate(0, -90), material(0.6, 0.3, 0.3, 0.4)),
           meshAdd(
             cylinder(),
             translation(-3.4, -0.2, -19).scale(2, 1, 1.5).rotate(0, -90),
             material(0.75, 0.75, 0.75, 0.2),
           ),
-          meshAdd(cylinder(5), translation(-5.4, 0, -19).scale(2, 1, 2).rotate(0, -90), material(0.6, 0.3, 0.3, 0.4)),
           meshAdd(
             csg_polygons_subtract(
               csg_union(
@@ -1889,13 +1893,13 @@ loadStep(() => {
                 polygons_transform(cylinder(6), translation(0, -8).scale(9, 8, 7), material(0.2, 0.1, 0.4, 0.5)),
                 polygons_transform(
                   cylinder(6, 0, 0, 0.3),
-                  translation(8, -3, -4).scale(13, 1, 13),
+                  translation(8, -4, -4).scale(14, 2, 13),
                   material(0.7, 0.7, 0.7, 0.2),
                 ),
               ),
               polygons_transform(
                 cylinder(6),
-                translation(15, -1.5, 4).scale(3.5, 1, 3.5),
+                translation(15.5, -1.5, 3.5).scale(3.5, 1, 3.5),
                 material(0.5, 0.5, 0.5, 0.5),
               ),
               polygons_transform(
@@ -2402,9 +2406,11 @@ loadStep(() => {
           newModel("MODEL_ID_LEVEL2_MINI_PLATFORM_HORIZONTAL"),
           meshAdd(
             csg_polygons_subtract(
-              polygons_transform(cylinder(), translation(-27, -3, 55).scale(3, 1.4, 2.7), material(0.9, 0.9, 0.9, 0.2)),
-              polygons_transform(cylinder(), translation(-27, -3, 55).scale(1, 3), material(0.9, 0.9, 0.9, 0.2)),
+              polygons_transform(cylinder(), identity.scale(3, 1.4, 2.7)),
+              polygons_transform(cylinder(), identity.scale(1, 3)),
             ),
+            translation(-27, -3, 55),
+            material(0.9, 0.9, 0.9, 0.2),
           ),
           meshAdd(cylinder(), translation(-39, -3, 55).scale(3, 1.4, 2.7), material(0.9, 0.9, 0.9, 0.2)),
           newModel("MODEL_ID_LEVEL2_HEX_CORRIDOR_DOOR"),
@@ -2418,24 +2424,12 @@ loadStep(() => {
             0,
             12,
             24,
-          ].map((x) =>
-            meshAdd(
-              cylinder(),
-              translation(x - 76.9, x / -16 - 10, 24).rotate(0, 0, -2).skewX(-2).scale(2.8, 1.4, 3),
-              material(0.2, 0.5, 0.6, 0.2),
-            )
-          ),
+          ].map((x) => meshAdd(cylinder(), elevatorsMatrix(x), material(0.2, 0.5, 0.6, 0.2))),
           newModel("MODEL_ID_ELEVATORS1"),
           [
             6,
             18,
-          ].map((x) =>
-            meshAdd(
-              cylinder(),
-              translation(x - 76.9, x / -16 - 10, 24).rotate(0, 0, -2).skewX(-2).scale(2.8, 1.4, 3),
-              material(0.1, 0.4, 0.5, 0.2),
-            )
-          ),
+          ].map((x) => meshAdd(cylinder(), elevatorsMatrix(x), material(0.1, 0.4, 0.5, 0.2))),
           newModel("MODEL_ID_MONUMENT"),
           meshAdd(
             csg_polygons_subtract(

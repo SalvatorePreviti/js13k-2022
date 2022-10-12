@@ -108,8 +108,8 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
   meshAdd(cylinder(), translation(3, 1.5, -20).scale(0.5, 2, 5), material(0.7, 0.7, 0.7, 0.2));
 
   // first lever pad
-  meshAdd(cylinder(), translation(-3.4, -0.2, -19).scale(2, 1, 1.5).rotate(0, -90), material(0.75, 0.75, 0.75, 0.2));
   meshAdd(cylinder(5), translation(-5.4, 0, -19).scale(2, 1, 2).rotate(0, -90), material(0.6, 0.3, 0.3, 0.4));
+  meshAdd(cylinder(), translation(-3.4, -0.2, -19).scale(2, 1, 1.5).rotate(0, -90), material(0.75, 0.75, 0.75, 0.2));
 
   // base
 
@@ -144,12 +144,12 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
         // lower base
         polygons_transform(
           cylinder(6, 0, 0, 0.3),
-          translation(8, -3, -4).scale(13, 1, 13),
+          translation(8, -4, -4).scale(14, 2, 13),
           material(0.7, 0.7, 0.7, 0.2),
         ),
       ),
       // lower lever pad
-      polygons_transform(cylinder(6), translation(15, -1.5, 4).scale(3.5, 1, 3.5), material(0.5, 0.5, 0.5, 0.5)),
+      polygons_transform(cylinder(6), translation(15.5, -1.5, 3.5).scale(3.5, 1, 3.5), material(0.5, 0.5, 0.5, 0.5)),
 
       // smooth hole
       polygons_transform(cylinder(5, 0, 1.5), translation(0, 1).scale(4.5, 0.3, 4.5), material(0.7, 0.5, 0.9, 0.2)),
@@ -696,9 +696,11 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
   meshAdd(
     csg_polygons_subtract(
-      polygons_transform(cylinder(), translation(-27, -3, 55).scale(3, 1.4, 2.7), material(0.9, 0.9, 0.9, 0.2)),
-      polygons_transform(cylinder(), translation(-27, -3, 55).scale(1, 3), material(0.9, 0.9, 0.9, 0.2)),
+      polygons_transform(cylinder(), identity.scale(3, 1.4, 2.7)),
+      polygons_transform(cylinder(), identity.scale(1, 3)),
     ),
+    translation(-27, -3, 55),
+    material(0.9, 0.9, 0.9, 0.2),
   );
 
   meshAdd(cylinder(), translation(-39, -3, 55).scale(3, 1.4, 2.7), material(0.9, 0.9, 0.9, 0.2));
@@ -713,29 +715,17 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
   newModel("MODEL_ID_ELEVATORS0");
 
-  [0, 12, 24].map((x) =>
-    meshAdd(
-      cylinder(),
-      translation(x - 76.9, x / -16 - 10, 24)
-        .rotate(0, 0, -2)
-        .skewX(-2)
-        .scale(2.8, 1.4, 3),
-      material(0.2, 0.5, 0.6, 0.2),
-    ),
-  );
+  const elevatorsMatrix = (x: number) =>
+    translation(x - 76.9, x / -16 - 10, 24)
+      .rotate(0, 0, -2)
+      .skewX(-2)
+      .scale(2.8, 1.4, 3);
+
+  [0, 12, 24].map((x) => meshAdd(cylinder(), elevatorsMatrix(x), material(0.2, 0.5, 0.6, 0.2)));
 
   newModel("MODEL_ID_ELEVATORS1");
 
-  [6, 18].map((x) =>
-    meshAdd(
-      cylinder(),
-      translation(x - 76.9, x / -16 - 10, 24)
-        .rotate(0, 0, -2)
-        .skewX(-2)
-        .scale(2.8, 1.4, 3),
-      material(0.1, 0.4, 0.5, 0.2),
-    ),
-  );
+  [6, 18].map((x) => meshAdd(cylinder(), elevatorsMatrix(x), material(0.1, 0.4, 0.5, 0.2)));
 
   // central sculpture/monument
 

@@ -6,9 +6,9 @@ $lerpValue:h
 $lerpValue2:g
 $matrix:l
 $parent:v
-$polygon:j
+$polygon:i
 $smooth:A
 $transform:D
-$value:i
+$value:j
 $vertexBegin:B
 $vertexEnd:C

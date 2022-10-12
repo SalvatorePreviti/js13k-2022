@@ -92,9 +92,11 @@ export const newLever = (transform: DOMMatrixReadOnly, name: string): void => {
     devLeverAdd(index, name);
   }
 
-  meshAdd(cylinder(5), transform.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
+  // Lever base
+
   meshAdd(cylinder(5), transform.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
-  meshAdd(cylinder(), transform.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
+  meshAdd(cylinder(5), transform.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
+  meshAdd(cylinder().slice(0, -1), transform.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
 };
 
 export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: Circle[]) => {
@@ -115,7 +117,17 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: Circle[]) 
   const index = souls.length;
 
   const soul: Soul = (() => {
-    if (!soul.$value) {
+    if (soul.$value) {
+      // Soul was collected.
+
+      matrixCopy(allModels[MODEL_ID_BOAT0]!.$matrix).translateSelf(
+        1.2 * (index % 4) - 1.7 + Math.sin(gameTime + index) / 7,
+        -2,
+        -5.5 + (index >> 2) * 1.7 + abs((index % 4) - 2) + Math.cos(gameTime / 1.5 + index) / 6,
+      );
+    } else {
+      // Soul is free to catch.
+
       let isInside: 0 | 1 | undefined;
       let contextualVelocity = 1;
       let mindist = Infinity;
@@ -169,14 +181,6 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: Circle[]) 
         soul.$value = 1;
         onSoulCollected();
       }
-    }
-
-    if (soul.$value) {
-      matrixCopy(allModels[MODEL_ID_BOAT0]!.$matrix).translateSelf(
-        1.2 * (index % 4) - 1.7 + Math.sin(gameTime + index) / 7,
-        -2,
-        -5.5 + ((index / 4) | 0) * 1.7 + abs((index % 4) - 2) + Math.cos(gameTime / 1.5 + index) / 6,
-      );
     }
 
     matrixToArray(tempMatrix, transformsBuffer, MODELS_WITH_FULL_TRANSFORM + index);
