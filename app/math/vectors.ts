@@ -37,8 +37,6 @@ export type Vec3In = Readonly<Vec3>;
 
 export type Vec4In = Readonly<Vec4>;
 
-export const vec3_dot = ({ x, y, z }: Vec3In, b: Vec3In): number => x * b.x + y * b.y + z * b.z;
-
 /**
  * Computes a polygon plane using the Newell's method.
  * We are not using plane from 3 points algorithm,
@@ -63,3 +61,5 @@ export const plane_fromPolygon = (polygon: readonly Vec3In[]): Plane => {
   z /= b;
   return { x, y, z, w: x * a.x + y * a.y + z * a.z };
 };
+
+export const vec3_dot = ({ x, y, z }: Vec3In, b: Vec3In): number => x * b.x + y * b.y + z * b.z;

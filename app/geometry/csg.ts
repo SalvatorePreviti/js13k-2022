@@ -1,6 +1,5 @@
-import type { Plane, Vec3, Vec3In } from "../math/vectors";
-import { vec3_dot, plane_fromPolygon } from "../math/vectors";
 import { polygon_color, type Polygon } from "./polygon";
+import { vec3_dot, plane_fromPolygon, type Plane, type Vec3, type Vec3In } from "../math/vectors";
 
 export const PLANE_EPSILON = 0.00008;
 
@@ -29,69 +28,65 @@ export interface CSGNode extends Plane {
 export type CSGInput = CSGNode | readonly Polygon[];
 
 interface SplitPolygonResult {
-  $front: CSGPolygon | undefined | false;
-  $back: CSGPolygon | undefined | false;
+  // Front
+  x: CSGPolygon | undefined | false;
+  // Back
+  y: CSGPolygon | undefined | false;
 }
 
-const CSGPolygon_splitSpanning = (plane: Plane, polygon: CSGPolygon): SplitPolygonResult => {
-  const fpoints: Vec3[] = [];
-  const bpoints: Vec3[] = [];
-  const { $polygon, $flipped } = polygon;
-  let jd: number;
-  let iv: Vec3In = $polygon.at(-1)!;
-  let id: number = vec3_dot(plane, iv) - plane.w;
-  for (const jv of $polygon) {
-    jd = vec3_dot(plane, jv) - plane.w;
-    if (id < PLANE_EPSILON) {
-      bpoints.push(iv);
-    }
-    if (id > -PLANE_EPSILON) {
-      fpoints.push(iv);
-    }
-    if ((id > PLANE_EPSILON && jd < -PLANE_EPSILON) || (id < -PLANE_EPSILON && jd > PLANE_EPSILON)) {
-      id /= jd - id;
-      iv = {
-        x: iv.x + (iv.x - jv.x) * id,
-        y: iv.y + (iv.y - jv.y) * id,
-        z: iv.z + (iv.z - jv.z) * id,
-      };
-      fpoints.push(iv);
-      bpoints.push(iv);
-    }
-    iv = jv;
-    id = jd;
-  }
-  return {
-    $front: fpoints.length > 2 && {
-      $polygon: polygon_color(fpoints, $polygon.$color, $polygon.$smooth),
-      $flipped,
-      $parent: polygon,
-    },
-    $back: bpoints.length > 2 && {
-      $polygon: polygon_color(bpoints, $polygon.$color, $polygon.$smooth),
-      $flipped,
-      $parent: polygon,
-    },
-  };
-};
-
 const CSGPolygon_split = (plane: Plane, polygon: CSGPolygon): SplitPolygonResult => {
-  const { $polygon } = polygon;
-  let $front: CSGPolygon | undefined;
-  let $back: CSGPolygon | undefined;
-  let d: number;
+  let jd: number;
+  let front: CSGPolygon | false | undefined;
+  let back: CSGPolygon | false | undefined;
+  const { $polygon, $flipped } = polygon;
   for (let i = 0; i < $polygon.length; ++i) {
-    d = vec3_dot(plane, $polygon[i]!) - plane.w;
-    if (d < -PLANE_EPSILON) {
-      $back = polygon;
-    } else if (d > PLANE_EPSILON) {
-      $front = polygon;
+    jd = vec3_dot(plane, $polygon[i]!) - plane.w;
+    if (jd < -PLANE_EPSILON) {
+      back = polygon;
+    } else if (jd > PLANE_EPSILON) {
+      front = polygon;
     }
-    if ($back && $front) {
-      return CSGPolygon_splitSpanning(plane, polygon);
+    if (back && front) {
+      // Split polygon by the plane
+      const fpoints: Vec3[] = [];
+      const bpoints: Vec3[] = [];
+      let iv: Vec3In = $polygon.at(-1)!;
+      let id: number = vec3_dot(iv, plane) - plane.w;
+      for (const jv of $polygon) {
+        jd = vec3_dot(jv, plane) - plane.w;
+        if (id < PLANE_EPSILON) {
+          bpoints.push(iv);
+        }
+        if (id > -PLANE_EPSILON) {
+          fpoints.push(iv);
+        }
+        if ((id > PLANE_EPSILON && jd < -PLANE_EPSILON) || (id < -PLANE_EPSILON && jd > PLANE_EPSILON)) {
+          id /= jd - id;
+          iv = {
+            x: iv.x + (iv.x - jv.x) * id,
+            y: iv.y + (iv.y - jv.y) * id,
+            z: iv.z + (iv.z - jv.z) * id,
+          };
+          fpoints.push(iv);
+          bpoints.push(iv);
+        }
+        iv = jv;
+        id = jd;
+      }
+      front = fpoints.length > 2 && {
+        $polygon: polygon_color(fpoints, $polygon.$color, $polygon.$smooth),
+        $flipped,
+        $parent: polygon,
+      };
+      back = bpoints.length > 2 && {
+        $polygon: polygon_color(bpoints, $polygon.$color, $polygon.$smooth),
+        $flipped,
+        $parent: polygon,
+      };
+      break;
     }
   }
-  return { $front, $back };
+  return { x: front, y: back };
 };
 
 const csg_tree_addPolygon = (
@@ -100,15 +95,15 @@ const csg_tree_addPolygon = (
   plane: Plane = plane_fromPolygon(polygon.$polygon),
 ): CSGNode => {
   if (node) {
-    const { $front, $back } = CSGPolygon_split(node, polygon);
-    if (!$front && !$back) {
+    const { x: front, y: back } = CSGPolygon_split(node, polygon);
+    if (!front && !back) {
       node.$polygons.push(polygon); // Coplanar
     }
-    if ($front) {
-      node.$front = csg_tree_addPolygon(node.$front, $front, plane);
+    if (front) {
+      node.$front = csg_tree_addPolygon(node.$front, front, plane);
     }
-    if ($back) {
-      node.$back = csg_tree_addPolygon(node.$back, $back, plane);
+    if (back) {
+      node.$back = csg_tree_addPolygon(node.$back, back, plane);
     }
   } else {
     node = { x: plane.x, y: plane.y, z: plane.z, w: plane.w, $polygons: [polygon], $front: 0, $back: 0 };
@@ -119,23 +114,23 @@ const csg_tree_addPolygon = (
 const csg_tree_clipNode = (anode: CSGNode, bnode: CSGNode, polygonPlaneFlipped: -1 | 1): CSGPolygon[] => {
   const result: CSGPolygon[] = [];
   const recursion = (node: CSGNode, polygon: CSGPolygon) => {
-    let { $front, $back } = CSGPolygon_split(node, polygon);
-    if (!$front && !$back) {
+    let { x: front, y: back } = CSGPolygon_split(node, polygon);
+    if (!front && !back) {
       if (polygonPlaneFlipped * vec3_dot(node, bnode) > 0) {
-        $front = polygon; // Coplanar front
+        front = polygon; // Coplanar front
       } else {
-        $back = polygon; // Coplanar back
+        back = polygon; // Coplanar back
       }
     }
-    if ($front) {
+    if (front) {
       if (node.$front) {
-        recursion(node.$front, $front);
+        recursion(node.$front, front);
       } else {
-        result.push($front);
+        result.push(front);
       }
     }
-    if ($back && node.$back) {
-      recursion(node.$back, $back);
+    if (back && node.$back) {
+      recursion(node.$back, back);
     }
   };
 
@@ -171,8 +166,8 @@ export const csg_tree_flip = <T extends CSGNode | 0 | undefined>(root: T): T => 
  * Some polygons will be merged, to reduce the number of triangles.
  */
 export const csg_polygons = (tree: CSGNode): Polygon[] => {
-  const byParent = new Map<CSGPolygon, CSGPolygon>();
   const allPolygons = new Map<CSGPolygon, 0 | boolean>();
+  const byParent = new Map<CSGPolygon, CSGPolygon>();
 
   /** Adds a polygon, and replaces two splitted polygons that have the same parent with the parent */
   const add = (polygon: CSGPolygon): CSGPolygon => {

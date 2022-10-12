@@ -824,7 +824,6 @@ const newSoul = (transform, ...walkingPath) => {
   const index = souls.length;
   souls.push(soul);
 };
-const vec3_dot = ({ x, y, z }, b) => x * b.x + y * b.y + z * b.z;
 const plane_fromPolygon = (polygon) => {
   let b;
   let x = 0;
@@ -832,7 +831,7 @@ const plane_fromPolygon = (polygon) => {
   let z = 0;
   let a = polygon.at(-1);
   for (b of polygon) {
-    x += (a.z + b.z) * (a.y - b.y), y += (a.x + b.x) * (a.z - b.z), z += (a.y + b.y) * (a.x - b.x), a = b;
+    x += (a.y - b.y) * (a.z + b.z), y += (a.z - b.z) * (a.x + b.x), z += (a.x - b.x) * (a.y + b.y), a = b;
   }
   return b = hypot(x, y, z), x /= b, y /= b, z /= b, {
     x,
@@ -841,66 +840,62 @@ const plane_fromPolygon = (polygon) => {
     w: x * a.x + y * a.y + z * a.z,
   };
 };
+const vec3_dot = ({ x, y, z }, b) => x * b.x + y * b.y + z * b.z;
 const CSGPolygon_split = (plane, polygon) => {
-  let $front;
-  let $back;
-  let d;
-  let $polygon = polygon.$polygon;
+  let jd;
+  let front;
+  let back;
+  const { $polygon, $flipped } = polygon;
   for (let i = 0; $polygon.length > i; ++i) {
     if (
-      (d = vec3_dot(plane, $polygon[i]) - plane.w) < -0.00008 ? $back = polygon : 8e-5 < d && ($front = polygon),
-        $back && $front
+      (jd = vec3_dot(plane, $polygon[i]) - plane.w) < -0.00008 ? back = polygon : 8e-5 < jd && (front = polygon),
+        back && front
     ) {
-      return ((plane2, polygon2) => {
-        let jd;
-        let fpoints = [];
-        let bpoints = [];
-        let { $polygon: $polygon2, $flipped } = polygon2;
-        let iv = $polygon2.at(-1);
-        let id = vec3_dot(plane2, iv) - plane2.w;
-        for (const jv of $polygon2) {
-          jd = vec3_dot(plane2, jv) - plane2.w,
-            id < 8e-5 && bpoints.push(iv),
-            -0.00008 < id && fpoints.push(iv),
-            (8e-5 < id && jd < -0.00008 || id < -0.00008 && 8e-5 < jd) && (id /= jd - id,
-              iv = {
-                x: iv.x + (iv.x - jv.x) * id,
-                y: iv.y + (iv.y - jv.y) * id,
-                z: iv.z + (iv.z - jv.z) * id,
-              },
-              fpoints.push(iv),
-              bpoints.push(iv)),
-            iv = jv,
-            id = jd;
-        }
-        return {
-          $front: 2 < fpoints.length && {
-            $polygon: polygon_color(fpoints, $polygon2.$color, $polygon2.$smooth),
-            $flipped,
-            $parent: polygon2,
-          },
-          $back: 2 < bpoints.length && {
-            $polygon: polygon_color(bpoints, $polygon2.$color, $polygon2.$smooth),
-            $flipped,
-            $parent: polygon2,
-          },
+      const fpoints = [];
+      const bpoints = [];
+      let iv = $polygon.at(-1);
+      let id = vec3_dot(iv, plane) - plane.w;
+      for (const jv of $polygon) {
+        jd = vec3_dot(jv, plane) - plane.w,
+          id < 8e-5 && bpoints.push(iv),
+          -0.00008 < id && fpoints.push(iv),
+          (8e-5 < id && jd < -0.00008 || id < -0.00008 && 8e-5 < jd) && (id /= jd - id,
+            iv = {
+              x: iv.x + (iv.x - jv.x) * id,
+              y: iv.y + (iv.y - jv.y) * id,
+              z: iv.z + (iv.z - jv.z) * id,
+            },
+            fpoints.push(iv),
+            bpoints.push(iv)),
+          iv = jv,
+          id = jd;
+      }
+      front = 2 < fpoints.length && {
+        $polygon: polygon_color(fpoints, $polygon.$color, $polygon.$smooth),
+        $flipped,
+        $parent: polygon,
+      },
+        back = 2 < bpoints.length && {
+          $polygon: polygon_color(bpoints, $polygon.$color, $polygon.$smooth),
+          $flipped,
+          $parent: polygon,
         };
-      })(plane, polygon);
+      break;
     }
   }
   return {
-    $front,
-    $back,
+    x: front,
+    y: back,
   };
 };
 const csg_tree_addPolygon = (node, polygon, plane = plane_fromPolygon(polygon.$polygon)) => {
-  let $front;
-  let $back;
+  let front;
+  let back;
   return node
-    ? ({ $front, $back } = CSGPolygon_split(node, polygon),
-      $front || $back || node.$polygons.push(polygon),
-      $front && (node.$front = csg_tree_addPolygon(node.$front, $front, plane)),
-      $back && (node.$back = csg_tree_addPolygon(node.$back, $back, plane)))
+    ? ({ x: front, y: back } = CSGPolygon_split(node, polygon),
+      front || back || node.$polygons.push(polygon),
+      front && (node.$front = csg_tree_addPolygon(node.$front, front, plane)),
+      back && (node.$back = csg_tree_addPolygon(node.$back, back, plane)))
     : node = {
       x: plane.x,
       y: plane.y,
@@ -917,10 +912,10 @@ const csg_tree_addPolygon = (node, polygon, plane = plane_fromPolygon(polygon.$p
 const csg_tree_clipNode = (anode, bnode, polygonPlaneFlipped) => {
   const result = [];
   const recursion = (node, polygon) => {
-    let { $front, $back } = CSGPolygon_split(node, polygon);
-    $front || $back || (0 < polygonPlaneFlipped * vec3_dot(node, bnode) ? $front = polygon : $back = polygon),
-      $front && (node.$front ? recursion(node.$front, $front) : result.push($front)),
-      $back && node.$back && recursion(node.$back, $back);
+    let { x: front, y: back } = CSGPolygon_split(node, polygon);
+    front || back || (0 < polygonPlaneFlipped * vec3_dot(node, bnode) ? front = polygon : back = polygon),
+      front && (node.$front ? recursion(node.$front, front) : result.push(front)),
+      back && node.$back && recursion(node.$back, back);
   };
   for (const polygon of bnode.$polygons) recursion(anode, polygon);
   return result;
@@ -966,8 +961,8 @@ const csg_polygons_subtract = (a, ...b) => {
           : byParent.set(polygon.$parent, polygon)),
         polygon;
     };
-    const byParent = new Map();
     const allPolygons = new Map();
+    const byParent = new Map();
     return a = csg_tree_flip(csg_union(csg_tree_flip(csg_tree(a)), ...b)),
       csg_tree_each(a, (node) => {
         for (const polygon of node.$polygons) allPolygons.set(add(polygon), polygon.$flipped);
