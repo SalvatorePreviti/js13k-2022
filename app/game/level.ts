@@ -32,7 +32,16 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     ),
   ).flat();
 
-  // hex corridor
+  const pushingRod = csg_polygons_subtract(
+    polygons_transform(cylinder(), translation(0, -0.5, 1).scale(1.15, 1.2, 6.5), material(0.25, 0.25, 0.35, 0.3)),
+    csg_polygons_subtract(
+      polygons_transform(cylinder(3), translation(0, 0, -5.5).scale(3, 2), material(0.6, 0.3, 0.4, 0.3)),
+      polygons_transform(cylinder(), translation(0, 0, -3.65).scale(2.5, 3), material(0.6, 0.3, 0.4, 0.3)),
+    ),
+    ...[-1, 1].map((i) =>
+      polygons_transform(cylinder(), translation(i * 1.2, -0.5, 1).scale(0.14, 0.3, 6.5), material(0.7, 0.2, 0, 0.3)),
+    ),
+  );
 
   const hexCorridorPolygons = [
     ...polygons_transform(cylinder(), translation(0, -3).scale(11, 1.4, 3), material(0.9, 0.9, 0.9, 0.2)),
@@ -69,17 +78,6 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
           .scale3d(4),
       ),
     );
-
-  const pushingRod = csg_polygons_subtract(
-    polygons_transform(cylinder(), translation(0, -0.5, 1).scale(1.15, 1.2, 6.5), material(0.25, 0.25, 0.35, 0.3)),
-    csg_polygons_subtract(
-      polygons_transform(cylinder(3), translation(0, 0, -5.5).scale(3, 2), material(0.6, 0.3, 0.4, 0.3)),
-      polygons_transform(cylinder(), translation(0, 0, -3.65).scale(2.5, 3), material(0.6, 0.3, 0.4, 0.3)),
-    ),
-    ...[-1, 1].map((i) =>
-      polygons_transform(cylinder(), translation(i * 1.2, -0.5, 1).scale(0.14, 0.3, 6.5), material(0.7, 0.2, 0, 0.3)),
-    ),
-  );
 
   // Initialize the full screen triangle for the sky. Must be the first model.
 
@@ -412,7 +410,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
   // after the hex pads
 
   [-1, 1].map((x, j) => {
-    // level after central gate, after the hex pads
+    // far arc level after central gate, after the hex pads
     meshAdd(
       csg_polygons_subtract(
         polygons_transform(cylinder(), translation(x * -4, 3.5, -0.5).scale(4, 4, 0.7), material(0.5, 0.5, 0.5, 0.4)),
@@ -534,12 +532,22 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
   // middle base
   meshAdd(
     csg_polygons_subtract(
-      polygons_transform(
-        cylinder(6, 0, 0, 0.3),
-        translation(0, -0.92, 95).scale(14, 2, 14),
-        material(0.8, 0.8, 0.8, 0.2),
+      csg_union(
+        // arcs roof
+        polygons_transform(cylinder(), translation(0, 16, 111).scale(3, 1, 3.8), material(0.5, 0.3, 0.3, 0.4)),
+        polygons_transform(cylinder(), translation(0, 16, 110.5).scale(12, 1, 3), material(0.5, 0.3, 0.3, 0.4)),
+        // base
+        polygons_transform(
+          cylinder(6, 0, 0, 0.3),
+          translation(0, -0.92, 95).scale(14, 2, 14),
+          material(0.8, 0.8, 0.8, 0.2),
+        ),
       ),
+
+      // base hole
       polygons_transform(cylinder(5), translation(0, 0, 95).scale3d(6), material(0.3, 0.3, 0.3, 0.5)),
+      // arcs roof hole
+      polygons_transform(cylinder(5), translation(0, 16, 103.5).scale(5.5, 5, 5.5), material(0.5, 0.3, 0.3, 0.4)),
     ),
   );
 
@@ -547,23 +555,17 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
   newLever(translation(0, 1.7, 82).rotate(0, 180), "LEVER_ID_AFTER_JUMPING_PADS");
 
   // lever pad
-  meshAdd(cylinder(5), translation(0, -15.7, 82).scale(2.5, 17, 2.5).rotate(0, 35), material(0.5, 0.3, 0.3, 0.4));
+  meshAdd(
+    cylinder(5).slice(0, -1),
+    translation(0, -15.7, 82).scale(2.5, 17, 2.5).rotate(0, 35),
+    material(0.5, 0.3, 0.3, 0.4),
+  );
 
   // pendulums supports
 
   meshAdd(cylinder(6), translation(0, 16, 121).scale(2.5, 1, 2.1).rotate(0, 90), material(0.5, 0.6, 0.7, 0.3));
   meshAdd(cylinder(), translation(0, 16, 127.8).scale(1.5, 1, 0.7), material(0.5, 0.6, 0.7, 0.3));
   meshAdd(cylinder(7), translation(0, 15.1, 133).scale(5, 2, 5), material(0.4, 0.5, 0.6, 0.4));
-
-  meshAdd(
-    csg_polygons_subtract(
-      csg_union(
-        polygons_transform(cylinder(), translation(0, 16, 110.5).scale(12, 1, 3), material(0.5, 0.3, 0.3, 0.4)),
-        polygons_transform(cylinder(), translation(0, 16, 111).scale(3, 1, 3.8), material(0.5, 0.3, 0.3, 0.4)),
-      ),
-      polygons_transform(cylinder(5), translation(0, 16, 103.5).scale(5.5, 5, 5.5), material(0.5, 0.3, 0.3, 0.4)),
-    ),
-  );
 
   // SOUL after first boat
   newSoul(translation(-0.5, 2.8, -20), [0, 0, 2.5], [0, -3, 2.5]);
@@ -914,8 +916,8 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     ),
   );
 
-  meshAdd(polygons_transform(cylinder(28, 1), identity.scale(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2)));
-  meshAdd(polygons_transform(cylinder(5), translation(0, 1).scale(1, 0.2), material(0.3, 0.3, 0.3, 0.2)));
+  meshAdd(cylinder(28, 1), identity.scale(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2));
+  meshAdd(cylinder(5), translation(0, 1).scale(1, 0.2), material(0.3, 0.3, 0.3, 0.2));
 
   // Third rotating platform
   newModel("MODEL_ID_ROTATING_PLATFORM2");
@@ -926,8 +928,8 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
       polygons_transform(cylinder(), translation(0, 0, 7).scale(2, 5, 9), material(0.3, 0, 0, 0.3)),
     ),
   );
-  meshAdd(polygons_transform(cylinder(28, 1), identity.scale(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2)));
-  meshAdd(polygons_transform(cylinder(5), translation(0, 1).scale(1, 0.2), material(0.3, 0.3, 0.3, 0.2)));
+  meshAdd(cylinder(28, 1), identity.scale(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2));
+  meshAdd(cylinder(5), translation(0, 1).scale(1, 0.2), material(0.3, 0.3, 0.3, 0.2));
 
   // Fourth rotating platform
   newModel("MODEL_ID_ROTATING_PLATFORM3");
@@ -938,8 +940,8 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
       polygons_transform(cylinder(), translation(0, 0, -7).scale(2, 5, 9), material(0.3, 0, 0, 0.3)),
     ),
   );
-  meshAdd(polygons_transform(cylinder(28, 1), identity.scale(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2)));
-  meshAdd(polygons_transform(cylinder(5), translation(0, 1).scale(1, 0.2), material(0.3, 0.3, 0.3, 0.2)));
+  meshAdd(cylinder(28, 1), identity.scale(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2));
+  meshAdd(cylinder(5), translation(0, 1).scale(1, 0.2), material(0.3, 0.3, 0.3, 0.2));
 
   // BOATS
   integers_map(2, (i) => {
