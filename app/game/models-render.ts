@@ -1,6 +1,6 @@
-import { MODEL_ID_PLAYER_BODY, MODEL_ID_PLAYER_LEG1, MODEL_ID_LEVER } from "./models-ids";
+import { MODEL_ID_PLAYER_BODY, MODEL_ID_PLAYER_LEG1 } from "./models-ids";
 import { mainMenuVisible } from "./game-time";
-import { allModels, levers, souls } from "./models";
+import { allModels, souls } from "./models";
 
 export const renderModels = (xgl: WebGL2RenderingContext, soulModelId: number, renderPlayer?: boolean) => {
   if (mainMenuVisible) {
@@ -23,15 +23,15 @@ export const renderModels = (xgl: WebGL2RenderingContext, soulModelId: number, r
       souls.length,
     );
 
-    // Render levers
+    // // Render levers
 
-    xgl.drawElementsInstanced(
-      xgl.TRIANGLES,
-      allModels[MODEL_ID_LEVER]!.$vertexEnd! - allModels[MODEL_ID_LEVER]!.$vertexBegin!,
-      xgl.UNSIGNED_SHORT,
-      allModels[MODEL_ID_LEVER]!.$vertexBegin! * 2,
-      levers.length,
-    );
+    // xgl.drawElementsInstanced(
+    //   xgl.TRIANGLES,
+    //   allModels[MODEL_ID_LEVER]!.$vertexEnd! - allModels[MODEL_ID_LEVER]!.$vertexBegin!,
+    //   xgl.UNSIGNED_SHORT,
+    //   allModels[MODEL_ID_LEVER]!.$vertexBegin! * 2,
+    //   levers.length,
+    // );
 
     // Render world
 

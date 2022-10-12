@@ -2,8 +2,9 @@ export const gl: WebGL2RenderingContext = hC.getContext("webgl2", { powerPrefere
 
 export const cgl: WebGL2RenderingContext = hD.getContext("webgl2", {
   powerPreference: "high-performance",
-  antialias: false,
   preserveDrawingBuffer: true,
+  desynchronized: true,
+  antialias: false,
 })!;
 
 for (const s in cgl) {

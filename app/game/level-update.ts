@@ -9,7 +9,6 @@ import {
   SOULS_COUNT,
 } from "./models";
 import { transformsBuffer } from "./transforms-buffer";
-import { matrixToArray, tempMatrix } from "../math/matrix";
 import { gameTime, gameTimeDelta, lerpDamp } from "./game-time";
 import { firstBoatLerp, secondBoatLerp } from "./world-state";
 import { player_update } from "./player";
@@ -62,6 +61,7 @@ import {
   MODEL_ID_ROTATING_PLATFORM3,
   MODEL_ID_TRIANGLE_PLATFORM,
 } from "./models-ids";
+import { matrixToArray } from "../math/matrix";
 
 export let shouldRotatePlatforms: number;
 
@@ -321,18 +321,13 @@ export const eppur_si_muove = () => {
 
   /// **** OBJECTS **** ///
 
-  // Update souls
-
-  for (let i = 0; i < SOULS_COUNT; ++i) {
-    souls[i]!();
-    matrixToArray(tempMatrix, transformsBuffer, MODELS_WITH_FULL_TRANSFORM + i);
-  }
-
-  // Update levers
+  // Update souls and levers
 
   for (let i = 0; i < LEVERS_COUNT; ++i) {
+    if (i < SOULS_COUNT) {
+      souls[i]!();
+    }
     levers[i]!();
-    matrixToArray(tempMatrix, transformsBuffer, MODELS_WITH_FULL_TRANSFORM + SOULS_COUNT + i);
   }
 
   // Update player
@@ -347,7 +342,7 @@ export const eppur_si_muove = () => {
 
   // Copy all models simple translation transform to the world uniform buffer
   for (
-    let i = 0, j = (MODELS_WITH_FULL_TRANSFORM + LEVERS_COUNT + SOULS_COUNT) * 16, m: DOMMatrix;
+    let i = 0, j = (MODELS_WITH_FULL_TRANSFORM + SOULS_COUNT) * 16, m: DOMMatrix;
     i < MODELS_WITH_SIMPLE_TRANSFORM;
     ++i, ++j
   ) {

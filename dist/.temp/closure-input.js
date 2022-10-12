@@ -10,8 +10,8 @@ let souls_collected_count;
 let game_completed;
 let firstBoatLerp;
 let secondBoatLerp;
-let meshAdd;
 let modelsUpdateCounter;
+let meshAdd;
 let player_update;
 let shouldRotatePlatforms;
 let rotatingPlatform1Rotation;
@@ -26,6 +26,7 @@ let camera_position_x = 0;
 let camera_position_y = 0;
 let camera_position_z = 0;
 let player_last_pulled_lever = 14;
+const MODELS_WITH_FULL_TRANSFORM = 28;
 const zFar = 181;
 let _messageEndTime = 0.1;
 const zNear = 0.3;
@@ -695,6 +696,10 @@ const onPlayerPullLever = (leverIndex) => {
   player_last_pulled_lever = leverIndex, showMessage("* click *", 1), saveGame();
 };
 const material = NO_INLINE((r, g, b, a = 0) => 255 * a << 24 | 255 * b << 16 | 255 * g << 8 | 255 * r);
+const modelsNextUpdate = (x, y = 0, z = 0) => {
+  const m = matrixCopy(identity, allModels[++modelsUpdateCounter].$matrix);
+  return m.m41 = x, m.m42 = y, m.m43 = z, m;
+};
 const newModel = NO_INLINE(() => {
   const $polygon = [];
   meshAdd = (polygons, transform = identity, color) => $polygon.push(...polygons_transform(polygons, transform, color)),
@@ -711,20 +716,22 @@ const distanceToPlayer = () => (matrixTransformPoint(),
   ));
 const newLever = (transform) => {
   const lever = () => {
-    lever.$lerpValue = lerpDamp(lever.$lerpValue, lever.$value, 4),
-      lever.$lerpValue2 = lerpDamp(lever.$lerpValue2, lever.$value, 1),
-      matrixCopy(parentModelMatrix).multiplySelf(transform),
+    const lerpValue = lever.$lerpValue = lerpDamp(lever.$lerpValue, lever.$value, 4);
+    lever.$lerpValue2 = lerpDamp(lever.$lerpValue2, lever.$value, 1),
+      matrixCopy(matrixCopy(parentModelMatrix).multiplySelf(transform), modelsNextUpdate(0)).rotateSelf(
+        50 * lerpValue - 25,
+        0,
+      ).translateSelf(0, 1).m44 = lerpValue,
       interact_pressed && distanceToPlayer() < 3
         ? lever.$value
-          ? 0.7 < lever.$lerpValue && (lever.$value = 0, onPlayerPullLever(index))
-          : lever.$lerpValue < 0.3 && (lever.$value = 1, onPlayerPullLever(index))
-        : lever.$value && 0.8 < lever.$lerpValue && index === 14
+          ? 0.7 < lerpValue && (lever.$value = 0, onPlayerPullLever(index))
+          : lerpValue < 0.3 && (lever.$value = 1, onPlayerPullLever(index))
+        : lever.$value && 0.8 < lerpValue && index === 14
           && (lever.$value = 0,
             souls_collected_count < 13
               ? showMessage("Not leaving now, there are souls to catch!", 3)
               : game_completed
-                || (showMessage("Well done. They will be punished.<br>Thanks for playing", 1 / 0), game_completed = 1)),
-      tempMatrix.rotateSelf(50 * lever.$lerpValue - 25, 0).translateSelf(0, 1).m44 = lever.$lerpValue;
+                || (showMessage("Well done. They will be punished.<br>Thanks for playing", 1 / 0), game_completed = 1));
   };
   const parentModelMatrix = allModels.at(-1).$matrix;
   const index = levers.length;
@@ -806,11 +813,11 @@ const newSoul = (transform, ...walkingPath) => {
           saveGame());
     }
     soul.$value
-      && matrixCopy(allModels[35].$matrix).translateSelf(
-        index % 4 * 1.2 - 1.7 + Math.sin(gameTime + index) / 7,
-        -2,
-        1.7 * (index / 4 | 0) - 5.5 + abs(index % 4 - 2) + Math.cos(gameTime / 1.5 + index) / 6,
-      );
+    && matrixCopy(allModels[35].$matrix).translateSelf(
+      index % 4 * 1.2 - 1.7 + Math.sin(gameTime + index) / 7,
+      -2,
+      1.7 * (index / 4 | 0) - 5.5 + abs(index % 4 - 2) + Math.cos(gameTime / 1.5 + index) / 6,
+    ), matrixToArray(tempMatrix, transformsBuffer, MODELS_WITH_FULL_TRANSFORM + index);
   };
   let circle = walkingPath[0];
   let [targetX, targetZ] = circle;
@@ -971,10 +978,6 @@ const csg_polygons_subtract = (a, ...b) => {
         return polygon_color(flipped ? polygon.reverse() : polygon, $polygon.$color, $polygon.$smooth);
       });
   }
-};
-const modelsNextUpdate = (x, y = 0, z = 0) => {
-  const m = matrixCopy(identity, allModels[++modelsUpdateCounter].$matrix);
-  return m.m41 = x, m.m42 = y, m.m43 = z, m;
 };
 const player_init = () => {
   let player_look_angle_target;
@@ -1156,7 +1159,7 @@ const player_init = () => {
       ).rotateSelf(0, player_look_angle);
     for (let i = 0; i < 2; ++i) {
       const t = 9.1 * gameTime - Math.PI * i;
-      matrixCopy(allModels[37].$matrix, modelsNextUpdate(0)).translateSelf(
+      matrixCopy(allModels[53].$matrix, modelsNextUpdate(0)).translateSelf(
         0,
         player_legs_speed * clamp(0.45 * Math.sin(t - Math.PI / 2)),
       ).rotateSelf(player_legs_speed * Math.sin(t) * 0.25 / DEG_TO_RAD, 0);
@@ -1185,7 +1188,7 @@ const player_init = () => {
 const renderModels = (xgl, soulModelId, renderPlayer) => {
   mainMenuVisible
     ? 1100 < hC.width
-      && xgl["d97"](4, allModels[39].$vertexEnd - allModels[37].$vertexBegin, 5123, 2 * allModels[37].$vertexBegin)
+      && xgl["d97"](4, allModels[55].$vertexEnd - allModels[53].$vertexBegin, 5123, 2 * allModels[53].$vertexBegin)
     : (xgl["das"](
       4,
       allModels[soulModelId].$vertexEnd - allModels[soulModelId].$vertexBegin,
@@ -1193,14 +1196,7 @@ const renderModels = (xgl, soulModelId, renderPlayer) => {
       2 * allModels[soulModelId].$vertexBegin,
       souls.length,
     ),
-      xgl["das"](
-        4,
-        allModels[40].$vertexEnd - allModels[40].$vertexBegin,
-        5123,
-        2 * allModels[40].$vertexBegin,
-        levers.length,
-      ),
-      xgl["d97"](4, (renderPlayer ? allModels[39].$vertexEnd : allModels[37].$vertexBegin) - 3, 5123, 6));
+      xgl["d97"](4, (renderPlayer ? allModels[55].$vertexEnd : allModels[53].$vertexBegin) - 3, 5123, 6));
 };
 const startMainLoop = (groundTextureImage) => {
   const csm_tempFrustumCorners = [
@@ -1217,7 +1213,7 @@ const startMainLoop = (groundTextureImage) => {
     xgl,
     sfsSource,
     vfsSource = `#version 300 es
-layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 b,a;uniform vec4 j[190];void main(){mat4 r=mat4(1);lowp int i=int(f.w);if(l=d,m=vec4(f.xyz,1),f.w>1.&&f.w<28.)m+=(r[3]=j[i+162]);else if(f.w!=1.){if(i=(i<1?gl_InstanceID-i:i-28)*4,r[0]=j[i],r[1]=j[i+1],r[2]=j[i+2],r[3]=j[i+3],f.w==-25.&&l.w==0.)l=mix(l,vec4(.7,1,.2,0),r[3][3]);r[3][3]=1.,m=r*m;}gl_Position=a*b*m,m.w=f.w,o=r*vec4(e,0),n=f;}`,
+layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 b,a;uniform vec4 j[190];void main(){mat4 r=mat4(1);lowp int i=int(f.w);if(l=d,m=vec4(f.xyz,1),f.w>1.&&f.w<28.)m+=(r[3]=j[i+162]);else if(f.w!=1.){if(i=(i<1?gl_InstanceID-i:i-28)*4,r[0]=j[i],r[1]=j[i+1],r[2]=j[i+2],r[3]=j[i+3],l.w==0.)l=mix(vec4(1,.5,.2,0),l,r[3][3]);r[3][3]=1.,m=r*m;}gl_Position=a*b*m,m.w=f.w,o=r*vec4(e,0),n=f;}`,
   ) => {
     const uniforms = {};
     const loadShader = (source, type) => (type = xgl["c6x"](type), xgl["s3c"](type, source), xgl["c6a"](type), type);
@@ -1341,12 +1337,13 @@ layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec
         modelsNextUpdate(-50.7, 0.8, 91).rotateSelf(0, 270 + rotatingPlatform2Rotation),
         dt(-12, 4.2, 40 * firstBoatLerp - 66),
         dt(-123, 1.4, 55 - 65 * secondBoatLerp);
-      for (let i2 = 0; i2 < 13; ++i2) souls[i2](), matrixToArray(tempMatrix, transformsBuffer, 12 + i2);
-      for (let i3 = 0; i3 < 16; ++i3) levers[i3](), matrixToArray(tempMatrix, transformsBuffer, 25 + i3);
+      for (let i2 = 0; i2 < 16; ++i2) i2 < 13 && souls[i2](), levers[i2]();
       player_update();
-      for (let i4 = 0; i4 < 12; ++i4) matrixToArray(allModels[28 + i4].$matrix, transformsBuffer, i4);
-      for (let m, i5 = 0, j = 656; i5 < 26; ++i5, ++j) {
-        m = allModels[2 + i5].$matrix,
+      for (let i3 = 0; MODELS_WITH_FULL_TRANSFORM > i3; ++i3) {
+        matrixToArray(allModels[28 + i3].$matrix, transformsBuffer, i3);
+      }
+      for (let m, i4 = 0, j = 16 * (MODELS_WITH_FULL_TRANSFORM + 13); i4 < 26; ++i4, ++j) {
+        m = allModels[2 + i4].$matrix,
           transformsBuffer[j++] = m.m41,
           transformsBuffer[j++] = m.m42,
           transformsBuffer[j++] = m.m43;
@@ -1366,7 +1363,7 @@ layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec
             ),
           ),
         ),
-        renderModels(cgl, 41),
+        renderModels(cgl, 56),
         cgl["c4s"](256),
         cgl["cbf"](!1, !0, !1, !0),
         cgl["uae"](
@@ -1380,7 +1377,7 @@ layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec
             ),
           ),
         ),
-        renderModels(cgl, 41),
+        renderModels(cgl, 56),
         cgl["f1s"](),
         interact_pressed = 0;
     }
@@ -1392,9 +1389,9 @@ layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec
       gl["ubh"](mainShader("h"), 4),
       gl["uae"](mainShader("a"), !1, matrixToArray(identity)),
       csm0(55 - zNear),
-      renderModels(gl, 42, !player_first_person),
+      renderModels(gl, 57, !player_first_person),
       csm1(zFar - 55),
-      renderModels(gl, 42, !player_first_person),
+      renderModels(gl, 57, !player_first_person),
       gl["b6o"](36160, null),
       gl["v5y"](0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight),
       gl["c4s"](16640);
@@ -1403,9 +1400,9 @@ layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec
     let cameraZ = camera_position_z;
     mainMenuVisible
       ? (matrixCopy().rotateSelf(0, 40 * Math.sin(absoluteTime) - 80, -8),
-        matrixToArray(tempMatrix, transformsBuffer, 9),
-        matrixToArray(tempMatrix, transformsBuffer, 10),
-        matrixToArray(tempMatrix, transformsBuffer, 11),
+        matrixToArray(tempMatrix, transformsBuffer, 25),
+        matrixToArray(tempMatrix, transformsBuffer, 26),
+        matrixToArray(tempMatrix, transformsBuffer, 27),
         matrixCopy(projection).invertSelf(),
         matrixTransformPoint(3.6, 3.5),
         cameraX = matrixTransformPoint.x,
@@ -1424,7 +1421,7 @@ layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec
       gl["uae"](mainShader("a"), !1, matrixToArray(projection)),
       gl["uae"](mainShader("b"), !1, matrixToArray(camera_view)),
       gl["uae"](mainShader("i"), !1, csm_lightSpaceMatrices),
-      renderModels(gl, 42, !player_first_person),
+      renderModels(gl, 57, !player_first_person),
       skyShader(),
       gl["uae"](skyShader("b"), !1, matrixToArray(matrixCopy(camera_view).invertSelf())),
       gl["ubu"](skyShader("j"), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime),
@@ -1543,7 +1540,6 @@ in vec4 f;void main(){gl_Position=vec4(f.xy,1,1);}`,
 const identity = new DOMMatrix();
 const tempMatrix = new DOMMatrix();
 const float32Array16Temp = new Float32Array(16);
-const transformsBuffer = new Float32Array(760);
 const collision_buffer = new Uint8Array(65536);
 const groundTextureSvg = (NO_INLINE(`<!DOCTYPE html><html><head>
     <title>666</title>
@@ -1663,13 +1659,15 @@ main,
   + btoa(
     "<svg color-interpolation-filters=\"sRGB\" height=\"1024\" width=\"1024\" xmlns=\"http://www.w3.org/2000/svg\"><filter filterUnits=\"userSpaceOnUse\" height=\"1026\" id=\"a\" width=\"1026\" x=\"0\" y=\"0\"><feTurbulence baseFrequency=\".007\" height=\"1025\" numOctaves=\"6\" stitchTiles=\"stitch\" width=\"1025\" result=\"z\" type=\"fractalNoise\" x=\"1\" y=\"1\"/><feTile height=\"1024\" width=\"1024\" x=\"-1\" y=\"-1\"/><feTile/><feDiffuseLighting diffuseConstant=\"4\" lighting-color=\"red\" surfaceScale=\"5\"><feDistantLight azimuth=\"270\" elevation=\"5\"/></feDiffuseLighting><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"x\"/><feColorMatrix values=\"0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 1\" in=\"z\"/><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"z\"/><feTurbulence baseFrequency=\".01\" height=\"1024\" numOctaves=\"5\" stitchTiles=\"stitch\" width=\"1024\"/><feColorMatrix values=\"0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1\"/><feBlend in2=\"x\" mode=\"screen\"/><feBlend in2=\"z\" mode=\"screen\"/></filter><rect filter=\"url(#a)\" height=\"100%\" width=\"100%\"/></svg>",
   ));
+const transformsBuffer = new Float32Array(4 * (4 * (MODELS_WITH_FULL_TRANSFORM + 13) + 26));
 const gl = hC.getContext("webgl2", {
   powerPreference: "high-performance",
 });
 const cgl = hD.getContext("webgl2", {
   powerPreference: "high-performance",
-  antialias: !1,
   preserveDrawingBuffer: !0,
+  desynchronized: !0,
+  antialias: !1,
 });
 for (const s in cgl) {
   [
@@ -1724,7 +1722,7 @@ loadStep(() => {
                   _vertexNormals.push(_vertexInts[5], _vertexInts[6], _vertexInts[7])),
                 vertexIndex;
             };
-            for (polygon of (_vertexFloats[3] = 40 < index ? -12 : 39 < index ? -25 : index, model.$polygon)) {
+            for (polygon of (_vertexFloats[3] = 55 < index ? -MODELS_WITH_FULL_TRANSFORM : index, model.$polygon)) {
               const { x, y, z } = plane_fromPolygon(polygon);
               _vertexInts[4] = 0 | polygon.$color,
                 _vertexInts[5] = 32767 * x,
@@ -2649,8 +2647,14 @@ loadStep(() => {
                 ),
               ),
               newLever(translation(0, -3, 4));
-          }),
-          newModel("MODEL_ID_PLAYER_BODY"),
+          });
+        for (let i = 0; i < 16; ++i) {
+          newModel("MODEL_ID_LEVER" + i),
+            meshAdd(cylinder(6, 1).slice(0, -1), identity.scale(0.12, 1.2, 0.12), material(0.3, 0.3, 0.5, 0.1)),
+            meshAdd(cylinder(9, 1), translation(0, 0.8).scale(0.2, 0.3, 0.2), material(0.7, 1, 0.2)),
+            meshAdd(cylinder(3), translation(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3), material(0.2, 0.2, 0.2, 0.1));
+        }
+        newModel("MODEL_ID_PLAYER_BODY"),
           meshAdd(sphere(20), translation(0, 1).scale3d(0.5), material(1, 0.3, 0.4)),
           meshAdd(sphere(30), identity.scale(0.65, 0.8, 0.55), material(1, 0.3, 0.4)),
           meshAdd(cylinder(), translation(0, 0.9, 0.45).scale(0.15, 0.02, 0.06), material(0.3, 0.3, 0.3)),
@@ -2682,10 +2686,6 @@ loadStep(() => {
             newModel("MODEL_ID_PLAYER_LEG" + i),
               meshAdd(cylinder(20, 1), translation(0.3 * v, -0.8).scale(0.2, 0.7, 0.24), material(1, 0.3, 0.4));
           }),
-          newModel("MODEL_ID_LEVER"),
-          meshAdd(cylinder(6, 1), identity.scale(0.12, 1.2, 0.12), material(0.3, 0.3, 0.5, 0.1)),
-          meshAdd(cylinder(9, 1), translation(0, 0.8).scale(0.2, 0.3, 0.2), material(1, 0.5, 0.2)),
-          meshAdd(cylinder(3), translation(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3), material(0.2, 0.2, 0.2, 0.1)),
           newModel("MODEL_ID_SOUL_COLLISION"),
           meshAdd(cylinder(6, 1).slice(0, -1), identity.scale(0.77, 1, 0.77), material(1, 0.3, 0.5)),
           newModel("MODEL_ID_SOUL"),

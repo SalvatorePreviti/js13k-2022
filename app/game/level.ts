@@ -1,4 +1,3 @@
-import type { Circle } from "./models";
 import { abs } from "../math/math";
 import { GQuad, cylinder, polygon_regular, sphere, cylinder_sides } from "../geometry/geometry";
 import { polygon_transform, polygons_transform, type Polygon } from "../geometry/polygon";
@@ -9,6 +8,7 @@ import { identity } from "../math/matrix";
 import { devAllModelsPrint } from "../dev-tools/dev-models";
 import { translation } from "../math/matrix-transforms";
 import { integers_map } from "../math/integers-map";
+import { LEVERS_COUNT, type Circle } from "./models";
 
 export const build_life_the_universe_and_everything = (): 42 | void => {
   const HORN_STACKS = 11;
@@ -959,6 +959,13 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     newLever(translation(0, -3, 4), "LEVER_ID_BOAT" + i);
   });
 
+  for (let i = 0; i < LEVERS_COUNT; ++i) {
+    newModel("MODEL_ID_LEVER" + i);
+    meshAdd(cylinder(6, 1).slice(0, -1), identity.scale(0.12, 1.2, 0.12), material(0.3, 0.3, 0.5, 0.1));
+    meshAdd(cylinder(9, 1), translation(0, 0.8).scale(0.2, 0.3, 0.2), material(0.7, 1, 0.2));
+    meshAdd(cylinder(3), translation(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3), material(0.2, 0.2, 0.2, 0.1));
+  }
+
   // ------ End of game models ------
 
   newModel("MODEL_ID_PLAYER_BODY");
@@ -1001,12 +1008,6 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     meshAdd(cylinder(20, 1), translation(0.3 * v, -0.8).scale(0.2, 0.7, 0.24), material(1, 0.3, 0.4));
   });
 
-  newModel("MODEL_ID_LEVER");
-
-  meshAdd(cylinder(6, 1).slice(0, -1), identity.scale(0.12, 1.2, 0.12), material(0.3, 0.3, 0.5, 0.1));
-  meshAdd(cylinder(9, 1), translation(0, 0.8).scale(0.2, 0.3, 0.2), material(1, 0.5, 0.2));
-  meshAdd(cylinder(3), translation(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3), material(0.2, 0.2, 0.2, 0.1));
-
   newModel("MODEL_ID_SOUL_COLLISION");
 
   meshAdd(cylinder(6, 1).slice(0, -1), identity.scale(0.77, 1, 0.77), material(1, 0.3, 0.5));
@@ -1036,7 +1037,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
   );
 
   // eyes
-  [-1, 1].map((x) => meshAdd(sphere(10), translation(x * 0.16, 0.4, -0.36).scale3d(0.09)));
+  [-1, 1].map((x) => meshAdd(sphere(10), translation(0.16 * x, 0.4, -0.36).scale3d(0.09)));
 
   if (DEBUG) {
     console.timeEnd("build_life_the_universe_and_everything");

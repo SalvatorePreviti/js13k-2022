@@ -1,8 +1,17 @@
-import { levers, souls, allModels, type Model, type Circle, type Lever, type Soul } from "./models";
+import {
+  levers,
+  souls,
+  allModels,
+  type Model,
+  type Circle,
+  type Lever,
+  type Soul,
+  MODELS_WITH_FULL_TRANSFORM,
+} from "./models";
 import { player_position_final, onFirstBoatLeverPulled, onPlayerPullLever, onSoulCollected } from "./world-state";
 import type { Vec3Optional } from "../math/vectors";
 import { min, angle_lerp_degrees, DEG_TO_RAD, clamp, abs, hypot } from "../math/math";
-import { identity, matrixCopy, matrixTransformPoint, tempMatrix } from "../math/matrix";
+import { identity, matrixCopy, matrixToArray, matrixTransformPoint, tempMatrix } from "../math/matrix";
 import { lerpDamp, damp, gameTime } from "./game-time";
 import { polygons_transform, type Polygon } from "../geometry/polygon";
 import { cylinder } from "../geometry/geometry";
@@ -11,6 +20,8 @@ import { interact_pressed } from "../page";
 import { MODEL_ID_BOAT0 } from "./models-ids";
 import { devLeverAdd, devModelsAdd } from "../dev-tools/dev-models";
 import { LEVER_ID_BOAT0 } from "./levers-ids";
+import { modelsNextUpdate } from "./models-next-update";
+import { transformsBuffer } from "./transforms-buffer";
 
 export let meshAdd: (
   polygons: Polygon<Readonly<Vec3Optional>>[],
@@ -48,29 +59,29 @@ export const newLever = (transform: DOMMatrixReadOnly, name: string): void => {
   const parentModelMatrix = allModels.at(-1)!.$matrix;
   const index = levers.length;
   const lever: Lever = (() => {
-    lever.$lerpValue = lerpDamp(lever.$lerpValue, lever.$value, 4);
+    const lerpValue = (lever.$lerpValue = lerpDamp(lever.$lerpValue, lever.$value, 4));
     lever.$lerpValue2 = lerpDamp(lever.$lerpValue2, lever.$value, 1);
-
-    matrixCopy(parentModelMatrix).multiplySelf(transform);
-
-    if (interact_pressed && distanceToPlayer() < LEVER_SENSITIVITY_RADIUS) {
-      if (lever.$value) {
-        if (lever.$lerpValue > 0.7) {
-          lever.$value = 0;
-          onPlayerPullLever(index);
-        }
-      } else if (lever.$lerpValue < 0.3) {
-        lever.$value = 1;
-        onPlayerPullLever(index);
-      }
-    } else if (lever.$value && lever.$lerpValue > 0.8 && index === LEVER_ID_BOAT0) {
-      lever.$value = 0;
-      onFirstBoatLeverPulled();
-    }
 
     // Prepare the matrix to be written to the uniform buffer for the lever stick.
     // and encode lerp value in matrix m44 so fragmemt shader can change the lever handle color
-    tempMatrix.rotateSelf(lever.$lerpValue * 50 - 25, 0).translateSelf(0, 1).m44 = lever.$lerpValue;
+    matrixCopy(matrixCopy(parentModelMatrix).multiplySelf(transform), modelsNextUpdate(0))
+      .rotateSelf(50 * lerpValue - 25, 0)
+      .translateSelf(0, 1).m44 = lerpValue;
+
+    if (interact_pressed && distanceToPlayer() < LEVER_SENSITIVITY_RADIUS) {
+      if (lever.$value) {
+        if (lerpValue > 0.7) {
+          lever.$value = 0;
+          onPlayerPullLever(index);
+        }
+      } else if (lerpValue < 0.3) {
+        lever.$value = 1;
+        onPlayerPullLever(index);
+      }
+    } else if (lever.$value && lerpValue > 0.8 && index === LEVER_ID_BOAT0) {
+      lever.$value = 0;
+      onFirstBoatLeverPulled();
+    }
   }) as Lever;
   lever.$matrix = parentModelMatrix;
   lever.$transform = transform;
@@ -167,6 +178,8 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: Circle[]) 
         -5.5 + ((index / 4) | 0) * 1.7 + abs((index % 4) - 2) + Math.cos(gameTime / 1.5 + index) / 6,
       );
     }
+
+    matrixToArray(tempMatrix, transformsBuffer, MODELS_WITH_FULL_TRANSFORM + index);
   }) as Soul;
 
   souls.push(soul);

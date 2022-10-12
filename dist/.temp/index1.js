@@ -175,10 +175,10 @@ const sphere = (slices, stacks = slices, vertexFunc = (x, y) => {
   }
   return polygons;
 };
-const MODELS_WITH_SIMPLE_TRANSFORM = 26;
-const MODELS_WITH_FULL_TRANSFORM = 12;
 const SOULS_COUNT = 13;
 const LEVERS_COUNT = 16;
+const MODELS_WITH_SIMPLE_TRANSFORM = 26;
+const MODELS_WITH_FULL_TRANSFORM = 12 + LEVERS_COUNT;
 const allModels = [];
 const levers = [];
 const souls = [];
@@ -966,12 +966,23 @@ const MODEL_ID_STATIC_WORLD = 1;
 const MODEL_ID_LEVEL2_ROTATING_HEX_CORRIDOR = 28;
 const MODEL_ID_ROTATING_PLATFORM0 = 31;
 const MODEL_ID_BOAT0 = 35;
-const MODEL_ID_PLAYER_BODY = 37;
-const MODEL_ID_PLAYER_LEG0 = 38;
-const MODEL_ID_PLAYER_LEG1 = 39;
-const MODEL_ID_LEVER = 40;
-const MODEL_ID_SOUL_COLLISION = 41;
-const MODEL_ID_SOUL = 42;
+const MODEL_ID_PLAYER_BODY = 53;
+const MODEL_ID_PLAYER_LEG0 = 54;
+const MODEL_ID_PLAYER_LEG1 = 55;
+const MODEL_ID_SOUL_COLLISION = 56;
+const MODEL_ID_SOUL = 57;
+let modelsUpdateCounter;
+const modelsResetUpdateCounter = () => modelsUpdateCounter = 1;
+const modelsNextUpdate = (x, y = 0, z = 0) => {
+  const m = matrixCopy(identity, allModels[++modelsUpdateCounter].$matrix);
+  m.m41 = x;
+  m.m42 = y;
+  m.m43 = z;
+  return m;
+};
+const transformsBuffer = new Float32Array(
+  4 * (4 * (MODELS_WITH_FULL_TRANSFORM + SOULS_COUNT) + MODELS_WITH_SIMPLE_TRANSFORM),
+);
 let meshAdd;
 const newModel = NO_INLINE((name) => {
   const $polygon = [];
@@ -996,24 +1007,26 @@ const newLever = (transform, name) => {
   const parentModelMatrix = allModels.at(-1).$matrix;
   const index = levers.length;
   const lever = () => {
-    lever.$lerpValue = lerpDamp(lever.$lerpValue, lever.$value, 4);
+    const lerpValue = lever.$lerpValue = lerpDamp(lever.$lerpValue, lever.$value, 4);
     lever.$lerpValue2 = lerpDamp(lever.$lerpValue2, lever.$value, 1);
-    matrixCopy(parentModelMatrix).multiplySelf(transform);
+    matrixCopy(matrixCopy(parentModelMatrix).multiplySelf(transform), modelsNextUpdate(0)).rotateSelf(
+      50 * lerpValue - 25,
+      0,
+    ).translateSelf(0, 1).m44 = lerpValue;
     if (interact_pressed && distanceToPlayer() < LEVER_SENSITIVITY_RADIUS) {
       if (lever.$value) {
-        if (lever.$lerpValue > 0.7) {
+        if (lerpValue > 0.7) {
           lever.$value = 0;
           onPlayerPullLever(index);
         }
-      } else if (lever.$lerpValue < 0.3) {
+      } else if (lerpValue < 0.3) {
         lever.$value = 1;
         onPlayerPullLever(index);
       }
-    } else if (lever.$value && lever.$lerpValue > 0.8 && index === LEVER_ID_BOAT0) {
+    } else if (lever.$value && lerpValue > 0.8 && index === LEVER_ID_BOAT0) {
       lever.$value = 0;
       onFirstBoatLeverPulled();
     }
-    tempMatrix.rotateSelf(lever.$lerpValue * 50 - 25, 0).translateSelf(0, 1).m44 = lever.$lerpValue;
   };
   lever.$matrix = parentModelMatrix;
   lever.$transform = transform;
@@ -1097,6 +1110,7 @@ const newSoul = (transform, ...walkingPath) => {
         -5.5 + (index / 4 | 0) * 1.7 + abs(index % 4 - 2) + /* @__PURE__ */ Math.cos(gameTime / 1.5 + index) / 6,
       );
     }
+    matrixToArray(tempMatrix, transformsBuffer, MODELS_WITH_FULL_TRANSFORM + index);
   };
   souls.push(soul);
 };
@@ -2071,6 +2085,12 @@ const build_life_the_universe_and_everything = () => {
     );
     newLever(translation(0, -3, 4));
   });
+  for (let i = 0; i < LEVERS_COUNT; ++i) {
+    newModel("MODEL_ID_LEVER" + i);
+    meshAdd(cylinder(6, 1).slice(0, -1), identity.scale(0.12, 1.2, 0.12), material(0.3, 0.3, 0.5, 0.1));
+    meshAdd(cylinder(9, 1), translation(0, 0.8).scale(0.2, 0.3, 0.2), material(0.7, 1, 0.2));
+    meshAdd(cylinder(3), translation(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3), material(0.2, 0.2, 0.2, 0.1));
+  }
   newModel("MODEL_ID_PLAYER_BODY");
   meshAdd(sphere(20), translation(0, 1).scale3d(0.5), material(1, 0.3, 0.4));
   meshAdd(sphere(30), identity.scale(0.65, 0.8, 0.55), material(1, 0.3, 0.4));
@@ -2100,10 +2120,6 @@ const build_life_the_universe_and_everything = () => {
     newModel("MODEL_ID_PLAYER_LEG" + i);
     meshAdd(cylinder(20, 1), translation(0.3 * v, -0.8).scale(0.2, 0.7, 0.24), material(1, 0.3, 0.4));
   });
-  newModel("MODEL_ID_LEVER");
-  meshAdd(cylinder(6, 1), identity.scale(0.12, 1.2, 0.12), material(0.3, 0.3, 0.5, 0.1));
-  meshAdd(cylinder(9, 1), translation(0, 0.8).scale(0.2, 0.3, 0.2), material(1, 0.5, 0.2));
-  meshAdd(cylinder(3), translation(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3), material(0.2, 0.2, 0.2, 0.1));
   newModel("MODEL_ID_SOUL_COLLISION");
   meshAdd(cylinder(6, 1).slice(0, -1), identity.scale(0.77, 1, 0.77), material(1, 0.3, 0.5));
   newModel("MODEL_ID_SOUL");
@@ -2133,10 +2149,10 @@ const build_life_the_universe_and_everything = () => {
   [
     -1,
     1,
-  ].map((x) => meshAdd(sphere(10), translation(x * 0.16, 0.4, -0.36).scale3d(0.09)));
+  ].map((x) => meshAdd(sphere(10), translation(0.16 * x, 0.4, -0.36).scale3d(0.09)));
 };
 const code$3 =
-  "#version 300 es\nlayout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 b,a;uniform vec4 j[190];void main(){mat4 r=mat4(1);lowp int i=int(f.w);if(l=d,m=vec4(f.xyz,1),f.w>1.&&f.w<28.)m+=(r[3]=j[i+162]);else if(f.w!=1.){if(i=(i<1?gl_InstanceID-i:i-28)*4,r[0]=j[i],r[1]=j[i+1],r[2]=j[i+2],r[3]=j[i+3],f.w==-25.&&l.w==0.)l=mix(l,vec4(.7,1,.2,0),r[3][3]);r[3][3]=1.,m=r*m;}gl_Position=a*b*m,m.w=f.w,o=r*vec4(e,0),n=f;}";
+  "#version 300 es\nlayout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 b,a;uniform vec4 j[190];void main(){mat4 r=mat4(1);lowp int i=int(f.w);if(l=d,m=vec4(f.xyz,1),f.w>1.&&f.w<28.)m+=(r[3]=j[i+162]);else if(f.w!=1.){if(i=(i<1?gl_InstanceID-i:i-28)*4,r[0]=j[i],r[1]=j[i+1],r[2]=j[i+2],r[3]=j[i+3],l.w==0.)l=mix(vec4(1,.5,.2,0),l,r[3][3]);r[3][3]=1.,m=r*m;}gl_Position=a*b*m,m.w=f.w,o=r*vec4(e,0),n=f;}";
 const uniformName_projectionMatrix = "a";
 const uniformName_viewMatrix = "b";
 const uniformName_worldTransforms = "j";
@@ -2147,16 +2163,14 @@ const code$1 = "#version 300 es\nin vec4 f;void main(){gl_Position=vec4(f.xy,1,1
 const code =
   "#version 300 es\nprecision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;out vec4 O;void main(){vec2 t=gl_FragCoord.xy/j.xy*2.-1.;vec3 e=(normalize(b*vec4(t.x*-(j.x/j.y),-t.y,1.73205,0.))).xyz;float o=(-32.-b[3].y)/e.y,i=1.-clamp(abs(o/9999.),0.,1.);if(O=vec4(0,0,0,1),i>.01){if(o>0.){float i=cos(j.z/30.),o=sin(j.z/30.);e.xz*=mat2(i,o,-o,i);vec3 t=abs(e);O.xyz=vec3(dot(vec2(texture(q,e.xy).z,texture(q,e.yz*2.).z),t.zx)*t.y);}else e=b[3].xyz+e*o,O.x=(i*=.9-texture(q,e.xz/150.+vec2(sin(e.z/35.+j.z),cos(e.x/25.+j.z))/80.).y),O.y=i*i*i;}}";
 const uniformName_iResolution = "j";
-const transformsBuffer = new Float32Array(
-  (4 * (MODELS_WITH_FULL_TRANSFORM + LEVERS_COUNT + SOULS_COUNT) + MODELS_WITH_SIMPLE_TRANSFORM) * 4,
-);
 const gl = hC.getContext("webgl2", {
   powerPreference: "high-performance",
 });
 const cgl = hD.getContext("webgl2", {
   powerPreference: "high-performance",
-  antialias: false,
   preserveDrawingBuffer: true,
+  desynchronized: true,
+  antialias: false,
 });
 for (const s in cgl) {
   [
@@ -2170,15 +2184,6 @@ for (const s in cgl) {
     ] = xgl[s]
   );
 }
-let modelsUpdateCounter;
-const modelsResetUpdateCounter = () => modelsUpdateCounter = 1;
-const modelsNextUpdate = (x, y = 0, z = 0) => {
-  const m = matrixCopy(identity, allModels[++modelsUpdateCounter].$matrix);
-  m.m41 = x;
-  m.m42 = y;
-  m.m43 = z;
-  return m;
-};
 const CAMERA_PLAYER_Y_DIST = 13;
 const CAMERA_PLAYER_Z_DIST = -18;
 const PLAYER_LEGS_VELOCITY = 9.1;
@@ -2581,24 +2586,22 @@ const eppur_si_muove = () => {
     );
   boatUpdate(-12, 4.2, -66 + 40 * firstBoatLerp);
   boatUpdate(-123, 1.4, 55 - 65 * secondBoatLerp);
-  for (let i2 = 0; i2 < SOULS_COUNT; ++i2) {
-    souls[i2]();
-    matrixToArray(tempMatrix, transformsBuffer, MODELS_WITH_FULL_TRANSFORM + i2);
-  }
-  for (let i3 = 0; i3 < LEVERS_COUNT; ++i3) {
-    levers[i3]();
-    matrixToArray(tempMatrix, transformsBuffer, MODELS_WITH_FULL_TRANSFORM + SOULS_COUNT + i3);
+  for (let i2 = 0; i2 < LEVERS_COUNT; ++i2) {
+    if (i2 < SOULS_COUNT) {
+      souls[i2]();
+    }
+    levers[i2]();
   }
   player_update();
-  for (let i4 = 0; i4 < MODELS_WITH_FULL_TRANSFORM; ++i4) {
-    matrixToArray(allModels[2 + MODELS_WITH_SIMPLE_TRANSFORM + i4].$matrix, transformsBuffer, i4);
+  for (let i3 = 0; i3 < MODELS_WITH_FULL_TRANSFORM; ++i3) {
+    matrixToArray(allModels[2 + MODELS_WITH_SIMPLE_TRANSFORM + i3].$matrix, transformsBuffer, i3);
   }
   for (
-    let i5 = 0, j = (MODELS_WITH_FULL_TRANSFORM + LEVERS_COUNT + SOULS_COUNT) * 16, m;
-    i5 < MODELS_WITH_SIMPLE_TRANSFORM;
-    ++i5, ++j
+    let i4 = 0, j = (MODELS_WITH_FULL_TRANSFORM + SOULS_COUNT) * 16, m;
+    i4 < MODELS_WITH_SIMPLE_TRANSFORM;
+    ++i4, ++j
   ) {
-    m = allModels[2 + i5].$matrix;
+    m = allModels[2 + i4].$matrix;
     transformsBuffer[j++] = m.m41;
     transformsBuffer[j++] = m.m42;
     transformsBuffer[j++] = m.m43;
@@ -2621,13 +2624,6 @@ const renderModels = (xgl, soulModelId, renderPlayer) => {
       5123,
       allModels[soulModelId].$vertexBegin * 2,
       souls.length,
-    );
-    xgl["das"](
-      4,
-      allModels[MODEL_ID_LEVER].$vertexEnd - allModels[MODEL_ID_LEVER].$vertexBegin,
-      5123,
-      allModels[MODEL_ID_LEVER].$vertexBegin * 2,
-      levers.length,
     );
     xgl["d97"](
       4,
@@ -2880,11 +2876,7 @@ const initTriangleBuffers = () => {
       }
       return vertexIndex;
     };
-    _vertexFloats[3] = index > MODEL_ID_SOUL_COLLISION - 1
-      ? -MODELS_WITH_FULL_TRANSFORM
-      : index > MODEL_ID_LEVER - 1
-      ? -MODELS_WITH_FULL_TRANSFORM - SOULS_COUNT
-      : index;
+    _vertexFloats[3] = index > MODEL_ID_SOUL_COLLISION - 1 ? -MODELS_WITH_FULL_TRANSFORM : index;
     for (polygon of model.$polygon) {
       const { x, y, z } = plane_fromPolygon(polygon);
       _vertexInts[4] = polygon.$color | 0;

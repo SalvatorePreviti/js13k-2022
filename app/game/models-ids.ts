@@ -78,16 +78,50 @@ export const MODEL_ID_BOAT0 = 35;
 
 export const MODEL_ID_BOAT1 = 36;
 
-export const MODEL_ID_PLAYER_BODY = 37;
+// levers
 
-export const MODEL_ID_PLAYER_LEG0 = 38;
+export const MODEL_ID_LEVER0 = 37;
 
-export const MODEL_ID_PLAYER_LEG1 = 39;
+export const MODEL_ID_LEVER1 = 38;
+
+export const MODEL_ID_LEVER2 = 39;
+
+export const MODEL_ID_LEVER3 = 40;
+
+export const MODEL_ID_LEVER4 = 41;
+
+export const MODEL_ID_LEVER5 = 42;
+
+export const MODEL_ID_LEVER6 = 43;
+
+export const MODEL_ID_LEVER7 = 44;
+
+export const MODEL_ID_LEVER8 = 45;
+
+export const MODEL_ID_LEVER9 = 46;
+
+export const MODEL_ID_LEVER10 = 47;
+
+export const MODEL_ID_LEVER11 = 48;
+
+export const MODEL_ID_LEVER12 = 49;
+
+export const MODEL_ID_LEVER13 = 50;
+
+export const MODEL_ID_LEVER14 = 51;
+
+export const MODEL_ID_LEVER15 = 52;
+
+// player
+
+export const MODEL_ID_PLAYER_BODY = 53;
+
+export const MODEL_ID_PLAYER_LEG0 = 54;
+
+export const MODEL_ID_PLAYER_LEG1 = 55;
 
 // objects
 
-export const MODEL_ID_LEVER = 40;
+export const MODEL_ID_SOUL_COLLISION = 56;
 
-export const MODEL_ID_SOUL_COLLISION = 41;
-
-export const MODEL_ID_SOUL = 42;
+export const MODEL_ID_SOUL = 57;
