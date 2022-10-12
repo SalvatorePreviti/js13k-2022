@@ -27,11 +27,10 @@ let camera_position_y = 0;
 let camera_position_z = 0;
 let player_last_pulled_lever = 14;
 let _messageEndTime = 0.1;
+const zFar = 181;
+const zNear = 0.3;
+const fieldOfViewAmount = 1.732051;
 const DEG_TO_RAD = Math.PI / 180;
-const groundTextureSvg = "data:image/svg+xml;base64,"
-  + btoa(
-    "<svg color-interpolation-filters=\"sRGB\" height=\"1024\" width=\"1024\" xmlns=\"http://www.w3.org/2000/svg\"><filter filterUnits=\"userSpaceOnUse\" height=\"1026\" id=\"a\" width=\"1026\" x=\"0\" y=\"0\"><feTurbulence baseFrequency=\".007\" height=\"1025\" numOctaves=\"6\" stitchTiles=\"stitch\" width=\"1025\" result=\"z\" type=\"fractalNoise\" x=\"1\" y=\"1\"/><feTile height=\"1024\" width=\"1024\" x=\"-1\" y=\"-1\"/><feTile/><feDiffuseLighting diffuseConstant=\"4\" lighting-color=\"red\" surfaceScale=\"5\"><feDistantLight azimuth=\"270\" elevation=\"5\"/></feDiffuseLighting><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"x\"/><feColorMatrix values=\"0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 1\" in=\"z\"/><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"z\"/><feTurbulence baseFrequency=\".01\" height=\"1024\" numOctaves=\"5\" stitchTiles=\"stitch\" width=\"1024\"/><feColorMatrix values=\"0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1\"/><feBlend in2=\"x\" mode=\"screen\"/><feBlend in2=\"z\" mode=\"screen\"/></filter><rect filter=\"url(#a)\" height=\"100%\" width=\"100%\"/></svg>",
-  );
 const souls = [];
 const levers = [];
 const allModels = [];
@@ -420,7 +419,7 @@ const loadSong = (done) => {
           }
           for (let rsample, j1 = 0; song_rowLen > j1; ++j1) {
             let lsample = 0;
-            let k = 2 * (rowStartSample + j1);
+            var k = 2 * (rowStartSample + j1);
             var high = (((rsample = chnBuf[k]) || filterActive)
               && (f = 0.00308 * FX_FREQ,
                 channelIndex !== 1 && channelIndex !== 4 || (f *= osc_sin(lfoFreq * k) * LFO_AMT / 512 + 0.5),
@@ -506,12 +505,12 @@ const initPage = () => {
         : songAudioSource.connect(audioContext.destination));
   };
   const handleResize = () => {
-    const mx = (hC.height = innerHeight) / (hC.width = innerWidth) * 1.732051;
+    const mx = (hC.height = innerHeight) / (hC.width = innerWidth) * fieldOfViewAmount;
     csm_projections = [
-      mat_perspective(0.3, 55, mx, 1.732051),
-      mat_perspective(55, 181, mx, 1.732051),
+      mat_perspective(zNear, 55, mx, fieldOfViewAmount),
+      mat_perspective(55, zFar, mx, fieldOfViewAmount),
     ],
-      projection = mat_perspective(0.3, 181, mx, 1.732051),
+      projection = mat_perspective(zNear, zFar, mx, fieldOfViewAmount),
       touchPosIdentifier = touchRotIdentifier = void 0,
       keyboard_downKeys.length =
         interact_pressed =
@@ -685,10 +684,10 @@ const updateCollectedSoulsCounter = () => {
   ][souls_collected_count = souls.reduce((acc, v) => acc + v.$value, 0)] + " / XIII";
 };
 const resetGame = () => {
-  localStorage["spdnt22"] = "", location.reload();
+  localStorage.spdnt22 = "", location.reload();
 };
 const saveGame = () => {
-  localStorage["spdnt22"] = JSON.stringify([
+  localStorage.spdnt22 = JSON.stringify([
     levers.map((v) => v.$value),
     souls.map((v) => v.$value),
     player_last_pulled_lever,
@@ -700,7 +699,7 @@ const onPlayerPullLever = (leverIndex) => {
   player_last_pulled_lever = leverIndex, showMessage("* click *", 1), saveGame();
 };
 const material = NO_INLINE((r, g, b, a = 0) => 255 * a << 24 | 255 * b << 16 | 255 * g << 8 | 255 * r);
-const newModel = () => {
+const newModel = NO_INLINE(() => {
   const $polygons = [];
   meshAdd = (polygons, transform = new DOMMatrix(), color) =>
     $polygons.push(...polygons_transform(polygons, transform, color)),
@@ -708,7 +707,7 @@ const newModel = () => {
       $matrix: new DOMMatrix(),
       $polygons,
     });
-};
+});
 const distanceToPlayer = () => (matrixTransformPoint(),
   hypot(
     player_position_final.x - matrixTransformPoint.x,
@@ -752,15 +751,15 @@ const newSoul = (transform, ...walkingPath) => {
   let dirX = -1;
   const soul = () => {
     if (!soul.$value) {
+      let isInside;
       let ax;
       let az;
       let magnitude;
       let angle;
-      let isInside;
       let contextualVelocity = 1;
       let mindist = 1 / 0;
       for (let i = 0; walkingPath.length > i; i++) {
-        const c = walkingPath[i];
+        let c = walkingPath[i];
         let distance = hypot(targetX - c[0], targetZ - c[1]);
         contextualVelocity = min(contextualVelocity, distance / c[2]),
           (distance -= c[2]) < 0 ? isInside = 1 : mindist > distance && (mindist = distance, circle = c);
@@ -843,10 +842,10 @@ const plane_fromPolygon = (polygon) => {
   };
 };
 const CSGPolygon_split = (plane, polygon) => {
-  let d;
   let $front;
   let $back;
-  const $polygon = polygon.$polygon;
+  let d;
+  let $polygon = polygon.$polygon;
   for (let i = 0; $polygon.length > i; ++i) {
     if (
       (d = vec3_dot(plane, $polygon[i]) - plane.w) < -0.00008 ? $back = polygon : 8e-5 < d && ($front = polygon),
@@ -854,9 +853,9 @@ const CSGPolygon_split = (plane, polygon) => {
     ) {
       return ((plane2, polygon2) => {
         let jd;
-        const fpoints = [];
-        const bpoints = [];
-        const { $polygon: $polygon2, $flipped } = polygon2;
+        let fpoints = [];
+        let bpoints = [];
+        let { $polygon: $polygon2, $flipped } = polygon2;
         let iv = $polygon2.at(-1);
         let id = vec3_dot(plane2, iv) - plane2.w;
         for (const jv of $polygon2) {
@@ -1062,7 +1061,7 @@ const player_init = () => {
       let back = 0;
       const yindex1 = 512 * y1;
       for (let tx = 0; tx < 128; ++tx) {
-        const index = yindex1 + 4 * tx;
+        let index = yindex1 + 4 * tx;
         let v1 = collision_buffer[index];
         tx < 64 ? v1 > left && (left = v1) : v1 > right && (right = v1),
           (v1 = collision_buffer[2 + index]) > front && (front = v1),
@@ -1155,8 +1154,8 @@ const player_init = () => {
       boot = 0;
     var d = clamp(input_forward, -1);
     var viewDirDiffx = clamp(input_strafe, -1);
-    const movAmount = threshold(hypot(d, viewDirDiffx) ** 0.5, 0.1);
-    let movAngle = Math.atan2(d, viewDirDiffx);
+    var movAmount = threshold(hypot(d, viewDirDiffx) ** 0.5, 0.1);
+    var movAngle = Math.atan2(d, viewDirDiffx);
     movAmount && (player_look_angle_target = 90 - movAngle / DEG_TO_RAD),
       player_look_angle = angle_lerp_degrees(player_look_angle, player_look_angle_target, damp(8)),
       player_legs_speed = lerpDamp(player_legs_speed, movAmount, 10),
@@ -1234,6 +1233,124 @@ const transformsBuffer = new Float32Array(760);
 const collision_buffer = new Uint8Array(65536);
 const code$3 = `#version 300 es
 layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 b,a;uniform vec4 j[190];void main(){mat4 r=mat4(1);lowp int i=int(f.w);if(l=d,m=vec4(f.xyz,1),f.w>1.&&f.w<28.)m+=(r[3]=j[i+162]);else if(f.w!=1.){if(i=(i<1?gl_InstanceID-i:i-28)*4,r[0]=j[i],r[1]=j[i+1],r[2]=j[i+2],r[3]=j[i+3],f.w==-25.&&l.w==0.)l=mix(l,vec4(.7,1,.2,0),r[3][3]);r[3][3]=1.,m=r*m;}gl_Position=a*b*m,m.w=f.w,o=r*vec4(e,0),n=f;}`;
+const groundTextureSvg = (NO_INLINE(`<!DOCTYPE html><html><head>
+    <title>666</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+    
+    
+    
+  <link rel="stylesheet" href="/index.css"></head>
+
+  <body>
+    <canvas id="hD" height="128" width="128"></canvas>
+    <canvas id="hC"></canvas>
+    <h4 id="h4">loading</h4>
+    <b id="b5">☰</b>
+    <h3 id="h3"></h3>
+    <main>
+      <nav>
+        <h2>DANTE</h2>
+        Lucifer:
+        <i>"Damn. Infernal delivery service failed again. A delivery of evil souls fell in an area under construction.
+          Dante, take them where they belong, to the 8th circle."</i>
+        <ul>
+          <li id="b1">Play</li>
+          <li id="b2">Play first person</li>
+          <li id="b3">Restart</li>
+          <li id="b4"></li>
+        </ul>
+        <p>move WASD/arrows, levers E/click, menu Esc</p>
+        <p>
+          <a target="_blank" href="https://github.com/SalvatorePreviti/js13k-2022">© 2022 Salvatore Previti</a> -
+          <a target="_blank" href="https://twitter.com/ryanmalm">music Ryan Malm</a>
+        </p>
+      </nav>
+    </main>
+    
+  
+
+<script type="module" src="/index.js" crossorigin=""><\/script></body></html> * {
+  -webkit-user-select: none;
+  user-select: none;
+  color: #fda;
+  font-weight: 100;
+  touch-action: none;
+  overscroll-behavior: contain;
+}
+html,
+body {
+  background: #000;
+  margin: 0;
+  font-family: "Times New Roman", serif;
+  font-size: max(min(3.8vw, 3.8vh), 15px);
+  text-shadow: 4px 4px 2px #000, -2px -2px 8px #000;
+}
+p {
+  font-size: 0.7em;
+}
+body > * {
+  position: absolute;
+}
+h2 {
+  color: #f61;
+  margin: 0 0 0.7em;
+}
+h4 {
+  left: 0;
+  top: 0;
+  right: 0;
+  text-align: center;
+}
+h3,
+h4 {
+  pointer-events: none;
+}
+.m main {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  min-width: 70%;
+}
+nav {
+  background: #00000080;
+  border-radius: 1em;
+  max-width: max(780px, 50vw);
+  padding: 1em;
+}
+#b5,
+h3 {
+  padding: 10px;
+}
+h3 {
+  text-align: right;
+  right: 5%;
+  bottom: 0;
+}
+a,
+li {
+  cursor: pointer;
+  margin-bottom: 0.5em;
+  text-decoration: none;
+  border-bottom: 3px solid #00000000;
+}
+h2,
+a:hover,
+li:hover {
+  border-bottom: 3px solid;
+}
+main,
+.m h4,
+#hD {
+  display: none;
+}
+`),
+  "data:image/svg+xml;base64,"
+  + btoa(
+    "<svg color-interpolation-filters=\"sRGB\" height=\"1024\" width=\"1024\" xmlns=\"http://www.w3.org/2000/svg\"><filter filterUnits=\"userSpaceOnUse\" height=\"1026\" id=\"a\" width=\"1026\" x=\"0\" y=\"0\"><feTurbulence baseFrequency=\".007\" height=\"1025\" numOctaves=\"6\" stitchTiles=\"stitch\" width=\"1025\" result=\"z\" type=\"fractalNoise\" x=\"1\" y=\"1\"/><feTile height=\"1024\" width=\"1024\" x=\"-1\" y=\"-1\"/><feTile/><feDiffuseLighting diffuseConstant=\"4\" lighting-color=\"red\" surfaceScale=\"5\"><feDistantLight azimuth=\"270\" elevation=\"5\"/></feDiffuseLighting><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"x\"/><feColorMatrix values=\"0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 1\" in=\"z\"/><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"z\"/><feTurbulence baseFrequency=\".01\" height=\"1024\" numOctaves=\"5\" stitchTiles=\"stitch\" width=\"1024\"/><feColorMatrix values=\"0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1\"/><feBlend in2=\"x\" mode=\"screen\"/><feBlend in2=\"z\" mode=\"screen\"/></filter><rect filter=\"url(#a)\" height=\"100%\" width=\"100%\"/></svg>",
+  ));
 const gl = hC.getContext("webgl2", {
   powerPreference: "high-performance",
 });
@@ -1279,11 +1396,11 @@ loadStep(() => {
               levers[15].$lerpValue2,
               0.2 + 0.3 * abs(2 * levers[15].$lerpValue2 - 1),
             ),
-            game_completed
-              ? (firstBoatLerp = lerpDamp(firstBoatLerp, -9, 0.015), player_first_person = 0)
-              : firstBoatLerp = lerpDamp(firstBoatLerp, clamp(gameTime / 3), 1),
+            firstBoatLerp = game_completed
+              ? (player_first_person = 0, lerpDamp(firstBoatLerp, -9, 0.015))
+              : lerpDamp(firstBoatLerp, clamp(gameTime / 3), 1),
             updateInput();
-          let oscillation =
+          var oscillation =
             (modelsUpdateCounter = 1,
               shouldRotatePlatforms = lerpneg(levers[13].$lerpValue, levers[8].$lerpValue),
               rotatingHexCorridorRotation = lerp(
@@ -1306,7 +1423,7 @@ loadStep(() => {
                 270 * (levers[1].$lerpValue - 1) + (2 + 5 * Math.cos(1.5 * gameTime)) * (1 - levers[10].$lerpValue),
               ),
               min(1 - levers[11].$lerpValue2, levers[10].$lerpValue2));
-          const hexPadsOscillation =
+          var hexPadsOscillation =
             (modelsNextUpdate(oscillation * Math.sin(0.6 * gameTime + 1.2) * 12, 0, 35),
               modelsNextUpdate(oscillation * Math.sin(0.6 * gameTime - 1.2) * 8.2, 0, 55),
               modelsNextUpdate(oscillation * Math.sin(0.6 * gameTime) * 12, 0, 45),
@@ -1449,7 +1566,7 @@ loadStep(() => {
           gl["ubh"](mainShader("h"), 3),
           gl["b6o"](36160, csm_framebuffer),
           gl["v5y"](0, 0, 2048, 2048),
-          csm0(54.7),
+          csm0(55 - zNear),
           renderModels(gl, !player_first_person),
           csm1(126),
           renderModels(gl, !player_first_person),
@@ -1662,7 +1779,7 @@ precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;ou
           let _savedSouls = [];
           try {
             const [savedLevers, savedSouls, savedLastPulledLever, savedSecondBoatLerp, savedGameTime] = JSON.parse(
-              localStorage["spdnt22"],
+              localStorage.spdnt22,
             );
             _savedLevers = savedLevers,
               _savedSouls = savedSouls,
@@ -1745,11 +1862,11 @@ precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;ou
             )
           ),
         );
-        newModel(),
+        newModel("MODEL_ID_SKY"),
           meshAdd([
             GQuad.slice(1),
           ], translation(-2).scale3d(3).rotate(90, 0)),
-          newModel(),
+          newModel("MODEL_ID_STATIC_WORLD"),
           newLever(translation(-5.4, 1.5, -19).rotate(0, -90)),
           [
             -15,
@@ -2241,11 +2358,11 @@ precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;ou
             2,
             3.5,
           ]),
-          newModel(),
+          newModel("MODEL_ID_LEVEL1_CENTRAL_PLATFORM"),
           meshAdd(cylinder(5), translation(0, -0.2).scale(5, 1, 5), material(0.6, 0.65, 0.7, 0.3)),
           newLever(translation(0, 1.2)),
-          integers_map(2, () => {
-            newModel(),
+          integers_map(2, (blackPlatform) => {
+            newModel("MODEL_ID_LEVEL2_BLACK_PLATFORM" + blackPlatform),
               GQuad.map(({ x, z }) => {
                 meshAdd(cylinder(11, 1), translation(4 * x, 4, 4 * z).scale(0.8, 3, 0.8), material(0.5, 0.3, 0.7, 0.6)),
                   meshAdd(cylinder(), translation(4 * x, 7, 4 * z).scale(1, 0.3), material(0.5, 0.5, 0.5, 0.3));
@@ -2267,7 +2384,7 @@ precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;ou
               ),
               meshAdd(cylinder(), translation(0, -3).scale(8, 2, 8), material(0.4, 0.4, 0.4, 0.3));
           }),
-          newModel(),
+          newModel("MODEL_ID_LEVEL2_CENTRAL_PLATFORM"),
           meshAdd(
             csg_polygons_subtract(
               csg_union(
@@ -2288,13 +2405,13 @@ precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;ou
             0,
             4.5,
           ]),
-          newModel(),
+          newModel("MODEL_ID_TRIANGLE_PLATFORM"),
           meshAdd(cylinder(3), translation(-23, -1.7, 55.8).scale(5, 0.7, 8.3), material(0.3, 0.6, 0.6, 0.2)),
           meshAdd(cylinder(8), translation(-23, -2.2, 66.5).scale(1.5, 1.2, 1.5), material(0.8, 0.8, 0.8, 0.2)),
           meshAdd(cylinder(), translation(-23, -3, 55).scale(5.2, 1.7, 3), material(0.5, 0.5, 0.5, 0.3)),
           meshAdd(cylinder(), translation(-23, -2.2, 62).scale(3, 1, 4), material(0.5, 0.5, 0.5, 0.3)),
           newLever(translation(-23, -0.5, 66.5)),
-          newModel(),
+          newModel("MODEL_ID_LEVEL2_MINI_PLATFORM_VERTICAL"),
           meshAdd(cylinder(), translation(-22.55, -3, 55).scale(1.45, 1.4, 2.7), material(0.7, 0.7, 0.7, 0.2)),
           meshAdd(
             csg_polygons_subtract(
@@ -2304,7 +2421,7 @@ precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;ou
             translation(-33, -3, 55),
             material(0.7, 0.7, 0.7, 0.2),
           ),
-          newModel(),
+          newModel("MODEL_ID_LEVEL2_MINI_PLATFORM_HORIZONTAL"),
           meshAdd(
             csg_polygons_subtract(
               polygons_transform(cylinder(), translation(-27, -3, 55).scale(3, 1.4, 2.7), material(0.9, 0.9, 0.9, 0.2)),
@@ -2312,13 +2429,13 @@ precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;ou
             ),
           ),
           meshAdd(cylinder(), translation(-39, -3, 55).scale(3, 1.4, 2.7), material(0.9, 0.9, 0.9, 0.2)),
-          newModel(),
+          newModel("MODEL_ID_LEVEL2_HEX_CORRIDOR_DOOR"),
           meshAdd(
             cylinder(6),
             translation(-44.5, 0, 55).rotate(0, 0, 90).scale(5.9, 0.5, 5.9),
             material(0.7, 0.7, 0.7, 0.4),
           ),
-          newModel(),
+          newModel("MODEL_ID_ELEVATORS0"),
           [
             0,
             12,
@@ -2330,7 +2447,7 @@ precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;ou
               material(0.2, 0.5, 0.6, 0.2),
             )
           ),
-          newModel(),
+          newModel("MODEL_ID_ELEVATORS1"),
           [
             6,
             18,
@@ -2341,7 +2458,7 @@ precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;ou
               material(0.1, 0.4, 0.5, 0.2),
             )
           ),
-          newModel(),
+          newModel("MODEL_ID_MONUMENT"),
           meshAdd(
             csg_polygons_subtract(
               csg_union(
@@ -2378,14 +2495,14 @@ precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;ou
               1.2,
             ]),
           ),
-          newModel(),
+          newModel("MODEL_ID_PUSHING_ROD0"),
           integers_map(2, (x) => meshAdd(pushingRod, translation(9 * x - 110 + (1 & x), 1.9, -12))),
-          newModel(),
+          newModel("MODEL_ID_PUSHING_ROD1"),
           integers_map(2, (x) => meshAdd(pushingRod, translation(9 * (x + 2) - 110 + (1 & x), 1.9, -12))),
-          newModel(),
+          newModel("MODEL_ID_PUSHING_ROD2"),
           integers_map(3, (x) => meshAdd(pushingRod, translation(9 * x - 106, 1.9, -12))),
           integers_map(4, (i) => {
-            newModel(),
+            newModel("MODEL_ID_OSCILLATING_HEX_PAD" + i),
               meshAdd(
                 cylinder(6),
                 translation(-14.6 - 4.8 * i - (2 < i ? 2 : 0), -i / 2.5 - 0.1, -21.5).rotate(0, 0, 3.5).skewX(3.5)
@@ -2398,7 +2515,7 @@ precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;ou
             material(0.2, 0.5, 0.5, 0.3),
             material(0.3, 0.45, 0.55, 0.4),
           ].map((m, i) => {
-            newModel(),
+            newModel("MODEL_ID_JUMPING_PAD" + i),
               meshAdd(cylinder(), translation(-23.5, 0.5, 91 + 6.8 * i).scale(i === 1 ? 2 : 3.3, 1, 3.3), m),
               i === 2
               && meshAdd(cylinder(), translation(-29.1, 0.4, 91).scale(2.1, 1, 3), material(0.7, 0.7, 0.7, 0.3)),
@@ -2409,12 +2526,12 @@ precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;ou
                 material(0.6, 0.6, 0.7, 0.3),
               );
           }),
-          newModel(),
+          newModel("MODEL_ID_FLOATING_ELEVATOR_PAD"),
           meshAdd(cylinder(5), identity.scale(5, 1.1, 5), material(0.5, 0.3, 0.3, 0.4)),
           meshAdd(cylinder(5), identity.scale(5.5, 0.9, 5.5), material(0.25, 0.25, 0.25, 0.4)),
           newLever(translation(0, 1.5, -1).rotate(0, 180)),
           integers_map(4, (gate) => {
-            newModel(),
+            newModel("MODEL_ID_GATE" + gate),
               integers_map(
                 7,
                 (i) =>
@@ -2427,9 +2544,9 @@ precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;ou
                   ),
               );
           }),
-          newModel(),
+          newModel("MODEL_ID_LEVEL2_ROTATING_HEX_CORRIDOR"),
           meshAdd(hexCorridorPolygons),
-          newModel(),
+          newModel("MODEL_ID_DONUT_PAD"),
           meshAdd(cylinder(15, 1), translation(-7.5).rotate(0, 90).scale(3, 2.3, 3), material(0.4, 0.4, 0.4, 0.3)),
           meshAdd(cylinder(10), translation(-7.5).rotate(0, 90).scale(2, 2.5, 2), material(0.3, 0.8, 0.7, 0.3)),
           meshAdd(cylinder(5), translation(-7.5).rotate(0, 90).scale(1, 3), material(0.5, 0.5, 0.5, 0.5)),
@@ -2455,7 +2572,7 @@ precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;ou
             1.2,
             1.7,
           ]),
-          newModel(),
+          newModel("MODEL_ID_PENDULUMS"),
           meshAdd(
             cylinder(3),
             translation(0, -3, 118.8).scale(0.8, 0.8, 8).rotate(90, 0, 60),
@@ -2471,7 +2588,7 @@ precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;ou
               material(0.7, 0.7, 0.7, 0.4),
             ), meshAdd(cylinder(), translation(0, 6.2, z + 95).scale(0.5, 11, 0.5), material(0.5, 0.3, 0.3, 0.4));
           }),
-          newModel(),
+          newModel("MODEL_ID_ROTATING_PLATFORM0"),
           meshAdd(
             csg_polygons_subtract(
               polygons_transform(cylinder(45, 1), identity.scale(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2)),
@@ -2492,7 +2609,7 @@ precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;ou
               2,
             ]),
           ),
-          newModel(),
+          newModel("MODEL_ID_ROTATING_PLATFORM1"),
           [
             -1,
             1,
@@ -2510,7 +2627,7 @@ precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;ou
           ),
           meshAdd(polygons_transform(cylinder(28, 1), identity.scale(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2))),
           meshAdd(polygons_transform(cylinder(5), translation(0, 1).scale(1, 0.2), material(0.3, 0.3, 0.3, 0.2))),
-          newModel(),
+          newModel("MODEL_ID_ROTATING_PLATFORM2"),
           meshAdd(
             csg_polygons_subtract(
               polygons_transform(cylinder(28, 1), translation(0, 2).scale(7.5, 1, 7.5), material(0.35, 0, 0, 0.3)),
@@ -2520,7 +2637,7 @@ precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;ou
           ),
           meshAdd(polygons_transform(cylinder(28, 1), identity.scale(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2))),
           meshAdd(polygons_transform(cylinder(5), translation(0, 1).scale(1, 0.2), material(0.3, 0.3, 0.3, 0.2))),
-          newModel(),
+          newModel("MODEL_ID_ROTATING_PLATFORM3"),
           meshAdd(
             csg_polygons_subtract(
               polygons_transform(cylinder(28, 1), translation(0, 2).scale(7.5, 1, 7.5), material(0.35, 0, 0, 0.3)),
@@ -2530,8 +2647,8 @@ precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;ou
           ),
           meshAdd(polygons_transform(cylinder(28, 1), identity.scale(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2))),
           meshAdd(polygons_transform(cylinder(5), translation(0, 1).scale(1, 0.2), material(0.3, 0.3, 0.3, 0.2))),
-          integers_map(2, () => {
-            newModel(),
+          integers_map(2, (i) => {
+            newModel("MODEL_ID_BOAT" + i),
               meshAdd(
                 csg_polygons_subtract(
                   polygons_transform(
@@ -2549,7 +2666,7 @@ precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;ou
               ),
               newLever(translation(0, -3, 4));
           }),
-          newModel(),
+          newModel("MODEL_ID_PLAYER_BODY"),
           meshAdd(sphere(20), translation(0, 1).scale3d(0.5), material(1, 0.3, 0.4)),
           meshAdd(sphere(30), identity.scale(0.65, 0.8, 0.55), material(1, 0.3, 0.4)),
           meshAdd(cylinder(), translation(0, 0.9, 0.45).scale(0.15, 0.02, 0.06), material(0.3, 0.3, 0.3)),
@@ -2577,22 +2694,22 @@ precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;ou
           [
             -1,
             1,
-          ].map((v) => {
-            newModel(),
+          ].map((v, i) => {
+            newModel("MODEL_ID_PLAYER_LEG" + i),
               meshAdd(cylinder(20, 1), translation(0.3 * v, -0.8).scale(0.2, 0.7, 0.24), material(1, 0.3, 0.4));
           }),
-          newModel(),
+          newModel("MODEL_ID_LEVER"),
           meshAdd(cylinder(6, 1), identity.scale(0.12, 1.2, 0.12), material(0.3, 0.3, 0.5, 0.1)),
           meshAdd(cylinder(9, 1), translation(0, 0.8).scale(0.2, 0.3, 0.2), material(1, 0.5, 0.2)),
           meshAdd(cylinder(3), translation(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3), material(0.2, 0.2, 0.2, 0.1)),
-          newModel(),
+          newModel("MODEL_ID_SOUL_COLLISION"),
           meshAdd(cylinder(6).slice(0, -1), identity.scale(0.77, 1, 0.77), material(1, 0.3, 0.5)),
-          newModel(),
+          newModel("MODEL_ID_SOUL"),
           meshAdd(
             sphere(30, 24, (a, b, polygon) => {
-              const bm = b / 24;
-              const theta = a * Math.PI * 2 / 30;
-              const phixz = Math.sin(bm ** 0.6 * Math.PI / 2);
+              var bm = b / 24;
+              var theta = a * Math.PI * 2 / 30;
+              var phixz = Math.sin(bm ** 0.6 * Math.PI / 2);
               var a = bm * bm * Math.sin(a * Math.PI * 14 / 30) / 4;
               return 23 < b
                 ? {

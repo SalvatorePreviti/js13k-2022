@@ -15,7 +15,7 @@ export const polygon_color = (polygon: Polygon, color: number | undefined, smoot
   return polygon;
 };
 
-export const polygon_transform = /* @__PURE__ */ (
+export const polygon_transform = (
   polygon: Polygon<Readonly<Vec3Optional>>,
   m: DOMMatrixReadOnly,
   color: number | undefined = polygon.$color,
@@ -32,7 +32,7 @@ export const polygon_transform = /* @__PURE__ */ (
   );
 };
 
-export const polygons_transform = /* @__PURE__ */ (
+export const polygons_transform = (
   polygons: Polygon<Readonly<Vec3Optional>>[],
   m: DOMMatrixReadOnly,
   color?: number | undefined,

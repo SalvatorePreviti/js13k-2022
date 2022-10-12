@@ -18,8 +18,6 @@ export const global_defs = {
 };
 
 export const browserPureFunctions = [
-  "NO_INLINE",
-
   "Math",
   "Math.abs",
   "Math.acos",

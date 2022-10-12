@@ -208,12 +208,7 @@ export const player_init = () => {
     movePlayer(movX / 255, movY / 255, movZ / 255);
   };
 
-  const interpolate_with_hysteresis = /* @__PURE__ */ (
-    previous: number,
-    desired: number,
-    hysteresis: number,
-    speed: number,
-  ) =>
+  const interpolate_with_hysteresis = (previous: number, desired: number, hysteresis: number, speed: number) =>
     lerp(previous, desired, boot || (clamp(abs(desired - previous) ** 0.5 - hysteresis) + 1 / 7) * damp(speed * 1.5));
 
   player_update = () => {

@@ -33,7 +33,7 @@ interface SplitPolygonResult {
   $back: CSGPolygon | undefined | false;
 }
 
-const CSGPolygon_splitSpanning = /* @__PURE__ */ (plane: Plane, polygon: CSGPolygon): SplitPolygonResult => {
+const CSGPolygon_splitSpanning = (plane: Plane, polygon: CSGPolygon): SplitPolygonResult => {
   const fpoints: Vec3[] = [];
   const bpoints: Vec3[] = [];
   const { $polygon, $flipped } = polygon;
@@ -75,7 +75,7 @@ const CSGPolygon_splitSpanning = /* @__PURE__ */ (plane: Plane, polygon: CSGPoly
   };
 };
 
-const CSGPolygon_split = /* @__PURE__ */ (plane: Plane, polygon: CSGPolygon): SplitPolygonResult => {
+const CSGPolygon_split = (plane: Plane, polygon: CSGPolygon): SplitPolygonResult => {
   const { $polygon } = polygon;
   let $front: CSGPolygon | undefined;
   let $back: CSGPolygon | undefined;
@@ -94,7 +94,7 @@ const CSGPolygon_split = /* @__PURE__ */ (plane: Plane, polygon: CSGPolygon): Sp
   return { $front, $back };
 };
 
-const csg_tree_addPolygon = /* @__PURE__ */ (
+const csg_tree_addPolygon = (
   node: CSGNode | 0 | undefined,
   polygon: CSGPolygon,
   plane: Plane = plane_fromPolygon(polygon.$polygon),
@@ -116,11 +116,7 @@ const csg_tree_addPolygon = /* @__PURE__ */ (
   return node;
 };
 
-const csg_tree_clipNode = /* @__PURE__ */ (
-  anode: CSGNode,
-  bnode: CSGNode,
-  polygonPlaneFlipped: -1 | 1,
-): CSGPolygon[] => {
+const csg_tree_clipNode = (anode: CSGNode, bnode: CSGNode, polygonPlaneFlipped: -1 | 1): CSGPolygon[] => {
   const result: CSGPolygon[] = [];
   const recursion = (node: CSGNode, polygon: CSGPolygon) => {
     let { $front, $back } = CSGPolygon_split(node, polygon);
@@ -174,7 +170,7 @@ export const csg_tree_flip = <T extends CSGNode | 0 | undefined>(root: T): T => 
  * Extracts all the polygons from a BSP tree.
  * Some polygons will be merged, to reduce the number of triangles.
  */
-export const csg_polygons = /* @__PURE__ */ (tree: CSGNode): Polygon[] => {
+export const csg_polygons = (tree: CSGNode): Polygon[] => {
   const byParent = new Map<CSGPolygon, CSGPolygon>();
   const allPolygons = new Map<CSGPolygon, 0 | boolean>();
 
@@ -209,7 +205,7 @@ export const csg_polygons = /* @__PURE__ */ (tree: CSGNode): Polygon[] => {
  * If the given argument is already a BSP tree, return it as is.
  * Note that array cannot be empty.
  */
-export const csg_tree = /* @__PURE__ */ (n: CSGInput): CSGNode =>
+export const csg_tree = (n: CSGInput): CSGNode =>
   (n as Polygon[]).length
     ? // Build a BSP tree from a list of polygons
       ((n as Polygon[]).reduce<CSGNode | 0>(
@@ -222,7 +218,7 @@ export const csg_tree = /* @__PURE__ */ (n: CSGInput): CSGNode =>
 /**
  * Union a[0] = a[0] U a[1] U a[2] U ...
  */
-export const csg_union = /* @__PURE__ */ (...inputs: CSGInput[]): CSGNode =>
+export const csg_union = (...inputs: CSGInput[]): CSGNode =>
   inputs.reduce((a: CSGInput, b: CSGInput | undefined): CSGNode => {
     const polygonsToAdd: [Plane, CSGPolygon[]][] = [];
     a = csg_tree(a);
@@ -249,7 +245,7 @@ export const csg_union = /* @__PURE__ */ (...inputs: CSGInput[]): CSGNode =>
  * Subtraction a = a - (b[0] U b[1] U ...)
  * Note that a will be modified if is a tree.
  */
-export const csg_subtract = /* @__PURE__ */ (a: CSGInput, ...b: CSGInput[]): CSGNode =>
+export const csg_subtract = (a: CSGInput, ...b: CSGInput[]): CSGNode =>
   csg_tree_flip(csg_union(csg_tree_flip(csg_tree(a)), ...b));
 
 /**

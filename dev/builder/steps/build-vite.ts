@@ -13,7 +13,6 @@ import { rollupPluginSwcTransform } from "./build-transform";
 import shadersMangleGlobals from "../../../app/shaders/_mangle_globals";
 import { browserPureFunctions, global_defs } from "../lib/js-config";
 import type { MinifyOptions } from "terser";
-import rollupPluginVisualizer from "rollup-plugin-visualizer";
 import { optimize as svgoOptimize, type OptimizedSvg } from "svgo";
 import htmlminifier from "html-minifier-terser";
 import { getHtmlMinifierOptions } from "./html-minify";
@@ -144,7 +143,7 @@ export async function buildWithVite(options: {
               propertyReadSideEffects: false,
               unknownGlobalSideEffects: false,
             },
-            plugins: [rollupPluginVisualizer({ emitFile: true, gzipSize: true }) as any],
+            plugins: [],
             output: {
               generatedCode: {
                 constBindings: true,
