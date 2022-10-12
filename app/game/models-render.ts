@@ -9,6 +9,7 @@ import {
 } from "./models-ids";
 
 export const renderModels = (xgl: WebGL2RenderingContext, renderPlayer?: boolean) => {
+  const soulModelId = renderPlayer === undefined ? MODEL_ID_SOUL_COLLISION : MODEL_ID_SOUL;
   if (mainMenuVisible) {
     if (hC.width > 1100) {
       // Render player in main menu
@@ -20,7 +21,6 @@ export const renderModels = (xgl: WebGL2RenderingContext, renderPlayer?: boolean
       );
     }
   } else {
-    const soulModelId = renderPlayer === undefined ? MODEL_ID_SOUL_COLLISION : MODEL_ID_SOUL;
     // Render souls
     xgl.drawElementsInstanced(
       xgl.TRIANGLES,

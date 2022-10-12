@@ -18,7 +18,7 @@ void main() {
   vec4 v = viewMatrix * vec4(vec3(0, 1.49, .3 * orientation) + FragPos.xyz, 1);
   O = vec4(0);
   if (gl_FragCoord.y > 36.) {
-    if (v.y > .6 && v.y < 4.) {
+    if (v.y > .6 && v.y < 3.) {
       float xattenuation = abs(gl_FragCoord.x / (COLLISION_TEXTURE_SIZE / 2.) - 1.);
       float z = clamp(v.z + .7, 0., 1.);
       O = vec4(

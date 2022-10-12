@@ -31,9 +31,9 @@ let _messageEndTime = 0.1;
 const zNear = 0.3;
 const fieldOfViewAmount = 1.732051;
 const DEG_TO_RAD = Math.PI / 180;
-const souls = [];
-const levers = [];
 const allModels = [];
+const levers = [];
+const souls = [];
 const GQuad = [
   {
     x: -1,
@@ -214,12 +214,6 @@ const angle_lerp_degrees = (a0, a1, t) => a0 + (2 * (a1 = (a1 - a0) % 360) % 360
 const lerp = (a, b, t) => (0 < t ? t < 1 ? a + (b - a) * t : b : a) || 0;
 const lerpneg = (v, t) => (v = clamp(v), lerp(v, 1 - v, t));
 const hypot = (a, b, c = 0) => (a * a + b * b + c * c) ** 0.5;
-const matrixTransformPoint = (x = 0, y = 0, z = 0, w = 1) => {
-  matrixTransformPoint.x = tempMatrix.m11 * x + tempMatrix.m21 * y + tempMatrix.m31 * z + tempMatrix.m41 * w,
-    matrixTransformPoint.y = tempMatrix.m12 * x + tempMatrix.m22 * y + tempMatrix.m32 * z + tempMatrix.m42 * w,
-    matrixTransformPoint.z = tempMatrix.m13 * x + tempMatrix.m23 * y + tempMatrix.m33 * z + tempMatrix.m43 * w,
-    matrixTransformPoint.w = tempMatrix.m14 * x + tempMatrix.m24 * y + tempMatrix.m34 * z + tempMatrix.m44 * w;
-};
 const matrixToArray = (
   $matrix,
   output = float32Array16Temp,
@@ -262,6 +256,12 @@ const matrixCopy = (
   target.m43 = source.m43,
   target.m44 = source.m44,
   target);
+const matrixTransformPoint = (x = 0, y = 0, z = 0, w = 1) => {
+  matrixTransformPoint.x = tempMatrix.m11 * x + tempMatrix.m21 * y + tempMatrix.m31 * z + tempMatrix.m41 * w,
+    matrixTransformPoint.y = tempMatrix.m12 * x + tempMatrix.m22 * y + tempMatrix.m32 * z + tempMatrix.m42 * w,
+    matrixTransformPoint.z = tempMatrix.m13 * x + tempMatrix.m23 * y + tempMatrix.m33 * z + tempMatrix.m43 * w,
+    matrixTransformPoint.w = tempMatrix.m14 * x + tempMatrix.m24 * y + tempMatrix.m34 * z + tempMatrix.m44 * w;
+};
 const translation = NO_INLINE((x, y, z) => identity.translate(x, y, z));
 const integers_map = (n, fn) => Array.from(Array(n), (_, i) => fn(i));
 const polygon_color = (polygon, color, smooth) => (polygon.$smooth = smooth, polygon.$color = color, polygon);
@@ -701,7 +701,7 @@ const onPlayerPullLever = (leverIndex) => {
 const material = NO_INLINE((r, g, b, a = 0) => 255 * a << 24 | 255 * b << 16 | 255 * g << 8 | 255 * r);
 const newModel = NO_INLINE(() => {
   const $polygons = [];
-  meshAdd = (polygons, transform = new DOMMatrix(), color) =>
+  meshAdd = (polygons, transform = identity, color) =>
     $polygons.push(...polygons_transform(polygons, transform, color)),
     allModels.push({
       $matrix: new DOMMatrix(),
@@ -983,8 +983,8 @@ const csg_polygons_subtract = (a, ...b) => {
   }
 };
 const modelsNextUpdate = (x, y = 0, z = 0) => {
-  const m = allModels[++modelsUpdateCounter].$matrix;
-  return matrixCopy(identity, m), m.m41 = x, m.m42 = y, m.m43 = z, m;
+  const m = matrixCopy(identity, allModels[++modelsUpdateCounter].$matrix);
+  return m.m41 = x, m.m42 = y, m.m43 = z, m;
 };
 const player_init = () => {
   let player_look_angle_target;
@@ -1193,18 +1193,17 @@ const player_init = () => {
   };
 };
 const renderModels = (xgl, renderPlayer) => {
-  let soulModelId;
+  const soulModelId = renderPlayer === void 0 ? 41 : 42;
   mainMenuVisible
     ? 1100 < hC.width
       && xgl["d97"](4, allModels[39].$vertexEnd - allModels[37].$vertexBegin, 5123, 2 * allModels[37].$vertexBegin)
-    : (soulModelId = renderPlayer === void 0 ? 41 : 42,
-      xgl["das"](
-        4,
-        allModels[soulModelId].$vertexEnd - allModels[soulModelId].$vertexBegin,
-        5123,
-        2 * allModels[soulModelId].$vertexBegin,
-        souls.length,
-      ),
+    : (xgl["das"](
+      4,
+      allModels[soulModelId].$vertexEnd - allModels[soulModelId].$vertexBegin,
+      5123,
+      2 * allModels[soulModelId].$vertexBegin,
+      souls.length,
+    ),
       xgl["das"](
         4,
         allModels[40].$vertexEnd - allModels[40].$vertexBegin,
@@ -1214,25 +1213,11 @@ const renderModels = (xgl, renderPlayer) => {
       ),
       xgl["d97"](4, (renderPlayer ? allModels[39].$vertexEnd : allModels[37].$vertexBegin) - 3, 5123, 6));
 };
-const initShaderProgram = (xgl, vfsSource, sfsSource) => {
-  const uniforms = {};
-  const loadShader = (
-    source,
-    type = 35633,
-  ) => (type = xgl["c6x"](type), xgl["s3c"](type, source), xgl["c6a"](type), type);
-  const program = xgl["c1h"]();
-  return xgl["abz"](program, loadShader(vfsSource, 35633)),
-    xgl["abz"](program, loadShader(sfsSource, 35632)),
-    xgl["l8l"](program),
-    (name) => name ? uniforms[name] || (uniforms[name] = xgl["gan"](program, name)) : xgl["u7y"](program);
-};
-const tempMatrix = new DOMMatrix();
 const identity = new DOMMatrix();
+const tempMatrix = new DOMMatrix();
 const float32Array16Temp = new Float32Array(16);
 const transformsBuffer = new Float32Array(760);
 const collision_buffer = new Uint8Array(65536);
-const code$3 = `#version 300 es
-layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 b,a;uniform vec4 j[190];void main(){mat4 r=mat4(1);lowp int i=int(f.w);if(l=d,m=vec4(f.xyz,1),f.w>1.&&f.w<28.)m+=(r[3]=j[i+162]);else if(f.w!=1.){if(i=(i<1?gl_InstanceID-i:i-28)*4,r[0]=j[i],r[1]=j[i+1],r[2]=j[i+2],r[3]=j[i+3],f.w==-25.&&l.w==0.)l=mix(l,vec4(.7,1,.2,0),r[3][3]);r[3][3]=1.,m=r*m;}gl_Position=a*b*m,m.w=f.w,o=r*vec4(e,0),n=f;}`;
 const groundTextureSvg = (NO_INLINE(`<!DOCTYPE html><html><head>
     <title>666</title>
     <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
@@ -1375,6 +1360,33 @@ loadStep(() => {
   let loadStatus = 0;
   const end = () => {
     if (++loadStatus == 2) {
+      const csm_tempFrustumCorners = [
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+      ];
+      const initShaderProgram = (
+        xgl,
+        sfsSource,
+        vfsSource = `#version 300 es
+layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 b,a;uniform vec4 j[190];void main(){mat4 r=mat4(1);lowp int i=int(f.w);if(l=d,m=vec4(f.xyz,1),f.w>1.&&f.w<28.)m+=(r[3]=j[i+162]);else if(f.w!=1.){if(i=(i<1?gl_InstanceID-i:i-28)*4,r[0]=j[i],r[1]=j[i+1],r[2]=j[i+2],r[3]=j[i+3],f.w==-25.&&l.w==0.)l=mix(l,vec4(.7,1,.2,0),r[3][3]);r[3][3]=1.,m=r*m;}gl_Position=a*b*m,m.w=f.w,o=r*vec4(e,0),n=f;}`,
+      ) => {
+        const uniforms = {};
+        const loadShader = (
+          source,
+          type,
+        ) => (type = xgl["c6x"](type), xgl["s3c"](type, source), xgl["c6a"](type), type);
+        const program = xgl["c1h"]();
+        return xgl["abz"](program, loadShader(vfsSource, 35633)),
+          xgl["abz"](program, loadShader(sfsSource, 35632)),
+          xgl["l8l"](program),
+          (name) => name ? uniforms[name] || (uniforms[name] = xgl["gan"](program, name)) : xgl["u7y"](program);
+      };
       const mainLoop = (globalTime) => {
         requestAnimationFrame(mainLoop);
         var dt = (globalTime - (_globalTime || globalTime)) / 1e3;
@@ -1497,14 +1509,14 @@ loadStep(() => {
             dt(-123, 1.4, 55 - 65 * secondBoatLerp);
           for (let i2 = 0; i2 < 13; ++i2) souls[i2](), matrixToArray(tempMatrix, transformsBuffer, 12 + i2);
           for (let i3 = 0; i3 < 16; ++i3) levers[i3](), matrixToArray(tempMatrix, transformsBuffer, 25 + i3);
-          for (let m, i4 = 0, j = 656; i4 < 26; ++i4, ++j) {
-            m = allModels[2 + i4].$matrix,
+          player_update();
+          for (let i4 = 0; i4 < 12; ++i4) matrixToArray(allModels[28 + i4].$matrix, transformsBuffer, i4);
+          for (let m, i5 = 0, j = 656; i5 < 26; ++i5, ++j) {
+            m = allModels[2 + i5].$matrix,
               transformsBuffer[j++] = m.m41,
               transformsBuffer[j++] = m.m42,
               transformsBuffer[j++] = m.m43;
           }
-          player_update();
-          for (let i5 = 0; i5 < 12; ++i5) matrixToArray(allModels[28 + i5].$matrix, transformsBuffer, i5);
           cgl["cbf"](!0, !0, !0, !0),
             cgl["c4s"](16640),
             cgl["u3a"](collisionShader("j"), transformsBuffer),
@@ -1538,11 +1550,29 @@ loadStep(() => {
             cgl["f1s"](),
             interact_pressed = 0;
         }
+        mainShader(),
+          gl["u3a"](mainShader("j"), transformsBuffer),
+          gl["b6o"](36160, csm_framebuffer),
+          gl["v5y"](0, 0, 2048, 2048),
+          gl["ubh"](mainShader("g"), 4),
+          gl["ubh"](mainShader("h"), 4),
+          gl["uae"](mainShader("a"), !1, matrixToArray(identity)),
+          csm0(55 - zNear),
+          renderModels(gl, !player_first_person),
+          csm1(126),
+          renderModels(gl, !player_first_person),
+          gl["b6o"](36160, null),
+          gl["v5y"](0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight),
+          gl["c4s"](16640);
         let cameraX = camera_position_x;
         let cameraY = camera_position_y;
         let cameraZ = camera_position_z;
         mainMenuVisible
-          ? (matrixCopy(projection).invertSelf(),
+          ? (matrixCopy().rotateSelf(0, 40 * Math.sin(absoluteTime) - 80, -8),
+            matrixToArray(tempMatrix, transformsBuffer, 9),
+            matrixToArray(tempMatrix, transformsBuffer, 10),
+            matrixToArray(tempMatrix, transformsBuffer, 11),
+            matrixCopy(projection).invertSelf(),
             matrixTransformPoint(3.6, 3.5),
             cameraX = matrixTransformPoint.x,
             cameraY = matrixTransformPoint.y,
@@ -1551,34 +1581,15 @@ loadStep(() => {
               -cameraX,
               -cameraY,
               -cameraZ,
-            ).rotateSelf(0, 99),
-            matrixCopy().rotateSelf(0, 40 * Math.sin(absoluteTime) - 80, -8),
-            matrixToArray(tempMatrix, transformsBuffer, 9),
-            matrixToArray(tempMatrix, transformsBuffer, 10),
-            matrixToArray(tempMatrix, transformsBuffer, 11))
+            ).rotateSelf(0, 99))
           : matrixCopy(identity, camera_view).rotateSelf(-camera_rotation.x, -camera_rotation.y).invertSelf()
             .translateSelf(-cameraX, -cameraY, -cameraZ),
-          mainShader(),
-          gl["u3a"](mainShader("j"), transformsBuffer),
-          gl["ubu"](mainShader("k"), cameraX, cameraY, cameraZ),
-          gl["uae"](mainShader("a"), !1, matrixToArray(identity)),
-          gl["ubh"](mainShader("g"), 3),
-          gl["ubh"](mainShader("h"), 3),
-          gl["b6o"](36160, csm_framebuffer),
-          gl["v5y"](0, 0, 2048, 2048),
-          csm0(55 - zNear),
-          renderModels(gl, !player_first_person),
-          csm1(126),
-          renderModels(gl, !player_first_person),
-          gl["b6o"](36160, null),
-          gl["v5y"](0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight),
-          gl["cbf"](!0, !0, !0, !0),
-          gl["c4s"](16640),
-          gl["uae"](mainShader("b"), !1, matrixToArray(camera_view)),
-          gl["uae"](mainShader("a"), !1, matrixToArray(projection)),
-          gl["uae"](mainShader("i"), !1, csm_lightSpaceMatrices),
           gl["ubh"](mainShader("g"), 0),
           gl["ubh"](mainShader("h"), 1),
+          gl["ubu"](mainShader("k"), cameraX, cameraY, cameraZ),
+          gl["uae"](mainShader("a"), !1, matrixToArray(projection)),
+          gl["uae"](mainShader("b"), !1, matrixToArray(camera_view)),
+          gl["uae"](mainShader("i"), !1, csm_lightSpaceMatrices),
           renderModels(gl, !player_first_person),
           skyShader(),
           gl["uae"](skyShader("b"), !1, matrixToArray(matrixCopy(camera_view).invertSelf())),
@@ -1589,25 +1600,23 @@ loadStep(() => {
       const camera_view = new DOMMatrix();
       const csm_lightSpaceMatrices = new Float32Array(32);
       const groundTextureImage = image;
-      const csm_tempFrustumCorners = integers_map(8, () => ({}));
-      const collisionShader = initShaderProgram(
-        cgl,
-        code$3,
-        `#version 300 es
-precision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(vec3(0,1.49,.3*b[0][0])+m.xyz,1);if(O=vec4(0),gl_FragCoord.y>36.){if(a.y>.6&&a.y<4.){float e=abs(gl_FragCoord.x/64.-1.),i=clamp(a.z+.7,0.,1.);O=vec4(vec2(b[0][0]*sign(a.x)*o.x<0.?i*(.7-abs(a.x))*e/.7:0.),vec2(b[0][0]*o.z>0.?i*(1.-e):0.));}}else if(o.y>.45&&a.y<1.){float e=a.y*clamp((a.z+.4)*50.,0.,1.)*clamp((-abs(a.x)+.2)*10.,0.,1.);O=vec4(vec2(e),vec2(e>0.?m.w/255.:0.));}}`,
-      );
+      const csm_framebuffer = gl["c5w"]();
       const mainShader = initShaderProgram(
         gl,
-        code$3,
         `#version 300 es
 precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sampler2DShadow g,h;uniform mat4 b,i[2];uniform vec3 k;out vec4 O;void main(){vec4 s=vec4(m.xyz,1);vec3 e=normalize(o.xyz),v=l.w*(texture(q,n.zy*.035)*e.x+texture(q,n.xz*.035)*e.y+texture(q,n.xy*.035)*e.z).xyz;e=normalize(e+v*.5);float a=dot(e,vec3(-.656059,.666369,-.35431468)),t=1.,u=abs((b*s).z);vec4 r=(u<55.?i[0]:i[1])*s;if(r=r/r.w*.5+.5,r.z<1.){t=0.;for(float e=-1.;e<=1.;++e)for(float a=-1.;a<=1.;++a){vec3 x=vec3(r.xy+vec2(e,a)/2048.,r.z-.00017439);t+=u<55.?texture(g,x):texture(h,x);}t/=9.;}vec3 x=l.xyz*(1.-v.x);float c=max(max(abs(e.x),abs(e.z))*.3-e.y,0.)*pow(max(0.,(8.-m.y)/48.),1.6);O=vec4(vec3(c,c*c*.5,0)+vec3(.09,.05,.11)*x+x*(max(0.,a)*.5+x*a*a*vec3(.5,.45,.3))*(t*.75+.25)+vec3(.6,.6,.5)*pow(max(0.,dot(normalize(m.xyz-k),reflect(vec3(-.656059,.666369,-.35431468),e))),35.)*t,1);}`,
+      );
+      const collisionShader = initShaderProgram(
+        cgl,
+        `#version 300 es
+precision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(vec3(0,1.49,.3*b[0][0])+m.xyz,1);if(O=vec4(0),gl_FragCoord.y>36.){if(a.y>.6&&a.y<3.){float e=abs(gl_FragCoord.x/64.-1.),i=clamp(a.z+.7,0.,1.);O=vec4(vec2(b[0][0]*sign(a.x)*o.x<0.?i*(.7-abs(a.x))*e/.7:0.),vec2(b[0][0]*o.z>0.?i*(1.-e):0.));}}else if(o.y>.45&&a.y<1.){float e=a.y*clamp((a.z+.4)*50.,0.,1.)*clamp((-abs(a.x)+.2)*10.,0.,1.);O=vec4(vec2(e),vec2(e>0.?m.w/255.:0.));}}`,
       );
       const skyShader = initShaderProgram(
         gl,
         `#version 300 es
-in vec4 f;void main(){gl_Position=vec4(f.xy,1,1);}`,
-        `#version 300 es
 precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;out vec4 O;void main(){vec2 t=gl_FragCoord.xy/j.xy*2.-1.;vec3 e=(normalize(b*vec4(t.x*-(j.x/j.y),-t.y,1.73205,0.))).xyz;float o=(-32.-b[3].y)/e.y,i=1.-clamp(abs(o/9999.),0.,1.);if(O=vec4(0,0,0,1),i>.01){if(o>0.){float i=cos(j.z/30.),o=sin(j.z/30.);e.xz*=mat2(i,o,-o,i);vec3 t=abs(e);O.xyz=vec3(dot(vec2(texture(q,e.xy).z,texture(q,e.yz*2.).z),t.zx)*t.y);}else e=b[3].xyz+e*o,O.x=(i*=.9-texture(q,e.xz/150.+vec2(sin(e.z/35.+j.z),cos(e.x/25.+j.z))/80.).y),O.y=i*i*i;}}`,
+        `#version 300 es
+in vec4 f;void main(){gl_Position=vec4(f.xy,1,1);}`,
       );
       const [csm0, csm1] = integers_map(2, (split) => {
         const texture = gl["c25"]();
@@ -1646,12 +1655,12 @@ precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;ou
             for (let i1 = 0; i1 < 8; ++i1) {
               const { x, y, z } = csm_tempFrustumCorners[i1];
               matrixTransformPoint(x, y, z),
-                left = min(left, matrixTransformPoint.x),
                 right = max(right, matrixTransformPoint.x),
-                bottom = min(bottom, matrixTransformPoint.y),
                 top = max(top, matrixTransformPoint.y),
-                near = min(near, matrixTransformPoint.z),
-                far = max(far, matrixTransformPoint.z);
+                far = max(far, matrixTransformPoint.z),
+                left = min(left, matrixTransformPoint.x),
+                bottom = min(bottom, matrixTransformPoint.y),
+                near = min(near, matrixTransformPoint.z);
             }
             const zMultiplier = 10 + split;
             near *= near < 0 ? zMultiplier : 1 / zMultiplier,
@@ -1673,22 +1682,15 @@ precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;ou
               );
           };
       });
-      const csm_framebuffer = gl["c5w"]();
-      mainShader(),
-        gl["ubh"](mainShader("q"), 2),
-        skyShader(),
-        gl["ubh"](skyShader("q"), 2),
-        collisionShader(),
-        cgl["uae"](collisionShader("a"), !1, matrixToArray(mat_perspective(1e-4, 2, 1.2, 0.4))),
-        cgl["c5t"](0, 0, 0, 0),
-        cgl["v5y"](0, 0, 128, 128),
-        cgl["e8z"](2929),
-        cgl["e8z"](2884),
-        gl["b6o"](36160, csm_framebuffer),
+      gl["b6o"](36160, csm_framebuffer),
         gl["d45"]([
           0,
         ]),
         gl["r9l"](0),
+        mainShader(),
+        gl["ubh"](mainShader("q"), 2),
+        skyShader(),
+        gl["ubh"](skyShader("q"), 2),
         gl["a4v"](33986),
         gl["b9j"](3553, gl["c25"]()),
         gl["t60"](3553, 0, 6408, 1024, 1024, 0, 6408, 5121, groundTextureImage),
@@ -1696,9 +1698,14 @@ precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;ou
         gl["t2z"](3553, 10240, 9729),
         gl["gbn"](3553),
         gl["c5t"](0, 0, 0, 1),
+        gl["d4n"](515),
         gl["e8z"](2929),
         gl["e8z"](2884),
-        gl["d4n"](515),
+        cgl["e8z"](2929),
+        cgl["e8z"](2884),
+        cgl["v5y"](0, 0, 128, 128),
+        collisionShader(),
+        cgl["uae"](collisionShader("a"), !1, matrixToArray(mat_perspective(1e-4, 2, 1.2, 0.4))),
         NO_INLINE(initPage)(),
         NO_INLINE(player_init)(),
         requestAnimationFrame(mainLoop);
@@ -2616,7 +2623,7 @@ precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;ou
           ].map((x) =>
             meshAdd(
               hornPolygons,
-              identity.rotate(0, 90).translate(-5 * x, 1, -0.5).scale(1.2, 10, 1.2).rotate(0, 90 * x + 90),
+              identity.rotate(0, 90).translate(-5 * x, 3, -0.5).scale(1.2, 9, 1.2).rotate(0, 90 * x + 90),
             )
           ),
           meshAdd(
@@ -2703,15 +2710,15 @@ precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;ou
           meshAdd(cylinder(9, 1), translation(0, 0.8).scale(0.2, 0.3, 0.2), material(1, 0.5, 0.2)),
           meshAdd(cylinder(3), translation(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3), material(0.2, 0.2, 0.2, 0.1)),
           newModel("MODEL_ID_SOUL_COLLISION"),
-          meshAdd(cylinder(6).slice(0, -1), identity.scale(0.77, 1, 0.77), material(1, 0.3, 0.5)),
+          meshAdd(cylinder(6, 1).slice(0, -1), identity.scale(0.77, 1, 0.77), material(1, 0.3, 0.5)),
           newModel("MODEL_ID_SOUL"),
           meshAdd(
-            sphere(30, 24, (a, b, polygon) => {
-              var bm = b / 24;
-              var theta = a * Math.PI * 2 / 30;
+            sphere(28, 22, (a, b, polygon) => {
+              var bm = b / 22;
+              var theta = a * Math.PI * 2 / 28;
               var phixz = Math.sin(bm ** 0.6 * Math.PI / 2);
-              var a = bm * bm * Math.sin(a * Math.PI * 14 / 30) / 4;
-              return 23 < b
+              var a = bm * bm * Math.sin(a * Math.PI * 0.5) / 4;
+              return 21 < b
                 ? {
                   x: polygon.$smooth = 0,
                   y: -0.5,
@@ -2729,7 +2736,7 @@ precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;ou
           [
             -1,
             1,
-          ].map((x) => meshAdd(sphere(12), translation(0.16 * x, 0.4, -0.36).scale3d(0.09)));
+          ].map((x) => meshAdd(sphere(10), translation(0.16 * x, 0.4, -0.36).scale3d(0.09)));
       }
     });
 });

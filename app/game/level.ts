@@ -2,13 +2,13 @@ import type { Circle } from "./models";
 import { abs } from "../math/math";
 import { GQuad, cylinder, polygon_regular, sphere, cylinder_sides } from "../geometry/geometry";
 import { polygon_transform, polygons_transform, type Polygon } from "../geometry/polygon";
-import { translation } from "../math/matrix-transforms";
 import { integers_map } from "../math/integers-map";
 import { meshAdd, newLever, newModel, newSoul } from "./models-factory";
 import { material } from "../geometry/material";
 import { csg_union, csg_polygons_subtract } from "../geometry/csg";
 import { identity } from "../math/matrix";
 import { devAllModelsPrint } from "../dev-tools/dev-models";
+import { translation } from "../math/matrix-transforms";
 
 export const build_life_the_universe_and_everything = (): 42 | void => {
   const HORN_STACKS = 11;
@@ -897,8 +897,8 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
       hornPolygons,
       identity
         .rotate(0, 90)
-        .translate(x * -5, 1, -0.5)
-        .scale(1.2, 10, 1.2)
+        .translate(x * -5, 3, -0.5)
+        .scale(1.2, 9, 1.2)
         .rotate(0, 90 * x + 90),
     ),
   );
@@ -1009,12 +1009,12 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
   newModel("MODEL_ID_SOUL_COLLISION");
 
-  meshAdd(cylinder(6).slice(0, -1), identity.scale(0.77, 1, 0.77), material(1, 0.3, 0.5));
+  meshAdd(cylinder(6, 1).slice(0, -1), identity.scale(0.77, 1, 0.77), material(1, 0.3, 0.5));
 
   newModel("MODEL_ID_SOUL");
 
-  const GHOST_SLICES = 30;
-  const GHOST_STACKS = 24;
+  const GHOST_SLICES = 28;
+  const GHOST_STACKS = 22;
 
   // body
   meshAdd(
@@ -1036,7 +1036,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
   );
 
   // eyes
-  [-1, 1].map((x) => meshAdd(sphere(12), translation(x * 0.16, 0.4, -0.36).scale3d(0.09)));
+  [-1, 1].map((x) => meshAdd(sphere(10), translation(x * 0.16, 0.4, -0.36).scale3d(0.09)));
 
   if (DEBUG) {
     console.timeEnd("build_life_the_universe_and_everything");

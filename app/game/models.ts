@@ -35,8 +35,8 @@ export const SOULS_COUNT = 13;
 /** Fixed number of levers */
 export const LEVERS_COUNT = 16;
 
-export const souls: Soul[] = [];
+export const allModels: Model[] = [];
 
 export const levers: Lever[] = [];
 
-export const allModels: Model[] = [];
+export const souls: Soul[] = [];

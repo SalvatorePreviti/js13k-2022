@@ -335,6 +335,16 @@ export const eppur_si_muove = () => {
     matrixToArray(tempMatrix, transformsBuffer, MODELS_WITH_FULL_TRANSFORM + SOULS_COUNT + i);
   }
 
+  // Update player
+
+  player_update();
+
+  // Copy all models full matrices to the world uniform buffer
+
+  for (let i = 0; i < MODELS_WITH_FULL_TRANSFORM; ++i) {
+    matrixToArray(allModels[2 + MODELS_WITH_SIMPLE_TRANSFORM + i]!.$matrix, transformsBuffer, i);
+  }
+
   // Copy all models simple translation transform to the world uniform buffer
   for (
     let i = 0, j = (MODELS_WITH_FULL_TRANSFORM + LEVERS_COUNT + SOULS_COUNT) * 16, m: DOMMatrix;
@@ -345,15 +355,5 @@ export const eppur_si_muove = () => {
     transformsBuffer[j++] = m.m41;
     transformsBuffer[j++] = m.m42;
     transformsBuffer[j++] = m.m43;
-  }
-
-  // Update player
-
-  player_update();
-
-  // Copy all models full matrices to the world uniform buffer
-
-  for (let i = 0; i < MODELS_WITH_FULL_TRANSFORM; ++i) {
-    matrixToArray(allModels[2 + MODELS_WITH_SIMPLE_TRANSFORM + i]!.$matrix, transformsBuffer, i);
   }
 };

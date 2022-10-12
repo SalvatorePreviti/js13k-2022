@@ -2,7 +2,7 @@ import { levers, souls, allModels, type Model, type Circle, type Lever, type Sou
 import { player_position_final, onFirstBoatLeverPulled, onPlayerPullLever, onSoulCollected } from "./world-state";
 import type { Vec3Optional } from "../math/vectors";
 import { min, angle_lerp_degrees, DEG_TO_RAD, clamp, abs, hypot } from "../math/math";
-import { matrixCopy, matrixTransformPoint, tempMatrix } from "../math/matrix";
+import { identity, matrixCopy, matrixTransformPoint, tempMatrix } from "../math/matrix";
 import { lerpDamp, damp, gameTime } from "./game-time";
 import { polygons_transform, type Polygon } from "../geometry/polygon";
 import { cylinder } from "../geometry/geometry";
@@ -23,7 +23,7 @@ export const newModel = NO_INLINE((name: string): void => {
   const model: Model = { $matrix: new DOMMatrix(), $polygons };
   meshAdd = (
     polygons: Polygon<Readonly<Vec3Optional>>[],
-    transform: DOMMatrixReadOnly = new DOMMatrix(),
+    transform: DOMMatrixReadOnly = identity,
     color?: number | undefined,
   ) => $polygons.push(...polygons_transform(polygons, transform, color));
   allModels.push(model);

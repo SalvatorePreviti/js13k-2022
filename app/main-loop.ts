@@ -28,7 +28,6 @@ import { eppur_si_muove } from "./game/level-update";
 import { max, min } from "./math/math";
 import type { Vec3 } from "./math/vectors";
 import { renderModels } from "./game/models-render";
-import { initShaderProgram } from "./shaders-utils";
 import { initPage, csm_projections, player_first_person, projection, resetInteractPressed, updateInput } from "./page";
 import { player_init, camera_position_x, camera_position_y, camera_position_z } from "./game/player";
 import { cgl, gl } from "./gl";
@@ -44,11 +43,47 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   const camera_view = new DOMMatrix();
 
   const csm_lightSpaceMatrices = new Float32Array(2 * 16);
-  const csm_tempFrustumCorners: Vec3[] = integers_map(8, () => ({} as Vec3));
+  const csm_tempFrustumCorners: Vec3[] = [{}, {}, {}, {}, {}, {}, {}, {}] as any;
+  const csm_framebuffer = gl.createFramebuffer();
 
-  const collisionShader = initShaderProgram(cgl, main_vsSource, collider_fsSource);
-  const mainShader = initShaderProgram(gl, main_vsSource, main_fsSource);
-  const skyShader = initShaderProgram(gl, sky_vsSource, sky_fsSource);
+  interface WebglProgramAbstraction {
+    (name: string): WebGLUniformLocation;
+    (): void;
+  }
+  const initShaderProgram = (
+    xgl: WebGL2RenderingContext,
+    sfsSource: string,
+    vfsSource: string = main_vsSource,
+  ): WebglProgramAbstraction => {
+    const loadShader = (source: string, type: number): WebGLShader => {
+      const shader = xgl.createShader(type)!;
+      xgl.shaderSource(shader, source);
+      xgl.compileShader(shader);
+
+      if (DEBUG && !xgl.getShaderParameter(shader, xgl.COMPILE_STATUS)) {
+        throw new Error("An error occurred compiling the shaders: " + xgl.getShaderInfoLog(shader));
+      }
+
+      return shader;
+    };
+
+    const uniforms: Record<string, WebGLUniformLocation> = {};
+    const program = xgl.createProgram()!;
+    xgl.attachShader(program, loadShader(vfsSource, xgl.VERTEX_SHADER));
+    xgl.attachShader(program, loadShader(sfsSource, xgl.FRAGMENT_SHADER));
+    xgl.linkProgram(program);
+
+    if (DEBUG && !xgl.getProgramParameter(program, xgl.LINK_STATUS)) {
+      throw new Error("Unable to initialize the shader program: " + xgl.getProgramInfoLog(program));
+    }
+
+    return (name?: string): any =>
+      name ? uniforms[name] || (uniforms[name] = xgl.getUniformLocation(program, name)!) : xgl.useProgram(program);
+  };
+
+  const mainShader = initShaderProgram(gl, main_fsSource);
+  const collisionShader = initShaderProgram(cgl, collider_fsSource);
+  const skyShader = initShaderProgram(gl, sky_fsSource, sky_vsSource);
 
   const [csm0, csm1] = integers_map(2, (split: number) => {
     const texture = gl.createTexture()!;
@@ -97,23 +132,23 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
         .rotateSelf(LIGHT_ROT_X, LIGHT_ROT_Y)
         .translateSelf(tx / 8, ty / 8, tz / 8);
 
-      let left = Infinity;
       let right = -Infinity;
-      let bottom = Infinity;
       let top = -Infinity;
-      let near = Infinity;
       let far = -Infinity;
+      let left = Infinity;
+      let bottom = Infinity;
+      let near = Infinity;
 
       // Compute the frustum bouding box
       for (let i = 0; i < 8; ++i) {
         const { x, y, z } = csm_tempFrustumCorners[i]!;
         matrixTransformPoint(x, y, z);
-        left = min(left, matrixTransformPoint.x);
         right = max(right, matrixTransformPoint.x);
-        bottom = min(bottom, matrixTransformPoint.y);
         top = max(top, matrixTransformPoint.y);
-        near = min(near, matrixTransformPoint.z);
         far = max(far, matrixTransformPoint.z);
+        left = min(left, matrixTransformPoint.x);
+        bottom = min(bottom, matrixTransformPoint.y);
+        near = min(near, matrixTransformPoint.z);
       }
 
       const zMultiplier = 10 + split;
@@ -138,8 +173,6 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       );
     };
   });
-
-  const csm_framebuffer = gl.createFramebuffer();
 
   const mainLoop = (globalTime: number) => {
     requestAnimationFrame(mainLoop);
@@ -201,48 +234,20 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       resetInteractPressed();
     }
 
-    // view camera
-
-    let cameraX = camera_position_x;
-    let cameraY = camera_position_y;
-    let cameraZ = camera_position_z;
-
-    if (mainMenuVisible) {
-      matrixCopy(projection).invertSelf();
-      matrixTransformPoint(3.6, 3.5);
-      cameraX = matrixTransformPoint.x;
-      cameraY = matrixTransformPoint.y;
-      cameraZ = 5;
-      matrixCopy(identity, camera_view)
-        .rotateSelf(-20, 0)
-        .invertSelf()
-        .translateSelf(-cameraX, -cameraY, -cameraZ)
-        .rotateSelf(0, 99);
-
-      matrixCopy().rotateSelf(0, 40 * Math.sin(absoluteTime) - 80, -8);
-      matrixToArray(tempMatrix, transformsBuffer, MODEL_ID_PLAYER_BODY - MODELS_WITH_SIMPLE_TRANSFORM - 2);
-      matrixToArray(tempMatrix, transformsBuffer, MODEL_ID_PLAYER_LEG0 - MODELS_WITH_SIMPLE_TRANSFORM - 2);
-      matrixToArray(tempMatrix, transformsBuffer, MODEL_ID_PLAYER_LEG1 - MODELS_WITH_SIMPLE_TRANSFORM - 2);
-    } else {
-      matrixCopy(identity, camera_view)
-        .rotateSelf(-camera_rotation.x, -camera_rotation.y)
-        .invertSelf()
-        .translateSelf(-cameraX, -cameraY, -cameraZ);
-    }
-
     mainShader();
 
+    // Send the transformations to the shader
+
     gl.uniform4fv(mainShader(uniformName_worldTransforms), transformsBuffer);
-    gl.uniform3f(mainShader(uniformName_viewPos), cameraX, cameraY, cameraZ);
 
     // *** CASCADED SHADOWMAPS ***
 
-    gl.uniformMatrix4fv(mainShader(uniformName_projectionMatrix), false, matrixToArray(identity));
-    gl.uniform1i(mainShader(uniformName_csm_texture0), 3);
-    gl.uniform1i(mainShader(uniformName_csm_texture1), 3);
-
     gl.bindFramebuffer(gl.FRAMEBUFFER, csm_framebuffer);
     gl.viewport(0, 0, CSM_TEXTURE_SIZE, CSM_TEXTURE_SIZE);
+
+    gl.uniform1i(mainShader(uniformName_csm_texture0), 4);
+    gl.uniform1i(mainShader(uniformName_csm_texture1), 4);
+    gl.uniformMatrix4fv(mainShader(uniformName_projectionMatrix), false, matrixToArray(identity));
 
     csm0!(CSM_PLANE_DISTANCE - zNear);
     renderModels(gl, !player_first_person);
@@ -254,15 +259,43 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
-
-    gl.colorMask(true, true, true, true);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    gl.uniformMatrix4fv(mainShader(uniformName_viewMatrix), false, matrixToArray(camera_view));
-    gl.uniformMatrix4fv(mainShader(uniformName_projectionMatrix), false, matrixToArray(projection));
-    gl.uniformMatrix4fv(mainShader(uniformName_csm_matrices), false, csm_lightSpaceMatrices);
+    // view camera
+
+    let cameraX = camera_position_x;
+    let cameraY = camera_position_y;
+    let cameraZ = camera_position_z;
+
+    if (mainMenuVisible) {
+      matrixCopy().rotateSelf(0, 40 * Math.sin(absoluteTime) - 80, -8);
+      matrixToArray(tempMatrix, transformsBuffer, MODEL_ID_PLAYER_BODY - MODELS_WITH_SIMPLE_TRANSFORM - 2);
+      matrixToArray(tempMatrix, transformsBuffer, MODEL_ID_PLAYER_LEG0 - MODELS_WITH_SIMPLE_TRANSFORM - 2);
+      matrixToArray(tempMatrix, transformsBuffer, MODEL_ID_PLAYER_LEG1 - MODELS_WITH_SIMPLE_TRANSFORM - 2);
+
+      matrixCopy(projection).invertSelf();
+      matrixTransformPoint(3.6, 3.5);
+      cameraX = matrixTransformPoint.x;
+      cameraY = matrixTransformPoint.y;
+      cameraZ = 5;
+      matrixCopy(identity, camera_view)
+        .rotateSelf(-20, 0)
+        .invertSelf()
+        .translateSelf(-cameraX, -cameraY, -cameraZ)
+        .rotateSelf(0, 99);
+    } else {
+      matrixCopy(identity, camera_view)
+        .rotateSelf(-camera_rotation.x, -camera_rotation.y)
+        .invertSelf()
+        .translateSelf(-cameraX, -cameraY, -cameraZ);
+    }
+
     gl.uniform1i(mainShader(uniformName_csm_texture0), 0);
     gl.uniform1i(mainShader(uniformName_csm_texture1), 1);
+    gl.uniform3f(mainShader(uniformName_viewPos), cameraX, cameraY, cameraZ);
+    gl.uniformMatrix4fv(mainShader(uniformName_projectionMatrix), false, matrixToArray(projection));
+    gl.uniformMatrix4fv(mainShader(uniformName_viewMatrix), false, matrixToArray(camera_view));
+    gl.uniformMatrix4fv(mainShader(uniformName_csm_matrices), false, csm_lightSpaceMatrices);
 
     renderModels(gl, !player_first_person);
 
@@ -276,30 +309,18 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     gl.drawElements(gl.TRIANGLES, 3, gl.UNSIGNED_SHORT, 0);
   };
 
-  mainShader();
-  gl.uniform1i(mainShader(uniformName_groundTexture), 2);
-
-  skyShader();
-  gl.uniform1i(skyShader(uniformName_groundTexture), 2);
-
-  collisionShader();
-  cgl.uniformMatrix4fv(
-    collisionShader(uniformName_projectionMatrix),
-    false,
-    matrixToArray(mat_perspective(0.0001, 2, 1.2, 0.4)),
-  );
-
-  cgl.clearColor(0, 0, 0, 0);
-  cgl.viewport(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
-  cgl.enable(cgl.DEPTH_TEST); // Enable depth testing
-  cgl.enable(cgl.CULL_FACE); // Don't render triangle backs
-
   // Shadows framebuffer
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, csm_framebuffer);
   // Disable rendering to the csm color buffer, we just need the depth buffer
   gl.drawBuffers([gl.NONE]);
   gl.readBuffer(gl.NONE);
+
+  mainShader();
+  gl.uniform1i(mainShader(uniformName_groundTexture), 2);
+
+  skyShader();
+  gl.uniform1i(skyShader(uniformName_groundTexture), 2);
 
   // Ground texture
 
@@ -311,12 +332,25 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
   gl.generateMipmap(gl.TEXTURE_2D);
 
-  // GL Setup
+  // Setup rendering context
 
   gl.clearColor(0, 0, 0, 1);
+  gl.depthFunc(gl.LEQUAL); // LEQUAL to make sky works. Default is LESS
   gl.enable(gl.DEPTH_TEST); // Enable depth testing
   gl.enable(gl.CULL_FACE); // Don't render triangle backs
-  gl.depthFunc(gl.LEQUAL); // LEQUAL to make sky works. Default is LESS
+
+  // Setup collision context
+
+  cgl.enable(cgl.DEPTH_TEST); // Enable depth testing
+  cgl.enable(cgl.CULL_FACE); // Don't render triangle backs
+  cgl.viewport(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
+
+  collisionShader();
+  cgl.uniformMatrix4fv(
+    collisionShader(uniformName_projectionMatrix),
+    false,
+    matrixToArray(mat_perspective(0.0001, 2, 1.2, 0.4)),
+  );
 
   NO_INLINE(initPage)();
 

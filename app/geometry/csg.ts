@@ -254,3 +254,8 @@ export const csg_subtract = (a: CSGInput, ...b: CSGInput[]): CSGNode =>
  */
 export const csg_polygons_subtract = (a: CSGInput, ...b: CSGInput[]) =>
   csg_polygons(csg_tree_flip(csg_union(csg_tree_flip(csg_tree(a)), ...b)));
+
+/**
+ * Note that first tree will be modified if is a tree.
+ */
+export const csg_polygons_union = (...input: CSGInput[]) => csg_polygons(csg_union(...input));
