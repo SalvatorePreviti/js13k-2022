@@ -1338,6 +1338,15 @@ const build_life_the_universe_and_everything = () => {
         1,
       ),
   ).flat();
+  const pushingRodsPositions = [
+    -110,
+    -100,
+    -92,
+    -82,
+    -106,
+    -97,
+    -88,
+  ];
   const pushingRod = csg_polygons_subtract(
     polygons_transform(cylinder(), translation(0, -0.5, 1).scale(1.15, 1.2, 6.5), material(0.25, 0.25, 0.35, 0.3)),
     csg_polygons_subtract(
@@ -1352,9 +1361,9 @@ const build_life_the_universe_and_everything = () => {
     ),
   );
   const hexCorridorPolygons = [
-    ...polygons_transform(cylinder(), translation(0, -3).scale(11, 1.4, 3), material(0.9, 0.9, 0.9, 0.2)),
-    ...polygons_transform(cylinder(), translation(0, -2.2).scale(7.7, 0.5, 4), material(0.5, 0.5, 0.5, 0.2)),
-    ...integers_map(
+    polygons_transform(cylinder(), translation(0, -3).scale(11, 1.4, 3), material(0.9, 0.9, 0.9, 0.2)),
+    polygons_transform(cylinder(), translation(0, -2.2).scale(7.7, 0.5, 4), material(0.5, 0.5, 0.5, 0.2)),
+    integers_map(
       12,
       (i) =>
         polygons_transform(
@@ -1363,27 +1372,21 @@ const build_life_the_universe_and_everything = () => {
           material(0.6, 0.5, 0.3, 0.2),
         ),
     ).flat(),
-    ...csg_polygons_subtract(
-      polygons_transform(cylinder(6), identity.rotate(90).scale(6, 8, 6), material(0.3, 0.6, 0.6, 0.3)),
-      polygons_transform(
-        cylinder(4, 0, 0.01),
-        translation(0, 6).scale(12, 2, 0.75).rotate(0, 45),
-        material(0.3, 0.6, 0.6, 0.3),
+    polygons_transform(
+      csg_polygons_subtract(
+        polygons_transform(cylinder(6), identity.rotate(90).scale(6, 8, 6)),
+        polygons_transform(cylinder(4, 0, 0.01), translation(0, 6).scale(12, 2, 0.75).rotate(0, 45)),
+        polygons_transform(cylinder(6), identity.rotate(90).scale(5, 12, 5)),
+        ...[
+          -5,
+          0,
+          5,
+        ].map((x) => polygons_transform(cylinder(5), translation(x, 2.5).rotate(90, 0, 36).scale(1.8, 10, 1.8))),
       ),
-      polygons_transform(cylinder(6), identity.rotate(90).scale(5, 12, 5), material(0.3, 0.6, 0.6, 0.3)),
-      ...[
-        -5,
-        0,
-        5,
-      ].map((x) =>
-        polygons_transform(
-          cylinder(5),
-          translation(x, 2.5).rotate(90, 0, 36).scale(1.8, 10, 1.8),
-          material(0.3, 0.6, 0.6, 0.3),
-        )
-      ),
+      identity,
+      material(0.3, 0.6, 0.6, 0.3),
     ),
-  ];
+  ].flat();
   const makeBigArcPolygons = (height) =>
     csg_polygons_subtract(
       polygons_transform(cylinder(), translation(0, -height / 2).scale(6, height - 1, 2.2)),
@@ -1571,19 +1574,13 @@ const build_life_the_universe_and_everything = () => {
   newLever(translation(-84, -0.7, 85).rotate(0, 45));
   meshAdd(
     csg_polygons_subtract(
-      csg_union(
-        polygons_transform(cylinder(), translation(26.5, -1.6, 10).scale(20, 2.08, 3)),
-        polygons_transform(cylinder(), translation(26.5, -0.5, 10).scale(19, 2, 0.5)),
-      ),
-      ...integers_map(
-        4,
-        (x) => polygons_transform(cylinder(), translation(13 + x * 9 + (x & 1), -0.8, 9).scale(1.35, 1.35, 9)),
-      ),
-      ...integers_map(3, (x) => polygons_transform(cylinder(), translation(17 + x * 9, -0.8, 9).scale(1.35, 1.35, 9))),
+      polygons_transform(cylinder(), translation(-96.5, -1.4, -2).scale(20, 2.1, 3)),
+      ...pushingRodsPositions.map((x) => polygons_transform(cylinder(), translation(x, 0.05, -3).scale(1.35, 2, 9))),
     ),
-    translation(-123, 0.2, -12),
+    identity,
     material(0.5, 0.5, 0.6, 0.2),
   );
+  meshAdd(cylinder(), translation(-96.5, 1, -2).scale(19, 0.3, 0.3), material(0.5, 0.5, 0.6, 0.2));
   newLever(translation(-116, -1.4, -18).rotate(0, 180));
   meshAdd(cylinder(6), translation(-116, -2.6, -16.5).scale(3.2, 0.8, 3), material(0.6, 0.5, 0.7, 0.2));
   meshAdd(cylinder(), translation(-116, -2.6, -12).scale(3.2, 1.1, 4).skewX(3), material(0.8, 0.8, 0.8, 0.2));
@@ -1879,9 +1876,7 @@ const build_life_the_universe_and_everything = () => {
   newModel("MODEL_ID_LEVEL2_HEX_CORRIDOR_DOOR");
   meshAdd(cylinder(6), translation(-44.5, 0, 55).rotate(0, 0, 90).scale(5.9, 0.5, 5.9), material(0.7, 0.7, 0.7, 0.4));
   newModel("MODEL_ID_ELEVATORS0");
-  const elevatorsMatrix = NO_INLINE((x) =>
-    translation(x - 76.9, x / -16 - 10, 24).rotate(0, 0, -2).skewX(-2).scale(2.8, 1.4, 3)
-  );
+  const elevatorsMatrix = (x) => translation(x - 76.9, x / -16 - 10, 24).rotate(0, 0, -2).skewX(-2).scale(2.8, 1.4, 3);
   [
     0,
     12,
@@ -1917,12 +1912,12 @@ const build_life_the_universe_and_everything = () => {
       1.2,
     ]),
   );
-  newModel("MODEL_ID_PUSHING_ROD0");
-  integers_map(2, (x) => meshAdd(pushingRod, translation(-110 + x * 9 + (x & 1), 1.9, -12)));
-  newModel("MODEL_ID_PUSHING_ROD1");
-  integers_map(2, (x) => meshAdd(pushingRod, translation(-110 + (x + 2) * 9 + (x & 1), 1.9, -12)));
-  newModel("MODEL_ID_PUSHING_ROD2");
-  integers_map(3, (x) => meshAdd(pushingRod, translation(-106 + x * 9, 1.9, -12)));
+  pushingRodsPositions.map((x, i) => {
+    if (!(i % 2) && i < 6) {
+      newModel("MODEL_ID_PUSHING_ROD" + i / 2);
+    }
+    meshAdd(pushingRod, translation(x, 1.9, -12));
+  });
   integers_map(4, (i) => {
     newModel("MODEL_ID_OSCILLATING_HEX_PAD" + i);
     meshAdd(

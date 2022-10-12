@@ -32,6 +32,8 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     ),
   ).flat();
 
+  const pushingRodsPositions = [-110, -100, -92, -82, -106, -97, -88];
+
   const pushingRod = csg_polygons_subtract(
     polygons_transform(cylinder(), translation(0, -0.5, 1).scale(1.15, 1.2, 6.5), material(0.25, 0.25, 0.35, 0.3)),
     csg_polygons_subtract(
@@ -43,31 +45,27 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     ),
   );
 
-  const hexCorridorPolygons = [
-    ...polygons_transform(cylinder(), translation(0, -3).scale(11, 1.4, 3), material(0.9, 0.9, 0.9, 0.2)),
-    ...polygons_transform(cylinder(), translation(0, -2.2).scale(7.7, 0.5, 4), material(0.5, 0.5, 0.5, 0.2)),
-    ...integers_map(12, (i) =>
+  const hexCorridor = [
+    polygons_transform(cylinder(), translation(0, -3).scale(11, 1.4, 3), material(0.9, 0.9, 0.9, 0.2)),
+    polygons_transform(cylinder(), translation(0, -2.2).scale(7.7, 0.5, 4), material(0.5, 0.5, 0.5, 0.2)),
+    integers_map(12, (i) =>
       polygons_transform(cylinder(), identity.translate(i - 5.5, 4.4).scale(0.1, 0.1, 2), material(0.6, 0.5, 0.3, 0.2)),
     ).flat(),
-    ...csg_polygons_subtract(
-      polygons_transform(cylinder(6), identity.rotate(90).scale(6, 8, 6), material(0.3, 0.6, 0.6, 0.3)),
-      polygons_transform(
-        cylinder(4, 0, 0.01),
-        translation(0, 6).scale(12, 2, 0.75).rotate(0, 45),
-        material(0.3, 0.6, 0.6, 0.3),
-      ),
-      polygons_transform(cylinder(6), identity.rotate(90).scale(5, 12, 5), material(0.3, 0.6, 0.6, 0.3)),
-      ...[-5, 0, 5].map((x) =>
-        polygons_transform(
-          cylinder(5),
-          translation(x, 2.5).rotate(90, 0, 36).scale(1.8, 10, 1.8),
-          material(0.3, 0.6, 0.6, 0.3),
+    polygons_transform(
+      csg_polygons_subtract(
+        polygons_transform(cylinder(6), identity.rotate(90).scale(6, 8, 6)),
+        polygons_transform(cylinder(4, 0, 0.01), translation(0, 6).scale(12, 2, 0.75).rotate(0, 45)),
+        polygons_transform(cylinder(6), identity.rotate(90).scale(5, 12, 5)),
+        ...[-5, 0, 5].map((x) =>
+          polygons_transform(cylinder(5), translation(x, 2.5).rotate(90, 0, 36).scale(1.8, 10, 1.8)),
         ),
       ),
+      identity,
+      material(0.3, 0.6, 0.6, 0.3),
     ),
-  ];
+  ].flat();
 
-  const makeBigArcPolygons = (height: number) =>
+  const makeBigArc = (height: number) =>
     csg_polygons_subtract(
       polygons_transform(cylinder(), translation(0, -height / 2).scale(6, height - 1, 2.2)),
       polygons_transform(cylinder(), translation(0, -height / 2 - 6).scale(4, height - 3, 4)),
@@ -176,7 +174,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
   // hex corridor 1
 
-  meshAdd(hexCorridorPolygons, translation(-53, 0, 55));
+  meshAdd(hexCorridor, translation(-53, 0, 55));
 
   // connection from rotating hex corridor to platforms
 
@@ -353,18 +351,14 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
   meshAdd(
     csg_polygons_subtract(
-      csg_union(
-        polygons_transform(cylinder(), translation(26.5, -1.6, 10).scale(20, 2.08, 3)),
-        polygons_transform(cylinder(), translation(26.5, -0.5, 10).scale(19, 2, 0.5)),
-      ),
-      ...integers_map(4, (x) =>
-        polygons_transform(cylinder(), translation(13 + x * 9 + (x & 1), -0.8, 9).scale(1.35, 1.35, 9)),
-      ),
-      ...integers_map(3, (x) => polygons_transform(cylinder(), translation(17 + x * 9, -0.8, 9).scale(1.35, 1.35, 9))),
+      polygons_transform(cylinder(), translation(-96.5, -1.4, -2).scale(20, 2.1, 3)),
+      ...pushingRodsPositions.map((x) => polygons_transform(cylinder(), translation(x, 0.05, -3).scale(1.35, 2, 9))),
     ),
-    translation(-123, 0.2, -12),
+    identity,
     material(0.5, 0.5, 0.6, 0.2),
   );
+
+  meshAdd(cylinder(), translation(-96.5, 1, -2).scale(19, 0.3, 0.3), material(0.5, 0.5, 0.6, 0.2));
 
   // LEVER after second boat lever, before the pushing rods
   newLever(translation(-116, -1.4, -18).rotate(0, 180), "LEVER_ID_BEFORE_PUSHING_RODS");
@@ -518,12 +512,12 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
   integers_map(3, (i) => {
     // The big arcs in the level after second boat
-    meshAdd(makeBigArcPolygons(16), translation(-77, -9, i * -12 - 8 - 12).rotate(0, 90), material(0.6, 0.6, 0.6, 0.3));
-    meshAdd(makeBigArcPolygons(16), translation(i * 12 - 109, -9, -12), material(0.6, 0.6, 0.6, 0.3));
+    meshAdd(makeBigArc(16), translation(-77, -9, i * -12 - 8 - 12).rotate(0, 90), material(0.6, 0.6, 0.6, 0.3));
+    meshAdd(makeBigArc(16), translation(i * 12 - 109, -9, -12), material(0.6, 0.6, 0.6, 0.3));
 
     // Big arcs in the level after rotating platforms
     meshAdd(
-      makeBigArcPolygons(24.7 - 0.7 * (i & 1)),
+      makeBigArc(24.7 - 0.7 * (i & 1)),
       translation(6 * i - 6, 4 - (i & 1), 111 - 0.2 * (i & 1)),
       i & 1 ? material(0.5, 0.5, 0.5, 0.3) : material(0.35, 0.35, 0.35, 0.5),
     );
@@ -754,14 +748,12 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     ...polygon_regular(15).map(({ x, z }): Circle => [x * 3, z * 3, 1.2]),
   );
 
-  newModel("MODEL_ID_PUSHING_ROD0");
-  integers_map(2, (x) => meshAdd(pushingRod, translation(-110 + x * 9 + (x & 1), 1.9, -12)));
-
-  newModel("MODEL_ID_PUSHING_ROD1");
-  integers_map(2, (x) => meshAdd(pushingRod, translation(-110 + (x + 2) * 9 + (x & 1), 1.9, -12)));
-
-  newModel("MODEL_ID_PUSHING_ROD2");
-  integers_map(3, (x) => meshAdd(pushingRod, translation(-106 + x * 9, 1.9, -12)));
+  pushingRodsPositions.map((x, i) => {
+    if (!(i % 2) && i < 6) {
+      newModel("MODEL_ID_PUSHING_ROD" + i / 2);
+    }
+    meshAdd(pushingRod, translation(x, 1.9, -12));
+  });
 
   // oscillating hex pads
 
@@ -822,7 +814,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
   // rotating hex corridor
   newModel("MODEL_ID_LEVEL2_ROTATING_HEX_CORRIDOR");
-  meshAdd(hexCorridorPolygons);
+  meshAdd(hexCorridor);
 
   // donut pad
   newModel("MODEL_ID_DONUT_PAD");
