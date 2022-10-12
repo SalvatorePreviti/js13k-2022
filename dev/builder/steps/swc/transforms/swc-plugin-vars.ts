@@ -191,11 +191,6 @@ function variableDeclarationSortCompare(da: VariableDeclaration, db: VariableDec
 
   let c = 0;
 
-  c = varKindOrdering(da.kind) - varKindOrdering(db.kind);
-  if (c) {
-    return c;
-  }
-
   if (a.init !== b.init) {
     if (!a.init) {
       return -1;
@@ -213,7 +208,16 @@ function variableDeclarationSortCompare(da: VariableDeclaration, db: VariableDec
   //   c = b.id.value.length - a.id.value.length || a.id.value.localeCompare(b.id.value);
   // }
 
-  return c || ("span" in a && "span" in b ? a.span.start - b.span.start : 0);
+  if (c) {
+    return c;
+  }
+
+  c = varKindOrdering(db.kind) - varKindOrdering(da.kind);
+  if (c) {
+    return c;
+  }
+
+  return "span" in a && "span" in b ? a.span.start - b.span.start : 0;
 }
 
 function compareExpressions(a: Expression, b: Expression): number {

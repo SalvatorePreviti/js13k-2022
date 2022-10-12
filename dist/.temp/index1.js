@@ -575,7 +575,6 @@ const initPage = () => {
   let gamepadInteractPressed;
   let audioContext;
   let songAudioSource;
-  let music_on = true;
   const KEY_INTERACT = 0;
   const KEY_MENU = 1;
   const KEY_LEFT = 2;
@@ -585,6 +584,7 @@ const initPage = () => {
   const TOUCH_SIZE = 19;
   const TOUCH_MOVE_SNAP = 0.2;
   const TOUCH_MOVE_THRESHOLD = 0.3;
+  let music_on = true;
   const keyboard_downKeys = [];
   const updateMusicOnState = () => {
     b4.innerHTML = "Music: " + music_on;
