@@ -500,7 +500,7 @@ const z = NO_INLINE((b, a, g) => l.translate(b, a, g)),
   Rb = b => {
     let a, g = 0, k = 0, q = 0, m = b.at(-1);
     for (a of b) {
-      g += (m.y - a.y) * (m.z + a.z), k += (m.z - a.z) * (m.x + a.x), q += (m.x - a.x) * (m.y + a.y), m = a;
+      g += (m.z + a.z) * (m.y - a.y), k += (m.x + a.x) * (m.z - a.z), q += (m.y + a.y) * (m.x - a.x), m = a;
     }
     return a = fb(g, k, q), g /= a, k /= a, q /= a, { x: g, y: k, z: q, w: g * m.x + k * m.y + q * m.z };
   },
@@ -712,13 +712,12 @@ const z = NO_INLINE((b, a, g) => l.translate(b, a, g)),
       I();
     };
   },
-  hc = (b, a) => {
-    const g = void 0 === a ? 41 : 42;
+  hc = (b, a, g) => {
     ba
       ? 1100 < hC.width && b.d97(4, e[39].D - e[37].s, 5123, 2 * e[37].s)
-      : (b.das(4, e[g].D - e[g].s, 5123, 2 * e[g].s, La.length),
+      : (b.das(4, e[a].D - e[a].s, 5123, 2 * e[a].s, La.length),
         b.das(4, e[40].D - e[40].s, 5123, 2 * e[40].s, h.length),
-        b.d97(4, (a ? e[39].D : e[37].s) - 3, 5123, 6));
+        b.d97(4, (g ? e[39].D : e[37].s) - 3, 5123, 6));
   },
   l = new DOMMatrix(),
   v = new DOMMatrix(),
@@ -847,11 +846,11 @@ yb(() => {
               $b.u3a(J("j"), ic);
               $b.cbf(!0, !1, !0, !1);
               $b.uae(J("b"), !1, hb(ib().rotateSelf(0, 180).invertSelf().translateSelf(-Ua, -Va, 0.3 - Wa)));
-              hc($b);
+              hc($b, 41);
               $b.c4s(256);
               $b.cbf(!1, !0, !1, !0);
               $b.uae(J("b"), !1, hb(ib().translateSelf(-Ua, -Va, -Wa - 0.3)));
-              hc($b);
+              hc($b, 41);
               $b.f1s();
               ea = 0;
             }
@@ -863,9 +862,9 @@ yb(() => {
             Y.ubh(D("h"), 4);
             Y.uae(D("a"), !1, hb(l));
             V(54.7);
-            hc(Y, !fa);
+            hc(Y, 42, !fa);
             S(126);
-            hc(Y, !fa);
+            hc(Y, 42, !fa);
             Y.b6o(36160, null);
             Y.v5y(0, 0, Y.drawingBufferWidth, Y.drawingBufferHeight);
             Y.c4s(16640);
@@ -890,7 +889,7 @@ yb(() => {
             Y.uae(D("a"), !1, hb(ha));
             Y.uae(D("b"), !1, hb(E));
             Y.uae(D("i"), !1, f);
-            hc(Y, !fa);
+            hc(Y, 42, !fa);
             F();
             Y.uae(F("b"), !1, hb(ib(E).invertSelf()));
             Y.ubu(F("j"), Y.drawingBufferWidth, Y.drawingBufferHeight, ya);

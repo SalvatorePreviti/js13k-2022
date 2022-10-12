@@ -832,7 +832,7 @@ const plane_fromPolygon = (polygon) => {
   let z = 0;
   let a = polygon.at(-1);
   for (b of polygon) {
-    x += (a.y - b.y) * (a.z + b.z), y += (a.z - b.z) * (a.x + b.x), z += (a.x - b.x) * (a.y + b.y), a = b;
+    x += (a.z + b.z) * (a.y - b.y), y += (a.x + b.x) * (a.z - b.z), z += (a.y + b.y) * (a.x - b.x), a = b;
   }
   return b = hypot(x, y, z), x /= b, y /= b, z /= b, {
     x,
@@ -1192,8 +1192,7 @@ const player_init = () => {
       );
   };
 };
-const renderModels = (xgl, renderPlayer) => {
-  const soulModelId = renderPlayer === void 0 ? 41 : 42;
+const renderModels = (xgl, soulModelId, renderPlayer) => {
   mainMenuVisible
     ? 1100 < hC.width
       && xgl["d97"](4, allModels[39].$vertexEnd - allModels[37].$vertexBegin, 5123, 2 * allModels[37].$vertexBegin)
@@ -1532,7 +1531,7 @@ layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec
                 ),
               ),
             ),
-            renderModels(cgl),
+            renderModels(cgl, 41),
             cgl["c4s"](256),
             cgl["cbf"](!1, !0, !1, !0),
             cgl["uae"](
@@ -1546,7 +1545,7 @@ layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec
                 ),
               ),
             ),
-            renderModels(cgl),
+            renderModels(cgl, 41),
             cgl["f1s"](),
             interact_pressed = 0;
         }
@@ -1558,9 +1557,9 @@ layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec
           gl["ubh"](mainShader("h"), 4),
           gl["uae"](mainShader("a"), !1, matrixToArray(identity)),
           csm0(55 - zNear),
-          renderModels(gl, !player_first_person),
+          renderModels(gl, 42, !player_first_person),
           csm1(126),
-          renderModels(gl, !player_first_person),
+          renderModels(gl, 42, !player_first_person),
           gl["b6o"](36160, null),
           gl["v5y"](0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight),
           gl["c4s"](16640);
@@ -1590,7 +1589,7 @@ layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec
           gl["uae"](mainShader("a"), !1, matrixToArray(projection)),
           gl["uae"](mainShader("b"), !1, matrixToArray(camera_view)),
           gl["uae"](mainShader("i"), !1, csm_lightSpaceMatrices),
-          renderModels(gl, !player_first_person),
+          renderModels(gl, 42, !player_first_person),
           skyShader(),
           gl["uae"](skyShader("b"), !1, matrixToArray(matrixCopy(camera_view).invertSelf())),
           gl["ubu"](skyShader("j"), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime),

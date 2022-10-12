@@ -1109,9 +1109,9 @@ const plane_fromPolygon = (polygon) => {
   let z = 0;
   let a = polygon.at(-1);
   for (b of polygon) {
-    x += (a.y - b.y) * (a.z + b.z);
-    y += (a.z - b.z) * (a.x + b.x);
-    z += (a.x - b.x) * (a.y + b.y);
+    x += (a.z + b.z) * (a.y - b.y);
+    y += (a.x + b.x) * (a.z - b.z);
+    z += (a.y + b.y) * (a.x - b.x);
     a = b;
   }
   b = hypot(x, y, z);
@@ -2611,8 +2611,7 @@ const eppur_si_muove = () => {
     transformsBuffer[j++] = m.m43;
   }
 };
-const renderModels = (xgl, renderPlayer) => {
-  const soulModelId = renderPlayer === void 0 ? MODEL_ID_SOUL_COLLISION : MODEL_ID_SOUL;
+const renderModels = (xgl, soulModelId, renderPlayer) => {
   if (mainMenuVisible) {
     if (hC.width > 1100) {
       xgl["d97"](
@@ -2694,7 +2693,7 @@ const startMainLoop = (groundTextureImage) => {
           ),
         ),
       );
-      renderModels(cgl);
+      renderModels(cgl, MODEL_ID_SOUL_COLLISION);
       cgl["c4s"](256);
       cgl["cbf"](false, true, false, true);
       cgl["uae"](
@@ -2708,7 +2707,7 @@ const startMainLoop = (groundTextureImage) => {
           ),
         ),
       );
-      renderModels(cgl);
+      renderModels(cgl, MODEL_ID_SOUL_COLLISION);
       cgl["f1s"]();
       resetInteractPressed();
     }
@@ -2720,9 +2719,9 @@ const startMainLoop = (groundTextureImage) => {
     gl["ubh"](mainShader(uniformName_csm_texture1), 4);
     gl["uae"](mainShader(uniformName_projectionMatrix), false, matrixToArray(identity));
     csm0(constDef_CSM_PLANE_DISTANCE - zNear);
-    renderModels(gl, !player_first_person);
+    renderModels(gl, MODEL_ID_SOUL, !player_first_person);
     csm1(zFar - constDef_CSM_PLANE_DISTANCE);
-    renderModels(gl, !player_first_person);
+    renderModels(gl, MODEL_ID_SOUL, !player_first_person);
     gl["b6o"](36160, null);
     gl["v5y"](0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
     gl["c4s"](16640);
@@ -2754,7 +2753,7 @@ const startMainLoop = (groundTextureImage) => {
     gl["uae"](mainShader(uniformName_projectionMatrix), false, matrixToArray(projection));
     gl["uae"](mainShader(uniformName_viewMatrix), false, matrixToArray(camera_view));
     gl["uae"](mainShader(uniformName_csm_matrices), false, csm_lightSpaceMatrices);
-    renderModels(gl, !player_first_person);
+    renderModels(gl, MODEL_ID_SOUL, !player_first_person);
     skyShader();
     gl["uae"](skyShader(uniformName_viewMatrix), false, matrixToArray(matrixCopy(camera_view).invertSelf()));
     gl["ubu"](skyShader(uniformName_iResolution), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime);

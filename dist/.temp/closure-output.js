@@ -226,7 +226,7 @@ const z = NO_INLINE((b, a, g) => l.translate(b, a, g)), ob = (b, a) => Array.fro
 }, Qb = ({x:b, y:a, z:g}, k) => b * k.x + a * k.y + g * k.z, Rb = b => {
   let a, g = 0, k = 0, q = 0, m = b.at(-1);
   for (a of b) {
-    g += (m.y - a.y) * (m.z + a.z), k += (m.z - a.z) * (m.x + a.x), q += (m.x - a.x) * (m.y + a.y), m = a;
+    g += (m.z + a.z) * (m.y - a.y), k += (m.x + a.x) * (m.z - a.z), q += (m.y + a.y) * (m.x - a.x), m = a;
   }
   return a = fb(g, k, q), g /= a, k /= a, q /= a, {x:g, y:k, z:q, w:g * m.x + k * m.y + q * m.z,};
 }, Sb = (b, a) => {
@@ -381,9 +381,8 @@ const z = NO_INLINE((b, a, g) => l.translate(b, a, g)), ob = (b, a) => Array.fro
     p += lb;
     I();
   };
-}, hc = (b, a) => {
-  const g = void 0 === a ? 41 : 42;
-  ba ? 1100 < hC.width && b.d97(4, e[39].D - e[37].s, 5123, 2 * e[37].s) : (b.das(4, e[g].D - e[g].s, 5123, 2 * e[g].s, La.length,), b.das(4, e[40].D - e[40].s, 5123, 2 * e[40].s, h.length,), b.d97(4, (a ? e[39].D : e[37].s) - 3, 5123, 6));
+}, hc = (b, a, g) => {
+  ba ? 1100 < hC.width && b.d97(4, e[39].D - e[37].s, 5123, 2 * e[37].s) : (b.das(4, e[a].D - e[a].s, 5123, 2 * e[a].s, La.length,), b.das(4, e[40].D - e[40].s, 5123, 2 * e[40].s, h.length,), b.d97(4, (g ? e[39].D : e[37].s) - 3, 5123, 6));
 }, l = new DOMMatrix(), v = new DOMMatrix(), gb = new Float32Array(16), ic = new Float32Array(760), Zb = new Uint8Array(65536), jc = (NO_INLINE('<!DOCTYPE html><html><head>\n    <title>666</title>\n    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">\n    \n    \n    \n  <link rel="stylesheet" href="/index.css"></head>\n\n  <body>\n    <canvas id="hD" height="128" width="128"></canvas>\n    <canvas id="hC"></canvas>\n    <h4 id="h4">loading</h4>\n    <b id="b5">☰</b>\n    <h3 id="h3"></h3>\n    <main>\n      <nav>\n        <h2>DANTE</h2>\n        Lucifer:\n        <i>"Damn. Infernal delivery service failed again. A delivery of evil souls fell in an area under construction.\n          Dante, take them where they belong, to the 8th circle."</i>\n        <ul>\n          <li id="b1">Play</li>\n          <li id="b2">Play first person</li>\n          <li id="b3">Restart</li>\n          <li id="b4"></li>\n        </ul>\n        <p>move WASD/arrows, levers E/click, menu Esc</p>\n        <p>\n          <a target="_blank" href="https://github.com/SalvatorePreviti/js13k-2022">© 2022 Salvatore Previti</a> -\n          <a target="_blank" href="https://twitter.com/ryanmalm">music Ryan Malm</a>\n        </p>\n      </nav>\n    </main>\n    \n  \n\n<script type="module" src="/index.js" crossorigin="">\x3c/script></body></html> * {\n  -webkit-user-select: none;\n  user-select: none;\n  color: #fda;\n  font-weight: 100;\n  touch-action: none;\n  overscroll-behavior: contain;\n}\nhtml,\nbody {\n  background: #000;\n  margin: 0;\n  font-family: "Times New Roman", serif;\n  font-size: max(min(3.8vw, 3.8vh), 15px);\n  text-shadow: 4px 4px 2px #000, -2px -2px 8px #000;\n}\np {\n  font-size: 0.7em;\n}\nbody > * {\n  position: absolute;\n}\nh2 {\n  color: #f61;\n  margin: 0 0 0.7em;\n}\nh4 {\n  left: 0;\n  top: 0;\n  right: 0;\n  text-align: center;\n}\nh3,\nh4 {\n  pointer-events: none;\n}\n.m main {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  top: 0;\n  right: 0;\n  bottom: 0;\n  min-width: 70%;\n}\nnav {\n  background: #00000080;\n  border-radius: 1em;\n  max-width: max(780px, 50vw);\n  padding: 1em;\n}\n#b5,\nh3 {\n  padding: 10px;\n}\nh3 {\n  text-align: right;\n  right: 5%;\n  bottom: 0;\n}\na,\nli {\n  cursor: pointer;\n  margin-bottom: 0.5em;\n  text-decoration: none;\n  border-bottom: 3px solid #00000000;\n}\nh2,\na:hover,\nli:hover {\n  border-bottom: 3px solid;\n}\nmain,\n.m h4,\n#hD {\n  display: none;\n}\n'), 
 "data:image/svg+xml;base64," + btoa('<svg color-interpolation-filters="sRGB" height="1024" width="1024" xmlns="http://www.w3.org/2000/svg"><filter filterUnits="userSpaceOnUse" height="1026" id="a" width="1026" x="0" y="0"><feTurbulence baseFrequency=".007" height="1025" numOctaves="6" stitchTiles="stitch" width="1025" result="z" type="fractalNoise" x="1" y="1"/><feTile height="1024" width="1024" x="-1" y="-1"/><feTile/><feDiffuseLighting diffuseConstant="4" lighting-color="red" surfaceScale="5"><feDistantLight azimuth="270" elevation="5"/></feDiffuseLighting><feTile height="1024" width="1024" x="1" y="1"/><feTile result="x"/><feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 1" in="z"/><feTile height="1024" width="1024" x="1" y="1"/><feTile result="z"/><feTurbulence baseFrequency=".01" height="1024" numOctaves="5" stitchTiles="stitch" width="1024"/><feColorMatrix values="0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1"/><feBlend in2="x" mode="screen"/><feBlend in2="z" mode="screen"/></filter><rect filter="url(#a)" height="100%" width="100%"/></svg>',
 )), Y = hC.getContext("webgl2", {powerPreference:"high-performance",}), $b = hD.getContext("webgl2", {powerPreference:"high-performance", preserveDrawingBuffer:!0, antialias:!1,});
@@ -450,11 +449,11 @@ yb(() => {
           $b.u3a(J("j"), ic);
           $b.cbf(!0, !1, !0, !1);
           $b.uae(J("b"), !1, hb(ib().rotateSelf(0, 180).invertSelf().translateSelf(-Ua, -Va, 0.3 - Wa,),),);
-          hc($b);
+          hc($b, 41);
           $b.c4s(256);
           $b.cbf(!1, !0, !1, !0);
           $b.uae(J("b"), !1, hb(ib().translateSelf(-Ua, -Va, -Wa - 0.3,),),);
-          hc($b);
+          hc($b, 41);
           $b.f1s();
           ea = 0;
         }
@@ -466,9 +465,9 @@ yb(() => {
         Y.ubh(D("h"), 4);
         Y.uae(D("a"), !1, hb(l));
         V(54.7);
-        hc(Y, !fa);
+        hc(Y, 42, !fa);
         S(126);
-        hc(Y, !fa);
+        hc(Y, 42, !fa);
         Y.b6o(36160, null);
         Y.v5y(0, 0, Y.drawingBufferWidth, Y.drawingBufferHeight);
         Y.c4s(16640);
@@ -482,7 +481,7 @@ yb(() => {
         Y.uae(D("a"), !1, hb(ha));
         Y.uae(D("b"), !1, hb(E));
         Y.uae(D("i"), !1, f);
-        hc(Y, !fa);
+        hc(Y, 42, !fa);
         F();
         Y.uae(F("b"), !1, hb(ib(E).invertSelf()));
         Y.ubu(F("j"), Y.drawingBufferWidth, Y.drawingBufferHeight, ya);

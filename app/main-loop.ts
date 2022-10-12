@@ -31,7 +31,13 @@ import { renderModels } from "./game/models-render";
 import { initPage, csm_projections, player_first_person, projection, resetInteractPressed, updateInput } from "./page";
 import { player_init, camera_position_x, camera_position_y, camera_position_z } from "./game/player";
 import { cgl, gl } from "./gl";
-import { MODEL_ID_PLAYER_BODY, MODEL_ID_PLAYER_LEG0, MODEL_ID_PLAYER_LEG1 } from "./game/models-ids";
+import {
+  MODEL_ID_PLAYER_BODY,
+  MODEL_ID_PLAYER_LEG0,
+  MODEL_ID_PLAYER_LEG1,
+  MODEL_ID_SOUL,
+  MODEL_ID_SOUL_COLLISION,
+} from "./game/models-ids";
 import { transformsBuffer } from "./game/transforms-buffer";
 import { MODELS_WITH_SIMPLE_TRANSFORM } from "./game/models";
 
@@ -208,7 +214,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
         ),
       );
 
-      renderModels(cgl);
+      renderModels(cgl, MODEL_ID_SOUL_COLLISION);
 
       // second collision render
 
@@ -226,7 +232,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
         ),
       );
 
-      renderModels(cgl);
+      renderModels(cgl, MODEL_ID_SOUL_COLLISION);
 
       cgl.flush();
 
@@ -250,10 +256,10 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     gl.uniformMatrix4fv(mainShader(uniformName_projectionMatrix), false, matrixToArray(identity));
 
     csm0!(CSM_PLANE_DISTANCE - zNear);
-    renderModels(gl, !player_first_person);
+    renderModels(gl, MODEL_ID_SOUL, !player_first_person);
 
     csm1!(zFar - CSM_PLANE_DISTANCE);
-    renderModels(gl, !player_first_person);
+    renderModels(gl, MODEL_ID_SOUL, !player_first_person);
 
     // *** MAIN RENDER ***
 
@@ -297,7 +303,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     gl.uniformMatrix4fv(mainShader(uniformName_viewMatrix), false, matrixToArray(camera_view));
     gl.uniformMatrix4fv(mainShader(uniformName_csm_matrices), false, csm_lightSpaceMatrices);
 
-    renderModels(gl, !player_first_person);
+    renderModels(gl, MODEL_ID_SOUL, !player_first_person);
 
     // *** SKY RENDER ***
 
