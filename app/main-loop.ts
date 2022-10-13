@@ -26,7 +26,6 @@ import { identity, matrixCopy, matrixToArray, matrixTransformPoint, tempMatrix }
 import { eppur_si_muove } from "./game/level-update";
 import { max, min } from "./math/math";
 import type { Vec3 } from "./math/vectors";
-import { renderModels } from "./game/models-render";
 import { initPage, csm_projections, player_first_person, projection, resetInteractPressed, updateInput } from "./page";
 import { player_init, camera_position_x, camera_position_y, camera_position_z } from "./game/player";
 import { cgl, gl } from "./gl";
@@ -38,7 +37,7 @@ import {
   MODEL_ID_SOUL_COLLISION,
 } from "./game/models-ids";
 import { transformsBuffer } from "./game/transforms-buffer";
-import { MODELS_WITH_SIMPLE_TRANSFORM } from "./game/models";
+import { allModels, MODELS_WITH_SIMPLE_TRANSFORM, souls } from "./game/models";
 import { mat_perspective, zFar, zNear } from "./math/matrix-perspective";
 
 const LIGHT_ROT_X = 298;
@@ -56,6 +55,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     (name: string): WebGLUniformLocation;
     (): void;
   }
+
   const initShaderProgram = (
     xgl: WebGL2RenderingContext,
     sfsSource: string,
@@ -85,6 +85,41 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
     return (name?: string): any =>
       name ? uniforms[name] || (uniforms[name] = xgl.getUniformLocation(program, name)!) : xgl.useProgram(program);
+  };
+
+  const renderModels = (
+    xgl: WebGL2RenderingContext,
+    soulModelId: number,
+    doNotRenderPlayer: boolean | 0 | 1 | undefined,
+  ) => {
+    if (mainMenuVisible) {
+      if (hC.width > 1100) {
+        // Render player in main menu
+        xgl.drawElements(
+          xgl.TRIANGLES,
+          allModels[MODEL_ID_PLAYER_LEG1]!.$vertexEnd! - allModels[MODEL_ID_PLAYER_BODY]!.$vertexBegin!,
+          xgl.UNSIGNED_SHORT,
+          allModels[MODEL_ID_PLAYER_BODY]!.$vertexBegin! * 2,
+        );
+      }
+    } else {
+      // Render souls
+      xgl.drawElementsInstanced(
+        xgl.TRIANGLES,
+        allModels[soulModelId]!.$vertexEnd! - allModels[soulModelId]!.$vertexBegin!,
+        xgl.UNSIGNED_SHORT,
+        allModels[soulModelId]!.$vertexBegin! * 2,
+        souls.length,
+      );
+
+      // Render world
+      xgl.drawElements(
+        xgl.TRIANGLES,
+        allModels[doNotRenderPlayer ? MODEL_ID_PLAYER_BODY : MODEL_ID_PLAYER_LEG1 + 1]!.$vertexBegin! - 3,
+        xgl.UNSIGNED_SHORT,
+        3 * 2,
+      );
+    }
   };
 
   const mainShader = initShaderProgram(gl, main_fsSource);
@@ -214,7 +249,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
         ),
       );
 
-      renderModels(cgl, MODEL_ID_SOUL_COLLISION);
+      renderModels(cgl, MODEL_ID_SOUL_COLLISION, 1);
 
       // second collision render
 
@@ -232,7 +267,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
         ),
       );
 
-      renderModels(cgl, MODEL_ID_SOUL_COLLISION);
+      renderModels(cgl, MODEL_ID_SOUL_COLLISION, 1);
 
       cgl.flush();
 
@@ -255,18 +290,6 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     gl.uniform1i(mainShader(uniformName_csm_texture1), 4);
     gl.uniformMatrix4fv(mainShader(uniformName_projectionMatrix), false, matrixToArray(identity));
 
-    csm0!(CSM_PLANE_DISTANCE - zNear);
-    renderModels(gl, MODEL_ID_SOUL, !player_first_person);
-
-    csm1!(zFar - CSM_PLANE_DISTANCE);
-    renderModels(gl, MODEL_ID_SOUL, !player_first_person);
-
-    // *** MAIN RENDER ***
-
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
     // view camera
 
     let cameraX = camera_position_x;
@@ -284,17 +307,25 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       cameraX = matrixTransformPoint.x;
       cameraY = matrixTransformPoint.y;
       cameraZ = 5;
-      matrixCopy(identity, camera_view)
-        .rotateSelf(-20, 0)
-        .invertSelf()
-        .translateSelf(-cameraX, -cameraY, -cameraZ)
-        .rotateSelf(0, 99);
+      matrixCopy(identity, camera_view).rotateSelf(20, 0).translateSelf(-cameraX, -cameraY, -cameraZ).rotateSelf(0, 99);
     } else {
       matrixCopy(identity, camera_view)
         .rotateSelf(-camera_rotation.x, -camera_rotation.y)
         .invertSelf()
         .translateSelf(-cameraX, -cameraY, -cameraZ);
     }
+
+    csm0!(CSM_PLANE_DISTANCE - zNear);
+    renderModels(gl, MODEL_ID_SOUL, player_first_person);
+
+    csm1!(zFar - CSM_PLANE_DISTANCE);
+    renderModels(gl, MODEL_ID_SOUL, player_first_person);
+
+    // *** MAIN RENDER ***
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     gl.uniform1i(mainShader(uniformName_csm_texture0), 0);
     gl.uniform1i(mainShader(uniformName_csm_texture1), 1);
@@ -303,13 +334,13 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     gl.uniformMatrix4fv(mainShader(uniformName_viewMatrix), false, matrixToArray(camera_view));
     gl.uniformMatrix4fv(mainShader(uniformName_csm_matrices), false, csm_lightSpaceMatrices);
 
-    renderModels(gl, MODEL_ID_SOUL, !player_first_person);
+    renderModels(gl, MODEL_ID_SOUL, player_first_person);
 
     // *** SKY RENDER ***
 
     skyShader();
 
-    gl.uniformMatrix4fv(skyShader(uniformName_viewMatrix), false, matrixToArray(matrixCopy(camera_view).invertSelf()));
+    gl.uniformMatrix4fv(skyShader(uniformName_viewMatrix), false, matrixToArray(camera_view.invertSelf()));
     gl.uniform3f(skyShader(uniformName_iResolution), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime);
 
     gl.drawElements(gl.TRIANGLES, 3, gl.UNSIGNED_SHORT, 0);

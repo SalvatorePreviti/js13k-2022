@@ -26,10 +26,10 @@ let camera_position_x = 0;
 let camera_position_y = 0;
 let camera_position_z = 0;
 let player_last_pulled_lever = 14;
-const MODELS_WITH_FULL_TRANSFORM = 28;
 const zFar = 181;
 let _messageEndTime = 0.1;
 const zNear = 0.3;
+const fieldOfViewAmount = 1.732051;
 const DEG_TO_RAD = Math.PI / 180;
 const camera_rotation = {
   x: 0,
@@ -505,12 +505,12 @@ const initPage = () => {
         : songAudioSource.connect(audioContext.destination));
   };
   const handleResize = () => {
-    const mx = (hC.height = innerHeight) / (hC.width = innerWidth) * 1.732051;
+    const mx = (hC.height = innerHeight) / (hC.width = innerWidth) * fieldOfViewAmount;
     csm_projections = [
-      mat_perspective(zNear, 55, mx, 1.732051),
-      mat_perspective(55, zFar, mx, 1.732051),
+      mat_perspective(zNear, 55, mx, fieldOfViewAmount),
+      mat_perspective(55, zFar, mx, fieldOfViewAmount),
     ],
-      projection = mat_perspective(zNear, zFar, mx, 1.732051),
+      projection = mat_perspective(zNear, zFar, mx, fieldOfViewAmount),
       touchPosIdentifier = touchRotIdentifier = void 0,
       keyboard_downKeys.length =
         interact_pressed =
@@ -545,18 +545,14 @@ const initPage = () => {
   const getGamepadButtonState = (gamepad, index) =>
     gamepad.buttons[index]?.pressed || 0 < gamepad.buttons[index]?.value ? 1 : 0;
   oncontextmenu = () => !1,
-    b1.onclick = () => {
-      start();
-    },
-    b2.onclick = () => {
-      start(1);
-    },
+    b1.onclick = () => start(),
+    b2.onclick = () => start(1),
     b5.onclick = () => mainMenu(!0),
     b4.onclick = () => {
       music_on = !music_on, updateMusicOnState();
     },
     b3.onclick = () => {
-      confirm("Restart game?") && (localStorage["Dante-22"] = "", location.reload());
+      confirm("Restart game?") && resetGame();
     },
     onclick = (e) => {
       if (!mainMenuVisible && (e.target === hC && (interact_pressed = 1), player_first_person)) {try {
@@ -620,8 +616,8 @@ const initPage = () => {
               deltaY = (touchPosStartY - pageY) / 19,
               absDeltaY = abs(deltaY),
               (m = 0.3 < max(absDeltaX, absDeltaY)) && (touchPosMoved = 1),
-              touch_movementX = (m && 0.2 < absDeltaX) * clamp(identifier, -1),
-              touch_movementY = (m && 0.2 < absDeltaY) * clamp(deltaY, -1),
+              touch_movementX = clamp(identifier, -1) * (m && 0.2 < absDeltaX),
+              touch_movementY = clamp(deltaY, -1) * (m && 0.2 < absDeltaY),
               2 < absDeltaX && (touchPosStartX = 19 * (identifier < 0 ? -1 : 1) + pageX),
               2 < absDeltaY && (touchPosStartY = 19 * (deltaY < 0 ? -1 : 1) + pageY));
         }
@@ -647,8 +643,8 @@ const initPage = () => {
       let gamepad = navigator.getGamepads()[0];
       gamepad
         && (player_first_person
-          && (camera_rotation.x += gameTimeDelta * threshold(gamepad.axes[3], 0.3) * 80,
-            camera_rotation.y += gameTimeDelta * threshold(gamepad.axes[2], 0.3) * 80),
+          && (camera_rotation.x += 80 * gameTimeDelta * threshold(gamepad.axes[3], 0.3),
+            camera_rotation.y += 80 * gameTimeDelta * threshold(gamepad.axes[2], 0.3)),
           input_forward += getGamepadButtonState(gamepad, 12) - getGamepadButtonState(gamepad, 13)
             - threshold(gamepad.axes[1], 0.2),
           input_strafe += getGamepadButtonState(gamepad, 14) - getGamepadButtonState(gamepad, 15)
@@ -682,6 +678,9 @@ const updateCollectedSoulsCounter = () => {
     "XII",
     "XIII",
   ][souls_collected_count = souls.reduce((acc, v) => acc + v.$value, 0)] + " / XIII";
+};
+const resetGame = () => {
+  localStorage["Dante-22"] = "", location.reload();
 };
 const saveGame = () => {
   localStorage["Dante-22"] = JSON.stringify([
@@ -818,7 +817,7 @@ const newSoul = (transform, ...walkingPath) => {
           updateCollectedSoulsCounter(),
           saveGame());
     }
-    matrixToArray(tempMatrix, transformsBuffer, MODELS_WITH_FULL_TRANSFORM + index);
+    matrixToArray(tempMatrix, transformsBuffer, 28 + index);
   };
   let circle = walkingPath[0];
   let [targetX, targetZ] = circle;
@@ -1186,361 +1185,10 @@ const player_init = () => {
       );
   };
 };
-const renderModels = (xgl, soulModelId, renderPlayer) => {
-  mainMenuVisible
-    ? 1100 < hC.width
-      && xgl["d97"](4, allModels[55].$vertexEnd - allModels[53].$vertexBegin, 5123, 2 * allModels[53].$vertexBegin)
-    : (xgl["das"](
-      4,
-      allModels[soulModelId].$vertexEnd - allModels[soulModelId].$vertexBegin,
-      5123,
-      2 * allModels[soulModelId].$vertexBegin,
-      souls.length,
-    ),
-      xgl["d97"](4, (renderPlayer ? allModels[55].$vertexEnd : allModels[53].$vertexBegin) - 3, 5123, 6));
-};
-const startMainLoop = (groundTextureImage) => {
-  const csm_tempFrustumCorners = [
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-  ];
-  const initShaderProgram = (
-    xgl,
-    sfsSource,
-    vfsSource = `#version 300 es
-layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 b,a;uniform vec4 j[190];void main(){mat4 r=mat4(1);lowp int i=int(f.w);if(l=d,m=vec4(f.xyz,1),f.w>1.&&f.w<28.)m+=(r[3]=j[i+162]);else if(f.w!=1.){if(i=(i<1?gl_InstanceID-i:i-28)*4,r[0]=j[i],r[1]=j[i+1],r[2]=j[i+2],r[3]=j[i+3],l.w==0.)l=mix(vec4(1,.5,.2,0),l,r[3][3]);r[3][3]=1.,m=r*m;}gl_Position=a*b*m,m.w=f.w,o=r*vec4(e,0),n=f;}`,
-  ) => {
-    const uniforms = {};
-    const loadShader = (source, type) => (type = xgl["c6x"](type), xgl["s3c"](type, source), xgl["c6a"](type), type);
-    const program = xgl["c1h"]();
-    return xgl["abz"](program, loadShader(vfsSource, 35633)),
-      xgl["abz"](program, loadShader(sfsSource, 35632)),
-      xgl["l8l"](program),
-      (name) => name ? uniforms[name] || (uniforms[name] = xgl["gan"](program, name)) : xgl["u7y"](program);
-  };
-  const mainLoop = (globalTime) => {
-    requestAnimationFrame(mainLoop);
-    var dt = (globalTime - (_globalTime || globalTime)) / 1e3;
-    if (
-      absoluteTime += dt,
-        gameTime += gameTimeDelta = mainMenuVisible ? 0 : min(0.055, dt),
-        _globalTime = globalTime,
-        0 < gameTimeDelta
-    ) {
-      var dt = (x, y, z) =>
-        modelsNextUpdate(x + Math.sin(gameTime + 2) / 5, y + Math.sin(0.8 * gameTime) / 5, z).rotateSelf(
-          2 * Math.sin(gameTime),
-          Math.sin(0.7 * gameTime),
-          Math.sin(0.9 * gameTime),
-        );
-      _messageEndTime && gameTime > _messageEndTime && (_messageEndTime = 0, h4.innerHTML = ""),
-        secondBoatLerp = lerpDamp(
-          secondBoatLerp,
-          levers[15].$lerpValue2,
-          0.2 + 0.3 * abs(2 * levers[15].$lerpValue2 - 1),
-        ),
-        firstBoatLerp = game_completed
-          ? (player_first_person = 0, lerpDamp(firstBoatLerp, -9, 0.015))
-          : lerpDamp(firstBoatLerp, clamp(gameTime / 3), 1),
-        updateInput();
-      var oscillation =
-        (modelsUpdateCounter = 1,
-          shouldRotatePlatforms = lerpneg(levers[13].$lerpValue, levers[8].$lerpValue),
-          rotatingHexCorridorRotation = lerp(
-            lerpDamp(rotatingHexCorridorRotation, 0, 1),
-            angle_wrap_degrees(rotatingHexCorridorRotation + 60 * gameTimeDelta),
-            levers[2].$lerpValue - levers[3].$lerpValue2,
-          ),
-          rotatingPlatform1Rotation = lerp(
-            lerpDamp(rotatingPlatform1Rotation, 0, 5),
-            angle_wrap_degrees(rotatingPlatform1Rotation + 56 * gameTimeDelta),
-            shouldRotatePlatforms,
-          ),
-          rotatingPlatform2Rotation = lerp(
-            lerpDamp(rotatingPlatform2Rotation, 0, 4),
-            angle_wrap_degrees(rotatingPlatform2Rotation + 48 * gameTimeDelta),
-            shouldRotatePlatforms,
-          ),
-          modelsNextUpdate(
-            0,
-            270 * (levers[1].$lerpValue - 1) + (2 + 5 * Math.cos(1.5 * gameTime)) * (1 - levers[10].$lerpValue),
-          ),
-          min(1 - levers[11].$lerpValue2, levers[10].$lerpValue2));
-      var hexPadsOscillation =
-        (modelsNextUpdate(oscillation * Math.sin(0.6 * gameTime + 1.2) * 12, 0, 35),
-          modelsNextUpdate(oscillation * Math.sin(0.6 * gameTime - 1.2) * 8.2, 0, 55),
-          modelsNextUpdate(oscillation * Math.sin(0.6 * gameTime) * 12, 0, 45),
-          modelsNextUpdate(9.8 * (1 - oscillation)),
-          oscillation = clamp(1 - 5 * oscillation) * lerpneg(levers[11].$lerpValue, levers[2].$lerpValue),
-          modelsNextUpdate(0, oscillation * Math.sin(1.35 * gameTime) * 4),
-          modelsNextUpdate(0, 0, oscillation * Math.sin(0.9 * gameTime) * 8),
-          modelsNextUpdate(0, -6.5 * levers[11].$lerpValue2),
-          oscillation = lerpneg(levers[4].$lerpValue2, levers[3].$lerpValue2),
-          modelsNextUpdate(
-            0,
-            oscillation * Math.sin(gameTime) * 5 + 3.5 * (1 - max(levers[3].$lerpValue, levers[4].$lerpValue)),
-          ),
-          modelsNextUpdate(0, oscillation * Math.sin(gameTime + 3) * 6, oscillation * Math.sin(0.6 * gameTime + 1) * 6),
-          modelsNextUpdate(0, -7.3 * levers[4].$lerpValue2),
-          oscillation = lerpneg(levers[6].$lerpValue, levers[7].$lerpValue),
-          modelsNextUpdate(0, -2, 10 - 8.5 * oscillation * abs(Math.sin(1.1 * gameTime))),
-          modelsNextUpdate(0, -2, 10 - 8.5 * oscillation * abs(Math.sin(2.1 * gameTime))),
-          modelsNextUpdate(
-            0,
-            -2,
-            10 - 8.5 * max(oscillation * abs(Math.sin(1.5 * gameTime)), (1 - levers[6].$lerpValue) * (1 - oscillation)),
-          ),
-          lerpneg(levers[5].$lerpValue2, levers[13].$lerpValue2));
-      for (let i = 0; i < 4; i++) {
-        modelsNextUpdate(
-          (2 < i ? 2 * (1 - hexPadsOscillation) + hexPadsOscillation : 0) - 100,
-          hexPadsOscillation * Math.sin(1.3 * gameTime + 1.7 * i) * (3 + i / 3) + 0.7,
-          115 - 7 * (1 - levers[5].$lerpValue2) * (1 - levers[13].$lerpValue2) * (1 & i ? -1 : 1)
-            + max(0.05, hexPadsOscillation) * Math.cos(1.3 * gameTime + 7 * i) * (4 - 2 * (1 - i / 3)),
-        );
-      }
-      oscillation = lerpneg(levers[8].$lerpValue2, levers[9].$lerpValue2);
-      for (let i1 = 0; i1 < 3; ++i1) {
-        modelsNextUpdate(
-          0,
-          oscillation * Math.sin(1.5 * gameTime + 1.5 * i1) * 4
-            + (i1 ? 0 : 3 * (1 - levers[8].$lerpValue2) * (1 - levers[9].$lerpValue2)),
-        );
-      }
-      globalTime = lerpneg(
-        lerpneg((levers[9].$lerpValue + levers[9].$lerpValue2) / 2, levers[8].$lerpValue2),
-        (levers[12].$lerpValue + levers[12].$lerpValue2) / 2,
-      ),
-        modelsNextUpdate(0, 16 * globalTime, 95 + 8.5 * clamp(2 * globalTime - 1)),
-        modelsNextUpdate(0, -4.7 * levers[0].$lerpValue, -15),
-        modelsNextUpdate(0, -4.7 * levers[10].$lerpValue, 15),
-        modelsNextUpdate(-99.7, -1.9 - 5.5 * levers[3].$lerpValue, 63.5),
-        modelsNextUpdate(-100, 0.6 - 5.8 * levers[13].$lerpValue, 96.5),
-        modelsNextUpdate(-75, 3 * (1 - levers[2].$lerpValue2) * (1 - levers[3].$lerpValue), 55).rotateSelf(
-          180 * (1 - levers[2].$lerpValue2) + rotatingHexCorridorRotation,
-          0,
-        ),
-        modelsNextUpdate(
-          2.5 * (1 - hexPadsOscillation) - 139.7,
-          -3 * (1 - levers[5].$lerpValue) - hexPadsOscillation * Math.sin(0.8 * gameTime) - 1.8,
-          93.5,
-        ).rotateSelf(Math.cos(1.3 * gameTime) * (3 + 3 * hexPadsOscillation), 0),
-        modelsNextUpdate(-2 * Math.sin(gameTime)).rotateSelf(25 * Math.sin(gameTime)),
-        modelsNextUpdate(-81, 0.6, 106).rotateSelf(0, 40 + rotatingPlatform1Rotation),
-        modelsNextUpdate(-65.8, 0.8, 106).rotateSelf(0, rotatingPlatform2Rotation),
-        modelsNextUpdate(-50.7, 0.8, 106).rotateSelf(0, 180 - rotatingPlatform2Rotation),
-        modelsNextUpdate(-50.7, 0.8, 91).rotateSelf(0, 270 + rotatingPlatform2Rotation),
-        dt(-12, 4.2, 40 * firstBoatLerp - 66),
-        dt(-123, 1.4, 55 - 65 * secondBoatLerp);
-      for (let i2 = 0; i2 < 16; ++i2) i2 < 13 && souls[i2](), levers[i2]();
-      player_update();
-      for (let i3 = 0; MODELS_WITH_FULL_TRANSFORM > i3; ++i3) {
-        matrixToArray(allModels[28 + i3].$matrix, transformsBuffer, i3);
-      }
-      for (let m, i4 = 0, j = 16 * (MODELS_WITH_FULL_TRANSFORM + 13); i4 < 26; ++i4, ++j) {
-        m = allModels[2 + i4].$matrix,
-          transformsBuffer[j++] = m.m41,
-          transformsBuffer[j++] = m.m42,
-          transformsBuffer[j++] = m.m43;
-      }
-      cgl["cbf"](!0, !0, !0, !0),
-        cgl["c4s"](16640),
-        cgl["u3a"](collisionShader("j"), transformsBuffer),
-        cgl["cbf"](!0, !1, !0, !1),
-        cgl["uae"](
-          collisionShader("b"),
-          !1,
-          matrixToArray(
-            matrixCopy().rotateSelf(0, 180).invertSelf().translateSelf(
-              -player_position_final.x,
-              -player_position_final.y,
-              0.3 - player_position_final.z,
-            ),
-          ),
-        ),
-        renderModels(cgl, 56),
-        cgl["c4s"](256),
-        cgl["cbf"](!1, !0, !1, !0),
-        cgl["uae"](
-          collisionShader("b"),
-          !1,
-          matrixToArray(
-            matrixCopy().translateSelf(
-              -player_position_final.x,
-              -player_position_final.y,
-              -player_position_final.z - 0.3,
-            ),
-          ),
-        ),
-        renderModels(cgl, 56),
-        cgl["f1s"](),
-        interact_pressed = 0;
-    }
-    mainShader(),
-      gl["u3a"](mainShader("j"), transformsBuffer),
-      gl["b6o"](36160, csm_framebuffer),
-      gl["v5y"](0, 0, 2048, 2048),
-      gl["ubh"](mainShader("g"), 4),
-      gl["ubh"](mainShader("h"), 4),
-      gl["uae"](mainShader("a"), !1, matrixToArray(identity)),
-      csm0(55 - zNear),
-      renderModels(gl, 57, !player_first_person),
-      csm1(zFar - 55),
-      renderModels(gl, 57, !player_first_person),
-      gl["b6o"](36160, null),
-      gl["v5y"](0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight),
-      gl["c4s"](16640);
-    let cameraX = camera_position_x;
-    let cameraY = camera_position_y;
-    let cameraZ = camera_position_z;
-    mainMenuVisible
-      ? (matrixCopy().rotateSelf(0, 40 * Math.sin(absoluteTime) - 80, -8),
-        matrixToArray(tempMatrix, transformsBuffer, 25),
-        matrixToArray(tempMatrix, transformsBuffer, 26),
-        matrixToArray(tempMatrix, transformsBuffer, 27),
-        matrixCopy(projection).invertSelf(),
-        matrixTransformPoint(3.6, 3.5),
-        cameraX = matrixTransformPoint.x,
-        cameraY = matrixTransformPoint.y,
-        cameraZ = 5,
-        matrixCopy(identity, camera_view).rotateSelf(-20, 0).invertSelf().translateSelf(-cameraX, -cameraY, -cameraZ)
-          .rotateSelf(0, 99))
-      : matrixCopy(identity, camera_view).rotateSelf(-camera_rotation.x, -camera_rotation.y).invertSelf().translateSelf(
-        -cameraX,
-        -cameraY,
-        -cameraZ,
-      ),
-      gl["ubh"](mainShader("g"), 0),
-      gl["ubh"](mainShader("h"), 1),
-      gl["ubu"](mainShader("k"), cameraX, cameraY, cameraZ),
-      gl["uae"](mainShader("a"), !1, matrixToArray(projection)),
-      gl["uae"](mainShader("b"), !1, matrixToArray(camera_view)),
-      gl["uae"](mainShader("i"), !1, csm_lightSpaceMatrices),
-      renderModels(gl, 57, !player_first_person),
-      skyShader(),
-      gl["uae"](skyShader("b"), !1, matrixToArray(matrixCopy(camera_view).invertSelf())),
-      gl["ubu"](skyShader("j"), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime),
-      gl["d97"](4, 3, 5123, 0);
-  };
-  const csm_tempMatrix = new DOMMatrix();
-  const camera_view = new DOMMatrix();
-  const csm_lightSpaceMatrices = new Float32Array(32);
-  const csm_framebuffer = gl["c5w"]();
-  const mainShader = initShaderProgram(
-    gl,
-    `#version 300 es
-precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sampler2DShadow g,h;uniform mat4 b,i[2];uniform vec3 k;out vec4 O;void main(){vec4 s=vec4(m.xyz,1);vec3 e=normalize(o.xyz),v=l.w*(texture(q,n.zy*.035)*e.x+texture(q,n.xz*.035)*e.y+texture(q,n.xy*.035)*e.z).xyz;e=normalize(e+v*.5);float a=dot(e,vec3(-.656059,.666369,-.35431468)),t=1.,u=abs((b*s).z);vec4 r=(u<55.?i[0]:i[1])*s;if(r=r/r.w*.5+.5,r.z<1.){t=0.;for(float e=-1.;e<=1.;++e)for(float a=-1.;a<=1.;++a){vec3 x=vec3(r.xy+vec2(e,a)/2048.,r.z-.00017439);t+=u<55.?texture(g,x):texture(h,x);}t/=9.;}vec3 x=l.xyz*(1.-v.x);float c=max(max(abs(e.x),abs(e.z))*.3-e.y,0.)*pow(max(0.,(8.-m.y)/48.),1.6);O=vec4(vec3(c,c*c*.5,0)+vec3(.09,.05,.11)*x+x*(max(0.,a)*.5+x*a*a*vec3(.5,.45,.3))*(t*.75+.25)+vec3(.6,.6,.5)*pow(max(0.,dot(normalize(m.xyz-k),reflect(vec3(-.656059,.666369,-.35431468),e))),35.)*t,1);}`,
-  );
-  const collisionShader = initShaderProgram(
-    cgl,
-    `#version 300 es
-precision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(vec3(0,1.49,.3*b[0][0])+m.xyz,1);if(O=vec4(0),gl_FragCoord.y>36.){if(a.y>.6&&a.y<3.){float e=abs(gl_FragCoord.x/64.-1.),i=clamp(a.z+.7,0.,1.);O=vec4(vec2(b[0][0]*sign(a.x)*o.x<0.?i*(.7-abs(a.x))*e/.7:0.),vec2(b[0][0]*o.z>0.?i*(1.-e):0.));}}else if(o.y>.45&&a.y<1.){float e=a.y*clamp((a.z+.4)*50.,0.,1.)*clamp((-abs(a.x)+.2)*10.,0.,1.);O=vec4(vec2(e),vec2(e>0.?m.w/255.:0.));}}`,
-  );
-  const skyShader = initShaderProgram(
-    gl,
-    `#version 300 es
-precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;out vec4 O;void main(){vec2 t=gl_FragCoord.xy/j.xy*2.-1.;vec3 e=(normalize(b*vec4(t.x*-(j.x/j.y),-t.y,1.73205,0.))).xyz;float o=(-32.-b[3].y)/e.y,i=1.-clamp(abs(o/9999.),0.,1.);if(O=vec4(0,0,0,1),i>.01){if(o>0.){float i=cos(j.z/30.),o=sin(j.z/30.);e.xz*=mat2(i,o,-o,i);vec3 t=abs(e);O.xyz=vec3(dot(vec2(texture(q,e.xy).z,texture(q,e.yz*2.).z),t.zx)*t.y);}else e=b[3].xyz+e*o,O.x=(i*=.9-texture(q,e.xz/150.+vec2(sin(e.z/35.+j.z),cos(e.x/25.+j.z))/80.).y),O.y=i*i*i;}}`,
-    `#version 300 es
-in vec4 f;void main(){gl_Position=vec4(f.xy,1,1);}`,
-  );
-  const [csm0, csm1] = integers_map(2, (split) => {
-    const texture = gl["c25"]();
-    return gl["a4v"](33984 + split),
-      gl["b9j"](3553, texture),
-      gl["t60"](3553, 0, 33190, 2048, 2048, 0, 6402, 5125, null),
-      gl["t2z"](3553, 10241, 9729),
-      gl["t2z"](3553, 10240, 9729),
-      gl["t2z"](3553, 34893, 515),
-      gl["t2z"](3553, 34892, 34894),
-      gl["t2z"](3553, 10243, 33071),
-      gl["t2z"](3553, 10242, 33071),
-      (roundingRadius) => {
-        let tx = 0;
-        let ty = 0;
-        let tz = 0;
-        let left = 1 / 0;
-        let bottom = 1 / 0;
-        let near = 1 / 0;
-        let right = -1 / 0;
-        let top = -1 / 0;
-        let far = -1 / 0;
-        gl["fas"](36160, 36096, 3553, texture, 0),
-          gl["c4s"](256),
-          matrixCopy().scale3dSelf(roundingRadius *= 1.1).multiplySelf(
-            matrixCopy(csm_projections[split], csm_tempMatrix).multiplySelf(camera_view).invertSelf(),
-          );
-        for (let i = 0; i < 8; ++i) {
-          const p = csm_tempFrustumCorners[i];
-          matrixTransformPoint(4 & i ? 1 : -1, 2 & i ? 1 : -1, 1 & i ? 1 : -1),
-            tx -= p.x = (0 | matrixTransformPoint.x) / (roundingRadius * matrixTransformPoint.w),
-            ty -= p.y = (0 | matrixTransformPoint.y) / (roundingRadius * matrixTransformPoint.w),
-            tz -= p.z = (0 | matrixTransformPoint.z) / (roundingRadius * matrixTransformPoint.w);
-        }
-        matrixCopy().rotateSelf(298, 139).translateSelf(tx / 8, ty / 8, tz / 8);
-        for (let i1 = 0; i1 < 8; ++i1) {
-          const { x, y, z } = csm_tempFrustumCorners[i1];
-          matrixTransformPoint(x, y, z),
-            right = max(right, matrixTransformPoint.x),
-            top = max(top, matrixTransformPoint.y),
-            far = max(far, matrixTransformPoint.z),
-            left = min(left, matrixTransformPoint.x),
-            bottom = min(bottom, matrixTransformPoint.y),
-            near = min(near, matrixTransformPoint.z);
-        }
-        const zMultiplier = 10 + split;
-        near *= near < 0 ? zMultiplier : 1 / zMultiplier,
-          far *= 0 < far ? zMultiplier : 1 / zMultiplier,
-          gl["uae"](
-            mainShader("b"),
-            !1,
-            matrixToArray(
-              matrixCopy(identity, csm_tempMatrix).scaleSelf(2 / (right - left), 2 / (top - bottom), 2 / (near - far))
-                .translateSelf((right + left) / -2, (top + bottom) / -2, (near + far) / 2).multiplySelf(tempMatrix),
-              csm_lightSpaceMatrices,
-              split,
-            ),
-            16 * split,
-            16,
-          );
-      };
-  });
-  gl["a4v"](33986),
-    gl["b9j"](3553, gl["c25"]()),
-    gl["t60"](3553, 0, 6408, 1024, 1024, 0, 6408, 5121, groundTextureImage),
-    gl["t2z"](3553, 10241, 9987),
-    gl["t2z"](3553, 10240, 9729),
-    gl["gbn"](3553),
-    gl["b6o"](36160, csm_framebuffer),
-    gl["d45"]([
-      0,
-    ]),
-    gl["r9l"](0),
-    mainShader(),
-    gl["ubh"](mainShader("q"), 2),
-    skyShader(),
-    gl["ubh"](skyShader("q"), 2),
-    gl["c5t"](0, 0, 0, 1),
-    gl["d4n"](515),
-    gl["e8z"](2929),
-    gl["e8z"](2884),
-    cgl["e8z"](2929),
-    cgl["e8z"](2884),
-    cgl["v5y"](0, 0, 128, 128),
-    collisionShader(),
-    cgl["uae"](collisionShader("a"), !1, matrixToArray(mat_perspective(1e-4, 2, 1.2, 0.4))),
-    NO_INLINE(initPage)(),
-    NO_INLINE(player_init)(),
-    requestAnimationFrame(mainLoop);
-};
 const identity = new DOMMatrix();
 const tempMatrix = new DOMMatrix();
 const float32Array16Temp = new Float32Array(16);
+const transformsBuffer = new Float32Array(760);
 const collision_buffer = new Uint8Array(65536);
 const groundTextureSvg = (NO_INLINE(`<!DOCTYPE html><html><head>
     <title>666</title>
@@ -1660,7 +1308,6 @@ main,
   + btoa(
     "<svg color-interpolation-filters=\"sRGB\" height=\"1024\" width=\"1024\" xmlns=\"http://www.w3.org/2000/svg\"><filter filterUnits=\"userSpaceOnUse\" height=\"1026\" id=\"a\" width=\"1026\" x=\"0\" y=\"0\"><feTurbulence baseFrequency=\".007\" height=\"1025\" numOctaves=\"6\" stitchTiles=\"stitch\" width=\"1025\" result=\"z\" type=\"fractalNoise\" x=\"1\" y=\"1\"/><feTile height=\"1024\" width=\"1024\" x=\"-1\" y=\"-1\"/><feTile/><feDiffuseLighting diffuseConstant=\"4\" lighting-color=\"red\" surfaceScale=\"5\"><feDistantLight azimuth=\"270\" elevation=\"5\"/></feDiffuseLighting><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"x\"/><feColorMatrix values=\"0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 1\" in=\"z\"/><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"z\"/><feTurbulence baseFrequency=\".01\" height=\"1024\" numOctaves=\"5\" stitchTiles=\"stitch\" width=\"1024\"/><feColorMatrix values=\"0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1\"/><feBlend in2=\"x\" mode=\"screen\"/><feBlend in2=\"z\" mode=\"screen\"/></filter><rect filter=\"url(#a)\" height=\"100%\" width=\"100%\"/></svg>",
   ));
-const transformsBuffer = new Float32Array(4 * (4 * (MODELS_WITH_FULL_TRANSFORM + 13) + 26));
 const gl = hC.getContext("webgl2", {
   powerPreference: "high-performance",
 });
@@ -1685,7 +1332,373 @@ for (const s in cgl) {
 loadStep(() => {
   let loadStatus = 0;
   const end = () => {
-    ++loadStatus == 2 && NO_INLINE(startMainLoop)(image);
+    if (++loadStatus == 2) {
+      const csm_tempFrustumCorners = [
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+      ];
+      const initShaderProgram = (
+        xgl,
+        sfsSource,
+        vfsSource = `#version 300 es
+layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 b,a;uniform vec4 j[190];void main(){mat4 r=mat4(1);lowp int i=int(f.w);if(l=d,m=vec4(f.xyz,1),f.w>1.&&f.w<28.)m+=(r[3]=j[i+162]);else if(f.w!=1.){if(i=(i<1?gl_InstanceID-i:i-28)*4,r[0]=j[i],r[1]=j[i+1],r[2]=j[i+2],r[3]=j[i+3],l.w==0.)l=mix(vec4(1,.5,.2,0),l,r[3][3]);r[3][3]=1.,m=r*m;}gl_Position=a*b*m,m.w=f.w,o=r*vec4(e,0),n=f;}`,
+      ) => {
+        const uniforms = {};
+        const loadShader = (
+          source,
+          type,
+        ) => (type = xgl["c6x"](type), xgl["s3c"](type, source), xgl["c6a"](type), type);
+        const program = xgl["c1h"]();
+        return xgl["abz"](program, loadShader(vfsSource, 35633)),
+          xgl["abz"](program, loadShader(sfsSource, 35632)),
+          xgl["l8l"](program),
+          (name) => name ? uniforms[name] || (uniforms[name] = xgl["gan"](program, name)) : xgl["u7y"](program);
+      };
+      const renderModels = (xgl, soulModelId, doNotRenderPlayer) => {
+        mainMenuVisible
+          ? 1100 < hC.width
+            && xgl["d97"](
+              4,
+              allModels[55].$vertexEnd - allModels[53].$vertexBegin,
+              5123,
+              2 * allModels[53].$vertexBegin,
+            )
+          : (xgl["das"](
+            4,
+            allModels[soulModelId].$vertexEnd - allModels[soulModelId].$vertexBegin,
+            5123,
+            2 * allModels[soulModelId].$vertexBegin,
+            souls.length,
+          ),
+            xgl["d97"](4, allModels[doNotRenderPlayer ? 53 : 56].$vertexBegin - 3, 5123, 6));
+      };
+      const mainLoop = (globalTime) => {
+        requestAnimationFrame(mainLoop);
+        var dt = (globalTime - (_globalTime || globalTime)) / 1e3;
+        if (
+          absoluteTime += dt,
+            gameTime += gameTimeDelta = mainMenuVisible ? 0 : min(0.055, dt),
+            _globalTime = globalTime,
+            0 < gameTimeDelta
+        ) {
+          var dt = (x, y, z) =>
+            modelsNextUpdate(x + Math.sin(gameTime + 2) / 5, y + Math.sin(0.8 * gameTime) / 5, z).rotateSelf(
+              2 * Math.sin(gameTime),
+              Math.sin(0.7 * gameTime),
+              Math.sin(0.9 * gameTime),
+            );
+          _messageEndTime && gameTime > _messageEndTime && (_messageEndTime = 0, h4.innerHTML = ""),
+            secondBoatLerp = lerpDamp(
+              secondBoatLerp,
+              levers[15].$lerpValue2,
+              0.2 + 0.3 * abs(2 * levers[15].$lerpValue2 - 1),
+            ),
+            firstBoatLerp = game_completed
+              ? (player_first_person = 0, lerpDamp(firstBoatLerp, -9, 0.015))
+              : lerpDamp(firstBoatLerp, clamp(gameTime / 3), 1),
+            updateInput();
+          var oscillation =
+            (modelsUpdateCounter = 1,
+              shouldRotatePlatforms = lerpneg(levers[13].$lerpValue, levers[8].$lerpValue),
+              rotatingHexCorridorRotation = lerp(
+                lerpDamp(rotatingHexCorridorRotation, 0, 1),
+                angle_wrap_degrees(rotatingHexCorridorRotation + 60 * gameTimeDelta),
+                levers[2].$lerpValue - levers[3].$lerpValue2,
+              ),
+              rotatingPlatform1Rotation = lerp(
+                lerpDamp(rotatingPlatform1Rotation, 0, 5),
+                angle_wrap_degrees(rotatingPlatform1Rotation + 56 * gameTimeDelta),
+                shouldRotatePlatforms,
+              ),
+              rotatingPlatform2Rotation = lerp(
+                lerpDamp(rotatingPlatform2Rotation, 0, 4),
+                angle_wrap_degrees(rotatingPlatform2Rotation + 48 * gameTimeDelta),
+                shouldRotatePlatforms,
+              ),
+              modelsNextUpdate(
+                0,
+                270 * (levers[1].$lerpValue - 1) + (2 + 5 * Math.cos(1.5 * gameTime)) * (1 - levers[10].$lerpValue),
+              ),
+              min(1 - levers[11].$lerpValue2, levers[10].$lerpValue2));
+          var hexPadsOscillation =
+            (modelsNextUpdate(oscillation * Math.sin(0.6 * gameTime + 1.2) * 12, 0, 35),
+              modelsNextUpdate(oscillation * Math.sin(0.6 * gameTime - 1.2) * 8.2, 0, 55),
+              modelsNextUpdate(oscillation * Math.sin(0.6 * gameTime) * 12, 0, 45),
+              modelsNextUpdate(9.8 * (1 - oscillation)),
+              oscillation = clamp(1 - 5 * oscillation) * lerpneg(levers[11].$lerpValue, levers[2].$lerpValue),
+              modelsNextUpdate(0, oscillation * Math.sin(1.35 * gameTime) * 4),
+              modelsNextUpdate(0, 0, oscillation * Math.sin(0.9 * gameTime) * 8),
+              modelsNextUpdate(0, -6.5 * levers[11].$lerpValue2),
+              oscillation = lerpneg(levers[4].$lerpValue2, levers[3].$lerpValue2),
+              modelsNextUpdate(
+                0,
+                oscillation * Math.sin(gameTime) * 5 + 3.5 * (1 - max(levers[3].$lerpValue, levers[4].$lerpValue)),
+              ),
+              modelsNextUpdate(
+                0,
+                oscillation * Math.sin(gameTime + 3) * 6,
+                oscillation * Math.sin(0.6 * gameTime + 1) * 6,
+              ),
+              modelsNextUpdate(0, -7.3 * levers[4].$lerpValue2),
+              oscillation = lerpneg(levers[6].$lerpValue, levers[7].$lerpValue),
+              modelsNextUpdate(0, -2, 10 - 8.5 * oscillation * abs(Math.sin(1.1 * gameTime))),
+              modelsNextUpdate(0, -2, 10 - 8.5 * oscillation * abs(Math.sin(2.1 * gameTime))),
+              modelsNextUpdate(
+                0,
+                -2,
+                10
+                  - 8.5
+                    * max(oscillation * abs(Math.sin(1.5 * gameTime)), (1 - levers[6].$lerpValue) * (1 - oscillation)),
+              ),
+              lerpneg(levers[5].$lerpValue2, levers[13].$lerpValue2));
+          for (let i = 0; i < 4; i++) {
+            modelsNextUpdate(
+              (2 < i ? 2 * (1 - hexPadsOscillation) + hexPadsOscillation : 0) - 100,
+              hexPadsOscillation * Math.sin(1.3 * gameTime + 1.7 * i) * (3 + i / 3) + 0.7,
+              115 - 7 * (1 - levers[5].$lerpValue2) * (1 - levers[13].$lerpValue2) * (1 & i ? -1 : 1)
+                + max(0.05, hexPadsOscillation) * Math.cos(1.3 * gameTime + 7 * i) * (4 - 2 * (1 - i / 3)),
+            );
+          }
+          oscillation = lerpneg(levers[8].$lerpValue2, levers[9].$lerpValue2);
+          for (let i1 = 0; i1 < 3; ++i1) {
+            modelsNextUpdate(
+              0,
+              oscillation * Math.sin(1.5 * gameTime + 1.5 * i1) * 4
+                + (i1 ? 0 : 3 * (1 - levers[8].$lerpValue2) * (1 - levers[9].$lerpValue2)),
+            );
+          }
+          globalTime = lerpneg(
+            lerpneg((levers[9].$lerpValue + levers[9].$lerpValue2) / 2, levers[8].$lerpValue2),
+            (levers[12].$lerpValue + levers[12].$lerpValue2) / 2,
+          ),
+            modelsNextUpdate(0, 16 * globalTime, 95 + 8.5 * clamp(2 * globalTime - 1)),
+            modelsNextUpdate(0, -4.7 * levers[0].$lerpValue, -15),
+            modelsNextUpdate(0, -4.7 * levers[10].$lerpValue, 15),
+            modelsNextUpdate(-99.7, -1.9 - 5.5 * levers[3].$lerpValue, 63.5),
+            modelsNextUpdate(-100, 0.6 - 5.8 * levers[13].$lerpValue, 96.5),
+            modelsNextUpdate(-75, 3 * (1 - levers[2].$lerpValue2) * (1 - levers[3].$lerpValue), 55).rotateSelf(
+              180 * (1 - levers[2].$lerpValue2) + rotatingHexCorridorRotation,
+              0,
+            ),
+            modelsNextUpdate(
+              2.5 * (1 - hexPadsOscillation) - 139.7,
+              -3 * (1 - levers[5].$lerpValue) - hexPadsOscillation * Math.sin(0.8 * gameTime) - 1.8,
+              93.5,
+            ).rotateSelf(Math.cos(1.3 * gameTime) * (3 + 3 * hexPadsOscillation), 0),
+            modelsNextUpdate(-2 * Math.sin(gameTime)).rotateSelf(25 * Math.sin(gameTime)),
+            modelsNextUpdate(-81, 0.6, 106).rotateSelf(0, 40 + rotatingPlatform1Rotation),
+            modelsNextUpdate(-65.8, 0.8, 106).rotateSelf(0, rotatingPlatform2Rotation),
+            modelsNextUpdate(-50.7, 0.8, 106).rotateSelf(0, 180 - rotatingPlatform2Rotation),
+            modelsNextUpdate(-50.7, 0.8, 91).rotateSelf(0, 270 + rotatingPlatform2Rotation),
+            dt(-12, 4.2, 40 * firstBoatLerp - 66),
+            dt(-123, 1.4, 55 - 65 * secondBoatLerp);
+          for (let i2 = 0; i2 < 16; ++i2) i2 < 13 && souls[i2](), levers[i2]();
+          player_update();
+          for (let i3 = 0; i3 < 28; ++i3) matrixToArray(allModels[28 + i3].$matrix, transformsBuffer, i3);
+          for (let m, i4 = 0, j = 656; i4 < 26; ++i4, ++j) {
+            m = allModels[2 + i4].$matrix,
+              transformsBuffer[j++] = m.m41,
+              transformsBuffer[j++] = m.m42,
+              transformsBuffer[j++] = m.m43;
+          }
+          cgl["cbf"](!0, !0, !0, !0),
+            cgl["c4s"](16640),
+            cgl["u3a"](collisionShader("j"), transformsBuffer),
+            cgl["cbf"](!0, !1, !0, !1),
+            cgl["uae"](
+              collisionShader("b"),
+              !1,
+              matrixToArray(
+                matrixCopy().rotateSelf(0, 180).invertSelf().translateSelf(
+                  -player_position_final.x,
+                  -player_position_final.y,
+                  0.3 - player_position_final.z,
+                ),
+              ),
+            ),
+            renderModels(cgl, 56, 1),
+            cgl["c4s"](256),
+            cgl["cbf"](!1, !0, !1, !0),
+            cgl["uae"](
+              collisionShader("b"),
+              !1,
+              matrixToArray(
+                matrixCopy().translateSelf(
+                  -player_position_final.x,
+                  -player_position_final.y,
+                  -player_position_final.z - 0.3,
+                ),
+              ),
+            ),
+            renderModels(cgl, 56, 1),
+            cgl["f1s"](),
+            interact_pressed = 0;
+        }
+        mainShader(),
+          gl["u3a"](mainShader("j"), transformsBuffer),
+          gl["b6o"](36160, csm_framebuffer),
+          gl["v5y"](0, 0, 2048, 2048),
+          gl["ubh"](mainShader("g"), 4),
+          gl["ubh"](mainShader("h"), 4),
+          gl["uae"](mainShader("a"), !1, matrixToArray(identity));
+        let cameraX = camera_position_x;
+        let cameraY = camera_position_y;
+        let cameraZ = camera_position_z;
+        mainMenuVisible
+          ? (matrixCopy().rotateSelf(0, 40 * Math.sin(absoluteTime) - 80, -8),
+            matrixToArray(tempMatrix, transformsBuffer, 25),
+            matrixToArray(tempMatrix, transformsBuffer, 26),
+            matrixToArray(tempMatrix, transformsBuffer, 27),
+            matrixCopy(projection).invertSelf(),
+            matrixTransformPoint(3.6, 3.5),
+            cameraX = matrixTransformPoint.x,
+            cameraY = matrixTransformPoint.y,
+            cameraZ = 5,
+            matrixCopy(identity, camera_view).rotateSelf(20, 0).translateSelf(-cameraX, -cameraY, -cameraZ).rotateSelf(
+              0,
+              99,
+            ))
+          : matrixCopy(identity, camera_view).rotateSelf(-camera_rotation.x, -camera_rotation.y).invertSelf()
+            .translateSelf(-cameraX, -cameraY, -cameraZ),
+          csm0(55 - zNear),
+          renderModels(gl, 57, player_first_person),
+          csm1(zFar - 55),
+          renderModels(gl, 57, player_first_person),
+          gl["b6o"](36160, null),
+          gl["v5y"](0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight),
+          gl["c4s"](16640),
+          gl["ubh"](mainShader("g"), 0),
+          gl["ubh"](mainShader("h"), 1),
+          gl["ubu"](mainShader("k"), cameraX, cameraY, cameraZ),
+          gl["uae"](mainShader("a"), !1, matrixToArray(projection)),
+          gl["uae"](mainShader("b"), !1, matrixToArray(camera_view)),
+          gl["uae"](mainShader("i"), !1, csm_lightSpaceMatrices),
+          renderModels(gl, 57, player_first_person),
+          skyShader(),
+          gl["uae"](skyShader("b"), !1, matrixToArray(camera_view.invertSelf())),
+          gl["ubu"](skyShader("j"), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime),
+          gl["d97"](4, 3, 5123, 0);
+      };
+      const csm_tempMatrix = new DOMMatrix();
+      const camera_view = new DOMMatrix();
+      const csm_lightSpaceMatrices = new Float32Array(32);
+      const groundTextureImage = image;
+      const csm_framebuffer = gl["c5w"]();
+      const mainShader = initShaderProgram(
+        gl,
+        `#version 300 es
+precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sampler2DShadow g,h;uniform mat4 b,i[2];uniform vec3 k;out vec4 O;void main(){vec4 s=vec4(m.xyz,1);vec3 e=normalize(o.xyz),v=l.w*(texture(q,n.zy*.035)*e.x+texture(q,n.xz*.035)*e.y+texture(q,n.xy*.035)*e.z).xyz;e=normalize(e+v*.5);float a=dot(e,vec3(-.656059,.666369,-.35431468)),t=1.,u=abs((b*s).z);vec4 r=(u<55.?i[0]:i[1])*s;if(r=r/r.w*.5+.5,r.z<1.){t=0.;for(float e=-1.;e<=1.;++e)for(float a=-1.;a<=1.;++a){vec3 x=vec3(r.xy+vec2(e,a)/2048.,r.z-.00017439);t+=u<55.?texture(g,x):texture(h,x);}t/=9.;}vec3 x=l.xyz*(1.-v.x);float c=max(max(abs(e.x),abs(e.z))*.3-e.y,0.)*pow(max(0.,(8.-m.y)/48.),1.6);O=vec4(vec3(c,c*c*.5,0)+vec3(.09,.05,.11)*x+x*(max(0.,a)*.5+x*a*a*vec3(.5,.45,.3))*(t*.75+.25)+vec3(.6,.6,.5)*pow(max(0.,dot(normalize(m.xyz-k),reflect(vec3(-.656059,.666369,-.35431468),e))),35.)*t,1);}`,
+      );
+      const collisionShader = initShaderProgram(
+        cgl,
+        `#version 300 es
+precision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(vec3(0,1.49,.3*b[0][0])+m.xyz,1);if(O=vec4(0),gl_FragCoord.y>36.){if(a.y>.6&&a.y<3.){float e=abs(gl_FragCoord.x/64.-1.),i=clamp(a.z+.7,0.,1.);O=vec4(vec2(b[0][0]*sign(a.x)*o.x<0.?i*(.7-abs(a.x))*e/.7:0.),vec2(b[0][0]*o.z>0.?i*(1.-e):0.));}}else if(o.y>.45&&a.y<1.){float e=a.y*clamp((a.z+.4)*50.,0.,1.)*clamp((-abs(a.x)+.2)*10.,0.,1.);O=vec4(vec2(e),vec2(e>0.?m.w/255.:0.));}}`,
+      );
+      const skyShader = initShaderProgram(
+        gl,
+        `#version 300 es
+precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;out vec4 O;void main(){vec2 t=gl_FragCoord.xy/j.xy*2.-1.;vec3 e=(normalize(b*vec4(t.x*-(j.x/j.y),-t.y,1.73205,0.))).xyz;float o=(-32.-b[3].y)/e.y,i=1.-clamp(abs(o/9999.),0.,1.);if(O=vec4(0,0,0,1),i>.01){if(o>0.){float i=cos(j.z/30.),o=sin(j.z/30.);e.xz*=mat2(i,o,-o,i);vec3 t=abs(e);O.xyz=vec3(dot(vec2(texture(q,e.xy).z,texture(q,e.yz*2.).z),t.zx)*t.y);}else e=b[3].xyz+e*o,O.x=(i*=.9-texture(q,e.xz/150.+vec2(sin(e.z/35.+j.z),cos(e.x/25.+j.z))/80.).y),O.y=i*i*i;}}`,
+        `#version 300 es
+in vec4 f;void main(){gl_Position=vec4(f.xy,1,1);}`,
+      );
+      const [csm0, csm1] = integers_map(2, (split) => {
+        const texture = gl["c25"]();
+        return gl["a4v"](33984 + split),
+          gl["b9j"](3553, texture),
+          gl["t60"](3553, 0, 33190, 2048, 2048, 0, 6402, 5125, null),
+          gl["t2z"](3553, 10241, 9729),
+          gl["t2z"](3553, 10240, 9729),
+          gl["t2z"](3553, 34893, 515),
+          gl["t2z"](3553, 34892, 34894),
+          gl["t2z"](3553, 10243, 33071),
+          gl["t2z"](3553, 10242, 33071),
+          (roundingRadius) => {
+            let tx = 0;
+            let ty = 0;
+            let tz = 0;
+            let left = 1 / 0;
+            let bottom = 1 / 0;
+            let near = 1 / 0;
+            let right = -1 / 0;
+            let top = -1 / 0;
+            let far = -1 / 0;
+            gl["fas"](36160, 36096, 3553, texture, 0),
+              gl["c4s"](256),
+              matrixCopy().scale3dSelf(roundingRadius *= 1.1).multiplySelf(
+                matrixCopy(csm_projections[split], csm_tempMatrix).multiplySelf(camera_view).invertSelf(),
+              );
+            for (let i = 0; i < 8; ++i) {
+              const p = csm_tempFrustumCorners[i];
+              matrixTransformPoint(4 & i ? 1 : -1, 2 & i ? 1 : -1, 1 & i ? 1 : -1),
+                tx -= p.x = (0 | matrixTransformPoint.x) / (roundingRadius * matrixTransformPoint.w),
+                ty -= p.y = (0 | matrixTransformPoint.y) / (roundingRadius * matrixTransformPoint.w),
+                tz -= p.z = (0 | matrixTransformPoint.z) / (roundingRadius * matrixTransformPoint.w);
+            }
+            matrixCopy().rotateSelf(298, 139).translateSelf(tx / 8, ty / 8, tz / 8);
+            for (let i1 = 0; i1 < 8; ++i1) {
+              const { x, y, z } = csm_tempFrustumCorners[i1];
+              matrixTransformPoint(x, y, z),
+                right = max(right, matrixTransformPoint.x),
+                top = max(top, matrixTransformPoint.y),
+                far = max(far, matrixTransformPoint.z),
+                left = min(left, matrixTransformPoint.x),
+                bottom = min(bottom, matrixTransformPoint.y),
+                near = min(near, matrixTransformPoint.z);
+            }
+            const zMultiplier = 10 + split;
+            near *= near < 0 ? zMultiplier : 1 / zMultiplier,
+              far *= 0 < far ? zMultiplier : 1 / zMultiplier,
+              gl["uae"](
+                mainShader("b"),
+                !1,
+                matrixToArray(
+                  matrixCopy(identity, csm_tempMatrix).scaleSelf(
+                    2 / (right - left),
+                    2 / (top - bottom),
+                    2 / (near - far),
+                  ).translateSelf((right + left) / -2, (top + bottom) / -2, (near + far) / 2).multiplySelf(tempMatrix),
+                  csm_lightSpaceMatrices,
+                  split,
+                ),
+                16 * split,
+                16,
+              );
+          };
+      });
+      gl["a4v"](33986),
+        gl["b9j"](3553, gl["c25"]()),
+        gl["t60"](3553, 0, 6408, 1024, 1024, 0, 6408, 5121, groundTextureImage),
+        gl["t2z"](3553, 10241, 9987),
+        gl["t2z"](3553, 10240, 9729),
+        gl["gbn"](3553),
+        gl["b6o"](36160, csm_framebuffer),
+        gl["d45"]([
+          0,
+        ]),
+        gl["r9l"](0),
+        mainShader(),
+        gl["ubh"](mainShader("q"), 2),
+        skyShader(),
+        gl["ubh"](skyShader("q"), 2),
+        gl["c5t"](0, 0, 0, 1),
+        gl["d4n"](515),
+        gl["e8z"](2929),
+        gl["e8z"](2884),
+        cgl["e8z"](2929),
+        cgl["e8z"](2884),
+        cgl["v5y"](0, 0, 128, 128),
+        collisionShader(),
+        cgl["uae"](collisionShader("a"), !1, matrixToArray(mat_perspective(1e-4, 2, 1.2, 0.4))),
+        NO_INLINE(initPage)(),
+        NO_INLINE(player_init)(),
+        requestAnimationFrame(mainLoop);
+    }
   };
   const image = new Image();
   image.onerror = image.onload = end,
@@ -1723,7 +1736,7 @@ loadStep(() => {
                   _vertexNormals.push(_vertexInts[5], _vertexInts[6], _vertexInts[7])),
                 vertexIndex;
             };
-            for (polygon of (_vertexFloats[3] = 55 < index ? -MODELS_WITH_FULL_TRANSFORM : index, model.$polygon)) {
+            for (polygon of (_vertexFloats[3] = 55 < index ? -28 : index, model.$polygon)) {
               const { x, y, z } = plane_fromPolygon(polygon);
               _vertexInts[4] = 0 | polygon.$color,
                 _vertexInts[5] = 32767 * x,

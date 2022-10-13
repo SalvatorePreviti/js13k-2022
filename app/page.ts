@@ -147,14 +147,10 @@ export const initPage = () => {
   }
 
   // "Play" button
-  b1.onclick = () => {
-    start();
-  };
+  b1.onclick = () => start();
 
   // "Play first person" button
-  b2.onclick = () => {
-    start(1);
-  };
+  b2.onclick = () => start(1);
 
   // Menu hamburger button
   b5.onclick = () => mainMenu(true);
@@ -279,8 +275,8 @@ export const initPage = () => {
             touchPosMoved = 1;
           }
 
-          touch_movementX = +(m && absDeltaX > TOUCH_MOVE_SNAP) * clamp(deltaX, -1);
-          touch_movementY = +(m && absDeltaY > TOUCH_MOVE_SNAP) * clamp(deltaY, -1);
+          touch_movementX = clamp(deltaX, -1) * ((m && absDeltaX > TOUCH_MOVE_SNAP) as any);
+          touch_movementY = clamp(deltaY, -1) * ((m && absDeltaY > TOUCH_MOVE_SNAP) as any);
 
           // Move the invisible joysticks
           if (absDeltaX > 2) {
@@ -337,8 +333,8 @@ export const initPage = () => {
     const gamepad = navigator.getGamepads()[0];
     if (gamepad) {
       if (player_first_person) {
-        camera_rotation.x += gameTimeDelta * threshold(gamepad.axes[3], 0.3) * 80;
-        camera_rotation.y += gameTimeDelta * threshold(gamepad.axes[2], 0.3) * 80;
+        camera_rotation.x += 80 * gameTimeDelta * threshold(gamepad.axes[3], 0.3);
+        camera_rotation.y += 80 * gameTimeDelta * threshold(gamepad.axes[2], 0.3);
       }
 
       input_forward +=

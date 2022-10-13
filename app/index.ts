@@ -33,7 +33,7 @@ loadStep(() => {
         console.time("startMainLoop");
       }
 
-      NO_INLINE(startMainLoop)(image);
+      startMainLoop(image);
 
       if (DEBUG) {
         console.timeEnd("startMainLoop");
