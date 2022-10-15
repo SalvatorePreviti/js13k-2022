@@ -2,10 +2,6 @@ import { lerp, min } from "../math/math";
 
 let _globalTime: number | undefined;
 
-export let mainMenuVisible: boolean | undefined;
-
-export const setMainMenuVisible = (visible: boolean) => (mainMenuVisible = visible);
-
 export const GAME_TIME_MAX_DELTA_TIME = 0.055;
 
 export let gameTime = 0;
@@ -13,6 +9,16 @@ export let gameTime = 0;
 export let absoluteTime = 0;
 
 export let gameTimeDelta = 0;
+
+export const damp = NO_INLINE((speed: number) => 1 - Math.exp(-gameTimeDelta * speed));
+
+export const lerpDamp = NO_INLINE((from: number | undefined, to: number | undefined, speed: number) =>
+  lerp(from, to, damp(speed)),
+);
+
+export let mainMenuVisible: boolean | undefined;
+
+export const setMainMenuVisible = (visible: boolean) => (mainMenuVisible = visible);
 
 export const gameTimeUpdate = (time: number) => {
   const dt = (time - (_globalTime || time)) / 1000;
@@ -24,12 +30,6 @@ export const gameTimeUpdate = (time: number) => {
 export const setGameTime = (value: number) => {
   gameTime = value;
 };
-
-export const damp = NO_INLINE((speed: number) => 1 - Math.exp(-gameTimeDelta * speed));
-
-export const lerpDamp = NO_INLINE((from: number | undefined, to: number | undefined, speed: number) =>
-  lerp(from, to, damp(speed)),
-);
 
 // export const gameTimeUpdate = (time: number) => {
 //   const dt = (time - (_globalTime || time)) / 1000;

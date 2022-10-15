@@ -393,12 +393,14 @@ const csg_union = (...inputs) =>
   });
 const csg_polygons_subtract = (a, ...b) => csg_polygons(csg_tree_flip(csg_union(csg_tree_flip(csg_tree(a)), ...b)));
 let _globalTime;
-let mainMenuVisible;
-const setMainMenuVisible = (visible) => mainMenuVisible = visible;
 const GAME_TIME_MAX_DELTA_TIME = 0.055;
 let gameTime = 0;
 let absoluteTime = 0;
 let gameTimeDelta = 0;
+const damp = NO_INLINE((speed) => 1 - /* @__PURE__ */ Math.exp(-gameTimeDelta * speed));
+const lerpDamp = NO_INLINE((from, to, speed) => lerp(from, to, damp(speed)));
+let mainMenuVisible;
+const setMainMenuVisible = (visible) => mainMenuVisible = visible;
 const gameTimeUpdate = (time) => {
   const dt = (time - (_globalTime || time)) / 1e3;
   absoluteTime += dt;
@@ -408,8 +410,6 @@ const gameTimeUpdate = (time) => {
 const setGameTime = (value) => {
   gameTime = value;
 };
-const damp = NO_INLINE((speed) => 1 - /* @__PURE__ */ Math.exp(-gameTimeDelta * speed));
-const lerpDamp = NO_INLINE((from, to, speed) => lerp(from, to, damp(speed)));
 const GAMEPAD_BUTTON_UP = 12;
 const GAMEPAD_BUTTON_DOWN = 13;
 const GAMEPAD_BUTTON_LEFT = 14;
