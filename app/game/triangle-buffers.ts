@@ -5,8 +5,6 @@ import type { Polygon } from "../geometry/polygon";
 import { MODEL_ID_SOUL_COLLISION } from "./models-ids";
 
 export const initTriangleBuffers = () => {
-  DEV_ROOT_FUNCTION();
-
   const _triangleIndices: number[] = [];
   const _vertexPositions: number[] = [];
   const _vertexColors: number[] = [];
@@ -102,4 +100,6 @@ export const initTriangleBuffers = () => {
       throw new Error("Souls must be " + SOULS_COUNT + " but is " + souls.length);
     }
   }
+
+  DEV_ROOT_FUNCTION();
 };

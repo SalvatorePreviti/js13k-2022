@@ -347,7 +347,7 @@ const osc_tri = (value) => {
   return v2 < 2 ? v2 - 1 : 3 - v2;
 };
 let audioBuffer;
-const loadSong = (done) => {
+const loadSong = NO_INLINE((done) => {
   let channelIndex = 0;
   audioBuffer = new AudioBuffer({
     numberOfChannels: 2,
@@ -455,7 +455,7 @@ const loadSong = (done) => {
     loadStep(++channelIndex < song_numChannels ? next : done);
   };
   loadStep(next);
-};
+});
 const code$4 = "#version 300 es\nprecision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sampler2DShadow g,h;uniform mat4 b,i[2];uniform vec3 k;out vec4 O;void main(){vec4 s=vec4(m.xyz,1);vec3 e=normalize(o.xyz),v=l.w*(texture(q,n.zy*.035)*e.x+texture(q,n.xz*.035)*e.y+texture(q,n.xy*.035)*e.z).xyz;e=normalize(e+v*.5);float a=dot(e,vec3(-.656059,.666369,-.35431468)),t=1.,u=abs((b*s).z);vec4 r=(u<55.?i[0]:i[1])*s;if(r=r/r.w*.5+.5,r.z<1.){t=0.;for(float e=-1.;e<=1.;++e)for(float a=-1.;a<=1.;++a){vec3 x=vec3(r.xy+vec2(e,a)/2048.,r.z-.00017439);t+=u<55.?texture(g,x):texture(h,x);}t/=9.;}vec3 x=l.xyz*(1.-v.x);float c=max(max(abs(e.x),abs(e.z))*.3-e.y,0.)*pow(max(0.,(8.-m.y)/48.),1.6);O=vec4(vec3(c,c*c*.5,0)+vec3(.09,.05,.11)*x+x*(max(0.,a)*.5+x*a*a*vec3(.5,.45,.3))*(t*.75+.25)+vec3(.6,.6,.5)*pow(max(0.,dot(normalize(m.xyz-k),reflect(vec3(-.656059,.666369,-.35431468),e))),35.)*t,1);}";
 const uniformName_csm_matrices = "i";
 const uniformName_csm_texture0 = "g";
@@ -499,9 +499,7 @@ let input_forward = 0;
 let input_strafe = 0;
 let projection;
 let csm_projections;
-let updateInput;
-const initPage = () => {
-  DEV_ROOT_FUNCTION();
+let updateInput = () => {
   let touchStartTime;
   let touchPosStartX;
   let touchPosStartY;
@@ -728,6 +726,7 @@ const initPage = () => {
   };
   document.onvisibilitychange = onblur = onresize = handleResize;
   mainMenu(true);
+  DEV_ROOT_FUNCTION();
 };
 const LEVER_ID_GATE0 = 0;
 const LEVER_ID_LEVEL1_DESCENT = 1;
@@ -798,7 +797,6 @@ const updateCollectedSoulsCounter = () => {
   ][souls_collected_count = souls.reduce((acc, v) => acc + v.$value, 0)] + " / XIII";
 };
 const loadGame = () => {
-  DEV_ROOT_FUNCTION();
   let _savedLevers = [];
   let _savedSouls = [];
   try {
@@ -881,7 +879,7 @@ const modelsNextUpdate = (x, y = 0, z = 0) => {
 };
 const transformsBuffer = new Float32Array(4 * (4 * (MODELS_WITH_FULL_TRANSFORM + SOULS_COUNT) + MODELS_WITH_SIMPLE_TRANSFORM));
 let meshAdd;
-const newModel = NO_INLINE((name) => {
+const newModel = (name) => {
   const $polygon = [];
   const model = {
     $matrix: new DOMMatrix(),
@@ -889,7 +887,7 @@ const newModel = NO_INLINE((name) => {
   };
   meshAdd = (polygons, transform = identity, color) => $polygon.push(...polygons_transform(polygons, transform, color));
   allModels.push(model);
-});
+};
 const LEVER_SENSITIVITY_RADIUS = 3;
 const SOUL_SENSITIVITY_RADIUS = 1.6;
 const distanceToPlayer = () => {
@@ -1180,7 +1178,6 @@ const csg_union = (...inputs) => inputs.reduce((a, b) => {
 });
 const csg_polygons_subtract = (a, ...b) => csg_polygons(csg_tree_flip(csg_union(csg_tree_flip(csg_tree(a)), ...b)));
 const build_life_the_universe_and_everything = () => {
-  DEV_ROOT_FUNCTION();
   const HORN_STACKS = 11;
   const hornMatrix = (i) => {
     i /= HORN_STACKS;
@@ -1211,11 +1208,11 @@ const build_life_the_universe_and_everything = () => {
     ].map((x) => polygons_transform(cylinder(5), translation(x, 2.5).rotate(90, 0, 36).scale(1.8, 10, 1.8)))), identity, material(0.3, 0.6, 0.6, 0.3))
   ].flat();
   const makeBigArc = (height) => csg_polygons_subtract(polygons_transform(cylinder().slice(0, -1), translation(0, -height / 2).scale(6, height - 1, 2.2)), polygons_transform(cylinder().slice(0, -1), translation(0, -height / 2 - 4).scale(4, height - 5, 4)), polygons_transform(cylinder(28, 1), translation(0, height / 2 - 9).rotate(90, 0, 90).scale3d(4)));
-  newModel("MODEL_ID_SKY");
+  newModel();
   meshAdd([
     GQuad.slice(1)
   ], translation(-2).scale3d(3).rotate(90, 0));
-  newModel("MODEL_ID_STATIC_WORLD");
+  newModel();
   newLever(translation(-5.4, 1.5, -19).rotate(0, -90));
   [
     -15,
@@ -1394,11 +1391,11 @@ const build_life_the_universe_and_everything = () => {
     2,
     3.5
   ]);
-  newModel("MODEL_ID_LEVEL1_CENTRAL_PLATFORM");
+  newModel();
   meshAdd(cylinder(5), translation(0, -0.2).scale(5, 1, 5), material(0.6, 0.65, 0.7, 0.3));
   newLever(translation(0, 1.2));
   integers_map(2, (blackPlatform) => {
-    newModel("MODEL_ID_LEVEL2_BLACK_PLATFORM" + blackPlatform);
+    newModel();
     GQuad.map(({ x, z }) => {
       meshAdd(cylinder(11, 1).slice(0, -2), translation(x * 4, 4, z * 4).scale(0.8, 3, 0.8), material(0.5, 0.3, 0.7, 0.6));
       meshAdd(cylinder(), translation(x * 4, 7, z * 4).scale(1, 0.3), material(0.5, 0.5, 0.5, 0.3));
@@ -1409,40 +1406,40 @@ const build_life_the_universe_and_everything = () => {
     ].map((i) => polygons_transform(cylinder(25, 1), translation(5 * i, 0.2).rotate(i * -30).scale(4, 1, 3), material(0.8, 0.8, 0.8, 0.3)))));
     meshAdd(cylinder(), translation(0, -3).scale(8, 2, 8), material(0.4, 0.4, 0.4, 0.3));
   });
-  newModel("MODEL_ID_LEVEL2_CENTRAL_PLATFORM");
+  newModel();
   meshAdd(csg_polygons_subtract(csg_union(polygons_transform(cylinder(), identity.scale(1.5, 1, 5), material(0.9, 0.9, 0.9, 0.2)), polygons_transform(cylinder(), translation(0, -2).scale(2, 3.2, 1.9), material(0.3, 0.8, 0.5, 0.5)), polygons_transform(cylinder(6), identity.scale(4, 1, 5), material(0.9, 0.9, 0.9, 0.2)), polygons_transform(cylinder(16, 1, 0, 4), identity.scale(1, 1, 1.5).rotate(0, 90), material(0.9, 0.9, 0.9, 0.2))), polygons_transform(cylinder(), identity.scale(1.3, 10, 1.3), material(0.2, 0.7, 0.4, 0.6))));
   newSoul(translation(0, 2.8), [
     0,
     0,
     4.5
   ]);
-  newModel("MODEL_ID_TRIANGLE_PLATFORM");
+  newModel();
   meshAdd(cylinder(3), translation(-23, -1.7, 55.8).scale(5, 0.7, 8.3), material(0.3, 0.6, 0.6, 0.2));
   meshAdd(cylinder(8), translation(-23, -2.2, 66.5).scale(1.5, 1.2, 1.5), material(0.8, 0.8, 0.8, 0.2));
   meshAdd(cylinder(), translation(-23, -3, 55).scale(5.2, 1.7, 3), material(0.5, 0.5, 0.5, 0.3));
   meshAdd(cylinder(), translation(-23, -2.2, 62).scale(3, 1, 4), material(0.5, 0.5, 0.5, 0.3));
   newLever(translation(-23, -0.5, 66.5));
-  newModel("MODEL_ID_LEVEL2_MINI_PLATFORM_VERTICAL");
+  newModel();
   meshAdd(cylinder(), translation(-22.55, -3, 55).scale(1.45, 1.4, 2.7), material(0.7, 0.7, 0.7, 0.2));
   meshAdd(csg_polygons_subtract(polygons_transform(cylinder(), identity.scale(3, 1.4, 2.7)), polygons_transform(cylinder(), identity.scale(1.2, 8, 1.2))), translation(-33, -3, 55), material(0.7, 0.7, 0.7, 0.2));
-  newModel("MODEL_ID_LEVEL2_MINI_PLATFORM_HORIZONTAL");
+  newModel();
   meshAdd(csg_polygons_subtract(polygons_transform(cylinder(), identity.scale(3, 1.4, 2.7)), polygons_transform(cylinder(), identity.scale(1, 3))), translation(-27, -3, 55), material(0.9, 0.9, 0.9, 0.2));
   meshAdd(cylinder(), translation(-39, -3, 55).scale(3, 1.4, 2.7), material(0.9, 0.9, 0.9, 0.2));
-  newModel("MODEL_ID_LEVEL2_HEX_CORRIDOR_DOOR");
+  newModel();
   meshAdd(cylinder(6), translation(-44.5, 0, 55).rotate(0, 0, 90).scale(5.9, 0.5, 5.9), material(0.7, 0.7, 0.7, 0.4));
-  newModel("MODEL_ID_ELEVATORS0");
+  newModel();
   const elevatorsMatrix = (x) => translation(x - 76.9, x / -16 - 10, 24).rotate(0, 0, -2).skewX(-2).scale(2.8, 1.4, 3);
   [
     0,
     12,
     24
   ].map((x) => meshAdd(cylinder(), elevatorsMatrix(x), material(0.2, 0.5, 0.6, 0.2)));
-  newModel("MODEL_ID_ELEVATORS1");
+  newModel();
   [
     6,
     18
   ].map((x) => meshAdd(cylinder(), elevatorsMatrix(x), material(0.1, 0.4, 0.5, 0.2)));
-  newModel("MODEL_ID_MONUMENT");
+  newModel();
   meshAdd(cylinder(5), translation(-38.9, -1.3, 17).scale(1.1, 3, 1.1).skewY(-20), material(0.3, 0.3, 0.5, 0.5));
   meshAdd(cylinder(5).slice(0, -1), translation(-38.9, 2, 17).scale(0.6, 2.5, 0.6).skewY(25), material(0.6, 0.3, 0.5, 0.5));
   meshAdd(csg_polygons_subtract(polygons_transform(cylinder(5), translation(0, 2).scale(5, 7, 5).skewY(8)), polygons_transform(cylinder(5), translation(0, 5).scale(1.5, 1.5, 8).rotate(90, 0, 35)), polygons_transform(cylinder(), identity.scale(2, 8, 3))), translation(-38.9, -11.3, 17), material(0.2, 0.4, 0.5, 0.5));
@@ -1453,11 +1450,11 @@ const build_life_the_universe_and_everything = () => {
   ]));
   pushingRodsPositions.map((x, i) => {
     if (!(i % 2) && i < 6)
-      newModel("MODEL_ID_PUSHING_ROD" + i / 2);
+      newModel();
     meshAdd(pushingRod, translation(x, 1.9, -12));
   });
   integers_map(4, (i) => {
-    newModel("MODEL_ID_OSCILLATING_HEX_PAD" + i);
+    newModel();
     meshAdd(cylinder(6), translation(-14.6 - i * 4.8 - (i > 2 ? 2 : 0), -i / 2.5 - 0.1, -21.5).rotate(0, 0, 3.5).skewX(3.5).scale(2.6, 1, 2.5), material(0.5 - i / 8, i / 12 + 0.5, 0.7, 0.3));
   });
   [
@@ -1465,24 +1462,24 @@ const build_life_the_universe_and_everything = () => {
     material(0.2, 0.5, 0.5, 0.3),
     material(0.3, 0.45, 0.55, 0.4)
   ].map((m, i) => {
-    newModel("MODEL_ID_JUMPING_PAD" + i);
+    newModel();
     meshAdd(cylinder(), translation(-23.5, 0.5, 91 + 6.8 * i).scale(i === 1 ? 2 : 3.3, 1, 3.3), m);
     if (i === 2)
       meshAdd(cylinder(), translation(-29.1, 0.4, 91).scale(2.1, 1, 3), material(0.7, 0.7, 0.7, 0.3));
     if (i === 1)
       meshAdd(cylinder(), translation(-16.1, 0.5, 103.5).rotate(-3.5).scale(3.9, 0.8, 2).skewX(-1), material(0.6, 0.6, 0.7, 0.3));
   });
-  newModel("MODEL_ID_FLOATING_ELEVATOR_PAD");
+  newModel();
   meshAdd(cylinder(5), identity.scale(5, 1.1, 5), material(0.5, 0.3, 0.3, 0.4));
   meshAdd(cylinder(5), identity.scale(5.5, 0.9, 5.5), material(0.25, 0.25, 0.25, 0.4));
   newLever(translation(0, 1.5, -1).rotate(0, 180));
   integers_map(4, (gate) => {
-    newModel("MODEL_ID_GATE" + gate);
+    newModel();
     integers_map(7, (i) => meshAdd(polygons_transform(cylinder(8, 1).slice(0, -1), translation((gate > 2 ? 3.5 : 4) * (i / 6 - 0.5), 3).scale(0.2, gate > 2 ? 4 : 3, 0.2), material(0.3, 0.3, 0.38))));
   });
-  newModel("MODEL_ID_LEVEL2_ROTATING_HEX_CORRIDOR");
+  newModel();
   meshAdd(hexCorridor);
-  newModel("MODEL_ID_DONUT_PAD");
+  newModel();
   meshAdd(cylinder(15, 1), translation(-7.5).rotate(0, 90).scale(3, 2.3, 3), material(0.4, 0.4, 0.4, 0.3));
   meshAdd(cylinder(10).slice(0, -1), translation(-7.5, 2.4).rotate(0, 90).scale(2, 0.1, 2), material(0.3, 0.8, 0.7, 0.3));
   meshAdd(cylinder(5).slice(0, -1), translation(-7.5, 2.7).rotate(0, 90).scale(1, 0.2), material(0.5, 0.5, 0.5, 0.5));
@@ -1501,7 +1498,7 @@ const build_life_the_universe_and_everything = () => {
     1.2,
     1.7
   ]);
-  newModel("MODEL_ID_PENDULUMS");
+  newModel();
   meshAdd(cylinder(3), translation(0, -3, 118.8).scale(0.8, 0.8, 8).rotate(90, 0, 60), material(0.5, 0.3, 0.3, 0.4));
   [
     22,
@@ -1510,7 +1507,7 @@ const build_life_the_universe_and_everything = () => {
     meshAdd(cylinder(6), translation(0, 16, z + 95).scale(3, 1, 2.3).rotate(0, 90), material(0.7, 0.7, 0.7, 0.4));
     meshAdd(cylinder(), translation(0, 6.2, z + 95).scale(0.5, 11, 0.5), material(0.5, 0.3, 0.3, 0.4));
   });
-  newModel("MODEL_ID_ROTATING_PLATFORM0");
+  newModel();
   meshAdd(csg_polygons_subtract(polygons_transform(cylinder(28, 1), identity.scale(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2)), polygons_transform(cylinder(), translation(0, 0, -5.5).scale(1.5, 3, 2.7), material(0.45, 0.45, 0.45, 0.2))));
   meshAdd(cylinder(8).slice(0, -1), translation(0, 2).scale(3, 1.5, 3).rotate(0, 22), material(0.7, 0.7, 0.7, 0.1));
   meshAdd(cylinder(5).slice(0, -1), translation(0, 2).scale(1, 2), material(0.3, 0.3, 0.3, 0.2));
@@ -1519,7 +1516,7 @@ const build_life_the_universe_and_everything = () => {
     z * 5.6,
     2
   ]));
-  newModel("MODEL_ID_ROTATING_PLATFORM1");
+  newModel();
   [
     -1,
     1
@@ -1527,26 +1524,26 @@ const build_life_the_universe_and_everything = () => {
   meshAdd(csg_polygons_subtract(polygons_transform(cylinder(28, 1).slice(0, -1), translation(0, 2).scale(7.5, 1, 7.5), material(0.35, 0, 0, 0.3)), polygons_transform(cylinder().slice(0, -1), translation(0, 2).scale(9, 1.1, 2), material(0.3, 0, 0, 0.3))));
   meshAdd(cylinder(28, 1), identity.scale(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2));
   meshAdd(cylinder(5).slice(0, -1), translation(0, 1).scale(1, 0.2), material(0.3, 0.3, 0.3, 0.2));
-  newModel("MODEL_ID_ROTATING_PLATFORM2");
+  newModel();
   meshAdd(csg_polygons_subtract(polygons_transform(cylinder(28, 1).slice(0, -1), translation(0, 2).scale(7.5, 1, 7.5), material(0.35, 0, 0, 0.3)), polygons_transform(cylinder().slice(0, -1), translation(0, 2, 7).scale(2, 1.1, 9), material(0.3, 0, 0, 0.3)), polygons_transform(cylinder().slice(0, -1), translation(7, 2).scale(9, 1.1, 2), material(0.3, 0, 0, 0.3))));
   meshAdd(cylinder(28, 1), identity.scale(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2));
   meshAdd(cylinder(5).slice(0, -1), translation(0, 1).scale(1, 0.2), material(0.3, 0.3, 0.3, 0.2));
-  newModel("MODEL_ID_ROTATING_PLATFORM3");
+  newModel();
   meshAdd(csg_polygons_subtract(polygons_transform(cylinder(28, 1).slice(0, -1), translation(0, 2).scale(7.5, 1, 7.5), material(0.35, 0, 0, 0.3)), polygons_transform(cylinder().slice(0, -1), translation(0, 2, -7).scale(2, 1.1, 9), material(0.3, 0, 0, 0.3)), polygons_transform(cylinder().slice(0, -1), translation(7, 2).scale(9, 1.1, 2), material(0.3, 0, 0, 0.3))));
   meshAdd(cylinder(28, 1), identity.scale(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2));
   meshAdd(cylinder(5).slice(0, -1), translation(0, 1).scale(1, 0.2), material(0.3, 0.3, 0.3, 0.2));
   integers_map(2, (i) => {
-    newModel("MODEL_ID_BOAT" + i);
+    newModel();
     meshAdd(csg_polygons_subtract(polygons_transform(cylinder(30, 1, 1.15, 1), translation(0, -3).scale(3.5, 1, 3.5), material(0.7, 0.4, 0.25, 0.7)), polygons_transform(cylinder(), translation(4, -1.2).scale3d(2), material(0.7, 0.4, 0.25, 0.3)), polygons_transform(cylinder(30, 1, 1.3, 1), translation(0, -2.5).scale(2.6, 1, 3), material(0.7, 0.4, 0.25, 0.2))));
     newLever(translation(0, -3, 4));
   });
   for (let i = 0; i < LEVERS_COUNT; ++i) {
-    newModel("MODEL_ID_LEVER" + i);
+    newModel();
     meshAdd(cylinder(6, 1).slice(0, -1), identity.scale(0.12, 1.2, 0.12), material(0.3, 0.3, 0.5, 0.1));
     meshAdd(cylinder(9, 1), translation(0, 0.8).scale(0.2, 0.3, 0.2), material(0.7, 1, 0.2));
     meshAdd(cylinder(3), translation(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3), material(0.2, 0.2, 0.2, 0.1));
   }
-  newModel("MODEL_ID_PLAYER_BODY");
+  newModel();
   meshAdd(sphere(20), translation(0, 1).scale3d(0.5), material(1, 0.3, 0.4));
   meshAdd(sphere(30), identity.scale(0.65, 0.8, 0.55), material(1, 0.3, 0.4));
   meshAdd(cylinder(), translation(0, 0.9, 0.45).scale(0.15, 0.02, 0.06), material(0.3, 0.3, 0.3));
@@ -1561,12 +1558,12 @@ const build_life_the_universe_and_everything = () => {
     -1,
     1
   ].map((v, i) => {
-    newModel("MODEL_ID_PLAYER_LEG" + i);
+    newModel();
     meshAdd(cylinder(20, 1), translation(0.3 * v, -0.8).scale(0.2, 0.7, 0.24), material(1, 0.3, 0.4));
   });
-  newModel("MODEL_ID_SOUL_COLLISION");
+  newModel();
   meshAdd(cylinder(6, 1).slice(0, -1), identity.scale(0.77, 1, 0.77), material(1, 0.3, 0.5));
-  newModel("MODEL_ID_SOUL");
+  newModel();
   const GHOST_SLICES = 28;
   const GHOST_STACKS = 22;
   meshAdd(sphere(GHOST_SLICES, GHOST_STACKS, (a, b, polygon) => {
@@ -1588,6 +1585,7 @@ const build_life_the_universe_and_everything = () => {
     -1,
     1
   ].map((x) => meshAdd(sphere(10), translation(0.16 * x, 0.4, -0.36).scale3d(0.09)));
+  DEV_ROOT_FUNCTION();
 };
 const code$3 = "#version 300 es\nlayout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 b,a;uniform vec4 j[190];void main(){mat4 r=mat4(1);lowp int i=int(f.w);if(l=d,m=vec4(f.xyz,1),f.w>1.&&f.w<28.)m+=(r[3]=j[i+162]);else if(f.w!=1.){if(i=(i<1?gl_InstanceID-i:i-28)*4,r[0]=j[i],r[1]=j[i+1],r[2]=j[i+2],r[3]=j[i+3],l.w==0.)l=mix(vec4(1,.5,.2,0),l,r[3][3]);r[3][3]=1.,m=r*m;}gl_Position=a*b*m,m.w=f.w,o=r*vec4(e,0),n=f;}";
 const uniformName_projectionMatrix = "a";
@@ -1623,8 +1621,7 @@ let camera_position_y = 0;
 let camera_position_z = 0;
 const collision_buffer = new Uint8Array(constDef_COLLISION_TEXTURE_SIZE * constDef_COLLISION_TEXTURE_SIZE * 4);
 let player_update;
-const player_init = () => {
-  DEV_ROOT_FUNCTION();
+const player_init = NO_INLINE(() => {
   let boot = 1;
   let player_gravity = 15;
   let player_respawned = 2;
@@ -1671,7 +1668,7 @@ const player_init = () => {
     player_position_global_z += matrixTransformPoint.z;
     updatePlayerPositionFinal();
   };
-  const doCollisions = () => {
+  const doCollisions = NO_INLINE(() => {
     let modelACount = 0;
     let modelB = 0;
     let modelBCount = 0;
@@ -1736,11 +1733,11 @@ const player_init = () => {
     movX *= 0.7;
     player_speed_collision_limiter = clamp(1 - max(abs(movX), abs(movZ)) * 0.01, 0.3);
     movePlayer(movX / 255, movY / 255, movZ / 255);
-  };
+  });
   player_update = () => {
     updatePlayerPositionFinal(currentModelId);
     cgl["r9r"](0, 0, constDef_COLLISION_TEXTURE_SIZE, constDef_COLLISION_TEXTURE_SIZE, 6408, 5121, collision_buffer);
-    NO_INLINE(doCollisions)();
+    doCollisions();
     if (player_respawned || currentModelId !== oldModelId) {
       oldModelId = currentModelId;
       loadReferenceMatrix().invertSelf();
@@ -1798,13 +1795,13 @@ const player_init = () => {
     movAngle = player_first_person ? (180 + camera_rotation.y) * DEG_TO_RAD : 0;
     movePlayer(gameTimeDelta * (player_fly_velocity_x + (/* @__PURE__ */ Math.cos(movAngle) * strafe - /* @__PURE__ */ Math.sin(movAngle) * forward)), gameTimeDelta * -player_gravity, gameTimeDelta * (player_fly_velocity_z + (/* @__PURE__ */ Math.sin(movAngle) * strafe + /* @__PURE__ */ Math.cos(movAngle) * forward)));
   };
-};
+  DEV_ROOT_FUNCTION();
+});
 let shouldRotatePlatforms;
 let rotatingPlatform1Rotation;
 let rotatingPlatform2Rotation;
 let rotatingHexCorridorRotation;
 const eppur_si_muove = () => {
-  DEV_ROOT_FUNCTION();
   modelsResetUpdateCounter();
   shouldRotatePlatforms = lerpneg(levers[LEVER_ID_DONUT_PAD].$lerpValue, levers[LEVER_ID_AFTER_ROTATING_PLATFORMS].$lerpValue);
   rotatingHexCorridorRotation = lerp(lerpDamp(rotatingHexCorridorRotation, 0, 1), angle_wrap_degrees(rotatingHexCorridorRotation + gameTimeDelta * 60), levers[LEVER_ID_ROTATING_CORRIDOR].$lerpValue - levers[LEVER_ID_CRYSTALS].$lerpValue2);
@@ -1866,11 +1863,11 @@ const eppur_si_muove = () => {
     transformsBuffer[j++] = m.m42;
     transformsBuffer[j++] = m.m43;
   }
+  DEV_ROOT_FUNCTION();
 };
 const LIGHT_ROT_X = 298;
 const LIGHT_ROT_Y = 139;
 const startMainLoop = (groundTextureImage) => {
-  DEV_ROOT_FUNCTION();
   const csm_tempMatrix = new DOMMatrix();
   const camera_view = new DOMMatrix();
   const csm_lightSpaceMatrices = new Float32Array(32);
@@ -2045,12 +2042,12 @@ const startMainLoop = (groundTextureImage) => {
   cgl["v5y"](0, 0, constDef_COLLISION_TEXTURE_SIZE, constDef_COLLISION_TEXTURE_SIZE);
   collisionShader();
   cgl["uae"](collisionShader(uniformName_projectionMatrix), false, matrixToArray(mat_perspective(1e-4, 2, 1.2, 0.4)));
-  NO_INLINE(initPage)();
-  NO_INLINE(player_init)();
+  updateInput();
+  player_init();
   requestAnimationFrame(mainLoop);
+  DEV_ROOT_FUNCTION();
 };
 const initTriangleBuffers = () => {
-  DEV_ROOT_FUNCTION();
   const _triangleIndices = [];
   const _vertexPositions = [];
   const _vertexColors = [];
@@ -2115,6 +2112,7 @@ const initTriangleBuffers = () => {
     xgl["e3x"](1);
     xgl["e3x"](2);
   });
+  DEV_ROOT_FUNCTION();
 };
 loadStep(() => {
   const image = new Image();
@@ -2123,7 +2121,7 @@ loadStep(() => {
     if (++loadStatus === 2)
       startMainLoop(image);
   };
-  image.onerror = image.onload = end;
+  image.onload = end;
   image.src = groundTextureSvg;
   const songLoaded = () => {
     loadStep(() => {
@@ -2133,6 +2131,6 @@ loadStep(() => {
     });
     build_life_the_universe_and_everything();
   };
-  NO_INLINE(loadSong)(songLoaded);
+  loadSong(songLoaded);
 });
 //# sourceMappingURL=index.js.map

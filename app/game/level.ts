@@ -11,8 +11,6 @@ import { integers_map } from "../math/integers-map";
 import { LEVERS_COUNT, type Circle } from "./models";
 
 export const build_life_the_universe_and_everything = (): 42 | void => {
-  DEV_ROOT_FUNCTION();
-
   const HORN_STACKS = 11;
 
   if (DEBUG) {
@@ -1052,4 +1050,6 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     console.timeEnd("build_life_the_universe_and_everything");
     devAllModelsPrint();
   }
+
+  DEV_ROOT_FUNCTION();
 };

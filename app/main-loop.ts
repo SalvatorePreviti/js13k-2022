@@ -26,7 +26,7 @@ import { identity, matrixCopy, matrixToArray, matrixTransformPoint, tempMatrix }
 import { eppur_si_muove } from "./game/level-update";
 import { max, min } from "./math/math";
 import type { Vec3 } from "./math/vectors";
-import { initPage, csm_projections, player_first_person, projection, resetInteractPressed, updateInput } from "./page";
+import { updateInput, csm_projections, player_first_person, projection, resetInteractPressed } from "./page";
 import { player_init, camera_position_x, camera_position_y, camera_position_z } from "./game/player";
 import { cgl, gl } from "./gl";
 import {
@@ -44,8 +44,6 @@ const LIGHT_ROT_X = 298;
 const LIGHT_ROT_Y = 139;
 
 export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
-  DEV_ROOT_FUNCTION();
-
   const csm_tempMatrix = new DOMMatrix();
   const camera_view = new DOMMatrix();
 
@@ -391,9 +389,11 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     matrixToArray(mat_perspective(0.0001, 2, 1.2, 0.4)),
   );
 
-  NO_INLINE(initPage)();
+  updateInput();
 
-  NO_INLINE(player_init)();
+  player_init();
 
   requestAnimationFrame(mainLoop);
+
+  DEV_ROOT_FUNCTION();
 };

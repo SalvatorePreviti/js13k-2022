@@ -29,7 +29,7 @@ export let meshAdd: (
   color?: number | undefined,
 ) => void;
 
-export const newModel = NO_INLINE((name: string): void => {
+export const newModel = (name: string): void => {
   const $polygon: Polygon[] = [];
   const model: Model = { $matrix: new DOMMatrix(), $polygon };
   meshAdd = (
@@ -41,7 +41,7 @@ export const newModel = NO_INLINE((name: string): void => {
   if (DEBUG) {
     devModelsAdd(allModels.length - 1, name);
   }
-});
+};
 
 const LEVER_SENSITIVITY_RADIUS = 3;
 const SOUL_SENSITIVITY_RADIUS = 1.6;

@@ -41,7 +41,7 @@ loadStep(() => {
     }
   };
 
-  image.onerror = image.onload = end;
+  image.onload = end;
   image.src = groundTextureSvg;
 
   const songLoaded = () => {
@@ -56,7 +56,7 @@ loadStep(() => {
   if (DEBUG && DEBUG_FLAG1) {
     songLoaded();
   } else {
-    NO_INLINE(loadSong)(songLoaded);
+    loadSong(songLoaded);
   }
 
   if (DEBUG) {

@@ -52,9 +52,7 @@ const collision_buffer = new Uint8Array(COLLISION_TEXTURE_SIZE * COLLISION_TEXTU
 
 export let player_update: () => void;
 
-export const player_init = () => {
-  DEV_ROOT_FUNCTION();
-
+export const player_init = NO_INLINE(() => {
   let boot: 0 | 1 = 1;
   let player_gravity = 15;
   let player_respawned: 0 | 1 | 2 = 2;
@@ -118,7 +116,7 @@ export const player_init = () => {
     updatePlayerPositionFinal();
   };
 
-  const doCollisions = () => {
+  const doCollisions = NO_INLINE(() => {
     let modelACount = 0;
     let modelB = 0;
     let modelBCount = 0;
@@ -211,7 +209,7 @@ export const player_init = () => {
     player_speed_collision_limiter = clamp(1 - max(abs(movX), abs(movZ)) * 0.01, 0.3);
 
     movePlayer(movX / 255, movY / 255, movZ / 255);
-  };
+  });
 
   player_update = () => {
     updatePlayerPositionFinal(currentModelId);
@@ -252,7 +250,7 @@ export const player_init = () => {
 
     // ------- process collision renderBuffer -------
 
-    NO_INLINE(doCollisions)();
+    doCollisions();
 
     if (player_respawned || currentModelId !== oldModelId) {
       if (DEBUG && currentModelId !== oldModelId) {
@@ -423,4 +421,6 @@ export const player_init = () => {
       gameTimeDelta * (player_fly_velocity_z + (Math.sin(movAngle) * strafe + Math.cos(movAngle) * forward)),
     );
   };
-};
+
+  DEV_ROOT_FUNCTION();
+});

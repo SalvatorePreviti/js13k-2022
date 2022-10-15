@@ -61,8 +61,6 @@ const updateCollectedSoulsCounter = () => {
 };
 
 export const loadGame = () => {
-  DEV_ROOT_FUNCTION();
-
   let _savedLevers: number[] = [];
   let _savedSouls: number[] = [];
   try {

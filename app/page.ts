@@ -34,11 +34,7 @@ export let projection: DOMMatrix;
 
 export let csm_projections: DOMMatrix[];
 
-export let updateInput: () => void;
-
-export const initPage = () => {
-  DEV_ROOT_FUNCTION();
-
+export let updateInput = () => {
   let touchStartTime: number | undefined;
 
   let touchPosStartX: number | undefined;
@@ -373,4 +369,6 @@ export const initPage = () => {
   if (DEBUG) {
     console.log("fieldOfViewAmount:", fieldOfViewAmount);
   }
+
+  DEV_ROOT_FUNCTION();
 };

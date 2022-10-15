@@ -61,7 +61,7 @@ const osc_tri = (value: number) => {
 
 export let audioBuffer: AudioBuffer;
 
-export const loadSong = (done: () => void) => {
+export const loadSong = NO_INLINE((done: () => void) => {
   let channelIndex = 0;
 
   audioBuffer = new AudioBuffer({
@@ -259,4 +259,4 @@ export const loadSong = (done: () => void) => {
   };
 
   loadStep(next);
-};
+});
