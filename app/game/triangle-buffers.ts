@@ -10,10 +10,10 @@ export const initTriangleBuffers = () => {
   const _vertexColors: number[] = [];
   const _vertexNormals: number[] = [];
 
+  const _vertexMap = new Map<string, number>();
   const _vertexInts = new Int32Array(8);
   const _vertexIntsSmooth = new Int32Array(_vertexInts.buffer, 0, 5);
   const _vertexFloats = new Float32Array(_vertexInts.buffer);
-  const _vertexMap = new Map<string, number>();
 
   let meshFirstIndex: number = 0;
 

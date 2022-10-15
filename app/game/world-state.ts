@@ -141,7 +141,7 @@ export const onFirstBoatLeverPulled = () => {
   if (souls_collected_count < SOULS_COUNT) {
     showMessage("Not leaving now, there are souls to catch!", 3);
   } else if (!game_completed) {
-    showMessage("Well done. They will be punished.<br>Thanks for playing", Infinity);
     game_completed = 1;
+    showMessage("Well done. They will be punished.<br>Thanks for playing", Infinity);
   }
 };

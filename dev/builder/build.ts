@@ -34,6 +34,7 @@ import { babelPluginSimple } from "./steps/babel/babel-plugin-simple";
 import { jsEsbuildMinify } from "./steps/js-esbuild";
 import { jsRemoveEndingSemicolons } from "./lib/code-utils";
 import { babelPluginMath } from "./steps/babel/babel-plugin-math";
+import { swcPluginSimpleTransform } from "./steps/swc/transforms/swc-plugin-simple";
 
 const resugarBlockScope = [resugarBlockScopePlugin, { "declarations.block-scope": { disableConst: false } }];
 
@@ -151,9 +152,9 @@ export async function build() {
       plugins: [resugarConcise, resugarFunctionsArrow, resugarBlockScope],
     });
 
-    if (MINIFY_ENABLED) {
-      js = await jsTransformSwc(js, false, swcPluginVars());
+    js = await jsTransformSwc(js, false, swcPluginVars());
 
+    if (MINIFY_ENABLED) {
       js = await jsTerser(js, {
         mangle: false,
         final: false,
@@ -161,6 +162,8 @@ export async function build() {
         sequences: true,
         computed_props: true,
       });
+
+      js = await jsTransformSwc(js, false, swcPluginVars());
 
       js = await jsUglify(js, {
         varify: false,
@@ -203,16 +206,12 @@ export async function build() {
         minifyWhitespace: false,
         computed_props: true,
       });
-
-      js = await jsBabel(js, {
-        minify: false,
-        plugins: [resugarConcise, resugarFunctionsArrow, resugarBlockScope],
-      });
     }
 
     js = await jsBabel(js, {
       minify: false,
       plugins: [
+        resugarBlockScope,
         babelPluginSimple({
           unmangleableProperties: "transform",
           floatRound: 6,
@@ -221,8 +220,6 @@ export async function build() {
     });
 
     if (MINIFY_ENABLED) {
-      js = await jsTransformSwc(js, false, swcPluginVars({ floatRound: 6 }));
-
       // ===== Google closure compiler =====
 
       js = await streamedClosureCompiler.compileOne(js);
@@ -232,13 +229,12 @@ export async function build() {
       js = await jsBabel(js, {
         minify: false,
         plugins: [
+          // "babel-plugin-minify-constant-folding",
           resugarConcise,
           resugarFunctionsArrow,
           resugarObjectsShorthand,
           resugarBlockScope,
           babelPluginMath(),
-          babelPluginSimple({ floatRound: 6 }),
-          "babel-plugin-minify-constant-folding",
         ],
       });
 
@@ -261,16 +257,16 @@ export async function build() {
         computed_props: true,
       });
 
+      js = await jsBabel(js, {
+        minify: false,
+        plugins: [resugarConcise, resugarObjectsShorthand, resugarFunctionsArrow],
+      });
+
       js = await jsEsbuildMinify(js, {
         mangle: false,
         minifySyntax: true,
         minifyWhitespace: false,
         computed_props: true,
-      });
-
-      js = await jsBabel(js, {
-        minify: false,
-        plugins: [resugarConcise, resugarObjectsShorthand, resugarFunctionsArrow],
       });
     }
 
@@ -304,12 +300,11 @@ export async function build() {
       js = await jsBabel(js, {
         minify: false,
         plugins: [
-          resugarBlockScope,
           "babel-plugin-minify-constant-folding",
+          resugarBlockScope,
           resugarConcise,
           resugarObjectsShorthand,
           resugarFunctionsArrow,
-          babelPluginSimple({ floatRound: 6 }),
         ],
       });
 
@@ -328,7 +323,7 @@ export async function build() {
         computed_props: true,
       });
 
-      js = await jsTransformSwc(js, false, swcPluginVars({ constToLet: true, floatRound: 6 }));
+      js = await jsTransformSwc(js, false, swcPluginSimpleTransform({ constToLet: true, floatRound: 6 }));
 
       js = await jsUglify(js, {
         varify: false,
@@ -339,6 +334,14 @@ export async function build() {
         sequences: true,
         computed_props: true,
         inline: false,
+      });
+
+      js = await jsTerser(js, {
+        mangle: false,
+        final: true,
+        join_vars: true,
+        sequences: true,
+        computed_props: true,
       });
 
       js = jsRemoveEndingSemicolons(js);

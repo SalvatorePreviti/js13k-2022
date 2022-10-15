@@ -126,8 +126,7 @@ export const player_init = NO_INLINE(() => {
     // vertical collisions
 
     for (let y = 0; y < 36; ++y) {
-      const yindex = y * (COLLISION_TEXTURE_SIZE * 4);
-      for (let x = 24 * 4; x < (COLLISION_TEXTURE_SIZE - 24) * 4; x += 4) {
+      for (let x = 24 * 4, yindex = y * (COLLISION_TEXTURE_SIZE * 4); x < (COLLISION_TEXTURE_SIZE - 24) * 4; x += 4) {
         for (let k = 0; k < 2; ++k) {
           const v = collision_buffer[yindex + x + k]!;
           const m = collision_buffer[yindex + x + k + 2]!;
@@ -158,8 +157,7 @@ export const player_init = NO_INLINE(() => {
       let right = 0;
       let front = 0;
       let back = 0;
-      const yindex = COLLISION_TEXTURE_SIZE * 4 * y;
-      for (let tx = 0; tx < COLLISION_TEXTURE_SIZE; ++tx) {
+      for (let tx = 0, yindex = COLLISION_TEXTURE_SIZE * 4 * y; tx < COLLISION_TEXTURE_SIZE; ++tx) {
         const index = yindex + tx * 4;
 
         let v = collision_buffer[index]!;
@@ -204,9 +202,7 @@ export const player_init = NO_INLINE(() => {
       }
     }
 
-    movX *= 0.7;
-
-    player_speed_collision_limiter = clamp(1 - max(abs(movX), abs(movZ)) * 0.01, 0.3);
+    player_speed_collision_limiter = clamp(1 - max(abs((movX *= 0.7)), abs(movZ)) * 0.01, 0.3);
 
     movePlayer(movX / 255, movY / 255, movZ / 255);
   });
@@ -369,10 +365,9 @@ export const player_init = NO_INLINE(() => {
       player_look_angle_target = 90 - movAngle / DEG_TO_RAD;
     }
 
-    player_look_angle = angle_lerp_degrees(player_look_angle, player_look_angle_target, damp(8));
-    player_legs_speed = lerpDamp(player_legs_speed, movAmount, 10);
-
     // Update player body and legs matrices
+
+    player_legs_speed = lerpDamp(player_legs_speed, movAmount, 10);
 
     verifyModelsNextUpdate(MODEL_ID_PLAYER_BODY);
     modelsNextUpdate(
@@ -380,7 +375,7 @@ export const player_init = NO_INLINE(() => {
       0.06 * player_speed_collision_limiter * player_legs_speed * Math.cos(gameTime * (PLAYER_LEGS_VELOCITY * 2)) +
         player_model_y,
       player_position_final.z,
-    ).rotateSelf(0, player_look_angle);
+    ).rotateSelf(0, (player_look_angle = angle_lerp_degrees(player_look_angle, player_look_angle_target, damp(8))));
 
     for (let i = 0; i < 2; ++i) {
       const t = gameTime * PLAYER_LEGS_VELOCITY - Math.PI * i;

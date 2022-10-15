@@ -4,11 +4,11 @@ let _globalTime: number | undefined;
 
 export const GAME_TIME_MAX_DELTA_TIME = 0.055;
 
+export let gameTimeDelta = 0;
+
 export let gameTime = 0;
 
 export let absoluteTime = 0;
-
-export let gameTimeDelta = 0;
 
 export const damp = NO_INLINE((speed: number) => 1 - Math.exp(-gameTimeDelta * speed));
 

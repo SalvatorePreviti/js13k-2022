@@ -17,19 +17,19 @@ export let currentModelMmatrix: DOMMatrix;
 
 let currentModelPolygons: Polygon[];
 
-export const newModel = (name: string): void => {
-  allModels.push({ $matrix: (currentModelMmatrix = new DOMMatrix()), $polygon: (currentModelPolygons = []) });
-  if (DEBUG) {
-    devModelsAdd(allModels.length - 1, name);
-  }
-};
-
 export const meshAdd: (
   polygons: Polygon<Readonly<Vec3Optional>>[],
   transform?: DOMMatrixReadOnly,
   color?: number | undefined,
 ) => void = (polygons, transform = identity, color) =>
   currentModelPolygons.push(...polygons_transform(polygons, transform, color));
+
+export const newModel = (name: string): void => {
+  allModels.push({ $matrix: (currentModelMmatrix = new DOMMatrix()), $polygon: (currentModelPolygons = []) });
+  if (DEBUG) {
+    devModelsAdd(allModels.length - 1, name);
+  }
+};
 
 const SOUL_SENSITIVITY_RADIUS = 1.6;
 

@@ -11,41 +11,9 @@ import { devAllModelsPrint, devLeverAdd } from "../dev-tools/dev-models";
 import { translation } from "../math/matrix-transforms";
 
 export const build_life_the_universe_and_everything = (): 42 | void => {
-  const HORN_STACKS = 11;
-
-  const newLever = ($transform: DOMMatrixReadOnly, name: string): void => {
-    levers.push({ $matrix: currentModelMmatrix, $transform } as Partial<Lever> as Lever);
-
-    // Lever base
-    meshAdd(cylinder(5), $transform.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
-    meshAdd(cylinder(5), $transform.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
-    meshAdd(cylinder().slice(0, -1), $transform.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
-
-    if (DEBUG) {
-      devLeverAdd(levers.length - 1, name);
-    }
-  };
-
   if (DEBUG) {
     console.time("build_life_the_universe_and_everything");
   }
-
-  const hornMatrix = (i: number) => {
-    i /= HORN_STACKS;
-    return translation(Math.sin(i * Math.PI), i)
-      .rotateSelf(10 * i)
-      .scaleSelf(1.002 - i, 1, 1.002 - i);
-  };
-
-  const hornPolygons = integers_map(HORN_STACKS, (i) =>
-    cylinder_sides(
-      polygon_transform(polygon_regular(16), hornMatrix(i), material(1, 1, 0.8, 0.2)).reverse(),
-      polygon_transform(polygon_regular(16), hornMatrix(i + 1), material(1, 1, 0.8, 0.2)),
-      1,
-    ),
-  ).flat();
-
-  const pushingRodsPositions = [-110, -100, -92, -82, -106, -97, -88];
 
   const pushingRod = csg_polygons_subtract(
     polygons_transform(cylinder(), translation(0, -0.5, 1).scale(1.15, 1.2, 6.5), material(0.25, 0.25, 0.35, 0.3)),
@@ -78,17 +46,22 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     ),
   ].flat();
 
-  const makeBigArc = (height: number) =>
-    csg_polygons_subtract(
-      polygons_transform(cylinder().slice(0, -1), translation(0, -height / 2).scale(6, height - 1, 2.2)),
-      polygons_transform(cylinder().slice(0, -1), translation(0, -height / 2 - 4).scale(4, height - 5, 4)),
-      polygons_transform(
-        cylinder(28, 1),
-        translation(0, height / 2 - 9)
-          .rotate(90, 0, 90)
-          .scale3d(4),
-      ),
-    );
+  const HORN_STACKS = 11;
+
+  const hornMatrix = (i: number) => {
+    i /= HORN_STACKS;
+    return translation(Math.sin(i * Math.PI), i)
+      .rotateSelf(10 * i)
+      .scaleSelf(1.002 - i, 1, 1.002 - i);
+  };
+
+  const hornPolygons = integers_map(HORN_STACKS, (i) =>
+    cylinder_sides(
+      polygon_transform(polygon_regular(16), hornMatrix(i), material(1, 1, 0.8, 0.2)).reverse(),
+      polygon_transform(polygon_regular(16), hornMatrix(i + 1), material(1, 1, 0.8, 0.2)),
+      1,
+    ),
+  ).flat();
 
   // Initialize the full screen triangle for the sky. Must be the first model.
 
@@ -97,6 +70,19 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
   meshAdd([GQuad.slice(1)], translation(-2).scale3d(3).rotate(90, 0));
 
   newModel("MODEL_ID_STATIC_WORLD");
+
+  const newLever = ($transform: DOMMatrixReadOnly, name: string): void => {
+    levers.push({ $matrix: currentModelMmatrix, $transform } as Partial<Lever> as Lever);
+
+    // Lever base
+    meshAdd(cylinder(5), $transform.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
+    meshAdd(cylinder(5), $transform.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
+    meshAdd(cylinder().slice(0, -1), $transform.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
+
+    if (DEBUG) {
+      devLeverAdd(levers.length - 1, name);
+    }
+  };
 
   // LEVER for the first gate, after the first boat
   newLever(translation(-5.4, 1.5, -19).rotate(0, -90), "LEVER_ID_GATE0");
@@ -342,7 +328,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
         // holed base
         polygons_transform(cylinder(6), translation(0, 0, -18).scale(15, 1.3, 15), material(0.7, 0.7, 0.7, 0.3)),
         // after monument continuation
-        polygons_transform(cylinder(6), identity.scale(4, 1.2, 8), material(0.45, 0.4, 0.6, 0.3)),
+        polygons_transform(cylinder(5), identity.scale(4.5, 1.2, 9), material(0.45, 0.4, 0.6, 0.3)),
       ),
       ...integers_map(6, (z) =>
         integers_map(6, (x) =>
@@ -357,15 +343,20 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     translation(-38.9, -11.3, -1),
   );
 
-  // Detour lever pad
-  meshAdd(cylinder(5), translation(-84, -2, 85).scale(4, 0.8, 4).rotate(0, 10), material(0.8, 0.1, 0.25, 0.4));
-
   // LEVER detour lever
   newLever(translation(-84, -0.7, 85).rotate(0, 45), "LEVER_ID_DETOUR");
+
+  // Detour lever pad
+  meshAdd(cylinder(5), translation(-84, -2, 85).scale(4, 0.8, 4).rotate(0, 10), material(0.8, 0.1, 0.25, 0.4));
 
   // ******** LEVEL AFTER SECOND BOAT ********
 
   // pushing rods container
+
+  // LEVER after second boat lever, before the pushing rods
+  newLever(translation(-116, -1.4, -18).rotate(0, 180), "LEVER_ID_BEFORE_PUSHING_RODS");
+
+  const pushingRodsPositions = [-110, -100, -92, -82, -106, -97, -88];
 
   meshAdd(
     csg_polygons_subtract(
@@ -377,9 +368,6 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
   );
 
   meshAdd(cylinder(), translation(-96.5, 1, -2).scale(19, 0.3, 0.3), material(0.5, 0.5, 0.6, 0.2));
-
-  // LEVER after second boat lever, before the pushing rods
-  newLever(translation(-116, -1.4, -18).rotate(0, 180), "LEVER_ID_BEFORE_PUSHING_RODS");
 
   meshAdd(cylinder(6), translation(-116, -2.6, -16.5).scale(3.2, 0.8, 3), material(0.6, 0.5, 0.7, 0.2));
   // second boat attachment, over the arcs
@@ -501,12 +489,12 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
   );
 
   // rotating platforms connecting pads
-  meshAdd(cylinder(), translation(-58, 1, 106).scale(2, 0.65, 2), material(0.7, 0.7, 0.7, 0.2));
   meshAdd(cylinder(), translation(-50.7, 1, 99).scale(2, 0.65, 1), material(0.7, 0.7, 0.7, 0.2));
+  meshAdd(cylinder(), translation(-58, 1, 106).scale(2, 0.65, 2), material(0.7, 0.7, 0.7, 0.2));
 
   // exit from the rotating platforms
-  meshAdd(cylinder(), translation(-42, 0.4, 91).scale(5, 1, 2.5), material(0.7, 0.7, 0.7, 0.3));
   meshAdd(cylinder(), translation(-34.2, 0.4, 91).scale(3, 1, 3), material(0.7, 0.7, 0.7, 0.3));
+  meshAdd(cylinder(), translation(-42, 0.4, 91).scale(5, 1, 2.5), material(0.7, 0.7, 0.7, 0.3));
 
   // lever pad
   meshAdd(cylinder(5), translation(-34, 0.2, 96).scale(3, 2, 4).rotate(-20, 0), material(0.2, 0.5, 0.5, 0.6));
@@ -531,6 +519,18 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
   );
 
   // ******** LEVEL AFTER THE ROTATING PLATFORMS ********
+
+  const makeBigArc = (height: number) =>
+    csg_polygons_subtract(
+      polygons_transform(cylinder().slice(0, -1), translation(0, -height / 2).scale(6, height - 1, 2.2)),
+      polygons_transform(cylinder().slice(0, -1), translation(0, -height / 2 - 4).scale(4, height - 5, 4)),
+      polygons_transform(
+        cylinder(28, 1),
+        translation(0, height / 2 - 9)
+          .rotate(90, 0, 90)
+          .scale3d(4),
+      ),
+    );
 
   integers_map(3, (i) => {
     // The big arcs in the level after second boat
@@ -689,8 +689,8 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
   meshAdd(cylinder(3), translation(-23, -1.7, 55.8).scale(5, 0.7, 8.3), material(0.3, 0.6, 0.6, 0.2));
   meshAdd(cylinder(8), translation(-23, -2.2, 66.5).scale(1.5, 1.2, 1.5), material(0.8, 0.8, 0.8, 0.2));
-  meshAdd(cylinder(), translation(-23, -3, 55).scale(5.2, 1.7, 3), material(0.5, 0.5, 0.5, 0.3));
   meshAdd(cylinder(), translation(-23, -2.2, 62).scale(3, 1, 4), material(0.5, 0.5, 0.5, 0.3));
+  meshAdd(cylinder(), translation(-23, -3, 55).scale(5.2, 1.7, 3), material(0.5, 0.5, 0.5, 0.3));
 
   // LEVER over the triangle platform
   newLever(translation(-23, -0.5, 66.5), "LEVER_ID_TRIANGLE_PLATFORM");
@@ -847,13 +847,13 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
   newModel("MODEL_ID_DONUT_PAD");
 
   // second pad
-  meshAdd(cylinder(15, 1), translation(-7.5).rotate(0, 90).scale(3, 2.3, 3), material(0.4, 0.4, 0.4, 0.3));
+  meshAdd(cylinder(5).slice(0, -1), translation(-7.5, 2.7).rotate(0, 90).scale(1, 0.2), material(0.5, 0.5, 0.5, 0.5));
   meshAdd(
     cylinder(10).slice(0, -1),
     translation(-7.5, 2.4).rotate(0, 90).scale(2, 0.1, 2),
     material(0.3, 0.8, 0.7, 0.3),
   );
-  meshAdd(cylinder(5).slice(0, -1), translation(-7.5, 2.7).rotate(0, 90).scale(1, 0.2), material(0.5, 0.5, 0.5, 0.5));
+  meshAdd(cylinder(15, 1), translation(-7.5).rotate(0, 90).scale(3, 2.3, 3), material(0.4, 0.4, 0.4, 0.3));
 
   // LEVER over the donut pad
   newLever(translation(-7.5).rotate(0, 90).translate(0, 3.4).rotate(0, 180), "LEVER_ID_DONUT_PAD");
@@ -896,14 +896,14 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
   // First rotating platform (with hole)
   newModel("MODEL_ID_ROTATING_PLATFORM0");
+  meshAdd(cylinder(5).slice(0, -1), translation(0, 2).scale(1, 2), material(0.3, 0.3, 0.3, 0.2));
+  meshAdd(cylinder(8).slice(0, -1), translation(0, 2).scale(3, 1.5, 3).rotate(0, 22), material(0.7, 0.7, 0.7, 0.1));
   meshAdd(
     csg_polygons_subtract(
       polygons_transform(cylinder(28, 1), identity.scale(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2)),
       polygons_transform(cylinder(), translation(0, 0, -5.5).scale(1.5, 3, 2.7), material(0.45, 0.45, 0.45, 0.2)),
     ),
   );
-  meshAdd(cylinder(8).slice(0, -1), translation(0, 2).scale(3, 1.5, 3).rotate(0, 22), material(0.7, 0.7, 0.7, 0.1));
-  meshAdd(cylinder(5).slice(0, -1), translation(0, 2).scale(1, 2), material(0.3, 0.3, 0.3, 0.2));
 
   // SOUL over the first rotating platform
   newSoul(translation(0, 3), ...polygon_regular(14).map(({ x, z }): Circle => [x * 5.6, z * 5.6, 2]));
@@ -929,9 +929,8 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
       polygons_transform(cylinder().slice(0, -1), translation(0, 2).scale(9, 1.1, 2), material(0.3, 0, 0, 0.3)),
     ),
   );
-
-  meshAdd(cylinder(28, 1), identity.scale(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2));
   meshAdd(cylinder(5).slice(0, -1), translation(0, 1).scale(1, 0.2), material(0.3, 0.3, 0.3, 0.2));
+  meshAdd(cylinder(28, 1), identity.scale(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2));
 
   // Third rotating platform
   newModel("MODEL_ID_ROTATING_PLATFORM2");
@@ -942,8 +941,8 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
       polygons_transform(cylinder().slice(0, -1), translation(7, 2).scale(9, 1.1, 2), material(0.3, 0, 0, 0.3)),
     ),
   );
-  meshAdd(cylinder(28, 1), identity.scale(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2));
   meshAdd(cylinder(5).slice(0, -1), translation(0, 1).scale(1, 0.2), material(0.3, 0.3, 0.3, 0.2));
+  meshAdd(cylinder(28, 1), identity.scale(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2));
 
   // Fourth rotating platform
   newModel("MODEL_ID_ROTATING_PLATFORM3");
@@ -954,8 +953,8 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
       polygons_transform(cylinder().slice(0, -1), translation(7, 2).scale(9, 1.1, 2), material(0.3, 0, 0, 0.3)),
     ),
   );
-  meshAdd(cylinder(28, 1), identity.scale(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2));
   meshAdd(cylinder(5).slice(0, -1), translation(0, 1).scale(1, 0.2), material(0.3, 0.3, 0.3, 0.2));
+  meshAdd(cylinder(28, 1), identity.scale(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2));
 
   // BOATS
   integers_map(2, (i) => {
@@ -981,8 +980,8 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
 
   for (let i = 0; i < LEVERS_COUNT; ++i) {
     newModel("MODEL_ID_LEVER" + i);
-    meshAdd(cylinder(6, 1).slice(0, -1), identity.scale(0.12, 1.2, 0.12), material(0.3, 0.3, 0.5, 0.1));
     meshAdd(cylinder(9, 1), translation(0, 0.8).scale(0.2, 0.3, 0.2), material(0.7, 1, 0.2));
+    meshAdd(cylinder(6, 1).slice(0, -1), identity.scale(0.12, 1.2, 0.12), material(0.3, 0.3, 0.5, 0.1));
     meshAdd(cylinder(3), translation(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3), material(0.2, 0.2, 0.2, 0.1));
   }
 
@@ -1052,7 +1051,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
             z: Math.sin(theta) * phixz + Math.sin(osc * Math.PI * 2) / 4,
           };
     }),
-    identity.scale(0.7, 0.7, 0.7),
+    identity.scale3d(0.7),
     material(1, 1, 1),
   );
 

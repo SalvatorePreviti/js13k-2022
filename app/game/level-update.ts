@@ -79,15 +79,15 @@ const LEVER_SENSITIVITY_RADIUS = 3;
 export const eppur_si_muove = () => {
   modelsResetUpdateCounter();
 
-  shouldRotatePlatforms = lerpneg(
-    levers[LEVER_ID_DONUT_PAD]!.$lerpValue,
-    levers[LEVER_ID_AFTER_ROTATING_PLATFORMS]!.$lerpValue,
-  );
-
   rotatingHexCorridorRotation = lerp(
     lerpDamp(rotatingHexCorridorRotation, 0, 1),
     angle_wrap_degrees(rotatingHexCorridorRotation + gameTimeDelta * 60),
     levers[LEVER_ID_ROTATING_CORRIDOR]!.$lerpValue - levers[LEVER_ID_CRYSTALS]!.$lerpValue2,
+  );
+
+  shouldRotatePlatforms = lerpneg(
+    levers[LEVER_ID_DONUT_PAD]!.$lerpValue,
+    levers[LEVER_ID_AFTER_ROTATING_PLATFORMS]!.$lerpValue,
   );
 
   rotatingPlatform1Rotation = lerp(
@@ -238,7 +238,7 @@ export const eppur_si_muove = () => {
 
   // floating elevator pad
 
-  const floatingElevatorPad = lerpneg(
+  oscillation = lerpneg(
     lerpneg(
       (levers[LEVER_ID_AFTER_JUMPING_PADS]!.$lerpValue + levers[LEVER_ID_AFTER_JUMPING_PADS]!.$lerpValue2) / 2,
       levers[LEVER_ID_AFTER_ROTATING_PLATFORMS]!.$lerpValue2,
@@ -247,7 +247,7 @@ export const eppur_si_muove = () => {
   );
 
   verifyModelsNextUpdate(MODEL_ID_FLOATING_ELEVATOR_PAD);
-  modelsNextUpdate(0, 16 * floatingElevatorPad, 95 + 8.5 * clamp(floatingElevatorPad * 2 - 1));
+  modelsNextUpdate(0, 16 * oscillation, 95 + 8.5 * clamp(oscillation * 2 - 1));
 
   // in gate bars in first level
   verifyModelsNextUpdate(MODEL_ID_GATE0);
@@ -329,10 +329,6 @@ export const eppur_si_muove = () => {
   // Update souls and levers
 
   for (let i = 0; i < LEVERS_COUNT; ++i) {
-    if (i < SOULS_COUNT) {
-      souls[i]!();
-    }
-
     const lever = levers[i]!;
     const lerpValue = (lever.$lerpValue = lerpDamp(lever.$lerpValue, lever.$value, 4));
     lever.$lerpValue2 = lerpDamp(lever.$lerpValue2, lever.$value, 1);
@@ -358,6 +354,10 @@ export const eppur_si_muove = () => {
     if (i === LEVER_ID_BOAT0 && lever.$value && lerpValue > 0.8) {
       lever.$value = 0;
       onFirstBoatLeverPulled();
+    }
+
+    if (i < SOULS_COUNT) {
+      souls[i]!();
     }
   }
 
