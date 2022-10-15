@@ -9,8 +9,8 @@ let S,
   A,
   a1,
   M,
-  k,
   c,
+  k,
   t1,
   l1,
   r1,
@@ -299,36 +299,15 @@ let S,
     localStorage["Dante-22"] = JSON.stringify([L.map(e => e.j), p1.map(e => e.j), g1, M, B]);
   },
   f = (e, a, t, l = 0) => 255 * l << 24 | 255 * t << 16 | 255 * a << 8 | 255 * e,
-  J = (e, a = 0, t = 0) => {
-    let l = K(p, E[++k].l);
-    return l.m41 = e, l.m42 = a, l.m43 = t, l;
-  },
   h = () => {
     let l = [];
     c = (e, a = p, t) => l.push(...i(e, a, t)), E.push({ l: new DOMMatrix(), i: l });
   },
-  u = a => {
-    let t = () => {
-        let e = t.h = _(t.h, t.j, 4);
-        t.g = _(t.g, t.j, 1),
-          K(K(l).multiplySelf(a), J(0)).rotateSelf(50 * e - 25, 0).translateSelf(0, 1).m44 = e,
-          C && (V(), j1(X - F, q - O, H - Q) < 3)
-            ? t.j
-              ? .7 < e && (t.j = 0, g1 = r, X1("* click *", 1), H1())
-              : e < .3 && (t.j = 1, g1 = r, X1("* click *", 1), H1())
-            : t.j && .8 < e && 14 === r && (t.j = 0,
-              e1 < 13
-                ? X1("Not leaving now, there are souls to catch!", 3)
-                : A || (X1("Well done. They will be punished.<br>Thanks for playing", 1 / 0), A = 1));
-      },
-      l = E.at(-1).l,
-      r = L.length;
-    t.l = l,
-      t.D = a,
-      L.push(t),
-      c(n(5), a.translate(.2).rotate(90, 90).scale(.4, .1, .5), f(.4, .5, .5)),
-      c(n(5), a.translate(-.2).rotate(90, 90).scale(.4, .1, .5), f(.4, .5, .5)),
-      c(n().slice(0, -1), a.translate(0, -.4).scale(.5, .1, .5), f(.5, .5, .4));
+  u = e => {
+    c(n(5), e.translate(.2).rotate(90, 90).scale(.4, .1, .5), f(.4, .5, .5)),
+      c(n(5), e.translate(-.2).rotate(90, 90).scale(.4, .1, .5), f(.4, .5, .5)),
+      c(n().slice(0, -1), e.translate(0, -.4).scale(.5, .1, .5), f(.5, .5, .4)),
+      L.push({ l: E.at(-1).l, C: e });
   },
   g = (o, ...i) => {
     let n,
@@ -480,6 +459,10 @@ let S,
         return d(a ? t.reverse() : t, e.s, e.A);
       });
   },
+  J = (e, a = 0, t = 0) => {
+    let l = K(p, E[++k].l);
+    return l.m41 = e, l.m42 = a, l.m43 = t, l;
+  },
   p = new DOMMatrix(),
   D = new DOMMatrix(),
   l = new Float32Array(16),
@@ -519,8 +502,8 @@ O1(() => {
           },
           l = (e, a, t) => {
             I
-              ? 1100 < hC.width && e.d97(4, E[55].C - E[53].B, 5123, 2 * E[53].B)
-              : (e.das(4, E[a].C - E[a].B, 5123, 2 * E[a].B, p1.length), e.d97(4, E[t ? 53 : 56].B - 3, 5123, 6));
+              ? 1100 < hC.width && e.d97(4, E[55].D - E[53].B, 5123, 2 * E[53].B)
+              : (e.das(4, E[a].D - E[a].B, 5123, 2 * E[a].B, p1.length), e.d97(4, E[t ? 53 : 56].B - 3, 5123, 6));
           },
           r = a => {
             requestAnimationFrame(r);
@@ -531,11 +514,11 @@ O1(() => {
                 M = _(M, L[15].g, .2 + .3 * P(2 * L[15].g - 1)),
                 a1 = A ? (T = 0, _(a1, -9, .015)) : _(a1, U(B / 3), 1),
                 R1(),
-                k = 1,
                 l1 = I1(L[13].h, L[8].h),
                 c1 = k1(_(c1, 0, 1), A1(c1 + 60 * R), L[2].h - L[3].g),
                 r1 = k1(_(r1, 0, 5), A1(r1 + 56 * R), l1),
                 s1 = k1(_(s1, 0, 4), A1(s1 + 48 * R), l1),
+                k = 1,
                 J(0, 270 * (L[1].h - 1) + (2 + 5 * w(1.5 * B)) * (1 - L[10].h)),
                 a = w1(1 - L[11].g, L[10].g),
                 J(a * W(.6 * B + 1.2) * 12, 0, 35),
@@ -590,7 +573,18 @@ O1(() => {
                 e < 16;
                 ++e
               ) {
-                e < 13 && p1[e](), L[e]();
+                e < 13 && p1[e](),
+                  a = (t = L[e]).h = _(t.h, t.j, 4),
+                  t.g = _(t.g, t.j, 1),
+                  K(K(t.l).multiplySelf(t.C), J(0)).rotateSelf(50 * a - 25, 0).translateSelf(0, 1).m44 = a,
+                  C && (V(),
+                    j1(X - F, q - O, H - Q) < 3 && (t.j
+                      ? .7 < a && (t.j = 0, g1 = e, X1("* click *", 1), H1())
+                      : a < .3 && (t.j = 1, g1 = e, X1("* click *", 1), H1()))),
+                  14 === e && t.j && .8 < a && (t.j = 0,
+                    e1 < 13
+                      ? X1("Not leaving now, there are souls to catch!", 3)
+                      : A || (X1("Well done. They will be punished.<br>Thanks for playing", 1 / 0), A = 1));
               }
               for (t1(), e = 0; e < 28; ++e) {
                 j(E[28 + e].l, V1, e);
@@ -763,7 +757,7 @@ O1(() => {
               D = (e, a, t, l) => k1(e, a, k || (U(P(a - e) ** .5 - t) + 1 / 7) * F1(1.5 * l)),
               Y = () => K((I ? L[g1] : E[28 !== M ? M : 0]).l),
               C = e => {
-                1 < I ? (K(L[g1].l).multiplySelf(L[g1].D), V(0, .9 < a1 ? 15 : 1, -2.4)) : (Y(), V(b, S, A)),
+                1 < I ? (K(L[g1].l).multiplySelf(L[g1].C), V(0, .9 < a1 ? 15 : 1, -2.4)) : (Y(), V(b, S, A)),
                   e && (n = (F - X) / R, m = (Q - H) / R),
                   X = F,
                   q = O,
@@ -1022,7 +1016,7 @@ O1(() => {
               m[4] = 0 | s.s, m[5] = 32767 * e, m[6] = 32767 * a, m[7] = 32767 * t;
               for (let e = 2, a = l(0), t = l(1); s.length > e; ++e) r.push(a, t, t = l(e));
             }
-            e.i = 0, e.B = t, e.C = t = r.length;
+            e.i = 0, e.B = t, e.D = t = r.length;
           }),
             [b, G].map(e => {
               e.b11(34962, e.c1b()),

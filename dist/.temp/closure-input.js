@@ -9,8 +9,8 @@ let souls_collected_count;
 let game_completed;
 let firstBoatLerp;
 let secondBoatLerp;
-let modelsUpdateCounter;
 let meshAdd;
+let modelsUpdateCounter;
 let player_update;
 let shouldRotatePlatforms;
 let rotatingPlatform1Rotation;
@@ -699,10 +699,12 @@ const onPlayerPullLever = (leverIndex) => {
   player_last_pulled_lever = leverIndex, showMessage("* click *", 1), saveGame();
 };
 const material = NO_INLINE((r, g, b, a = 0) => 255 * a << 24 | 255 * b << 16 | 255 * g << 8 | 255 * r);
-const modelsNextUpdate = (x, y = 0, z = 0) => {
-  const m = matrixCopy(identity, allModels[++modelsUpdateCounter].$matrix);
-  return m.m41 = x, m.m42 = y, m.m43 = z, m;
-};
+const distanceToPlayer = () => (matrixTransformPoint(),
+  hypot(
+    player_position_final.x - matrixTransformPoint.x,
+    player_position_final.y - matrixTransformPoint.y,
+    player_position_final.z - matrixTransformPoint.z,
+  ));
 const newModel = () => {
   const $polygon = [];
   meshAdd = (polygons, transform = identity, color) => $polygon.push(...polygons_transform(polygons, transform, color)),
@@ -711,39 +713,14 @@ const newModel = () => {
       $polygon,
     });
 };
-const distanceToPlayer = () => (matrixTransformPoint(),
-  hypot(
-    player_position_final.x - matrixTransformPoint.x,
-    player_position_final.y - matrixTransformPoint.y,
-    player_position_final.z - matrixTransformPoint.z,
-  ));
 const newLever = (transform) => {
-  const lever = () => {
-    const lerpValue = lever.$lerpValue = lerpDamp(lever.$lerpValue, lever.$value, 4);
-    lever.$lerpValue2 = lerpDamp(lever.$lerpValue2, lever.$value, 1),
-      matrixCopy(matrixCopy(parentModelMatrix).multiplySelf(transform), modelsNextUpdate(0)).rotateSelf(
-        50 * lerpValue - 25,
-        0,
-      ).translateSelf(0, 1).m44 = lerpValue,
-      interact_pressed && distanceToPlayer() < 3
-        ? lever.$value
-          ? 0.7 < lerpValue && (lever.$value = 0, onPlayerPullLever(index))
-          : lerpValue < 0.3 && (lever.$value = 1, onPlayerPullLever(index))
-        : lever.$value && 0.8 < lerpValue && index === 14
-          && (lever.$value = 0,
-            souls_collected_count < 13
-              ? showMessage("Not leaving now, there are souls to catch!", 3)
-              : game_completed
-                || (showMessage("Well done. They will be punished.<br>Thanks for playing", 1 / 0), game_completed = 1));
-  };
-  const parentModelMatrix = allModels.at(-1).$matrix;
-  const index = levers.length;
-  lever.$matrix = parentModelMatrix,
-    lever.$transform = transform,
-    levers.push(lever),
-    meshAdd(cylinder(5), transform.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5)),
+  meshAdd(cylinder(5), transform.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5)),
     meshAdd(cylinder(5), transform.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5)),
-    meshAdd(cylinder().slice(0, -1), transform.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
+    meshAdd(cylinder().slice(0, -1), transform.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4)),
+    levers.push({
+      $matrix: allModels.at(-1).$matrix,
+      $transform: transform,
+    });
 };
 const newSoul = (transform, ...walkingPath) => {
   let lookAngle;
@@ -982,6 +959,10 @@ const csg_polygons_subtract = (a, ...b) => {
         return polygon_color(flipped ? polygon.reverse() : polygon, $polygon.$color, $polygon.$smooth);
       });
   }
+};
+const modelsNextUpdate = (x, y = 0, z = 0) => {
+  const m = matrixCopy(identity, allModels[++modelsUpdateCounter].$matrix);
+  return m.m41 = x, m.m42 = y, m.m43 = z, m;
 };
 const player_init = NO_INLINE(() => {
   let player_look_angle_target;
@@ -1295,8 +1276,7 @@ layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec
               : lerpDamp(firstBoatLerp, clamp(gameTime / 3), 1),
             updateInput();
           var oscillation =
-            (modelsUpdateCounter = 1,
-              shouldRotatePlatforms = lerpneg(levers[13].$lerpValue, levers[8].$lerpValue),
+            (shouldRotatePlatforms = lerpneg(levers[13].$lerpValue, levers[8].$lerpValue),
               rotatingHexCorridorRotation = lerp(
                 lerpDamp(rotatingHexCorridorRotation, 0, 1),
                 angle_wrap_degrees(rotatingHexCorridorRotation + 60 * gameTimeDelta),
@@ -1312,6 +1292,7 @@ layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec
                 angle_wrap_degrees(rotatingPlatform2Rotation + 48 * gameTimeDelta),
                 shouldRotatePlatforms,
               ),
+              modelsUpdateCounter = 1,
               modelsNextUpdate(
                 0,
                 270 * (levers[1].$lerpValue - 1) + (2 + 5 * Math.cos(1.5 * gameTime)) * (1 - levers[10].$lerpValue),
@@ -1389,7 +1370,27 @@ layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec
             modelsNextUpdate(-50.7, 0.8, 91).rotateSelf(0, 270 + rotatingPlatform2Rotation),
             dt(-12, 4.2, 40 * firstBoatLerp - 66),
             dt(-123, 1.4, 55 - 65 * secondBoatLerp);
-          for (let i2 = 0; i2 < 16; ++i2) i2 < 13 && souls[i2](), levers[i2]();
+          for (let i2 = 0; i2 < 16; ++i2) {
+            i2 < 13 && souls[i2]();
+            const lever = levers[i2];
+            const lerpValue = lever.$lerpValue = lerpDamp(lever.$lerpValue, lever.$value, 4);
+            lever.$lerpValue2 = lerpDamp(lever.$lerpValue2, lever.$value, 1),
+              matrixCopy(matrixCopy(lever.$matrix).multiplySelf(lever.$transform), modelsNextUpdate(0)).rotateSelf(
+                50 * lerpValue - 25,
+                0,
+              ).translateSelf(0, 1).m44 = lerpValue,
+              interact_pressed && distanceToPlayer() < 3
+              && (lever.$value
+                ? 0.7 < lerpValue && (lever.$value = 0, onPlayerPullLever(i2))
+                : lerpValue < 0.3 && (lever.$value = 1, onPlayerPullLever(i2))),
+              i2 === 14 && lever.$value && 0.8 < lerpValue
+              && (lever.$value = 0,
+                souls_collected_count < 13
+                  ? showMessage("Not leaving now, there are souls to catch!", 3)
+                  : game_completed
+                    || (showMessage("Well done. They will be punished.<br>Thanks for playing", 1 / 0),
+                      game_completed = 1));
+          }
           player_update();
           for (let i3 = 0; i3 < 28; ++i3) matrixToArray(allModels[28 + i3].$matrix, transformsBuffer, i3);
           for (let m, i4 = 0, j = 656; i4 < 26; ++i4, ++j) {

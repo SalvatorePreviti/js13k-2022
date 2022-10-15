@@ -11,7 +11,6 @@ export interface Model {
 }
 
 export interface Lever {
-  (): void;
   $matrix: DOMMatrixReadOnly;
   $transform: DOMMatrixReadOnly;
   $value: 0 | 1;

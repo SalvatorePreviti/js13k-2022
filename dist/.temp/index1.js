@@ -966,18 +966,17 @@ const MODEL_ID_PLAYER_LEG0 = 54;
 const MODEL_ID_PLAYER_LEG1 = 55;
 const MODEL_ID_SOUL_COLLISION = 56;
 const MODEL_ID_SOUL = 57;
-let modelsUpdateCounter;
-const modelsResetUpdateCounter = () => modelsUpdateCounter = 1;
-const modelsNextUpdate = (x, y = 0, z = 0) => {
-  const m = matrixCopy(identity, allModels[++modelsUpdateCounter].$matrix);
-  m.m41 = x;
-  m.m42 = y;
-  m.m43 = z;
-  return m;
-};
 const transformsBuffer = new Float32Array(
   4 * (4 * (MODELS_WITH_FULL_TRANSFORM + SOULS_COUNT) + MODELS_WITH_SIMPLE_TRANSFORM),
 );
+const distanceToPlayer = () => {
+  matrixTransformPoint();
+  return hypot(
+    player_position_final.x - matrixTransformPoint.x,
+    player_position_final.y - matrixTransformPoint.y,
+    player_position_final.z - matrixTransformPoint.z,
+  );
+};
 let meshAdd;
 const newModel = (name) => {
   const $polygon = [];
@@ -988,47 +987,15 @@ const newModel = (name) => {
   meshAdd = (polygons, transform = identity, color) => $polygon.push(...polygons_transform(polygons, transform, color));
   allModels.push(model);
 };
-const LEVER_SENSITIVITY_RADIUS = 3;
 const SOUL_SENSITIVITY_RADIUS = 1.6;
-const distanceToPlayer = () => {
-  matrixTransformPoint();
-  return hypot(
-    player_position_final.x - matrixTransformPoint.x,
-    player_position_final.y - matrixTransformPoint.y,
-    player_position_final.z - matrixTransformPoint.z,
-  );
-};
 const newLever = (transform, name) => {
-  const parentModelMatrix = allModels.at(-1).$matrix;
-  const index = levers.length;
-  const lever = () => {
-    const lerpValue = lever.$lerpValue = lerpDamp(lever.$lerpValue, lever.$value, 4);
-    lever.$lerpValue2 = lerpDamp(lever.$lerpValue2, lever.$value, 1);
-    matrixCopy(matrixCopy(parentModelMatrix).multiplySelf(transform), modelsNextUpdate(0)).rotateSelf(
-      50 * lerpValue - 25,
-      0,
-    ).translateSelf(0, 1).m44 = lerpValue;
-    if (interact_pressed && distanceToPlayer() < LEVER_SENSITIVITY_RADIUS) {
-      if (lever.$value) {
-        if (lerpValue > 0.7) {
-          lever.$value = 0;
-          onPlayerPullLever(index);
-        }
-      } else if (lerpValue < 0.3) {
-        lever.$value = 1;
-        onPlayerPullLever(index);
-      }
-    } else if (lever.$value && lerpValue > 0.8 && index === LEVER_ID_BOAT0) {
-      lever.$value = 0;
-      onFirstBoatLeverPulled();
-    }
-  };
-  lever.$matrix = parentModelMatrix;
-  lever.$transform = transform;
-  levers.push(lever);
   meshAdd(cylinder(5), transform.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
   meshAdd(cylinder(5), transform.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
   meshAdd(cylinder().slice(0, -1), transform.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
+  levers.push({
+    $matrix: allModels.at(-1).$matrix,
+    $transform: transform,
+  });
 };
 const newSoul = (transform, ...walkingPath) => {
   let dirX = -1;
@@ -2177,6 +2144,15 @@ for (const s in cgl) {
     ] = xgl[s]
   );
 }
+let modelsUpdateCounter;
+const modelsResetUpdateCounter = () => modelsUpdateCounter = 1;
+const modelsNextUpdate = (x, y = 0, z = 0) => {
+  const m = matrixCopy(identity, allModels[++modelsUpdateCounter].$matrix);
+  m.m41 = x;
+  m.m42 = y;
+  m.m43 = z;
+  return m;
+};
 const CAMERA_PLAYER_Y_DIST = 13;
 const CAMERA_PLAYER_Z_DIST = -18;
 const PLAYER_LEGS_VELOCITY = 9.1;
@@ -2453,8 +2429,8 @@ let shouldRotatePlatforms;
 let rotatingPlatform1Rotation;
 let rotatingPlatform2Rotation;
 let rotatingHexCorridorRotation;
+const LEVER_SENSITIVITY_RADIUS = 3;
 const eppur_si_muove = () => {
-  modelsResetUpdateCounter();
   shouldRotatePlatforms = lerpneg(
     levers[LEVER_ID_DONUT_PAD].$lerpValue,
     levers[LEVER_ID_AFTER_ROTATING_PLATFORMS].$lerpValue,
@@ -2474,6 +2450,7 @@ const eppur_si_muove = () => {
     angle_wrap_degrees(rotatingPlatform2Rotation + gameTimeDelta * 48),
     shouldRotatePlatforms,
   );
+  modelsResetUpdateCounter();
   modelsNextUpdate(
     0,
     270 * (levers[LEVER_ID_LEVEL1_DESCENT].$lerpValue - 1)
@@ -2584,7 +2561,28 @@ const eppur_si_muove = () => {
     if (i2 < SOULS_COUNT) {
       souls[i2]();
     }
-    levers[i2]();
+    const lever = levers[i2];
+    const lerpValue = lever.$lerpValue = lerpDamp(lever.$lerpValue, lever.$value, 4);
+    lever.$lerpValue2 = lerpDamp(lever.$lerpValue2, lever.$value, 1);
+    matrixCopy(matrixCopy(lever.$matrix).multiplySelf(lever.$transform), modelsNextUpdate(0)).rotateSelf(
+      50 * lerpValue - 25,
+      0,
+    ).translateSelf(0, 1).m44 = lerpValue;
+    if (interact_pressed && distanceToPlayer() < LEVER_SENSITIVITY_RADIUS) {
+      if (lever.$value) {
+        if (lerpValue > 0.7) {
+          lever.$value = 0;
+          onPlayerPullLever(i2);
+        }
+      } else if (lerpValue < 0.3) {
+        lever.$value = 1;
+        onPlayerPullLever(i2);
+      }
+    }
+    if (i2 === LEVER_ID_BOAT0 && lever.$value && lerpValue > 0.8) {
+      lever.$value = 0;
+      onFirstBoatLeverPulled();
+    }
   }
   player_update();
   for (let i3 = 0; i3 < MODELS_WITH_FULL_TRANSFORM; ++i3) {

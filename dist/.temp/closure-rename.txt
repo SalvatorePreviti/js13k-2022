@@ -8,7 +8,7 @@ $matrix:l
 $parent:v
 $polygon:i
 $smooth:A
-$transform:D
+$transform:C
 $value:j
 $vertexBegin:B
-$vertexEnd:C
+$vertexEnd:D

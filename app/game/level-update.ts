@@ -10,7 +10,7 @@ import {
 } from "./models";
 import { transformsBuffer } from "./transforms-buffer";
 import { gameTime, gameTimeDelta, lerpDamp } from "./game-time";
-import { firstBoatLerp, secondBoatLerp } from "./world-state";
+import { firstBoatLerp, onFirstBoatLeverPulled, onPlayerPullLever, secondBoatLerp } from "./world-state";
 import { player_update } from "./player";
 import { modelsNextUpdate, modelsResetUpdateCounter, verifyModelsNextUpdate } from "./models-next-update";
 import {
@@ -28,6 +28,7 @@ import {
   LEVER_ID_AFTER_ROTATING_PLATFORMS,
   LEVER_ID_AFTER_JUMPING_PADS,
   LEVER_ID_FLOATING_ELEVATOR,
+  LEVER_ID_BOAT0,
 } from "./levers-ids";
 import {
   MODEL_ID_BOAT0,
@@ -61,7 +62,9 @@ import {
   MODEL_ID_ROTATING_PLATFORM3,
   MODEL_ID_TRIANGLE_PLATFORM,
 } from "./models-ids";
-import { matrixToArray } from "../math/matrix";
+import { matrixCopy, matrixToArray } from "../math/matrix";
+import { interact_pressed } from "../page";
+import { distanceToPlayer } from "./distance-to-player";
 
 export let shouldRotatePlatforms: number;
 
@@ -70,6 +73,8 @@ let rotatingPlatform1Rotation: number;
 let rotatingPlatform2Rotation: number;
 
 let rotatingHexCorridorRotation: number;
+
+const LEVER_SENSITIVITY_RADIUS = 3;
 
 export const eppur_si_muove = () => {
   modelsResetUpdateCounter();
@@ -327,7 +332,33 @@ export const eppur_si_muove = () => {
     if (i < SOULS_COUNT) {
       souls[i]!();
     }
-    levers[i]!();
+
+    const lever = levers[i]!;
+    const lerpValue = (lever.$lerpValue = lerpDamp(lever.$lerpValue, lever.$value, 4));
+    lever.$lerpValue2 = lerpDamp(lever.$lerpValue2, lever.$value, 1);
+
+    // Prepare the matrix to be written to the uniform buffer for the lever stick.
+    // and encode lerp value in matrix m44 so fragmemt shader can change the lever handle color
+    matrixCopy(matrixCopy(lever.$matrix).multiplySelf(lever.$transform), modelsNextUpdate(0))
+      .rotateSelf(50 * lerpValue - 25, 0)
+      .translateSelf(0, 1).m44 = lerpValue;
+
+    if (interact_pressed && distanceToPlayer() < LEVER_SENSITIVITY_RADIUS) {
+      if (lever.$value) {
+        if (lerpValue > 0.7) {
+          lever.$value = 0;
+          onPlayerPullLever(i);
+        }
+      } else if (lerpValue < 0.3) {
+        lever.$value = 1;
+        onPlayerPullLever(i);
+      }
+    }
+
+    if (i === LEVER_ID_BOAT0 && lever.$value && lerpValue > 0.8) {
+      lever.$value = 0;
+      onFirstBoatLeverPulled();
+    }
   }
 
   // Update player
