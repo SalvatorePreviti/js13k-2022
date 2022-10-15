@@ -29,24 +29,24 @@ const hypot = (a, b, c = 0) => (a * a + b * b + c * c) ** 0.5;
 const identity = new DOMMatrix();
 const tempMatrix = new DOMMatrix();
 const float32Array16Temp = new Float32Array(16);
-const matrixToArray = ($matrix, output = float32Array16Temp, index = 0) => {
+const matrixToArray = ($matrix2, output = float32Array16Temp, index = 0) => {
   index *= 16;
-  output[index++] = $matrix.m11;
-  output[index++] = $matrix.m12;
-  output[index++] = $matrix.m13;
-  output[index++] = $matrix.m14;
-  output[index++] = $matrix.m21;
-  output[index++] = $matrix.m22;
-  output[index++] = $matrix.m23;
-  output[index++] = $matrix.m24;
-  output[index++] = $matrix.m31;
-  output[index++] = $matrix.m32;
-  output[index++] = $matrix.m33;
-  output[index++] = $matrix.m34;
-  output[index++] = $matrix.m41;
-  output[index++] = $matrix.m42;
-  output[index++] = $matrix.m43;
-  output[index] = $matrix.m44;
+  output[index++] = $matrix2.m11;
+  output[index++] = $matrix2.m12;
+  output[index++] = $matrix2.m13;
+  output[index++] = $matrix2.m14;
+  output[index++] = $matrix2.m21;
+  output[index++] = $matrix2.m22;
+  output[index++] = $matrix2.m23;
+  output[index++] = $matrix2.m24;
+  output[index++] = $matrix2.m31;
+  output[index++] = $matrix2.m32;
+  output[index++] = $matrix2.m33;
+  output[index++] = $matrix2.m34;
+  output[index++] = $matrix2.m41;
+  output[index++] = $matrix2.m42;
+  output[index++] = $matrix2.m43;
+  output[index] = $matrix2.m44;
   return output;
 };
 const matrixCopy = (source = identity, target = tempMatrix) => {
@@ -174,6 +174,217 @@ const sphere = (slices, stacks = slices, vertexFunc = (x, y) => {
   }
   return polygons;
 };
+const material = NO_INLINE((r, g, b, a = 0) => a * 255 << 24 | b * 255 << 16 | g * 255 << 8 | r * 255);
+const plane_fromPolygon = (polygon) => {
+  let x = 0;
+  let y = 0;
+  let z = 0;
+  let a = polygon.at(-1);
+  let b;
+  for (b of polygon) {
+    x += (a.y - b.y) * (a.z + b.z);
+    y += (a.z - b.z) * (a.x + b.x);
+    z += (a.x - b.x) * (a.y + b.y);
+    a = b;
+  }
+  b = hypot(x, y, z);
+  x /= b;
+  y /= b;
+  z /= b;
+  return {
+    x,
+    y,
+    z,
+    w: x * a.x + y * a.y + z * a.z,
+  };
+};
+const vec3_dot = ({ x, y, z }, b) => x * b.x + y * b.y + z * b.z;
+const CSGPolygon_split = (plane, polygon) => {
+  const PLANE_EPSILON = 8e-5;
+  let jd;
+  let front;
+  let back;
+  const { $polygon: $polygon2, $flipped } = polygon;
+  for (let i = 0; i < $polygon2.length; ++i) {
+    jd = vec3_dot(plane, $polygon2[i]) - plane.w;
+    if (jd < -PLANE_EPSILON) {
+      back = polygon;
+    } else if (jd > PLANE_EPSILON) {
+      front = polygon;
+    }
+    if (back && front) {
+      const fpoints = [];
+      const bpoints = [];
+      let iv = $polygon2.at(-1);
+      let id = vec3_dot(iv, plane) - plane.w;
+      for (const jv of $polygon2) {
+        jd = vec3_dot(jv, plane) - plane.w;
+        if (id < PLANE_EPSILON) {
+          bpoints.push(iv);
+        }
+        if (id > -PLANE_EPSILON) {
+          fpoints.push(iv);
+        }
+        if (id > PLANE_EPSILON && jd < -PLANE_EPSILON || id < -PLANE_EPSILON && jd > PLANE_EPSILON) {
+          id /= jd - id;
+          iv = {
+            x: iv.x + (iv.x - jv.x) * id,
+            y: iv.y + (iv.y - jv.y) * id,
+            z: iv.z + (iv.z - jv.z) * id,
+          };
+          fpoints.push(iv);
+          bpoints.push(iv);
+        }
+        iv = jv;
+        id = jd;
+      }
+      front = fpoints.length > 2 && {
+        $polygon: polygon_color(fpoints, $polygon2.$color, $polygon2.$smooth),
+        $flipped,
+        $parent: polygon,
+      };
+      back = bpoints.length > 2 && {
+        $polygon: polygon_color(bpoints, $polygon2.$color, $polygon2.$smooth),
+        $flipped,
+        $parent: polygon,
+      };
+      break;
+    }
+  }
+  return {
+    x: front,
+    y: back,
+  };
+};
+const csg_tree_addPolygon = (node, polygon, plane = plane_fromPolygon(polygon.$polygon)) => {
+  if (node) {
+    const { x: front, y: back } = CSGPolygon_split(node, polygon);
+    if (!front && !back) {
+      node.$polygon.push(polygon);
+    }
+    if (front) {
+      node.$front = csg_tree_addPolygon(node.$front, front, plane);
+    }
+    if (back) {
+      node.$back = csg_tree_addPolygon(node.$back, back, plane);
+    }
+  } else {
+    node = {
+      x: plane.x,
+      y: plane.y,
+      z: plane.z,
+      w: plane.w,
+      $polygon: [
+        polygon,
+      ],
+      $front: 0,
+      $back: 0,
+    };
+  }
+  return node;
+};
+const csg_tree_clipNode = (anode, bnode, polygonPlaneFlipped) => {
+  const result = [];
+  const recursion = (node, polygon) => {
+    let { x: front, y: back } = CSGPolygon_split(node, polygon);
+    if (!front && !back) {
+      if (polygonPlaneFlipped * vec3_dot(node, bnode) > 0) {
+        front = polygon;
+      } else {
+        back = polygon;
+      }
+    }
+    if (front) {
+      if (node.$front) {
+        recursion(node.$front, front);
+      } else {
+        result.push(front);
+      }
+    }
+    if (back && node.$back) {
+      recursion(node.$back, back);
+    }
+  };
+  for (const polygon of bnode.$polygon) {
+    recursion(anode, polygon);
+  }
+  return result;
+};
+const csg_tree_each = (node, fn) => node && (fn(node), csg_tree_each(node.$front, fn), csg_tree_each(node.$back, fn));
+const csg_tree_flip = (root) => {
+  csg_tree_each(root, (node) => {
+    const back = node.$back;
+    node.$back = node.$front;
+    node.$front = back;
+    node.x *= -1;
+    node.y *= -1;
+    node.z *= -1;
+    node.w *= -1;
+    for (const polygon of node.$polygon) {
+      polygon.$flipped = !polygon.$flipped;
+    }
+  });
+  return root;
+};
+const csg_polygons = (tree) => {
+  const allPolygons = /* @__PURE__ */ new Map();
+  const byParent = /* @__PURE__ */ new Map();
+  const add = (polygon) => {
+    if (polygon.$parent) {
+      const found = byParent.get(polygon.$parent);
+      if (found) {
+        allPolygons.delete(found);
+        polygon = add(polygon.$parent);
+      } else {
+        byParent.set(polygon.$parent, polygon);
+      }
+    }
+    return polygon;
+  };
+  csg_tree_each(tree, (node) => {
+    for (const polygon of node.$polygon) {
+      allPolygons.set(add(polygon), polygon.$flipped);
+    }
+  });
+  return Array.from(allPolygons, ([{ $polygon: $polygon2 }, flipped]) => {
+    const polygon = $polygon2.map(({ x, y, z }) => ({
+      x,
+      y,
+      z,
+    }));
+    return polygon_color(flipped ? polygon.reverse() : polygon, $polygon2.$color, $polygon2.$smooth);
+  });
+};
+const csg_tree = (n) =>
+  n.length
+    ? n.reduce((prev, $polygon2) =>
+      csg_tree_addPolygon(prev, {
+        $polygon: $polygon2,
+        $flipped: 0,
+        $parent: 0,
+      }), 0)
+    : n;
+const csg_union = (...inputs) =>
+  inputs.reduce((a, b) => {
+    const polygonsToAdd = [];
+    a = csg_tree(a);
+    if (b) {
+      b = csg_tree(b);
+      csg_tree_each(a, (node) => node.$polygon = csg_tree_clipNode(b, node, 1));
+      csg_tree_each(b, (node) =>
+        polygonsToAdd.push([
+          node,
+          csg_tree_clipNode(a, node, -1),
+        ]));
+      for (const [plane, polygons] of polygonsToAdd) {
+        for (const pp of polygons) {
+          csg_tree_addPolygon(a, pp, plane);
+        }
+      }
+    }
+    return a;
+  });
+const csg_polygons_subtract = (a, ...b) => csg_polygons(csg_tree_flip(csg_union(csg_tree_flip(csg_tree(a)), ...b)));
 const SOULS_COUNT = 13;
 const LEVERS_COUNT = 16;
 const MODELS_WITH_SIMPLE_TRANSFORM = 26;
@@ -956,7 +1167,6 @@ const onFirstBoatLeverPulled = () => {
     game_completed = 1;
   }
 };
-const material = NO_INLINE((r, g, b, a = 0) => a * 255 << 24 | b * 255 << 16 | g * 255 << 8 | r * 255);
 const MODEL_ID_STATIC_WORLD = 1;
 const MODEL_ID_LEVEL2_ROTATING_HEX_CORRIDOR = 28;
 const MODEL_ID_ROTATING_PLATFORM0 = 31;
@@ -977,26 +1187,19 @@ const distanceToPlayer = () => {
     player_position_final.z - matrixTransformPoint.z,
   );
 };
-let meshAdd;
+let $matrix;
+let $polygon;
 const newModel = (name) => {
-  const $polygon = [];
-  const model = {
-    $matrix: new DOMMatrix(),
+  $polygon = [];
+  $matrix = new DOMMatrix();
+  allModels.push({
+    $matrix,
     $polygon,
-  };
-  meshAdd = (polygons, transform = identity, color) => $polygon.push(...polygons_transform(polygons, transform, color));
-  allModels.push(model);
-};
-const SOUL_SENSITIVITY_RADIUS = 1.6;
-const newLever = (transform, name) => {
-  meshAdd(cylinder(5), transform.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
-  meshAdd(cylinder(5), transform.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
-  meshAdd(cylinder().slice(0, -1), transform.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
-  levers.push({
-    $matrix: allModels.at(-1).$matrix,
-    $transform: transform,
   });
 };
+const meshAdd = (polygons, transform = identity, color) =>
+  $polygon.push(...polygons_transform(polygons, transform, color));
+const SOUL_SENSITIVITY_RADIUS = 1.6;
 const newSoul = (transform, ...walkingPath) => {
   let dirX = -1;
   let dirZ = 0;
@@ -1009,7 +1212,7 @@ const newSoul = (transform, ...walkingPath) => {
   let circle = walkingPath[0];
   let [targetX, targetZ] = circle;
   let [soulX, soulZ] = circle;
-  const parentModelMatrix = allModels.at(-1).$matrix;
+  const parentModelMatrix = $matrix;
   const index = souls.length;
   const soul = () => {
     if (soul.$value) {
@@ -1075,218 +1278,17 @@ const newSoul = (transform, ...walkingPath) => {
   };
   souls.push(soul);
 };
-const plane_fromPolygon = (polygon) => {
-  let x = 0;
-  let y = 0;
-  let z = 0;
-  let a = polygon.at(-1);
-  let b;
-  for (b of polygon) {
-    x += (a.y - b.y) * (a.z + b.z);
-    y += (a.z - b.z) * (a.x + b.x);
-    z += (a.x - b.x) * (a.y + b.y);
-    a = b;
-  }
-  b = hypot(x, y, z);
-  x /= b;
-  y /= b;
-  z /= b;
-  return {
-    x,
-    y,
-    z,
-    w: x * a.x + y * a.y + z * a.z,
-  };
-};
-const vec3_dot = ({ x, y, z }, b) => x * b.x + y * b.y + z * b.z;
-const CSGPolygon_split = (plane, polygon) => {
-  const PLANE_EPSILON = 8e-5;
-  let jd;
-  let front;
-  let back;
-  const { $polygon, $flipped } = polygon;
-  for (let i = 0; i < $polygon.length; ++i) {
-    jd = vec3_dot(plane, $polygon[i]) - plane.w;
-    if (jd < -PLANE_EPSILON) {
-      back = polygon;
-    } else if (jd > PLANE_EPSILON) {
-      front = polygon;
-    }
-    if (back && front) {
-      const fpoints = [];
-      const bpoints = [];
-      let iv = $polygon.at(-1);
-      let id = vec3_dot(iv, plane) - plane.w;
-      for (const jv of $polygon) {
-        jd = vec3_dot(jv, plane) - plane.w;
-        if (id < PLANE_EPSILON) {
-          bpoints.push(iv);
-        }
-        if (id > -PLANE_EPSILON) {
-          fpoints.push(iv);
-        }
-        if (id > PLANE_EPSILON && jd < -PLANE_EPSILON || id < -PLANE_EPSILON && jd > PLANE_EPSILON) {
-          id /= jd - id;
-          iv = {
-            x: iv.x + (iv.x - jv.x) * id,
-            y: iv.y + (iv.y - jv.y) * id,
-            z: iv.z + (iv.z - jv.z) * id,
-          };
-          fpoints.push(iv);
-          bpoints.push(iv);
-        }
-        iv = jv;
-        id = jd;
-      }
-      front = fpoints.length > 2 && {
-        $polygon: polygon_color(fpoints, $polygon.$color, $polygon.$smooth),
-        $flipped,
-        $parent: polygon,
-      };
-      back = bpoints.length > 2 && {
-        $polygon: polygon_color(bpoints, $polygon.$color, $polygon.$smooth),
-        $flipped,
-        $parent: polygon,
-      };
-      break;
-    }
-  }
-  return {
-    x: front,
-    y: back,
-  };
-};
-const csg_tree_addPolygon = (node, polygon, plane = plane_fromPolygon(polygon.$polygon)) => {
-  if (node) {
-    const { x: front, y: back } = CSGPolygon_split(node, polygon);
-    if (!front && !back) {
-      node.$polygon.push(polygon);
-    }
-    if (front) {
-      node.$front = csg_tree_addPolygon(node.$front, front, plane);
-    }
-    if (back) {
-      node.$back = csg_tree_addPolygon(node.$back, back, plane);
-    }
-  } else {
-    node = {
-      x: plane.x,
-      y: plane.y,
-      z: plane.z,
-      w: plane.w,
-      $polygon: [
-        polygon,
-      ],
-      $front: 0,
-      $back: 0,
-    };
-  }
-  return node;
-};
-const csg_tree_clipNode = (anode, bnode, polygonPlaneFlipped) => {
-  const result = [];
-  const recursion = (node, polygon) => {
-    let { x: front, y: back } = CSGPolygon_split(node, polygon);
-    if (!front && !back) {
-      if (polygonPlaneFlipped * vec3_dot(node, bnode) > 0) {
-        front = polygon;
-      } else {
-        back = polygon;
-      }
-    }
-    if (front) {
-      if (node.$front) {
-        recursion(node.$front, front);
-      } else {
-        result.push(front);
-      }
-    }
-    if (back && node.$back) {
-      recursion(node.$back, back);
-    }
-  };
-  for (const polygon of bnode.$polygon) {
-    recursion(anode, polygon);
-  }
-  return result;
-};
-const csg_tree_each = (node, fn) => node && (fn(node), csg_tree_each(node.$front, fn), csg_tree_each(node.$back, fn));
-const csg_tree_flip = (root) => {
-  csg_tree_each(root, (node) => {
-    const back = node.$back;
-    node.$back = node.$front;
-    node.$front = back;
-    node.x *= -1;
-    node.y *= -1;
-    node.z *= -1;
-    node.w *= -1;
-    for (const polygon of node.$polygon) {
-      polygon.$flipped = !polygon.$flipped;
-    }
-  });
-  return root;
-};
-const csg_polygons = (tree) => {
-  const allPolygons = /* @__PURE__ */ new Map();
-  const byParent = /* @__PURE__ */ new Map();
-  const add = (polygon) => {
-    if (polygon.$parent) {
-      const found = byParent.get(polygon.$parent);
-      if (found) {
-        allPolygons.delete(found);
-        polygon = add(polygon.$parent);
-      } else {
-        byParent.set(polygon.$parent, polygon);
-      }
-    }
-    return polygon;
-  };
-  csg_tree_each(tree, (node) => {
-    for (const polygon of node.$polygon) {
-      allPolygons.set(add(polygon), polygon.$flipped);
-    }
-  });
-  return Array.from(allPolygons, ([{ $polygon }, flipped]) => {
-    const polygon = $polygon.map(({ x, y, z }) => ({
-      x,
-      y,
-      z,
-    }));
-    return polygon_color(flipped ? polygon.reverse() : polygon, $polygon.$color, $polygon.$smooth);
-  });
-};
-const csg_tree = (n) =>
-  n.length
-    ? n.reduce((prev, $polygon) =>
-      csg_tree_addPolygon(prev, {
-        $polygon,
-        $flipped: 0,
-        $parent: 0,
-      }), 0)
-    : n;
-const csg_union = (...inputs) =>
-  inputs.reduce((a, b) => {
-    const polygonsToAdd = [];
-    a = csg_tree(a);
-    if (b) {
-      b = csg_tree(b);
-      csg_tree_each(a, (node) => node.$polygon = csg_tree_clipNode(b, node, 1));
-      csg_tree_each(b, (node) =>
-        polygonsToAdd.push([
-          node,
-          csg_tree_clipNode(a, node, -1),
-        ]));
-      for (const [plane, polygons] of polygonsToAdd) {
-        for (const pp of polygons) {
-          csg_tree_addPolygon(a, pp, plane);
-        }
-      }
-    }
-    return a;
-  });
-const csg_polygons_subtract = (a, ...b) => csg_polygons(csg_tree_flip(csg_union(csg_tree_flip(csg_tree(a)), ...b)));
 const build_life_the_universe_and_everything = () => {
   const HORN_STACKS = 11;
+  const newLever = ($transform, name) => {
+    meshAdd(cylinder(5), $transform.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
+    meshAdd(cylinder(5), $transform.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
+    meshAdd(cylinder().slice(0, -1), $transform.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
+    levers.push({
+      $matrix,
+      $transform,
+    });
+  };
   const hornMatrix = (i) => {
     i /= HORN_STACKS;
     return translation(/* @__PURE__ */ Math.sin(i * Math.PI), i).rotateSelf(10 * i).scaleSelf(1.002 - i, 1, 1.002 - i);
@@ -2431,6 +2433,7 @@ let rotatingPlatform2Rotation;
 let rotatingHexCorridorRotation;
 const LEVER_SENSITIVITY_RADIUS = 3;
 const eppur_si_muove = () => {
+  modelsResetUpdateCounter();
   shouldRotatePlatforms = lerpneg(
     levers[LEVER_ID_DONUT_PAD].$lerpValue,
     levers[LEVER_ID_AFTER_ROTATING_PLATFORMS].$lerpValue,
@@ -2450,7 +2453,6 @@ const eppur_si_muove = () => {
     angle_wrap_degrees(rotatingPlatform2Rotation + gameTimeDelta * 48),
     shouldRotatePlatforms,
   );
-  modelsResetUpdateCounter();
   modelsNextUpdate(
     0,
     270 * (levers[LEVER_ID_LEVEL1_DESCENT].$lerpValue - 1)

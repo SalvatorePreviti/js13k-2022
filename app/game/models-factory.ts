@@ -1,63 +1,38 @@
-import {
-  levers,
-  souls,
-  allModels,
-  type Model,
-  type Circle,
-  type Lever,
-  type Soul,
-  MODELS_WITH_FULL_TRANSFORM,
-} from "./models";
+import { souls, allModels, type Circle, type Soul, MODELS_WITH_FULL_TRANSFORM, Model } from "./models";
 import { onSoulCollected } from "./world-state";
 import type { Vec3Optional } from "../math/vectors";
 import { min, angle_lerp_degrees, DEG_TO_RAD, clamp, abs, hypot } from "../math/math";
 import { identity, matrixCopy, matrixToArray, tempMatrix } from "../math/matrix";
 import { lerpDamp, damp, gameTime } from "./game-time";
-import { polygons_transform, type Polygon } from "../geometry/polygon";
+import type { Polygon } from "../geometry/polygon";
+import { polygons_transform } from "../geometry/polygon";
 import { cylinder } from "../geometry/geometry";
 import { material } from "../geometry/material";
 import { MODEL_ID_BOAT0 } from "./models-ids";
-import { devLeverAdd, devModelsAdd } from "../dev-tools/dev-models";
 import { transformsBuffer } from "./transforms-buffer";
 import { distanceToPlayer } from "./distance-to-player";
+import { devModelsAdd } from "../dev-tools/dev-models";
 
-export let meshAdd: (
-  polygons: Polygon<Readonly<Vec3Optional>>[],
-  transform?: DOMMatrixReadOnly,
-  color?: number | undefined,
-) => void;
+export let $matrix: DOMMatrix;
+
+let $polygon: Polygon[];
 
 export const newModel = (name: string): void => {
-  const $polygon: Polygon[] = [];
-  const model: Model = { $matrix: new DOMMatrix(), $polygon };
-  meshAdd = (
-    polygons: Polygon<Readonly<Vec3Optional>>[],
-    transform: DOMMatrixReadOnly = identity,
-    color?: number | undefined,
-  ) => $polygon.push(...polygons_transform(polygons, transform, color));
-  allModels.push(model);
+  $polygon = [];
+  $matrix = new DOMMatrix();
+  allModels.push({ $matrix, $polygon });
   if (DEBUG) {
     devModelsAdd(allModels.length - 1, name);
   }
 };
 
+export const meshAdd: (
+  polygons: Polygon<Readonly<Vec3Optional>>[],
+  transform?: DOMMatrixReadOnly,
+  color?: number | undefined,
+) => void = (polygons, transform = identity, color) => $polygon.push(...polygons_transform(polygons, transform, color));
+
 const SOUL_SENSITIVITY_RADIUS = 1.6;
-
-export const newLever = (transform: DOMMatrixReadOnly, name: string): void => {
-  // Lever base
-  meshAdd(cylinder(5), transform.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
-  meshAdd(cylinder(5), transform.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
-  meshAdd(cylinder().slice(0, -1), transform.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
-
-  levers.push({
-    $matrix: allModels.at(-1)!.$matrix,
-    $transform: transform,
-  } as Partial<Lever> as Lever);
-
-  if (DEBUG) {
-    devLeverAdd(levers.length - 1, name);
-  }
-};
 
 export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: Circle[]) => {
   let dirX = -1;
@@ -73,7 +48,7 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: Circle[]) 
   let [targetX, targetZ] = circle;
   let [soulX, soulZ] = circle;
 
-  const parentModelMatrix = allModels.at(-1)!.$matrix;
+  const parentModelMatrix = $matrix;
   const index = souls.length;
 
   const soul: Soul = (() => {

@@ -1,17 +1,31 @@
 import { abs } from "../math/math";
 import { GQuad, cylinder, polygon_regular, sphere, cylinder_sides } from "../geometry/geometry";
 import { polygon_transform, polygons_transform, type Polygon } from "../geometry/polygon";
-import { meshAdd, newLever, newModel, newSoul } from "./models-factory";
 import { material } from "../geometry/material";
 import { csg_union, csg_polygons_subtract } from "../geometry/csg";
 import { identity } from "../math/matrix";
-import { devAllModelsPrint } from "../dev-tools/dev-models";
+import { devAllModelsPrint, devLeverAdd } from "../dev-tools/dev-models";
 import { translation } from "../math/matrix-transforms";
 import { integers_map } from "../math/integers-map";
-import { LEVERS_COUNT, type Circle } from "./models";
+import type { Lever } from "./models";
+import { levers, LEVERS_COUNT, type Circle } from "./models";
+import { meshAdd, newModel, newSoul, $matrix } from "./models-factory";
 
 export const build_life_the_universe_and_everything = (): 42 | void => {
   const HORN_STACKS = 11;
+
+  const newLever = ($transform: DOMMatrixReadOnly, name: string): void => {
+    // Lever base
+    meshAdd(cylinder(5), $transform.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
+    meshAdd(cylinder(5), $transform.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
+    meshAdd(cylinder().slice(0, -1), $transform.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
+
+    levers.push({ $matrix, $transform } as Partial<Lever> as Lever);
+
+    if (DEBUG) {
+      devLeverAdd(levers.length - 1, name);
+    }
+  };
 
   if (DEBUG) {
     console.time("build_life_the_universe_and_everything");
