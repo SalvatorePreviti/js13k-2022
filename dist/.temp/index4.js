@@ -50,7 +50,7 @@ let S,
   S1 = (e, a) => a < e ? e : a,
   A1 = (e, a) => P(e) > a ? e : 0,
   W = (e, a = 0, t = 1) => e < a ? a : t < e ? t : e,
-  M1 = e => y1(w(e * J1), z(e * J1)) / J1,
+  M1 = e => y1(w(e * _1), z(e * _1)) / _1,
   k1 = (e, a, t) => e + (2 * (a = (a - e) % 360) % 360 - a) * W(t) || 0,
   U = (e, a, t) => (0 < t ? t < 1 ? e + (a - e) * t : a : e) || 0,
   I1 = (e, a) => (e = W(e), U(e, 1 - e, a)),
@@ -223,10 +223,9 @@ let S,
   N1 = e => {
     h4.innerHTML += ".", setTimeout(e);
   },
-  E1 = e => w(e * y * 2),
-  L1 = (e, a, t, l) =>
+  E1 = (e, a, t, l) =>
     new DOMMatrix([t, 0, 0, 0, 0, l, 0, 0, 0, 0, (a + e) / (e - a), -1, 0, 0, 2 * a * e / (e - a), 0]),
-  P1 = () => {
+  L1 = () => {
     let e,
       i,
       n,
@@ -250,8 +249,8 @@ let S,
       },
       o = () => {
         let e = (hC.height = innerHeight) / (hC.width = innerWidth) * 1.732051;
-        $ = [L1(.3, 55, e, 1.732051), L1(55, 181, e, 1.732051)],
-          Z = L1(.3, 181, e, 1.732051),
+        Z = [E1(.3, 55, e, 1.732051), E1(55, 181, e, 1.732051)],
+          $ = E1(.3, 181, e, 1.732051),
           m = d = void 0,
           s.length =
             C =
@@ -353,7 +352,7 @@ let S,
             : t = 1;}
         a.target === hC && t && e && .02 < (a = i1 - e) && a < .7 && (C = 1);
       },
-      P1 = () => {
+      L1 = () => {
         n1 = S + (s[4] ? 1 : 0) - (s[5] ? 1 : 0), m1 = b + (s[2] ? 1 : 0) - (s[3] ? 1 : 0);
         let e = navigator.getGamepads()[0];
         e
@@ -367,20 +366,20 @@ let S,
       document.onvisibilitychange = onblur = onresize = o,
       A(!0);
   },
-  W1 = (e, a) => {
+  P1 = (e, a) => {
     1 / 0 > v1 && (v1 = B + a, h4.innerHTML = e);
   },
-  U1 = () => {
+  W1 = () => {
     h3.innerHTML = "Souls: "
       + [0, "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII"][
         e1 = p1.reduce((e, a) => e + a.j, 0)
       ] + " / XIII";
   },
-  K1 = () => {
+  U1 = () => {
     localStorage["Dante-22"] = JSON.stringify([L.map(e => e.j), p1.map(e => e.j), g1, M, B]);
   },
   u = () => {
-    l = [], t1 = new DOMMatrix(), E.push({ l: t1, i: l });
+    E.push({ l: t1 = new DOMMatrix(), i: l = [] });
   },
   g = (e, a = p, t) => l.push(...i(e, a, t)),
   v = (o, ...i) => {
@@ -419,12 +418,12 @@ let S,
             h = _(h, 3 + 6 * (1 - s), 3 + s),
             M = _(M, S = _(S, S + v, h), h),
             k = _(k, A = _(A, A + u, h), h),
-            n = k1(n, y1(M - m, k - f) / J1 - 180, H1(3)),
+            n = k1(n, y1(M - m, k - f) / _1 - 180, H1(3)),
             K(I).multiplySelf(o).translateSelf(m = M, 0, f = k).rotateSelf(0, n, 7 * w(1.7 * B)),
             V(),
             j1(X - F, q - O, H - Q) < 1.6
             && (p.j = 1,
-              W1(
+              P1(
                 [
                   ,
                   "Mark Zuckemberg<br>made the world worse",
@@ -442,10 +441,10 @@ let S,
                 ][e1] || "Catched a \"crypto bro\".<br>\"Web3\" is all scam, lies and grift",
                 6,
               ),
-              U1(),
-              K1());
+              W1(),
+              U1());
         }
-        j(D, V1, 28 + e);
+        j(D, K1, 28 + e);
       },
       b = i[0],
       [S, A] = b,
@@ -461,10 +460,10 @@ let S,
   p = new DOMMatrix(),
   D = new DOMMatrix(),
   r = new Float32Array(16),
-  V1 = new Float32Array(760),
-  _1 = new Uint8Array(65536),
-  J1 = y / 180,
-  G1 =
+  K1 = new Float32Array(760),
+  V1 = new Uint8Array(65536),
+  _1 = y / 180,
+  J1 =
     (document.body.innerHTML +=
       "<canvas id=hD height=128 width=128></canvas><canvas id=hC></canvas><h4 id=h4>loading</h4><b id=b5>☰</b><h3 id=h3></h3><main><nav><h2>DANTE</h2>Lucifer: <i>\"Damn. Infernal delivery service failed again. A delivery of evil souls fell in an area under construction. Dante, take them where they belong, to the 8th circle.\"</i><ul><li id=b1>Play</li><li id=b2>Play first person</li><li id=b3>Restart</li><li id=b4></li></ul><p>move WASD/arrows, levers E/click, menu Esc</p><p><a href=https://github.com/SalvatorePreviti/js13k-2022 target=_blank>© 2022 Salvatore Previti</a> - <a href=https://twitter.com/ryanmalm target=_blank>music Ryan Malm</a></p></nav></main><style>*{color:#fda;font-weight:100;overscroll-behavior:contain;touch-action:none;user-select:none}body,html{background:#000;font-family:Times New Roman,serif;font-size:max(min(3.8vw,3.8vh),15px);margin:0;text-shadow:4px 4px 2px #000,-2px -2px 8px #000}p{font-size:.7em}body>*{position:absolute}h2{color:#f61;margin:0 0 .7em}.m main,h4{right:0;top:0}h3,h4{pointer-events:none}h4{left:0;text-align:center}h3{bottom:0;right:5%;text-align:right}.m main{align-items:center;bottom:0;display:flex;justify-content:center;min-width:70%}nav{background:#00000080;border-radius:1em;max-width:max(780px,50vw);padding:1em}#b5,h3{padding:10px}a,li{border-bottom:3px solid #0000;cursor:pointer;margin-bottom:.5em;text-decoration:none}a:hover,h2,li:hover{border-bottom:3px solid}#hD,.m h4,main{display:none}",
       768),
@@ -505,10 +504,10 @@ N1(() => {
             let e = (a - (S || a)) / 1e3;
             if (i1 += e, B += R = I ? 0 : z1(.055, e), S = a, 0 < R) {
               e = (e, a, t) => J(e + w(B + 2) / 5, a + w(.8 * B) / 5, t).rotateSelf(2 * w(B), w(.7 * B), w(.9 * B)),
-                v1 && B > v1 && (v1 = 0, h4.innerHTML = ""),
                 M = _(M, L[15].g, .2 + .3 * P(2 * L[15].g - 1)),
                 a1 = A ? (T = 0, _(a1, -9, .015)) : _(a1, W(B / 3), 1),
-                P1(),
+                v1 && B > v1 && (v1 = 0, h4.innerHTML = ""),
+                L1(),
                 k = 1,
                 r1 = I1(L[13].h, L[8].h),
                 x = U(_(x, 0, 1), M1(x + 60 * R), L[2].h - L[3].g),
@@ -574,22 +573,22 @@ N1(() => {
                   K(K(t.l).multiplySelf(t.C), J(0)).rotateSelf(50 * a - 25, 0).translateSelf(0, 1).m44 = a,
                   C && (V(),
                     j1(X - F, q - O, H - Q) < 3 && (t.j
-                      ? .7 < a && (t.j = 0, g1 = e, W1("* click *", 1), K1())
-                      : a < .3 && (t.j = 1, g1 = e, W1("* click *", 1), K1()))),
+                      ? .7 < a && (t.j = 0, g1 = e, P1("* click *", 1), U1())
+                      : a < .3 && (t.j = 1, g1 = e, P1("* click *", 1), U1()))),
                   14 === e && t.j && .8 < a && (t.j = 0,
                     e1 < 13
-                      ? W1("Not leaving now, there are souls to catch!", 3)
-                      : A || (W1("Well done. They will be punished.<br>Thanks for playing", 1 / 0), A = 1));
+                      ? P1("Not leaving now, there are souls to catch!", 3)
+                      : A || (P1("Well done. They will be punished.<br>Thanks for playing", 1 / 0), A = 1));
               }
               for (l1(), e = 0; e < 28; ++e) {
-                j(E[28 + e].l, V1, e);
+                j(E[28 + e].l, K1, e);
               }
               for (let e, a = 0, t = 656; a < 26; ++a, ++t) {
-                e = E[2 + a].l, V1[t++] = e.m41, V1[t++] = e.m42, V1[t++] = e.m43;
+                e = E[2 + a].l, K1[t++] = e.m41, K1[t++] = e.m42, K1[t++] = e.m43;
               }
               G.cbf(!0, !0, !0, !0),
                 G.c4s(16640),
-                G.u3a(c("j"), V1),
+                G.u3a(c("j"), K1),
                 G.cbf(!0, !1, !0, !1),
                 G.uae(c("b"), !1, j(K().rotateSelf(0, 180).invertSelf().translateSelf(-X, -q, .3 - H))),
                 l(G, 56, 1),
@@ -601,7 +600,7 @@ N1(() => {
                 C = 0;
             }
             v(),
-              b.u3a(v("j"), V1),
+              b.u3a(v("j"), K1),
               b.b6o(36160, s),
               b.v5y(0, 0, 2048, 2048),
               b.ubh(v("g"), 4),
@@ -612,10 +611,10 @@ N1(() => {
               a = u1,
               I
                 ? (K().rotateSelf(0, 40 * w(i1) - 80, -8),
-                  j(D, V1, 25),
-                  j(D, V1, 26),
-                  j(D, V1, 27),
-                  K(Z).invertSelf(),
+                  j(D, K1, 25),
+                  j(D, K1, 26),
+                  j(D, K1, 27),
+                  K($).invertSelf(),
                   V(3.6, 3.5),
                   e = F,
                   t = O,
@@ -632,7 +631,7 @@ N1(() => {
               b.ubh(v("g"), 0),
               b.ubh(v("h"), 1),
               b.ubu(v("k"), e, t, a),
-              b.uae(v("a"), !1, j(Z)),
+              b.uae(v("a"), !1, j($)),
               b.uae(v("b"), !1, j(d)),
               b.uae(v("i"), !1, g),
               l(b, 57, T),
@@ -674,7 +673,7 @@ N1(() => {
                 let t = 0, r = 0, s = 0, c = 1 / 0, o = 1 / 0, i = 1 / 0, n = -1 / 0, m = -1 / 0, f = -1 / 0;
                 b.fas(36160, 36096, 3553, a, 0),
                   b.c4s(256),
-                  K().scale3dSelf(l *= 1.1).multiplySelf(K($[e], u).multiplySelf(d).invertSelf());
+                  K().scale3dSelf(l *= 1.1).multiplySelf(K(Z[e], u).multiplySelf(d).invertSelf());
                 for (let a = 0; a < 8; ++a) {
                   let e = h[a];
                   V(4 & a ? 1 : -1, 2 & a ? 1 : -1, 1 & a ? 1 : -1),
@@ -727,7 +726,7 @@ N1(() => {
           G.e8z(2884),
           G.v5y(0, 0, 128, 128),
           c(),
-          G.uae(c("a"), !1, j(L1(1e-4, 2, 1.2, .4))),
+          G.uae(c("a"), !1, j(E1(1e-4, 2, 1.2, .4))),
           (() => {
             let s,
               c,
@@ -762,14 +761,14 @@ N1(() => {
               let e, a, t, l, r;
               for (
                 C(d),
-                  G.r9r(0, 0, 128, 128, 6408, 5121, _1),
+                  G.r9r(0, 0, 128, 128, 6408, 5121, V1),
                   (() => {
                     let a, t, l, r, s, c = 0, o = 0, i = 0, n = 0, e = 0, m = 0, f = -1;
                     for (a = 0; a < 36; ++a) {
                       for (t = 512 * a, l = 96; l < 416; l += 4) {
                         for (r = 0; r < 2; ++r) {
-                          let e = _1[t + l + r + 2];
-                          (s = _1[t + l + r]) > n && (n = s),
+                          let e = V1[t + l + r + 2];
+                          (s = V1[t + l + r]) > n && (n = s),
                             s + e && (f < 0 || f === a) && (f = a, e === d ? ++c : o && o !== e || (o = e, ++i));
                         }
                       }
@@ -786,12 +785,12 @@ N1(() => {
                         l < 128;
                         ++l
                       ) {
-                        s = _1[r = t + 4 * l],
+                        s = V1[r = t + 4 * l],
                           l < 64 ? s > o && (o = s) : s > i && (i = s),
-                          (s = _1[2 + r]) > f && (f = s),
-                          s = _1[1 + r],
+                          (s = V1[2 + r]) > f && (f = s),
+                          s = V1[1 + r],
                           64 < l ? s > o && (o = s) : s > i && (i = s),
-                          (s = _1[3 + r]) > a && (a = s);
+                          (s = V1[3 + r]) > a && (a = s);
                       }
                       (i -= o) * i > e * e && (e = i), (a -= f) * a > m * m && (m = a);
                     }
@@ -820,15 +819,15 @@ N1(() => {
                       u1 = D(u1, p + -18 + 5 * i, 1, 2 + i),
                       h1 = D(h1, S1(v + W((-60 - H) / 8, 0, 20) + 13 + 9 * i, 6), 4, 2),
                       e = z1(-6, -P(p - u1)),
-                      N = k1(N, 90 - M1(y1(e, a = g - f1) / J1), k + H1(10)),
-                      d1 = k1(d1, 90 - y1(j1(e, a), h1 - v) / J1, k + H1(10))),
+                      N = k1(N, 90 - M1(y1(e, a = g - f1) / _1), k + H1(10)),
+                      d1 = k1(d1, 90 - y1(j1(e, a), h1 - v) / _1, k + H1(10))),
                   d1 = W(d1, -87, 87),
                   k = 0,
                   e = W(n1, -1),
                   a = W(m1, -1),
                   t = A1(j1(e, a) ** .5, .1),
                   l = y1(e, a),
-                  t && (s = 90 - l / J1),
+                  t && (s = 90 - l / _1),
                   c = k1(c, s, H1(8)),
                   o = _(o, t, 10),
                   J(X, .06 * h * o * z(18.2 * B) + u, H).rotateSelf(0, c),
@@ -837,14 +836,14 @@ N1(() => {
                 ++r
               ) {
                 let e = 9.1 * B - y * r;
-                K(E[53].l, J(0)).translateSelf(0, o * W(.45 * w(e - y / 2))).rotateSelf(o * w(e) * .25 / J1, 0);
+                K(E[53].l, J(0)).translateSelf(0, o * W(.45 * w(e - y / 2))).rotateSelf(o * w(e) * .25 / _1, 0);
               }
               j = d ? 5 : _(j, I ? 13 : 19 - 2 * z1(0, q + 10), 2.2),
                 n = d || I ? 0 : _(n, 0, 3),
                 m = d || I ? 0 : _(m, 0, 3),
                 e = (f = I ? 0 : _(f, d ? 7 * W(2 * t) * h : 0, d ? 9 : 1)) * t * P(e) * w(l),
                 a = f * t * P(a) * z(l),
-                t = R * (n + (z(l = T ? (180 + N) * J1 : 0) * a - w(l) * e)),
+                t = R * (n + (z(l = T ? (180 + N) * _1 : 0) * a - w(l) * e)),
                 r = R * -j,
                 e = R * (m + (w(l) * a + z(l) * e)),
                 Y().invertSelf(),
@@ -855,6 +854,7 @@ N1(() => {
                 C();
             };
           })(),
+          L1(),
           requestAnimationFrame(r);
       }
     },
@@ -863,6 +863,7 @@ N1(() => {
     t.src = a,
     (r => {
       let E = 0,
+        L = e => w(e * y * 2),
         s = () => {
           let b = 0,
             e = f => {
@@ -875,7 +876,7 @@ N1(() => {
                 i = 0,
                 n = 0,
                 d = [],
-                m = new Int32Array(f * G1),
+                m = new Int32Array(f * J1),
                 g = 2 ** (t - 9) / f,
                 v = y * 2 ** (l - 8) / f,
                 p = q * f & -2;
@@ -896,12 +897,12 @@ N1(() => {
                           o = u = h,
                           i = E < 2
                             ? e => e % 1 * 2 - 1
-                            : E1,
+                            : L,
                           n = E < 2
                             ? E < 1
                               ? e => e % 1 < .5 ? 1 : -1
                               : e => (e = e % 1 * 4) < 2 ? e - 1 : 3 - e
-                            : E1,
+                            : L,
                           m = new Int32Array(C + T + N);
                         for (let a = 0, t = 0; C + T + N > a; ++a, ++t) {
                           let e = 1;
@@ -935,12 +936,12 @@ N1(() => {
                         u = e * (1 - (o = w(v * c) * R / 512 + .5)),
                         e *= o),
                       p > c || (u += m[1 + c - p] * X / 255, e += m[c - p] * X / 255),
-                      L[o = b + c >> 1] += (m[c] = u) / 65536,
-                      P[o] += (m[++c] = e) / 65536;
+                      P[o = b + c >> 1] += (m[c] = u) / 65536,
+                      W[o] += (m[++c] = e) / 65536;
                   }
                 }
               }
-              b += f * G1;
+              b += f * J1;
             },
             S = [
               [
@@ -973,16 +974,16 @@ N1(() => {
             N = 4 * a ** 2;
           e(5513), e(4562), e(3891), N1(++E < 5 ? s : r);
         },
-        L = (Y = new AudioBuffer({ numberOfChannels: 2, sampleRate: 44100, length: 5362944 })).getChannelData(0),
-        P = Y.getChannelData(1);
+        P = (Y = new AudioBuffer({ numberOfChannels: 2, sampleRate: 44100, length: 5362944 })).getChannelData(0),
+        W = Y.getChannelData(1);
       N1(s);
     })(() => {
       let e = [-110, -100, -92, -82, -106, -97, -88],
         a = e => {
-          g(n(5), e.translate(.2).rotate(90, 90).scale(.4, .1, .5), f(.4, .5, .5)),
+          L.push({ l: t1, C: e }),
+            g(n(5), e.translate(.2).rotate(90, 90).scale(.4, .1, .5), f(.4, .5, .5)),
             g(n(5), e.translate(-.2).rotate(90, 90).scale(.4, .1, .5), f(.4, .5, .5)),
-            g(n().slice(0, -1), e.translate(0, -.4).scale(.5, .1, .5), f(.5, .5, .4)),
-            L.push({ l: t1, C: e });
+            g(n().slice(0, -1), e.translate(0, -.4).scale(.5, .1, .5), f(.5, .5, .4));
         },
         t = e => o(w((e /= 11) * y), e).rotateSelf(10 * e).scaleSelf(1.002 - e, 1, 1.002 - e),
         l = e =>
@@ -1041,7 +1042,7 @@ N1(() => {
           } catch {}
           L.map((e, a) => e.h = e.g = e.j = 14 !== a && s[a] ? 1 : 0),
             p1.map((e, a) => e.j = n[a] ? 1 : 0),
-            U1(),
+            W1(),
             a1 = e1 || 14 !== g1 ? 1 : 0,
             N1(d);
         }),
@@ -1097,11 +1098,11 @@ N1(() => {
               i(n(6), o(0, -8).scale(9, 8, 7), f(.2, .1, .4, .5)),
               i(n(6, 0, 0, .3), o(8, -4, -4).scale(14, 2, 13), f(.7, .7, .7, .2)),
             ),
-            i(n(6), o(15.5, -1.5, 3.5).scale(3.5, 1, 3.5), f(.5, .5, .5, .5)),
+            i(n(6), o(15.8, -1.5, 3.8).scale(3.5, 1, 3.5), f(.5, .5, .5, .5)),
             i(n(5, 0, 1.5), o(0, 1).scale(4.5, .3, 4.5), f(.7, .5, .9, .2)),
             i(n(5), p.scale(5, 30, 5), f(.4, .2, .6, .5)),
           )),
-          a(o(15, -2, 4)),
+          a(o(15.8, -2, 3.8)),
           g(n(), o(-18.65, -3, 55).scale(2.45, 1.4, 2.7), f(.9, .9, .9, .2)),
           a(o(-55, -1.1, 46).rotate(0, 90)),
           g(n(7), o(-57, -2.6, 46).scale(4, 1, 4), f(.8, .8, .8, .3)),

@@ -1,4 +1,4 @@
-import { souls, allModels, type Circle, type Soul, MODELS_WITH_FULL_TRANSFORM, Model } from "./models";
+import { souls, allModels, type Circle, type Soul, MODELS_WITH_FULL_TRANSFORM } from "./models";
 import { onSoulCollected } from "./world-state";
 import type { Vec3Optional } from "../math/vectors";
 import { min, angle_lerp_degrees, DEG_TO_RAD, clamp, abs, hypot } from "../math/math";
@@ -13,14 +13,12 @@ import { transformsBuffer } from "./transforms-buffer";
 import { distanceToPlayer } from "./distance-to-player";
 import { devModelsAdd } from "../dev-tools/dev-models";
 
-export let $matrix: DOMMatrix;
+export let currentModelMmatrix: DOMMatrix;
 
-let $polygon: Polygon[];
+let currentModelPolygons: Polygon[];
 
 export const newModel = (name: string): void => {
-  $polygon = [];
-  $matrix = new DOMMatrix();
-  allModels.push({ $matrix, $polygon });
+  allModels.push({ $matrix: (currentModelMmatrix = new DOMMatrix()), $polygon: (currentModelPolygons = []) });
   if (DEBUG) {
     devModelsAdd(allModels.length - 1, name);
   }
@@ -30,7 +28,8 @@ export const meshAdd: (
   polygons: Polygon<Readonly<Vec3Optional>>[],
   transform?: DOMMatrixReadOnly,
   color?: number | undefined,
-) => void = (polygons, transform = identity, color) => $polygon.push(...polygons_transform(polygons, transform, color));
+) => void = (polygons, transform = identity, color) =>
+  currentModelPolygons.push(...polygons_transform(polygons, transform, color));
 
 const SOUL_SENSITIVITY_RADIUS = 1.6;
 
@@ -48,7 +47,7 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: Circle[]) 
   let [targetX, targetZ] = circle;
   let [soulX, soulZ] = circle;
 
-  const parentModelMatrix = $matrix;
+  const parentModelMatrix = currentModelMmatrix;
   const index = souls.length;
 
   const soul: Soul = (() => {

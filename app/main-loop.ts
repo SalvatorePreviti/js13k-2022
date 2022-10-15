@@ -26,7 +26,7 @@ import { identity, matrixCopy, matrixToArray, matrixTransformPoint, tempMatrix }
 import { eppur_si_muove } from "./game/level-update";
 import { max, min } from "./math/math";
 import type { Vec3 } from "./math/vectors";
-import { updateInput, csm_projections, player_first_person, projection, resetInteractPressed } from "./page";
+import { page_update, csm_projections, player_first_person, projection, resetInteractPressed } from "./page";
 import { player_init, camera_position_x, camera_position_y, camera_position_z } from "./game/player";
 import { cgl, gl } from "./gl";
 import {
@@ -223,7 +223,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     if (gameTimeDelta > 0) {
       worldStateUpdate();
 
-      updateInput();
+      page_update();
 
       eppur_si_muove();
 
@@ -390,6 +390,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   );
 
   player_init();
+  page_update();
 
   requestAnimationFrame(mainLoop);
 

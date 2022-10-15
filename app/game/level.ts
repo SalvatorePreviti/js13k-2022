@@ -1,26 +1,25 @@
 import { abs } from "../math/math";
+import { identity } from "../math/matrix";
+import { levers, LEVERS_COUNT, type Circle, type Lever } from "./models";
 import { GQuad, cylinder, polygon_regular, sphere, cylinder_sides } from "../geometry/geometry";
 import { polygon_transform, polygons_transform, type Polygon } from "../geometry/polygon";
 import { material } from "../geometry/material";
 import { csg_union, csg_polygons_subtract } from "../geometry/csg";
-import { identity } from "../math/matrix";
+import { integers_map } from "../math/integers-map";
+import { meshAdd, newModel, newSoul, currentModelMmatrix } from "./models-factory";
 import { devAllModelsPrint, devLeverAdd } from "../dev-tools/dev-models";
 import { translation } from "../math/matrix-transforms";
-import { integers_map } from "../math/integers-map";
-import type { Lever } from "./models";
-import { levers, LEVERS_COUNT, type Circle } from "./models";
-import { meshAdd, newModel, newSoul, $matrix } from "./models-factory";
 
 export const build_life_the_universe_and_everything = (): 42 | void => {
   const HORN_STACKS = 11;
 
   const newLever = ($transform: DOMMatrixReadOnly, name: string): void => {
+    levers.push({ $matrix: currentModelMmatrix, $transform } as Partial<Lever> as Lever);
+
     // Lever base
     meshAdd(cylinder(5), $transform.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
     meshAdd(cylinder(5), $transform.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
     meshAdd(cylinder().slice(0, -1), $transform.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
-
-    levers.push({ $matrix, $transform } as Partial<Lever> as Lever);
 
     if (DEBUG) {
       devLeverAdd(levers.length - 1, name);
@@ -161,7 +160,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
         ),
       ),
       // lower lever pad
-      polygons_transform(cylinder(6), translation(15.5, -1.5, 3.5).scale(3.5, 1, 3.5), material(0.5, 0.5, 0.5, 0.5)),
+      polygons_transform(cylinder(6), translation(15.8, -1.5, 3.8).scale(3.5, 1, 3.5), material(0.5, 0.5, 0.5, 0.5)),
 
       // smooth hole
       polygons_transform(cylinder(5, 0, 1.5), translation(0, 1).scale(4.5, 0.3, 4.5), material(0.7, 0.5, 0.9, 0.2)),
@@ -172,7 +171,7 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
   );
 
   // LEVER in the descent of the first level
-  newLever(translation(15, -2, 4), "LEVER_ID_LEVEL1_DESCENT");
+  newLever(translation(15.8, -2, 3.8), "LEVER_ID_LEVEL1_DESCENT");
 
   // ******** LEVEL 2 ********
 

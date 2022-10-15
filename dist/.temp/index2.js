@@ -3,14 +3,14 @@ let mainMenuVisible;
 let audioBuffer;
 let interact_pressed;
 let player_first_person;
-let projection;
 let csm_projections;
+let projection;
 let souls_collected_count;
 let game_completed;
 let firstBoatLerp;
 let secondBoatLerp;
-let $matrix;
-let $polygon;
+let currentModelMmatrix;
+let currentModelPolygons;
 let modelsUpdateCounter;
 let player_update;
 let shouldRotatePlatforms;
@@ -219,26 +219,26 @@ const lerp = (a, b, t) => (0 < t ? t < 1 ? a + (b - a) * t : b : a) || 0;
 const lerpneg = (v, t) => (v = clamp(v), lerp(v, 1 - v, t));
 const hypot = (a, b, c = 0) => (a * a + b * b + c * c) ** 0.5;
 const matrixToArray = (
-  $matrix2,
+  $matrix,
   output = float32Array16Temp,
   index = 0,
 ) => (index *= 16,
-  output[index++] = $matrix2.m11,
-  output[index++] = $matrix2.m12,
-  output[index++] = $matrix2.m13,
-  output[index++] = $matrix2.m14,
-  output[index++] = $matrix2.m21,
-  output[index++] = $matrix2.m22,
-  output[index++] = $matrix2.m23,
-  output[index++] = $matrix2.m24,
-  output[index++] = $matrix2.m31,
-  output[index++] = $matrix2.m32,
-  output[index++] = $matrix2.m33,
-  output[index++] = $matrix2.m34,
-  output[index++] = $matrix2.m41,
-  output[index++] = $matrix2.m42,
-  output[index++] = $matrix2.m43,
-  output[index] = $matrix2.m44,
+  output[index++] = $matrix.m11,
+  output[index++] = $matrix.m12,
+  output[index++] = $matrix.m13,
+  output[index++] = $matrix.m14,
+  output[index++] = $matrix.m21,
+  output[index++] = $matrix.m22,
+  output[index++] = $matrix.m23,
+  output[index++] = $matrix.m24,
+  output[index++] = $matrix.m31,
+  output[index++] = $matrix.m32,
+  output[index++] = $matrix.m33,
+  output[index++] = $matrix.m34,
+  output[index++] = $matrix.m41,
+  output[index++] = $matrix.m42,
+  output[index++] = $matrix.m43,
+  output[index] = $matrix.m44,
   output);
 const matrixCopy = (
   source = identity,
@@ -360,17 +360,17 @@ const CSGPolygon_split = (plane, polygon) => {
   let jd;
   let front;
   let back;
-  const { $polygon: $polygon2, $flipped } = polygon;
-  for (let i = 0; $polygon2.length > i; ++i) {
+  const { $polygon, $flipped } = polygon;
+  for (let i = 0; $polygon.length > i; ++i) {
     if (
-      (jd = vec3_dot(plane, $polygon2[i]) - plane.w) < -0.00008 ? back = polygon : 8e-5 < jd && (front = polygon),
+      (jd = vec3_dot(plane, $polygon[i]) - plane.w) < -0.00008 ? back = polygon : 8e-5 < jd && (front = polygon),
         back && front
     ) {
       const fpoints = [];
       const bpoints = [];
-      let iv = $polygon2.at(-1);
+      let iv = $polygon.at(-1);
       let id = vec3_dot(iv, plane) - plane.w;
-      for (const jv of $polygon2) {
+      for (const jv of $polygon) {
         jd = vec3_dot(jv, plane) - plane.w,
           id < 8e-5 && bpoints.push(iv),
           -0.00008 < id && fpoints.push(iv),
@@ -386,12 +386,12 @@ const CSGPolygon_split = (plane, polygon) => {
           id = jd;
       }
       front = 2 < fpoints.length && {
-        $polygon: polygon_color(fpoints, $polygon2.$color, $polygon2.$smooth),
+        $polygon: polygon_color(fpoints, $polygon.$color, $polygon.$smooth),
         $flipped,
         $parent: polygon,
       },
         back = 2 < bpoints.length && {
-          $polygon: polygon_color(bpoints, $polygon2.$color, $polygon2.$smooth),
+          $polygon: polygon_color(bpoints, $polygon.$color, $polygon.$smooth),
           $flipped,
           $parent: polygon,
         };
@@ -444,9 +444,9 @@ const csg_tree_flip = (root) => (csg_tree_each(root, (node) => {
   root);
 const csg_tree = (n) =>
   n.length
-    ? n.reduce((prev, $polygon2) =>
+    ? n.reduce((prev, $polygon) =>
       csg_tree_addPolygon(prev, {
-        $polygon: $polygon2,
+        $polygon,
         $flipped: 0,
         $parent: 0,
       }), 0)
@@ -482,13 +482,13 @@ const csg_polygons_subtract = (a, ...b) => {
       csg_tree_each(a, (node) => {
         for (const polygon of node.$polygon) allPolygons.set(add(polygon), polygon.$flipped);
       }),
-      Array.from(allPolygons, ([{ $polygon: $polygon2 }, flipped]) => {
-        const polygon = $polygon2.map(({ x, y, z }) => ({
+      Array.from(allPolygons, ([{ $polygon }, flipped]) => {
+        const polygon = $polygon.map(({ x, y, z }) => ({
           x,
           y,
           z,
         }));
-        return polygon_color(flipped ? polygon.reverse() : polygon, $polygon2.$color, $polygon2.$smooth);
+        return polygon_color(flipped ? polygon.reverse() : polygon, $polygon.$color, $polygon.$smooth);
       });
   }
 };
@@ -497,13 +497,13 @@ const lerpDamp = NO_INLINE((from, to, speed) => lerp(from, to, damp(speed)));
 const loadStep = (fn) => {
   h4.innerHTML += ".", setTimeout(fn);
 };
-const getnotefreq = (n) => 0.00396 * 2 ** ((n - 256) / 12);
-const osc_sin = (value) => Math.sin(value * Math.PI * 2);
-const osc_square = (value) => value % 1 < 0.5 ? 1 : -1;
-const osc_saw = (value) => value % 1 * 2 - 1;
-const osc_tri = (value) => (value = value % 1 * 4) < 2 ? value - 1 : 3 - value;
 const loadSong = NO_INLINE((done) => {
   let channelIndex = 0;
+  const getnotefreq = (n) => 0.00396 * 2 ** ((n - 256) / 12);
+  const osc_sin = (value) => Math.sin(value * Math.PI * 2);
+  const osc_square = (value) => value % 1 < 0.5 ? 1 : -1;
+  const osc_saw = (value) => value % 1 * 2 - 1;
+  const osc_tri = (value) => (value = value % 1 * 4) < 2 ? value - 1 : 3 - value;
   const next = () => {
     let mixIndex = 0;
     const make = (song_rowLen) => {
@@ -636,7 +636,7 @@ const mat_perspective = (near, far, mx, my) =>
     2 * far * near / (near - far),
     0,
   ]);
-let updateInput = () => {
+let page_update = () => {
   let touchStartTime;
   let touchPosStartX;
   let touchPosStartY;
@@ -795,7 +795,7 @@ let updateInput = () => {
       e.target === hC && click && touchStartTime && 0.02 < (e = absoluteTime - touchStartTime) && e < 0.7
         && (interact_pressed = 1);
     },
-    updateInput = () => {
+    page_update = () => {
       input_forward = touch_movementY + (keyboard_downKeys[4] ? 1 : 0) - (keyboard_downKeys[5] ? 1 : 0),
         input_strafe = touch_movementX + (keyboard_downKeys[2] ? 1 : 0) - (keyboard_downKeys[3] ? 1 : 0);
       let gamepad = navigator.getGamepads()[0];
@@ -860,15 +860,13 @@ const distanceToPlayer = () => (matrixTransformPoint(),
     player_position_final.z - matrixTransformPoint.z,
   ));
 const newModel = () => {
-  $polygon = [],
-    $matrix = new DOMMatrix(),
-    allModels.push({
-      $matrix,
-      $polygon,
-    });
+  allModels.push({
+    $matrix: currentModelMmatrix = new DOMMatrix(),
+    $polygon: currentModelPolygons = [],
+  });
 };
 const meshAdd = (polygons, transform = identity, color) =>
-  $polygon.push(...polygons_transform(polygons, transform, color));
+  currentModelPolygons.push(...polygons_transform(polygons, transform, color));
 const newSoul = (transform, ...walkingPath) => {
   let lookAngle;
   let prevX;
@@ -950,7 +948,7 @@ const newSoul = (transform, ...walkingPath) => {
   let circle = walkingPath[0];
   let [targetX, targetZ] = circle;
   let [soulX, soulZ] = circle;
-  const parentModelMatrix = $matrix;
+  const parentModelMatrix = currentModelMmatrix;
   const index = souls.length;
   souls.push(soul);
 };
@@ -1259,16 +1257,16 @@ layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec
               Math.sin(0.7 * gameTime),
               Math.sin(0.9 * gameTime),
             );
-          _messageEndTime && gameTime > _messageEndTime && (_messageEndTime = 0, h4.innerHTML = ""),
-            secondBoatLerp = lerpDamp(
-              secondBoatLerp,
-              levers[15].$lerpValue2,
-              0.2 + 0.3 * abs(2 * levers[15].$lerpValue2 - 1),
-            ),
+          secondBoatLerp = lerpDamp(
+            secondBoatLerp,
+            levers[15].$lerpValue2,
+            0.2 + 0.3 * abs(2 * levers[15].$lerpValue2 - 1),
+          ),
             firstBoatLerp = game_completed
               ? (player_first_person = 0, lerpDamp(firstBoatLerp, -9, 0.015))
               : lerpDamp(firstBoatLerp, clamp(gameTime / 3), 1),
-            updateInput();
+            _messageEndTime && gameTime > _messageEndTime && (_messageEndTime = 0, h4.innerHTML = ""),
+            page_update();
           var oscillation =
             (modelsUpdateCounter = 1,
               shouldRotatePlatforms = lerpneg(levers[13].$lerpValue, levers[8].$lerpValue),
@@ -1583,6 +1581,7 @@ in vec4 f;void main(){gl_Position=vec4(f.xy,1,1);}`,
         collisionShader(),
         cgl["uae"](collisionShader("a"), !1, matrixToArray(mat_perspective(1e-4, 2, 1.2, 0.4))),
         player_init(),
+        page_update(),
         requestAnimationFrame(mainLoop),
         DEV_ROOT_FUNCTION();
     }
@@ -1691,7 +1690,15 @@ in vec4 f;void main(){gl_Position=vec4(f.xy,1,1);}`,
           -88,
         ];
         const newLever = ($transform) => {
-          meshAdd(cylinder(5), $transform.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5)),
+          levers.push({
+            $matrix: currentModelMmatrix,
+            $transform,
+          }),
+            meshAdd(
+              cylinder(5),
+              $transform.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5),
+              material(0.4, 0.5, 0.5),
+            ),
             meshAdd(
               cylinder(5),
               $transform.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5),
@@ -1701,11 +1708,7 @@ in vec4 f;void main(){gl_Position=vec4(f.xy,1,1);}`,
               cylinder().slice(0, -1),
               $transform.translate(0, -0.4).scale(0.5, 0.1, 0.5),
               material(0.5, 0.5, 0.4),
-            ),
-            levers.push({
-              $matrix,
-              $transform,
-            });
+            );
         };
         const hornMatrix = (i) =>
           translation(Math.sin((i /= 11) * Math.PI), i).rotateSelf(10 * i).scaleSelf(1.002 - i, 1, 1.002 - i);
@@ -1825,7 +1828,7 @@ in vec4 f;void main(){gl_Position=vec4(f.xy,1,1);}`,
               ),
               polygons_transform(
                 cylinder(6),
-                translation(15.5, -1.5, 3.5).scale(3.5, 1, 3.5),
+                translation(15.8, -1.5, 3.8).scale(3.5, 1, 3.5),
                 material(0.5, 0.5, 0.5, 0.5),
               ),
               polygons_transform(
@@ -1836,7 +1839,7 @@ in vec4 f;void main(){gl_Position=vec4(f.xy,1,1);}`,
               polygons_transform(cylinder(5), identity.scale(5, 30, 5), material(0.4, 0.2, 0.6, 0.5)),
             ),
           ),
-          newLever(translation(15, -2, 4)),
+          newLever(translation(15.8, -2, 3.8)),
           meshAdd(cylinder(), translation(-18.65, -3, 55).scale(2.45, 1.4, 2.7), material(0.9, 0.9, 0.9, 0.2)),
           newLever(translation(-55, -1.1, 46).rotate(0, 90)),
           meshAdd(cylinder(7), translation(-57, -2.6, 46).scale(4, 1, 4), material(0.8, 0.8, 0.8, 0.3)),

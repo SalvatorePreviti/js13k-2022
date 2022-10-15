@@ -24,17 +24,17 @@ export const resetInteractPressed = () => {
 
 export let player_first_person: 0 | 1 | undefined;
 
-export const exit_player_first_person = () => (player_first_person = 0);
-
 export let input_forward = 0;
 
 export let input_strafe = 0;
 
-export let projection: DOMMatrix;
-
 export let csm_projections: DOMMatrix[];
 
-export let updateInput = () => {
+export let projection: DOMMatrix;
+
+export const exit_player_first_person = () => (player_first_person = 0);
+
+export let page_update = () => {
   let touchStartTime: number | undefined;
 
   let touchPosStartX: number | undefined;
@@ -324,7 +324,7 @@ export let updateInput = () => {
   const getGamepadButtonState = (gamepad: Gamepad, index: number) =>
     gamepad.buttons[index]?.pressed || (gamepad.buttons[index]?.value as any) > 0 ? 1 : 0;
 
-  updateInput = () => {
+  page_update = () => {
     input_forward = touch_movementY + (keyboard_downKeys[KEY_FRONT] ? 1 : 0) - (keyboard_downKeys[KEY_BACK] ? 1 : 0);
     input_strafe = touch_movementX + (keyboard_downKeys[KEY_LEFT] ? 1 : 0) - (keyboard_downKeys[KEY_RIGHT] ? 1 : 0);
 

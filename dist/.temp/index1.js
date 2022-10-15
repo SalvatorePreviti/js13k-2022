@@ -29,24 +29,24 @@ const hypot = (a, b, c = 0) => (a * a + b * b + c * c) ** 0.5;
 const identity = new DOMMatrix();
 const tempMatrix = new DOMMatrix();
 const float32Array16Temp = new Float32Array(16);
-const matrixToArray = ($matrix2, output = float32Array16Temp, index = 0) => {
+const matrixToArray = ($matrix, output = float32Array16Temp, index = 0) => {
   index *= 16;
-  output[index++] = $matrix2.m11;
-  output[index++] = $matrix2.m12;
-  output[index++] = $matrix2.m13;
-  output[index++] = $matrix2.m14;
-  output[index++] = $matrix2.m21;
-  output[index++] = $matrix2.m22;
-  output[index++] = $matrix2.m23;
-  output[index++] = $matrix2.m24;
-  output[index++] = $matrix2.m31;
-  output[index++] = $matrix2.m32;
-  output[index++] = $matrix2.m33;
-  output[index++] = $matrix2.m34;
-  output[index++] = $matrix2.m41;
-  output[index++] = $matrix2.m42;
-  output[index++] = $matrix2.m43;
-  output[index] = $matrix2.m44;
+  output[index++] = $matrix.m11;
+  output[index++] = $matrix.m12;
+  output[index++] = $matrix.m13;
+  output[index++] = $matrix.m14;
+  output[index++] = $matrix.m21;
+  output[index++] = $matrix.m22;
+  output[index++] = $matrix.m23;
+  output[index++] = $matrix.m24;
+  output[index++] = $matrix.m31;
+  output[index++] = $matrix.m32;
+  output[index++] = $matrix.m33;
+  output[index++] = $matrix.m34;
+  output[index++] = $matrix.m41;
+  output[index++] = $matrix.m42;
+  output[index++] = $matrix.m43;
+  output[index] = $matrix.m44;
   return output;
 };
 const matrixCopy = (source = identity, target = tempMatrix) => {
@@ -74,6 +74,13 @@ const matrixTransformPoint = (x = 0, y = 0, z = 0, w = 1) => {
   matrixTransformPoint.z = tempMatrix.m13 * x + tempMatrix.m23 * y + tempMatrix.m33 * z + tempMatrix.m43 * w;
   matrixTransformPoint.w = tempMatrix.m14 * x + tempMatrix.m24 * y + tempMatrix.m34 * z + tempMatrix.m44 * w;
 };
+const SOULS_COUNT = 13;
+const LEVERS_COUNT = 16;
+const MODELS_WITH_SIMPLE_TRANSFORM = 26;
+const MODELS_WITH_FULL_TRANSFORM = 12 + LEVERS_COUNT;
+const allModels = [];
+const levers = [];
+const souls = [];
 const translation = NO_INLINE((x, y, z) => identity.translate(x, y, z));
 const integers_map = (n, fn) => Array.from(/* @__PURE__ */ Array(n), (_, i) => fn(i));
 const polygon_color = (polygon, color, smooth) => {
@@ -204,9 +211,9 @@ const CSGPolygon_split = (plane, polygon) => {
   let jd;
   let front;
   let back;
-  const { $polygon: $polygon2, $flipped } = polygon;
-  for (let i = 0; i < $polygon2.length; ++i) {
-    jd = vec3_dot(plane, $polygon2[i]) - plane.w;
+  const { $polygon, $flipped } = polygon;
+  for (let i = 0; i < $polygon.length; ++i) {
+    jd = vec3_dot(plane, $polygon[i]) - plane.w;
     if (jd < -PLANE_EPSILON) {
       back = polygon;
     } else if (jd > PLANE_EPSILON) {
@@ -215,9 +222,9 @@ const CSGPolygon_split = (plane, polygon) => {
     if (back && front) {
       const fpoints = [];
       const bpoints = [];
-      let iv = $polygon2.at(-1);
+      let iv = $polygon.at(-1);
       let id = vec3_dot(iv, plane) - plane.w;
-      for (const jv of $polygon2) {
+      for (const jv of $polygon) {
         jd = vec3_dot(jv, plane) - plane.w;
         if (id < PLANE_EPSILON) {
           bpoints.push(iv);
@@ -239,12 +246,12 @@ const CSGPolygon_split = (plane, polygon) => {
         id = jd;
       }
       front = fpoints.length > 2 && {
-        $polygon: polygon_color(fpoints, $polygon2.$color, $polygon2.$smooth),
+        $polygon: polygon_color(fpoints, $polygon.$color, $polygon.$smooth),
         $flipped,
         $parent: polygon,
       };
       back = bpoints.length > 2 && {
-        $polygon: polygon_color(bpoints, $polygon2.$color, $polygon2.$smooth),
+        $polygon: polygon_color(bpoints, $polygon.$color, $polygon.$smooth),
         $flipped,
         $parent: polygon,
       };
@@ -346,20 +353,20 @@ const csg_polygons = (tree) => {
       allPolygons.set(add(polygon), polygon.$flipped);
     }
   });
-  return Array.from(allPolygons, ([{ $polygon: $polygon2 }, flipped]) => {
-    const polygon = $polygon2.map(({ x, y, z }) => ({
+  return Array.from(allPolygons, ([{ $polygon }, flipped]) => {
+    const polygon = $polygon.map(({ x, y, z }) => ({
       x,
       y,
       z,
     }));
-    return polygon_color(flipped ? polygon.reverse() : polygon, $polygon2.$color, $polygon2.$smooth);
+    return polygon_color(flipped ? polygon.reverse() : polygon, $polygon.$color, $polygon.$smooth);
   });
 };
 const csg_tree = (n) =>
   n.length
-    ? n.reduce((prev, $polygon2) =>
+    ? n.reduce((prev, $polygon) =>
       csg_tree_addPolygon(prev, {
-        $polygon: $polygon2,
+        $polygon,
         $flipped: 0,
         $parent: 0,
       }), 0)
@@ -385,13 +392,6 @@ const csg_union = (...inputs) =>
     return a;
   });
 const csg_polygons_subtract = (a, ...b) => csg_polygons(csg_tree_flip(csg_union(csg_tree_flip(csg_tree(a)), ...b)));
-const SOULS_COUNT = 13;
-const LEVERS_COUNT = 16;
-const MODELS_WITH_SIMPLE_TRANSFORM = 26;
-const MODELS_WITH_FULL_TRANSFORM = 12 + LEVERS_COUNT;
-const allModels = [];
-const levers = [];
-const souls = [];
 let _globalTime;
 let mainMenuVisible;
 const setMainMenuVisible = (visible) => mainMenuVisible = visible;
@@ -574,16 +574,16 @@ const loadStep = (fn) => {
   h4.innerHTML += ".";
   setTimeout(fn);
 };
-const getnotefreq = (n) => 0.003959503758 * 2 ** ((n - 256) / 12);
-const osc_sin = (value) => /* @__PURE__ */ Math.sin(value * Math.PI * 2);
-const osc_square = (value) => value % 1 < 0.5 ? 1 : -1;
-const osc_saw = (value) => 2 * (value % 1) - 1;
-const osc_tri = (value) => {
-  const v2 = value % 1 * 4;
-  return v2 < 2 ? v2 - 1 : 3 - v2;
-};
 let audioBuffer;
 const loadSong = NO_INLINE((done) => {
+  const getnotefreq = (n) => 0.003959503758 * 2 ** ((n - 256) / 12);
+  const osc_sin = (value) => /* @__PURE__ */ Math.sin(value * Math.PI * 2);
+  const osc_square = (value) => value % 1 < 0.5 ? 1 : -1;
+  const osc_saw = (value) => 2 * (value % 1) - 1;
+  const osc_tri = (value) => {
+    const v2 = value % 1 * 4;
+    return v2 < 2 ? v2 - 1 : 3 - v2;
+  };
   let channelIndex = 0;
   audioBuffer = new AudioBuffer({
     numberOfChannels: 2,
@@ -760,12 +760,12 @@ const resetInteractPressed = () => {
   interact_pressed = 0;
 };
 let player_first_person;
-const exit_player_first_person = () => player_first_person = 0;
 let input_forward = 0;
 let input_strafe = 0;
-let projection;
 let csm_projections;
-let updateInput = () => {
+let projection;
+const exit_player_first_person = () => player_first_person = 0;
+let page_update = () => {
   let touchStartTime;
   let touchPosStartX;
   let touchPosStartY;
@@ -996,7 +996,7 @@ let updateInput = () => {
   };
   const getGamepadButtonState = (gamepad, index) =>
     gamepad.buttons[index]?.pressed || gamepad.buttons[index]?.value > 0 ? 1 : 0;
-  updateInput = () => {
+  page_update = () => {
     input_forward = touch_movementY + (keyboard_downKeys[KEY_FRONT] ? 1 : 0) - (keyboard_downKeys[KEY_BACK] ? 1 : 0);
     input_strafe = touch_movementX + (keyboard_downKeys[KEY_LEFT] ? 1 : 0) - (keyboard_downKeys[KEY_RIGHT] ? 1 : 0);
     const gamepad = navigator.getGamepads()[0];
@@ -1057,17 +1057,7 @@ let player_last_pulled_lever = LEVER_ID_BOAT0;
 let firstBoatLerp;
 let secondBoatLerp;
 let _messageEndTime = 0.1;
-const showMessage = (message, duration) => {
-  if (_messageEndTime < Infinity) {
-    _messageEndTime = gameTime + duration;
-    h4.innerHTML = message;
-  }
-};
 const worldStateUpdate = () => {
-  if (_messageEndTime && gameTime > _messageEndTime) {
-    _messageEndTime = 0;
-    h4.innerHTML = "";
-  }
   secondBoatLerp = lerpDamp(
     secondBoatLerp,
     levers[LEVER_ID_BOAT1].$lerpValue2,
@@ -1078,6 +1068,16 @@ const worldStateUpdate = () => {
     firstBoatLerp = lerpDamp(firstBoatLerp, -9, 0.015);
   } else {
     firstBoatLerp = lerpDamp(firstBoatLerp, clamp(gameTime / 3), 1);
+  }
+  if (_messageEndTime && gameTime > _messageEndTime) {
+    _messageEndTime = 0;
+    h4.innerHTML = "";
+  }
+};
+const showMessage = (message, duration) => {
+  if (_messageEndTime < Infinity) {
+    _messageEndTime = gameTime + duration;
+    h4.innerHTML = message;
   }
 };
 const updateCollectedSoulsCounter = () => {
@@ -1187,18 +1187,16 @@ const distanceToPlayer = () => {
     player_position_final.z - matrixTransformPoint.z,
   );
 };
-let $matrix;
-let $polygon;
+let currentModelMmatrix;
+let currentModelPolygons;
 const newModel = (name) => {
-  $polygon = [];
-  $matrix = new DOMMatrix();
   allModels.push({
-    $matrix,
-    $polygon,
+    $matrix: currentModelMmatrix = new DOMMatrix(),
+    $polygon: currentModelPolygons = [],
   });
 };
 const meshAdd = (polygons, transform = identity, color) =>
-  $polygon.push(...polygons_transform(polygons, transform, color));
+  currentModelPolygons.push(...polygons_transform(polygons, transform, color));
 const SOUL_SENSITIVITY_RADIUS = 1.6;
 const newSoul = (transform, ...walkingPath) => {
   let dirX = -1;
@@ -1212,7 +1210,7 @@ const newSoul = (transform, ...walkingPath) => {
   let circle = walkingPath[0];
   let [targetX, targetZ] = circle;
   let [soulX, soulZ] = circle;
-  const parentModelMatrix = $matrix;
+  const parentModelMatrix = currentModelMmatrix;
   const index = souls.length;
   const soul = () => {
     if (soul.$value) {
@@ -1281,13 +1279,13 @@ const newSoul = (transform, ...walkingPath) => {
 const build_life_the_universe_and_everything = () => {
   const HORN_STACKS = 11;
   const newLever = ($transform, name) => {
+    levers.push({
+      $matrix: currentModelMmatrix,
+      $transform,
+    });
     meshAdd(cylinder(5), $transform.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
     meshAdd(cylinder(5), $transform.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
     meshAdd(cylinder().slice(0, -1), $transform.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
-    levers.push({
-      $matrix,
-      $transform,
-    });
   };
   const hornMatrix = (i) => {
     i /= HORN_STACKS;
@@ -1402,12 +1400,12 @@ const build_life_the_universe_and_everything = () => {
           material(0.7, 0.7, 0.7, 0.2),
         ),
       ),
-      polygons_transform(cylinder(6), translation(15.5, -1.5, 3.5).scale(3.5, 1, 3.5), material(0.5, 0.5, 0.5, 0.5)),
+      polygons_transform(cylinder(6), translation(15.8, -1.5, 3.8).scale(3.5, 1, 3.5), material(0.5, 0.5, 0.5, 0.5)),
       polygons_transform(cylinder(5, 0, 1.5), translation(0, 1).scale(4.5, 0.3, 4.5), material(0.7, 0.5, 0.9, 0.2)),
       polygons_transform(cylinder(5), identity.scale(5, 30, 5), material(0.4, 0.2, 0.6, 0.5)),
     ),
   );
-  newLever(translation(15, -2, 4));
+  newLever(translation(15.8, -2, 3.8));
   meshAdd(cylinder(), translation(-21.1 + 2.45, -3, 55).scale(2.45, 1.4, 2.7), material(0.9, 0.9, 0.9, 0.2));
   newLever(translation(-55, -1.1, 46).rotate(0, 90));
   meshAdd(cylinder(7), translation(-57, -2.6, 46).scale(4, 1, 4), material(0.8, 0.8, 0.8, 0.3));
@@ -2728,7 +2726,7 @@ const startMainLoop = (groundTextureImage) => {
     gameTimeUpdate(globalTime);
     if (gameTimeDelta > 0) {
       worldStateUpdate();
-      updateInput();
+      page_update();
       eppur_si_muove();
       cgl["cbf"](true, true, true, true);
       cgl["c4s"](16640);
@@ -2835,6 +2833,7 @@ const startMainLoop = (groundTextureImage) => {
   collisionShader();
   cgl["uae"](collisionShader(uniformName_projectionMatrix), false, matrixToArray(mat_perspective(1e-4, 2, 1.2, 0.4)));
   player_init();
+  page_update();
   requestAnimationFrame(mainLoop);
   DEV_ROOT_FUNCTION();
 };

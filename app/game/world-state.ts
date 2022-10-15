@@ -24,19 +24,7 @@ export let secondBoatLerp: number;
 
 let _messageEndTime = 0.1;
 
-export const showMessage = (message: string, duration: number) => {
-  if (_messageEndTime < Infinity) {
-    _messageEndTime = gameTime + duration;
-    h4.innerHTML = message;
-  }
-};
-
 export const worldStateUpdate = () => {
-  if (_messageEndTime && gameTime > _messageEndTime) {
-    _messageEndTime = 0;
-    h4.innerHTML = "";
-  }
-
   secondBoatLerp = lerpDamp(
     secondBoatLerp,
     levers[LEVER_ID_BOAT1]!.$lerpValue2,
@@ -48,6 +36,18 @@ export const worldStateUpdate = () => {
     firstBoatLerp = lerpDamp(firstBoatLerp, -9, 0.015);
   } else {
     firstBoatLerp = lerpDamp(firstBoatLerp, clamp(gameTime / 3), 1);
+  }
+
+  if (_messageEndTime && gameTime > _messageEndTime) {
+    _messageEndTime = 0;
+    h4.innerHTML = "";
+  }
+};
+
+export const showMessage = (message: string, duration: number) => {
+  if (_messageEndTime < Infinity) {
+    _messageEndTime = gameTime + duration;
+    h4.innerHTML = message;
   }
 };
 
