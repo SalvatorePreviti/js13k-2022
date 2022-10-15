@@ -8,7 +8,7 @@ import { JSDOM } from "jsdom";
 
 export async function htmlMinify(
   input: string,
-  options: { prependUtf8BOM: boolean; timed?: boolean; type: "page" | "fragment" },
+  options: { prependUtf8BOM?: boolean; timed?: boolean; type: "page" | "fragment" },
 ) {
   const timed = options.timed ?? true;
   return devLog.timed(

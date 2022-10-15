@@ -44,6 +44,8 @@ const LIGHT_ROT_X = 298;
 const LIGHT_ROT_Y = 139;
 
 export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
+  DEV_ROOT_FUNCTION();
+
   const csm_tempMatrix = new DOMMatrix();
   const camera_view = new DOMMatrix();
 

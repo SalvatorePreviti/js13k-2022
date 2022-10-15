@@ -1,4 +1,4 @@
-const groundTextureSvg = `data:image/svg+xml;base64,${/* @__PURE__ */ btoa('<svg color-interpolation-filters="sRGB" height="1024" width="1024" xmlns="http://www.w3.org/2000/svg"><filter filterUnits="userSpaceOnUse" height="1026" id="a" width="1026" x="0" y="0"><feTurbulence baseFrequency=".007" height="1025" numOctaves="6" stitchTiles="stitch" width="1025" result="z" type="fractalNoise" x="1" y="1"/><feTile height="1024" width="1024" x="-1" y="-1"/><feTile/><feDiffuseLighting diffuseConstant="4" lighting-color="red" surfaceScale="5"><feDistantLight azimuth="270" elevation="5"/></feDiffuseLighting><feTile height="1024" width="1024" x="1" y="1"/><feTile result="x"/><feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 1" in="z"/><feTile height="1024" width="1024" x="1" y="1"/><feTile result="z"/><feTurbulence baseFrequency=".01" height="1024" numOctaves="5" stitchTiles="stitch" width="1024"/><feColorMatrix values="0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1"/><feBlend in2="x" mode="screen"/><feBlend in2="z" mode="screen"/></filter><rect filter="url(#a)" height="100%" width="100%"/></svg>')}`;
+const groundTextureSvg = "data:image/svg+xml;base64," + /* @__PURE__ */ btoa('<svg color-interpolation-filters="sRGB" height="1024" width="1024" xmlns="http://www.w3.org/2000/svg"><filter filterUnits="userSpaceOnUse" height="1026" id="a" width="1026" x="0" y="0"><feTurbulence baseFrequency=".007" height="1025" numOctaves="6" stitchTiles="stitch" width="1025" result="z" type="fractalNoise" x="1" y="1"/><feTile height="1024" width="1024" x="-1" y="-1"/><feTile/><feDiffuseLighting diffuseConstant="4" lighting-color="red" surfaceScale="5"><feDistantLight azimuth="270" elevation="5"/></feDiffuseLighting><feTile height="1024" width="1024" x="1" y="1"/><feTile result="x"/><feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 1" in="z"/><feTile height="1024" width="1024" x="1" y="1"/><feTile result="z"/><feTurbulence baseFrequency=".01" height="1024" numOctaves="5" stitchTiles="stitch" width="1024"/><feColorMatrix values="0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1"/><feBlend in2="x" mode="screen"/><feBlend in2="z" mode="screen"/></filter><rect filter="url(#a)" height="100%" width="100%"/></svg>');
 const DEG_TO_RAD = Math.PI / 180;
 const abs = NO_INLINE((a) => a < 0 ? -a : a);
 const min = NO_INLINE((a, b) => a < b ? a : b);
@@ -501,6 +501,7 @@ let projection;
 let csm_projections;
 let updateInput;
 const initPage = () => {
+  DEV_ROOT_FUNCTION();
   let touchStartTime;
   let touchPosStartX;
   let touchPosStartY;
@@ -797,6 +798,7 @@ const updateCollectedSoulsCounter = () => {
   ][souls_collected_count = souls.reduce((acc, v) => acc + v.$value, 0)] + " / XIII";
 };
 const loadGame = () => {
+  DEV_ROOT_FUNCTION();
   let _savedLevers = [];
   let _savedSouls = [];
   try {
@@ -1013,8 +1015,8 @@ const plane_fromPolygon = (polygon) => {
   };
 };
 const vec3_dot = ({ x, y, z }, b) => x * b.x + y * b.y + z * b.z;
-const PLANE_EPSILON = 8e-5;
 const CSGPolygon_split = (plane, polygon) => {
+  const PLANE_EPSILON = 8e-5;
   let jd;
   let front;
   let back;
@@ -1178,6 +1180,7 @@ const csg_union = (...inputs) => inputs.reduce((a, b) => {
 });
 const csg_polygons_subtract = (a, ...b) => csg_polygons(csg_tree_flip(csg_union(csg_tree_flip(csg_tree(a)), ...b)));
 const build_life_the_universe_and_everything = () => {
+  DEV_ROOT_FUNCTION();
   const HORN_STACKS = 11;
   const hornMatrix = (i) => {
     i /= HORN_STACKS;
@@ -1621,6 +1624,7 @@ let camera_position_z = 0;
 const collision_buffer = new Uint8Array(constDef_COLLISION_TEXTURE_SIZE * constDef_COLLISION_TEXTURE_SIZE * 4);
 let player_update;
 const player_init = () => {
+  DEV_ROOT_FUNCTION();
   let boot = 1;
   let player_gravity = 15;
   let player_respawned = 2;
@@ -1800,6 +1804,7 @@ let rotatingPlatform1Rotation;
 let rotatingPlatform2Rotation;
 let rotatingHexCorridorRotation;
 const eppur_si_muove = () => {
+  DEV_ROOT_FUNCTION();
   modelsResetUpdateCounter();
   shouldRotatePlatforms = lerpneg(levers[LEVER_ID_DONUT_PAD].$lerpValue, levers[LEVER_ID_AFTER_ROTATING_PLATFORMS].$lerpValue);
   rotatingHexCorridorRotation = lerp(lerpDamp(rotatingHexCorridorRotation, 0, 1), angle_wrap_degrees(rotatingHexCorridorRotation + gameTimeDelta * 60), levers[LEVER_ID_ROTATING_CORRIDOR].$lerpValue - levers[LEVER_ID_CRYSTALS].$lerpValue2);
@@ -1865,6 +1870,7 @@ const eppur_si_muove = () => {
 const LIGHT_ROT_X = 298;
 const LIGHT_ROT_Y = 139;
 const startMainLoop = (groundTextureImage) => {
+  DEV_ROOT_FUNCTION();
   const csm_tempMatrix = new DOMMatrix();
   const camera_view = new DOMMatrix();
   const csm_lightSpaceMatrices = new Float32Array(32);
@@ -2044,6 +2050,7 @@ const startMainLoop = (groundTextureImage) => {
   requestAnimationFrame(mainLoop);
 };
 const initTriangleBuffers = () => {
+  DEV_ROOT_FUNCTION();
   const _triangleIndices = [];
   const _vertexPositions = [];
   const _vertexColors = [];

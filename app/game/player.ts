@@ -53,6 +53,8 @@ const collision_buffer = new Uint8Array(COLLISION_TEXTURE_SIZE * COLLISION_TEXTU
 export let player_update: () => void;
 
 export const player_init = () => {
+  DEV_ROOT_FUNCTION();
+
   let boot: 0 | 1 = 1;
   let player_gravity = 15;
   let player_respawned: 0 | 1 | 2 = 2;

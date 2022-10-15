@@ -1,11 +1,10 @@
-NO_INLINE(
-  "<!DOCTYPE html><html><head>\n    <title>666</title>\n    <meta name=\"viewport\" content=\"width=device-width,initial-scale=1,user-scalable=0\">\n    \n    \n    \n  <link rel=\"stylesheet\" href=\"/index.css\"></head>\n\n  <body>\n    <canvas id=\"hD\" height=\"128\" width=\"128\"></canvas>\n    <canvas id=\"hC\"></canvas>\n    <h4 id=\"h4\">loading</h4>\n    <b id=\"b5\">☰</b>\n    <h3 id=\"h3\"></h3>\n    <main>\n      <nav>\n        <h2>DANTE</h2>\n        Lucifer:\n        <i>\"Damn. Infernal delivery service failed again. A delivery of evil souls fell in an area under construction.\n          Dante, take them where they belong, to the 8th circle.\"</i>\n        <ul>\n          <li id=\"b1\">Play</li>\n          <li id=\"b2\">Play first person</li>\n          <li id=\"b3\">Restart</li>\n          <li id=\"b4\"></li>\n        </ul>\n        <p>move WASD/arrows, levers E/click, menu Esc</p>\n        <p>\n          <a target=\"_blank\" href=\"https://github.com/SalvatorePreviti/js13k-2022\">© 2022 Salvatore Previti</a> -\n          <a target=\"_blank\" href=\"https://twitter.com/ryanmalm\">music Ryan Malm</a>\n        </p>\n      </nav>\n    </main>\n    \n  \n\n<script type=\"module\" src=\"/index.js\" crossorigin=\"\"></script></body></html> * {\n  -webkit-user-select: none;\n  user-select: none;\n  color: #fda;\n  font-weight: 100;\n  touch-action: none;\n  overscroll-behavior: contain;\n}\nhtml,\nbody {\n  background: #000;\n  margin: 0;\n  font-family: \"Times New Roman\", serif;\n  font-size: max(min(3.8vw, 3.8vh), 15px);\n  text-shadow: 4px 4px 2px #000, -2px -2px 8px #000;\n}\np {\n  font-size: 0.7em;\n}\nbody > * {\n  position: absolute;\n}\nh2 {\n  color: #f61;\n  margin: 0 0 0.7em;\n}\nh4 {\n  left: 0;\n  top: 0;\n  right: 0;\n  text-align: center;\n}\nh3,\nh4 {\n  pointer-events: none;\n}\n.m main {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  top: 0;\n  right: 0;\n  bottom: 0;\n  min-width: 70%;\n}\nnav {\n  background: #00000080;\n  border-radius: 1em;\n  max-width: max(780px, 50vw);\n  padding: 1em;\n}\n#b5,\nh3 {\n  padding: 10px;\n}\nh3 {\n  text-align: right;\n  right: 5%;\n  bottom: 0;\n}\na,\nli {\n  cursor: pointer;\n  margin-bottom: 0.5em;\n  text-decoration: none;\n  border-bottom: 3px solid #00000000;\n}\nh2,\na:hover,\nli:hover {\n  border-bottom: 3px solid;\n}\nmain,\n.m h4,\n#hD {\n  display: none;\n}\n",
-);
-const groundTextureSvg = `data:image/svg+xml;base64,${
-  /* @__PURE__ */ btoa(
+document.body.innerHTML +=
+  "<canvas id=hD height=128 width=128></canvas><canvas id=hC></canvas><h4 id=h4>loading</h4><b id=b5>☰</b><h3 id=h3></h3><main><nav><h2>DANTE</h2>Lucifer: <i>\"Damn. Infernal delivery service failed again. A delivery of evil souls fell in an area under construction. Dante, take them where they belong, to the 8th circle.\"</i><ul><li id=b1>Play</li><li id=b2>Play first person</li><li id=b3>Restart</li><li id=b4></li></ul><p>move WASD/arrows, levers E/click, menu Esc</p><p><a href=https://github.com/SalvatorePreviti/js13k-2022 target=_blank>© 2022 Salvatore Previti</a> - <a href=https://twitter.com/ryanmalm target=_blank>music Ryan Malm</a></p></nav></main><style>*{color:#fda;font-weight:100;overscroll-behavior:contain;touch-action:none;user-select:none}body,html{background:#000;font-family:Times New Roman,serif;font-size:max(min(3.8vw,3.8vh),15px);margin:0;text-shadow:4px 4px 2px #000,-2px -2px 8px #000}p{font-size:.7em}body>*{position:absolute}h2{color:#f61;margin:0 0 .7em}.m main,h4{right:0;top:0}h3,h4{pointer-events:none}h4{left:0;text-align:center}h3{bottom:0;right:5%;text-align:right}.m main{align-items:center;bottom:0;display:flex;justify-content:center;min-width:70%}nav{background:#00000080;border-radius:1em;max-width:max(780px,50vw);padding:1em}#b5,h3{padding:10px}a,li{border-bottom:3px solid #0000;cursor:pointer;margin-bottom:.5em;text-decoration:none}a:hover,h2,li:hover{border-bottom:3px solid}#hD,.m h4,main{display:none}";
+
+const groundTextureSvg = "data:image/svg+xml;base64,"
+  + /* @__PURE__ */ btoa(
     "<svg color-interpolation-filters=\"sRGB\" height=\"1024\" width=\"1024\" xmlns=\"http://www.w3.org/2000/svg\"><filter filterUnits=\"userSpaceOnUse\" height=\"1026\" id=\"a\" width=\"1026\" x=\"0\" y=\"0\"><feTurbulence baseFrequency=\".007\" height=\"1025\" numOctaves=\"6\" stitchTiles=\"stitch\" width=\"1025\" result=\"z\" type=\"fractalNoise\" x=\"1\" y=\"1\"/><feTile height=\"1024\" width=\"1024\" x=\"-1\" y=\"-1\"/><feTile/><feDiffuseLighting diffuseConstant=\"4\" lighting-color=\"red\" surfaceScale=\"5\"><feDistantLight azimuth=\"270\" elevation=\"5\"/></feDiffuseLighting><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"x\"/><feColorMatrix values=\"0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 1\" in=\"z\"/><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"z\"/><feTurbulence baseFrequency=\".01\" height=\"1024\" numOctaves=\"5\" stitchTiles=\"stitch\" width=\"1024\"/><feColorMatrix values=\"0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1\"/><feBlend in2=\"x\" mode=\"screen\"/><feBlend in2=\"z\" mode=\"screen\"/></filter><rect filter=\"url(#a)\" height=\"100%\" width=\"100%\"/></svg>",
-  )
-}`;
+  );
 const DEG_TO_RAD = Math.PI / 180;
 const abs = NO_INLINE((a) => a < 0 ? -a : a);
 const min = NO_INLINE((a, b) => a < b ? a : b);
@@ -557,6 +556,7 @@ let projection;
 let csm_projections;
 let updateInput;
 const initPage = () => {
+  DEV_ROOT_FUNCTION();
   let touchStartTime;
   let touchPosStartX;
   let touchPosStartY;
@@ -889,6 +889,7 @@ const updateCollectedSoulsCounter = () => {
   ][souls_collected_count = souls.reduce((acc, v) => acc + v.$value, 0)] + " / XIII";
 };
 const loadGame = () => {
+  DEV_ROOT_FUNCTION();
   let _savedLevers = [];
   let _savedSouls = [];
   try {
@@ -1133,8 +1134,8 @@ const plane_fromPolygon = (polygon) => {
   };
 };
 const vec3_dot = ({ x, y, z }, b) => x * b.x + y * b.y + z * b.z;
-const PLANE_EPSILON = 8e-5;
 const CSGPolygon_split = (plane, polygon) => {
+  const PLANE_EPSILON = 8e-5;
   let jd;
   let front;
   let back;
@@ -1320,6 +1321,7 @@ const csg_union = (...inputs) =>
   });
 const csg_polygons_subtract = (a, ...b) => csg_polygons(csg_tree_flip(csg_union(csg_tree_flip(csg_tree(a)), ...b)));
 const build_life_the_universe_and_everything = () => {
+  DEV_ROOT_FUNCTION();
   const HORN_STACKS = 11;
   const hornMatrix = (i) => {
     i /= HORN_STACKS;
@@ -2187,6 +2189,7 @@ let camera_position_z = 0;
 const collision_buffer = new Uint8Array(constDef_COLLISION_TEXTURE_SIZE * constDef_COLLISION_TEXTURE_SIZE * 4);
 let player_update;
 const player_init = () => {
+  DEV_ROOT_FUNCTION();
   let boot = 1;
   let player_gravity = 15;
   let player_respawned = 2;
@@ -2453,6 +2456,7 @@ let rotatingPlatform1Rotation;
 let rotatingPlatform2Rotation;
 let rotatingHexCorridorRotation;
 const eppur_si_muove = () => {
+  DEV_ROOT_FUNCTION();
   modelsResetUpdateCounter();
   shouldRotatePlatforms = lerpneg(
     levers[LEVER_ID_DONUT_PAD].$lerpValue,
@@ -2603,6 +2607,7 @@ const eppur_si_muove = () => {
 const LIGHT_ROT_X = 298;
 const LIGHT_ROT_Y = 139;
 const startMainLoop = (groundTextureImage) => {
+  DEV_ROOT_FUNCTION();
   const csm_tempMatrix = new DOMMatrix();
   const camera_view = new DOMMatrix();
   const csm_lightSpaceMatrices = new Float32Array(32);
@@ -2837,6 +2842,7 @@ const startMainLoop = (groundTextureImage) => {
   requestAnimationFrame(mainLoop);
 };
 const initTriangleBuffers = () => {
+  DEV_ROOT_FUNCTION();
   const _triangleIndices = [];
   const _vertexPositions = [];
   const _vertexColors = [];

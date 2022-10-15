@@ -6,15 +6,11 @@ import { domRemoveExternalCssAndScripts, stripUtf8BOM } from "../lib/code-utils"
 
 export interface BundleHtmlInput {
   html: string;
-  css: string;
+  css?: string;
   js: string;
 }
 
-export interface BundleHtmlOutput {
-  html: string;
-}
-
-export async function bundleHtml(input: BundleHtmlInput): Promise<BundleHtmlOutput> {
+export async function bundleHtml(input: BundleHtmlInput): Promise<string> {
   return devLog.timed(
     async function bundle_html() {
       const initialSize = utf8ByteLength(input.js) + utf8ByteLength(input.css) + utf8ByteLength(input.html);
@@ -44,9 +40,7 @@ export async function bundleHtml(input: BundleHtmlInput): Promise<BundleHtmlOutp
 
       this.setSuccessText(sizeDifference(initialSize, finalSize));
 
-      return {
-        html: bundled,
-      };
+      return bundled;
     },
     { spinner: true },
   );

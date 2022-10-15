@@ -49,7 +49,10 @@ export function babelPluginSimple(settings: BabelPluginSimpleSettings): PluginIt
       visitor: {
         CallExpression(path: NodePath<types.CallExpression>): void {
           if (settings.removeNoInlineCall) {
-            if (path.node.callee.type === "Identifier" && path.node.callee.name === "NO_INLINE") {
+            if (
+              path.node.callee.type === "Identifier" &&
+              (path.node.callee.name === "NO_INLINE" || path.node.callee.name === "DEV_ROOT_FUNCTION")
+            ) {
               if (!path.node.arguments[0]) {
                 path.remove();
               } else {

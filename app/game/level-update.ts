@@ -72,6 +72,8 @@ let rotatingPlatform2Rotation: number;
 let rotatingHexCorridorRotation: number;
 
 export const eppur_si_muove = () => {
+  DEV_ROOT_FUNCTION();
+
   modelsResetUpdateCounter();
 
   shouldRotatePlatforms = lerpneg(

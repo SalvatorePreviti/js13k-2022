@@ -238,7 +238,12 @@ function rollupPluginSvg(): PluginOption {
         removeAttributeQuotes: false,
       });
       svg = svg.length <= optimized.length ? svg : optimized;
-      return { code: `export default \`data:image/svg+xml;base64,\${btoa(${JSON.stringify(svg)})}\``, map: null };
+      return {
+        code: `export default /* @__PURE__ */ "data:image/svg+xml;base64," + /* @__PURE__ */ btoa(${JSON.stringify(
+          svg,
+        )});`,
+        map: null,
+      };
     },
   };
 }

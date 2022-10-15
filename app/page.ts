@@ -37,6 +37,8 @@ export let csm_projections: DOMMatrix[];
 export let updateInput: () => void;
 
 export const initPage = () => {
+  DEV_ROOT_FUNCTION();
+
   let touchStartTime: number | undefined;
 
   let touchPosStartX: number | undefined;

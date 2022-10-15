@@ -1,7 +1,6 @@
 import ADMZip from "adm-zip";
 import fs from "fs";
 import zlib from "zlib";
-import type { WriteBundleInput } from "../lib/write-bundle";
 import { devLog } from "@balsamic/dev";
 import { sizeDifference } from "../lib/logging";
 
@@ -49,9 +48,7 @@ export const zipBundleOptions = {
   },
 };
 
-export function zipBundle(bundle: WriteBundleInput, title: string) {
-  let html = bundle.html;
-
+export function zipBundle(html: string, title: string) {
   // Remove tag closures
   for (const endTag of ["</html>", "</body>"]) {
     if (html.endsWith(endTag)) {

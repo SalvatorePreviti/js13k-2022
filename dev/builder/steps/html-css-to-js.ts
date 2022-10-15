@@ -5,13 +5,18 @@ import { sizeDifference } from "../lib/logging";
 import type { ViteBundledOutput } from "./build-vite";
 import { htmlMinify } from "./html-minify";
 
-export async function htmlCssToJs(sources: ViteBundledOutput) {
+export interface HtmlCssJsBundle {
+  html: string;
+  js: string;
+}
+
+export async function htmlCssToJs(sources: ViteBundledOutput): Promise<HtmlCssJsBundle> {
   return devLog.timed(
     async function html_css_to_js() {
       const dom = new JSDOM(stripUtf8BOM(sources.html));
 
       const scriptsTags = Array.from(dom.window.document.querySelectorAll("script"));
-      const js = [...scriptsTags.map((scriptTag) => scriptTag.textContent), sources.js].join("\n");
+      let js = [...scriptsTags.map((scriptTag) => scriptTag.textContent), sources.js].join("\n");
       scriptsTags.forEach((scriptTag) => scriptTag.remove());
 
       const styleTags = Array.from(dom.window.document.querySelectorAll("style"));
@@ -19,8 +24,6 @@ export async function htmlCssToJs(sources: ViteBundledOutput) {
       styleTags.forEach((styleTag) => styleTag.remove());
 
       domRemoveExternalCssAndScripts(dom);
-
-      let jsHtml: string = "";
 
       let bodyHtml = dom.window.document.body.innerHTML;
       bodyHtml = await htmlMinify(bodyHtml, { type: "fragment", prependUtf8BOM: false, timed: false });
@@ -31,7 +34,7 @@ export async function htmlCssToJs(sources: ViteBundledOutput) {
       }
 
       if (bodyHtml) {
-        jsHtml = `document.body.innerHTML+=${JSON.stringify(bodyHtml)};`;
+        js = `document.body.innerHTML+=${JSON.stringify(bodyHtml)};\n${js}`;
       }
 
       if (js) {
@@ -42,20 +45,17 @@ export async function htmlCssToJs(sources: ViteBundledOutput) {
         dom.window.document.body.appendChild(script);
       }
 
-      const finalHtml = await htmlMinify(dom.serialize(), {
+      const html = await htmlMinify(dom.serialize(), {
         type: "page",
         prependUtf8BOM: false,
         timed: false,
       });
 
       this.setSuccessText(
-        sizeDifference(utf8ByteLength(sources.html, sources.css, sources.js), utf8ByteLength(js, finalHtml)),
+        sizeDifference(utf8ByteLength(sources.html, sources.css, sources.js), utf8ByteLength(js, html)),
       );
-      return {
-        html: finalHtml,
-        jsHtml,
-        js,
-      };
+
+      return { html, js };
     },
     { spinner: true },
   );

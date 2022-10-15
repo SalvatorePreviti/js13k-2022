@@ -1,8 +1,6 @@
 import { polygon_color, type Polygon } from "./polygon";
 import { vec3_dot, plane_fromPolygon, type Plane, type Vec3, type Vec3In } from "../math/vectors";
 
-export const PLANE_EPSILON = 0.00008;
-
 export interface CSGPolygon {
   $polygon: Polygon;
 
@@ -35,6 +33,8 @@ interface SplitPolygonResult {
 }
 
 const CSGPolygon_split = (plane: Plane, polygon: CSGPolygon): SplitPolygonResult => {
+  const PLANE_EPSILON = 0.00008;
+
   let jd: number;
   let front: CSGPolygon | false | undefined;
   let back: CSGPolygon | false | undefined;

@@ -244,3 +244,4 @@ var b5;
 var h3;
 var h4;
 var NO_INLINE;
+var DEV_ROOT_FUNCTION;

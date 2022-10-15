@@ -5,6 +5,8 @@ import type { Polygon } from "../geometry/polygon";
 import { MODEL_ID_SOUL_COLLISION } from "./models-ids";
 
 export const initTriangleBuffers = () => {
+  DEV_ROOT_FUNCTION();
+
   const _triangleIndices: number[] = [];
   const _vertexPositions: number[] = [];
   const _vertexColors: number[] = [];
