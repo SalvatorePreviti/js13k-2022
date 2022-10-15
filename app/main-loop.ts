@@ -389,8 +389,6 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     matrixToArray(mat_perspective(0.0001, 2, 1.2, 0.4)),
   );
 
-  updateInput();
-
   player_init();
 
   requestAnimationFrame(mainLoop);

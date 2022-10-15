@@ -1587,7 +1587,6 @@ in vec4 f;void main(){gl_Position=vec4(f.xy,1,1);}`,
         cgl["v5y"](0, 0, 128, 128),
         collisionShader(),
         cgl["uae"](collisionShader("a"), !1, matrixToArray(mat_perspective(1e-4, 2, 1.2, 0.4))),
-        updateInput(),
         player_init(),
         requestAnimationFrame(mainLoop),
         DEV_ROOT_FUNCTION();

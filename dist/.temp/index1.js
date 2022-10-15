@@ -2834,7 +2834,6 @@ const startMainLoop = (groundTextureImage) => {
   cgl["v5y"](0, 0, constDef_COLLISION_TEXTURE_SIZE, constDef_COLLISION_TEXTURE_SIZE);
   collisionShader();
   cgl["uae"](collisionShader(uniformName_projectionMatrix), false, matrixToArray(mat_perspective(1e-4, 2, 1.2, 0.4)));
-  updateInput();
   player_init();
   requestAnimationFrame(mainLoop);
   DEV_ROOT_FUNCTION();

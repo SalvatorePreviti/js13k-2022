@@ -179,42 +179,42 @@ const w = NO_INLINE((a, b, g) => h.translate(a, b, g)),
               Bb = C * O & -2;
             for (let sb = 0; 11 >= sb; ++sb) {
               for (
-                let tb = 0, Mb = +"000001234556112341234556011111111112011111111112000001111112"[12 * b + sb];
+                let tb = 0, Lb = +"000001234556112341234556011111111112011111111112000001111112"[12 * b + sb];
                 32 > tb;
                 ++tb
               ) {
-                const Nb = (32 * sb + tb) * O;
+                const Mb = (32 * sb + tb) * O;
                 for (var oa = 0; 4 > oa; ++oa) {
-                  if (Q = 0, Mb && (Q = B[Mb - 1].charCodeAt(tb + 32 * oa) - 40, Q += 0 < Q ? 106 : 0), Q) {
+                  if (Q = 0, Lb && (Q = B[Lb - 1].charCodeAt(tb + 32 * oa) - 40, Q += 0 < Q ? 106 : 0), Q) {
                     var za;
                     if (!(za = Y[Q])) {
                       za = Q;
                       let V = void 0, Aa = void 0;
-                      var Ob = Q;
+                      var Nb = Q;
                       let dc = 0, ec = 0;
-                      const fc = 2 > b ? Ab : yb, gc = 2 > b ? 1 > b ? zb : Db : yb, Pb = new Int32Array(S + Z + K);
+                      const fc = 2 > b ? Ab : yb, gc = 2 > b ? 1 > b ? zb : Db : yb, Ob = new Int32Array(S + Z + K);
                       for (let Ra = 0, Cb = 0; S + Z + K > Ra; ++Ra, ++Cb) {
                         let Sa = 1;
                         S > Ra ? Sa = Ra / S : S + Z > Ra || (Sa = (1 - (Sa = (Ra - S - Z) / K)) * 3 ** (-x / 16 * Sa));
                         0 > Cb
                           || (Cb -= 4 * O,
-                            Aa = 0.00396 * 2 ** ((Ob + f - 256) / 12),
-                            V = 0.00396 * 2 ** ((Ob + F - 256) / 12) * (1 + (b ? 0 : 0.0072)));
-                        Pb[Ra] = 80
+                            Aa = 0.00396 * 2 ** ((Nb + f - 256) / 12),
+                            V = 0.00396 * 2 ** ((Nb + F - 256) / 12) * (1 + (b ? 0 : 0.0072)));
+                        Ob[Ra] = 80
                             * (fc(dc += Aa * Sa ** (v / 32)) * G + gc(ec += V * Sa ** (N / 32)) * L
                               + (H ? (2 * Math.random() - 1) * H : 0))
                             * Sa | 0;
                       }
-                      za = Y[za] = Pb;
+                      za = Y[za] = Ob;
                     }
-                    for (let V = 0, Aa = 2 * Nb; za.length > V; ++V, Aa += 2) {
+                    for (let V = 0, Aa = 2 * Mb; za.length > V; ++V, Aa += 2) {
                       sa[Aa] += za[V];
                     }
                   }
                 }
                 for (let V, Aa = 0; O > Aa; ++Aa) {
                   za = 0;
-                  oa = 2 * (Nb + Aa);
+                  oa = 2 * (Mb + Aa);
                   var Ba = (((V = sa[oa]) || Qa)
                     && (X = 0.00308 * t,
                       1 !== b && 4 !== b || (X *= Math.sin(bc * oa * Math.PI * 2) * I / 512 + 0.5),
@@ -401,7 +401,7 @@ const Jb = (a, b) => {
         ka = Ta.reduce((a, b) => a + b.j, 0)
       ] + " / XIII";
   },
-  Lb = () => {
+  Pb = () => {
     localStorage["Dante-22"] = JSON.stringify([e.map(a => a.j), Ta.map(a => a.j), Ga, na, d]);
   },
   P = NO_INLINE((a, b, g, k = 0) => 255 * k << 24 | 255 * g << 16 | 255 * b << 8 | 255 * a),
@@ -421,8 +421,8 @@ const Jb = (a, b) => {
         ib(ib(g).multiplySelf(a), R(0)).rotateSelf(50 * p - 25, 0).translateSelf(0, 1).m44 = p;
         da && 3 > (nb(), fb(Ma - jb, Na - kb, Oa - lb))
           ? b.j
-            ? 0.7 < p && (b.j = 0, Ga = k, Jb("* click *", 1), Lb())
-            : 0.3 > p && (b.j = 1, Ga = k, Jb("* click *", 1), Lb())
+            ? 0.7 < p && (b.j = 0, Ga = k, Jb("* click *", 1), Pb())
+            : 0.3 > p && (b.j = 1, Ga = k, Jb("* click *", 1), Pb())
           : b.j && 0.8 < p && 14 === k && (b.j = 0,
             13 > ka
               ? Jb("Not leaving now, there are souls to catch!", 3)
@@ -490,7 +490,7 @@ const Jb = (a, b) => {
               6,
             ),
             Kb(),
-            Lb());
+            Pb());
       }
       hb(l, Rb, 28 + n);
     };
@@ -987,7 +987,6 @@ xb(() => {
         ic.v5y(0, 0, 128, 128);
         N();
         ic.uae(N("a"), !1, hb(Hb(1e-4, 2, 1.2, 0.4)));
-        Ib();
         jc();
         requestAnimationFrame(z);
         DEV_ROOT_FUNCTION();

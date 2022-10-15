@@ -40,33 +40,33 @@ const w = NO_INLINE((a, b, g) => h.translate(a, b, g)), ob = (a, b) => Array.fro
       let Q, X, Qa, ia = 0, ja = 0;
       const Y = [], sa = new Int32Array(O * Eb), bc = 2 ** (A - 9) / O, cc = Math.PI * 2 ** (q - 8) / O, Bb = C * O & -2;
       for (let sb = 0; 11 >= sb; ++sb) {
-        for (let tb = 0, Mb = +"000001234556112341234556011111111112011111111112000001111112"[12 * b + sb]; 32 > tb; ++tb) {
-          const Nb = (32 * sb + tb) * O;
+        for (let tb = 0, Lb = +"000001234556112341234556011111111112011111111112000001111112"[12 * b + sb]; 32 > tb; ++tb) {
+          const Mb = (32 * sb + tb) * O;
           for (var oa = 0; 4 > oa; ++oa) {
-            if (Q = 0, Mb && (Q = B[Mb - 1].charCodeAt(tb + 32 * oa) - 40, Q += 0 < Q ? 106 : 0), Q) {
+            if (Q = 0, Lb && (Q = B[Lb - 1].charCodeAt(tb + 32 * oa) - 40, Q += 0 < Q ? 106 : 0), Q) {
               var za;
               if (!(za = Y[Q])) {
                 za = Q;
                 let V = void 0, Aa = void 0;
-                var Ob = Q;
+                var Nb = Q;
                 let dc = 0, ec = 0;
-                const fc = 2 > b ? Ab : yb, gc = 2 > b ? 1 > b ? zb : Db : yb, Pb = new Int32Array(S + Z + K);
+                const fc = 2 > b ? Ab : yb, gc = 2 > b ? 1 > b ? zb : Db : yb, Ob = new Int32Array(S + Z + K);
                 for (let Ra = 0, Cb = 0; S + Z + K > Ra; ++Ra, ++Cb) {
                   let Sa = 1;
                   S > Ra ? Sa = Ra / S : S + Z > Ra || (Sa = (1 - (Sa = (Ra - S - Z) / K)) * 3 ** (-x / 16 * Sa));
-                  0 > Cb || (Cb -= 4 * O, Aa = 0.00396 * 2 ** ((Ob + f - 256) / 12), V = 0.00396 * 2 ** ((Ob + F - 256) / 12) * (1 + (b ? 0 : 0.0072)));
-                  Pb[Ra] = 80 * (fc(dc += Aa * Sa ** (v / 32)) * G + gc(ec += V * Sa ** (N / 32)) * L + (H ? (2 * Math.random() - 1) * H : 0)) * Sa | 0;
+                  0 > Cb || (Cb -= 4 * O, Aa = 0.00396 * 2 ** ((Nb + f - 256) / 12), V = 0.00396 * 2 ** ((Nb + F - 256) / 12) * (1 + (b ? 0 : 0.0072)));
+                  Ob[Ra] = 80 * (fc(dc += Aa * Sa ** (v / 32)) * G + gc(ec += V * Sa ** (N / 32)) * L + (H ? (2 * Math.random() - 1) * H : 0)) * Sa | 0;
                 }
-                za = Y[za] = Pb;
+                za = Y[za] = Ob;
               }
-              for (let V = 0, Aa = 2 * Nb; za.length > V; ++V, Aa += 2) {
+              for (let V = 0, Aa = 2 * Mb; za.length > V; ++V, Aa += 2) {
                 sa[Aa] += za[V];
               }
             }
           }
           for (let V, Aa = 0; O > Aa; ++Aa) {
             za = 0;
-            oa = 2 * (Nb + Aa);
+            oa = 2 * (Mb + Aa);
             var Ba = (((V = sa[oa]) || Qa) && (X = 0.00308 * t, 1 !== b && 4 !== b || (X *= Math.sin(bc * oa * Math.PI * 2) * I / 512 + 0.5), X = 1.5 * Math.sin(X), ia += X * ja, Ba = (1 - J / 255) * (V - ja) - ia, ja += X * Ba, V = 4 === b ? ja : 3 === b ? Ba : ia, b || (V = 1 > (V *= 22e-5) ? -1 < V ? Math.sin(V / 4 * Math.PI * 2) : -1 : 1, V /= 22e-5), V *= D / 32, Qa = 1e-5 < V * V, Ba = Math.sin(cc * oa) * r / 512 + 0.5, za = V * (1 - Ba), V *= Ba), oa < Bb || (za += sa[1 + oa - Bb] * u / 255, 
             V += sa[oa - Bb] * u / 255), m + oa >> 1);
             k[Ba] += (sa[oa] = za) / 65536;
@@ -178,7 +178,7 @@ const Jb = (a, b) => {
   1 / 0 > Ha && (Ha = d + b, h4.innerHTML = a);
 }, Kb = () => {
   h3.innerHTML = "Souls: " + [0, "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII",][ka = Ta.reduce((a, b) => a + b.j, 0)] + " / XIII";
-}, Lb = () => {
+}, Pb = () => {
   localStorage["Dante-22"] = JSON.stringify([e.map(a => a.j), Ta.map(a => a.j), Ga, na, d,]);
 }, P = NO_INLINE((a, b, g, k = 0) => 255 * k << 24 | 255 * g << 16 | 255 * b << 8 | 255 * a), R = (a, b = 0, g = 0) => {
   const k = ib(h, Pa[++pa].l);
@@ -192,7 +192,7 @@ const Jb = (a, b) => {
     const p = b.h = M(b.h, b.j, 4);
     b.g = M(b.g, b.j, 1);
     ib(ib(g).multiplySelf(a), R(0)).rotateSelf(50 * p - 25, 0,).translateSelf(0, 1).m44 = p;
-    da && 3 > (nb(), fb(Ma - jb, Na - kb, Oa - lb,)) ? b.j ? 0.7 < p && (b.j = 0, Ga = k, Jb("* click *", 1), Lb()) : 0.3 > p && (b.j = 1, Ga = k, Jb("* click *", 1), Lb()) : b.j && 0.8 < p && 14 === k && (b.j = 0, 13 > ka ? Jb("Not leaving now, there are souls to catch!", 3) : la || (Jb("Well done. They will be punished.<br>Thanks for playing", 1 / 0), la = 1));
+    da && 3 > (nb(), fb(Ma - jb, Na - kb, Oa - lb,)) ? b.j ? 0.7 < p && (b.j = 0, Ga = k, Jb("* click *", 1), Pb()) : 0.3 > p && (b.j = 1, Ga = k, Jb("* click *", 1), Pb()) : b.j && 0.8 < p && 14 === k && (b.j = 0, 13 > ka ? Jb("Not leaving now, there are souls to catch!", 3) : la || (Jb("Well done. They will be punished.<br>Thanks for playing", 1 / 0), la = 1));
   }, g = Pa.at(-1).l, k = e.length;
   b.l = g;
   b.D = a;
@@ -220,7 +220,7 @@ const Jb = (a, b) => {
       g = cb(g, Math.atan2(H - k, S - p) / Ia - 180, wb(3));
       ib(Z).multiplySelf(a).translateSelf(k = H, 0, p = S).rotateSelf(0, g, 7 * Math.sin(1.7 * d),);
       1.6 > (nb(), fb(Ma - jb, Na - kb, Oa - lb,)) && (v.j = 1, Jb([, "Mark Zuckemberg<br>made the world worse", "Giorgia Meloni<br>fascist", "Andrzej Mazur<br>for the js13k competition", "Donald Trump<br>lies", "Kim Jong-un<br>Dictator, liked pineapple on pizza", "Maxime Euziere<br>forced me to finish this game", "She traded NFTs apes", , "Vladimir Putin<br>evil war", "He was not a good person", , "Salvatore Previti<br>made this evil game<br><br>Done. Go back to the boat",][ka] || 'Catched a "crypto bro".<br>"Web3" is all scam, lies and grift', 
-      6,), Kb(), Lb());
+      6,), Kb(), Pb());
     }
     hb(l, Rb, 28 + n);
   };
@@ -544,7 +544,6 @@ xb(() => {
       ic.v5y(0, 0, 128, 128);
       N();
       ic.uae(N("a"), !1, hb(Hb(1e-4, 2, 1.2, 0.4)));
-      Ib();
       jc();
       requestAnimationFrame(z);
       DEV_ROOT_FUNCTION();
