@@ -100,6 +100,4 @@ export const initTriangleBuffers = () => {
       throw new Error("Souls must be " + SOULS_COUNT + " but is " + souls.length);
     }
   }
-
-  DEV_ROOT_FUNCTION();
 };

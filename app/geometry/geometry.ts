@@ -1,8 +1,8 @@
-import { abs } from "../math/math";
 import { translation } from "../math/matrix-transforms";
 import { integers_map } from "../math/integers-map";
 import { polygon_color, polygon_transform, type Polygon } from "./polygon";
 import type { Vec3 } from "../math/vectors";
+import { abs } from "../math/math";
 
 export const GQuad = [
   { x: -1, z: 1 },

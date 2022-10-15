@@ -1,5 +1,5 @@
 export const mangleConfig = {
-  reserved: ["x", "y", "z", "w"],
+  reserved: [],
 };
 
 export const global_defs = {

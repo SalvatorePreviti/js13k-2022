@@ -369,6 +369,4 @@ export let page_update = () => {
   if (DEBUG) {
     console.log("fieldOfViewAmount:", fieldOfViewAmount);
   }
-
-  DEV_ROOT_FUNCTION();
 };

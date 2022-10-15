@@ -28,9 +28,4 @@ export const angle_lerp_degrees = (a0: number, a1: number, t: number) => {
 export const lerp = (a: number | undefined, b: number | undefined, t: number) =>
   (t <= 0 ? a : t >= 1 ? b : a! + (b! - a!) * t) || 0;
 
-export const lerpneg = (v: number, t: number) => {
-  v = clamp(v);
-  return lerp(v, 1 - v, t);
-};
-
 export const hypot = (a: number, b: number, c: number = 0) => (a * a + b * b + c * c) ** 0.5;

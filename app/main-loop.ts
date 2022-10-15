@@ -393,6 +393,4 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   page_update();
 
   requestAnimationFrame(mainLoop);
-
-  DEV_ROOT_FUNCTION();
 };

@@ -1,7 +1,7 @@
 import { souls, allModels, type Circle, type Soul, MODELS_WITH_FULL_TRANSFORM } from "./models";
 import { onSoulCollected } from "./world-state";
 import type { Vec3Optional } from "../math/vectors";
-import { min, angle_lerp_degrees, DEG_TO_RAD, clamp, abs, hypot } from "../math/math";
+import { min, angle_lerp_degrees, DEG_TO_RAD, clamp, hypot, abs } from "../math/math";
 import { identity, matrixCopy, matrixToArray, tempMatrix } from "../math/matrix";
 import { lerpDamp, damp, gameTime } from "./game-time";
 import type { Polygon } from "../geometry/polygon";

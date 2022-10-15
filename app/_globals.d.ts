@@ -46,8 +46,6 @@ declare const h4: HTMLHeadingElement;
 
 declare function NO_INLINE<T>(fn: T): T;
 
-declare function DEV_ROOT_FUNCTION();
-
 interface Array<T> {
   reduce<U = T>(
     callbackfn: (previousValue: U | undefined, currentValue: T, currentIndex: number, array: T[]) => U | undefined,

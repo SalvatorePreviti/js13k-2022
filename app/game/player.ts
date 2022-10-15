@@ -7,9 +7,9 @@ import {
   lerp,
   angle_wrap_degrees,
   min,
-  abs,
   threshold,
   hypot,
+  abs,
 } from "../math/math";
 import { levers, allModels } from "./models";
 import { player_last_pulled_lever, camera_rotation, firstBoatLerp, player_position_final } from "./world-state";
@@ -416,6 +416,4 @@ export const player_init = NO_INLINE(() => {
       gameTimeDelta * (player_fly_velocity_z + (Math.sin(movAngle) * strafe + Math.cos(movAngle) * forward)),
     );
   };
-
-  DEV_ROOT_FUNCTION();
 });

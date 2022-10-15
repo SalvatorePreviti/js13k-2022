@@ -42,7 +42,7 @@ export interface JsUglifySettings {
 export function getUglifyOptions(settings: JsUglifySettings, nameCache?: Record<string, unknown>): UglifyOptions {
   const module = true;
   const toplevel = true;
-  const passes = 16;
+  const passes = 26;
   const mangle = settings.mangle;
 
   const options: UglifyOptions = {

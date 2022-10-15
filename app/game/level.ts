@@ -1,4 +1,3 @@
-import { abs } from "../math/math";
 import { identity } from "../math/matrix";
 import { levers, LEVERS_COUNT, type Circle, type Lever } from "./models";
 import { GQuad, cylinder, polygon_regular, sphere, cylinder_sides } from "../geometry/geometry";
@@ -9,6 +8,7 @@ import { integers_map } from "../math/integers-map";
 import { meshAdd, newModel, newSoul, currentModelMmatrix } from "./models-factory";
 import { devAllModelsPrint, devLeverAdd } from "../dev-tools/dev-models";
 import { translation } from "../math/matrix-transforms";
+import { abs } from "../math/math";
 
 export const build_life_the_universe_and_everything = (): 42 | void => {
   if (DEBUG) {
@@ -1062,6 +1062,4 @@ export const build_life_the_universe_and_everything = (): 42 | void => {
     console.timeEnd("build_life_the_universe_and_everything");
     devAllModelsPrint();
   }
-
-  DEV_ROOT_FUNCTION();
 };
