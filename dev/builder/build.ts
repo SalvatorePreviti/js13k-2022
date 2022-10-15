@@ -34,13 +34,12 @@ import { babelPluginSimple } from "./steps/babel/babel-plugin-simple";
 import { jsEsbuildMinify } from "./steps/js-esbuild";
 import { jsRemoveEndingSemicolons } from "./lib/code-utils";
 import { babelPluginMath } from "./steps/babel/babel-plugin-math";
-import { babelPluginsMove } from "./steps/babel/babel-plugin-move";
 
 const resugarBlockScope = [resugarBlockScopePlugin, { "declarations.block-scope": { disableConst: false } }];
 
 devLog.titlePaddingWidth = 18;
 
-const MINIFY_ENABLED = false;
+const MINIFY_ENABLED = true;
 
 export async function build() {
   const streamedClosureCompiler = new StreamedClosureCompiler({
@@ -151,13 +150,6 @@ export async function build() {
       minify: false,
       plugins: [resugarConcise, resugarFunctionsArrow, resugarBlockScope],
     });
-
-    for (let i = 0; i < 6; ++i) {
-      js = await jsBabel(js, {
-        minify: false,
-        plugins: [babelPluginsMove()],
-      });
-    }
 
     if (MINIFY_ENABLED) {
       js = await jsTransformSwc(js, false, swcPluginVars());
