@@ -739,6 +739,9 @@ let page_update = () => {
           && !gamepadInteractPressed && (interact_pressed = 1),
           gamepadInteractPressed = gamepad);
     },
+    document.onpointerlockchange = () => {
+      player_first_person = !!document.pointerLockElement;
+    },
     document.onvisibilitychange = onblur = onresize = handleResize,
     mainMenu(!0);
 };

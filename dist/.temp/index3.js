@@ -493,6 +493,9 @@ let Tb = () => {
         (p = F(p, 3) || F(p, 2) || F(p, 1) || F(p, 0)) && !N && (fa = 1),
         N = p);
   };
+  document.onpointerlockchange = () => {
+    ha = !!document.pointerLockElement;
+  };
   document.onvisibilitychange = onblur = onresize = K;
   Q(!0);
 };

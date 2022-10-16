@@ -20,7 +20,7 @@ export let interact_pressed: 0 | 1;
 
 export const resetInteractPressed = () => (interact_pressed = 0);
 
-export let player_first_person: 0 | 1 | undefined;
+export let player_first_person: boolean | 0 | 1 | undefined;
 
 export let input_forward = 0;
 
@@ -360,6 +360,9 @@ export let page_update = () => {
     }
   };
 
+  document.onpointerlockchange = () => {
+    player_first_person = !!document.pointerLockElement;
+  };
   document.onvisibilitychange = onblur = onresize = handleResize;
 
   mainMenu(!DEBUG || !!DEBUG_FLAG2);

@@ -243,6 +243,9 @@ let Tb = () => {
     let p = navigator.getGamepads()[0];
     p && (ha && (La += 80 * xa * lb(p.axes[3], 0.3), Ma += 80 * xa * lb(p.axes[2], 0.3)), Ca += F(p, 12) - F(p, 13) - lb(p.axes[1], 0.2), Da += F(p, 14) - F(p, 15) - lb(p.axes[0], 0.2), F(p, 9) && Q(!0), (p = F(p, 3) || F(p, 2) || F(p, 1) || F(p, 0)) && !N && (fa = 1), N = p);
   };
+  document.onpointerlockchange = () => {
+    ha = !!document.pointerLockElement;
+  };
   document.onvisibilitychange = onblur = onresize = K;
   Q(!0);
 };

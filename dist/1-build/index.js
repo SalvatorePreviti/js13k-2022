@@ -907,6 +907,9 @@ let page_update = () => {
       gamepadInteractPressed = interactButtonPressed;
     }
   };
+  document.onpointerlockchange = () => {
+    player_first_person = !!document.pointerLockElement;
+  };
   document.onvisibilitychange = onblur = onresize = handleResize;
   mainMenu(true);
 };
