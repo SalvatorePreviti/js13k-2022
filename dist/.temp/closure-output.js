@@ -172,7 +172,7 @@ let Tb = () => {
     A.length = fa = N = t = D = Ca = Da = 0;
     document.hidden && Q(!0);
   }, Q = p => {
-    if (da !== p && (da = p, K(), document.body.className = p ? "l m" : "l", E(), p)) {
+    if (da !== p && (da = p, K(), hB.className = p ? "l m" : "l", E(), p)) {
       try {
         document.exitFullscreen().catch(() => !1), document.exitPointerLock();
       } catch {
@@ -180,7 +180,7 @@ let Tb = () => {
     }
   }, z = p => {
     try {
-      L || (L = new AudioContext(), (H = L.createBufferSource()).buffer = ea, H.loop = !0, H.start()), document.body.requestFullscreen().catch(() => !1);
+      L || (L = new AudioContext(), (H = L.createBufferSource()).buffer = ea, H.loop = !0, H.start()), hB.requestFullscreen().catch(() => !1);
     } catch {
     }
     Q(!1);
@@ -231,7 +231,7 @@ let Tb = () => {
   };
   hC.ontouchend = p => {
     let q;
-    document.activeElement === document.body && p.preventDefault();
+    document.activeElement === hB && p.preventDefault();
     for (const x of p.changedTouches) {
       x.identifier === u ? (u = void 0, C || (q = 1), C = 0) : x.identifier === l ? (l = void 0, D = t = 0, m || (q = 1), m = 0) : q = 1;
     }

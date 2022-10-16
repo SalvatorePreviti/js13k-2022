@@ -26,6 +26,9 @@ declare module "*.frag";
 
 declare module "*.vert";
 
+/** document.body */
+declare const hB: HTMLBodyElement;
+
 /** Main HTMLCanvas element declared in the page */
 declare const hC: HTMLCanvasElement;
 

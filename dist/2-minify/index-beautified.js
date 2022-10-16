@@ -27,9 +27,9 @@ let b,
   n1 = 0,
   m1 = 0,
   f1 = 0,
+  B = 0,
   O = 0,
   Q = 0,
-  B = 0,
   h1 = 14,
   R = 180,
   u1 = .1,
@@ -188,12 +188,12 @@ let b,
     for (let e of a.i) e.u = !e.u;
   }),
     e),
-  O1 = e => e.length ? e.reduce((e, a) => s(e, { i: a, u: 0, v: 0 }), 0) : e,
-  Q1 = (...e) =>
+  B1 = e => e.length ? e.reduce((e, a) => s(e, { i: a, u: 0, v: 0 }), 0) : e,
+  O1 = (...e) =>
     e.reduce((l, a) => {
       let r = [];
-      if (l = O1(l), a) {
-        a = O1(a), T1(l, e => e.i = c(a, e, 1)), T1(a, e => r.push([e, c(l, e, -1)]));
+      if (l = B1(l), a) {
+        a = B1(a), T1(l, e => e.i = c(a, e, 1)), T1(a, e => r.push([e, c(l, e, -1)]));
         for (let [a, t] of r) for (let e of t) s(l, e, a);
       }
       return l;
@@ -205,7 +205,7 @@ let b,
       },
       l = new Map(),
       r = new Map();
-    return e = F1(Q1(F1(O1(e)), ...a)),
+    return e = F1(O1(F1(B1(e)), ...a)),
       T1(e, a => {
         for (let e of a.i) l.set(t(e), e.u);
       }),
@@ -214,8 +214,8 @@ let b,
         return d(a ? t.reverse() : t, e.s, e.A);
       });
   },
-  B1 = e => 1 - t(-T * e),
-  V = (e, a, t) => K(e, a, B1(t)),
+  Q1 = e => 1 - t(-T * e),
+  V = (e, a, t) => K(e, a, Q1(t)),
   R1 = e => {
     setTimeout(e), h4.innerHTML += ".";
   },
@@ -259,7 +259,7 @@ let b,
           document.hidden && b(!0);
       },
       b = e => {
-        if (S !== e && (S = e, o(), document.body.className = e ? "l m" : "l", c(), e)) {
+        if (S !== e && (S = e, o(), hB.className = e ? "l m" : "l", c(), e)) {
           try {
             document.exitFullscreen().catch(() => !1), document.exitPointerLock();
           } catch {}
@@ -268,7 +268,7 @@ let b,
       w = e => {
         try {
           t || (t = new AudioContext(), (l = t.createBufferSource()).buffer = k, l.loop = !0, l.start()),
-            document.body.requestFullscreen().catch(() => !1);
+            hB.requestFullscreen().catch(() => !1);
         } catch {}
         b(!1), j = e;
       },
@@ -339,7 +339,7 @@ let b,
       },
       hC.ontouchend = a => {
         let t;
-        document.activeElement === document.body && a.preventDefault();
+        document.activeElement === hB && a.preventDefault();
         for (let e of a.changedTouches) {e.identifier === d
             ? (d = void 0, g || (t = 1), g = 0)
             : e.identifier === m
@@ -413,10 +413,10 @@ let b,
             h = V(h, 3 + 6 * (1 - s), 3 + s),
             w = V(w, y = V(y, y + v, h), h),
             z = V(z, b = V(b, b + u, h), h),
-            n = A1(n, v1(w - m, z - f) / U1 - 180, B1(3)),
+            n = A1(n, v1(w - m, z - f) / U1 - 180, Q1(3)),
             N(S).multiplySelf(o).translateSelf(m = w, 0, f = z).rotateSelf(0, n, 7 * L(1.7 * F)),
             P(),
-            1.6 > M1(O - D, Q - Y, B - C)
+            1.6 > M1(B - D, O - Y, Q - C)
             && (p.j = 1,
               H1(
                 [
@@ -520,7 +520,7 @@ let b,
           t.g = V(t.g, t.j, 1),
           N(N(t.l).multiplySelf(t.C), _(0)).rotateSelf(50 * a - 25, 0).translateSelf(0, 1).m44 = a,
           I && (P(),
-            3 > M1(O - D, Q - Y, B - C) && (t.j
+            3 > M1(B - D, O - Y, Q - C) && (t.j
               ? a > .7 && (t.j = 0, h1 = e, H1("* click *", 1), E1())
               : .3 > a && (t.j = 1, h1 = e, H1("* click *", 1), E1()))),
           14 === e && t.j && a > .8 && (t.j = 0,
@@ -590,11 +590,11 @@ R1(() => {
                 J.cbf(!0, !0, !0, !0),
                 J.c4s(16640),
                 J.cbf(!0, !1, !0, !1),
-                J.uae(s("b"), !1, A(N().rotateSelf(0, 180).invertSelf().translateSelf(-O, -Q, .3 - B))),
+                J.uae(s("b"), !1, A(N().rotateSelf(0, 180).invertSelf().translateSelf(-B, -O, .3 - Q))),
                 t(J, 56, 1),
                 J.c4s(256),
                 J.cbf(!1, !0, !1, !0),
-                J.uae(s("b"), !1, A(N().translateSelf(-O, -Q, -B - .3))),
+                J.uae(s("b"), !1, A(N().translateSelf(-B, -O, -Q - .3))),
                 t(J, 56, 1),
                 J.f1s(),
                 I = 0),
@@ -750,14 +750,14 @@ R1(() => {
               z = 1,
               S = 2,
               A = 15,
-              M = (e, a, t, l) => K(e, a, z || (U(W(a - e) ** .5 - t) + 1 / 7) * B1(1.5 * l)),
+              M = (e, a, t, l) => K(e, a, z || (U(W(a - e) ** .5 - t) + 1 / 7) * Q1(1.5 * l)),
               k = () => N((S ? q[h1] : X[28 !== w ? w : 0]).l),
               I = e => {
                 S > 1 ? (N(q[h1].l).multiplySelf(q[h1].C), P(0, e1 > .9 ? 15 : 1, -2.4)) : (k(), P(x, y, b)),
-                  e && (n = (D - O) / T, m = (C - B) / T),
-                  O = D,
-                  Q = Y,
-                  B = C;
+                  e && (n = (D - B) / T, m = (C - Q) / T),
+                  B = D,
+                  O = Y,
+                  Q = C;
               };
             t1 = () => {
               let e, a, t, l, r;
@@ -806,21 +806,21 @@ R1(() => {
                       b += C,
                       I();
                   })(),
-                  !S && d === w || (w = d, k().invertSelf(), P(O, Q, B), x = D, y = Y, b = C, S = S && (d ? 0 : 1)),
-                  (-20 > O || 109 > B ? -25 : -9) > Q && (S = 2),
-                  1 === d && (q[15].j = -15 > O && 0 > B ? 1 : 0),
+                  !S && d === w || (w = d, k().invertSelf(), P(B, O, Q), x = D, y = Y, b = C, S = S && (d ? 0 : 1)),
+                  (-20 > B || 109 > Q ? -25 : -9) > O && (S = 2),
+                  1 === d && (q[15].j = -15 > B && 0 > Q ? 1 : 0),
                   i = V(i, l1 * (d > 30 && 35 > d), 2),
-                  g = M(g, O, .5, 1),
-                  v = M(v, u = K(V(u, Q, 2), Q, S || 8 * W(u - Q)), 2, 1),
-                  p = M(p, B, .5, 1),
+                  g = M(g, B, .5, 1),
+                  v = M(v, u = K(V(u, O, 2), O, S || 8 * W(u - O)), 2, 1),
+                  p = M(p, Q, .5, 1),
                   j
-                    ? (e = S + B1(18), i1 = K(i1, O, e), m1 = K(m1, B, e), n1 = K(n1, 1.6 + u, e), R = S1(R))
+                    ? (e = S + Q1(18), i1 = K(i1, B, e), m1 = K(m1, Q, e), n1 = K(n1, 1.6 + u, e), R = S1(R))
                     : (i1 = M(i1, g, 1, 2 + i),
                       m1 = M(m1, p + -18 + 5 * i, 1, 2 + i),
-                      n1 = M(n1, w1(v + U((-60 - B) / 8, 0, 20) + 13 + 9 * i, 6), 4, 2),
+                      n1 = M(n1, w1(v + U((-60 - Q) / 8, 0, 20) + 13 + 9 * i, 6), 4, 2),
                       e = y1(-6, -W(p - m1)),
-                      R = A1(R, 90 - S1(v1(e, a = g - i1) / U1), z + B1(10)),
-                      f1 = A1(f1, 90 - v1(M1(e, a), n1 - v) / U1, z + B1(10))),
+                      R = A1(R, 90 - S1(v1(e, a = g - i1) / U1), z + Q1(10)),
+                      f1 = A1(f1, 90 - v1(M1(e, a), n1 - v) / U1, z + Q1(10))),
                   f1 = U(f1, -87, 87),
                   z = 0,
                   e = U(c1, -1),
@@ -829,7 +829,7 @@ R1(() => {
                   l = v1(e, a),
                   t && (s = 90 - l / U1),
                   o = V(o, t, 10),
-                  _(O, .06 * h * o * H(18.2 * F) + u, B).rotateSelf(0, c = A1(c, s, B1(8))),
+                  _(B, .06 * h * o * H(18.2 * F) + u, Q).rotateSelf(0, c = A1(c, s, Q1(8))),
                   r = 0;
                 2 > r;
                 ++r
@@ -837,7 +837,7 @@ R1(() => {
                 let e = 9.1 * F - E * r;
                 N(X[53].l, _(0)).translateSelf(0, o * U(.45 * L(e - E / 2))).rotateSelf(o * L(e) * .25 / U1, 0);
               }
-              A = d ? 5 : V(A, S ? 13 : 19 - 2 * y1(0, Q + 10), 2.2),
+              A = d ? 5 : V(A, S ? 13 : 19 - 2 * y1(0, O + 10), 2.2),
                 n = d || S ? 0 : V(n, 0, 3),
                 m = d || S ? 0 : V(m, 0, 3),
                 e = (f = S ? 0 : V(f, d ? 7 * U(2 * t) * h : 0, d ? 9 : 1)) * t * W(e) * L(l),
@@ -878,7 +878,7 @@ R1(() => {
                 m = new Int32Array(768 * f),
                 g = 2 ** (t - 9) / f,
                 v = E * 2 ** (l - 8) / f,
-                p = Q * f & -2;
+                p = O * f & -2;
               for (let l = 0; 11 >= l; ++l) {
                 for (
                   let e = 0, a = +"000001234556112341234556011111111112011111111112000001111112"[12 * X + l];
@@ -924,7 +924,7 @@ R1(() => {
                     u = 0,
                       ((e = m[c = 2 * (t + a)]) || s)
                       && (r = .00308 * Y,
-                        1 !== X && 4 !== X || (r *= L(g * c * E * 2) * B / 512 + .5),
+                        1 !== X && 4 !== X || (r *= L(g * c * E * 2) * Q / 512 + .5),
                         r = 1.5 * L(r),
                         i += r * n,
                         n += r * (o = (1 - C / 255) * (e - n) - i),
@@ -934,7 +934,7 @@ R1(() => {
                         s = e * e > 1e-5,
                         u = e * (1 - (o = L(v * c) * F / 512 + .5)),
                         e *= o),
-                      p > c || (u += m[1 + c - p] * O / 255, e += m[c - p] * O / 255),
+                      p > c || (u += m[1 + c - p] * B / 255, e += m[c - p] * B / 255),
                       H[o = x + c >> 1] += (m[c] = u) / 65536,
                       N[o] += (m[++c] = e) / 65536;
                   }
@@ -963,7 +963,7 @@ R1(() => {
               ["9(9(9(9(9(9(9(999(9(9(9(999(9(9", "9(9(9(9(9(999(9(((((Q"],
               ["((((Q(((((((Q(((((((Q(((((((Q", "Q((Q((Q((Q((Q((Q((((Q"],
             ][X],
-            [b, w, z, S, A, M, k, I, j, a, D, t, Y, C, T, F, l, O, Q, B] = [
+            [b, w, z, S, A, M, k, I, j, a, D, t, Y, C, T, F, l, B, O, Q] = [
               [69, 128, 0, 143, 128, 0, 0, 196, 100, 36, 0, 0, 149, 110, 31, 47, 3, 56, 2, 0],
               [100, 128, 0, 201, 128, 0, 0, 100, 144, 35, 0, 6, 135, 0, 32, 147, 6, 0, 6, 195],
               [255, 116, 85, 255, 116, 37, 14, 64, 144, 73, 99, 0, 136, 15, 32, 0, 0, 66, 6, 0],
@@ -1085,7 +1085,7 @@ R1(() => {
           g(f(5), o(-5.4, 0, -19).scale(2, 1, 2).rotate(0, -90), h(.6, .3, .3, .4)),
           g(f(), o(-3.4, -.2, -19).scale(2, 1, 1.5).rotate(0, -90), h(.75, .75, .75, .2)),
           g(u(
-            Q1(
+            O1(
               u(
                 i(f(6, 0, 0, .3), o(0, -.92).scale(13, 2, 13), h(.8, .8, .8, .2)),
                 i(f(), x.rotate(0, 60).translate(14, .5, -1).scale(2.4, 5, 2), h(.5, .5, .5, .5)),
@@ -1116,7 +1116,7 @@ R1(() => {
             i(f(20, 1), o(-100, 2, 70).scale(2, 2, 10).rotate(90, 0), h(.5, .5, .5, .4)),
           )),
           g(u(
-            Q1(
+            O1(
               i(f(), o(-100, -2.6, 70).scale(3, 1.1, 7), h(.8, .8, .8, .2)),
               i(f(), o(-100, -2.4, 55).scale(8, .9, 8), h(.8, .8, .8, .2)),
               i(f(), o(-113, -2.6, 55).scale(6.2, 1.1, 3).skewX(3), h(.8, .8, .8, .2)),
@@ -1151,7 +1151,7 @@ R1(() => {
           t(o(-86, -7.5, 31)),
           g(f(5), o(-38.9, -11.1, 10).scale(2, 1.2, 2), h(.2, .4, .7, .3)),
           g(u(
-            Q1(
+            O1(
               i(f(), o(-38.9, -11.3, 17).scale(11, 1, 13), h(.3, .4, .6, .3)),
               i(f(5), o(-38.9, -11.1, 17).scale(9, 1, 9), h(0, .2, .3, .5)),
             ),
@@ -1160,7 +1160,7 @@ R1(() => {
           t(o(-38.9, -9.4, 10)),
           g(
             u(
-              Q1(
+              O1(
                 i(f(6), o(0, 0, -18).scale(15, 1.3, 15), h(.7, .7, .7, .3)),
                 i(f(5), x.scale(4.5, 1.2, 9), h(.45, .4, .6, .3)),
               ),
@@ -1233,7 +1233,7 @@ R1(() => {
           g(f(5), o(-34, .2, 96).scale(3, 2, 4).rotate(-20, 0), h(.2, .5, .5, .6)),
           t(o(-34, 2.7, 96).rotate(-12, 0)),
           g(u(
-            Q1(
+            O1(
               i(f(), o(-101.5, .7, 93.5).scale(10.5, 1, 2), h(.7, .7, .7, .2)),
               i(f(6, 0, 0, .6), o(-100, .7, 105.5).scale(8, 1, 11), h(.7, .7, .7, .2)),
             ),
@@ -1249,7 +1249,7 @@ R1(() => {
               );
           }),
           g(u(
-            Q1(
+            O1(
               i(f(), o(0, 16, 111).scale(3, 1, 3.8), h(.5, .3, .3, .4)),
               i(f(6, 0, 0, .3), o(0, -.92, 95).scale(14, 2, 14), h(.8, .8, .8, .2)),
               i(f(), o(0, 16, 110.5).scale(12, 1, 3), h(.5, .3, .3, .4)),
@@ -1288,7 +1288,7 @@ R1(() => {
           }),
           v(),
           g(u(
-            Q1(
+            O1(
               i(f(), x.scale(1.5, 1, 5), h(.9, .9, .9, .2)),
               i(f(), o(0, -2).scale(2, 3.2, 1.9), h(.3, .8, .5, .5)),
               i(f(6), x.scale(4, 1, 5), h(.9, .9, .9, .2)),

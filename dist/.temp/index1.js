@@ -818,7 +818,7 @@ let page_update = () => {
     if (mainMenuVisible !== value) {
       setMainMenuVisible(value);
       handleResize();
-      document.body.className = value ? "l m" : "l";
+      hB.className = value ? "l m" : "l";
       updateMusicOnState();
       if (value) {
         try {
@@ -838,7 +838,7 @@ let page_update = () => {
         songAudioSource.loop = true;
         songAudioSource.start();
       }
-      document.body.requestFullscreen().catch(() => false);
+      hB.requestFullscreen().catch(() => false);
     } catch {
     }
     mainMenu(false);
@@ -959,7 +959,7 @@ let page_update = () => {
     }
   };
   hC.ontouchend = (e) => {
-    if (document.activeElement === document.body) {
+    if (document.activeElement === hB) {
       e.preventDefault();
     }
     let click;

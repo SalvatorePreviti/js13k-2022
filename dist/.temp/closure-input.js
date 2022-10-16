@@ -594,11 +594,7 @@ let page_update = () => {
     mainMenu = value => {
       if (
         mainMenuVisible !== value
-        && (mainMenuVisible = value,
-          handleResize(),
-          document.body.className = value ? "l m" : "l",
-          updateMusicOnState(),
-          value)
+        && (mainMenuVisible = value, handleResize(), hB.className = value ? "l m" : "l", updateMusicOnState(), value)
       ) {
         try {
           document.exitFullscreen().catch(() => !1), document.exitPointerLock();
@@ -611,7 +607,7 @@ let page_update = () => {
         || (audioContext = new AudioContext(),
           (songAudioSource = audioContext.createBufferSource()).buffer = audioBuffer,
           songAudioSource.loop = !0,
-          songAudioSource.start()), document.body.requestFullscreen().catch(() => !1);
+          songAudioSource.start()), hB.requestFullscreen().catch(() => !1);
       } catch {}
 
       mainMenu(!1), player_first_person = firstPerson;
@@ -711,7 +707,7 @@ let page_update = () => {
     },
     hC.ontouchend = e => {
       let click;
-      document.activeElement === document.body && e.preventDefault();
+      document.activeElement === hB && e.preventDefault();
 
       for (const touch of e.changedTouches) {touch.identifier === touchRotIdentifier
           ? (touchRotIdentifier = void 0, touchRotMoved || (click = 1), touchRotMoved = 0)

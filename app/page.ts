@@ -105,7 +105,7 @@ export let page_update = () => {
     if (mainMenuVisible !== value) {
       setMainMenuVisible(value);
       handleResize();
-      document.body.className = value ? "l m" : "l";
+      hB.className = value ? "l m" : "l";
       updateMusicOnState();
       if (value) {
         try {
@@ -132,7 +132,7 @@ export let page_update = () => {
         songAudioSource.start();
       }
 
-      document.body.requestFullscreen().catch(() => false);
+      hB.requestFullscreen().catch(() => false);
     } catch {}
     mainMenu(false);
     player_first_person = firstPerson;
@@ -180,7 +180,7 @@ export let page_update = () => {
 
   onkeyup = onkeydown = (e) => {
     if (!e.repeat) {
-      const pressed = !!e.type[5] && (!DEBUG || e.target === document.body);
+      const pressed = !!e.type[5] && (!DEBUG || e.target === hB);
 
       const mapped = (
         {
@@ -287,7 +287,7 @@ export let page_update = () => {
   };
 
   hC.ontouchend = (e) => {
-    if (document.activeElement === document.body) {
+    if (document.activeElement === hB) {
       e.preventDefault();
     }
 
