@@ -368,175 +368,36 @@ const GAMEPAD_BUTTON_UP = 12;
 const GAMEPAD_BUTTON_DOWN = 13;
 const GAMEPAD_BUTTON_LEFT = 14;
 const GAMEPAD_BUTTON_RIGHT = 15;
-const song_numChannels = 5;
-const song_endPattern = 11;
-const song_patternLen = 32;
-const song_rowLen2 = 3891;
-const song_rowLen1 = 4562;
-const song_rowLen0 = 5513;
-const song_patterns = "000001234556112341234556011111111112011111111112000001111112";
-const song_columns = [
-  [
-    "(.15:15:=5:=A:=AF=AFIFIMRMRUY(Y(((((((((((((((((((((((((((((M(M(((((((((((((((((((((((((((((R(R(((((((((((((((((((((((((((((U(U",
-    "(059<59<A9<AE<AEHAEHMEHMQMQTY(Y",
-    "(5:>A:>AF>AFJAFJMFJMRJMRVMRVY(Y",
-    "(:?BFFKNRRWZ^(^((:=@FFILRRUX^(^",
-    "Q(M(M(O(Q(R(T(Q(T(R(W(U(T(R(Q(N(W((Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(X]",
-    "QN(M(N(M(N(M(N(M((((((((((((((((W(Y(Y(Y(Y(Y(Y(Y(Y(((((((((((((((]"
-  ],
-  [
-    ".(5(.(5(.(5(.(5(.(5(.(5(.(5(.(5",
-    "-(5(-(5(-(5(-(5(-(5(-(5(-(5(-(5",
-    ",(5(,(5(,(5(,(5(,(5(,(5(,(5(,(5",
-    "*(6(*(6(*(6(*(6(*(6(*(6(*(6(*(6",
-    "5(E(E(F(H(I(K(H(K(I(N(M(K(I(H(F(A(((((((((((((((((((((((((((((((5(((5(((5(((5(((5(((5(((5(((5",
-    "5(6(5(6(5(6(5(6(5((()(((((((((((A(B(A(B(A(B(A(B(A(((5"
-  ],
-  [
-    "9(((9(((9(((9(((9(((9(((9(((9",
-    "9(((Q(((Q(((Q"
-  ],
-  [
-    "9(9(9(9(9(9(9(999(9(9(9(999(9(9",
-    "9(9(9(9(9(999(9(((((Q"
-  ],
-  [
-    "((((Q(((((((Q(((((((Q(((((((Q",
-    "Q((Q((Q((Q((Q((Q((((Q"
-  ]
-];
-const song_instruments = [
-  [
-    69,
-    128,
-    0,
-    143,
-    128,
-    0,
-    0,
-    196,
-    100,
-    36,
-    0,
-    0,
-    149,
-    110,
-    31,
-    47,
-    3,
-    56,
-    2,
-    0
-  ],
-  [
-    100,
-    128,
-    0,
-    201,
-    128,
-    0,
-    0,
-    100,
-    144,
-    35,
-    0,
-    6,
-    135,
-    0,
-    32,
-    147,
-    6,
-    0,
-    6,
-    195
-  ],
-  [
-    255,
-    116,
-    85,
-    255,
-    116,
-    37,
-    14,
-    64,
-    144,
-    73,
-    99,
-    0,
-    136,
-    15,
-    32,
-    0,
-    0,
-    66,
-    6,
-    0
-  ],
-  [
-    0,
-    140,
-    0,
-    0,
-    140,
-    0,
-    81,
-    64,
-    400,
-    47,
-    55,
-    5,
-    239,
-    135,
-    13,
-    176,
-    5,
-    16,
-    4,
-    187
-  ],
-  [
-    221,
-    128,
-    64,
-    210,
-    128,
-    64,
-    255,
-    64,
-    144,
-    73,
-    79,
-    7,
-    195,
-    15,
-    21,
-    20,
-    0,
-    9,
-    3,
-    64
-  ]
-];
-const SONG_WORDS = song_patternLen * (song_endPattern + 1) * 2;
-const SONG_TOTAL_WORDS = (song_rowLen0 + song_rowLen1 + song_rowLen2) * SONG_WORDS;
-const loadStep = (fn) => {
-  setTimeout(fn);
+const loadStep = (fn) => setTimeout(() => {
   h4.innerHTML += ".";
-};
+  fn();
+}, 5);
 let audioBuffer;
 const loadSong = NO_INLINE((done) => {
-  let channelIndex = 0;
-  const getnotefreq = (n) => 0.003959503758 * 2 ** ((n - 256) / 12);
-  const osc_sin = (value) => /* @__PURE__ */ Math.sin(value * Math.PI * 2);
-  const osc_square = (value) => value % 1 < 0.5 ? 1 : -1;
-  const osc_saw = (value) => 2 * (value % 1) - 1;
-  const osc_tri = (value) => {
-    const v2 = value % 1 * 4;
-    return v2 < 2 ? v2 - 1 : 3 - v2;
-  };
-  const next = () => {
+  let pendingChannels = 0;
+  const song_endPattern = 11;
+  const song_patternLen = 32;
+  const song_rowLen2 = 3891;
+  const song_rowLen1 = 4562;
+  const song_rowLen0 = 5513;
+  const song_patterns = "000001234556112341234556011111111112011111111112000001111112";
+  const makeChannel = (OSC1_VOL, OSC1_SEMI, OSC1_XENV, OSC2_VOL, OSC2_SEMI, OSC2_XENV, NOISE_VOL, ENV_ATTACK, ENV_SUSTAIN, ENV_RELEASE, ENV_EXP_DECAY, LFO_FREQ, FX_FREQ, FX_RESONANCE, FX_DRIVE, FX_PAN_AMT, FX_PAN_FREQ, FX_DELAY_AMT, FX_DELAY_TIME, LFO_AMT, COLUMNS, channelIndex = pendingChannels++) => loadStep(() => {
     let mixIndex = 0;
-    const make = (song_rowLen) => {
+    const getnotefreq = (n) => 0.003959503758 * 2 ** ((n - 256) / 12);
+    const osc_sin = (value) => /* @__PURE__ */ Math.sin(value * Math.PI * 2);
+    const osc_square = (value) => value % 1 < 0.5 ? 1 : -1;
+    const osc_saw = (value) => 2 * (value % 1) - 1;
+    const osc_tri = (value) => {
+      const v2 = value % 1 * 4;
+      return v2 < 2 ? v2 - 1 : 3 - v2;
+    };
+    ENV_RELEASE = ENV_RELEASE ** 2 * 4;
+    COLUMNS = COLUMNS.split("+");
+    [
+      song_rowLen0,
+      song_rowLen1,
+      song_rowLen2
+    ].map((song_rowLen) => {
       let n;
       let t;
       let f;
@@ -564,9 +425,9 @@ const loadSong = NO_INLINE((done) => {
           if (j2 >= 0) {
             j2 -= song_rowLen * 4;
             o1t = getnotefreq(note + OSC1_SEMI);
-            o2t = getnotefreq(note + OSC2_SEMI) * (1 + (channelIndex ? 0 : 8e-4 * 9));
+            o2t = getnotefreq(note + OSC2_SEMI) * (channelIndex ? 1 : 1.0072);
           }
-          noteBuf[j1] = 80 * (OSC1_WAVEFORM(c1 += o1t * e ** (OSC1_XENV / 32)) * OSC1_VOL + OSC2_WAVEFORM(c2 += o2t * e ** (OSC2_XENV / 32)) * OSC2_VOL + (NOISE_VOL ? (/* @__PURE__ */ Math.random() * 2 - 1) * NOISE_VOL : 0)) * e | 0;
+          noteBuf[j1] = 80 * (OSC1_WAVEFORM(c1 += o1t * e ** (OSC1_XENV / 32)) * OSC1_VOL + OSC2_WAVEFORM(c2 += o2t * e ** (OSC2_XENV / 32)) * OSC2_VOL + (NOISE_VOL && NOISE_VOL * (2 * /* @__PURE__ */ Math.random() - 1))) * e | 0;
         }
         return noteBuf;
       };
@@ -623,15 +484,12 @@ const loadSong = NO_INLINE((done) => {
           }
         }
       mixIndex += song_rowLen * SONG_WORDS;
-    };
-    const COLUMNS = song_columns[channelIndex];
-    const [OSC1_VOL, OSC1_SEMI, OSC1_XENV, OSC2_VOL, OSC2_SEMI, OSC2_XENV, NOISE_VOL, ENV_ATTACK, ENV_SUSTAIN, _ENV_RELEASE, ENV_EXP_DECAY, LFO_FREQ, FX_FREQ, FX_RESONANCE, FX_DRIVE, FX_PAN_AMT, FX_PAN_FREQ, FX_DELAY_AMT, FX_DELAY_TIME, LFO_AMT] = song_instruments[channelIndex];
-    const ENV_RELEASE = _ENV_RELEASE ** 2 * 4;
-    make(song_rowLen0);
-    make(song_rowLen1);
-    make(song_rowLen2);
-    loadStep(++channelIndex < song_numChannels ? next : done);
-  };
+    });
+    if (!--pendingChannels)
+      loadStep(done);
+  });
+  const SONG_WORDS = song_patternLen * (song_endPattern + 1) * 2;
+  const SONG_TOTAL_WORDS = (song_rowLen0 + song_rowLen1 + song_rowLen2) * SONG_WORDS;
   audioBuffer = new AudioBuffer({
     numberOfChannels: 2,
     sampleRate: 44100,
@@ -639,7 +497,11 @@ const loadSong = NO_INLINE((done) => {
   });
   const mixBufferA = audioBuffer.getChannelData(0);
   const mixBufferB = audioBuffer.getChannelData(1);
-  loadStep(next);
+  makeChannel(69, 128, 0, 143, 128, 0, 0, 196, 100, 36, 0, 0, 149, 110, 31, 47, 3, 56, 2, 0, "(.15:15:=5:=A:=AF=AFIFIMRMRUY(Y(((((((((((((((((((((((((((((M(M(((((((((((((((((((((((((((((R(R(((((((((((((((((((((((((((((U(U+(059<59<A9<AE<AEHAEHMEHMQMQTY(Y+(5:>A:>AF>AFJAFJMFJMRJMRVMRVY(Y+(:?BFFKNRRWZ^(^((:=@FFILRRUX^(^+Q(M(M(O(Q(R(T(Q(T(R(W(U(T(R(Q(N(W((Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(X]+QN(M(N(M(N(M(N(M((((((((((((((((W(Y(Y(Y(Y(Y(Y(Y(Y(((((((((((((((]");
+  makeChannel(100, 128, 0, 201, 128, 0, 0, 100, 144, 35, 0, 6, 135, 0, 32, 147, 6, 0, 6, 195, ".(5(.(5(.(5(.(5(.(5(.(5(.(5(.(5+-(5(-(5(-(5(-(5(-(5(-(5(-(5(-(5+,(5(,(5(,(5(,(5(,(5(,(5(,(5(,(5+*(6(*(6(*(6(*(6(*(6(*(6(*(6(*(6+5(E(E(F(H(I(K(H(K(I(N(M(K(I(H(F(A(((((((((((((((((((((((((((((((5(((5(((5(((5(((5(((5(((5(((5+5(6(5(6(5(6(5(6(5((()(((((((((((A(B(A(B(A(B(A(B(A(((5");
+  makeChannel(255, 116, 85, 255, 116, 37, 14, 64, 144, 73, 99, 0, 136, 15, 32, 0, 0, 66, 6, 0, "9(((9(((9(((9(((9(((9(((9(((9+9(((Q(((Q(((Q");
+  makeChannel(0, 140, 0, 0, 140, 0, 81, 64, 400, 47, 55, 5, 239, 135, 13, 176, 5, 16, 4, 187, "9(9(9(9(9(9(9(999(9(9(9(999(9(9+9(9(9(9(9(999(9(((((Q");
+  makeChannel(221, 128, 64, 210, 128, 64, 255, 64, 144, 73, 79, 7, 195, 15, 21, 20, 0, 9, 3, 64, "((((Q(((((((Q(((((((Q(((((((Q+Q((Q((Q((Q((Q((Q((((Q");
 });
 const code$4 = "#version 300 es\nprecision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sampler2DShadow g,h;uniform mat4 b,i[2];uniform vec3 k;out vec4 O;void main(){vec4 s=vec4(m.xyz,1);vec3 e=normalize(o.xyz),v=l.w*(texture(q,n.zy*.035)*e.x+texture(q,n.xz*.035)*e.y+texture(q,n.xy*.035)*e.z).xyz;e=normalize(e+v*.5);float a=dot(e,vec3(-.656059,.666369,-.35431468)),t=1.,u=abs((b*s).z);vec4 r=(u<55.?i[0]:i[1])*s;if(r=r/r.w*.5+.5,r.z<1.){t=0.;for(float e=-1.;e<=1.;++e)for(float a=-1.;a<=1.;++a){vec3 x=vec3(r.xy+vec2(e,a)/2048.,r.z-.00017439);t+=u<55.?texture(g,x):texture(h,x);}t/=9.;}vec3 x=l.xyz*(1.-v.x);float c=max(max(abs(e.x),abs(e.z))*.3-e.y,0.)*pow(max(0.,(8.-m.y)/48.),1.6);O=vec4(vec3(c,c*c*.5,0)+vec3(.09,.05,.11)*x+x*(max(0.,a)*.5+x*a*a*vec3(.5,.45,.3))*(t*.75+.25)+vec3(.6,.6,.5)*pow(max(0.,dot(normalize(m.xyz-k),reflect(vec3(-.656059,.666369,-.35431468),e))),35.)*t,1);}";
 const uniformName_csm_matrices = "i";

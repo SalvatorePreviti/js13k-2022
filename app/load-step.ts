@@ -1,5 +1,5 @@
-export const loadStep = (fn: () => void) => {
-  setTimeout(fn);
-  // loading dots ...
-  h4.innerHTML += ".";
-};
+export const loadStep = (fn: () => void) =>
+  setTimeout(() => {
+    h4.innerHTML += ".";
+    fn();
+  }, 5);

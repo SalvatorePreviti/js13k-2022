@@ -1,48 +1,48 @@
-let _globalTime,
-  mainMenuVisible,
-  audioBuffer,
-  interact_pressed,
-  player_first_person,
-  csm_projections,
-  projection,
-  souls_collected_count,
-  game_completed,
-  firstBoatLerp,
-  secondBoatLerp,
-  currentModelMmatrix,
-  currentModelPolygons,
-  modelsUpdateCounter,
-  player_update,
-  shouldRotatePlatforms,
-  gameTimeDelta = 0,
-  gameTime = 0,
-  absoluteTime = 0,
-  input_forward = 0,
-  input_strafe = 0,
-  camera_position_x = 0,
-  camera_position_y = 0,
-  camera_position_z = 0,
-  player_last_pulled_lever = 14,
-  _messageEndTime = 0.1;
+let $$$$0,
+  $$$$1,
+  $$$$2,
+  $$$$3,
+  $$$$4,
+  $$$$5,
+  $$$$6,
+  $$$$7,
+  $$$$8,
+  $$$$9,
+  $$$$10,
+  $$$$11,
+  $$$$12,
+  $$$$13,
+  $$$$14,
+  $$$$15,
+  $$$$16 = 0,
+  $$$$17 = 0,
+  $$$$18 = 0,
+  $$$$19 = 0,
+  $$$$20 = 0,
+  $$$$21 = 0,
+  $$$$22 = 0,
+  $$$$23 = 0,
+  $$$$24 = 14,
+  $$$$25 = .1;
 
-const DEG_TO_RAD = Math.PI / 180,
-  groundTextureSvg = "data:image/svg+xml;base64,"
+const $$$$26 = Math.PI / 180,
+  $$$$27 = "data:image/svg+xml;base64,"
     + /* @__PURE__ */ btoa(
       "<svg color-interpolation-filters=\"sRGB\" height=\"1024\" width=\"1024\" xmlns=\"http://www.w3.org/2000/svg\"><filter filterUnits=\"userSpaceOnUse\" height=\"1026\" id=\"a\" width=\"1026\" x=\"0\" y=\"0\"><feTurbulence baseFrequency=\".007\" height=\"1025\" numOctaves=\"6\" stitchTiles=\"stitch\" width=\"1025\" result=\"z\" type=\"fractalNoise\" x=\"1\" y=\"1\"/><feTile height=\"1024\" width=\"1024\" x=\"-1\" y=\"-1\"/><feTile/><feDiffuseLighting diffuseConstant=\"4\" lighting-color=\"red\" surfaceScale=\"5\"><feDistantLight azimuth=\"270\" elevation=\"5\"/></feDiffuseLighting><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"x\"/><feColorMatrix values=\"0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 1\" in=\"z\"/><feTile height=\"1024\" width=\"1024\" x=\"1\" y=\"1\"/><feTile result=\"z\"/><feTurbulence baseFrequency=\".01\" height=\"1024\" numOctaves=\"5\" stitchTiles=\"stitch\" width=\"1024\"/><feColorMatrix values=\"0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1\"/><feBlend in2=\"x\" mode=\"screen\"/><feBlend in2=\"z\" mode=\"screen\"/></filter><rect filter=\"url(#a)\" height=\"100%\" width=\"100%\"/></svg>",
     ),
-  camera_rotation = {
+  $$$$28 = {
     x: 0,
     y: 180,
   },
-  player_position_final = {
+  $$$$29 = {
     x: 0,
     y: 0,
     z: 0,
   },
-  allModels = [],
-  levers = [],
-  souls = [],
-  GQuad = [{
+  $$$$30 = [],
+  $$$$31 = [],
+  $$$$32 = [],
+  $$$$33 = [{
     x: -1,
     z: 1,
   }, {
@@ -55,586 +55,681 @@ const DEG_TO_RAD = Math.PI / 180,
     x: -1,
     z: -1,
   }],
-  song_columns = [
-    [
-      "(.15:15:=5:=A:=AF=AFIFIMRMRUY(Y(((((((((((((((((((((((((((((M(M(((((((((((((((((((((((((((((R(R(((((((((((((((((((((((((((((U(U",
-      "(059<59<A9<AE<AEHAEHMEHMQMQTY(Y",
-      "(5:>A:>AF>AFJAFJMFJMRJMRVMRVY(Y",
-      "(:?BFFKNRRWZ^(^((:=@FFILRRUX^(^",
-      "Q(M(M(O(Q(R(T(Q(T(R(W(U(T(R(Q(N(W((Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(X]",
-      "QN(M(N(M(N(M(N(M((((((((((((((((W(Y(Y(Y(Y(Y(Y(Y(Y(((((((((((((((]",
-    ],
-    [
-      ".(5(.(5(.(5(.(5(.(5(.(5(.(5(.(5",
-      "-(5(-(5(-(5(-(5(-(5(-(5(-(5(-(5",
-      ",(5(,(5(,(5(,(5(,(5(,(5(,(5(,(5",
-      "*(6(*(6(*(6(*(6(*(6(*(6(*(6(*(6",
-      "5(E(E(F(H(I(K(H(K(I(N(M(K(I(H(F(A(((((((((((((((((((((((((((((((5(((5(((5(((5(((5(((5(((5(((5",
-      "5(6(5(6(5(6(5(6(5((()(((((((((((A(B(A(B(A(B(A(B(A(((5",
-    ],
-    ["9(((9(((9(((9(((9(((9(((9(((9", "9(((Q(((Q(((Q"],
-    ["9(9(9(9(9(9(9(999(9(9(9(999(9(9", "9(9(9(9(9(999(9(((((Q"],
-    ["((((Q(((((((Q(((((((Q(((((((Q", "Q((Q((Q((Q((Q((Q((((Q"],
-  ],
-  song_instruments = [
-    [69, 128, 0, 143, 128, 0, 0, 196, 100, 36, 0, 0, 149, 110, 31, 47, 3, 56, 2, 0],
-    [100, 128, 0, 201, 128, 0, 0, 100, 144, 35, 0, 6, 135, 0, 32, 147, 6, 0, 6, 195],
-    [255, 116, 85, 255, 116, 37, 14, 64, 144, 73, 99, 0, 136, 15, 32, 0, 0, 66, 6, 0],
-    [0, 140, 0, 0, 140, 0, 81, 64, 400, 47, 55, 5, 239, 135, 13, 176, 5, 16, 4, 187],
-    [221, 128, 64, 210, 128, 64, 255, 64, 144, 73, 79, 7, 195, 15, 21, 20, 0, 9, 3, 64],
-  ],
-  matrixToArray = (
-    $matrix,
-    output = float32Array16Temp,
-    index = 0,
-  ) => (index *= 16,
-    output[index++] = $matrix.m11,
-    output[index++] = $matrix.m12,
-    output[index++] = $matrix.m13,
-    output[index++] = $matrix.m14,
-    output[index++] = $matrix.m21,
-    output[index++] = $matrix.m22,
-    output[index++] = $matrix.m23,
-    output[index++] = $matrix.m24,
-    output[index++] = $matrix.m31,
-    output[index++] = $matrix.m32,
-    output[index++] = $matrix.m33,
-    output[index++] = $matrix.m34,
-    output[index++] = $matrix.m41,
-    output[index++] = $matrix.m42,
-    output[index++] = $matrix.m43,
-    output[index] = $matrix.m44,
-    output),
-  matrixCopy = (
-    source = identity,
-    target = tempMatrix,
-  ) => (target.m11 = source.m11,
-    target.m12 = source.m12,
-    target.m13 = source.m13,
-    target.m14 = source.m14,
-    target.m21 = source.m21,
-    target.m22 = source.m22,
-    target.m23 = source.m23,
-    target.m24 = source.m24,
-    target.m31 = source.m31,
-    target.m32 = source.m32,
-    target.m33 = source.m33,
-    target.m34 = source.m34,
-    target.m41 = source.m41,
-    target.m42 = source.m42,
-    target.m43 = source.m43,
-    target.m44 = source.m44,
-    target),
-  matrixTransformPoint = (x = 0, y = 0, z = 0, w = 1) => {
-    matrixTransformPoint.x = tempMatrix.m11 * x + tempMatrix.m21 * y + tempMatrix.m31 * z + tempMatrix.m41 * w,
-      matrixTransformPoint.y = tempMatrix.m12 * x + tempMatrix.m22 * y + tempMatrix.m32 * z + tempMatrix.m42 * w,
-      matrixTransformPoint.z = tempMatrix.m13 * x + tempMatrix.m23 * y + tempMatrix.m33 * z + tempMatrix.m43 * w,
-      matrixTransformPoint.w = tempMatrix.m14 * x + tempMatrix.m24 * y + tempMatrix.m34 * z + tempMatrix.m44 * w;
+  $$$$34 = (
+    $$$$0,
+    $$$$1 = $$$$86,
+    $$$$2 = 0,
+  ) => ($$$$2 *= 16,
+    $$$$1[$$$$2++] = $$$$0.m11,
+    $$$$1[$$$$2++] = $$$$0.m12,
+    $$$$1[$$$$2++] = $$$$0.m13,
+    $$$$1[$$$$2++] = $$$$0.m14,
+    $$$$1[$$$$2++] = $$$$0.m21,
+    $$$$1[$$$$2++] = $$$$0.m22,
+    $$$$1[$$$$2++] = $$$$0.m23,
+    $$$$1[$$$$2++] = $$$$0.m24,
+    $$$$1[$$$$2++] = $$$$0.m31,
+    $$$$1[$$$$2++] = $$$$0.m32,
+    $$$$1[$$$$2++] = $$$$0.m33,
+    $$$$1[$$$$2++] = $$$$0.m34,
+    $$$$1[$$$$2++] = $$$$0.m41,
+    $$$$1[$$$$2++] = $$$$0.m42,
+    $$$$1[$$$$2++] = $$$$0.m43,
+    $$$$1[$$$$2] = $$$$0.m44,
+    $$$$1),
+  $$$$35 = (
+    $$$$0 = $$$$84,
+    $$$$1 = $$$$85,
+  ) => ($$$$1.m11 = $$$$0.m11,
+    $$$$1.m12 = $$$$0.m12,
+    $$$$1.m13 = $$$$0.m13,
+    $$$$1.m14 = $$$$0.m14,
+    $$$$1.m21 = $$$$0.m21,
+    $$$$1.m22 = $$$$0.m22,
+    $$$$1.m23 = $$$$0.m23,
+    $$$$1.m24 = $$$$0.m24,
+    $$$$1.m31 = $$$$0.m31,
+    $$$$1.m32 = $$$$0.m32,
+    $$$$1.m33 = $$$$0.m33,
+    $$$$1.m34 = $$$$0.m34,
+    $$$$1.m41 = $$$$0.m41,
+    $$$$1.m42 = $$$$0.m42,
+    $$$$1.m43 = $$$$0.m43,
+    $$$$1.m44 = $$$$0.m44,
+    $$$$1),
+  $$$$36 = ($$$$0 = 0, $$$$1 = 0, $$$$2 = 0, $$$$3 = 1) => {
+    $$$$36.x = $$$$85.m11 * $$$$0 + $$$$85.m21 * $$$$1 + $$$$85.m31 * $$$$2 + $$$$85.m41 * $$$$3,
+      $$$$36.y = $$$$85.m12 * $$$$0 + $$$$85.m22 * $$$$1 + $$$$85.m32 * $$$$2 + $$$$85.m42 * $$$$3,
+      $$$$36.z = $$$$85.m13 * $$$$0 + $$$$85.m23 * $$$$1 + $$$$85.m33 * $$$$2 + $$$$85.m43 * $$$$3,
+      $$$$36.w = $$$$85.m14 * $$$$0 + $$$$85.m24 * $$$$1 + $$$$85.m34 * $$$$2 + $$$$85.m44 * $$$$3;
   },
-  translation = NO_INLINE((x, y, z) => identity.translate(x, y, z)),
-  integers_map = (n, fn) => Array.from(/* @__PURE__ */ Array(n), (_, i) => fn(i)),
-  polygon_color = (polygon, color, smooth) => (polygon.$smooth = smooth, polygon.$color = color, polygon),
-  polygon_transform = (polygon, m, color = polygon.$color) => (matrixCopy(m),
-    polygon_color(
-      polygon.map(({
-        x,
-        y,
-        z,
-      }) => (matrixTransformPoint(x, y, z), {
-        x: matrixTransformPoint.x,
-        y: matrixTransformPoint.y,
-        z: matrixTransformPoint.z,
+  $$$$37 = NO_INLINE(($$$$0, $$$$1, $$$$2) => $$$$84.translate($$$$0, $$$$1, $$$$2)),
+  $$$$38 = ($$$$0, $$$$1) => Array.from(/* @__PURE__ */ Array($$$$0), ($$$$0, $$$$2) => $$$$1($$$$2)),
+  $$$$39 = ($$$$0, $$$$1, $$$$2) => ($$$$0.g = $$$$2, $$$$0.h = $$$$1, $$$$0),
+  $$$$40 = ($$$$0, $$$$1, $$$$2 = $$$$0.h) => ($$$$35($$$$1),
+    $$$$39(
+      $$$$0.map(({
+        x: $$$$0,
+        y: $$$$1,
+        z: $$$$2,
+      }) => ($$$$36($$$$0, $$$$1, $$$$2), {
+        x: $$$$36.x,
+        y: $$$$36.y,
+        z: $$$$36.z,
       })),
-      color,
-      polygon.$smooth,
+      $$$$2,
+      $$$$0.g,
     )),
-  polygons_transform = (polygons, m, color) => polygons.map(polygon => polygon_transform(polygon, m, color)),
-  abs = NO_INLINE(a => a < 0 ? -a : a),
-  min = NO_INLINE((a, b) => a < b ? a : b),
-  max = NO_INLINE((a, b) => b < a ? a : b),
-  threshold = (value, amount) => abs(value) > amount ? value : 0,
-  clamp = (value, minValue = 0, maxValue = 1) => value < minValue ? minValue : maxValue < value ? maxValue : value,
-  angle_wrap_degrees = degrees =>
-    /* @__PURE__ */ Math.atan2(
-      /* @__PURE__ */ Math.sin(degrees * DEG_TO_RAD),
-      /* @__PURE__ */ Math.cos(degrees * DEG_TO_RAD),
-    ) / DEG_TO_RAD,
-  angle_lerp_degrees = (a0, a1, t) => a0 + (2 * (a1 = (a1 - a0) % 360) % 360 - a1) * clamp(t) || 0,
-  lerp = (a, b, t) => (0 < t ? t < 1 ? a + (b - a) * t : b : a) || 0,
-  hypot = (a, b, c = 0) => (a * a + b * b + c * c) ** 0.5,
-  polygon_regular = (segments, elongate = 0) =>
-    integers_map(segments, i => {
-      const z = /* @__PURE__ */ Math.cos(2 * Math.PI * i / segments);
+  $$$$41 = ($$$$0, $$$$1, $$$$2) => $$$$0.map($$$$0 => $$$$40($$$$0, $$$$1, $$$$2)),
+  $$$$42 = NO_INLINE($$$$0 => 0 > $$$$0 ? -$$$$0 : $$$$0),
+  $$$$43 = NO_INLINE(($$$$0, $$$$1) => $$$$1 > $$$$0 ? $$$$0 : $$$$1),
+  $$$$44 = NO_INLINE(($$$$0, $$$$1) => $$$$0 > $$$$1 ? $$$$0 : $$$$1),
+  $$$$45 = ($$$$0, $$$$1) => $$$$42($$$$0) > $$$$1 ? $$$$0 : 0,
+  $$$$46 = ($$$$0, $$$$1 = 0, $$$$2 = 1) => $$$$1 > $$$$0 ? $$$$1 : $$$$0 > $$$$2 ? $$$$2 : $$$$0,
+  $$$$47 = $$$$0 =>
+    /* @__PURE__ */ Math.atan2(/* @__PURE__ */ Math.sin($$$$0 * $$$$26), /* @__PURE__ */ Math.cos($$$$0 * $$$$26))
+      / $$$$26,
+  $$$$48 = ($$$$0, $$$$1, $$$$2) => $$$$0 + (2 * ($$$$1 = ($$$$1 - $$$$0) % 360) % 360 - $$$$1) * $$$$46($$$$2) || 0,
+  $$$$49 = ($$$$0, $$$$1, $$$$2) => ($$$$2 > 0 ? 1 > $$$$2 ? $$$$0 + ($$$$1 - $$$$0) * $$$$2 : $$$$1 : $$$$0) || 0,
+  $$$$50 = ($$$$0, $$$$1, $$$$2 = 0) => ($$$$0 * $$$$0 + $$$$1 * $$$$1 + $$$$2 * $$$$2) ** .5,
+  $$$$51 = ($$$$0, $$$$1 = 0) =>
+    $$$$38($$$$0, $$$$2 => {
+      const $$$$3 = /* @__PURE__ */ Math.cos(2 * Math.PI * $$$$2 / $$$$0);
       return {
-        x: /* @__PURE__ */ Math.sin(2 * Math.PI * i / segments),
+        x: /* @__PURE__ */ Math.sin(2 * Math.PI * $$$$2 / $$$$0),
         y: 0,
-        z: abs(z) < 0.01 ? z : z < 0 ? z - elongate : z + elongate,
+        z: .01 > $$$$42($$$$3) ? $$$$3 : 0 > $$$$3 ? $$$$3 - $$$$1 : $$$$3 + $$$$1,
       };
     }),
-  cylinder_sides = (btm, top, smooth) =>
-    btm.map((btmi, i, {
-      length,
+  $$$$52 = ($$$$0, $$$$1, $$$$2) =>
+    $$$$0.map(($$$$3, $$$$4, {
+      length: $$$$5,
     }) =>
-      polygon_color(
-        [btmi, top[length - i - 1], top[length - (i + 1) % length - 1], btm[(i + 1) % length]],
-        btm.$color,
-        smooth,
+      $$$$39(
+        [$$$$3, $$$$1[$$$$5 - $$$$4 - 1], $$$$1[$$$$5 - ($$$$4 + 1) % $$$$5 - 1], $$$$0[($$$$4 + 1) % $$$$5]],
+        $$$$0.h,
+        $$$$2,
       )
     ),
-  cylinder = (
-    segments,
-    smooth,
-    topSize = 0,
-    elongate,
-  ) => (segments = segments ? polygon_regular(segments, elongate) : GQuad,
-    elongate = polygon_transform(segments, translation(0, 1).scale3d(0 < topSize ? topSize : 1)),
-    segments = polygon_transform(segments, translation(0, -1).scale3d(topSize < 0 ? -topSize : 1)).reverse(),
-    [...cylinder_sides(segments, elongate, smooth), elongate, segments]),
-  sphere = (slices, stacks = slices, vertexFunc = (x, y) => (y *= Math.PI / stacks, {
-    x: /* @__PURE__ */ Math.cos(x *= 2 * Math.PI / slices) * /* @__PURE__ */ Math.sin(y),
-    y: /* @__PURE__ */ Math.cos(y),
-    z: /* @__PURE__ */ Math.sin(x) * /* @__PURE__ */ Math.sin(y),
+  $$$$53 = (
+    $$$$0,
+    $$$$1,
+    $$$$2 = 0,
+    $$$$3,
+  ) => ($$$$0 = $$$$0 ? $$$$51($$$$0, $$$$3) : $$$$33,
+    $$$$3 = $$$$40($$$$0, $$$$37(0, 1).scale3d($$$$2 > 0 ? $$$$2 : 1)),
+    $$$$0 = $$$$40($$$$0, $$$$37(0, -1).scale3d(0 > $$$$2 ? -$$$$2 : 1)).reverse(),
+    [...$$$$52($$$$0, $$$$3, $$$$1), $$$$3, $$$$0]),
+  $$$$54 = ($$$$0, $$$$1 = $$$$0, $$$$2 = ($$$$2, $$$$3) => ($$$$3 *= Math.PI / $$$$1, {
+    x: /* @__PURE__ */ Math.cos($$$$2 *= 2 * Math.PI / $$$$0) * /* @__PURE__ */ Math.sin($$$$3),
+    y: /* @__PURE__ */ Math.cos($$$$3),
+    z: /* @__PURE__ */ Math.sin($$$$2) * /* @__PURE__ */ Math.sin($$$$3),
   })) => {
-    const polygons = [];
+    const $$$$3 = [];
 
-    for (let i = 0; slices > i; i++) {
-      for (let j = 0; stacks > j; j++) {
-        const vertex = (x, y) => polygon.push(vertexFunc(x, y, polygon)),
-          polygon = polygon_color([], 0, 1);
+    for (let $$$$4 = 0; $$$$0 > $$$$4; $$$$4++) {
+      for (let $$$$5 = 0; $$$$1 > $$$$5; $$$$5++) {
+        const $$$$6 = ($$$$0, $$$$1) => $$$$7.push($$$$2($$$$0, $$$$1, $$$$7)),
+          $$$$7 = $$$$39([], 0, 1);
 
-        polygons.push(polygon),
-          vertex(i, j),
-          j && vertex((i + 1) % slices, j),
-          stacks - 1 > j && vertex((i + 1) % slices, j + 1 % stacks),
-          vertex(i, j + 1 % stacks);
+        $$$$3.push($$$$7),
+          $$$$6($$$$4, $$$$5),
+          $$$$5 && $$$$6(($$$$4 + 1) % $$$$0, $$$$5),
+          $$$$1 - 1 > $$$$5 && $$$$6(($$$$4 + 1) % $$$$0, $$$$5 + 1 % $$$$1),
+          $$$$6($$$$4, $$$$5 + 1 % $$$$1);
       }
     }
 
-    return polygons;
+    return $$$$3;
   },
-  material = NO_INLINE((r, g, b, a = 0) => 255 * a << 24 | 255 * b << 16 | 255 * g << 8 | 255 * r),
-  plane_fromPolygon = polygon => {
-    let b,
-      x = 0,
-      y = 0,
-      z = 0,
-      a = polygon.at(-1);
+  $$$$55 = NO_INLINE(($$$$0, $$$$1, $$$$2, $$$$3 = 0) =>
+    255 * $$$$3 << 24 | 255 * $$$$2 << 16 | 255 * $$$$1 << 8 | 255 * $$$$0
+  ),
+  $$$$56 = $$$$0 => {
+    let $$$$1,
+      $$$$2 = 0,
+      $$$$3 = 0,
+      $$$$4 = 0,
+      $$$$5 = $$$$0.at(-1);
 
-    for (b of polygon) {
-      x += (a.y - b.y) * (a.z + b.z), y += (a.z - b.z) * (a.x + b.x), z += (a.x - b.x) * (a.y + b.y), a = b;
+    for ($$$$1 of $$$$0) {
+      $$$$2 += ($$$$5.y - $$$$1.y) * ($$$$5.z + $$$$1.z),
+        $$$$3 += ($$$$5.z - $$$$1.z) * ($$$$5.x + $$$$1.x),
+        $$$$4 += ($$$$5.x - $$$$1.x) * ($$$$5.y + $$$$1.y),
+        $$$$5 = $$$$1;
     }
 
-    return b = hypot(x, y, z), x /= b, y /= b, z /= b, {
-      x,
-      y,
-      z,
-      w: x * a.x + y * a.y + z * a.z,
+    return $$$$1 = $$$$50($$$$2, $$$$3, $$$$4), $$$$2 /= $$$$1, $$$$3 /= $$$$1, $$$$4 /= $$$$1, {
+      x: $$$$2,
+      y: $$$$3,
+      z: $$$$4,
+      w: $$$$2 * $$$$5.x + $$$$3 * $$$$5.y + $$$$4 * $$$$5.z,
     };
   },
-  vec3_dot = ({
-    x,
-    y,
-    z,
-  }, b) => x * b.x + y * b.y + z * b.z,
-  CSGPolygon_split = (plane, polygon) => {
-    let jd, front, back;
+  $$$$57 = ({
+    x: $$$$0,
+    y: $$$$1,
+    z: $$$$2,
+  }, $$$$3) => $$$$0 * $$$$3.x + $$$$1 * $$$$3.y + $$$$2 * $$$$3.z,
+  $$$$58 = ($$$$0, $$$$1) => {
+    let $$$$2, $$$$3, $$$$4;
     const {
-      $polygon,
-      $flipped,
-    } = polygon;
+      i: $$$$5,
+      j: $$$$6,
+    } = $$$$1;
 
-    for (let i = 0; $polygon.length > i; ++i) {
+    for (let $$$$7 = 0; $$$$5.length > $$$$7; ++$$$$7) {
       if (
-        (jd = vec3_dot(plane, $polygon[i]) - plane.w) < -8e-5 ? back = polygon : 8e-5 < jd && (front = polygon),
-          back && front
+        -8e-5 > ($$$$2 = $$$$57($$$$0, $$$$5[$$$$7]) - $$$$0.w) ? $$$$4 = $$$$1 : $$$$2 > 8e-5 && ($$$$3 = $$$$1),
+          $$$$4 && $$$$3
       ) {
-        const fpoints = [],
-          bpoints = [];
-        let iv = $polygon.at(-1),
-          id = vec3_dot(iv, plane) - plane.w;
+        const $$$$7 = [],
+          $$$$8 = [];
+        let $$$$9 = $$$$5.at(-1),
+          $$$$10 = $$$$57($$$$9, $$$$0) - $$$$0.w;
 
-        for (const jv of $polygon) {
-          jd = vec3_dot(jv, plane) - plane.w,
-            id < 8e-5 && bpoints.push(iv),
-            -8e-5 < id && fpoints.push(iv),
-            (8e-5 < id && jd < -8e-5 || id < -8e-5 && 8e-5 < jd) && (id /= jd - id,
-              iv = {
-                x: iv.x + (iv.x - jv.x) * id,
-                y: iv.y + (iv.y - jv.y) * id,
-                z: iv.z + (iv.z - jv.z) * id,
+        for (const $$$$1 of $$$$5) {
+          $$$$2 = $$$$57($$$$1, $$$$0) - $$$$0.w,
+            8e-5 > $$$$10 && $$$$8.push($$$$9),
+            $$$$10 > -8e-5 && $$$$7.push($$$$9),
+            ($$$$10 > 8e-5 && -8e-5 > $$$$2 || -8e-5 > $$$$10 && $$$$2 > 8e-5) && ($$$$10 /= $$$$2 - $$$$10,
+              $$$$9 = {
+                x: $$$$9.x + ($$$$9.x - $$$$1.x) * $$$$10,
+                y: $$$$9.y + ($$$$9.y - $$$$1.y) * $$$$10,
+                z: $$$$9.z + ($$$$9.z - $$$$1.z) * $$$$10,
               },
-              fpoints.push(iv),
-              bpoints.push(iv)),
-            iv = jv,
-            id = jd;
+              $$$$7.push($$$$9),
+              $$$$8.push($$$$9)),
+            $$$$9 = $$$$1,
+            $$$$10 = $$$$2;
         }
 
-        front = 2 < fpoints.length && {
-          $polygon: polygon_color(fpoints, $polygon.$color, $polygon.$smooth),
-          $flipped,
-          $parent: polygon,
+        $$$$3 = $$$$7.length > 2 && {
+          i: $$$$39($$$$7, $$$$5.h, $$$$5.g),
+          j: $$$$6,
+          k: $$$$1,
         },
-          back = 2 < bpoints.length && {
-            $polygon: polygon_color(bpoints, $polygon.$color, $polygon.$smooth),
-            $flipped,
-            $parent: polygon,
+          $$$$4 = $$$$8.length > 2 && {
+            i: $$$$39($$$$8, $$$$5.h, $$$$5.g),
+            j: $$$$6,
+            k: $$$$1,
           };
         break;
       }
     }
 
     return {
-      x: front,
-      y: back,
+      x: $$$$3,
+      y: $$$$4,
     };
   },
-  csg_tree_addPolygon = (node, polygon, plane = plane_fromPolygon(polygon.$polygon)) => {
-    let front, back;
-    return node
+  $$$$59 = ($$$$0, $$$$1, $$$$2 = $$$$56($$$$1.i)) => {
+    let $$$$3, $$$$4;
+    return $$$$0
       ? (({
-        x: front,
-        y: back,
-      } = CSGPolygon_split(node, polygon)),
-        front || back || node.$polygon.push(polygon),
-        front && (node.$front = csg_tree_addPolygon(node.$front, front, plane)),
-        back && (node.$back = csg_tree_addPolygon(node.$back, back, plane)))
-      : node = {
-        x: plane.x,
-        y: plane.y,
-        z: plane.z,
-        w: plane.w,
-        $polygon: [polygon],
-        $front: 0,
-        $back: 0,
+        x: $$$$3,
+        y: $$$$4,
+      } = $$$$58($$$$0, $$$$1)),
+        $$$$3 || $$$$4 || $$$$0.i.push($$$$1),
+        $$$$3 && ($$$$0.l = $$$$59($$$$0.l, $$$$3, $$$$2)),
+        $$$$4 && ($$$$0.m = $$$$59($$$$0.m, $$$$4, $$$$2)))
+      : $$$$0 = {
+        x: $$$$2.x,
+        y: $$$$2.y,
+        z: $$$$2.z,
+        w: $$$$2.w,
+        i: [$$$$1],
+        l: 0,
+        m: 0,
       },
-      node;
+      $$$$0;
   },
-  csg_tree_clipNode = (anode, bnode, polygonPlaneFlipped) => {
-    const result = [],
-      recursion = (node, polygon) => {
+  $$$$60 = ($$$$0, $$$$1, $$$$2) => {
+    const $$$$3 = [],
+      $$$$4 = ($$$$0, $$$$5) => {
         let {
-          x: front,
-          y: back,
-        } = CSGPolygon_split(node, polygon);
-        front || back || (0 < polygonPlaneFlipped * vec3_dot(node, bnode) ? front = polygon : back = polygon),
-          front && (node.$front ? recursion(node.$front, front) : result.push(front)),
-          back && node.$back && recursion(node.$back, back);
+          x: $$$$6,
+          y: $$$$7,
+        } = $$$$58($$$$0, $$$$5);
+        $$$$6 || $$$$7 || ($$$$2 * $$$$57($$$$0, $$$$1) > 0 ? $$$$6 = $$$$5 : $$$$7 = $$$$5),
+          $$$$6 && ($$$$0.l ? $$$$4($$$$0.l, $$$$6) : $$$$3.push($$$$6)),
+          $$$$7 && $$$$0.m && $$$$4($$$$0.m, $$$$7);
       };
 
-    for (const polygon of bnode.$polygon) recursion(anode, polygon);
+    for (const $$$$2 of $$$$1.i) $$$$4($$$$0, $$$$2);
 
-    return result;
+    return $$$$3;
   },
-  csg_tree_each = (node, fn) => node && (fn(node), csg_tree_each(node.$front, fn), csg_tree_each(node.$back, fn)),
-  csg_tree_flip = root => (csg_tree_each(root, node => {
-    const back = node.$back;
-    node.$back = node.$front, node.$front = back, node.x *= -1, node.y *= -1, node.z *= -1, node.w *= -1;
+  $$$$61 = ($$$$0, $$$$1) => $$$$0 && ($$$$1($$$$0), $$$$61($$$$0.l, $$$$1), $$$$61($$$$0.m, $$$$1)),
+  $$$$62 = $$$$0 => ($$$$61($$$$0, $$$$0 => {
+    const $$$$1 = $$$$0.m;
+    $$$$0.m = $$$$0.l, $$$$0.l = $$$$1, $$$$0.x *= -1, $$$$0.y *= -1, $$$$0.z *= -1, $$$$0.w *= -1;
 
-    for (const polygon of node.$polygon) polygon.$flipped = !polygon.$flipped;
+    for (const $$$$1 of $$$$0.i) $$$$1.j = !$$$$1.j;
   }),
-    root),
-  csg_tree = n =>
-    n.length
-      ? n.reduce((prev, $polygon) =>
-        csg_tree_addPolygon(prev, {
-          $polygon,
-          $flipped: 0,
-          $parent: 0,
+    $$$$0),
+  $$$$63 = $$$$0 =>
+    $$$$0.length
+      ? $$$$0.reduce(($$$$0, $$$$1) =>
+        $$$$59($$$$0, {
+          i: $$$$1,
+          j: 0,
+          k: 0,
         }), 0)
-      : n,
-  csg_union = (...inputs) =>
-    inputs.reduce((a, b) => {
-      const polygonsToAdd = [];
+      : $$$$0,
+  $$$$64 = (...$$$$0) =>
+    $$$$0.reduce(($$$$0, $$$$1) => {
+      const $$$$2 = [];
 
-      if (a = csg_tree(a), b) {
-        b = csg_tree(b),
-          csg_tree_each(a, node => node.$polygon = csg_tree_clipNode(b, node, 1)),
-          csg_tree_each(b, node => polygonsToAdd.push([node, csg_tree_clipNode(a, node, -1)]));
+      if ($$$$0 = $$$$63($$$$0), $$$$1) {
+        $$$$1 = $$$$63($$$$1),
+          $$$$61($$$$0, $$$$0 => $$$$0.i = $$$$60($$$$1, $$$$0, 1)),
+          $$$$61($$$$1, $$$$1 => $$$$2.push([$$$$1, $$$$60($$$$0, $$$$1, -1)]));
 
-        for (let [plane, polygons] of polygonsToAdd) for (const pp of polygons) csg_tree_addPolygon(a, pp, plane);
+        for (let [$$$$1, $$$$3] of $$$$2) for (const $$$$2 of $$$$3) $$$$59($$$$0, $$$$2, $$$$1);
       }
 
-      return a;
+      return $$$$0;
     }),
-  csg_polygons_subtract = (a, ...b) => {
+  $$$$65 = ($$$$0, ...$$$$1) => {
     {
-      const add = polygon => {
-          let found;
-          return polygon.$parent
-            && ((found = byParent.get(polygon.$parent))
-              ? (allPolygons.delete(found), polygon = add(polygon.$parent))
-              : byParent.set(polygon.$parent, polygon)),
-            polygon;
+      const $$$$2 = $$$$0 => {
+          let $$$$1;
+          return $$$$0.k
+            && (($$$$1 = $$$$4.get($$$$0.k))
+              ? ($$$$3.delete($$$$1), $$$$0 = $$$$2($$$$0.k))
+              : $$$$4.set($$$$0.k, $$$$0)),
+            $$$$0;
         },
-        allPolygons = /* @__PURE__ */ new Map(),
-        byParent = /* @__PURE__ */ new Map();
+        $$$$3 = /* @__PURE__ */ new Map(),
+        $$$$4 = /* @__PURE__ */ new Map();
 
-      return a = csg_tree_flip(csg_union(csg_tree_flip(csg_tree(a)), ...b)),
-        csg_tree_each(a, node => {
-          for (const polygon of node.$polygon) allPolygons.set(add(polygon), polygon.$flipped);
+      return $$$$0 = $$$$62($$$$64($$$$62($$$$63($$$$0)), ...$$$$1)),
+        $$$$61($$$$0, $$$$0 => {
+          for (const $$$$1 of $$$$0.i) $$$$3.set($$$$2($$$$1), $$$$1.j);
         }),
-        Array.from(allPolygons, ([{
-          $polygon,
-        }, flipped]) => {
-          const polygon = $polygon.map(({
-            x,
-            y,
-            z,
+        Array.from($$$$3, ([{
+          i: $$$$0,
+        }, $$$$1]) => {
+          const $$$$2 = $$$$0.map(({
+            x: $$$$0,
+            y: $$$$1,
+            z: $$$$2,
           }) => ({
-            x,
-            y,
-            z,
+            x: $$$$0,
+            y: $$$$1,
+            z: $$$$2,
           }));
-          return polygon_color(flipped ? polygon.reverse() : polygon, $polygon.$color, $polygon.$smooth);
+          return $$$$39($$$$1 ? $$$$2.reverse() : $$$$2, $$$$0.h, $$$$0.g);
         });
     }
   },
-  damp = NO_INLINE(speed => 1 - /* @__PURE__ */ Math.exp(-gameTimeDelta * speed)),
-  lerpDamp = NO_INLINE((from, to, speed) => lerp(from, to, damp(speed))),
-  loadStep = fn => {
-    setTimeout(fn), h4.innerHTML += ".";
-  },
-  loadSong = NO_INLINE(done => {
-    let channelIndex = 0;
+  $$$$66 = NO_INLINE($$$$0 => 1 - /* @__PURE__ */ Math.exp(-$$$$16 * $$$$0)),
+  $$$$67 = NO_INLINE(($$$$0, $$$$1, $$$$2) => $$$$49($$$$0, $$$$1, $$$$66($$$$2))),
+  $$$$68 = $$$$0 =>
+    setTimeout(() => {
+      h4.innerHTML += ".", $$$$0();
+    }, 5),
+  $$$$69 = NO_INLINE($$$$0 => {
+    let $$$$1 = 0;
 
-    const getnotefreq = n => 0.00396 * 2 ** ((n - 256) / 12),
-      osc_sin = value => /* @__PURE__ */ Math.sin(value * Math.PI * 2),
-      osc_square = value => value % 1 < 0.5 ? 1 : -1,
-      osc_saw = value => value % 1 * 2 - 1,
-      osc_tri = value => (value = value % 1 * 4) < 2 ? value - 1 : 3 - value,
-      next = () => {
-        let mixIndex = 0;
+    const $$$$3 = (
+        $$$$2,
+        $$$$3,
+        $$$$6,
+        $$$$7,
+        $$$$8,
+        $$$$9,
+        $$$$10,
+        $$$$11,
+        $$$$12,
+        $$$$13,
+        $$$$14,
+        $$$$15,
+        $$$$16,
+        $$$$17,
+        $$$$18,
+        $$$$19,
+        $$$$20,
+        $$$$21,
+        $$$$22,
+        $$$$23,
+        $$$$24,
+        $$$$25 = $$$$1++,
+      ) =>
+        $$$$68(() => {
+          let $$$$26 = 0;
 
-        const make = song_rowLen => {
-            let n,
-              f,
-              filterActive,
-              low = 0,
-              band = 0;
-            const noteCache = [],
-              chnBuf = new Int32Array(768 * song_rowLen),
-              lfoFreq = 2 ** (LFO_FREQ - 9) / song_rowLen,
-              panFreq = Math.PI * 2 ** (FX_PAN_FREQ - 8) / song_rowLen,
-              dly = FX_DELAY_TIME * song_rowLen & -2;
+          const $$$$27 = $$$$0 => 0.00396 * 2 ** (($$$$0 - 256) / 12),
+            $$$$28 = $$$$0 => /* @__PURE__ */ Math.sin($$$$0 * Math.PI * 2),
+            $$$$29 = $$$$0 => .5 > $$$$0 % 1 ? 1 : -1,
+            $$$$30 = $$$$0 => $$$$0 % 1 * 2 - 1,
+            $$$$31 = $$$$0 => 2 > ($$$$0 = $$$$0 % 1 * 4) ? $$$$0 - 1 : 3 - $$$$0;
 
-            for (let p = 0; p <= 11; ++p) {
-              for (
-                let row = 0,
-                  cp = +"000001234556112341234556011111111112011111111112000001111112"[12 * channelIndex + p];
-                row < 32;
-                ++row
-              ) {
-                const rowStartSample = (32 * p + row) * song_rowLen;
+          $$$$13 = $$$$13 ** 2 * 4,
+            $$$$24 = $$$$24.split("+"),
+            [5513, 4562, 3891].map($$$$0 => {
+              let $$$$1,
+                $$$$32,
+                $$$$33,
+                $$$$34 = 0,
+                $$$$35 = 0;
+              const $$$$36 = [],
+                $$$$37 = new Int32Array(768 * $$$$0),
+                $$$$38 = 2 ** ($$$$15 - 9) / $$$$0,
+                $$$$39 = Math.PI * 2 ** ($$$$20 - 8) / $$$$0,
+                $$$$40 = $$$$22 * $$$$0 & -2;
 
-                for (let col = 0; col < 4; ++col) {
-                  if (n = 0, cp && (n = COLUMNS[cp - 1].charCodeAt(row + 32 * col) - 40, n += 0 < n ? 106 : 0), n) {
-                    const noteBuf = noteCache[n] || (noteCache[n] = (note => {
-                      let o1t,
-                        o2t,
-                        c1 = 0,
-                        c2 = 0;
-                      const OSC1_WAVEFORM = channelIndex < 2 ? osc_saw : osc_sin,
-                        OSC2_WAVEFORM = channelIndex < 2 ? channelIndex < 1 ? osc_square : osc_tri : osc_sin,
-                        noteBuf2 = new Int32Array(ENV_ATTACK + ENV_SUSTAIN + ENV_RELEASE);
+              for (let $$$$15 = 0; 11 >= $$$$15; ++$$$$15) {
+                for (
+                  let $$$$20 = 0,
+                    $$$$22 = +"000001234556112341234556011111111112011111111112000001111112"[12 * $$$$25 + $$$$15];
+                  32 > $$$$20;
+                  ++$$$$20
+                ) {
+                  const $$$$43 = (32 * $$$$15 + $$$$20) * $$$$0;
 
-                      for (let j1 = 0, j2 = 0; ENV_ATTACK + ENV_SUSTAIN + ENV_RELEASE > j1; ++j1, ++j2) {
-                        let e = 1;
-                        ENV_ATTACK > j1
-                          ? e = j1 / ENV_ATTACK
-                          : ENV_ATTACK + ENV_SUSTAIN > j1
-                            || (e = (1 - (e = (j1 - ENV_ATTACK - ENV_SUSTAIN) / ENV_RELEASE))
-                              * 3 ** (-ENV_EXP_DECAY / 16 * e)),
-                          j2 < 0
-                          || (j2 -= 4 * song_rowLen,
-                            o1t = getnotefreq(note + OSC1_SEMI),
-                            o2t = getnotefreq(note + OSC2_SEMI) * (1 + (channelIndex ? 0 : 0.0072))),
-                          noteBuf2[j1] = 80
-                              * (OSC1_WAVEFORM(c1 += o1t * e ** (OSC1_XENV / 32)) * OSC1_VOL
-                                + OSC2_WAVEFORM(c2 += o2t * e ** (OSC2_XENV / 32)) * OSC2_VOL
-                                + (NOISE_VOL ? (2 * /* @__PURE__ */ Math.random() - 1) * NOISE_VOL : 0))
-                              * e | 0;
+                  for (let $$$$4 = 0; 4 > $$$$4; ++$$$$4) {
+                    if (
+                      $$$$1 = 0,
+                        $$$$22
+                        && ($$$$1 = $$$$24[$$$$22 - 1].charCodeAt($$$$20 + 32 * $$$$4) - 40,
+                          $$$$1 += $$$$1 > 0 ? 106 : 0),
+                        $$$$1
+                    ) {
+                      const $$$$4 = $$$$36[$$$$1] || ($$$$36[$$$$1] = ($$$$1 => {
+                        let $$$$4,
+                          $$$$5,
+                          $$$$15 = 0,
+                          $$$$16 = 0;
+                        const $$$$17 = 2 > $$$$25 ? $$$$30 : $$$$28,
+                          $$$$18 = 2 > $$$$25 ? 1 > $$$$25 ? $$$$29 : $$$$31 : $$$$28,
+                          $$$$19 = new Int32Array($$$$11 + $$$$12 + $$$$13);
+
+                        for (let $$$$20 = 0, $$$$21 = 0; $$$$11 + $$$$12 + $$$$13 > $$$$20; ++$$$$20, ++$$$$21) {
+                          let $$$$22 = 1;
+                          $$$$11 > $$$$20
+                            ? $$$$22 = $$$$20 / $$$$11
+                            : $$$$11 + $$$$12 > $$$$20
+                              || ($$$$22 = (1 - ($$$$22 = ($$$$20 - $$$$11 - $$$$12) / $$$$13))
+                                * 3 ** (-$$$$14 / 16 * $$$$22)),
+                            0 > $$$$21
+                            || ($$$$21 -= 4 * $$$$0,
+                              $$$$4 = $$$$27($$$$1 + $$$$3),
+                              $$$$5 = $$$$27($$$$1 + $$$$8) * ($$$$25 ? 1 : 1.0072)),
+                            $$$$19[$$$$20] = 80
+                                * ($$$$17($$$$15 += $$$$4 * $$$$22 ** ($$$$6 / 32)) * $$$$2
+                                  + $$$$18($$$$16 += $$$$5 * $$$$22 ** ($$$$9 / 32)) * $$$$7
+                                  + ($$$$10 && $$$$10 * (2 * /* @__PURE__ */ Math.random() - 1)))
+                                * $$$$22 | 0;
+                        }
+
+                        return $$$$19;
+                      })($$$$1));
+
+                      for (
+                        let $$$$0 = 0, $$$$1 = 2 * $$$$43;
+                        $$$$4.length > $$$$0;
+                        ++$$$$0, $$$$1 += 2
+                      ) {
+                        $$$$37[$$$$1] += $$$$4[$$$$0];
                       }
+                    }
+                  }
 
-                      return noteBuf2;
-                    })(n));
-
-                    for (let j = 0, i = 2 * rowStartSample; noteBuf.length > j; ++j, i += 2) chnBuf[i] += noteBuf[j];
+                  for (let $$$$1, $$$$2 = 0; $$$$0 > $$$$2; ++$$$$2) {
+                    let $$$$0 = 0;
+                    var $$$$41 = 2 * ($$$$43 + $$$$2),
+                      $$$$42 = ((($$$$1 = $$$$37[$$$$41]) || $$$$33)
+                        && ($$$$32 = 0.00308 * $$$$16,
+                          1 !== $$$$25 && 4 !== $$$$25 || ($$$$32 *= $$$$28($$$$38 * $$$$41) * $$$$23 / 512 + .5),
+                          $$$$32 = 1.5 * /* @__PURE__ */ Math.sin($$$$32),
+                          $$$$34 += $$$$32 * $$$$35,
+                          $$$$35 += $$$$32 * ($$$$42 = (1 - $$$$17 / 255) * ($$$$1 - $$$$35) - $$$$34),
+                          $$$$1 = 4 === $$$$25 ? $$$$35 : 3 === $$$$25 ? $$$$42 : $$$$34,
+                          $$$$25
+                          || ($$$$1 = 1 > ($$$$1 *= 22e-5) ? $$$$1 > -1 ? $$$$28($$$$1 / 4) : -1 : 1, $$$$1 /= 22e-5),
+                          $$$$1 *= $$$$18 / 32,
+                          $$$$33 = $$$$1 * $$$$1 > 1e-5,
+                          $$$$0 = $$$$1
+                            * (1 - ($$$$42 = /* @__PURE__ */ Math.sin($$$$39 * $$$$41) * $$$$19 / 512 + .5)),
+                          $$$$1 *= $$$$42),
+                        $$$$40 > $$$$41
+                        || ($$$$0 += $$$$37[1 + $$$$41 - $$$$40] * $$$$21 / 255,
+                          $$$$1 += $$$$37[$$$$41 - $$$$40] * $$$$21 / 255),
+                        $$$$26 + $$$$41 >> 1);
+                    $$$$4[$$$$42] += ($$$$37[$$$$41] = $$$$0) / 65536,
+                      $$$$5[$$$$42] += ($$$$37[++$$$$41] = $$$$1) / 65536;
                   }
                 }
-
-                for (let rsample, j1 = 0; song_rowLen > j1; ++j1) {
-                  let lsample = 0;
-                  var k = 2 * (rowStartSample + j1),
-                    high = (((rsample = chnBuf[k]) || filterActive)
-                      && (f = 0.00308 * FX_FREQ,
-                        channelIndex !== 1 && channelIndex !== 4 || (f *= osc_sin(lfoFreq * k) * LFO_AMT / 512 + 0.5),
-                        f = 1.5 * /* @__PURE__ */ Math.sin(f),
-                        low += f * band,
-                        high = (1 - FX_RESONANCE / 255) * (rsample - band) - low,
-                        band += f * high,
-                        rsample = channelIndex === 4 ? band : channelIndex === 3 ? high : low,
-                        channelIndex
-                        || (rsample = (rsample *= 22e-5) < 1 ? -1 < rsample ? osc_sin(rsample / 4) : -1 : 1,
-                          rsample /= 22e-5),
-                        rsample *= FX_DRIVE / 32,
-                        filterActive = 1e-5 < rsample * rsample,
-                        high = /* @__PURE__ */ Math.sin(panFreq * k) * FX_PAN_AMT / 512 + 0.5,
-                        lsample = rsample * (1 - high),
-                        rsample *= high),
-                      k < dly
-                      || (lsample += chnBuf[1 + k - dly] * FX_DELAY_AMT / 255,
-                        rsample += chnBuf[k - dly] * FX_DELAY_AMT / 255),
-                      mixIndex + k >> 1);
-                  mixBufferA[high] += (chnBuf[k] = lsample) / 65536,
-                    mixBufferB[high] += (chnBuf[++k] = rsample) / 65536;
-                }
               }
-            }
 
-            mixIndex += 768 * song_rowLen;
-          },
-          COLUMNS = song_columns[channelIndex],
-          [
-            OSC1_VOL,
-            OSC1_SEMI,
-            OSC1_XENV,
-            OSC2_VOL,
-            OSC2_SEMI,
-            OSC2_XENV,
-            NOISE_VOL,
-            ENV_ATTACK,
-            ENV_SUSTAIN,
-            _ENV_RELEASE,
-            ENV_EXP_DECAY,
-            LFO_FREQ,
-            FX_FREQ,
-            FX_RESONANCE,
-            FX_DRIVE,
-            FX_PAN_AMT,
-            FX_PAN_FREQ,
-            FX_DELAY_AMT,
-            FX_DELAY_TIME,
-            LFO_AMT,
-          ] = song_instruments[channelIndex],
-          ENV_RELEASE = _ENV_RELEASE ** 2 * 4;
-
-        make(5513), make(4562), make(3891), loadStep(++channelIndex < 5 ? next : done);
-      },
-      mixBufferA = (audioBuffer = new AudioBuffer({
+              $$$$26 += 768 * $$$$0;
+            }),
+            --$$$$1 || $$$$68($$$$0);
+        }),
+      $$$$4 = ($$$$2 = new AudioBuffer({
         numberOfChannels: 2,
         sampleRate: 44100,
-        length: SONG_TOTAL_WORDS / 2,
+        length: 5362944,
       })).getChannelData(0),
-      mixBufferB = audioBuffer.getChannelData(1);
+      $$$$5 = $$$$2.getChannelData(1);
 
-    loadStep(next);
+    $$$$3(
+      69,
+      128,
+      0,
+      143,
+      128,
+      0,
+      0,
+      196,
+      100,
+      36,
+      0,
+      0,
+      149,
+      110,
+      31,
+      47,
+      3,
+      56,
+      2,
+      0,
+      "(.15:15:=5:=A:=AF=AFIFIMRMRUY(Y(((((((((((((((((((((((((((((M(M(((((((((((((((((((((((((((((R(R(((((((((((((((((((((((((((((U(U+(059<59<A9<AE<AEHAEHMEHMQMQTY(Y+(5:>A:>AF>AFJAFJMFJMRJMRVMRVY(Y+(:?BFFKNRRWZ^(^((:=@FFILRRUX^(^+Q(M(M(O(Q(R(T(Q(T(R(W(U(T(R(Q(N(W((Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(Y(X]+QN(M(N(M(N(M(N(M((((((((((((((((W(Y(Y(Y(Y(Y(Y(Y(Y(((((((((((((((]",
+    ),
+      $$$$3(
+        100,
+        128,
+        0,
+        201,
+        128,
+        0,
+        0,
+        100,
+        144,
+        35,
+        0,
+        6,
+        135,
+        0,
+        32,
+        147,
+        6,
+        0,
+        6,
+        195,
+        ".(5(.(5(.(5(.(5(.(5(.(5(.(5(.(5+-(5(-(5(-(5(-(5(-(5(-(5(-(5(-(5+,(5(,(5(,(5(,(5(,(5(,(5(,(5(,(5+*(6(*(6(*(6(*(6(*(6(*(6(*(6(*(6+5(E(E(F(H(I(K(H(K(I(N(M(K(I(H(F(A(((((((((((((((((((((((((((((((5(((5(((5(((5(((5(((5(((5(((5+5(6(5(6(5(6(5(6(5((()(((((((((((A(B(A(B(A(B(A(B(A(((5",
+      ),
+      $$$$3(
+        255,
+        116,
+        85,
+        255,
+        116,
+        37,
+        14,
+        64,
+        144,
+        73,
+        99,
+        0,
+        136,
+        15,
+        32,
+        0,
+        0,
+        66,
+        6,
+        0,
+        "9(((9(((9(((9(((9(((9(((9(((9+9(((Q(((Q(((Q",
+      ),
+      $$$$3(
+        0,
+        140,
+        0,
+        0,
+        140,
+        0,
+        81,
+        64,
+        400,
+        47,
+        55,
+        5,
+        239,
+        135,
+        13,
+        176,
+        5,
+        16,
+        4,
+        187,
+        "9(9(9(9(9(9(9(999(9(9(9(999(9(9+9(9(9(9(9(999(9(((((Q",
+      ),
+      $$$$3(
+        221,
+        128,
+        64,
+        210,
+        128,
+        64,
+        255,
+        64,
+        144,
+        73,
+        79,
+        7,
+        195,
+        15,
+        21,
+        20,
+        0,
+        9,
+        3,
+        64,
+        "((((Q(((((((Q(((((((Q(((((((Q+Q((Q((Q((Q((Q((Q((((Q",
+      );
   }),
-  mat_perspective = (near, far, mx, my) =>
+  $$$$70 = ($$$$0, $$$$1, $$$$2, $$$$3) =>
     new DOMMatrix([
-      mx,
+      $$$$2,
       0,
       0,
       0,
       0,
-      my,
+      $$$$3,
       0,
       0,
       0,
       0,
-      (far + near) / (near - far),
+      ($$$$1 + $$$$0) / ($$$$0 - $$$$1),
       -1,
       0,
       0,
-      2 * far * near / (near - far),
+      2 * $$$$1 * $$$$0 / ($$$$0 - $$$$1),
       0,
     ]);
 
-let page_update = () => {
-  let touchStartTime,
-    touchPosStartX,
-    touchPosStartY,
-    touchPosIdentifier,
-    touchPosMoved,
-    touchRotX,
-    touchRotY,
-    touchRotIdentifier,
-    touchRotMoved,
-    touchStartCameraRotX,
-    touchStartCameraRotY,
-    touch_movementX,
-    touch_movementY,
-    gamepadInteractPressed,
-    audioContext,
-    songAudioSource,
-    music_on = !0;
+let $$$$71 = () => {
+  let $$$$0,
+    $$$$7,
+    $$$$8,
+    $$$$9,
+    $$$$10,
+    $$$$11,
+    $$$$12,
+    $$$$13,
+    $$$$14,
+    $$$$15,
+    $$$$17,
+    $$$$21,
+    $$$$22,
+    $$$$23,
+    $$$$24,
+    $$$$25,
+    $$$$26 = !0;
 
-  const keyboard_downKeys = [],
-    updateMusicOnState = () => {
-      b4.innerHTML = "Music: " + music_on,
-        songAudioSource
-        && (mainMenuVisible || !music_on
-          ? songAudioSource.disconnect()
-          : songAudioSource.connect(audioContext.destination));
+  const $$$$27 = [],
+    $$$$29 = () => {
+      b4.innerHTML = "Music: " + $$$$26,
+        $$$$25 && ($$$$1 || !$$$$26 ? $$$$25.disconnect() : $$$$25.connect($$$$24.destination));
     },
-    handleResize = () => {
-      const mx = (hC.height = innerHeight) / (hC.width = innerWidth) * 1.732051;
-      projection = mat_perspective(0.3, 181, mx, 1.732051),
-        csm_projections = [mat_perspective(0.3, 55, mx, 1.732051), mat_perspective(55, 181, mx, 1.732051)],
-        touchPosIdentifier = touchRotIdentifier = void 0,
-        keyboard_downKeys.length =
-          interact_pressed =
-          gamepadInteractPressed =
-          touch_movementX =
-          touch_movementY =
-          input_forward =
-          input_strafe =
+    $$$$30 = () => {
+      const $$$$0 = (hC.height = innerHeight) / (hC.width = innerWidth) * 1.732051;
+      $$$$6 = $$$$70(.3, 181, $$$$0, 1.732051),
+        $$$$5 = [$$$$70(.3, 55, $$$$0, 1.732051), $$$$70(55, 181, $$$$0, 1.732051)],
+        $$$$9 = $$$$13 = void 0,
+        $$$$27.length =
+          $$$$3 =
+          $$$$23 =
+          $$$$21 =
+          $$$$22 =
+          $$$$19 =
+          $$$$20 =
             0,
-        document.hidden && mainMenu(!0);
+        document.hidden && $$$$31(!0);
     },
-    mainMenu = value => {
-      if (
-        mainMenuVisible !== value
-        && (mainMenuVisible = value, handleResize(), hB.className = value ? "l m" : "l", updateMusicOnState(), value)
-      ) {
+    $$$$31 = $$$$0 => {
+      if ($$$$1 !== $$$$0 && ($$$$1 = $$$$0, $$$$30(), hB.className = $$$$0 ? "l m" : "l", $$$$29(), $$$$0)) {
         try {
           document.exitFullscreen().catch(() => !1), document.exitPointerLock();
         } catch {}
       }
     },
-    start = firstPerson => {
+    $$$$32 = $$$$0 => {
       try {
-        audioContext
-        || (audioContext = new AudioContext(),
-          (songAudioSource = audioContext.createBufferSource()).buffer = audioBuffer,
-          songAudioSource.loop = !0,
-          songAudioSource.start()), hB.requestFullscreen().catch(() => !1);
+        $$$$24
+        || ($$$$24 = new AudioContext(),
+          ($$$$25 = $$$$24.createBufferSource()).buffer = $$$$2,
+          $$$$25.loop = !0,
+          $$$$25.start()), hB.requestFullscreen().catch(() => !1);
       } catch {}
 
-      mainMenu(!1), player_first_person = firstPerson;
+      $$$$31(!1), $$$$4 = $$$$0;
     },
-    getGamepadButtonState = (gamepad, index) =>
-      gamepad.buttons[index]?.pressed || 0 < gamepad.buttons[index]?.value ? 1 : 0;
+    $$$$33 = ($$$$0, $$$$1) => $$$$0.buttons[$$$$1]?.pressed || $$$$0.buttons[$$$$1]?.value > 0 ? 1 : 0;
 
   oncontextmenu = () => !1,
-    onclick = e => {
-      if (!mainMenuVisible && (e.target === hC && (interact_pressed = 1), player_first_person)) {
+    onclick = $$$$0 => {
+      if (!$$$$1 && ($$$$0.target === hC && ($$$$3 = 1), $$$$4)) {
         try {
           hC.requestPointerLock();
         } catch {}
       }
     },
-    b5.onclick = () => mainMenu(!0),
-    b2.onclick = () => start(1),
-    b1.onclick = () => start(),
+    b5.onclick = () => $$$$31(!0),
+    b2.onclick = () => $$$$32(1),
+    b1.onclick = () => $$$$32(),
     b4.onclick = () => {
-      music_on = !music_on, updateMusicOnState();
+      $$$$26 = !$$$$26, $$$$29();
     },
     b3.onclick = () => {
-      confirm("Restart game?") && resetGame();
+      confirm("Restart game?") && $$$$74();
     },
-    onkeyup = onkeydown = e => {
-      let mapped;
-      e.repeat || (mapped = {
+    onkeyup = onkeydown = $$$$0 => {
+      let $$$$1;
+      $$$$0.repeat || ($$$$1 = {
         "KeyE": 0,
         "Space": 0,
         "Enter": 0,
@@ -647,109 +742,91 @@ let page_update = () => {
         "ArrowUp": 4,
         "KeyS": 5,
         "ArrowDown": 5,
-      }[e.code],
-        (keyboard_downKeys[mapped] = !!e.type[5] && !0)
-        && (mapped === 0 && (interact_pressed = 1), mapped === 1 && mainMenu(!0)));
+      }[$$$$0.code],
+        ($$$$27[$$$$1] = !!$$$$0.type[5] && !0) && (0 === $$$$1 && ($$$$3 = 1), 1 === $$$$1 && $$$$31(!0)));
     },
-    onmousemove = e => {
-      player_first_person && (camera_rotation.y += 0.1 * e.movementX || 0, camera_rotation.x += 0.1 * e.movementY || 0);
+    onmousemove = $$$$0 => {
+      $$$$4 && ($$$$28.y += .1 * $$$$0.movementX || 0, $$$$28.x += .1 * $$$$0.movementY || 0);
     },
-    hC.ontouchstart = e => {
-      if (!mainMenuVisible) {
+    hC.ontouchstart = $$$$2 => {
+      if (!$$$$1) {
         for (
           let {
-            identifier,
-            pageX,
-            pageY,
-          } of e.changedTouches
+            identifier: $$$$0,
+            pageX: $$$$1,
+            pageY: $$$$3,
+          } of $$$$2.changedTouches
         ) {
-          player_first_person && pageX > hC.clientWidth / 2
-            ? touchRotIdentifier === void 0
-              && (touchRotMoved = 0,
-                touchRotX = pageX,
-                touchRotY = pageY,
-                touchRotIdentifier = identifier,
-                touchStartCameraRotY = camera_rotation.x,
-                touchStartCameraRotX = camera_rotation.y)
-            : touchPosIdentifier === void 0
-              && (touchPosMoved = 0, touchPosStartX = pageX, touchPosStartY = pageY, touchPosIdentifier = identifier);
+          $$$$4 && $$$$1 > hC.clientWidth / 2
+            ? void 0 === $$$$13
+              && ($$$$14 = 0, $$$$11 = $$$$1, $$$$12 = $$$$3, $$$$13 = $$$$0, $$$$17 = $$$$28.x, $$$$15 = $$$$28.y)
+            : void 0 === $$$$9 && ($$$$10 = 0, $$$$7 = $$$$1, $$$$8 = $$$$3, $$$$9 = $$$$0);
         }
 
-        touchStartTime = absoluteTime;
+        $$$$0 = $$$$18;
       }
     },
-    hC.ontouchmove = e => {
-      if (!mainMenuVisible) {
+    hC.ontouchmove = $$$$0 => {
+      if (!$$$$1) {
         for (
           let {
-            identifier,
-            pageX,
-            pageY,
-          } of e.changedTouches
+            identifier: $$$$1,
+            pageX: $$$$6,
+            pageY: $$$$16,
+          } of $$$$0.changedTouches
         ) {
-          var absDeltaX, deltaY, absDeltaY, m;
-          touchRotIdentifier === identifier
-          && (touchRotMoved = 1,
-            camera_rotation.x = touchStartCameraRotY + (pageY - touchRotY) / 2,
-            camera_rotation.y = touchStartCameraRotX + (pageX - touchRotX) / 2),
-            touchPosIdentifier === identifier
-            && (identifier = (touchPosStartX - pageX) / 19,
-              absDeltaX = abs(identifier),
-              deltaY = (touchPosStartY - pageY) / 19,
-              absDeltaY = abs(deltaY),
-              (m = 0.3 < max(absDeltaX, absDeltaY)) && (touchPosMoved = 1),
-              touch_movementX = clamp(identifier, -1) * (m && 0.2 < absDeltaX),
-              touch_movementY = clamp(deltaY, -1) * (m && 0.2 < absDeltaY),
-              2 < absDeltaX && (touchPosStartX = 19 * (identifier < 0 ? -1 : 1) + pageX),
-              2 < absDeltaY && (touchPosStartY = 19 * (deltaY < 0 ? -1 : 1) + pageY));
+          var $$$$2, $$$$3, $$$$4, $$$$5;
+          $$$$13 === $$$$1
+          && ($$$$14 = 1, $$$$28.x = $$$$17 + ($$$$16 - $$$$12) / 2, $$$$28.y = $$$$15 + ($$$$6 - $$$$11) / 2),
+            $$$$9 === $$$$1
+            && ($$$$1 = ($$$$7 - $$$$6) / 19,
+              $$$$2 = $$$$42($$$$1),
+              $$$$4 = $$$$42($$$$3 = ($$$$8 - $$$$16) / 19),
+              ($$$$5 = $$$$44($$$$2, $$$$4) > .3) && ($$$$10 = 1),
+              $$$$21 = $$$$46($$$$1, -1) * ($$$$5 && $$$$2 > .2),
+              $$$$22 = $$$$46($$$$3, -1) * ($$$$5 && $$$$4 > .2),
+              $$$$2 > 2 && ($$$$7 = 19 * (0 > $$$$1 ? -1 : 1) + $$$$6),
+              $$$$4 > 2 && ($$$$8 = 19 * (0 > $$$$3 ? -1 : 1) + $$$$16));
         }
       }
     },
-    hC.ontouchend = e => {
-      let click;
-      document.activeElement === hB && e.preventDefault();
+    hC.ontouchend = $$$$1 => {
+      let $$$$2;
+      document.activeElement === hB && $$$$1.preventDefault();
 
-      for (const touch of e.changedTouches) {touch.identifier === touchRotIdentifier
-          ? (touchRotIdentifier = void 0, touchRotMoved || (click = 1), touchRotMoved = 0)
-          : touch.identifier === touchPosIdentifier
-          ? (touchPosIdentifier = void 0,
-            touch_movementY = touch_movementX = 0,
-            touchPosMoved || (click = 1),
-            touchPosMoved = 0)
-          : click = 1;}
+      for (const $$$$0 of $$$$1.changedTouches) {$$$$0.identifier === $$$$13
+          ? ($$$$13 = void 0, $$$$14 || ($$$$2 = 1), $$$$14 = 0)
+          : $$$$0.identifier === $$$$9
+          ? ($$$$9 = void 0, $$$$22 = $$$$21 = 0, $$$$10 || ($$$$2 = 1), $$$$10 = 0)
+          : $$$$2 = 1;}
 
-      e.target === hC && click && touchStartTime && 0.02 < (e = absoluteTime - touchStartTime) && e < 0.7
-        && (interact_pressed = 1);
+      $$$$1.target === hC && $$$$2 && $$$$0 && ($$$$1 = $$$$18 - $$$$0) > .02 && .7 > $$$$1 && ($$$$3 = 1);
     },
-    page_update = () => {
-      input_forward = touch_movementY + (keyboard_downKeys[4] ? 1 : 0) - (keyboard_downKeys[5] ? 1 : 0),
-        input_strafe = touch_movementX + (keyboard_downKeys[2] ? 1 : 0) - (keyboard_downKeys[3] ? 1 : 0);
-      let gamepad = navigator.getGamepads()[0];
-      gamepad
-        && (player_first_person
-          && (camera_rotation.x += 80 * gameTimeDelta * threshold(gamepad.axes[3], 0.3),
-            camera_rotation.y += 80 * gameTimeDelta * threshold(gamepad.axes[2], 0.3)),
-          input_forward += getGamepadButtonState(gamepad, 12) - getGamepadButtonState(gamepad, 13)
-            - threshold(gamepad.axes[1], 0.2),
-          input_strafe += getGamepadButtonState(gamepad, 14) - getGamepadButtonState(gamepad, 15)
-            - threshold(gamepad.axes[0], 0.2),
-          getGamepadButtonState(gamepad, 9) && mainMenu(!0),
-          (gamepad = getGamepadButtonState(gamepad, 3) || getGamepadButtonState(gamepad, 2)
-            || getGamepadButtonState(gamepad, 1) || getGamepadButtonState(gamepad, 0))
-          && !gamepadInteractPressed && (interact_pressed = 1),
-          gamepadInteractPressed = gamepad);
+    $$$$71 = () => {
+      $$$$19 = $$$$22 + ($$$$27[4] ? 1 : 0) - ($$$$27[5] ? 1 : 0),
+        $$$$20 = $$$$21 + ($$$$27[2] ? 1 : 0) - ($$$$27[3] ? 1 : 0);
+      let $$$$0 = navigator.getGamepads()[0];
+      $$$$0
+        && ($$$$4
+          && ($$$$28.x += 80 * $$$$16 * $$$$45($$$$0.axes[3], .3), $$$$28.y += 80 * $$$$16 * $$$$45($$$$0.axes[2], .3)),
+          $$$$19 += $$$$33($$$$0, 12) - $$$$33($$$$0, 13) - $$$$45($$$$0.axes[1], .2),
+          $$$$20 += $$$$33($$$$0, 14) - $$$$33($$$$0, 15) - $$$$45($$$$0.axes[0], .2),
+          $$$$33($$$$0, 9) && $$$$31(!0),
+          ($$$$0 = $$$$33($$$$0, 3) || $$$$33($$$$0, 2) || $$$$33($$$$0, 1) || $$$$33($$$$0, 0)) && !$$$$23
+          && ($$$$3 = 1),
+          $$$$23 = $$$$0);
     },
     document.onpointerlockchange = () => {
-      player_first_person = !!document.pointerLockElement;
+      $$$$4 = !!document.pointerLockElement;
     },
-    document.onvisibilitychange = onblur = onresize = handleResize,
-    mainMenu(!0);
+    document.onvisibilitychange = onblur = onresize = $$$$30,
+    $$$$31(!0);
 };
 
-const showMessage = (message, duration) => {
-    1 / 0 > _messageEndTime && (_messageEndTime = gameTime + duration, h4.innerHTML = message);
+const $$$$72 = ($$$$0, $$$$1) => {
+    1 / 0 > $$$$25 && ($$$$25 = $$$$17 + $$$$1, h4.innerHTML = $$$$0);
   },
-  updateCollectedSoulsCounter = () => {
+  $$$$73 = () => {
     h3.innerHTML = "Souls: "
       + [
         0,
@@ -766,96 +843,89 @@ const showMessage = (message, duration) => {
         "XI",
         "XII",
         "XIII",
-      ][souls_collected_count = souls.reduce((acc, v) => acc + v.$value, 0)] + " / XIII";
+      ][$$$$7 = $$$$32.reduce(($$$$0, $$$$1) => $$$$0 + $$$$1.o, 0)] + " / XIII";
   },
-  resetGame = () => {
+  $$$$74 = () => {
     localStorage["Dante-22"] = "", location.reload();
   },
-  saveGame = () => {
+  $$$$75 = () => {
     localStorage["Dante-22"] = JSON.stringify([
-      levers.map(v => v.$value),
-      souls.map(v => v.$value),
-      player_last_pulled_lever,
-      secondBoatLerp,
-      gameTime,
+      $$$$31.map($$$$0 => $$$$0.o),
+      $$$$32.map($$$$0 => $$$$0.o),
+      $$$$24,
+      $$$$10,
+      $$$$17,
     ]);
   },
-  onPlayerPullLever = leverIndex => {
-    player_last_pulled_lever = leverIndex, showMessage("* click *", 1), saveGame();
+  $$$$76 = $$$$0 => {
+    $$$$24 = $$$$0, $$$$72("* click *", 1), $$$$75();
   },
-  distanceToPlayer = () => (matrixTransformPoint(),
-    hypot(
-      player_position_final.x - matrixTransformPoint.x,
-      player_position_final.y - matrixTransformPoint.y,
-      player_position_final.z - matrixTransformPoint.z,
-    )),
-  meshAdd = (polygons, transform = identity, color) =>
-    currentModelPolygons.push(...polygons_transform(polygons, transform, color)),
-  newModel = () => {
-    allModels.push({
-      $matrix: currentModelMmatrix = new DOMMatrix(),
-      $polygon: currentModelPolygons = [],
+  $$$$77 = () => ($$$$36(), $$$$50($$$$29.x - $$$$36.x, $$$$29.y - $$$$36.y, $$$$29.z - $$$$36.z)),
+  $$$$78 = ($$$$0, $$$$1 = $$$$84, $$$$2) => $$$$12.push(...$$$$41($$$$0, $$$$1, $$$$2)),
+  $$$$79 = () => {
+    $$$$30.push({
+      p: $$$$11 = new DOMMatrix(),
+      i: $$$$12 = [],
     });
   },
-  newSoul = (transform, ...walkingPath) => {
-    let lookAngle,
-      prevX,
-      prevZ,
-      velocity,
-      dirZ = 0,
-      randAngle = 0,
-      wasInside = 1,
-      dirX = -1;
+  $$$$80 = ($$$$0, ...$$$$1) => {
+    let $$$$2,
+      $$$$3,
+      $$$$4,
+      $$$$5,
+      $$$$6 = 0,
+      $$$$8 = 0,
+      $$$$9 = 1,
+      $$$$10 = -1;
 
-    const soul = () => {
-      if (soul.$value) {
-        matrixCopy(allModels[35].$matrix).translateSelf(
-          index % 4 * 1.2 - 1.7 + /* @__PURE__ */ Math.sin(gameTime + index) / 7,
+    const $$$$12 = () => {
+      if ($$$$12.o) {
+        $$$$35($$$$30[35].p).translateSelf(
+          $$$$20 % 4 * 1.2 - 1.7 + /* @__PURE__ */ Math.sin($$$$17 + $$$$20) / 7,
           -2,
-          1.7 * (index >> 2) - 5.5 + abs(index % 4 - 2) + /* @__PURE__ */ Math.cos(gameTime / 1.5 + index) / 6,
+          1.7 * ($$$$20 >> 2) - 5.5 + $$$$42($$$$20 % 4 - 2) + /* @__PURE__ */ Math.cos($$$$17 / 1.5 + $$$$20) / 6,
         );
       } else {
-        let isInside,
-          contextualVelocity = 1,
-          mindist = 1 / 0;
+        let $$$$11,
+          $$$$20 = 1,
+          $$$$21 = 1 / 0;
 
-        for (let i = 0; walkingPath.length > i; i++) {
-          let c = walkingPath[i],
-            distance = hypot(targetX - c[0], targetZ - c[1]);
-          contextualVelocity = min(contextualVelocity, distance / c[2]),
-            (distance -= c[2]) < 0 ? isInside = 1 : mindist > distance && (mindist = distance, circle = c);
+        for (let $$$$0 = 0; $$$$1.length > $$$$0; $$$$0++) {
+          let $$$$2 = $$$$1[$$$$0],
+            $$$$3 = $$$$50($$$$14 - $$$$2[0], $$$$15 - $$$$2[1]);
+          $$$$20 = $$$$43($$$$20, $$$$3 / $$$$2[2]),
+            0 > ($$$$3 -= $$$$2[2]) ? $$$$11 = 1 : $$$$21 > $$$$3 && ($$$$21 = $$$$3, $$$$13 = $$$$2);
         }
 
-        let ax, az, magnitude, angle;
-        isInside
-        || (ax = targetX - circle[0],
-          az = targetZ - circle[1],
-          magnitude = hypot(ax, az),
-          angle = /* @__PURE__ */ Math.atan2(-az, ax),
-          wasInside
-          && (velocity = clamp(velocity / (1 + /* @__PURE__ */ Math.random())),
-            randAngle = (/* @__PURE__ */ Math.random() - 0.5) * Math.PI / 2),
-          angle += randAngle,
-          dirX = -/* @__PURE__ */ Math.cos(angle),
-          dirZ = /* @__PURE__ */ Math.sin(angle),
-          0.1 < magnitude
-          && (magnitude = min(magnitude, circle[2]) / magnitude,
-            targetX = ax * magnitude + circle[0],
-            targetZ = az * magnitude + circle[1])),
-          wasInside = isInside,
-          velocity = lerpDamp(velocity, 3 + 6 * (1 - contextualVelocity), 3 + contextualVelocity),
-          soulX = lerpDamp(soulX, targetX = lerpDamp(targetX, targetX + dirX, velocity), velocity),
-          soulZ = lerpDamp(soulZ, targetZ = lerpDamp(targetZ, targetZ + dirZ, velocity), velocity),
-          lookAngle = angle_lerp_degrees(
-            lookAngle,
-            /* @__PURE__ */ Math.atan2(soulX - prevX, soulZ - prevZ) / DEG_TO_RAD - 180,
-            damp(3),
+        let $$$$22, $$$$23, $$$$24, $$$$25;
+        $$$$11
+        || ($$$$22 = $$$$14 - $$$$13[0],
+          $$$$23 = $$$$15 - $$$$13[1],
+          $$$$24 = $$$$50($$$$22, $$$$23),
+          $$$$25 = /* @__PURE__ */ Math.atan2(-$$$$23, $$$$22),
+          $$$$9
+          && ($$$$5 = $$$$46($$$$5 / (1 + /* @__PURE__ */ Math.random())),
+            $$$$8 = /* @__PURE__ */ (Math.random() - .5) * Math.PI / 2),
+          $$$$25 += $$$$8,
+          $$$$10 = -/* @__PURE__ */ Math.cos($$$$25),
+          $$$$6 = /* @__PURE__ */ Math.sin($$$$25),
+          $$$$24 > .1
+          && ($$$$24 = $$$$43($$$$24, $$$$13[2]) / $$$$24,
+            $$$$14 = $$$$22 * $$$$24 + $$$$13[0],
+            $$$$15 = $$$$23 * $$$$24 + $$$$13[1])),
+          $$$$9 = $$$$11,
+          $$$$5 = $$$$67($$$$5, 3 + 6 * (1 - $$$$20), 3 + $$$$20),
+          $$$$16 = $$$$67($$$$16, $$$$14 = $$$$67($$$$14, $$$$14 + $$$$10, $$$$5), $$$$5),
+          $$$$18 = $$$$67($$$$18, $$$$15 = $$$$67($$$$15, $$$$15 + $$$$6, $$$$5), $$$$5),
+          $$$$2 = $$$$48($$$$2, /* @__PURE__ */ Math.atan2($$$$16 - $$$$3, $$$$18 - $$$$4) / $$$$26 - 180, $$$$66(3)),
+          $$$$35($$$$19).multiplySelf($$$$0).translateSelf($$$$3 = $$$$16, 0, $$$$4 = $$$$18).rotateSelf(
+            0,
+            $$$$2,
+            7 * /* @__PURE__ */ Math.sin(1.7 * $$$$17),
           ),
-          matrixCopy(parentModelMatrix).multiplySelf(transform).translateSelf(prevX = soulX, 0, prevZ = soulZ)
-            .rotateSelf(0, lookAngle, 7 * /* @__PURE__ */ Math.sin(1.7 * gameTime)),
-          distanceToPlayer() < 1.6
-          && (soul.$value = 1,
-            showMessage(
+          1.6 > $$$$77()
+          && ($$$$12.o = 1,
+            $$$$72(
               [
                 ,
                 "Mark Zuckemberg<br>made the world worse",
@@ -870,1645 +940,1257 @@ const showMessage = (message, duration) => {
                 "He was not a good person",
                 ,
                 "Salvatore Previti<br>made this evil game<br><br>Done. Go back to the boat",
-              ][souls_collected_count] || "Catched a \"crypto bro\".<br>\"Web3\" is all scam, lies and grift",
+              ][$$$$7] || "Catched a \"crypto bro\".<br>\"Web3\" is all scam, lies and grift",
               6,
             ),
-            updateCollectedSoulsCounter(),
-            saveGame());
+            $$$$73(),
+            $$$$75());
       }
-      matrixToArray(tempMatrix, transformsBuffer, 28 + index);
+      $$$$34($$$$85, $$$$88, 28 + $$$$20);
     };
 
-    let circle = walkingPath[0],
-      [targetX, targetZ] = circle,
-      [soulX, soulZ] = circle;
-    const parentModelMatrix = currentModelMmatrix,
-      index = souls.length;
-    souls.push(soul);
+    let $$$$13 = $$$$1[0],
+      [$$$$14, $$$$15] = $$$$13,
+      [$$$$16, $$$$18] = $$$$13;
+    const $$$$19 = $$$$11,
+      $$$$20 = $$$$32.length;
+    $$$$32.push($$$$12);
   },
-  modelsNextUpdate = (x, y = 0, z = 0) => {
-    const m = matrixCopy(identity, allModels[++modelsUpdateCounter].$matrix);
-    return m.m41 = x, m.m42 = y, m.m43 = z, m;
+  $$$$81 = ($$$$0, $$$$1 = 0, $$$$2 = 0) => {
+    const $$$$3 = $$$$35($$$$84, $$$$30[++$$$$13].p);
+    return $$$$3.m41 = $$$$0, $$$$3.m42 = $$$$1, $$$$3.m43 = $$$$2, $$$$3;
   },
-  player_init = NO_INLINE(() => {
-    let player_look_angle_target,
-      player_look_angle,
-      player_legs_speed,
-      player_on_rotating_platforms,
-      player_fly_velocity_x,
-      player_fly_velocity_z,
-      player_speed,
-      player_speed_collision_limiter,
-      player_model_y,
-      currentModelId,
-      camera_pos_lookat_x,
-      camera_pos_lookat_y,
-      camera_pos_lookat_z,
-      player_position_global_x,
-      player_position_global_y,
-      player_position_global_z,
-      oldModelId = 0,
-      boot = 1,
-      player_respawned = 2,
-      player_gravity = 15;
+  $$$$82 = NO_INLINE(() => {
+    let $$$$0,
+      $$$$1,
+      $$$$2,
+      $$$$3,
+      $$$$5,
+      $$$$6,
+      $$$$7,
+      $$$$8,
+      $$$$10,
+      $$$$11,
+      $$$$12,
+      $$$$13,
+      $$$$18,
+      $$$$25,
+      $$$$27,
+      $$$$32,
+      $$$$33 = 0,
+      $$$$34 = 1,
+      $$$$37 = 2,
+      $$$$38 = 15;
 
-    const interpolate_with_hysteresis = (previous, desired, hysteresis, speed) =>
-        lerp(
-          previous,
-          desired,
-          boot || (clamp(abs(desired - previous) ** 0.5 - hysteresis) + 1 / 7) * damp(1.5 * speed),
-        ),
-      loadReferenceMatrix = () =>
-        matrixCopy(
-          (player_respawned ? levers[player_last_pulled_lever] : allModels[oldModelId !== 28 ? oldModelId : 0]).$matrix,
-        ),
-      updatePlayerPositionFinal = updateVelocity => {
-        1 < player_respawned
-          ? (matrixCopy(levers[player_last_pulled_lever].$matrix).multiplySelf(
-            levers[player_last_pulled_lever].$transform,
-          ),
-            matrixTransformPoint(0, 0.9 < firstBoatLerp ? 15 : 1, -2.4))
-          : (loadReferenceMatrix(),
-            matrixTransformPoint(player_position_global_x, player_position_global_y, player_position_global_z)),
-          updateVelocity
-          && (player_fly_velocity_x = (matrixTransformPoint.x - player_position_final.x) / gameTimeDelta,
-            player_fly_velocity_z = (matrixTransformPoint.z - player_position_final.z) / gameTimeDelta),
-          player_position_final.x = matrixTransformPoint.x,
-          player_position_final.y = matrixTransformPoint.y,
-          player_position_final.z = matrixTransformPoint.z;
+    const $$$$39 = ($$$$0, $$$$1, $$$$2, $$$$3) =>
+        $$$$49($$$$0, $$$$1, $$$$34 || ($$$$46($$$$42($$$$1 - $$$$0) ** .5 - $$$$2) + 1 / 7) * $$$$66(1.5 * $$$$3)),
+      $$$$40 = () => $$$$35(($$$$37 ? $$$$31[$$$$24] : $$$$30[28 !== $$$$33 ? $$$$33 : 0]).p),
+      $$$$41 = $$$$0 => {
+        $$$$37 > 1
+          ? ($$$$35($$$$31[$$$$24].p).multiplySelf($$$$31[$$$$24].q), $$$$36(0, $$$$9 > .9 ? 15 : 1, -2.4))
+          : ($$$$40(), $$$$36($$$$25, $$$$27, $$$$32)),
+          $$$$0 && ($$$$5 = ($$$$36.x - $$$$29.x) / $$$$16, $$$$6 = ($$$$36.z - $$$$29.z) / $$$$16),
+          $$$$29.x = $$$$36.x,
+          $$$$29.y = $$$$36.y,
+          $$$$29.z = $$$$36.z;
       },
-      movePlayer = (mx, my, mz) => {
-        loadReferenceMatrix().invertSelf(),
-          matrixTransformPoint(mx, my, mz, 0),
-          player_position_global_x += matrixTransformPoint.x,
-          player_position_global_y += my,
-          player_position_global_z += matrixTransformPoint.z,
-          updatePlayerPositionFinal();
+      $$$$51 = ($$$$0, $$$$1, $$$$2) => {
+        $$$$40().invertSelf(),
+          $$$$36($$$$0, $$$$1, $$$$2, 0),
+          $$$$25 += $$$$36.x,
+          $$$$27 += $$$$1,
+          $$$$32 += $$$$36.z,
+          $$$$41();
       },
-      doCollisions = NO_INLINE(() => {
-        let modelACount = 0,
-          modelB = 0,
-          modelBCount = 0,
-          movY = 0,
-          movX = 0,
-          movZ = 0,
-          lineToProcess = -1;
+      $$$$52 = NO_INLINE(() => {
+        let $$$$0 = 0,
+          $$$$1 = 0,
+          $$$$2 = 0,
+          $$$$3 = 0,
+          $$$$4 = 0,
+          $$$$5 = 0,
+          $$$$6 = -1;
 
-        for (let y = 0; y < 36; ++y) {
-          for (let x = 96, yindex = 512 * y; x < 416; x += 4) {
-            for (let k = 0; k < 2; ++k) {
-              const v = collision_buffer[yindex + x + k],
-                m = collision_buffer[yindex + x + k + 2];
-              v > movY && (movY = v),
-                v + m && (lineToProcess < 0 || lineToProcess === y)
-                && (lineToProcess = y,
-                  m === currentModelId ? ++modelACount : modelB && modelB !== m || (modelB = m, ++modelBCount));
+        for (let $$$$4 = 0; 36 > $$$$4; ++$$$$4) {
+          for (let $$$$5 = 96, $$$$7 = 512 * $$$$4; 416 > $$$$5; $$$$5 += 4) {
+            for (let $$$$8 = 0; 2 > $$$$8; ++$$$$8) {
+              const $$$$9 = $$$$87[$$$$7 + $$$$5 + $$$$8],
+                $$$$10 = $$$$87[$$$$7 + $$$$5 + $$$$8 + 2];
+              $$$$9 > $$$$3 && ($$$$3 = $$$$9),
+                $$$$9 + $$$$10 && (0 > $$$$6 || $$$$6 === $$$$4)
+                && ($$$$6 = $$$$4,
+                  $$$$10 === $$$$11 ? ++$$$$0 : $$$$1 && $$$$1 !== $$$$10 || ($$$$1 = $$$$10, ++$$$$2));
             }
           }
         }
 
-        currentModelId = lineToProcess < 0 ? 0 : modelBCount > 2 * modelACount ? modelB : currentModelId;
+        $$$$11 = 0 > $$$$6 ? 0 : $$$$2 > 2 * $$$$0 ? $$$$1 : $$$$11;
 
-        for (let y1 = 36; y1 < 128; ++y1) {
-          let left = 0,
-            right = 0,
-            front = 0,
-            back = 0;
+        for (let $$$$0 = 36; 128 > $$$$0; ++$$$$0) {
+          let $$$$1 = 0,
+            $$$$2 = 0,
+            $$$$3 = 0,
+            $$$$6 = 0;
 
-          for (let tx = 0, yindex1 = 512 * y1; tx < 128; ++tx) {
-            let index = yindex1 + 4 * tx,
-              v1 = collision_buffer[index];
-            tx < 64 ? v1 > left && (left = v1) : v1 > right && (right = v1),
-              (v1 = collision_buffer[2 + index]) > front && (front = v1),
-              v1 = collision_buffer[1 + index],
-              64 < tx ? v1 > left && (left = v1) : v1 > right && (right = v1),
-              (v1 = collision_buffer[3 + index]) > back && (back = v1);
+          for (let $$$$4 = 0, $$$$5 = 512 * $$$$0; 128 > $$$$4; ++$$$$4) {
+            let $$$$0 = $$$$5 + 4 * $$$$4,
+              $$$$7 = $$$$87[$$$$0];
+            64 > $$$$4 ? $$$$7 > $$$$1 && ($$$$1 = $$$$7) : $$$$7 > $$$$2 && ($$$$2 = $$$$7),
+              ($$$$7 = $$$$87[2 + $$$$0]) > $$$$3 && ($$$$3 = $$$$7),
+              $$$$7 = $$$$87[1 + $$$$0],
+              $$$$4 > 64 ? $$$$7 > $$$$1 && ($$$$1 = $$$$7) : $$$$7 > $$$$2 && ($$$$2 = $$$$7),
+              ($$$$7 = $$$$87[3 + $$$$0]) > $$$$6 && ($$$$6 = $$$$7);
           }
 
-          (right -= left) * right > movX * movX && (movX = right),
-            (back -= front) * back > movZ * movZ && (movZ = back);
+          ($$$$2 -= $$$$1) * $$$$2 > $$$$4 * $$$$4 && ($$$$4 = $$$$2),
+            ($$$$6 -= $$$$3) * $$$$6 > $$$$5 * $$$$5 && ($$$$5 = $$$$6);
         }
 
-        player_speed_collision_limiter = clamp(1 - 0.01 * max(abs(movX *= 0.7), abs(movZ)), 0.3),
-          movePlayer(movX / 255, movY / 255, movZ / 255);
+        $$$$8 = $$$$46(1 - .01 * $$$$44($$$$42($$$$4 *= .7), $$$$42($$$$5)), .3),
+          $$$$51($$$$4 / 255, $$$$3 / 255, $$$$5 / 255);
       });
 
-    player_update = () => {
-      updatePlayerPositionFinal(currentModelId),
-        cgl["r9r"](0, 0, 128, 128, 6408, 5121, collision_buffer),
-        doCollisions(),
-        !player_respawned && currentModelId === oldModelId
-        || (oldModelId = currentModelId,
-          loadReferenceMatrix().invertSelf(),
-          matrixTransformPoint(player_position_final.x, player_position_final.y, player_position_final.z),
-          player_position_global_x = matrixTransformPoint.x,
-          player_position_global_y = matrixTransformPoint.y,
-          player_position_global_z = matrixTransformPoint.z,
-          player_respawned = player_respawned && (currentModelId ? 0 : 1)),
-        (player_position_final.x < -20 || player_position_final.z < 109 ? -25 : -9) > player_position_final.y
-        && (player_respawned = 2),
-        currentModelId === 1
-        && (levers[15].$value = player_position_final.x < -15 && player_position_final.z < 0 ? 1 : 0),
-        player_on_rotating_platforms = lerpDamp(
-          player_on_rotating_platforms,
-          shouldRotatePlatforms * (30 < currentModelId && currentModelId < 35),
-          2,
-        ),
-        camera_pos_lookat_x = interpolate_with_hysteresis(camera_pos_lookat_x, player_position_final.x, 0.5, 1),
-        camera_pos_lookat_y = interpolate_with_hysteresis(
-          camera_pos_lookat_y,
-          player_model_y = lerp(
-            lerpDamp(player_model_y, player_position_final.y, 2),
-            player_position_final.y,
-            player_respawned || 8 * abs(player_model_y - player_position_final.y),
-          ),
+    $$$$14 = () => {
+      $$$$41($$$$11),
+        $$$$90["r9r"](0, 0, 128, 128, 6408, 5121, $$$$87),
+        $$$$52(),
+        !$$$$37 && $$$$11 === $$$$33
+        || ($$$$33 = $$$$11,
+          $$$$40().invertSelf(),
+          $$$$36($$$$29.x, $$$$29.y, $$$$29.z),
+          $$$$25 = $$$$36.x,
+          $$$$27 = $$$$36.y,
+          $$$$32 = $$$$36.z,
+          $$$$37 = $$$$37 && ($$$$11 ? 0 : 1)),
+        (-20 > $$$$29.x || 109 > $$$$29.z ? -25 : -9) > $$$$29.y && ($$$$37 = 2),
+        1 === $$$$11 && ($$$$31[15].o = -15 > $$$$29.x && 0 > $$$$29.z ? 1 : 0),
+        $$$$3 = $$$$67($$$$3, $$$$15 * ($$$$11 > 30 && 35 > $$$$11), 2),
+        $$$$12 = $$$$39($$$$12, $$$$29.x, .5, 1),
+        $$$$13 = $$$$39(
+          $$$$13,
+          $$$$10 = $$$$49($$$$67($$$$10, $$$$29.y, 2), $$$$29.y, $$$$37 || 8 * $$$$42($$$$10 - $$$$29.y)),
           2,
           1,
         ),
-        camera_pos_lookat_z = interpolate_with_hysteresis(camera_pos_lookat_z, player_position_final.z, 0.5, 1),
-        player_first_person
-          ? (d = player_respawned + damp(18),
-            camera_position_x = lerp(camera_position_x, player_position_final.x, d),
-            camera_position_z = lerp(camera_position_z, player_position_final.z, d),
-            camera_position_y = lerp(camera_position_y, 1.6 + player_model_y, d),
-            camera_rotation.y = angle_wrap_degrees(camera_rotation.y))
-          : (camera_position_x = interpolate_with_hysteresis(
-            camera_position_x,
-            camera_pos_lookat_x,
-            1,
-            2 + player_on_rotating_platforms,
-          ),
-            camera_position_z = interpolate_with_hysteresis(
-              camera_position_z,
-              camera_pos_lookat_z + -18 + 5 * player_on_rotating_platforms,
-              1,
-              2 + player_on_rotating_platforms,
+        $$$$18 = $$$$39($$$$18, $$$$29.z, .5, 1),
+        $$$$4
+          ? ($$$$9 = $$$$37 + $$$$66(18),
+            $$$$21 = $$$$49($$$$21, $$$$29.x, $$$$9),
+            $$$$23 = $$$$49($$$$23, $$$$29.z, $$$$9),
+            $$$$22 = $$$$49($$$$22, 1.6 + $$$$10, $$$$9),
+            $$$$28.y = $$$$47($$$$28.y))
+          : ($$$$21 = $$$$39($$$$21, $$$$12, 1, 2 + $$$$3),
+            $$$$23 = $$$$39($$$$23, $$$$18 + -18 + 5 * $$$$3, 1, 2 + $$$$3),
+            $$$$22 = $$$$39($$$$22, $$$$44($$$$13 + $$$$46((-60 - $$$$29.z) / 8, 0, 20) + 13 + 9 * $$$$3, 6), 4, 2),
+            $$$$9 = $$$$43(-6, -$$$$42($$$$18 - $$$$23)),
+            $$$$28.y = $$$$48(
+              $$$$28.y,
+              90 - $$$$47(/* @__PURE__ */ Math.atan2($$$$9, $$$$14 = $$$$12 - $$$$21) / $$$$26),
+              $$$$34 + $$$$66(10),
             ),
-            camera_position_y = interpolate_with_hysteresis(
-              camera_position_y,
-              max(
-                camera_pos_lookat_y + clamp((-60 - player_position_final.z) / 8, 0, 20) + 13
-                  + 9 * player_on_rotating_platforms,
-                6,
-              ),
-              4,
-              2,
-            ),
-            d = min(-6, -abs(camera_pos_lookat_z - camera_position_z)),
-            viewDirDiffx = camera_pos_lookat_x - camera_position_x,
-            camera_rotation.y = angle_lerp_degrees(
-              camera_rotation.y,
-              90 - angle_wrap_degrees(/* @__PURE__ */ Math.atan2(d, viewDirDiffx) / DEG_TO_RAD),
-              boot + damp(10),
-            ),
-            camera_rotation.x = angle_lerp_degrees(
-              camera_rotation.x,
-              90
-                - /* @__PURE__ */ Math.atan2(hypot(d, viewDirDiffx), camera_position_y - camera_pos_lookat_y)
-                  / DEG_TO_RAD,
-              boot + damp(10),
+            $$$$28.x = $$$$48(
+              $$$$28.x,
+              90 - /* @__PURE__ */ Math.atan2($$$$50($$$$9, $$$$14), $$$$22 - $$$$13) / $$$$26,
+              $$$$34 + $$$$66(10),
             )),
-        camera_rotation.x = clamp(camera_rotation.x, -87, 87),
-        boot = 0;
-      var d = clamp(input_forward, -1),
-        viewDirDiffx = clamp(input_strafe, -1),
-        movAmount = threshold(hypot(d, viewDirDiffx) ** 0.5, 0.1),
-        movAngle = /* @__PURE__ */ Math.atan2(d, viewDirDiffx);
-      movAmount && (player_look_angle_target = 90 - movAngle / DEG_TO_RAD),
-        player_legs_speed = lerpDamp(player_legs_speed, movAmount, 10),
-        modelsNextUpdate(
-          player_position_final.x,
-          0.06 * player_speed_collision_limiter * player_legs_speed * /* @__PURE__ */ Math.cos(18.2 * gameTime)
-            + player_model_y,
-          player_position_final.z,
-        ).rotateSelf(0, player_look_angle = angle_lerp_degrees(player_look_angle, player_look_angle_target, damp(8)));
-
-      for (let i = 0; i < 2; ++i) {
-        const t = 9.1 * gameTime - Math.PI * i;
-        matrixCopy(allModels[53].$matrix, modelsNextUpdate(0)).translateSelf(
+        $$$$28.x = $$$$46($$$$28.x, -87, 87),
+        $$$$34 = 0;
+      var $$$$9 = $$$$46($$$$19, -1),
+        $$$$14 = $$$$46($$$$20, -1),
+        $$$$24 = $$$$45($$$$50($$$$9, $$$$14) ** .5, .1),
+        $$$$53 = /* @__PURE__ */ Math.atan2($$$$9, $$$$14);
+      $$$$24 && ($$$$0 = 90 - $$$$53 / $$$$26),
+        $$$$2 = $$$$67($$$$2, $$$$24, 10),
+        $$$$81($$$$29.x, .06 * $$$$8 * $$$$2 * /* @__PURE__ */ Math.cos(18.2 * $$$$17) + $$$$10, $$$$29.z).rotateSelf(
           0,
-          player_legs_speed * clamp(0.45 * /* @__PURE__ */ Math.sin(t - Math.PI / 2)),
-        ).rotateSelf(player_legs_speed * /* @__PURE__ */ Math.sin(t) * 0.25 / DEG_TO_RAD, 0);
+          $$$$1 = $$$$48($$$$1, $$$$0, $$$$66(8)),
+        );
+
+      for (let $$$$0 = 0; 2 > $$$$0; ++$$$$0) {
+        const $$$$1 = 9.1 * $$$$17 - Math.PI * $$$$0;
+        $$$$35($$$$30[53].p, $$$$81(0)).translateSelf(
+          0,
+          $$$$2 * $$$$46(.45 * /* @__PURE__ */ Math.sin($$$$1 - Math.PI / 2)),
+        ).rotateSelf($$$$2 * /* @__PURE__ */ Math.sin($$$$1) * .25 / $$$$26, 0);
       }
 
-      player_gravity = currentModelId
-        ? 5
-        : lerpDamp(player_gravity, player_respawned ? 13 : 19 - 2 * min(0, player_position_final.y + 10), 2.2),
-        player_fly_velocity_x = currentModelId || player_respawned ? 0 : lerpDamp(player_fly_velocity_x, 0, 3),
-        player_fly_velocity_z = currentModelId || player_respawned ? 0 : lerpDamp(player_fly_velocity_z, 0, 3),
-        d = (player_speed = player_respawned
-          ? 0
-          : lerpDamp(
-            player_speed,
-            currentModelId ? 7 * clamp(2 * movAmount) * player_speed_collision_limiter : 0,
-            currentModelId ? 9 : 1,
-          )) * movAmount * abs(d) * /* @__PURE__ */ Math.sin(movAngle),
-        viewDirDiffx = player_speed * movAmount * abs(viewDirDiffx) * /* @__PURE__ */ Math.cos(movAngle),
-        movAngle = player_first_person ? (180 + camera_rotation.y) * DEG_TO_RAD : 0,
-        movePlayer(
-          gameTimeDelta
-            * (player_fly_velocity_x
-              + (/* @__PURE__ */ Math.cos(movAngle) * viewDirDiffx - /* @__PURE__ */ Math.sin(movAngle) * d)),
-          gameTimeDelta * -player_gravity,
-          gameTimeDelta
-            * (player_fly_velocity_z
-              + (/* @__PURE__ */ Math.sin(movAngle) * viewDirDiffx + /* @__PURE__ */ Math.cos(movAngle) * d)),
+      $$$$38 = $$$$11 ? 5 : $$$$67($$$$38, $$$$37 ? 13 : 19 - 2 * $$$$43(0, $$$$29.y + 10), 2.2),
+        $$$$5 = $$$$11 || $$$$37 ? 0 : $$$$67($$$$5, 0, 3),
+        $$$$6 = $$$$11 || $$$$37 ? 0 : $$$$67($$$$6, 0, 3),
+        $$$$9 = ($$$$7 = $$$$37 ? 0 : $$$$67($$$$7, $$$$11 ? 7 * $$$$46(2 * $$$$24) * $$$$8 : 0, $$$$11 ? 9 : 1))
+          * $$$$24 * $$$$42($$$$9) * /* @__PURE__ */ Math.sin($$$$53),
+        $$$$14 = $$$$7 * $$$$24 * $$$$42($$$$14) * /* @__PURE__ */ Math.cos($$$$53),
+        $$$$51(
+          $$$$16
+            * ($$$$5
+              + (/* @__PURE__ */ Math.cos($$$$53 = $$$$4 ? (180 + $$$$28.y) * $$$$26 : 0) * $$$$14
+                - /* @__PURE__ */ Math.sin($$$$53) * $$$$9)),
+          $$$$16 * -$$$$38,
+          $$$$16 * ($$$$6 + (/* @__PURE__ */ Math.sin($$$$53) * $$$$14 + /* @__PURE__ */ Math.cos($$$$53) * $$$$9)),
         );
     };
   });
 
-let eppur_si_muove = () => {
-  let rotatingPlatform1Rotation, rotatingPlatform2Rotation, rotatingHexCorridorRotation;
+let $$$$83 = () => {
+  let $$$$0, $$$$1, $$$$2;
 
-  const lerpneg = (v, t) => (v = clamp(v), lerp(v, 1 - v, t));
+  const $$$$4 = ($$$$0, $$$$1) => ($$$$0 = $$$$46($$$$0), $$$$49($$$$0, 1 - $$$$0, $$$$1));
 
-  (eppur_si_muove = () => {
-    const boatUpdate = (x, y, z) =>
-      modelsNextUpdate(
-        x + /* @__PURE__ */ Math.sin(gameTime + 2) / 5,
-        y + /* @__PURE__ */ Math.sin(0.8 * gameTime) / 5,
-        z,
-      ).rotateSelf(
-        2 * /* @__PURE__ */ Math.sin(gameTime),
-        /* @__PURE__ */ Math.sin(0.7 * gameTime),
-        /* @__PURE__ */ Math.sin(0.9 * gameTime),
-      );
+  ($$$$83 = () => {
+    const $$$$5 = ($$$$0, $$$$1, $$$$2) =>
+      $$$$81($$$$0 + /* @__PURE__ */ Math.sin($$$$17 + 2) / 5, $$$$1 + /* @__PURE__ */ Math.sin(.8 * $$$$17) / 5, $$$$2)
+        .rotateSelf(
+          2 * /* @__PURE__ */ Math.sin($$$$17),
+          /* @__PURE__ */ Math.sin(.7 * $$$$17),
+          /* @__PURE__ */ Math.sin(.9 * $$$$17),
+        );
 
-    modelsUpdateCounter = 1,
-      rotatingHexCorridorRotation = lerp(
-        lerpDamp(rotatingHexCorridorRotation, 0, 1),
-        angle_wrap_degrees(rotatingHexCorridorRotation + 60 * gameTimeDelta),
-        levers[2].$lerpValue - levers[3].$lerpValue2,
-      ),
-      shouldRotatePlatforms = lerpneg(levers[13].$lerpValue, levers[8].$lerpValue),
-      rotatingPlatform1Rotation = lerp(
-        lerpDamp(rotatingPlatform1Rotation, 0, 5),
-        angle_wrap_degrees(rotatingPlatform1Rotation + 56 * gameTimeDelta),
-        shouldRotatePlatforms,
-      ),
-      rotatingPlatform2Rotation = lerp(
-        lerpDamp(rotatingPlatform2Rotation, 0, 4),
-        angle_wrap_degrees(rotatingPlatform2Rotation + 48 * gameTimeDelta),
-        shouldRotatePlatforms,
-      ),
-      modelsNextUpdate(
+    $$$$13 = 1,
+      $$$$2 = $$$$49($$$$67($$$$2, 0, 1), $$$$47($$$$2 + 60 * $$$$16), $$$$31[2].t - $$$$31[3].u),
+      $$$$15 = $$$$4($$$$31[13].t, $$$$31[8].t),
+      $$$$0 = $$$$49($$$$67($$$$0, 0, 5), $$$$47($$$$0 + 56 * $$$$16), $$$$15),
+      $$$$1 = $$$$49($$$$67($$$$1, 0, 4), $$$$47($$$$1 + 48 * $$$$16), $$$$15),
+      $$$$81(0, 270 * ($$$$31[1].t - 1) + (2 + 5 * /* @__PURE__ */ Math.cos(1.5 * $$$$17)) * (1 - $$$$31[10].t));
+    let $$$$6 = $$$$43(1 - $$$$31[11].u, $$$$31[10].u);
+    $$$$81($$$$6 * /* @__PURE__ */ Math.sin(.6 * $$$$17 + 1.2) * 12, 0, 35),
+      $$$$81($$$$6 * /* @__PURE__ */ Math.sin(.6 * $$$$17 - 1.2) * 8.2, 0, 55),
+      $$$$81($$$$6 * /* @__PURE__ */ Math.sin(.6 * $$$$17) * 12, 0, 45),
+      $$$$81(9.8 * (1 - $$$$6)),
+      $$$$6 = $$$$46(1 - 5 * $$$$6) * $$$$4($$$$31[11].t, $$$$31[2].t),
+      $$$$81(0, $$$$6 * /* @__PURE__ */ Math.sin(1.35 * $$$$17) * 4),
+      $$$$81(0, 0, $$$$6 * /* @__PURE__ */ Math.sin(.9 * $$$$17) * 8),
+      $$$$81(0, -6.5 * $$$$31[11].u),
+      $$$$6 = $$$$4($$$$31[4].u, $$$$31[3].u),
+      $$$$81(0, $$$$6 * /* @__PURE__ */ Math.sin($$$$17) * 5 + 3.5 * (1 - $$$$44($$$$31[3].t, $$$$31[4].t))),
+      $$$$81(
         0,
-        270 * (levers[1].$lerpValue - 1)
-          + (2 + 5 * /* @__PURE__ */ Math.cos(1.5 * gameTime)) * (1 - levers[10].$lerpValue),
-      );
-    let oscillation = min(1 - levers[11].$lerpValue2, levers[10].$lerpValue2);
-    modelsNextUpdate(oscillation * /* @__PURE__ */ Math.sin(0.6 * gameTime + 1.2) * 12, 0, 35),
-      modelsNextUpdate(oscillation * /* @__PURE__ */ Math.sin(0.6 * gameTime - 1.2) * 8.2, 0, 55),
-      modelsNextUpdate(oscillation * /* @__PURE__ */ Math.sin(0.6 * gameTime) * 12, 0, 45),
-      modelsNextUpdate(9.8 * (1 - oscillation)),
-      oscillation = clamp(1 - 5 * oscillation) * lerpneg(levers[11].$lerpValue, levers[2].$lerpValue),
-      modelsNextUpdate(0, oscillation * /* @__PURE__ */ Math.sin(1.35 * gameTime) * 4),
-      modelsNextUpdate(0, 0, oscillation * /* @__PURE__ */ Math.sin(0.9 * gameTime) * 8),
-      modelsNextUpdate(0, -6.5 * levers[11].$lerpValue2),
-      oscillation = lerpneg(levers[4].$lerpValue2, levers[3].$lerpValue2),
-      modelsNextUpdate(
-        0,
-        oscillation * /* @__PURE__ */ Math.sin(gameTime) * 5
-          + 3.5 * (1 - max(levers[3].$lerpValue, levers[4].$lerpValue)),
+        $$$$6 * /* @__PURE__ */ Math.sin($$$$17 + 3) * 6,
+        $$$$6 * /* @__PURE__ */ Math.sin(.6 * $$$$17 + 1) * 6,
       ),
-      modelsNextUpdate(
-        0,
-        oscillation * /* @__PURE__ */ Math.sin(gameTime + 3) * 6,
-        oscillation * /* @__PURE__ */ Math.sin(0.6 * gameTime + 1) * 6,
-      ),
-      modelsNextUpdate(0, -7.3 * levers[4].$lerpValue2),
-      oscillation = lerpneg(levers[6].$lerpValue, levers[7].$lerpValue),
-      modelsNextUpdate(0, -2, 10 - 8.5 * oscillation * abs(/* @__PURE__ */ Math.sin(1.1 * gameTime))),
-      modelsNextUpdate(0, -2, 10 - 8.5 * oscillation * abs(/* @__PURE__ */ Math.sin(2.1 * gameTime))),
-      modelsNextUpdate(
+      $$$$81(0, -7.3 * $$$$31[4].u),
+      $$$$6 = $$$$4($$$$31[6].t, $$$$31[7].t),
+      $$$$81(0, -2, 10 - 8.5 * $$$$6 * $$$$42(/* @__PURE__ */ Math.sin(1.1 * $$$$17))),
+      $$$$81(0, -2, 10 - 8.5 * $$$$6 * $$$$42(/* @__PURE__ */ Math.sin(2.1 * $$$$17))),
+      $$$$81(
         0,
         -2,
-        10
-          - 8.5
-            * max(
-              oscillation * abs(/* @__PURE__ */ Math.sin(1.5 * gameTime)),
-              (1 - levers[6].$lerpValue) * (1 - oscillation),
-            ),
+        10 - 8.5 * $$$$44($$$$6 * $$$$42(/* @__PURE__ */ Math.sin(1.5 * $$$$17)), (1 - $$$$31[6].t) * (1 - $$$$6)),
       );
-    const hexPadsOscillation = lerpneg(levers[5].$lerpValue2, levers[13].$lerpValue2);
+    const $$$$11 = $$$$4($$$$31[5].u, $$$$31[13].u);
 
-    for (let i = 0; i < 4; i++) {
-      modelsNextUpdate(
-        (2 < i ? 2 * (1 - hexPadsOscillation) + hexPadsOscillation : 0) - 100,
-        hexPadsOscillation * /* @__PURE__ */ Math.sin(1.3 * gameTime + 1.7 * i) * (3 + i / 3) + 0.7,
-        115 - 7 * (1 - levers[5].$lerpValue2) * (1 - levers[13].$lerpValue2) * (1 & i ? -1 : 1)
-          + max(0.05, hexPadsOscillation) * /* @__PURE__ */ Math.cos(1.3 * gameTime + 7 * i) * (4 - 2 * (1 - i / 3)),
+    for (let $$$$0 = 0; 4 > $$$$0; $$$$0++) {
+      $$$$81(
+        ($$$$0 > 2 ? 2 * (1 - $$$$11) + $$$$11 : 0) - 100,
+        $$$$11 * /* @__PURE__ */ Math.sin(1.3 * $$$$17 + 1.7 * $$$$0) * (3 + $$$$0 / 3) + .7,
+        115 - 7 * (1 - $$$$31[5].u) * (1 - $$$$31[13].u) * (1 & $$$$0 ? -1 : 1)
+          + $$$$44(.05, $$$$11) * /* @__PURE__ */ Math.cos(1.3 * $$$$17 + 7 * $$$$0) * (4 - 2 * (1 - $$$$0 / 3)),
       );
     }
 
-    oscillation = lerpneg(levers[8].$lerpValue2, levers[9].$lerpValue2);
+    $$$$6 = $$$$4($$$$31[8].u, $$$$31[9].u);
 
-    for (let i1 = 0; i1 < 3; ++i1) {
-      modelsNextUpdate(
+    for (let $$$$0 = 0; 3 > $$$$0; ++$$$$0) {
+      $$$$81(
         0,
-        oscillation * /* @__PURE__ */ Math.sin(1.5 * gameTime + 1.5 * i1) * 4
-          + (i1 ? 0 : 3 * (1 - levers[8].$lerpValue2) * (1 - levers[9].$lerpValue2)),
+        $$$$6 * /* @__PURE__ */ Math.sin(1.5 * $$$$17 + 1.5 * $$$$0) * 4
+          + ($$$$0 ? 0 : 3 * (1 - $$$$31[8].u) * (1 - $$$$31[9].u)),
       );
     }
 
-    oscillation = lerpneg(
-      lerpneg((levers[9].$lerpValue + levers[9].$lerpValue2) / 2, levers[8].$lerpValue2),
-      (levers[12].$lerpValue + levers[12].$lerpValue2) / 2,
-    ),
-      modelsNextUpdate(0, 16 * oscillation, 95 + 8.5 * clamp(2 * oscillation - 1)),
-      modelsNextUpdate(0, -4.7 * levers[0].$lerpValue, -15),
-      modelsNextUpdate(0, -4.7 * levers[10].$lerpValue, 15),
-      modelsNextUpdate(-99.7, -1.9 - 5.5 * levers[3].$lerpValue, 63.5),
-      modelsNextUpdate(-100, 0.6 - 5.8 * levers[13].$lerpValue, 96.5),
-      modelsNextUpdate(-75, 3 * (1 - levers[2].$lerpValue2) * (1 - levers[3].$lerpValue), 55).rotateSelf(
-        180 * (1 - levers[2].$lerpValue2) + rotatingHexCorridorRotation,
-        0,
-      ),
-      modelsNextUpdate(
-        2.5 * (1 - hexPadsOscillation) - 139.7,
-        -3 * (1 - levers[5].$lerpValue) - hexPadsOscillation * /* @__PURE__ */ Math.sin(0.8 * gameTime) - 1.8,
+    $$$$6 = $$$$4($$$$4(($$$$31[9].t + $$$$31[9].u) / 2, $$$$31[8].u), ($$$$31[12].t + $$$$31[12].u) / 2),
+      $$$$81(0, 16 * $$$$6, 95 + 8.5 * $$$$46(2 * $$$$6 - 1)),
+      $$$$81(0, -4.7 * $$$$31[0].t, -15),
+      $$$$81(0, -4.7 * $$$$31[10].t, 15),
+      $$$$81(-99.7, -1.9 - 5.5 * $$$$31[3].t, 63.5),
+      $$$$81(-100, .6 - 5.8 * $$$$31[13].t, 96.5),
+      $$$$81(-75, 3 * (1 - $$$$31[2].u) * (1 - $$$$31[3].t), 55).rotateSelf(180 * (1 - $$$$31[2].u) + $$$$2, 0),
+      $$$$81(
+        2.5 * (1 - $$$$11) - 139.7,
+        -3 * (1 - $$$$31[5].t) - $$$$11 * /* @__PURE__ */ Math.sin(.8 * $$$$17) - 1.8,
         93.5,
-      ).rotateSelf(/* @__PURE__ */ Math.cos(1.3 * gameTime) * (3 + 3 * hexPadsOscillation), 0),
-      modelsNextUpdate(-2 * /* @__PURE__ */ Math.sin(gameTime)).rotateSelf(25 * /* @__PURE__ */ Math.sin(gameTime)),
-      modelsNextUpdate(-81, 0.6, 106).rotateSelf(0, 40 + rotatingPlatform1Rotation),
-      modelsNextUpdate(-65.8, 0.8, 106).rotateSelf(0, rotatingPlatform2Rotation),
-      modelsNextUpdate(-50.7, 0.8, 106).rotateSelf(0, 180 - rotatingPlatform2Rotation),
-      modelsNextUpdate(-50.7, 0.8, 91).rotateSelf(0, 270 + rotatingPlatform2Rotation),
-      boatUpdate(-12, 4.2, 40 * firstBoatLerp - 66),
-      boatUpdate(-123, 1.4, 55 - 65 * secondBoatLerp);
+      ).rotateSelf(/* @__PURE__ */ Math.cos(1.3 * $$$$17) * (3 + 3 * $$$$11), 0),
+      $$$$81(-2 * /* @__PURE__ */ Math.sin($$$$17)).rotateSelf(25 * /* @__PURE__ */ Math.sin($$$$17)),
+      $$$$81(-81, .6, 106).rotateSelf(0, 40 + $$$$0),
+      $$$$81(-65.8, .8, 106).rotateSelf(0, $$$$1),
+      $$$$81(-50.7, .8, 106).rotateSelf(0, 180 - $$$$1),
+      $$$$81(-50.7, .8, 91).rotateSelf(0, 270 + $$$$1),
+      $$$$5(-12, 4.2, 40 * $$$$9 - 66),
+      $$$$5(-123, 1.4, 55 - 65 * $$$$10);
 
-    for (let i2 = 0; i2 < 16; ++i2) {
-      const lever = levers[i2],
-        lerpValue = lever.$lerpValue = lerpDamp(lever.$lerpValue, lever.$value, 4);
-      lever.$lerpValue2 = lerpDamp(lever.$lerpValue2, lever.$value, 1),
-        matrixCopy(matrixCopy(lever.$matrix).multiplySelf(lever.$transform), modelsNextUpdate(0)).rotateSelf(
-          50 * lerpValue - 25,
-          0,
-        ).translateSelf(0, 1).m44 = lerpValue,
-        interact_pressed && distanceToPlayer() < 3
-        && (lever.$value
-          ? 0.7 < lerpValue && (lever.$value = 0, onPlayerPullLever(i2))
-          : lerpValue < 0.3 && (lever.$value = 1, onPlayerPullLever(i2))),
-        i2 === 14 && lever.$value && 0.8 < lerpValue
-        && (lever.$value = 0,
-          souls_collected_count < 13
-            ? showMessage("Not leaving now, there are souls to catch!", 3)
-            : game_completed
-              || (game_completed = 1, showMessage("Well done. They will be punished.<br>Thanks for playing", 1 / 0))),
-        i2 < 13 && souls[i2]();
+    for (let $$$$0 = 0; 16 > $$$$0; ++$$$$0) {
+      const $$$$1 = $$$$31[$$$$0],
+        $$$$2 = $$$$1.t = $$$$67($$$$1.t, $$$$1.o, 4);
+      $$$$1.u = $$$$67($$$$1.u, $$$$1.o, 1),
+        $$$$35($$$$35($$$$1.p).multiplySelf($$$$1.q), $$$$81(0)).rotateSelf(50 * $$$$2 - 25, 0).translateSelf(0, 1)
+          .m44 = $$$$2,
+        $$$$3 && 3 > $$$$77()
+        && ($$$$1.o ? $$$$2 > .7 && ($$$$1.o = 0, $$$$76($$$$0)) : .3 > $$$$2 && ($$$$1.o = 1, $$$$76($$$$0))),
+        14 === $$$$0 && $$$$1.o && $$$$2 > .8
+        && ($$$$1.o = 0,
+          13 > $$$$7
+            ? $$$$72("Not leaving now, there are souls to catch!", 3)
+            : $$$$8 || ($$$$8 = 1, $$$$72("Well done. They will be punished.<br>Thanks for playing", 1 / 0))),
+        13 > $$$$0 && $$$$32[$$$$0]();
     }
 
-    player_update();
+    $$$$14();
 
-    for (let i3 = 0; i3 < 28; ++i3) matrixToArray(allModels[28 + i3].$matrix, transformsBuffer, i3);
+    for (let $$$$0 = 0; 28 > $$$$0; ++$$$$0) $$$$34($$$$30[28 + $$$$0].p, $$$$88, $$$$0);
 
-    for (let m, i4 = 0, j = 656; i4 < 26; ++i4, ++j) {
-      m = allModels[2 + i4].$matrix,
-        transformsBuffer[j++] = m.m41,
-        transformsBuffer[j++] = m.m42,
-        transformsBuffer[j++] = m.m43;
+    for (let $$$$0, $$$$1 = 0, $$$$2 = 656; 26 > $$$$1; ++$$$$1, ++$$$$2) {
+      $$$$0 = $$$$30[2 + $$$$1].p,
+        $$$$88[$$$$2++] = $$$$0.m41,
+        $$$$88[$$$$2++] = $$$$0.m42,
+        $$$$88[$$$$2++] = $$$$0.m43;
     }
   })();
 };
 
-const identity = new DOMMatrix(),
-  tempMatrix = new DOMMatrix(),
-  float32Array16Temp = new Float32Array(16),
-  transformsBuffer = new Float32Array(760),
-  collision_buffer = new Uint8Array(65536),
-  SONG_TOTAL_WORDS =
+const $$$$84 = new DOMMatrix(),
+  $$$$85 = new DOMMatrix(),
+  $$$$86 = new Float32Array(16),
+  $$$$87 = new Uint8Array(65536),
+  $$$$88 =
     (document.body.innerHTML +=
       "<canvas id=hD height=128 width=128></canvas><canvas id=hC></canvas><h4 id=h4>loading</h4><b id=b5>☰</b><h3 id=h3></h3><main><nav><h2>DANTE</h2>Lucifer: <i>\"Damn. Infernal delivery service failed again. A delivery of evil souls fell in an area under construction. Dante, take them where they belong, to the 8th circle.\"</i><ul><li id=b1>Play</li><li id=b2>Play first person</li><li id=b3>Restart</li><li id=b4></li></ul><p>move WASD/arrows, levers E/click, menu Esc</p><p><a href=https://github.com/SalvatorePreviti/js13k-2022 target=_blank>© 2022 Salvatore Previti</a> - <a href=https://twitter.com/ryanmalm target=_blank>music Ryan Malm</a></p></nav></main><style>*{color:#fda;font-weight:100;overscroll-behavior:contain;touch-action:none;user-select:none}body,html{background:#000;font-family:Times New Roman,serif;font-size:max(min(3.8vw,3.8vh),15px);margin:0;text-shadow:4px 4px 2px #000,-2px -2px 8px #000}p{font-size:.7em}body>*{position:absolute}h2{color:#f61;margin:0 0 .7em}.m main,h4{right:0;top:0}h3,h4{pointer-events:none}h4{left:0;text-align:center}h3{bottom:0;right:5%;text-align:right}.m main{align-items:center;bottom:0;display:flex;justify-content:center;min-width:70%}nav{background:#00000080;border-radius:1em;max-width:max(780px,50vw);padding:1em}#b5,h3{padding:10px}a,li{border-bottom:3px solid #0000;cursor:pointer;margin-bottom:.5em;text-decoration:none}a:hover,h2,li:hover{border-bottom:3px solid}#hD,.m h4,main{display:none}",
-      10725888),
-  gl = hC.getContext("webgl2", {
+      new Float32Array(760)),
+  $$$$89 = hC.getContext("webgl2", {
     powerPreference: "high-performance",
   }),
-  cgl = hD.getContext("webgl2", {
+  $$$$90 = hD.getContext("webgl2", {
     powerPreference: "high-performance",
     preserveDrawingBuffer: !0,
     desynchronized: !0,
     antialias: !1,
   });
 
-for (const s in cgl) {
-  [gl, cgl].map(xgl =>
-    xgl[s[0] + [...s].reduce((p, c, i) => (p * i + c.charCodeAt(0)) % 434, 0).toString(36)] = xgl[s]
+for (const $$$$0 in $$$$90) {
+  [$$$$89, $$$$90].map($$$$1 =>
+    $$$$1[
+      $$$$0[0] + [...$$$$0].reduce(($$$$0, $$$$1, $$$$2) => ($$$$0 * $$$$2 + $$$$1.charCodeAt(0)) % 434, 0).toString(36)
+    ] = $$$$1[$$$$0]
   );
 }
 
-loadStep(() => {
-  let loadStatus = 0;
+$$$$68(() => {
+  let $$$$2 = 0;
 
-  const end = () => {
-      if (++loadStatus == 2) {
-        const csm_tempFrustumCorners = [],
-          renderModels = (xgl, soulModelId, doNotRenderPlayer) => {
-            mainMenuVisible
-              ? 1100 < hC.width
-                && xgl["d97"](
-                  4,
-                  allModels[55].$vertexEnd - allModels[53].$vertexBegin,
-                  5123,
-                  2 * allModels[53].$vertexBegin,
-                )
-              : (xgl["das"](
-                4,
-                allModels[soulModelId].$vertexEnd - allModels[soulModelId].$vertexBegin,
-                5123,
-                2 * allModels[soulModelId].$vertexBegin,
-                souls.length,
-              ),
-                xgl["d97"](4, allModels[doNotRenderPlayer ? 53 : 56].$vertexBegin - 3, 5123, 6));
+  const $$$$12 = () => {
+      if (2 == ++$$$$2) {
+        const $$$$2 = [],
+          $$$$7 = ($$$$0, $$$$2, $$$$3) => {
+            $$$$1
+              ? hC.width > 1100 && $$$$0["d97"](4, $$$$30[55].v - $$$$30[53].A, 5123, 2 * $$$$30[53].A)
+              : ($$$$0["das"](4, $$$$30[$$$$2].v - $$$$30[$$$$2].A, 5123, 2 * $$$$30[$$$$2].A, $$$$32.length),
+                $$$$0["d97"](4, $$$$30[$$$$3 ? 53 : 56].A - 3, 5123, 6));
           },
-          initShaderProgram = (
-            xgl,
-            sfsSource,
-            vfsSource = `#version 300 es
-layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 b,a;uniform vec4 j[190];void main(){mat4 r=mat4(1);lowp int i=int(f.w);if(l=d,m=vec4(f.xyz,1),f.w>1.&&f.w<28.)m+=(r[3]=j[i+162]);else if(f.w!=1.){if(i=(i<1?gl_InstanceID-i:i-28)*4,r[0]=j[i],r[1]=j[i+1],r[2]=j[i+2],r[3]=j[i+3],l.w==0.)l=mix(vec4(1,.5,.2,0),l,r[3][3]);r[3][3]=1.,m=r*m;}gl_Position=a*b*m,m.w=f.w,o=r*vec4(e,0),n=f;}`,
+          $$$$11 = (
+            $$$$0,
+            $$$$1,
+            $$$$2 =
+              "#version 300 es\nlayout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 b,a;uniform vec4 j[190];void main(){mat4 r=mat4(1);lowp int i=int(f.w);if(l=d,m=vec4(f.xyz,1),f.w>1.&&f.w<28.)m+=(r[3]=j[i+162]);else if(f.w!=1.){if(i=(i<1?gl_InstanceID-i:i-28)*4,r[0]=j[i],r[1]=j[i+1],r[2]=j[i+2],r[3]=j[i+3],l.w==0.)l=mix(vec4(1,.5,.2,0),l,r[3][3]);r[3][3]=1.,m=r*m;}gl_Position=a*b*m,m.w=f.w,o=r*vec4(e,0),n=f;}",
           ) => {
-            const uniforms = {},
-              loadShader = (
-                source,
-                type,
-              ) => (type = xgl["c6x"](type), xgl["s3c"](type, source), xgl["c6a"](type), type),
-              program = xgl["c1h"]();
+            const $$$$3 = {},
+              $$$$4 = (
+                $$$$1,
+                $$$$2,
+              ) => ($$$$2 = $$$$0["c6x"]($$$$2), $$$$0["s3c"]($$$$2, $$$$1), $$$$0["c6a"]($$$$2), $$$$2),
+              $$$$5 = $$$$0["c1h"]();
 
-            return xgl["abz"](program, loadShader(vfsSource, 35633)),
-              xgl["abz"](program, loadShader(sfsSource, 35632)),
-              xgl["l8l"](program),
-              name => name ? uniforms[name] || (uniforms[name] = xgl["gan"](program, name)) : xgl["u7y"](program);
+            return $$$$0["abz"]($$$$5, $$$$4($$$$2, 35633)),
+              $$$$0["abz"]($$$$5, $$$$4($$$$1, 35632)),
+              $$$$0["l8l"]($$$$5),
+              $$$$1 => $$$$1 ? $$$$3[$$$$1] || ($$$$3[$$$$1] = $$$$0["gan"]($$$$5, $$$$1)) : $$$$0["u7y"]($$$$5);
           },
-          mainLoop = globalTime => {
-            const dt = (globalTime - (_globalTime || globalTime)) / 1e3;
-            absoluteTime += dt,
-              gameTime += gameTimeDelta = mainMenuVisible ? 0 : min(0.055, dt),
-              _globalTime = globalTime,
-              requestAnimationFrame(mainLoop),
-              0 < gameTimeDelta
-              && (page_update(),
-                secondBoatLerp = lerpDamp(
-                  secondBoatLerp,
-                  levers[15].$lerpValue2,
-                  0.2 + 0.3 * abs(2 * levers[15].$lerpValue2 - 1),
-                ),
-                firstBoatLerp = game_completed
-                  ? (player_first_person = 0, lerpDamp(firstBoatLerp, -9, 0.015))
-                  : lerpDamp(firstBoatLerp, clamp(gameTime / 3), 1),
-                _messageEndTime && gameTime > _messageEndTime && (_messageEndTime = 0, h4.innerHTML = ""),
-                eppur_si_muove(),
-                cgl["u3a"](collisionShader("j"), transformsBuffer),
-                cgl["cbf"](!0, !0, !0, !0),
-                cgl["c4s"](16640),
-                cgl["cbf"](!0, !1, !0, !1),
-                cgl["uae"](
-                  collisionShader("b"),
+          $$$$12 = $$$$2 => {
+            const $$$$5 = ($$$$2 - ($$$$0 || $$$$2)) / 1e3;
+            $$$$18 += $$$$5,
+              $$$$17 += $$$$16 = $$$$1 ? 0 : $$$$43(.055, $$$$5),
+              $$$$0 = $$$$2,
+              requestAnimationFrame($$$$12),
+              $$$$16 > 0
+              && ($$$$71(),
+                $$$$10 = $$$$67($$$$10, $$$$31[15].u, .2 + .3 * $$$$42(2 * $$$$31[15].u - 1)),
+                $$$$9 = $$$$8 ? ($$$$4 = 0, $$$$67($$$$9, -9, .015)) : $$$$67($$$$9, $$$$46($$$$17 / 3), 1),
+                $$$$25 && $$$$17 > $$$$25 && ($$$$25 = 0, h4.innerHTML = ""),
+                $$$$83(),
+                $$$$90["u3a"]($$$$27("j"), $$$$88),
+                $$$$90["cbf"](!0, !0, !0, !0),
+                $$$$90["c4s"](16640),
+                $$$$90["cbf"](!0, !1, !0, !1),
+                $$$$90["uae"](
+                  $$$$27("b"),
                   !1,
-                  matrixToArray(
-                    matrixCopy().rotateSelf(0, 180).invertSelf().translateSelf(
-                      -player_position_final.x,
-                      -player_position_final.y,
-                      0.3 - player_position_final.z,
-                    ),
-                  ),
+                  $$$$34($$$$35().rotateSelf(0, 180).invertSelf().translateSelf(-$$$$29.x, -$$$$29.y, .3 - $$$$29.z)),
                 ),
-                renderModels(cgl, 56, 1),
-                cgl["c4s"](256),
-                cgl["cbf"](!1, !0, !1, !0),
-                cgl["uae"](
-                  collisionShader("b"),
-                  !1,
-                  matrixToArray(
-                    matrixCopy().translateSelf(
-                      -player_position_final.x,
-                      -player_position_final.y,
-                      -player_position_final.z - 0.3,
-                    ),
-                  ),
-                ),
-                renderModels(cgl, 56, 1),
-                cgl["f1s"](),
-                interact_pressed = 0),
-              mainShader(),
-              gl["u3a"](mainShader("j"), transformsBuffer),
-              gl["b6o"](36160, csm_framebuffer),
-              gl["v5y"](0, 0, 2048, 2048),
-              gl["ubh"](mainShader("g"), 4),
-              gl["ubh"](mainShader("h"), 4),
-              gl["uae"](mainShader("a"), !1, matrixToArray(identity));
-            let cameraX = camera_position_x,
-              cameraY = camera_position_y,
-              cameraZ = camera_position_z;
-            mainMenuVisible
-              ? (matrixCopy().rotateSelf(0, 40 * /* @__PURE__ */ Math.sin(absoluteTime) - 80, -8),
-                matrixToArray(tempMatrix, transformsBuffer, 25),
-                matrixToArray(tempMatrix, transformsBuffer, 26),
-                matrixToArray(tempMatrix, transformsBuffer, 27),
-                matrixCopy(projection).invertSelf(),
-                matrixTransformPoint(3.6, 3.5),
-                cameraX = matrixTransformPoint.x,
-                cameraY = matrixTransformPoint.y,
-                cameraZ = 5,
-                matrixCopy(identity, camera_view).rotateSelf(20, 0).translateSelf(-cameraX, -cameraY, -cameraZ)
-                  .rotateSelf(0, 99))
-              : matrixCopy(identity, camera_view).rotateSelf(-camera_rotation.x, -camera_rotation.y).invertSelf()
-                .translateSelf(-cameraX, -cameraY, -cameraZ),
-              csm0(54.7),
-              renderModels(gl, 57, player_first_person),
-              csm1(126),
-              renderModels(gl, 57, player_first_person),
-              gl["b6o"](36160, null),
-              gl["v5y"](0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight),
-              gl["c4s"](16640),
-              gl["ubh"](mainShader("g"), 0),
-              gl["ubh"](mainShader("h"), 1),
-              gl["ubu"](mainShader("k"), cameraX, cameraY, cameraZ),
-              gl["uae"](mainShader("a"), !1, matrixToArray(projection)),
-              gl["uae"](mainShader("b"), !1, matrixToArray(camera_view)),
-              gl["uae"](mainShader("i"), !1, csm_lightSpaceMatrices),
-              renderModels(gl, 57, player_first_person),
-              skyShader(),
-              gl["uae"](skyShader("b"), !1, matrixToArray(camera_view.invertSelf())),
-              gl["ubu"](skyShader("j"), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime),
-              gl["d97"](4, 3, 5123, 0);
+                $$$$7($$$$90, 56, 1),
+                $$$$90["c4s"](256),
+                $$$$90["cbf"](!1, !0, !1, !0),
+                $$$$90["uae"]($$$$27("b"), !1, $$$$34($$$$35().translateSelf(-$$$$29.x, -$$$$29.y, -$$$$29.z - .3))),
+                $$$$7($$$$90, 56, 1),
+                $$$$90["f1s"](),
+                $$$$3 = 0),
+              $$$$26(),
+              $$$$89["u3a"]($$$$26("j"), $$$$88),
+              $$$$89["b6o"](36160, $$$$24),
+              $$$$89["v5y"](0, 0, 2048, 2048),
+              $$$$89["ubh"]($$$$26("g"), 4),
+              $$$$89["ubh"]($$$$26("h"), 4),
+              $$$$89["uae"]($$$$26("a"), !1, $$$$34($$$$84));
+            let $$$$11 = $$$$21,
+              $$$$13 = $$$$22,
+              $$$$14 = $$$$23;
+            $$$$1
+              ? ($$$$35().rotateSelf(0, 40 * /* @__PURE__ */ Math.sin($$$$18) - 80, -8),
+                $$$$34($$$$85, $$$$88, 25),
+                $$$$34($$$$85, $$$$88, 26),
+                $$$$34($$$$85, $$$$88, 27),
+                $$$$35($$$$6).invertSelf(),
+                $$$$36(3.6, 3.5),
+                $$$$11 = $$$$36.x,
+                $$$$13 = $$$$36.y,
+                $$$$14 = 5,
+                $$$$35($$$$84, $$$$15).rotateSelf(20, 0).translateSelf(-$$$$11, -$$$$13, -$$$$14).rotateSelf(0, 99))
+              : $$$$35($$$$84, $$$$15).rotateSelf(-$$$$28.x, -$$$$28.y).invertSelf().translateSelf(
+                -$$$$11,
+                -$$$$13,
+                -$$$$14,
+              ),
+              $$$$37(54.7),
+              $$$$7($$$$89, 57, $$$$4),
+              $$$$39(126),
+              $$$$7($$$$89, 57, $$$$4),
+              $$$$89["b6o"](36160, null),
+              $$$$89["v5y"](0, 0, $$$$89.drawingBufferWidth, $$$$89.drawingBufferHeight),
+              $$$$89["c4s"](16640),
+              $$$$89["ubh"]($$$$26("g"), 0),
+              $$$$89["ubh"]($$$$26("h"), 1),
+              $$$$89["ubu"]($$$$26("k"), $$$$11, $$$$13, $$$$14),
+              $$$$89["uae"]($$$$26("a"), !1, $$$$34($$$$6)),
+              $$$$89["uae"]($$$$26("b"), !1, $$$$34($$$$15)),
+              $$$$89["uae"]($$$$26("i"), !1, $$$$19),
+              $$$$7($$$$89, 57, $$$$4),
+              $$$$33(),
+              $$$$89["uae"]($$$$33("b"), !1, $$$$34($$$$15.invertSelf())),
+              $$$$89["ubu"]($$$$33("j"), $$$$89.drawingBufferWidth, $$$$89.drawingBufferHeight, $$$$18),
+              $$$$89["d97"](4, 3, 5123, 0);
           },
-          csm_tempMatrix = new DOMMatrix(),
-          camera_view = new DOMMatrix(),
-          csm_lightSpaceMatrices = new Float32Array(32),
-          groundTextureImage = image,
-          csm_framebuffer = gl["c5w"](),
-          mainShader = initShaderProgram(
-            gl,
-            `#version 300 es
-precision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sampler2DShadow g,h;uniform mat4 b,i[2];uniform vec3 k;out vec4 O;void main(){vec4 s=vec4(m.xyz,1);vec3 e=normalize(o.xyz),v=l.w*(texture(q,n.zy*.035)*e.x+texture(q,n.xz*.035)*e.y+texture(q,n.xy*.035)*e.z).xyz;e=normalize(e+v*.5);float a=dot(e,vec3(-.656059,.666369,-.35431468)),t=1.,u=abs((b*s).z);vec4 r=(u<55.?i[0]:i[1])*s;if(r=r/r.w*.5+.5,r.z<1.){t=0.;for(float e=-1.;e<=1.;++e)for(float a=-1.;a<=1.;++a){vec3 x=vec3(r.xy+vec2(e,a)/2048.,r.z-.00017439);t+=u<55.?texture(g,x):texture(h,x);}t/=9.;}vec3 x=l.xyz*(1.-v.x);float c=max(max(abs(e.x),abs(e.z))*.3-e.y,0.)*pow(max(0.,(8.-m.y)/48.),1.6);O=vec4(vec3(c,c*c*.5,0)+vec3(.09,.05,.11)*x+x*(max(0.,a)*.5+x*a*a*vec3(.5,.45,.3))*(t*.75+.25)+vec3(.6,.6,.5)*pow(max(0.,dot(normalize(m.xyz-k),reflect(vec3(-.656059,.666369,-.35431468),e))),35.)*t,1);}`,
+          $$$$14 = new DOMMatrix(),
+          $$$$15 = new DOMMatrix(),
+          $$$$19 = new Float32Array(32),
+          $$$$20 = $$$$13,
+          $$$$24 = $$$$89["c5w"](),
+          $$$$26 = $$$$11(
+            $$$$89,
+            "#version 300 es\nprecision highp float;in vec4 o,m,n,l;uniform highp sampler2D q;uniform highp sampler2DShadow g,h;uniform mat4 b,i[2];uniform vec3 k;out vec4 O;void main(){vec4 s=vec4(m.xyz,1);vec3 e=normalize(o.xyz),v=l.w*(texture(q,n.zy*.035)*e.x+texture(q,n.xz*.035)*e.y+texture(q,n.xy*.035)*e.z).xyz;e=normalize(e+v*.5);float a=dot(e,vec3(-.656059,.666369,-.35431468)),t=1.,u=abs((b*s).z);vec4 r=(u<55.?i[0]:i[1])*s;if(r=r/r.w*.5+.5,r.z<1.){t=0.;for(float e=-1.;e<=1.;++e)for(float a=-1.;a<=1.;++a){vec3 x=vec3(r.xy+vec2(e,a)/2048.,r.z-.00017439);t+=u<55.?texture(g,x):texture(h,x);}t/=9.;}vec3 x=l.xyz*(1.-v.x);float c=max(max(abs(e.x),abs(e.z))*.3-e.y,0.)*pow(max(0.,(8.-m.y)/48.),1.6);O=vec4(vec3(c,c*c*.5,0)+vec3(.09,.05,.11)*x+x*(max(0.,a)*.5+x*a*a*vec3(.5,.45,.3))*(t*.75+.25)+vec3(.6,.6,.5)*pow(max(0.,dot(normalize(m.xyz-k),reflect(vec3(-.656059,.666369,-.35431468),e))),35.)*t,1);}",
           ),
-          collisionShader = initShaderProgram(
-            cgl,
-            `#version 300 es
-precision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(vec3(0,1.49,.3*b[0][0])+m.xyz,1);if(O=vec4(0),gl_FragCoord.y>36.){if(a.y>.6&&a.y<3.){float e=abs(gl_FragCoord.x/64.-1.),i=clamp(a.z+.7,0.,1.);O=vec4(vec2(b[0][0]*sign(a.x)*o.x<0.?i*(.7-abs(a.x))*e/.7:0.),vec2(b[0][0]*o.z>0.?i*(1.-e):0.));}}else if(o.y>.45&&a.y<1.){float e=a.y*clamp((a.z+.4)*50.,0.,1.)*clamp((-abs(a.x)+.2)*10.,0.,1.);O=vec4(vec2(e),vec2(e>0.?m.w/255.:0.));}}`,
+          $$$$27 = $$$$11(
+            $$$$90,
+            "#version 300 es\nprecision highp float;in vec4 o,m;uniform mat4 b;out vec4 O;void main(){vec4 a=b*vec4(vec3(0,1.49,.3*b[0][0])+m.xyz,1);if(O=vec4(0),gl_FragCoord.y>36.){if(a.y>.6&&a.y<3.){float e=abs(gl_FragCoord.x/64.-1.),i=clamp(a.z+.7,0.,1.);O=vec4(vec2(b[0][0]*sign(a.x)*o.x<0.?i*(.7-abs(a.x))*e/.7:0.),vec2(b[0][0]*o.z>0.?i*(1.-e):0.));}}else if(o.y>.45&&a.y<1.){float e=a.y*clamp((a.z+.4)*50.,0.,1.)*clamp((-abs(a.x)+.2)*10.,0.,1.);O=vec4(vec2(e),vec2(e>0.?m.w/255.:0.));}}",
           ),
-          skyShader = initShaderProgram(
-            gl,
-            `#version 300 es
-precision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;out vec4 O;void main(){vec2 t=gl_FragCoord.xy/j.xy*2.-1.;vec3 e=(normalize(b*vec4(t.x*-(j.x/j.y),-t.y,1.73205,0.))).xyz;float o=(-32.-b[3].y)/e.y,i=1.-clamp(abs(o/9999.),0.,1.);if(O=vec4(0,0,0,1),i>.01){if(o>0.){float i=cos(j.z/30.),o=sin(j.z/30.);e.xz*=mat2(i,o,-o,i);vec3 t=abs(e);O.xyz=vec3(dot(vec2(texture(q,e.xy).z,texture(q,e.yz*2.).z),t.zx)*t.y);}else e=b[3].xyz+e*o,O.x=(i*=.9-texture(q,e.xz/150.+vec2(sin(e.z/35.+j.z),cos(e.x/25.+j.z))/80.).y),O.y=i*i*i;}}`,
-            `#version 300 es
-in vec4 f;void main(){gl_Position=vec4(f.xy,1,1);}`,
+          $$$$33 = $$$$11(
+            $$$$89,
+            "#version 300 es\nprecision highp float;uniform mat4 b;uniform vec3 j;uniform highp sampler2D q;out vec4 O;void main(){vec2 t=gl_FragCoord.xy/j.xy*2.-1.;vec3 e=(normalize(b*vec4(t.x*-(j.x/j.y),-t.y,1.73205,0.))).xyz;float o=(-32.-b[3].y)/e.y,i=1.-clamp(abs(o/9999.),0.,1.);if(O=vec4(0,0,0,1),i>.01){if(o>0.){float i=cos(j.z/30.),o=sin(j.z/30.);e.xz*=mat2(i,o,-o,i);vec3 t=abs(e);O.xyz=vec3(dot(vec2(texture(q,e.xy).z,texture(q,e.yz*2.).z),t.zx)*t.y);}else e=b[3].xyz+e*o,O.x=(i*=.9-texture(q,e.xz/150.+vec2(sin(e.z/35.+j.z),cos(e.x/25.+j.z))/80.).y),O.y=i*i*i;}}",
+            "#version 300 es\nin vec4 f;void main(){gl_Position=vec4(f.xy,1,1);}",
           ),
-          [csm0, csm1] = integers_map(2, split => {
-            const texture = gl["c25"]();
-            return gl["a4v"](33984 + split),
-              gl["b9j"](3553, texture),
-              gl["t60"](3553, 0, 33190, 2048, 2048, 0, 6402, 5125, null),
-              gl["t2z"](3553, 10241, 9729),
-              gl["t2z"](3553, 10240, 9729),
-              gl["t2z"](3553, 34893, 515),
-              gl["t2z"](3553, 34892, 34894),
-              gl["t2z"](3553, 10243, 33071),
-              gl["t2z"](3553, 10242, 33071),
-              roundingRadius => {
-                let tx = 0,
-                  ty = 0,
-                  tz = 0,
-                  left = 1 / 0,
-                  bottom = 1 / 0,
-                  near = 1 / 0,
-                  right = -1 / 0,
-                  top = -1 / 0,
-                  far = -1 / 0;
-                gl["fas"](36160, 36096, 3553, texture, 0),
-                  gl["c4s"](256),
-                  matrixCopy().scale3dSelf(roundingRadius *= 1.1).multiplySelf(
-                    matrixCopy(csm_projections[split], csm_tempMatrix).multiplySelf(camera_view).invertSelf(),
+          [$$$$37, $$$$39] = $$$$38(2, $$$$0 => {
+            const $$$$1 = $$$$89["c25"]();
+            return $$$$89["a4v"](33984 + $$$$0),
+              $$$$89["b9j"](3553, $$$$1),
+              $$$$89["t60"](3553, 0, 33190, 2048, 2048, 0, 6402, 5125, null),
+              $$$$89["t2z"](3553, 10241, 9729),
+              $$$$89["t2z"](3553, 10240, 9729),
+              $$$$89["t2z"](3553, 34893, 515),
+              $$$$89["t2z"](3553, 34892, 34894),
+              $$$$89["t2z"](3553, 10243, 33071),
+              $$$$89["t2z"](3553, 10242, 33071),
+              $$$$3 => {
+                let $$$$4 = 0,
+                  $$$$6 = 0,
+                  $$$$7 = 0,
+                  $$$$8 = 1 / 0,
+                  $$$$9 = 1 / 0,
+                  $$$$10 = 1 / 0,
+                  $$$$11 = -1 / 0,
+                  $$$$12 = -1 / 0,
+                  $$$$13 = -1 / 0;
+                $$$$89["fas"](36160, 36096, 3553, $$$$1, 0),
+                  $$$$89["c4s"](256),
+                  $$$$35().scale3dSelf($$$$3 *= 1.1).multiplySelf(
+                    $$$$35($$$$5[$$$$0], $$$$14).multiplySelf($$$$15).invertSelf(),
                   );
 
-                for (let i = 0, j = 0; i < 8; ++i) {
-                  matrixTransformPoint(4 & i ? 1 : -1, 2 & i ? 1 : -1, 1 & i ? 1 : -1),
-                    tx -= csm_tempFrustumCorners[j++] = (0 | matrixTransformPoint.x)
-                      / (roundingRadius * matrixTransformPoint.w),
-                    ty -= csm_tempFrustumCorners[j++] = (0 | matrixTransformPoint.y)
-                      / (roundingRadius * matrixTransformPoint.w),
-                    tz -= csm_tempFrustumCorners[j++] = (0 | matrixTransformPoint.z)
-                      / (roundingRadius * matrixTransformPoint.w);
+                for (
+                  let $$$$0 = 0, $$$$1 = 0;
+                  8 > $$$$0;
+                  ++$$$$0
+                ) {
+                  $$$$36(4 & $$$$0 ? 1 : -1, 2 & $$$$0 ? 1 : -1, 1 & $$$$0 ? 1 : -1),
+                    $$$$4 -= $$$$2[$$$$1++] = (0 | $$$$36.x) / ($$$$3 * $$$$36.w),
+                    $$$$6 -= $$$$2[$$$$1++] = (0 | $$$$36.y) / ($$$$3 * $$$$36.w),
+                    $$$$7 -= $$$$2[$$$$1++] = (0 | $$$$36.z) / ($$$$3 * $$$$36.w);
                 }
 
-                matrixCopy().rotateSelf(298, 139).translateSelf(tx / 8, ty / 8, tz / 8);
+                $$$$35().rotateSelf(298, 139).translateSelf($$$$4 / 8, $$$$6 / 8, $$$$7 / 8);
 
-                for (let i1 = 0, j1 = 0; i1 < 8; ++i1) {
-                  matrixTransformPoint(
-                    csm_tempFrustumCorners[j1++],
-                    csm_tempFrustumCorners[j1++],
-                    csm_tempFrustumCorners[j1++],
-                  ),
-                    right = max(right, matrixTransformPoint.x),
-                    top = max(top, matrixTransformPoint.y),
-                    far = max(far, matrixTransformPoint.z),
-                    left = min(left, matrixTransformPoint.x),
-                    bottom = min(bottom, matrixTransformPoint.y),
-                    near = min(near, matrixTransformPoint.z);
+                for (
+                  let $$$$0 = 0, $$$$1 = 0;
+                  8 > $$$$0;
+                  ++$$$$0
+                ) {
+                  $$$$36($$$$2[$$$$1++], $$$$2[$$$$1++], $$$$2[$$$$1++]),
+                    $$$$11 = $$$$44($$$$11, $$$$36.x),
+                    $$$$12 = $$$$44($$$$12, $$$$36.y),
+                    $$$$13 = $$$$44($$$$13, $$$$36.z),
+                    $$$$8 = $$$$43($$$$8, $$$$36.x),
+                    $$$$9 = $$$$43($$$$9, $$$$36.y),
+                    $$$$10 = $$$$43($$$$10, $$$$36.z);
                 }
 
-                tz = 10 + split,
-                  near *= near < 0 ? tz : 1 / tz,
-                  far *= 0 < far ? tz : 1 / tz,
-                  gl["uae"](
-                    mainShader("b"),
+                $$$$7 = 10 + $$$$0,
+                  $$$$10 *= 0 > $$$$10 ? $$$$7 : 1 / $$$$7,
+                  $$$$13 *= $$$$13 > 0 ? $$$$7 : 1 / $$$$7,
+                  $$$$89["uae"](
+                    $$$$26("b"),
                     !1,
-                    matrixToArray(
-                      matrixCopy(identity, csm_tempMatrix).scaleSelf(
-                        2 / (right - left),
-                        2 / (top - bottom),
-                        2 / (near - far),
-                      ).translateSelf((right + left) / -2, (top + bottom) / -2, (near + far) / 2).multiplySelf(
-                        tempMatrix,
+                    $$$$34(
+                      $$$$35($$$$84, $$$$14).scaleSelf(
+                        2 / ($$$$11 - $$$$8),
+                        2 / ($$$$12 - $$$$9),
+                        2 / ($$$$10 - $$$$13),
+                      ).translateSelf(($$$$11 + $$$$8) / -2, ($$$$12 + $$$$9) / -2, ($$$$10 + $$$$13) / 2).multiplySelf(
+                        $$$$85,
                       ),
-                      csm_lightSpaceMatrices,
-                      split,
+                      $$$$19,
+                      $$$$0,
                     ),
-                    16 * split,
+                    16 * $$$$0,
                     16,
                   );
               };
           });
 
-        gl["a4v"](33986),
-          gl["b9j"](3553, gl["c25"]()),
-          gl["t60"](3553, 0, 6408, 1024, 1024, 0, 6408, 5121, groundTextureImage),
-          gl["t2z"](3553, 10241, 9987),
-          gl["t2z"](3553, 10240, 9729),
-          gl["gbn"](3553),
-          gl["b6o"](36160, csm_framebuffer),
-          gl["d45"]([0]),
-          gl["r9l"](0),
-          mainShader(),
-          gl["ubh"](mainShader("q"), 2),
-          skyShader(),
-          gl["ubh"](skyShader("q"), 2),
-          gl["c5t"](0, 0, 0, 1),
-          gl["d4n"](515),
-          gl["e8z"](2929),
-          gl["e8z"](2884),
-          cgl["e8z"](2929),
-          cgl["e8z"](2884),
-          cgl["v5y"](0, 0, 128, 128),
-          collisionShader(),
-          cgl["uae"](collisionShader("a"), !1, matrixToArray(mat_perspective(1e-4, 2, 1.2, 0.4))),
-          player_init(),
-          page_update(),
-          requestAnimationFrame(mainLoop);
+        $$$$89["a4v"](33986),
+          $$$$89["b9j"](3553, $$$$89["c25"]()),
+          $$$$89["t60"](3553, 0, 6408, 1024, 1024, 0, 6408, 5121, $$$$20),
+          $$$$89["t2z"](3553, 10241, 9987),
+          $$$$89["t2z"](3553, 10240, 9729),
+          $$$$89["gbn"](3553),
+          $$$$89["b6o"](36160, $$$$24),
+          $$$$89["d45"]([0]),
+          $$$$89["r9l"](0),
+          $$$$26(),
+          $$$$89["ubh"]($$$$26("q"), 2),
+          $$$$33(),
+          $$$$89["ubh"]($$$$33("q"), 2),
+          $$$$89["c5t"](0, 0, 0, 1),
+          $$$$89["d4n"](515),
+          $$$$89["e8z"](2929),
+          $$$$89["e8z"](2884),
+          $$$$90["e8z"](2929),
+          $$$$90["e8z"](2884),
+          $$$$90["v5y"](0, 0, 128, 128),
+          $$$$27(),
+          $$$$90["uae"]($$$$27("a"), !1, $$$$34($$$$70(1e-4, 2, 1.2, .4))),
+          $$$$82(),
+          $$$$71(),
+          requestAnimationFrame($$$$12);
       }
     },
-    image = new Image();
+    $$$$13 = new Image();
 
-  image.onload = end,
-    image.src = groundTextureSvg,
-    loadSong(() => {
-      loadStep(() => {
+  $$$$13.onload = $$$$12,
+    $$$$13.src = $$$$27,
+    $$$$69(() => {
+      $$$$68(() => {
         {
-          let meshFirstIndex = 0;
+          let $$$$0 = 0;
+          const $$$$1 = [],
+            $$$$2 = [],
+            $$$$3 = [],
+            $$$$4 = [],
+            $$$$5 = new Int32Array(8),
+            $$$$6 = /* @__PURE__ */ new Map(),
+            $$$$7 = new Int32Array($$$$5.buffer, 0, 5),
+            $$$$8 = new Float32Array($$$$5.buffer);
+          $$$$30.map(($$$$9, $$$$10) => {
+            let $$$$11;
 
-          const _triangleIndices = [],
-            _vertexPositions = [],
-            _vertexColors = [],
-            _vertexNormals = [],
-            _vertexInts = new Int32Array(8),
-            _vertexMap = /* @__PURE__ */ new Map(),
-            _vertexIntsSmooth = new Int32Array(_vertexInts.buffer, 0, 5),
-            _vertexFloats = new Float32Array(_vertexInts.buffer);
-
-          allModels.map((model, index) => {
-            let polygon;
-
-            const getVertex = i => {
+            const $$$$12 = $$$$0 => {
               let {
-                  x,
-                  y,
-                  z,
-                } = polygon[i],
-                vertexIndex =
-                  (_vertexFloats[0] = x,
-                    _vertexFloats[1] = y,
-                    _vertexFloats[2] = z,
-                    i = "" + (polygon.$smooth ? _vertexIntsSmooth : _vertexInts),
-                    _vertexMap.get(i));
-              return vertexIndex !== void 0
-                ? (x = 3 * vertexIndex,
-                  _vertexNormals[x] = (_vertexNormals[x++] + _vertexInts[5]) / 2,
-                  _vertexNormals[x] = (_vertexNormals[x++] + _vertexInts[6]) / 2,
-                  _vertexNormals[x] = (_vertexNormals[x] + _vertexInts[7]) / 2)
-                : (_vertexMap.set(i, vertexIndex = _vertexMap.size),
-                  _vertexPositions.push(x, y, z, _vertexFloats[3]),
-                  _vertexColors.push(_vertexInts[4]),
-                  _vertexNormals.push(_vertexInts[5], _vertexInts[6], _vertexInts[7])),
-                vertexIndex;
+                  x: $$$$1,
+                  y: $$$$9,
+                  z: $$$$10,
+                } = $$$$11[$$$$0],
+                $$$$12 =
+                  ($$$$8[0] = $$$$1,
+                    $$$$8[1] = $$$$9,
+                    $$$$8[2] = $$$$10,
+                    $$$$6.get($$$$0 = "" + ($$$$11.g ? $$$$7 : $$$$5)));
+              return void 0 !== $$$$12
+                ? ($$$$1 = 3 * $$$$12,
+                  $$$$4[$$$$1] = ($$$$4[$$$$1++] + $$$$5[5]) / 2,
+                  $$$$4[$$$$1] = ($$$$4[$$$$1++] + $$$$5[6]) / 2,
+                  $$$$4[$$$$1] = ($$$$4[$$$$1] + $$$$5[7]) / 2)
+                : ($$$$6.set($$$$0, $$$$12 = $$$$6.size),
+                  $$$$2.push($$$$1, $$$$9, $$$$10, $$$$8[3]),
+                  $$$$3.push($$$$5[4]),
+                  $$$$4.push($$$$5[5], $$$$5[6], $$$$5[7])),
+                $$$$12;
             };
 
-            for (polygon of (_vertexFloats[3] = 55 < index ? -28 : index, model.$polygon)) {
+            for ($$$$11 of ($$$$8[3] = $$$$10 > 55 ? -28 : $$$$10, $$$$9.i)) {
               const {
-                x,
-                y,
-                z,
-              } = plane_fromPolygon(polygon);
-              _vertexInts[4] = 0 | polygon.$color,
-                _vertexInts[5] = 32767 * x,
-                _vertexInts[6] = 32767 * y,
-                _vertexInts[7] = 32767 * z;
+                x: $$$$0,
+                y: $$$$2,
+                z: $$$$3,
+              } = $$$$56($$$$11);
+              $$$$5[4] = 0 | $$$$11.h, $$$$5[5] = 32767 * $$$$0, $$$$5[6] = 32767 * $$$$2, $$$$5[7] = 32767 * $$$$3;
 
-              for (let i = 2, a = getVertex(0), b = getVertex(1); polygon.length > i; ++i) {
-                _triangleIndices.push(a, b, b = getVertex(i));
+              for (let $$$$0 = 2, $$$$2 = $$$$12(0), $$$$3 = $$$$12(1); $$$$11.length > $$$$0; ++$$$$0) {
+                $$$$1.push($$$$2, $$$$3, $$$$3 = $$$$12($$$$0));
               }
             }
 
-            model.$polygon = 0,
-              model.$vertexBegin = meshFirstIndex,
-              model.$vertexEnd = meshFirstIndex = _triangleIndices.length;
+            $$$$9.i = 0, $$$$9.A = $$$$0, $$$$9.v = $$$$0 = $$$$1.length;
           }),
-            [gl, cgl].map(xgl => {
-              xgl["b11"](34962, xgl["c1b"]()),
-                xgl["b2v"](34962, new Float32Array(_vertexPositions), 35044),
-                xgl["v7s"](0, 4, 5126, !1, 0, 0),
-                xgl["b11"](34962, xgl["c1b"]()),
-                xgl["b2v"](34962, new Int16Array(_vertexNormals), 35044),
-                xgl["v7s"](1, 3, 5122, !0, 0, 0),
-                xgl["b11"](34962, xgl["c1b"]()),
-                xgl["b2v"](34962, new Uint32Array(_vertexColors), 35044),
-                xgl["v7s"](2, 4, 5121, !0, 0, 0),
-                xgl["b11"](34963, xgl["c1b"]()),
-                xgl["b2v"](34963, new Uint16Array(_triangleIndices), 35044),
-                xgl["e3x"](0),
-                xgl["e3x"](1),
-                xgl["e3x"](2);
+            [$$$$89, $$$$90].map($$$$0 => {
+              $$$$0["b11"](34962, $$$$0["c1b"]()),
+                $$$$0["b2v"](34962, new Float32Array($$$$2), 35044),
+                $$$$0["v7s"](0, 4, 5126, !1, 0, 0),
+                $$$$0["b11"](34962, $$$$0["c1b"]()),
+                $$$$0["b2v"](34962, new Int16Array($$$$4), 35044),
+                $$$$0["v7s"](1, 3, 5122, !0, 0, 0),
+                $$$$0["b11"](34962, $$$$0["c1b"]()),
+                $$$$0["b2v"](34962, new Uint32Array($$$$3), 35044),
+                $$$$0["v7s"](2, 4, 5121, !0, 0, 0),
+                $$$$0["b11"](34963, $$$$0["c1b"]()),
+                $$$$0["b2v"](34963, new Uint16Array($$$$1), 35044),
+                $$$$0["e3x"](0),
+                $$$$0["e3x"](1),
+                $$$$0["e3x"](2);
             });
         }
         {
-          let _savedLevers = [],
-            _savedSouls = [];
+          let $$$$0 = [],
+            $$$$1 = [];
 
           try {
-            const [savedLevers, savedSouls, savedLastPulledLever, savedSecondBoatLerp, savedGameTime] = JSON.parse(
-              localStorage["Dante-22"],
-            );
-            _savedLevers = savedLevers,
-              _savedSouls = savedSouls,
-              player_last_pulled_lever = savedLastPulledLever,
-              secondBoatLerp = savedSecondBoatLerp,
-              gameTime = savedGameTime;
+            const [$$$$2, $$$$3, $$$$4, $$$$5, $$$$6] = JSON.parse(localStorage["Dante-22"]);
+            $$$$0 = $$$$2, $$$$1 = $$$$3, $$$$24 = $$$$4, $$$$10 = $$$$5, $$$$17 = $$$$6;
           } catch {}
 
-          levers.map((lever, index) =>
-            lever.$lerpValue = lever.$lerpValue2 = lever.$value = index !== 14 && _savedLevers[index] ? 1 : 0
-          ),
-            souls.map((soul, index) => soul.$value = _savedSouls[index] ? 1 : 0),
-            updateCollectedSoulsCounter(),
-            firstBoatLerp = souls_collected_count || player_last_pulled_lever !== 14 ? 1 : 0;
+          $$$$31.map(($$$$1, $$$$2) => $$$$1.t = $$$$1.u = $$$$1.o = 14 !== $$$$2 && $$$$0[$$$$2] ? 1 : 0),
+            $$$$32.map(($$$$0, $$$$2) => $$$$0.o = $$$$1[$$$$2] ? 1 : 0),
+            $$$$73(),
+            $$$$9 = $$$$7 || 14 !== $$$$24 ? 1 : 0;
         }
-        loadStep(end);
+        $$$$68($$$$12);
       });
       {
-        const pushingRodsPositions = [-110, -100, -92, -82, -106, -97, -88],
-          hornMatrix = i =>
-            translation(/* @__PURE__ */ Math.sin((i /= 11) * Math.PI), i).rotateSelf(10 * i).scaleSelf(
-              1.002 - i,
+        const $$$$0 = [-110, -100, -92, -82, -106, -97, -88],
+          $$$$1 = $$$$0 =>
+            $$$$37(/* @__PURE__ */ Math.sin(($$$$0 /= 11) * Math.PI), $$$$0).rotateSelf(10 * $$$$0).scaleSelf(
+              1.002 - $$$$0,
               1,
-              1.002 - i,
+              1.002 - $$$$0,
             ),
-          newLever = $transform => {
-            levers.push({
-              $matrix: currentModelMmatrix,
-              $transform,
+          $$$$2 = $$$$0 => {
+            $$$$31.push({
+              p: $$$$11,
+              q: $$$$0,
             }),
-              meshAdd(
-                cylinder(5),
-                $transform.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5),
-                material(0.4, 0.5, 0.5),
-              ),
-              meshAdd(
-                cylinder(5),
-                $transform.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5),
-                material(0.4, 0.5, 0.5),
-              ),
-              meshAdd(
-                cylinder().slice(0, -1),
-                $transform.translate(0, -0.4).scale(0.5, 0.1, 0.5),
-                material(0.5, 0.5, 0.4),
-              );
+              $$$$78($$$$53(5), $$$$0.translate(.2).rotate(90, 90).scale(.4, .1, .5), $$$$55(.4, .5, .5)),
+              $$$$78($$$$53(5), $$$$0.translate(-.2).rotate(90, 90).scale(.4, .1, .5), $$$$55(.4, .5, .5)),
+              $$$$78($$$$53().slice(0, -1), $$$$0.translate(0, -.4).scale(.5, .1, .5), $$$$55(.5, .5, .4));
           },
-          makeBigArc = height =>
-            csg_polygons_subtract(
-              polygons_transform(cylinder().slice(0, -1), translation(0, -height / 2).scale(6, height - 1, 2.2)),
-              polygons_transform(cylinder().slice(0, -1), translation(0, -height / 2 - 4).scale(4, height - 5, 4)),
-              polygons_transform(cylinder(28, 1), translation(0, height / 2 - 9).rotate(90, 0, 90).scale3d(4)),
+          $$$$3 = $$$$0 =>
+            $$$$65(
+              $$$$41($$$$53().slice(0, -1), $$$$37(0, -$$$$0 / 2).scale(6, $$$$0 - 1, 2.2)),
+              $$$$41($$$$53().slice(0, -1), $$$$37(0, -$$$$0 / 2 - 4).scale(4, $$$$0 - 5, 4)),
+              $$$$41($$$$53(28, 1), $$$$37(0, $$$$0 / 2 - 9).rotate(90, 0, 90).scale3d(4)),
             ),
-          elevatorsMatrix = x => translation(x - 76.9, x / -16 - 10, 24).rotate(0, 0, -2).skewX(-2).scale(2.8, 1.4, 3),
-          pushingRod = csg_polygons_subtract(
-            polygons_transform(
-              cylinder(),
-              translation(0, -0.5, 1).scale(1.15, 1.2, 6.5),
-              material(0.25, 0.25, 0.35, 0.3),
+          $$$$4 = $$$$0 => $$$$37($$$$0 - 76.9, $$$$0 / -16 - 10, 24).rotate(0, 0, -2).skewX(-2).scale(2.8, 1.4, 3),
+          $$$$5 = $$$$65(
+            $$$$41($$$$53(), $$$$37(0, -.5, 1).scale(1.15, 1.2, 6.5), $$$$55(.25, .25, .35, .3)),
+            $$$$65(
+              $$$$41($$$$53(3), $$$$37(0, 0, -5.5).scale(3, 2), $$$$55(.6, .3, .4, .3)),
+              $$$$41($$$$53(), $$$$37(0, 0, -3.65).scale(2.5, 3), $$$$55(.6, .3, .4, .3)),
             ),
-            csg_polygons_subtract(
-              polygons_transform(cylinder(3), translation(0, 0, -5.5).scale(3, 2), material(0.6, 0.3, 0.4, 0.3)),
-              polygons_transform(cylinder(), translation(0, 0, -3.65).scale(2.5, 3), material(0.6, 0.3, 0.4, 0.3)),
-            ),
-            ...[-1, 1].map(i =>
-              polygons_transform(
-                cylinder(),
-                translation(1.2 * i, -0.5, 1).scale(0.14, 0.3, 6.5),
-                material(0.7, 0.2, 0, 0.3),
-              )
+            ...[-1, 1].map($$$$0 =>
+              $$$$41($$$$53(), $$$$37(1.2 * $$$$0, -.5, 1).scale(.14, .3, 6.5), $$$$55(.7, .2, 0, .3))
             ),
           ),
-          hexCorridor = [
-            polygons_transform(cylinder(), translation(0, -3).scale(11, 1.4, 3), material(0.9, 0.9, 0.9, 0.2)),
-            polygons_transform(cylinder(), translation(0, -2.2).scale(7.7, 0.5, 4), material(0.5, 0.5, 0.5, 0.2)),
-            integers_map(12, i =>
-              polygons_transform(
-                cylinder(),
-                translation(i - 5.5, 4.4).scale(0.1, 0.1, 2),
-                material(0.6, 0.5, 0.3, 0.2),
-              )).flat(),
-            polygons_transform(
-              csg_polygons_subtract(
-                polygons_transform(cylinder(6), identity.rotate(90).scale(6, 8, 6)),
-                polygons_transform(cylinder(4, 0, 0.01), translation(0, 6).scale(12, 2, 0.75).rotate(0, 45)),
-                polygons_transform(cylinder(6), identity.rotate(90).scale(5, 12, 5)),
-                ...[-5, 0, 5].map(x =>
-                  polygons_transform(cylinder(5), translation(x, 2.5).rotate(90, 0, 36).scale(1.8, 10, 1.8))
-                ),
+          $$$$6 = [
+            $$$$41($$$$53(), $$$$37(0, -3).scale(11, 1.4, 3), $$$$55(.9, .9, .9, .2)),
+            $$$$41($$$$53(), $$$$37(0, -2.2).scale(7.7, .5, 4), $$$$55(.5, .5, .5, .2)),
+            $$$$38(12, $$$$0 => $$$$41($$$$53(), $$$$37($$$$0 - 5.5, 4.4).scale(.1, .1, 2), $$$$55(.6, .5, .3, .2)))
+              .flat(),
+            $$$$41(
+              $$$$65(
+                $$$$41($$$$53(6), $$$$84.rotate(90).scale(6, 8, 6)),
+                $$$$41($$$$53(4, 0, .01), $$$$37(0, 6).scale(12, 2, .75).rotate(0, 45)),
+                $$$$41($$$$53(6), $$$$84.rotate(90).scale(5, 12, 5)),
+                ...[-5, 0, 5].map($$$$0 => $$$$41($$$$53(5), $$$$37($$$$0, 2.5).rotate(90, 0, 36).scale(1.8, 10, 1.8))),
               ),
-              identity,
-              material(0.3, 0.6, 0.6, 0.3),
+              $$$$84,
+              $$$$55(.3, .6, .6, .3),
             ),
           ].flat(),
-          hornPolygons = integers_map(11, i =>
-            cylinder_sides(
-              polygon_transform(polygon_regular(16), hornMatrix(i), material(1, 1, 0.8, 0.2)).reverse(),
-              polygon_transform(polygon_regular(16), hornMatrix(i + 1), material(1, 1, 0.8, 0.2)),
+          $$$$7 = $$$$38(11, $$$$0 =>
+            $$$$52(
+              $$$$40($$$$51(16), $$$$1($$$$0), $$$$55(1, 1, .8, .2)).reverse(),
+              $$$$40($$$$51(16), $$$$1($$$$0 + 1), $$$$55(1, 1, .8, .2)),
               1,
             )).flat();
 
-        newModel(),
-          meshAdd([GQuad.slice(1)], translation(-2).scale3d(3).rotate(90, 0)),
-          newModel(),
-          newLever(translation(-5.4, 1.5, -19).rotate(0, -90)),
-          [-15, 15].map((z, j) => {
-            meshAdd(cylinder(), translation(0, 0, j ? 22 : -23).scale(3, 1, 8), material(0.9, 0.9, 0.9, 0.2)),
-              meshAdd(cylinder(), translation(0, 6.3, z).scale(4, 0.3, 1), material(0.3, 0.3, 0.3, 0.4)),
-              meshAdd(cylinder().slice(0, -1), translation(0, 1, z).scale(3, 0.2, 0.35), material(0.5, 0.5, 0.5, 0.3));
+        $$$$79(),
+          $$$$78([$$$$33.slice(1)], $$$$37(-2).scale3d(3).rotate(90, 0)),
+          $$$$79(),
+          $$$$2($$$$37(-5.4, 1.5, -19).rotate(0, -90)),
+          [-15, 15].map(($$$$0, $$$$1) => {
+            $$$$78($$$$53(), $$$$37(0, 0, $$$$1 ? 22 : -23).scale(3, 1, 8), $$$$55(.9, .9, .9, .2)),
+              $$$$78($$$$53(), $$$$37(0, 6.3, $$$$0).scale(4, .3, 1), $$$$55(.3, .3, .3, .4)),
+              $$$$78($$$$53().slice(0, -1), $$$$37(0, 1, $$$$0).scale(3, .2, .35), $$$$55(.5, .5, .5, .3));
           }),
-          meshAdd(cylinder(), translation(-5, -0.2, -26).scale(3.2, 1, 2.5).skewX(3), material(0.8, 0.8, 0.8, 0.2)),
-          meshAdd(cylinder(), translation(3, 1.5, -20).scale(0.5, 2, 5), material(0.7, 0.7, 0.7, 0.2)),
-          meshAdd(cylinder(5), translation(-5.4, 0, -19).scale(2, 1, 2).rotate(0, -90), material(0.6, 0.3, 0.3, 0.4)),
-          meshAdd(
-            cylinder(),
-            translation(-3.4, -0.2, -19).scale(2, 1, 1.5).rotate(0, -90),
-            material(0.75, 0.75, 0.75, 0.2),
-          ),
-          meshAdd(
-            csg_polygons_subtract(
-              csg_union(
-                csg_polygons_subtract(
-                  polygons_transform(
-                    cylinder(6, 0, 0, 0.3),
-                    translation(0, -0.92).scale(13, 2, 13),
-                    material(0.8, 0.8, 0.8, 0.2),
-                  ),
-                  polygons_transform(
-                    cylinder(),
-                    identity.rotate(0, 60).translate(14, 0.5, -1).scale(2.4, 5, 2),
-                    material(0.5, 0.5, 0.5, 0.5),
-                  ),
+          $$$$78($$$$53(), $$$$37(-5, -.2, -26).scale(3.2, 1, 2.5).skewX(3), $$$$55(.8, .8, .8, .2)),
+          $$$$78($$$$53(), $$$$37(3, 1.5, -20).scale(.5, 2, 5), $$$$55(.7, .7, .7, .2)),
+          $$$$78($$$$53(5), $$$$37(-5.4, 0, -19).scale(2, 1, 2).rotate(0, -90), $$$$55(.6, .3, .3, .4)),
+          $$$$78($$$$53(), $$$$37(-3.4, -.2, -19).scale(2, 1, 1.5).rotate(0, -90), $$$$55(.75, .75, .75, .2)),
+          $$$$78(
+            $$$$65(
+              $$$$64(
+                $$$$65(
+                  $$$$41($$$$53(6, 0, 0, .3), $$$$37(0, -.92).scale(13, 2, 13), $$$$55(.8, .8, .8, .2)),
+                  $$$$41($$$$53(), $$$$84.rotate(0, 60).translate(14, .5, -1).scale(2.4, 5, 2), $$$$55(.5, .5, .5, .5)),
                 ),
-                polygons_transform(
-                  cylinder(),
-                  identity.rotate(0, 60).translate(14.8, -1.46, -1).rotate(-30).translate(0, -1).scale(4.03, 1.6, 4.5),
-                  material(0.8, 0.2, 0.2, 0.5),
+                $$$$41(
+                  $$$$53(),
+                  $$$$84.rotate(0, 60).translate(14.8, -1.46, -1).rotate(-30).translate(0, -1).scale(4.03, 1.6, 4.5),
+                  $$$$55(.8, .2, .2, .5),
                 ),
-                polygons_transform(cylinder(6), translation(0, -8).scale(9, 8, 7), material(0.2, 0.1, 0.4, 0.5)),
-                polygons_transform(
-                  cylinder(6, 0, 0, 0.3),
-                  translation(8, -4, -4).scale(14, 2, 13),
-                  material(0.7, 0.7, 0.7, 0.2),
-                ),
+                $$$$41($$$$53(6), $$$$37(0, -8).scale(9, 8, 7), $$$$55(.2, .1, .4, .5)),
+                $$$$41($$$$53(6, 0, 0, .3), $$$$37(8, -4, -4).scale(14, 2, 13), $$$$55(.7, .7, .7, .2)),
               ),
-              polygons_transform(
-                cylinder(6),
-                translation(15.8, -1.5, 3.8).scale(3.5, 1, 3.5),
-                material(0.5, 0.5, 0.5, 0.5),
-              ),
-              polygons_transform(
-                cylinder(5, 0, 1.5),
-                translation(0, 1).scale(4.5, 0.3, 4.5),
-                material(0.7, 0.5, 0.9, 0.2),
-              ),
-              polygons_transform(cylinder(5), identity.scale(5, 30, 5), material(0.4, 0.2, 0.6, 0.5)),
+              $$$$41($$$$53(6), $$$$37(15.8, -1.5, 3.8).scale(3.5, 1, 3.5), $$$$55(.5, .5, .5, .5)),
+              $$$$41($$$$53(5, 0, 1.5), $$$$37(0, 1).scale(4.5, .3, 4.5), $$$$55(.7, .5, .9, .2)),
+              $$$$41($$$$53(5), $$$$84.scale(5, 30, 5), $$$$55(.4, .2, .6, .5)),
             ),
           ),
-          newLever(translation(15.8, -2, 3.8)),
-          meshAdd(cylinder(), translation(-18.65, -3, 55).scale(2.45, 1.4, 2.7), material(0.9, 0.9, 0.9, 0.2)),
-          newLever(translation(-55, -1.1, 46).rotate(0, 90)),
-          meshAdd(cylinder(7), translation(-57, -2.6, 46).scale(4, 1, 4), material(0.8, 0.8, 0.8, 0.3)),
-          meshAdd(cylinder(6), translation(-61.3, -2.4, 49).scale(3, 1, 5), material(0.4, 0.6, 0.6, 0.3)),
-          meshAdd(hexCorridor, translation(-53, 0, 55)),
-          meshAdd(
-            cylinder(),
-            translation(-88.3, -5.1, 55).rotate(-30).scale(5, 1.25, 4.5),
-            material(0.7, 0.7, 0.7, 0.2),
+          $$$$2($$$$37(15.8, -2, 3.8)),
+          $$$$78($$$$53(), $$$$37(-18.65, -3, 55).scale(2.45, 1.4, 2.7), $$$$55(.9, .9, .9, .2)),
+          $$$$2($$$$37(-55, -1.1, 46).rotate(0, 90)),
+          $$$$78($$$$53(7), $$$$37(-57, -2.6, 46).scale(4, 1, 4), $$$$55(.8, .8, .8, .3)),
+          $$$$78($$$$53(6), $$$$37(-61.3, -2.4, 49).scale(3, 1, 5), $$$$55(.4, .6, .6, .3)),
+          $$$$78($$$$6, $$$$37(-53, 0, 55)),
+          $$$$78($$$$53(), $$$$37(-88.3, -5.1, 55).rotate(-30).scale(5, 1.25, 4.5), $$$$55(.7, .7, .7, .2)),
+          $$$$78(
+            $$$$53(3, 0, -.5),
+            $$$$37(-88.4, -3.9, 55).rotate(0, -90, 17).scale(3, 1.45, 5.9),
+            $$$$55(.8, .8, .8, .2),
           ),
-          meshAdd(
-            cylinder(3, 0, -0.5),
-            translation(-88.4, -3.9, 55).rotate(0, -90, 17).scale(3, 1.45, 5.9),
-            material(0.8, 0.8, 0.8, 0.2),
-          ),
-          meshAdd(
-            csg_polygons_subtract(
-              polygons_transform(cylinder(), translation(-100, 1, 63).scale(7.5, 4), material(0.5, 0.5, 0.5, 0.4)),
-              polygons_transform(cylinder(), translation(-100, 0, 63).scale(2, 2, 4), material(0.5, 0.5, 0.5, 0.4)),
-              polygons_transform(
-                cylinder(20, 1),
-                translation(-100, 2, 70).scale(2, 2, 10).rotate(90, 0),
-                material(0.5, 0.5, 0.5, 0.4),
-              ),
+          $$$$78(
+            $$$$65(
+              $$$$41($$$$53(), $$$$37(-100, 1, 63).scale(7.5, 4), $$$$55(.5, .5, .5, .4)),
+              $$$$41($$$$53(), $$$$37(-100, 0, 63).scale(2, 2, 4), $$$$55(.5, .5, .5, .4)),
+              $$$$41($$$$53(20, 1), $$$$37(-100, 2, 70).scale(2, 2, 10).rotate(90, 0), $$$$55(.5, .5, .5, .4)),
             ),
           ),
-          meshAdd(
-            csg_polygons_subtract(
-              csg_union(
-                polygons_transform(
-                  cylinder(),
-                  translation(-100, -2.6, 70).scale(3, 1.1, 7),
-                  material(0.8, 0.8, 0.8, 0.2),
-                ),
-                polygons_transform(
-                  cylinder(),
-                  translation(-100, -2.4, 55).scale(8, 0.9, 8),
-                  material(0.8, 0.8, 0.8, 0.2),
-                ),
-                polygons_transform(
-                  cylinder(),
-                  translation(-113, -2.6, 55).scale(6.2, 1.1, 3).skewX(3),
-                  material(0.8, 0.8, 0.8, 0.2),
-                ),
-                polygons_transform(
-                  cylinder(6),
-                  translation(-88.79, -2.6, 80.21).scale(6, 1.1, 6).rotate(0, 15),
-                  material(0.6, 0.6, 0.6, 0.3),
-                ),
-                polygons_transform(
-                  cylinder(),
-                  translation(-96, -2.6, 73).rotate(0, 45).scale(3, 1.1, 5),
-                  material(0.8, 0.8, 0.8, 0.2),
-                ),
-                polygons_transform(
-                  cylinder(),
-                  translation(-100, 0.42, 92).scale(3, 1.1, 4.1),
-                  material(0.8, 0.8, 0.8, 0.2),
-                ),
-                polygons_transform(
-                  cylinder(),
-                  translation(-100, -1.1, 82.39).rotate(-15, 0).scale(3, 1.1, 6),
-                  material(0.8, 0.8, 0.8, 0.2),
-                ),
+          $$$$78(
+            $$$$65(
+              $$$$64(
+                $$$$41($$$$53(), $$$$37(-100, -2.6, 70).scale(3, 1.1, 7), $$$$55(.8, .8, .8, .2)),
+                $$$$41($$$$53(), $$$$37(-100, -2.4, 55).scale(8, .9, 8), $$$$55(.8, .8, .8, .2)),
+                $$$$41($$$$53(), $$$$37(-113, -2.6, 55).scale(6.2, 1.1, 3).skewX(3), $$$$55(.8, .8, .8, .2)),
+                $$$$41($$$$53(6), $$$$37(-88.79, -2.6, 80.21).scale(6, 1.1, 6).rotate(0, 15), $$$$55(.6, .6, .6, .3)),
+                $$$$41($$$$53(), $$$$37(-96, -2.6, 73).rotate(0, 45).scale(3, 1.1, 5), $$$$55(.8, .8, .8, .2)),
+                $$$$41($$$$53(), $$$$37(-100, .42, 92).scale(3, 1.1, 4.1), $$$$55(.8, .8, .8, .2)),
+                $$$$41($$$$53(), $$$$37(-100, -1.1, 82.39).rotate(-15, 0).scale(3, 1.1, 6), $$$$55(.8, .8, .8, .2)),
               ),
-              polygons_transform(cylinder(8), translation(-100, -1, 55).scale(7, 0.9, 7), material(0.3, 0.3, 0.3, 0.4)),
-              polygons_transform(cylinder(8), translation(-100, -2, 55).scale(4, 0.3, 4), material(0.4, 0.4, 0.4, 0.5)),
-              polygons_transform(
-                cylinder(8, 0, -3.1),
-                translation(-100, -3, 55).scale(0.4, 1, 0.4),
-                material(0.4, 0.4, 0.4, 0.5),
-              ),
+              $$$$41($$$$53(8), $$$$37(-100, -1, 55).scale(7, .9, 7), $$$$55(.3, .3, .3, .4)),
+              $$$$41($$$$53(8), $$$$37(-100, -2, 55).scale(4, .3, 4), $$$$55(.4, .4, .4, .5)),
+              $$$$41($$$$53(8, 0, -3.1), $$$$37(-100, -3, 55).scale(.4, 1, .4), $$$$55(.4, .4, .4, .5)),
             ),
           ),
-          GQuad.map(({
-            x,
-            z,
+          $$$$33.map(({
+            x: $$$$0,
+            z: $$$$1,
           }) => {
-            meshAdd(cylinder(6), translation(3 * x, 3, 15 * z).scale(0.7, 4, 0.7), material(0.6, 0.3, 0.3, 0.4)),
-              meshAdd(
-                cylinder(6),
-                translation(7 * x - 100, -3, 7 * z + 55).scale(1, 8.1),
-                material(0.6, 0.15, 0.15, 0.8),
-              ),
-              [4, -0.4].map(i =>
-                meshAdd(
-                  cylinder(6),
-                  translation(7 * x - 100, i, 7 * z + 55).scale(1.3, 0.5, 1.3),
-                  material(0.4, 0.2, 0.2, 0.8),
+            $$$$78($$$$53(6), $$$$37(3 * $$$$0, 3, 15 * $$$$1).scale(.7, 4, .7), $$$$55(.6, .3, .3, .4)),
+              $$$$78($$$$53(6), $$$$37(7 * $$$$0 - 100, -3, 7 * $$$$1 + 55).scale(1, 8.1), $$$$55(.6, .15, .15, .8)),
+              [4, -.4].map($$$$2 =>
+                $$$$78(
+                  $$$$53(6),
+                  $$$$37(7 * $$$$0 - 100, $$$$2, 7 * $$$$1 + 55).scale(1.3, .5, 1.3),
+                  $$$$55(.4, .2, .2, .8),
                 )
               ),
-              [1.5, 8].map(y =>
-                meshAdd(
-                  cylinder(15, 1),
-                  translation(9 * x - 38.9, y - 11.3, 11 * z + 17).scale(1.5, 0.5, 1.5),
-                  material(0.6, 0.6, 0.6, 0.3),
+              [1.5, 8].map($$$$2 =>
+                $$$$78(
+                  $$$$53(15, 1),
+                  $$$$37(9 * $$$$0 - 38.9, $$$$2 - 11.3, 11 * $$$$1 + 17).scale(1.5, .5, 1.5),
+                  $$$$55(.6, .6, .6, .3),
                 )
               ),
-              meshAdd(
-                cylinder(14, 1).slice(0, -2),
-                translation(9 * x - 38.9, -18, 11 * z + 17).scale(1, 14.2),
-                material(0.25, 0.25, 0.25, 1),
+              $$$$78(
+                $$$$53(14, 1).slice(0, -2),
+                $$$$37(9 * $$$$0 - 38.9, -18, 11 * $$$$1 + 17).scale(1, 14.2),
+                $$$$55(.25, .25, .25, 1),
               );
           }),
-          integers_map(7, i => {
-            meshAdd(
-              cylinder((23 * i + 1) % 5 + 5, 0, 0.5),
-              translation(5 * /* @__PURE__ */ Math.sin(i) - 101 + i, -2.3 - i, 44.9 - 2.8 * i).scaleSelf(
-                5 + i / 2,
-                1.1 + i / 6,
-                5 + i / 3,
+          $$$$38(7, $$$$0 => {
+            $$$$78(
+              $$$$53((23 * $$$$0 + 1) % 5 + 5, 0, .5),
+              $$$$37(5 * /* @__PURE__ */ Math.sin($$$$0) - 101 + $$$$0, -2.3 - $$$$0, 44.9 - 2.8 * $$$$0).scaleSelf(
+                5 + $$$$0 / 2,
+                1.1 + $$$$0 / 6,
+                5 + $$$$0 / 3,
               ),
-              material(0.5 - i / 17, 0.5 - (1 & i) / 9, 0.6, 0.3),
+              $$$$55(.5 - $$$$0 / 17, .5 - (1 & $$$$0) / 9, .6, .3),
             );
           }),
-          meshAdd(cylinder(), translation(-87, -9.5, 24).scale(7, 1, 3), material(0.4, 0.5, 0.6, 0.4)),
-          meshAdd(cylinder(4), translation(-86, -9.2, 27).scale(5, 1, 5), material(0.5, 0.6, 0.7, 0.3)),
-          meshAdd(cylinder(12, 1), translation(-86, -9, 31).scale(1.5, 1, 1.5), material(0.3, 0.3, 0.4, 0.1)),
-          newLever(translation(-86, -7.5, 31)),
-          meshAdd(cylinder(5), translation(-38.9, -11.1, 10).scale(2, 1.2, 2), material(0.2, 0.4, 0.7, 0.3)),
-          meshAdd(
-            csg_polygons_subtract(
-              csg_union(
-                polygons_transform(
-                  cylinder(),
-                  translation(-38.9, -11.3, 17).scale(11, 1, 13),
-                  material(0.3, 0.4, 0.6, 0.3),
-                ),
-                polygons_transform(
-                  cylinder(5),
-                  translation(-38.9, -11.1, 17).scale(9, 1, 9),
-                  material(0, 0.2, 0.3, 0.5),
-                ),
+          $$$$78($$$$53(), $$$$37(-87, -9.5, 24).scale(7, 1, 3), $$$$55(.4, .5, .6, .4)),
+          $$$$78($$$$53(4), $$$$37(-86, -9.2, 27).scale(5, 1, 5), $$$$55(.5, .6, .7, .3)),
+          $$$$78($$$$53(12, 1), $$$$37(-86, -9, 31).scale(1.5, 1, 1.5), $$$$55(.3, .3, .4, .1)),
+          $$$$2($$$$37(-86, -7.5, 31)),
+          $$$$78($$$$53(5), $$$$37(-38.9, -11.1, 10).scale(2, 1.2, 2), $$$$55(.2, .4, .7, .3)),
+          $$$$78(
+            $$$$65(
+              $$$$64(
+                $$$$41($$$$53(), $$$$37(-38.9, -11.3, 17).scale(11, 1, 13), $$$$55(.3, .4, .6, .3)),
+                $$$$41($$$$53(5), $$$$37(-38.9, -11.1, 17).scale(9, 1, 9), $$$$55(0, .2, .3, .5)),
               ),
-              polygons_transform(cylinder(5), translation(-38.9, -11.1, 17).scale3d(5.4), material(0, 0.2, 0.3, 0.5)),
+              $$$$41($$$$53(5), $$$$37(-38.9, -11.1, 17).scale3d(5.4), $$$$55(0, .2, .3, .5)),
             ),
           ),
-          newLever(translation(-38.9, -9.4, 10)),
-          meshAdd(
-            csg_polygons_subtract(
-              csg_union(
-                polygons_transform(
-                  cylinder(6),
-                  translation(0, 0, -18).scale(15, 1.3, 15),
-                  material(0.7, 0.7, 0.7, 0.3),
-                ),
-                polygons_transform(cylinder(5), identity.scale(4.5, 1.2, 9), material(0.45, 0.4, 0.6, 0.3)),
+          $$$$2($$$$37(-38.9, -9.4, 10)),
+          $$$$78(
+            $$$$65(
+              $$$$64(
+                $$$$41($$$$53(6), $$$$37(0, 0, -18).scale(15, 1.3, 15), $$$$55(.7, .7, .7, .3)),
+                $$$$41($$$$53(5), $$$$84.scale(4.5, 1.2, 9), $$$$55(.45, .4, .6, .3)),
               ),
-              ...integers_map(6, z =>
-                integers_map(6, x =>
-                  polygons_transform(
-                    cylinder(6),
-                    translation(4.6 * x - (1 & z ? 10 : 12), 0, 4.6 * z + 2 * /* @__PURE__ */ Math.sin(4 * x) - 32)
-                      .scale3d(2),
-                    material(0.7, 0.7, 0.7, 0.3),
+              ...$$$$38(6, $$$$0 =>
+                $$$$38(6, $$$$1 =>
+                  $$$$41(
+                    $$$$53(6),
+                    $$$$37(
+                      4.6 * $$$$1 - (1 & $$$$0 ? 10 : 12),
+                      0,
+                      4.6 * $$$$0 + 2 * /* @__PURE__ */ Math.sin(4 * $$$$1) - 32,
+                    ).scale3d(2),
+                    $$$$55(.7, .7, .7, .3),
                   ))).flat(),
             ),
-            translation(-38.9, -11.3, -1),
+            $$$$37(-38.9, -11.3, -1),
           ),
-          newLever(translation(-84, -0.7, 85).rotate(0, 45)),
-          meshAdd(cylinder(5), translation(-84, -2, 85).scale(4, 0.8, 4).rotate(0, 10), material(0.8, 0.1, 0.25, 0.4)),
-          newLever(translation(-116, -1.4, -18).rotate(0, 180)),
-          meshAdd(
-            csg_polygons_subtract(
-              polygons_transform(cylinder(), translation(-96.5, -1.4, -2).scale(20, 2.1, 3)),
-              ...pushingRodsPositions.map(x =>
-                polygons_transform(cylinder(), translation(x, 0.05, -3).scale(1.35, 2, 9))
-              ),
+          $$$$2($$$$37(-84, -.7, 85).rotate(0, 45)),
+          $$$$78($$$$53(5), $$$$37(-84, -2, 85).scale(4, .8, 4).rotate(0, 10), $$$$55(.8, .1, .25, .4)),
+          $$$$2($$$$37(-116, -1.4, -18).rotate(0, 180)),
+          $$$$78(
+            $$$$65(
+              $$$$41($$$$53(), $$$$37(-96.5, -1.4, -2).scale(20, 2.1, 3)),
+              ...$$$$0.map($$$$0 => $$$$41($$$$53(), $$$$37($$$$0, .05, -3).scale(1.35, 2, 9))),
             ),
-            identity,
-            material(0.5, 0.5, 0.6, 0.2),
+            $$$$84,
+            $$$$55(.5, .5, .6, .2),
           ),
-          meshAdd(cylinder(), translation(-96.5, 1, -2).scale(19, 0.3, 0.3), material(0.5, 0.5, 0.6, 0.2)),
-          meshAdd(cylinder(6), translation(-116, -2.6, -16.5).scale(3.2, 0.8, 3), material(0.6, 0.5, 0.7, 0.2)),
-          meshAdd(cylinder(), translation(-116, -2.6, -12).scale(3.2, 1.1, 4).skewX(3), material(0.8, 0.8, 0.8, 0.2)),
-          meshAdd(
-            cylinder().slice(0, -1),
-            translation(-115.5, -17, -12).scale(0.5, 15, 2.2),
-            material(0.6, 0.6, 0.6, 0.3),
-          ),
-          meshAdd(cylinder(8).slice(0, -2), translation(-114, -17, -2).scale(2, 15, 2), material(0.6, 0.6, 0.6, 0.3)),
-          meshAdd(cylinder(8).slice(0, -2), translation(-79, -17, -2).scale(2, 15, 2), material(1, 1, 1, 0.3)),
-          meshAdd(
-            cylinder().slice(0, -1),
-            translation(-77, -17, -50.5).scale(2.2, 15, 0.5),
-            material(0.6, 0.6, 0.6, 0.3),
-          ),
-          meshAdd(
-            csg_polygons_subtract(
-              polygons_transform(
-                cylinder(12).slice(0, -1),
-                translation(-77, -14.5, -12).scale(4, 17.5, 4),
-                material(0.7, 0.7, 0.7, 0.2),
-              ),
-              polygons_transform(cylinder(12), translation(-77, 3.1, -12).scale(3, 5, 3), material(0.4, 0.5, 0.6, 0.2)),
-              polygons_transform(
-                cylinder(),
-                translation(-79, 0.1, -12).scale(3.5, 2, 1.3),
-                material(0.4, 0.5, 0.6, 0.2),
-              ),
-              polygons_transform(cylinder(), translation(-77, 0.1, -14).scale(1.5, 2, 2), material(0.4, 0.5, 0.6, 0.2)),
+          $$$$78($$$$53(), $$$$37(-96.5, 1, -2).scale(19, .3, .3), $$$$55(.5, .5, .6, .2)),
+          $$$$78($$$$53(6), $$$$37(-116, -2.6, -16.5).scale(3.2, .8, 3), $$$$55(.6, .5, .7, .2)),
+          $$$$78($$$$53(), $$$$37(-116, -2.6, -12).scale(3.2, 1.1, 4).skewX(3), $$$$55(.8, .8, .8, .2)),
+          $$$$78($$$$53().slice(0, -1), $$$$37(-115.5, -17, -12).scale(.5, 15, 2.2), $$$$55(.6, .6, .6, .3)),
+          $$$$78($$$$53(8).slice(0, -2), $$$$37(-114, -17, -2).scale(2, 15, 2), $$$$55(.6, .6, .6, .3)),
+          $$$$78($$$$53(8).slice(0, -2), $$$$37(-79, -17, -2).scale(2, 15, 2), $$$$55(1, 1, 1, .3)),
+          $$$$78($$$$53().slice(0, -1), $$$$37(-77, -17, -50.5).scale(2.2, 15, .5), $$$$55(.6, .6, .6, .3)),
+          $$$$78(
+            $$$$65(
+              $$$$41($$$$53(12).slice(0, -1), $$$$37(-77, -14.5, -12).scale(4, 17.5, 4), $$$$55(.7, .7, .7, .2)),
+              $$$$41($$$$53(12), $$$$37(-77, 3.1, -12).scale(3, 5, 3), $$$$55(.4, .5, .6, .2)),
+              $$$$41($$$$53(), $$$$37(-79, .1, -12).scale(3.5, 2, 1.3), $$$$55(.4, .5, .6, .2)),
+              $$$$41($$$$53(), $$$$37(-77, .1, -14).scale(1.5, 2, 2), $$$$55(.4, .5, .6, .2)),
             ),
           ),
-          meshAdd(
-            csg_polygons_subtract(
-              polygons_transform(cylinder(), translation(-93, -5.8, -40).scale(9, 1, 5), material(0.8, 0.8, 0.8, 0.1)),
-              polygons_transform(cylinder(9), translation(-98, -5.8, -40).scale(3, 8, 3), material(0.7, 0.7, 0.7, 0.2)),
+          $$$$78(
+            $$$$65(
+              $$$$41($$$$53(), $$$$37(-93, -5.8, -40).scale(9, 1, 5), $$$$55(.8, .8, .8, .1)),
+              $$$$41($$$$53(9), $$$$37(-98, -5.8, -40).scale(3, 8, 3), $$$$55(.7, .7, .7, .2)),
             ),
           ),
-          meshAdd(cylinder(), translation(-84.9, -4.3, -40).rotate(12).scale(6, 1, 3), material(0.6, 0.6, 0.6, 0.3)),
-          meshAdd(
-            cylinder(9).slice(0, -1),
-            translation(-98, -18.4, -40).scale(2.5, 13.5, 2.5),
-            material(0.5, 0.5, 0.5, 0.3),
-          ),
-          newLever(translation(-98, -4.4, -40).rotate(0, 90)),
-          [-1, 1].map((x, j) => {
-            meshAdd(
-              csg_polygons_subtract(
-                polygons_transform(
-                  cylinder(),
-                  translation(-4 * x, 3.5, -0.5).scale(4, 4, 0.7),
-                  material(0.5, 0.5, 0.5, 0.4),
+          $$$$78($$$$53(), $$$$37(-84.9, -4.3, -40).rotate(12).scale(6, 1, 3), $$$$55(.6, .6, .6, .3)),
+          $$$$78($$$$53(9).slice(0, -1), $$$$37(-98, -18.4, -40).scale(2.5, 13.5, 2.5), $$$$55(.5, .5, .5, .3)),
+          $$$$2($$$$37(-98, -4.4, -40).rotate(0, 90)),
+          [-1, 1].map(($$$$0, $$$$1) => {
+            $$$$78(
+              $$$$65(
+                $$$$41($$$$53(), $$$$37(-4 * $$$$0, 3.5, -.5).scale(4, 4, .7), $$$$55(.5, .5, .5, .4)),
+                $$$$41($$$$53(5), $$$$37(-5.3 * $$$$0, 7).rotate(90, 0).scale(1.7, 5, 1.7), $$$$55(.6, .24, .2, .5)),
+                $$$$41($$$$53(), $$$$84.scale(3, 3, 10), $$$$55(.6, .24, .2, .5)),
+                $$$$41(
+                  $$$$53(5),
+                  $$$$37(-5.3 * $$$$0, 3.8).rotate(90, 0, 35).scale(.75, 5, .75),
+                  $$$$55(.6, .24, .2, .5),
                 ),
-                polygons_transform(
-                  cylinder(5),
-                  translation(-5.3 * x, 7).rotate(90, 0).scale(1.7, 5, 1.7),
-                  material(0.6, 0.24, 0.2, 0.5),
-                ),
-                polygons_transform(cylinder(), identity.scale(3, 3, 10), material(0.6, 0.24, 0.2, 0.5)),
-                polygons_transform(
-                  cylinder(5),
-                  translation(-5.3 * x, 3.8).rotate(90, 0, 35).scale(0.75, 5, 0.75),
-                  material(0.6, 0.24, 0.2, 0.5),
-                ),
-                polygons_transform(
-                  cylinder(32, 1),
-                  translation(0, 3, -5).scale(3, 4, 10).rotate(90, 0),
-                  material(0.6, 0.24, 0.2, 0.5),
-                ),
+                $$$$41($$$$53(32, 1), $$$$37(0, 3, -5).scale(3, 4, 10).rotate(90, 0), $$$$55(.6, .24, .2, .5)),
               ),
-              translation(x - 100, 0.7, 97),
+              $$$$37($$$$0 - 100, .7, 97),
             ),
-              meshAdd(
-                cylinder(12, 1),
-                translation(-7.5 * x - 100, 3.7, 96).scale(0.8, 4, 0.8),
-                material(0.6, 0.24, 0.2, 0.5),
-              ),
-              [7.2, 1.5].map(y =>
-                meshAdd(
-                  cylinder(15, 1),
-                  translation(-7.5 * x - 100, y + 0.7, 96).scale(1.1, 0.5, 1.1),
-                  material(0.5, 0.24, 0.2, 0.4),
+              $$$$78($$$$53(12, 1), $$$$37(-7.5 * $$$$0 - 100, 3.7, 96).scale(.8, 4, .8), $$$$55(.6, .24, .2, .5)),
+              [7.2, 1.5].map($$$$1 =>
+                $$$$78(
+                  $$$$53(15, 1),
+                  $$$$37(-7.5 * $$$$0 - 100, $$$$1 + .7, 96).scale(1.1, .5, 1.1),
+                  $$$$55(.5, .24, .2, .4),
                 )
               ),
-              meshAdd(hornPolygons, translation(-8 * x, 1, 85).scale(1.2, 10, 1.2).rotate(0, 90 * x + 90)),
-              meshAdd(hornPolygons, translation(-5 * x - 100, 1.7, 110).scale(1.2, 10, 1.2).rotate(0, 90 * x - 90)),
-              integers_map(5, i =>
-                meshAdd(
-                  hornPolygons,
-                  translation(18.5 * (j - 0.5), 0, 4.8 * i - 9.5).rotate(0, 180 - 180 * j).scale(1.2, 10, 1.2),
+              $$$$78($$$$7, $$$$37(-8 * $$$$0, 1, 85).scale(1.2, 10, 1.2).rotate(0, 90 * $$$$0 + 90)),
+              $$$$78($$$$7, $$$$37(-5 * $$$$0 - 100, 1.7, 110).scale(1.2, 10, 1.2).rotate(0, 90 * $$$$0 - 90)),
+              $$$$38(5, $$$$0 =>
+                $$$$78(
+                  $$$$7,
+                  $$$$37(18.5 * ($$$$1 - .5), 0, 4.8 * $$$$0 - 9.5).rotate(0, 180 - 180 * $$$$1).scale(1.2, 10, 1.2),
                 ));
           }),
-          meshAdd(
-            csg_polygons_subtract(
-              polygons_transform(
-                cylinder(),
-                translation(-82.07, 0.8, 106).scale(11, 0.9, 2.2),
-                material(0.7, 0.7, 0.7, 0.1),
-              ),
-              polygons_transform(
-                cylinder(45, 1),
-                translation(-81, 0.7, 106).scale3d(7.7),
-                material(0.7, 0.7, 0.7, 0.1),
-              ),
+          $$$$78(
+            $$$$65(
+              $$$$41($$$$53(), $$$$37(-82.07, .8, 106).scale(11, .9, 2.2), $$$$55(.7, .7, .7, .1)),
+              $$$$41($$$$53(45, 1), $$$$37(-81, .7, 106).scale3d(7.7), $$$$55(.7, .7, .7, .1)),
             ),
           ),
-          meshAdd(cylinder(), translation(-50.7, 1, 99).scale(2, 0.65, 1), material(0.7, 0.7, 0.7, 0.2)),
-          meshAdd(cylinder(), translation(-58, 1, 106).scale(2, 0.65, 2), material(0.7, 0.7, 0.7, 0.2)),
-          meshAdd(cylinder(), translation(-34.2, 0.4, 91).scale(3, 1, 3), material(0.7, 0.7, 0.7, 0.3)),
-          meshAdd(cylinder(), translation(-42, 0.4, 91).scale(5, 1, 2.5), material(0.7, 0.7, 0.7, 0.3)),
-          meshAdd(cylinder(5), translation(-34, 0.2, 96).scale(3, 2, 4).rotate(-20, 0), material(0.2, 0.5, 0.5, 0.6)),
-          newLever(translation(-34, 2.7, 96).rotate(-12, 0)),
-          meshAdd(
-            csg_polygons_subtract(
-              csg_union(
-                polygons_transform(
-                  cylinder(),
-                  translation(-101.5, 0.7, 93.5).scale(10.5, 1, 2),
-                  material(0.7, 0.7, 0.7, 0.2),
-                ),
-                polygons_transform(
-                  cylinder(6, 0, 0, 0.6),
-                  translation(-100, 0.7, 105.5).scale(8, 1, 11),
-                  material(0.7, 0.7, 0.7, 0.2),
-                ),
+          $$$$78($$$$53(), $$$$37(-50.7, 1, 99).scale(2, .65, 1), $$$$55(.7, .7, .7, .2)),
+          $$$$78($$$$53(), $$$$37(-58, 1, 106).scale(2, .65, 2), $$$$55(.7, .7, .7, .2)),
+          $$$$78($$$$53(), $$$$37(-34.2, .4, 91).scale(3, 1, 3), $$$$55(.7, .7, .7, .3)),
+          $$$$78($$$$53(), $$$$37(-42, .4, 91).scale(5, 1, 2.5), $$$$55(.7, .7, .7, .3)),
+          $$$$78($$$$53(5), $$$$37(-34, .2, 96).scale(3, 2, 4).rotate(-20, 0), $$$$55(.2, .5, .5, .6)),
+          $$$$2($$$$37(-34, 2.7, 96).rotate(-12, 0)),
+          $$$$78(
+            $$$$65(
+              $$$$64(
+                $$$$41($$$$53(), $$$$37(-101.5, .7, 93.5).scale(10.5, 1, 2), $$$$55(.7, .7, .7, .2)),
+                $$$$41($$$$53(6, 0, 0, .6), $$$$37(-100, .7, 105.5).scale(8, 1, 11), $$$$55(.7, .7, .7, .2)),
               ),
-              polygons_transform(cylinder(5), translation(-100, 0.7, 113).scale(4, 3, 4), material(0.7, 0.7, 0.7, 0.2)),
+              $$$$41($$$$53(5), $$$$37(-100, .7, 113).scale(4, 3, 4), $$$$55(.7, .7, .7, .2)),
             ),
           ),
-          integers_map(3, i => {
-            meshAdd(makeBigArc(16), translation(-77, -9, -12 * i - 20).rotate(0, 90), material(0.6, 0.6, 0.6, 0.3)),
-              meshAdd(makeBigArc(16), translation(12 * i - 109, -9, -12), material(0.6, 0.6, 0.6, 0.3)),
-              meshAdd(
-                makeBigArc(24.7 - 0.7 * (1 & i)),
-                translation(6 * i - 6, 4 - (1 & i), 111 - 0.2 * (1 & i)),
-                1 & i ? material(0.5, 0.5, 0.5, 0.3) : material(0.35, 0.35, 0.35, 0.5),
+          $$$$38(3, $$$$0 => {
+            $$$$78($$$$3(16), $$$$37(-77, -9, -12 * $$$$0 - 20).rotate(0, 90), $$$$55(.6, .6, .6, .3)),
+              $$$$78($$$$3(16), $$$$37(12 * $$$$0 - 109, -9, -12), $$$$55(.6, .6, .6, .3)),
+              $$$$78(
+                $$$$3(24.7 - .7 * (1 & $$$$0)),
+                $$$$37(6 * $$$$0 - 6, 4 - (1 & $$$$0), 111 - .2 * (1 & $$$$0)),
+                1 & $$$$0 ? $$$$55(.5, .5, .5, .3) : $$$$55(.35, .35, .35, .5),
               );
           }),
-          meshAdd(
-            csg_polygons_subtract(
-              csg_union(
-                polygons_transform(cylinder(), translation(0, 16, 111).scale(3, 1, 3.8), material(0.5, 0.3, 0.3, 0.4)),
-                polygons_transform(
-                  cylinder(6, 0, 0, 0.3),
-                  translation(0, -0.92, 95).scale(14, 2, 14),
-                  material(0.8, 0.8, 0.8, 0.2),
-                ),
-                polygons_transform(cylinder(), translation(0, 16, 110.5).scale(12, 1, 3), material(0.5, 0.3, 0.3, 0.4)),
+          $$$$78(
+            $$$$65(
+              $$$$64(
+                $$$$41($$$$53(), $$$$37(0, 16, 111).scale(3, 1, 3.8), $$$$55(.5, .3, .3, .4)),
+                $$$$41($$$$53(6, 0, 0, .3), $$$$37(0, -.92, 95).scale(14, 2, 14), $$$$55(.8, .8, .8, .2)),
+                $$$$41($$$$53(), $$$$37(0, 16, 110.5).scale(12, 1, 3), $$$$55(.5, .3, .3, .4)),
               ),
-              polygons_transform(cylinder(5), translation(0, 0, 95).scale3d(6), material(0.3, 0.3, 0.3, 0.5)),
-              polygons_transform(
-                cylinder(5),
-                translation(0, 16, 103.5).scale(5.5, 5, 5.5),
-                material(0.5, 0.3, 0.3, 0.4),
-              ),
+              $$$$41($$$$53(5), $$$$37(0, 0, 95).scale3d(6), $$$$55(.3, .3, .3, .5)),
+              $$$$41($$$$53(5), $$$$37(0, 16, 103.5).scale(5.5, 5, 5.5), $$$$55(.5, .3, .3, .4)),
             ),
           ),
-          newLever(translation(0, 1.7, 82).rotate(0, 180)),
-          meshAdd(
-            cylinder(5).slice(0, -1),
-            translation(0, -15.7, 82).scale(2.5, 17, 2.5).rotate(0, 35),
-            material(0.5, 0.3, 0.3, 0.4),
+          $$$$2($$$$37(0, 1.7, 82).rotate(0, 180)),
+          $$$$78(
+            $$$$53(5).slice(0, -1),
+            $$$$37(0, -15.7, 82).scale(2.5, 17, 2.5).rotate(0, 35),
+            $$$$55(.5, .3, .3, .4),
           ),
-          meshAdd(cylinder(6), translation(0, 16, 121).scale(2.5, 1, 2.1).rotate(0, 90), material(0.5, 0.6, 0.7, 0.3)),
-          meshAdd(cylinder(), translation(0, 16, 127.8).scale(1.5, 1, 0.7), material(0.5, 0.6, 0.7, 0.3)),
-          meshAdd(cylinder(7), translation(0, 15.1, 133).scale(5, 2, 5), material(0.4, 0.5, 0.6, 0.4)),
-          newSoul(translation(-0.5, 2.8, -20), [0, 0, 2.5], [0, -3, 2.5]),
-          newSoul(
-            translation(0, 2.8),
+          $$$$78($$$$53(6), $$$$37(0, 16, 121).scale(2.5, 1, 2.1).rotate(0, 90), $$$$55(.5, .6, .7, .3)),
+          $$$$78($$$$53(), $$$$37(0, 16, 127.8).scale(1.5, 1, .7), $$$$55(.5, .6, .7, .3)),
+          $$$$78($$$$53(7), $$$$37(0, 15.1, 133).scale(5, 2, 5), $$$$55(.4, .5, .6, .4)),
+          $$$$80($$$$37(-.5, 2.8, -20), [0, 0, 2.5], [0, -3, 2.5]),
+          $$$$80(
+            $$$$37(0, 2.8),
             [5, 10, 3],
             [-5, 10, 3],
-            ...polygon_regular(18).map(({
-              x,
-              z,
-            }) => [7 * x, 10 * z, 4.5 - 2 * abs(x)]),
+            ...$$$$51(18).map(({
+              x: $$$$0,
+              z: $$$$1,
+            }) => [7 * $$$$0, 10 * $$$$1, 4.5 - 2 * $$$$42($$$$0)]),
           ),
-          newSoul(
-            translation(0, 3, 95),
-            ...polygon_regular(9).map(({
-              x,
-              z,
-            }) => [9 * x, 9 * z, 4]),
+          $$$$80(
+            $$$$37(0, 3, 95),
+            ...$$$$51(9).map(({
+              x: $$$$0,
+              z: $$$$1,
+            }) => [9 * $$$$0, 9 * $$$$1, 4]),
           ),
-          newSoul(translation(0, 19, 134), [0, 0, 3.5]),
-          newSoul(translation(-38.9, -8.3, -21), [-7, -2.5, 6], [6, -3, 6], [0, -5, 7]),
-          newSoul(translation(-89, 0.2, 80), [0, 0, 6]),
-          newSoul(translation(-100, 0.2, 55), [0, 0, 7.5], [-8, 0, 3.5], [-12, 0, 3.5], [-15, 0, 3.5]),
-          newSoul(translation(-115, 0.2, -12), [0, 0, 3.5]),
-          newSoul(translation(-93, -3, -40).rotate(4), [0, -2, 3.5], [0, 2, 3.5]),
-          newModel(),
-          meshAdd(cylinder(5), translation(0, -0.2).scale(5, 1, 5), material(0.6, 0.65, 0.7, 0.3)),
-          newLever(translation(0, 1.2)),
-          integers_map(2, () => {
-            newModel(),
-              GQuad.map(({
-                x,
-                z,
+          $$$$80($$$$37(0, 19, 134), [0, 0, 3.5]),
+          $$$$80($$$$37(-38.9, -8.3, -21), [-7, -2.5, 6], [6, -3, 6], [0, -5, 7]),
+          $$$$80($$$$37(-89, .2, 80), [0, 0, 6]),
+          $$$$80($$$$37(-100, .2, 55), [0, 0, 7.5], [-8, 0, 3.5], [-12, 0, 3.5], [-15, 0, 3.5]),
+          $$$$80($$$$37(-115, .2, -12), [0, 0, 3.5]),
+          $$$$80($$$$37(-93, -3, -40).rotate(4), [0, -2, 3.5], [0, 2, 3.5]),
+          $$$$79(),
+          $$$$78($$$$53(5), $$$$37(0, -.2).scale(5, 1, 5), $$$$55(.6, .65, .7, .3)),
+          $$$$2($$$$37(0, 1.2)),
+          $$$$38(2, () => {
+            $$$$79(),
+              $$$$33.map(({
+                x: $$$$0,
+                z: $$$$1,
               }) => {
-                meshAdd(
-                  cylinder(11, 1).slice(0, -2),
-                  translation(4 * x, 4, 4 * z).scale(0.8, 3, 0.8),
-                  material(0.5, 0.3, 0.7, 0.6),
-                ), meshAdd(cylinder(), translation(4 * x, 7, 4 * z).scale(1, 0.3), material(0.5, 0.5, 0.5, 0.3));
+                $$$$78(
+                  $$$$53(11, 1).slice(0, -2),
+                  $$$$37(4 * $$$$0, 4, 4 * $$$$1).scale(.8, 3, .8),
+                  $$$$55(.5, .3, .7, .6),
+                ), $$$$78($$$$53(), $$$$37(4 * $$$$0, 7, 4 * $$$$1).scale(1, .3), $$$$55(.5, .5, .5, .3));
               }),
-              meshAdd(
-                csg_polygons_subtract(
-                  polygons_transform(cylinder().slice(0, -1), identity.scale(5, 1, 5), material(0.8, 0.8, 0.8, 0.3)),
-                  ...[-1, 1].map(i =>
-                    polygons_transform(
-                      cylinder(25, 1),
-                      translation(5 * i, 0.2).rotate(-30 * i).scale(4, 1, 3),
-                      material(0.8, 0.8, 0.8, 0.3),
+              $$$$78(
+                $$$$65(
+                  $$$$41($$$$53().slice(0, -1), $$$$84.scale(5, 1, 5), $$$$55(.8, .8, .8, .3)),
+                  ...[-1, 1].map($$$$0 =>
+                    $$$$41(
+                      $$$$53(25, 1),
+                      $$$$37(5 * $$$$0, .2).rotate(-30 * $$$$0).scale(4, 1, 3),
+                      $$$$55(.8, .8, .8, .3),
                     )
                   ),
                 ),
               ),
-              meshAdd(cylinder(), translation(0, -3).scale(8, 2, 8), material(0.4, 0.4, 0.4, 0.3));
+              $$$$78($$$$53(), $$$$37(0, -3).scale(8, 2, 8), $$$$55(.4, .4, .4, .3));
           }),
-          newModel(),
-          meshAdd(
-            csg_polygons_subtract(
-              csg_union(
-                polygons_transform(cylinder(), identity.scale(1.5, 1, 5), material(0.9, 0.9, 0.9, 0.2)),
-                polygons_transform(cylinder(), translation(0, -2).scale(2, 3.2, 1.9), material(0.3, 0.8, 0.5, 0.5)),
-                polygons_transform(cylinder(6), identity.scale(4, 1, 5), material(0.9, 0.9, 0.9, 0.2)),
-                polygons_transform(
-                  cylinder(16, 1, 0, 4),
-                  identity.scale(1, 1, 1.5).rotate(0, 90),
-                  material(0.9, 0.9, 0.9, 0.2),
-                ),
+          $$$$79(),
+          $$$$78(
+            $$$$65(
+              $$$$64(
+                $$$$41($$$$53(), $$$$84.scale(1.5, 1, 5), $$$$55(.9, .9, .9, .2)),
+                $$$$41($$$$53(), $$$$37(0, -2).scale(2, 3.2, 1.9), $$$$55(.3, .8, .5, .5)),
+                $$$$41($$$$53(6), $$$$84.scale(4, 1, 5), $$$$55(.9, .9, .9, .2)),
+                $$$$41($$$$53(16, 1, 0, 4), $$$$84.scale(1, 1, 1.5).rotate(0, 90), $$$$55(.9, .9, .9, .2)),
               ),
-              polygons_transform(cylinder(), identity.scale(1.3, 10, 1.3), material(0.2, 0.7, 0.4, 0.6)),
+              $$$$41($$$$53(), $$$$84.scale(1.3, 10, 1.3), $$$$55(.2, .7, .4, .6)),
             ),
           ),
-          newSoul(translation(0, 2.8), [0, 0, 4.5]),
-          newModel(),
-          meshAdd(cylinder(3), translation(-23, -1.7, 55.8).scale(5, 0.7, 8.3), material(0.3, 0.6, 0.6, 0.2)),
-          meshAdd(cylinder(8), translation(-23, -2.2, 66.5).scale(1.5, 1.2, 1.5), material(0.8, 0.8, 0.8, 0.2)),
-          meshAdd(cylinder(), translation(-23, -2.2, 62).scale(3, 1, 4), material(0.5, 0.5, 0.5, 0.3)),
-          meshAdd(cylinder(), translation(-23, -3, 55).scale(5.2, 1.7, 3), material(0.5, 0.5, 0.5, 0.3)),
-          newLever(translation(-23, -0.5, 66.5)),
-          newModel(),
-          meshAdd(cylinder(), translation(-22.55, -3, 55).scale(1.45, 1.4, 2.7), material(0.7, 0.7, 0.7, 0.2)),
-          meshAdd(
-            csg_polygons_subtract(
-              polygons_transform(cylinder(), identity.scale(3, 1.4, 2.7)),
-              polygons_transform(cylinder(), identity.scale(1.2, 8, 1.2)),
+          $$$$80($$$$37(0, 2.8), [0, 0, 4.5]),
+          $$$$79(),
+          $$$$78($$$$53(3), $$$$37(-23, -1.7, 55.8).scale(5, .7, 8.3), $$$$55(.3, .6, .6, .2)),
+          $$$$78($$$$53(8), $$$$37(-23, -2.2, 66.5).scale(1.5, 1.2, 1.5), $$$$55(.8, .8, .8, .2)),
+          $$$$78($$$$53(), $$$$37(-23, -2.2, 62).scale(3, 1, 4), $$$$55(.5, .5, .5, .3)),
+          $$$$78($$$$53(), $$$$37(-23, -3, 55).scale(5.2, 1.7, 3), $$$$55(.5, .5, .5, .3)),
+          $$$$2($$$$37(-23, -.5, 66.5)),
+          $$$$79(),
+          $$$$78($$$$53(), $$$$37(-22.55, -3, 55).scale(1.45, 1.4, 2.7), $$$$55(.7, .7, .7, .2)),
+          $$$$78(
+            $$$$65($$$$41($$$$53(), $$$$84.scale(3, 1.4, 2.7)), $$$$41($$$$53(), $$$$84.scale(1.2, 8, 1.2))),
+            $$$$37(-33, -3, 55),
+            $$$$55(.7, .7, .7, .2),
+          ),
+          $$$$79(),
+          $$$$78(
+            $$$$65($$$$41($$$$53(), $$$$84.scale(3, 1.4, 2.7)), $$$$41($$$$53(), $$$$84.scale(1, 3))),
+            $$$$37(-27, -3, 55),
+            $$$$55(.9, .9, .9, .2),
+          ),
+          $$$$78($$$$53(), $$$$37(-39, -3, 55).scale(3, 1.4, 2.7), $$$$55(.9, .9, .9, .2)),
+          $$$$79(),
+          $$$$78($$$$53(6), $$$$37(-44.5, 0, 55).rotate(0, 0, 90).scale(5.9, .5, 5.9), $$$$55(.7, .7, .7, .4)),
+          $$$$79(),
+          [0, 12, 24].map($$$$0 => $$$$78($$$$53(), $$$$4($$$$0), $$$$55(.2, .5, .6, .2))),
+          $$$$79(),
+          [6, 18].map($$$$0 => $$$$78($$$$53(), $$$$4($$$$0), $$$$55(.1, .4, .5, .2))),
+          $$$$79(),
+          $$$$78($$$$53(5), $$$$37(-38.9, -1.3, 17).scale(1.1, 3, 1.1).skewY(-20), $$$$55(.3, .3, .5, .5)),
+          $$$$78($$$$53(5).slice(0, -1), $$$$37(-38.9, 2, 17).scale(.6, 2.5, .6).skewY(25), $$$$55(.6, .3, .5, .5)),
+          $$$$78(
+            $$$$65(
+              $$$$41($$$$53(5), $$$$37(0, 2).scale(5, 7, 5).skewY(8)),
+              $$$$41($$$$53(5), $$$$37(0, 5).scale(1.5, 1.5, 8).rotate(90, 0, 35)),
+              $$$$41($$$$53(), $$$$84.scale(2, 8, 3)),
             ),
-            translation(-33, -3, 55),
-            material(0.7, 0.7, 0.7, 0.2),
+            $$$$37(-38.9, -11.3, 17),
+            $$$$55(.2, .4, .5, .5),
           ),
-          newModel(),
-          meshAdd(
-            csg_polygons_subtract(
-              polygons_transform(cylinder(), identity.scale(3, 1.4, 2.7)),
-              polygons_transform(cylinder(), identity.scale(1, 3)),
-            ),
-            translation(-27, -3, 55),
-            material(0.9, 0.9, 0.9, 0.2),
+          $$$$80(
+            $$$$37(-39.1, -.6, 17).rotate(11),
+            ...$$$$51(15).map(({
+              x: $$$$0,
+              z: $$$$1,
+            }) => [3 * $$$$0, 3 * $$$$1, 1.2]),
           ),
-          meshAdd(cylinder(), translation(-39, -3, 55).scale(3, 1.4, 2.7), material(0.9, 0.9, 0.9, 0.2)),
-          newModel(),
-          meshAdd(
-            cylinder(6),
-            translation(-44.5, 0, 55).rotate(0, 0, 90).scale(5.9, 0.5, 5.9),
-            material(0.7, 0.7, 0.7, 0.4),
-          ),
-          newModel(),
-          [0, 12, 24].map(x => meshAdd(cylinder(), elevatorsMatrix(x), material(0.2, 0.5, 0.6, 0.2))),
-          newModel(),
-          [6, 18].map(x => meshAdd(cylinder(), elevatorsMatrix(x), material(0.1, 0.4, 0.5, 0.2))),
-          newModel(),
-          meshAdd(
-            cylinder(5),
-            translation(-38.9, -1.3, 17).scale(1.1, 3, 1.1).skewY(-20),
-            material(0.3, 0.3, 0.5, 0.5),
-          ),
-          meshAdd(
-            cylinder(5).slice(0, -1),
-            translation(-38.9, 2, 17).scale(0.6, 2.5, 0.6).skewY(25),
-            material(0.6, 0.3, 0.5, 0.5),
-          ),
-          meshAdd(
-            csg_polygons_subtract(
-              polygons_transform(cylinder(5), translation(0, 2).scale(5, 7, 5).skewY(8)),
-              polygons_transform(cylinder(5), translation(0, 5).scale(1.5, 1.5, 8).rotate(90, 0, 35)),
-              polygons_transform(cylinder(), identity.scale(2, 8, 3)),
-            ),
-            translation(-38.9, -11.3, 17),
-            material(0.2, 0.4, 0.5, 0.5),
-          ),
-          newSoul(
-            translation(-39.1, -0.6, 17).rotate(11),
-            ...polygon_regular(15).map(({
-              x,
-              z,
-            }) => [3 * x, 3 * z, 1.2]),
-          ),
-          pushingRodsPositions.map((x, i) => {
-            i % 2 || 6 <= i || newModel(), meshAdd(pushingRod, translation(x, 1.9, -12));
+          $$$$0.map(($$$$0, $$$$1) => {
+            $$$$1 % 2 || $$$$1 >= 6 || $$$$79(), $$$$78($$$$5, $$$$37($$$$0, 1.9, -12));
           }),
-          integers_map(4, i => {
-            newModel(),
-              meshAdd(
-                cylinder(6),
-                translation(-14.6 - 4.8 * i - (2 < i ? 2 : 0), -i / 2.5 - 0.1, -21.5).rotate(0, 0, 3.5).skewX(3.5)
+          $$$$38(4, $$$$0 => {
+            $$$$79(),
+              $$$$78(
+                $$$$53(6),
+                $$$$37(-14.6 - 4.8 * $$$$0 - ($$$$0 > 2 ? 2 : 0), -$$$$0 / 2.5 - .1, -21.5).rotate(0, 0, 3.5).skewX(3.5)
                   .scale(2.6, 1, 2.5),
-                material(0.5 - i / 8, i / 12 + 0.5, 0.7, 0.3),
+                $$$$55(.5 - $$$$0 / 8, $$$$0 / 12 + .5, .7, .3),
               );
           }),
-          [material(0.1, 0.55, 0.45, 0.2), material(0.2, 0.5, 0.5, 0.3), material(0.3, 0.45, 0.55, 0.4)].map((m, i) => {
-            newModel(),
-              meshAdd(cylinder(), translation(-23.5, 0.5, 91 + 6.8 * i).scale(i === 1 ? 2 : 3.3, 1, 3.3), m),
-              i === 2
-              && meshAdd(cylinder(), translation(-29.1, 0.4, 91).scale(2.1, 1, 3), material(0.7, 0.7, 0.7, 0.3)),
-              i === 1
-              && meshAdd(
-                cylinder(),
-                translation(-16.1, 0.5, 103.5).rotate(-3.5).scale(3.9, 0.8, 2).skewX(-1),
-                material(0.6, 0.6, 0.7, 0.3),
+          [$$$$55(.1, .55, .45, .2), $$$$55(.2, .5, .5, .3), $$$$55(.3, .45, .55, .4)].map(($$$$0, $$$$1) => {
+            $$$$79(),
+              $$$$78($$$$53(), $$$$37(-23.5, .5, 91 + 6.8 * $$$$1).scale(1 === $$$$1 ? 2 : 3.3, 1, 3.3), $$$$0),
+              2 === $$$$1 && $$$$78($$$$53(), $$$$37(-29.1, .4, 91).scale(2.1, 1, 3), $$$$55(.7, .7, .7, .3)),
+              1 === $$$$1
+              && $$$$78(
+                $$$$53(),
+                $$$$37(-16.1, .5, 103.5).rotate(-3.5).scale(3.9, .8, 2).skewX(-1),
+                $$$$55(.6, .6, .7, .3),
               );
           }),
-          newModel(),
-          meshAdd(cylinder(5), identity.scale(5, 1.1, 5), material(0.5, 0.3, 0.3, 0.4)),
-          meshAdd(cylinder(5), identity.scale(5.5, 0.9, 5.5), material(0.25, 0.25, 0.25, 0.4)),
-          newLever(translation(0, 1.5, -1).rotate(0, 180)),
-          integers_map(4, gate => {
-            newModel(),
-              integers_map(
+          $$$$79(),
+          $$$$78($$$$53(5), $$$$84.scale(5, 1.1, 5), $$$$55(.5, .3, .3, .4)),
+          $$$$78($$$$53(5), $$$$84.scale(5.5, .9, 5.5), $$$$55(.25, .25, .25, .4)),
+          $$$$2($$$$37(0, 1.5, -1).rotate(0, 180)),
+          $$$$38(4, $$$$0 => {
+            $$$$79(),
+              $$$$38(
                 7,
-                i =>
-                  meshAdd(
-                    polygons_transform(
-                      cylinder(8, 1).slice(0, -1),
-                      translation((2 < gate ? 3.5 : 4) * (i / 6 - 0.5), 3).scale(0.2, 2 < gate ? 4 : 3, 0.2),
-                      material(0.3, 0.3, 0.38),
+                $$$$1 =>
+                  $$$$78(
+                    $$$$41(
+                      $$$$53(8, 1).slice(0, -1),
+                      $$$$37(($$$$0 > 2 ? 3.5 : 4) * ($$$$1 / 6 - .5), 3).scale(.2, $$$$0 > 2 ? 4 : 3, .2),
+                      $$$$55(.3, .3, .38),
                     ),
                   ),
               );
           }),
-          newModel(),
-          meshAdd(hexCorridor),
-          newModel(),
-          meshAdd(
-            cylinder(5).slice(0, -1),
-            translation(-7.5, 2.7).rotate(0, 90).scale(1, 0.2),
-            material(0.5, 0.5, 0.5, 0.5),
+          $$$$79(),
+          $$$$78($$$$6),
+          $$$$79(),
+          $$$$78($$$$53(5).slice(0, -1), $$$$37(-7.5, 2.7).rotate(0, 90).scale(1, .2), $$$$55(.5, .5, .5, .5)),
+          $$$$78($$$$53(10).slice(0, -1), $$$$37(-7.5, 2.4).rotate(0, 90).scale(2, .1, 2), $$$$55(.3, .8, .7, .3)),
+          $$$$78($$$$53(15, 1), $$$$37(-7.5).rotate(0, 90).scale(3, 2.3, 3), $$$$55(.4, .4, .4, .3)),
+          $$$$2($$$$37(-7.5).rotate(0, 90).translate(0, 3.4).rotate(0, 180)),
+          [-1, 1].map($$$$0 =>
+            $$$$78($$$$7, $$$$84.rotate(90 * $$$$0, 180, 90).translate(0, 5).rotate(40).scale(1.3, 10, 1.3))
           ),
-          meshAdd(
-            cylinder(10).slice(0, -1),
-            translation(-7.5, 2.4).rotate(0, 90).scale(2, 0.1, 2),
-            material(0.3, 0.8, 0.7, 0.3),
-          ),
-          meshAdd(cylinder(15, 1), translation(-7.5).rotate(0, 90).scale(3, 2.3, 3), material(0.4, 0.4, 0.4, 0.3)),
-          newLever(translation(-7.5).rotate(0, 90).translate(0, 3.4).rotate(0, 180)),
-          [-1, 1].map(i =>
-            meshAdd(hornPolygons, identity.rotate(90 * i, 180, 90).translate(0, 5).rotate(40).scale(1.3, 10, 1.3))
-          ),
-          meshAdd(
-            csg_polygons_subtract(
-              polygons_transform(cylinder(10), identity.scale(6, 2, 6), material(0.1, 0.6, 0.5, 0.3)),
-              polygons_transform(cylinder(10), identity.scale(3.3, 6, 3.3), material(0.1, 0.6, 0.5, 0.5)),
+          $$$$78(
+            $$$$65(
+              $$$$41($$$$53(10), $$$$84.scale(6, 2, 6), $$$$55(.1, .6, .5, .3)),
+              $$$$41($$$$53(10), $$$$84.scale(3.3, 6, 3.3), $$$$55(.1, .6, .5, .5)),
             ),
           ),
-          newSoul(translation(-5, 4), [0, -1.2, 1.7], [0, 1.2, 1.7]),
-          newModel(),
-          meshAdd(
-            cylinder(3),
-            translation(0, -3, 118.8).scale(0.8, 0.8, 8).rotate(90, 0, 60),
-            material(0.5, 0.3, 0.3, 0.4),
-          ),
-          [22, 30].map(z => {
-            meshAdd(
-              cylinder(6),
-              translation(0, 16, z + 95).scale(3, 1, 2.3).rotate(0, 90),
-              material(0.7, 0.7, 0.7, 0.4),
-            ), meshAdd(cylinder(), translation(0, 6.2, z + 95).scale(0.5, 11, 0.5), material(0.5, 0.3, 0.3, 0.4));
+          $$$$80($$$$37(-5, 4), [0, -1.2, 1.7], [0, 1.2, 1.7]),
+          $$$$79(),
+          $$$$78($$$$53(3), $$$$37(0, -3, 118.8).scale(.8, .8, 8).rotate(90, 0, 60), $$$$55(.5, .3, .3, .4)),
+          [22, 30].map($$$$0 => {
+            $$$$78($$$$53(6), $$$$37(0, 16, $$$$0 + 95).scale(3, 1, 2.3).rotate(0, 90), $$$$55(.7, .7, .7, .4)),
+              $$$$78($$$$53(), $$$$37(0, 6.2, $$$$0 + 95).scale(.5, 11, .5), $$$$55(.5, .3, .3, .4));
           }),
-          newModel(),
-          meshAdd(cylinder(5).slice(0, -1), translation(0, 2).scale(1, 2), material(0.3, 0.3, 0.3, 0.2)),
-          meshAdd(
-            cylinder(8).slice(0, -1),
-            translation(0, 2).scale(3, 1.5, 3).rotate(0, 22),
-            material(0.7, 0.7, 0.7, 0.1),
-          ),
-          meshAdd(
-            csg_polygons_subtract(
-              polygons_transform(cylinder(28, 1), identity.scale(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2)),
-              polygons_transform(
-                cylinder(),
-                translation(0, 0, -5.5).scale(1.5, 3, 2.7),
-                material(0.45, 0.45, 0.45, 0.2),
-              ),
+          $$$$79(),
+          $$$$78($$$$53(5).slice(0, -1), $$$$37(0, 2).scale(1, 2), $$$$55(.3, .3, .3, .2)),
+          $$$$78($$$$53(8).slice(0, -1), $$$$37(0, 2).scale(3, 1.5, 3).rotate(0, 22), $$$$55(.7, .7, .7, .1)),
+          $$$$78(
+            $$$$65(
+              $$$$41($$$$53(28, 1), $$$$84.scale(7.5, 1, 7.5), $$$$55(.45, .45, .45, .2)),
+              $$$$41($$$$53(), $$$$37(0, 0, -5.5).scale(1.5, 3, 2.7), $$$$55(.45, .45, .45, .2)),
             ),
           ),
-          newSoul(
-            translation(0, 3),
-            ...polygon_regular(14).map(({
-              x,
-              z,
-            }) => [5.6 * x, 5.6 * z, 2]),
+          $$$$80(
+            $$$$37(0, 3),
+            ...$$$$51(14).map(({
+              x: $$$$0,
+              z: $$$$1,
+            }) => [5.6 * $$$$0, 5.6 * $$$$1, 2]),
           ),
-          newModel(),
-          [-1, 1].map(x =>
-            meshAdd(
-              hornPolygons,
-              identity.rotate(0, 90).translate(-5 * x, 3, -0.5).scale(1.2, 9, 1.2).rotate(0, 90 * x + 90),
+          $$$$79(),
+          [-1, 1].map($$$$0 =>
+            $$$$78(
+              $$$$7,
+              $$$$84.rotate(0, 90).translate(-5 * $$$$0, 3, -.5).scale(1.2, 9, 1.2).rotate(0, 90 * $$$$0 + 90),
             )
           ),
-          meshAdd(
-            csg_polygons_subtract(
-              polygons_transform(
-                cylinder(28, 1).slice(0, -1),
-                translation(0, 2).scale(7.5, 1, 7.5),
-                material(0.35, 0, 0, 0.3),
-              ),
-              polygons_transform(cylinder().slice(0, -1), translation(0, 2).scale(9, 1.1, 2), material(0.3, 0, 0, 0.3)),
+          $$$$78(
+            $$$$65(
+              $$$$41($$$$53(28, 1).slice(0, -1), $$$$37(0, 2).scale(7.5, 1, 7.5), $$$$55(.35, 0, 0, .3)),
+              $$$$41($$$$53().slice(0, -1), $$$$37(0, 2).scale(9, 1.1, 2), $$$$55(.3, 0, 0, .3)),
             ),
           ),
-          meshAdd(cylinder(5).slice(0, -1), translation(0, 1).scale(1, 0.2), material(0.3, 0.3, 0.3, 0.2)),
-          meshAdd(cylinder(28, 1), identity.scale(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2)),
-          newModel(),
-          meshAdd(
-            csg_polygons_subtract(
-              polygons_transform(
-                cylinder(28, 1).slice(0, -1),
-                translation(0, 2).scale(7.5, 1, 7.5),
-                material(0.35, 0, 0, 0.3),
-              ),
-              polygons_transform(
-                cylinder().slice(0, -1),
-                translation(0, 2, 7).scale(2, 1.1, 9),
-                material(0.3, 0, 0, 0.3),
-              ),
-              polygons_transform(cylinder().slice(0, -1), translation(7, 2).scale(9, 1.1, 2), material(0.3, 0, 0, 0.3)),
+          $$$$78($$$$53(5).slice(0, -1), $$$$37(0, 1).scale(1, .2), $$$$55(.3, .3, .3, .2)),
+          $$$$78($$$$53(28, 1), $$$$84.scale(7.5, 1, 7.5), $$$$55(.45, .45, .45, .2)),
+          $$$$79(),
+          $$$$78(
+            $$$$65(
+              $$$$41($$$$53(28, 1).slice(0, -1), $$$$37(0, 2).scale(7.5, 1, 7.5), $$$$55(.35, 0, 0, .3)),
+              $$$$41($$$$53().slice(0, -1), $$$$37(0, 2, 7).scale(2, 1.1, 9), $$$$55(.3, 0, 0, .3)),
+              $$$$41($$$$53().slice(0, -1), $$$$37(7, 2).scale(9, 1.1, 2), $$$$55(.3, 0, 0, .3)),
             ),
           ),
-          meshAdd(cylinder(5).slice(0, -1), translation(0, 1).scale(1, 0.2), material(0.3, 0.3, 0.3, 0.2)),
-          meshAdd(cylinder(28, 1), identity.scale(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2)),
-          newModel(),
-          meshAdd(
-            csg_polygons_subtract(
-              polygons_transform(
-                cylinder(28, 1).slice(0, -1),
-                translation(0, 2).scale(7.5, 1, 7.5),
-                material(0.35, 0, 0, 0.3),
-              ),
-              polygons_transform(
-                cylinder().slice(0, -1),
-                translation(0, 2, -7).scale(2, 1.1, 9),
-                material(0.3, 0, 0, 0.3),
-              ),
-              polygons_transform(cylinder().slice(0, -1), translation(7, 2).scale(9, 1.1, 2), material(0.3, 0, 0, 0.3)),
+          $$$$78($$$$53(5).slice(0, -1), $$$$37(0, 1).scale(1, .2), $$$$55(.3, .3, .3, .2)),
+          $$$$78($$$$53(28, 1), $$$$84.scale(7.5, 1, 7.5), $$$$55(.45, .45, .45, .2)),
+          $$$$79(),
+          $$$$78(
+            $$$$65(
+              $$$$41($$$$53(28, 1).slice(0, -1), $$$$37(0, 2).scale(7.5, 1, 7.5), $$$$55(.35, 0, 0, .3)),
+              $$$$41($$$$53().slice(0, -1), $$$$37(0, 2, -7).scale(2, 1.1, 9), $$$$55(.3, 0, 0, .3)),
+              $$$$41($$$$53().slice(0, -1), $$$$37(7, 2).scale(9, 1.1, 2), $$$$55(.3, 0, 0, .3)),
             ),
           ),
-          meshAdd(cylinder(5).slice(0, -1), translation(0, 1).scale(1, 0.2), material(0.3, 0.3, 0.3, 0.2)),
-          meshAdd(cylinder(28, 1), identity.scale(7.5, 1, 7.5), material(0.45, 0.45, 0.45, 0.2)),
-          integers_map(2, () => {
-            newModel(),
-              meshAdd(
-                csg_polygons_subtract(
-                  polygons_transform(
-                    cylinder(30, 1, 1.15, 1),
-                    translation(0, -3).scale(3.5, 1, 3.5),
-                    material(0.7, 0.4, 0.25, 0.7),
-                  ),
-                  polygons_transform(cylinder(), translation(4, -1.2).scale3d(2), material(0.7, 0.4, 0.25, 0.3)),
-                  polygons_transform(
-                    cylinder(30, 1, 1.3, 1),
-                    translation(0, -2.5).scale(2.6, 1, 3),
-                    material(0.7, 0.4, 0.25, 0.2),
-                  ),
+          $$$$78($$$$53(5).slice(0, -1), $$$$37(0, 1).scale(1, .2), $$$$55(.3, .3, .3, .2)),
+          $$$$78($$$$53(28, 1), $$$$84.scale(7.5, 1, 7.5), $$$$55(.45, .45, .45, .2)),
+          $$$$38(2, () => {
+            $$$$79(),
+              $$$$78(
+                $$$$65(
+                  $$$$41($$$$53(30, 1, 1.15, 1), $$$$37(0, -3).scale(3.5, 1, 3.5), $$$$55(.7, .4, .25, .7)),
+                  $$$$41($$$$53(), $$$$37(4, -1.2).scale3d(2), $$$$55(.7, .4, .25, .3)),
+                  $$$$41($$$$53(30, 1, 1.3, 1), $$$$37(0, -2.5).scale(2.6, 1, 3), $$$$55(.7, .4, .25, .2)),
                 ),
               ),
-              newLever(translation(0, -3, 4));
+              $$$$2($$$$37(0, -3, 4));
           });
 
-        for (let i = 0; i < 16; ++i) {
-          newModel(),
-            meshAdd(cylinder(9, 1), translation(0, 0.8).scale(0.2, 0.3, 0.2), material(0.7, 1, 0.2)),
-            meshAdd(cylinder(6, 1).slice(0, -1), identity.scale(0.12, 1.2, 0.12), material(0.3, 0.3, 0.5, 0.1)),
-            meshAdd(cylinder(3), translation(0, -1).rotate(90, 90).scale(0.3, 0.4, 0.3), material(0.2, 0.2, 0.2, 0.1));
+        for (let $$$$0 = 0; 16 > $$$$0; ++$$$$0) {
+          $$$$79(),
+            $$$$78($$$$53(9, 1), $$$$37(0, .8).scale(.2, .3, .2), $$$$55(.7, 1, .2)),
+            $$$$78($$$$53(6, 1).slice(0, -1), $$$$84.scale(.12, 1.2, .12), $$$$55(.3, .3, .5, .1)),
+            $$$$78($$$$53(3), $$$$37(0, -1).rotate(90, 90).scale(.3, .4, .3), $$$$55(.2, .2, .2, .1));
         }
 
-        newModel(),
-          meshAdd(sphere(20), translation(0, 1).scale3d(0.5), material(1, 0.3, 0.4)),
-          meshAdd(sphere(30), identity.scale(0.65, 0.8, 0.55), material(1, 0.3, 0.4)),
-          meshAdd(cylinder(), translation(0, 0.9, 0.45).scale(0.15, 0.02, 0.06), material(0.3, 0.3, 0.3)),
-          [-1, 1].map(v => {
-            meshAdd(
-              hornPolygons,
-              identity.rotate(0, 0 < v ? 180 : 0).translate(0.2, 1.32).rotate(-30).scale(0.2, 0.6, 0.2),
-              material(1, 1, 0.8),
+        $$$$79(),
+          $$$$78($$$$54(20), $$$$37(0, 1).scale3d(.5), $$$$55(1, .3, .4)),
+          $$$$78($$$$54(30), $$$$84.scale(.65, .8, .55), $$$$55(1, .3, .4)),
+          $$$$78($$$$53(), $$$$37(0, .9, .45).scale(.15, .02, .06), $$$$55(.3, .3, .3)),
+          [-1, 1].map($$$$0 => {
+            $$$$78(
+              $$$$7,
+              $$$$84.rotate(0, $$$$0 > 0 ? 180 : 0).translate(.2, 1.32).rotate(-30).scale(.2, .6, .2),
+              $$$$55(1, 1, .8),
             ),
-              meshAdd(
-                polygons_transform(
-                  csg_polygons_subtract(
-                    cylinder(15, 1),
-                    polygons_transform(cylinder(), translation(0, 0, 1).scale(2, 2, 0.5)),
-                  ),
-                  identity.rotate(-90, 0).scale(0.1, 0.05, 0.1),
-                  material(0.3, 0.3, 0.3),
+              $$$$78(
+                $$$$41(
+                  $$$$65($$$$53(15, 1), $$$$41($$$$53(), $$$$37(0, 0, 1).scale(2, 2, .5))),
+                  $$$$84.rotate(-90, 0).scale(.1, .05, .1),
+                  $$$$55(.3, .3, .3),
                 ),
-                translation(0.2 * v, 1.2, 0.4).rotate(0, 20 * v, 20 * v),
+                $$$$37(.2 * $$$$0, 1.2, .4).rotate(0, 20 * $$$$0, 20 * $$$$0),
               );
           }),
-          [-1, 1].map(v => {
-            newModel(),
-              meshAdd(cylinder(20, 1), translation(0.3 * v, -0.8).scale(0.2, 0.7, 0.24), material(1, 0.3, 0.4));
+          [-1, 1].map($$$$0 => {
+            $$$$79(), $$$$78($$$$53(20, 1), $$$$37(.3 * $$$$0, -.8).scale(.2, .7, .24), $$$$55(1, .3, .4));
           }),
-          newModel(),
-          meshAdd(cylinder(6, 1).slice(0, -1), identity.scale(0.77, 1, 0.77), material(1, 0.3, 0.5)),
-          newModel(),
-          meshAdd(
-            sphere(28, 22, (a, b, polygon) => {
-              var bm = b / 22,
-                theta = a * Math.PI * 2 / 28,
-                phixz = /* @__PURE__ */ Math.sin(bm ** 0.6 * Math.PI / 2),
-                a = bm * bm * /* @__PURE__ */ Math.sin(a * Math.PI * 0.5) / 4;
-              return 21 < b
+          $$$$79(),
+          $$$$78($$$$53(6, 1).slice(0, -1), $$$$84.scale(.77, 1, .77), $$$$55(1, .3, .5)),
+          $$$$79(),
+          $$$$78(
+            $$$$54(28, 22, ($$$$0, $$$$1, $$$$2) => {
+              var $$$$3 = $$$$1 / 22,
+                $$$$4 = $$$$0 * Math.PI * 2 / 28,
+                $$$$5 = /* @__PURE__ */ Math.sin($$$$3 ** .6 * Math.PI / 2);
+              $$$$0 = $$$$3 * $$$$3 * /* @__PURE__ */ Math.sin($$$$0 * Math.PI * .5) / 4;
+              return $$$$1 > 21
                 ? {
-                  x: polygon.$smooth = 0,
-                  y: -0.5,
+                  x: $$$$2.g = 0,
+                  y: -.5,
                   z: 0,
                 }
                 : {
-                  x: /* @__PURE__ */ Math.cos(theta) * phixz,
-                  y: /* @__PURE__ */ Math.cos(bm * Math.PI) - bm - a,
-                  z: /* @__PURE__ */ Math.sin(theta) * phixz + /* @__PURE__ */ Math.sin(a * Math.PI * 2) / 4,
+                  x: /* @__PURE__ */ Math.cos($$$$4) * $$$$5,
+                  y: /* @__PURE__ */ Math.cos($$$$3 * Math.PI) - $$$$3 - $$$$0,
+                  z: /* @__PURE__ */ Math.sin($$$$4) * $$$$5 + /* @__PURE__ */ Math.sin($$$$0 * Math.PI * 2) / 4,
                 };
             }),
-            identity.scale3d(0.7),
-            material(1, 1, 1),
+            $$$$84.scale3d(.7),
+            $$$$55(1, 1, 1),
           ),
-          [-1, 1].map(x => meshAdd(sphere(10), translation(0.16 * x, 0.4, -0.36).scale3d(0.09)));
+          [-1, 1].map($$$$0 => $$$$78($$$$54(10), $$$$37(.16 * $$$$0, .4, -.36).scale3d(.09)));
       }
     });
 });

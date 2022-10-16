@@ -205,6 +205,15 @@ export async function build() {
         minifyWhitespace: false,
         computed_props: true,
       });
+
+      js = await jsTerser(js, {
+        mangle: "all",
+        final: false,
+        join_vars: false,
+        sequences: false,
+        computed_props: false,
+        longMangleNames: true,
+      });
     }
 
     js = await jsBabel(js, {
