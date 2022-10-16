@@ -1,93 +1,37 @@
-import {
-  levers,
-  souls,
-  allModels,
-  MODEL_ID_FIRST_BOAT,
-  MODEL_KIND_GAME,
-  type MODEL_KIND,
-  type Model,
-  type Circle,
-  type Lever,
-  type Soul,
-} from "./models";
-import { player_position_final, onLever0Pulled, onPlayerPullLever, onSoulCollected } from "./world-state";
+import { souls, allModels, type Circle, type Soul, MODELS_WITH_FULL_TRANSFORM } from "./models";
+import { onSoulCollected } from "./world-state";
 import type { Vec3Optional } from "../math/vectors";
-import { min, angle_lerp_degrees, DEG_TO_RAD, clamp, abs, hypot } from "../math/math";
-import { matrixCopy, matrixTransformPoint, tempMatrix } from "../math/matrix";
+import { min, angle_lerp_degrees, DEG_TO_RAD, clamp, hypot, abs } from "../math/math";
+import { identity, matrixCopy, matrixToArray, tempMatrix } from "../math/matrix";
 import { lerpDamp, damp, gameTime } from "./game-time";
-import { polygons_transform, type Polygon } from "../geometry/polygon";
+import type { Polygon } from "../geometry/polygon";
+import { polygons_transform } from "../geometry/polygon";
 import { cylinder } from "../geometry/geometry";
 import { material } from "../geometry/material";
-import { interact_pressed } from "../page";
+import { MODEL_ID_BOAT0 } from "./models-ids";
+import { transformsBuffer } from "./transforms-buffer";
+import { distanceToPlayer } from "./distance-to-player";
+import { devModelsAdd } from "../dev-tools/dev-models";
 
-export let currentEditModel: Model;
+export let currentModelMmatrix: DOMMatrix;
 
-export const meshAdd = (
+let currentModelPolygons: Polygon[];
+
+export const meshAdd: (
   polygons: Polygon<Readonly<Vec3Optional>>[],
-  transform: DOMMatrixReadOnly = new DOMMatrix(),
+  transform?: DOMMatrixReadOnly,
   color?: number | undefined,
-) => currentEditModel.$polygons!.push(...polygons_transform(polygons, transform, color));
+) => void = (polygons, transform = identity, color) =>
+  currentModelPolygons.push(...polygons_transform(polygons, transform, color));
 
-export const newModel = (fn: () => void, $kind: MODEL_KIND = MODEL_KIND_GAME): void => {
-  const previousModel = currentEditModel;
-  allModels.push((currentEditModel = { $matrix: new DOMMatrix(), $kind, $polygons: [] }));
-  fn();
-  currentEditModel = previousModel;
+export const newModel = (name: string): void => {
+  allModels.push({ $matrix: (currentModelMmatrix = new DOMMatrix()), $polygon: (currentModelPolygons = []) });
+  if (DEBUG) {
+    devModelsAdd(allModels.length - 1, name);
+  }
 };
 
-const LEVER_SENSITIVITY_RADIUS = 3;
 const SOUL_SENSITIVITY_RADIUS = 1.6;
-
-const distanceToPlayer = (): number => {
-  matrixTransformPoint();
-  return hypot(
-    player_position_final.x - matrixTransformPoint.x,
-    player_position_final.y - matrixTransformPoint.y,
-    player_position_final.z - matrixTransformPoint.z,
-  );
-};
-
-export const newLever = ($transform: DOMMatrixReadOnly): void => {
-  const parentModel = currentEditModel;
-  const index = levers.length;
-  const lever: Lever = {
-    $value: 0,
-    $lerpValue: 0,
-    $lerpValue2: 0,
-    $matrix: parentModel.$matrix,
-    $transform,
-    _update: () => {
-      lever.$lerpValue = lerpDamp(lever.$lerpValue, lever.$value, 4);
-      lever.$lerpValue2 = lerpDamp(lever.$lerpValue2, lever.$value, 1);
-
-      matrixCopy(parentModel.$matrix).multiplySelf($transform);
-
-      if (interact_pressed && distanceToPlayer() < LEVER_SENSITIVITY_RADIUS) {
-        if (lever.$value) {
-          if (lever.$lerpValue > 0.7) {
-            lever.$value = 0;
-            onPlayerPullLever(index);
-          }
-        } else if (lever.$lerpValue < 0.3) {
-          lever.$value = 1;
-          onPlayerPullLever(index);
-        }
-      } else if (lever.$value && lever.$lerpValue > 0.8 && !index) {
-        lever.$value = 0;
-        onLever0Pulled();
-      }
-
-      // Prepare the matrix to be written to the uniform buffer for the lever stick.
-      // and encode lerp value in matrix m44 so fragmemt shader can change the lever handle color
-      tempMatrix.rotateSelf(lever.$lerpValue * 50 - 25, 0).translateSelf(0, 1).m44 = 1 - lever.$lerpValue;
-    },
-  };
-  levers.push(lever);
-
-  meshAdd(cylinder(5), $transform.translate(-0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
-  meshAdd(cylinder(5), $transform.translate(0.2).rotate(90, 90).scale(0.4, 0.1, 0.5), material(0.4, 0.5, 0.5));
-  meshAdd(cylinder(), $transform.translate(0, -0.4).scale(0.5, 0.1, 0.5), material(0.5, 0.5, 0.4));
-};
 
 export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: Circle[]) => {
   let dirX = -1;
@@ -103,76 +47,79 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: Circle[]) 
   let [targetX, targetZ] = circle;
   let [soulX, soulZ] = circle;
 
-  const parentModelMatrix = currentEditModel.$matrix;
+  const parentModelMatrix = currentModelMmatrix;
   const index = souls.length;
-  const soul: Soul = {
-    $value: 0,
-    _update: () => {
-      if (!soul.$value) {
-        let isInside: 0 | 1 | undefined;
-        let contextualVelocity = 1;
-        let mindist = Infinity;
-        for (let i = 0; i < walkingPath.length; i++) {
-          const c = walkingPath[i]!;
-          const distance = hypot(targetX - c[0], targetZ - c[1]);
-          contextualVelocity = min(contextualVelocity, distance / c[2]);
-          const circleSDF = distance - c[2];
-          if (circleSDF < 0) {
-            isInside = 1;
-          } else if (circleSDF < mindist) {
-            mindist = circleSDF;
-            circle = c;
-          }
-        }
 
-        if (!isInside) {
-          const ax = targetX - circle[0];
-          const az = targetZ - circle[1];
-          let magnitude = hypot(ax, az);
-          let angle = Math.atan2(-az, ax);
-          if (wasInside) {
-            velocity = clamp(velocity / (1 + Math.random()));
-            randAngle = ((Math.random() - 0.5) * Math.PI) / 2;
-          }
-          angle += randAngle;
-          dirX = -Math.cos(angle);
-          dirZ = Math.sin(angle);
-          if (magnitude > 0.1) {
-            // limit the vector length to the circle radius, ghost cannot escape by mistake
-            magnitude = min(magnitude, circle[2]) / magnitude;
-            targetX = ax * magnitude + circle[0];
-            targetZ = az * magnitude + circle[1];
-          }
-        }
+  const soul: Soul = (() => {
+    if (soul.$value) {
+      // Soul was collected.
 
-        wasInside = isInside;
+      matrixCopy(allModels[MODEL_ID_BOAT0]!.$matrix).translateSelf(
+        1.2 * (index % 4) - 1.7 + Math.sin(gameTime + index) / 7,
+        -2,
+        -5.5 + (index >> 2) * 1.7 + abs((index % 4) - 2) + Math.cos(gameTime / 1.5 + index) / 6,
+      );
+    } else {
+      // Soul is free to catch.
 
-        velocity = lerpDamp(velocity, 3 + 6 * (1 - contextualVelocity), 3 + contextualVelocity);
-        soulX = lerpDamp(soulX, (targetX = lerpDamp(targetX, targetX + dirX, velocity)), velocity);
-        soulZ = lerpDamp(soulZ, (targetZ = lerpDamp(targetZ, targetZ + dirZ, velocity)), velocity);
-
-        lookAngle = angle_lerp_degrees(lookAngle, Math.atan2(soulX - prevX, soulZ - prevZ) / DEG_TO_RAD - 180, damp(3));
-
-        matrixCopy(parentModelMatrix)
-          .multiplySelf(transform)
-          .translateSelf((prevX = soulX), 0, (prevZ = soulZ))
-          .rotateSelf(0, lookAngle, 7 * Math.sin(gameTime * 1.7));
-
-        if (distanceToPlayer() < SOUL_SENSITIVITY_RADIUS) {
-          soul.$value = 1;
-          onSoulCollected();
+      let isInside: 0 | 1 | undefined;
+      let contextualVelocity = 1;
+      let mindist = Infinity;
+      for (let i = 0; i < walkingPath.length; i++) {
+        const c = walkingPath[i]!;
+        const distance = hypot(targetX - c[0], targetZ - c[1]);
+        contextualVelocity = min(contextualVelocity, distance / c[2]);
+        const circleSDF = distance - c[2];
+        if (circleSDF < 0) {
+          isInside = 1;
+        } else if (circleSDF < mindist) {
+          mindist = circleSDF;
+          circle = c;
         }
       }
 
-      if (soul.$value) {
-        matrixCopy(allModels[MODEL_ID_FIRST_BOAT]!.$matrix).translateSelf(
-          (index % 4) * 1.2 - 1.7 + Math.sin(gameTime + index) / 7,
-          -2,
-          -5.5 + ((index / 4) | 0) * 1.7 + abs((index % 4) - 2) + Math.cos(gameTime / 1.5 + index) / 6,
-        );
+      if (!isInside) {
+        const ax = targetX - circle[0];
+        const az = targetZ - circle[1];
+        let magnitude = hypot(ax, az);
+        let angle = Math.atan2(-az, ax);
+        if (wasInside) {
+          velocity = clamp(velocity / (1 + Math.random()));
+          randAngle = ((Math.random() - 0.5) * Math.PI) / 2;
+        }
+        angle += randAngle;
+        dirX = -Math.cos(angle);
+        dirZ = Math.sin(angle);
+        if (magnitude > 0.1) {
+          // limit the vector length to the circle radius, ghost cannot escape by mistake
+          magnitude = min(magnitude, circle[2]) / magnitude;
+          targetX = ax * magnitude + circle[0];
+          targetZ = az * magnitude + circle[1];
+        }
       }
-    },
-  };
+
+      wasInside = isInside;
+
+      velocity = lerpDamp(velocity, 3 + 6 * (1 - contextualVelocity), 3 + contextualVelocity);
+      soulX = lerpDamp(soulX, (targetX = lerpDamp(targetX, targetX + dirX, velocity)), velocity);
+      soulZ = lerpDamp(soulZ, (targetZ = lerpDamp(targetZ, targetZ + dirZ, velocity)), velocity);
+
+      lookAngle = angle_lerp_degrees(lookAngle, Math.atan2(soulX - prevX, soulZ - prevZ) / DEG_TO_RAD - 180, damp(3));
+
+      matrixCopy(parentModelMatrix)
+        .multiplySelf(transform)
+        .translateSelf((prevX = soulX), 0, (prevZ = soulZ))
+        .rotateSelf(0, lookAngle, 7 * Math.sin(gameTime * 1.7));
+
+      if (distanceToPlayer() < SOUL_SENSITIVITY_RADIUS) {
+        soul.$value = 1;
+        onSoulCollected();
+      }
+    }
+
+    matrixToArray(tempMatrix, transformsBuffer, MODELS_WITH_FULL_TRANSFORM + index);
+  }) as Soul;
+
   souls.push(soul);
 
   if (DEBUG_FLAG0) {
@@ -181,13 +128,3 @@ export const newSoul = (transform: DOMMatrixReadOnly, ...walkingPath: Circle[]) 
     }
   }
 };
-
-export const checkModelId = DEBUG
-  ? (name: string, expectedId: number) => {
-      const modelId = allModels.length - 1;
-      console.log(`model ${name} id: ${modelId}`);
-      if (modelId !== expectedId) {
-        throw new Error(`Model ${name} id should be ${expectedId} but is ${modelId}`);
-      }
-    }
-  : () => {};

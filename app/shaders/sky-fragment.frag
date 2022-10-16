@@ -1,15 +1,16 @@
 #version 300 es
 precision highp float;
 
-uniform vec3 iResolution;
-uniform vec3 viewPos;
+/** The inverted view matrix */
 uniform mat4 viewMatrix;
+uniform vec3 iResolution;
 
 uniform highp sampler2D groundTexture;
 
 out vec4 O;
 
 #define gameTime iResolution.z
+#define viewPos viewMatrix[3]
 
 /* 1 / Math.tan(fieldOfViewRadians / 2) */
 const float fieldOfViewAmount = 1.73205;
@@ -33,7 +34,7 @@ void main() {
 
     } else {
       // Render raytraced lava
-      ray = viewPos + ray * rayTracedLavalDistance;
+      ray = viewPos.xyz + ray * rayTracedLavalDistance;
       O.x = multiplier *=
         0.9 - texture(groundTexture, ray.xz / 150. + vec2(sin(ray.z / 35. + gameTime), cos(ray.x / 25. + gameTime)) / 80.).y;
       O.y = multiplier * multiplier * multiplier;

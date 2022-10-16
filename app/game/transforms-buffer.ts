@@ -1,0 +1,5 @@
+import { MODELS_WITH_FULL_TRANSFORM, MODELS_WITH_SIMPLE_TRANSFORM, SOULS_COUNT } from "./models";
+
+export const transformsBuffer = new Float32Array(
+  4 * (4 * (MODELS_WITH_FULL_TRANSFORM + SOULS_COUNT) + MODELS_WITH_SIMPLE_TRANSFORM),
+);

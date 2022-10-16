@@ -234,7 +234,9 @@ var location,
 var DEBUG;
 var NO_DEBUG;
 var dev_keyboard_downKeys;
+var hB;
 var hC;
+var hD;
 var b1;
 var b2;
 var b3;

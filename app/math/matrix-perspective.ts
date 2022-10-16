@@ -1,4 +1,3 @@
-import { DEG_TO_RAD } from "./math";
 import {
   constDef_zNear,
   constDef_CSM_PLANE_DISTANCE as CSM_PLANE_DISTANCE,
@@ -13,7 +12,7 @@ export const zFar = constDef_zFar;
 
 export const fieldOfViewDegrees = 60;
 
-export const fieldOfViewRadians = fieldOfViewDegrees * DEG_TO_RAD; // in radians
+export const fieldOfViewRadians = (fieldOfViewDegrees * Math.PI) / 180; // in radians
 
 export const fieldOfViewAmount = 1 / Math.tan(fieldOfViewRadians / 2);
 

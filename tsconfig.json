@@ -4,7 +4,8 @@
     "target": "ES2022",
     "module": "ES2022",
     "strictPropertyInitialization": false,
-    "removeComments": false
+    "removeComments": false,
+    "allowUmdGlobalAccess": false
     //    "exactOptionalPropertyTypes": false
   },
   "ts-node": {

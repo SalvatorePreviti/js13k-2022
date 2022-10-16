@@ -42,26 +42,30 @@ import {
 } from "./song";
 import { loadStep } from "../load-step";
 
-const getnotefreq = (n: number) => 0.003959503758 * 2 ** ((n - 256) / 12);
-
-/** oscillator 0 */
-const osc_sin = (value: number) => Math.sin(value * Math.PI * 2);
-
-/** oscillator 1 */
-const osc_square = (value: number) => (value % 1 < 0.5 ? 1 : -1);
-
-/** oscillator 2 */
-const osc_saw = (value: number) => 2 * (value % 1) - 1;
-
-/** oscillator 3 */
-const osc_tri = (value: number) => {
-  const v2 = (value % 1) * 4;
-  return v2 < 2 ? v2 - 1 : 3 - v2;
-};
-
 export let audioBuffer: AudioBuffer;
 
-export const loadSong = (done: () => void) => {
+export const loadSong = NO_INLINE((done: () => void) => {
+  if (DEBUG && DEBUG_FLAG1) {
+    done();
+    return;
+  }
+  const getnotefreq = (n: number) => 0.003959503758 * 2 ** ((n - 256) / 12);
+
+  /** oscillator 0 */
+  const osc_sin = (value: number) => Math.sin(value * Math.PI * 2);
+
+  /** oscillator 1 */
+  const osc_square = (value: number) => (value % 1 < 0.5 ? 1 : -1);
+
+  /** oscillator 2 */
+  const osc_saw = (value: number) => 2 * (value % 1) - 1;
+
+  /** oscillator 3 */
+  const osc_tri = (value: number) => {
+    const v2 = (value % 1) * 4;
+    return v2 < 2 ? v2 - 1 : 3 - v2;
+  };
+
   let channelIndex = 0;
 
   audioBuffer = new AudioBuffer({
@@ -259,4 +263,4 @@ export const loadSong = (done: () => void) => {
   };
 
   loadStep(next);
-};
+});

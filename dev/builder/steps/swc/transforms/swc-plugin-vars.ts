@@ -7,41 +7,25 @@ import { swcPluginSimpleTransform } from "./swc-plugin-simple";
 class SwcVarsTransformer extends SwcVisitor {
   override visitProgram(n: Program): Program {
     n = super.visitProgram(n);
-    return { ...n, body: this._sortStatements(n.body, true) as any };
+    return { ...n, body: this._sortStatements(n.body) as any };
   }
 
   override visitBlockStatement(block: BlockStatement): BlockStatement {
     block = super.visitBlockStatement(block);
-    return { ...block, stmts: this._sortStatements(block.stmts, false) as any };
+    return { ...block, stmts: this._sortStatements(block.stmts) as any };
   }
 
-  private _sortStatements(
-    statements: readonly Statement[] | readonly ModuleItem[],
-    moveNoInlineToEnd: boolean,
-  ): ModuleItem[] {
+  private _sortStatements(statements: readonly Statement[] | readonly ModuleItem[]): ModuleItem[] {
     const topVariableDeclarations: VariableDeclaration[] = [];
-    const lastStatements: Statement[] = [];
 
     const bodyStatements: ModuleItem[] = [];
     for (const stmt of statements) {
-      if (stmt.type === "VariableDeclaration") {
+      if (stmt.type === "VariableDeclaration" && stmt.declarations.length === 1) {
         const declarator = stmt.declarations[0]!;
-        if (!declarator.init || isConstantExpr(declarator.init)) {
+        if (isConstantExpr(declarator.init)) {
           topVariableDeclarations.push(stmt);
           continue;
         }
-      }
-
-      if (
-        moveNoInlineToEnd &&
-        stmt.type === "ExpressionStatement" &&
-        stmt.expression.type === "CallExpression" &&
-        stmt.expression.callee.type === "Identifier" &&
-        stmt.expression.callee.value === "NO_INLINE" &&
-        stmt.expression.arguments[0]?.expression.type !== "StringLiteral"
-      ) {
-        lastStatements.push(stmt);
-        continue;
       }
 
       bodyStatements.push(stmt);
@@ -49,7 +33,7 @@ class SwcVarsTransformer extends SwcVisitor {
 
     topVariableDeclarations.sort(variableDeclarationSortCompare);
 
-    return [...topVariableDeclarations, ...bodyStatements, ...lastStatements];
+    return [...topVariableDeclarations, ...bodyStatements];
   }
 }
 
@@ -152,6 +136,7 @@ function isConstantExpr(expression?: Expression): boolean {
         case "BigInt64Array":
         case "BigUint64Array":
         case "DataView":
+          return true;
       }
       break;
 
@@ -191,7 +176,7 @@ function isConstantExpr(expression?: Expression): boolean {
       return false;
 
     default:
-      break;
+      return false;
   }
   return false;
 }
@@ -205,11 +190,6 @@ function variableDeclarationSortCompare(da: VariableDeclaration, db: VariableDec
   const b = db.declarations[0]!;
 
   let c = 0;
-
-  c = varKindOrdering(da.kind) - varKindOrdering(db.kind);
-  if (c) {
-    return c;
-  }
 
   if (a.init !== b.init) {
     if (!a.init) {
@@ -228,7 +208,16 @@ function variableDeclarationSortCompare(da: VariableDeclaration, db: VariableDec
   //   c = b.id.value.length - a.id.value.length || a.id.value.localeCompare(b.id.value);
   // }
 
-  return c || ("span" in a && "span" in b ? a.span.start - b.span.start : 0);
+  if (c) {
+    return c;
+  }
+
+  c = varKindOrdering(db.kind) - varKindOrdering(da.kind);
+  if (c) {
+    return c;
+  }
+
+  return "span" in a && "span" in b ? a.span.start - b.span.start : 0;
 }
 
 function compareExpressions(a: Expression, b: Expression): number {
@@ -370,21 +359,21 @@ function compareExpressions(a: Expression, b: Expression): number {
 }
 
 const expressionTypeOrdering: Expression["type"][] = [
+  "NullLiteral",
+  "BooleanLiteral",
   "NumericLiteral",
   "BigIntLiteral",
-  "BooleanLiteral",
-  "NullLiteral",
-  "BinaryExpression",
-  "UnaryExpression",
   "StringLiteral",
-  "ArrayExpression",
+  "UnaryExpression",
+  "BinaryExpression",
   "ObjectExpression",
+  "ArrayExpression",
   "RegExpLiteral",
   "MemberExpression",
   "Identifier",
   "ClassExpression",
-  "FunctionExpression",
   "ArrowFunctionExpression",
+  "FunctionExpression",
   "NewExpression",
   "CallExpression",
 ];

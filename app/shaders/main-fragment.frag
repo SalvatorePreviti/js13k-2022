@@ -15,14 +15,13 @@ in highp vec4 FragPos;
 in highp vec4 UntransformedFragPos;
 in lowp vec4 Color;
 
-uniform vec3 viewPos;
-uniform mat4 viewMatrix;
-uniform mat4 csm_matrix0;
-uniform mat4 csm_matrix1;
-
+uniform highp sampler2D groundTexture;
 uniform highp sampler2DShadow csm_texture0;
 uniform highp sampler2DShadow csm_texture1;
-uniform highp sampler2D groundTexture;
+
+uniform mat4 viewMatrix;
+uniform mat4 csm_matrices[2];
+uniform vec3 viewPos;
 
 out vec4 O;
 
@@ -31,7 +30,7 @@ void main() {
   vec3 normal = normalize(VNormal.xyz);
 
   vec3 tex = Color.w *
-    (texture(groundTexture, UntransformedFragPos.yz * .035) * normal.x +
+    (texture(groundTexture, UntransformedFragPos.zy * .035) * normal.x +
      texture(groundTexture, UntransformedFragPos.xz * .035) * normal.y +
      texture(groundTexture, UntransformedFragPos.xy * .035) * normal.z)
       .xyz;
@@ -44,7 +43,7 @@ void main() {
   float depthValue = abs((viewMatrix * fragPosVec4).z);
 
   // Gets the fragment position in light space
-  vec4 csmCoords = (depthValue < CSM_PLANE_DISTANCE ? csm_matrix0 : csm_matrix1) * fragPosVec4;
+  vec4 csmCoords = (depthValue < CSM_PLANE_DISTANCE ? csm_matrices[0] : csm_matrices[1]) * fragPosVec4;
 
   // perform perspective divide and transform to [0,1] range
   csmCoords = (csmCoords / csmCoords.w) * .5 + .5;

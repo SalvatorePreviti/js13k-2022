@@ -1,7 +1,6 @@
 import ADMZip from "adm-zip";
 import fs from "fs";
 import zlib from "zlib";
-import type { WriteBundleInput } from "../lib/write-bundle";
 import { devLog } from "@balsamic/dev";
 import { sizeDifference } from "../lib/logging";
 
@@ -16,7 +15,7 @@ export const zipBundleOptions = {
   /** If you chose zopfli (you should), here you can pass some options. */
   zopfli: {
     /** Maximum amount of times to rerun forward and backward pass to optimize LZ77 compression cost. The more, the slower. */
-    numiterations: 1331, // 13312,
+    numiterations: 5000, // 13312,
 
     /** Maximum amount of blocks to split into (0 for unlimited, but this can give extreme results that hurt compression on some files). */
     blocksplittingmax: 30,
@@ -49,9 +48,7 @@ export const zipBundleOptions = {
   },
 };
 
-export function zipBundle(bundle: WriteBundleInput, title: string) {
-  let html = bundle.html;
-
+export function zipBundle(html: string, title: string) {
   // Remove tag closures
   for (const endTag of ["</html>", "</body>"]) {
     if (html.endsWith(endTag)) {

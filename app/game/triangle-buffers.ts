@@ -1,7 +1,8 @@
-import { allModels, souls, MODEL_ID_SOUL, SOULS_COUNT } from "./models";
-import { gl } from "../gl";
+import { allModels, MODELS_WITH_FULL_TRANSFORM, souls, SOULS_COUNT } from "./models";
+import { cgl, gl } from "../gl";
 import { plane_fromPolygon } from "../math/vectors";
 import type { Polygon } from "../geometry/polygon";
+import { MODEL_ID_SOUL_COLLISION } from "./models-ids";
 
 export const initTriangleBuffers = () => {
   const _triangleIndices: number[] = [];
@@ -9,10 +10,10 @@ export const initTriangleBuffers = () => {
   const _vertexColors: number[] = [];
   const _vertexNormals: number[] = [];
 
+  const _vertexMap = new Map<string, number>();
   const _vertexInts = new Int32Array(8);
   const _vertexIntsSmooth = new Int32Array(_vertexInts.buffer, 0, 5);
   const _vertexFloats = new Float32Array(_vertexInts.buffer);
-  const _vertexMap = new Map<string, number>();
 
   let meshFirstIndex: number = 0;
 
@@ -44,9 +45,9 @@ export const initTriangleBuffers = () => {
       return vertexIndex;
     };
 
-    _vertexFloats[3] = index > MODEL_ID_SOUL ? -SOULS_COUNT - 1 : model.$kind && index;
+    _vertexFloats[3] = index > MODEL_ID_SOUL_COLLISION - 1 ? -MODELS_WITH_FULL_TRANSFORM : index;
 
-    for (polygon of model.$polygons!) {
+    for (polygon of model.$polygon!) {
       const { x, y, z } = plane_fromPolygon(polygon);
       _vertexInts[4] = polygon.$color! | 0;
       _vertexInts[5] = x * 32767;
@@ -58,36 +59,37 @@ export const initTriangleBuffers = () => {
     }
 
     // free memory
-    model.$polygons = 0 as any;
+    model.$polygon = 0 as any;
 
     // write the indices offset and count
     model.$vertexBegin = meshFirstIndex;
     model.$vertexEnd = meshFirstIndex = _triangleIndices.length;
   });
 
-  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(_vertexPositions), gl.STATIC_DRAW);
-  gl.vertexAttribPointer(0, 4, gl.FLOAT, false, 0, 0);
+  [gl, cgl].map((xgl) => {
+    xgl.bindBuffer(xgl.ARRAY_BUFFER, xgl.createBuffer());
+    xgl.bufferData(xgl.ARRAY_BUFFER, new Float32Array(_vertexPositions), xgl.STATIC_DRAW);
+    xgl.vertexAttribPointer(0, 4, xgl.FLOAT, false, 0, 0);
 
-  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
-  gl.bufferData(gl.ARRAY_BUFFER, new Int16Array(_vertexNormals), gl.STATIC_DRAW);
-  gl.vertexAttribPointer(1, 3, gl.SHORT, true, 0, 0);
+    xgl.bindBuffer(xgl.ARRAY_BUFFER, xgl.createBuffer());
+    xgl.bufferData(xgl.ARRAY_BUFFER, new Int16Array(_vertexNormals), xgl.STATIC_DRAW);
+    xgl.vertexAttribPointer(1, 3, xgl.SHORT, true, 0, 0);
 
-  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
-  gl.bufferData(gl.ARRAY_BUFFER, new Uint32Array(_vertexColors), gl.STATIC_DRAW);
-  gl.vertexAttribPointer(2, 4, gl.UNSIGNED_BYTE, true, 0, 0);
+    xgl.bindBuffer(xgl.ARRAY_BUFFER, xgl.createBuffer());
+    xgl.bufferData(xgl.ARRAY_BUFFER, new Uint32Array(_vertexColors), xgl.STATIC_DRAW);
+    xgl.vertexAttribPointer(2, 4, xgl.UNSIGNED_BYTE, true, 0, 0);
 
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.createBuffer());
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(_triangleIndices), gl.STATIC_DRAW);
+    xgl.bindBuffer(xgl.ELEMENT_ARRAY_BUFFER, xgl.createBuffer());
+    xgl.bufferData(xgl.ELEMENT_ARRAY_BUFFER, new Uint16Array(_triangleIndices), xgl.STATIC_DRAW);
 
-  gl.enableVertexAttribArray(0);
-  gl.enableVertexAttribArray(1);
-  gl.enableVertexAttribArray(2);
+    xgl.enableVertexAttribArray(0);
+    xgl.enableVertexAttribArray(1);
+    xgl.enableVertexAttribArray(2);
+  });
 
   if (DEBUG) {
     console.timeEnd("initTriangleBuffers");
     console.table({
-      "game models": allModels.filter((m) => !!m.$kind).length,
       "all models": allModels.length,
       "vertices": _vertexMap.size,
       "triangles": _triangleIndices.length / 3,

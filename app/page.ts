@@ -12,31 +12,27 @@ import {
 } from "./utils/keycodes";
 import { abs, clamp, max, threshold } from "./math/math";
 import { camera_rotation, resetGame } from "./game/world-state";
-import { CSM_PLANE_DISTANCE, fieldOfViewAmount, mat_perspective, zFar, zNear } from "./math/matrix-perspective";
 import { mainMenuVisible, setMainMenuVisible, absoluteTime, gameTimeDelta } from "./game/game-time";
 import { audioBuffer } from "./music/music-player";
+import { CSM_PLANE_DISTANCE, fieldOfViewAmount, mat_perspective, zFar, zNear } from "./math/matrix-perspective";
 
 export let interact_pressed: 0 | 1;
 
-export const resetInteractPressed = () => {
-  interact_pressed = 0;
-};
+export const resetInteractPressed = () => (interact_pressed = 0);
 
-export let player_first_person: 0 | 1 | undefined;
-
-export const exit_player_first_person = () => (player_first_person = 0);
+export let player_first_person: boolean | 0 | 1 | undefined;
 
 export let input_forward = 0;
 
 export let input_strafe = 0;
 
-export let projection: DOMMatrix;
-
 export let csm_projections: DOMMatrix[];
 
-export let updateInput: () => void;
+export let projection: DOMMatrix;
 
-export const initPage = () => {
+export const exit_player_first_person = () => (player_first_person = 0);
+
+export let page_update = () => {
   let touchStartTime: number | undefined;
 
   let touchPosStartX: number | undefined;
@@ -82,12 +78,12 @@ export const initPage = () => {
   };
 
   const handleResize = () => {
-    const mx = ((hC.height = innerHeight) / (hC.width = innerWidth)) * fieldOfViewAmount;
+    const mx = fieldOfViewAmount * ((hC.height = innerHeight) / (hC.width = innerWidth));
+    projection = mat_perspective(zNear, zFar, mx, fieldOfViewAmount);
     csm_projections = [
       mat_perspective(zNear, CSM_PLANE_DISTANCE, mx, fieldOfViewAmount),
       mat_perspective(CSM_PLANE_DISTANCE, zFar, mx, fieldOfViewAmount),
     ];
-    projection = mat_perspective(zNear, zFar, mx, fieldOfViewAmount);
 
     touchPosIdentifier = touchRotIdentifier = undefined;
     keyboard_downKeys.length =
@@ -99,9 +95,9 @@ export const initPage = () => {
       input_strafe =
         0;
 
-    if (document.hidden) {
+    if (document.hidden && !DEBUG) {
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
-      // mainMenu(true);
+      mainMenu(true);
     }
   };
 
@@ -109,14 +105,14 @@ export const initPage = () => {
     if (mainMenuVisible !== value) {
       setMainMenuVisible(value);
       handleResize();
-      document.body.className = value ? "l m" : "l";
+      hB.className = value ? "l m" : "l";
+      updateMusicOnState();
       if (value) {
         try {
-          document.exitFullscreen().catch(() => 0);
+          document.exitFullscreen().catch(() => false);
           document.exitPointerLock();
         } catch {}
       }
-      updateMusicOnState();
     }
   };
 
@@ -136,7 +132,7 @@ export const initPage = () => {
         songAudioSource.start();
       }
 
-      document.body.requestFullscreen().catch(() => 0);
+      hB.requestFullscreen().catch(() => false);
     } catch {}
     mainMenu(false);
     player_first_person = firstPerson;
@@ -146,18 +142,27 @@ export const initPage = () => {
     oncontextmenu = () => false;
   }
 
-  // "Play" button
-  b1.onclick = () => {
-    start();
-  };
-
-  // "Play first person" button
-  b2.onclick = () => {
-    start(1);
+  onclick = (e) => {
+    if (!mainMenuVisible) {
+      if (e.target === hC) {
+        interact_pressed = 1;
+      }
+      if (player_first_person) {
+        try {
+          hC.requestPointerLock();
+        } catch {}
+      }
+    }
   };
 
   // Menu hamburger button
   b5.onclick = () => mainMenu(true);
+
+  // "Play first person" button
+  b2.onclick = () => start(1);
+
+  // "Play" button
+  b1.onclick = () => start();
 
   // "Music" button
   b4.onclick = () => {
@@ -173,22 +178,9 @@ export const initPage = () => {
     }
   };
 
-  onclick = (e) => {
-    if (!mainMenuVisible) {
-      if (e.target === hC) {
-        interact_pressed = 1;
-      }
-      if (player_first_person) {
-        try {
-          hC.requestPointerLock();
-        } catch {}
-      }
-    }
-  };
-
   onkeyup = onkeydown = (e) => {
     if (!e.repeat) {
-      const pressed = !!e.type[5] && (!DEBUG || e.target === document.body);
+      const pressed = !!e.type[5] && (!DEBUG || e.target === hB);
 
       const mapped = (
         {
@@ -225,16 +217,16 @@ export const initPage = () => {
     }
   };
 
-  onmousemove = ({ movementX, movementY }) => {
-    if (player_first_person && (movementX || movementY)) {
-      camera_rotation.y += movementX * 0.1;
-      camera_rotation.x += movementY * 0.1;
+  onmousemove = (e) => {
+    if (player_first_person) {
+      camera_rotation.y += 0.1 * e.movementX || 0;
+      camera_rotation.x += 0.1 * e.movementY || 0;
     }
   };
 
   hC.ontouchstart = (e) => {
     if (!mainMenuVisible) {
-      for (const { pageX, pageY, identifier } of e.changedTouches) {
+      for (const { identifier, pageX, pageY } of e.changedTouches) {
         if (player_first_person && pageX > hC.clientWidth / 2) {
           if (touchRotIdentifier === undefined) {
             touchRotMoved = 0;
@@ -255,17 +247,17 @@ export const initPage = () => {
     }
   };
 
-  const TOUCH_SIZE = 20;
-  const TOUCH_MOVE_THRESHOLD = 0.5;
-  const TOUCH_MOVE_SNAP = 0.3;
+  const TOUCH_SIZE = 19;
+  const TOUCH_MOVE_THRESHOLD = 0.3;
+  const TOUCH_MOVE_SNAP = 0.2;
 
   hC.ontouchmove = (e) => {
     if (!mainMenuVisible) {
-      for (const { pageX, pageY, identifier } of e.changedTouches) {
+      for (const { identifier, pageX, pageY } of e.changedTouches) {
         if (touchRotIdentifier === identifier) {
-          camera_rotation.x = touchStartCameraRotY! + (pageY - touchRotY!) / 2.3;
-          camera_rotation.y = touchStartCameraRotX! + (pageX - touchRotX!) / 2.3;
           touchRotMoved = 1;
+          camera_rotation.x = touchStartCameraRotY! + (pageY - touchRotY!) / 2;
+          camera_rotation.y = touchStartCameraRotX! + (pageX - touchRotX!) / 2;
         }
         if (touchPosIdentifier === identifier) {
           const deltaX = (touchPosStartX! - pageX) / TOUCH_SIZE;
@@ -279,8 +271,8 @@ export const initPage = () => {
             touchPosMoved = 1;
           }
 
-          touch_movementX = +(m && absDeltaX > TOUCH_MOVE_SNAP) * clamp(deltaX, -1);
-          touch_movementY = +(m && absDeltaY > TOUCH_MOVE_SNAP) * clamp(deltaY, -1);
+          touch_movementX = clamp(deltaX, -1) * ((m && absDeltaX > TOUCH_MOVE_SNAP) as any);
+          touch_movementY = clamp(deltaY, -1) * ((m && absDeltaY > TOUCH_MOVE_SNAP) as any);
 
           // Move the invisible joysticks
           if (absDeltaX > 2) {
@@ -295,7 +287,7 @@ export const initPage = () => {
   };
 
   hC.ontouchend = (e) => {
-    if (document.activeElement === document.body) {
+    if (document.activeElement === hB) {
       e.preventDefault();
     }
 
@@ -330,15 +322,15 @@ export const initPage = () => {
   const getGamepadButtonState = (gamepad: Gamepad, index: number) =>
     gamepad.buttons[index]?.pressed || (gamepad.buttons[index]?.value as any) > 0 ? 1 : 0;
 
-  updateInput = () => {
+  page_update = () => {
     input_forward = touch_movementY + (keyboard_downKeys[KEY_FRONT] ? 1 : 0) - (keyboard_downKeys[KEY_BACK] ? 1 : 0);
     input_strafe = touch_movementX + (keyboard_downKeys[KEY_LEFT] ? 1 : 0) - (keyboard_downKeys[KEY_RIGHT] ? 1 : 0);
 
     const gamepad = navigator.getGamepads()[0];
     if (gamepad) {
       if (player_first_person) {
-        camera_rotation.x += gameTimeDelta * threshold(gamepad.axes[3], 0.3) * 80;
-        camera_rotation.y += gameTimeDelta * threshold(gamepad.axes[2], 0.3) * 80;
+        camera_rotation.x += 80 * gameTimeDelta * threshold(gamepad.axes[3], 0.3);
+        camera_rotation.y += 80 * gameTimeDelta * threshold(gamepad.axes[2], 0.3);
       }
 
       input_forward +=
@@ -368,6 +360,9 @@ export const initPage = () => {
     }
   };
 
+  document.onpointerlockchange = () => {
+    player_first_person = !!document.pointerLockElement;
+  };
   document.onvisibilitychange = onblur = onresize = handleResize;
 
   mainMenu(!DEBUG || !!DEBUG_FLAG2);

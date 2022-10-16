@@ -100,6 +100,8 @@ li:hover {
 /* hide main menu by default */
 main,
 /* hide messages if in menu */
-.m h4 {
+.m h4,
+/* hide the collision canvas */
+#hD {
   display: none;
 }
