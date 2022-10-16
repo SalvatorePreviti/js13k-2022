@@ -37,11 +37,11 @@ class SwcVarsTransformer extends SwcVisitor {
   }
 }
 
-export interface SwcPluginVarsSettings extends Exclude<SwcSimpleTransformSettings, "splitVarsAndSequences"> {}
+export interface SwcPluginVarsSettings extends Exclude<SwcSimpleTransformSettings, "splitVars"> {}
 
 export function swcPluginVars(settings: SwcPluginVarsSettings = {}) {
   return (m: Program) => {
-    m = swcPluginSimpleTransform({ ...settings, splitVars: true })(m);
+    m = swcPluginSimpleTransform({ ...settings, splitVars: true, splitSequences: true })(m);
     m = new SwcVarsTransformer().visitProgram(m);
     return m;
   };

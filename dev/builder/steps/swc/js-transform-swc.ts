@@ -20,7 +20,7 @@ export interface SwcMinifySettings {
 
 export async function jsTransformSwc(
   source: string,
-  minify: "simple" | SwcMinifySettings | null | undefined | false,
+  minify: "no-optimize" | "simple" | SwcMinifySettings | null | undefined | false,
   ...transformers: (Plugin | SwcVisitor | null | false | undefined)[]
 ): Promise<string> {
   const swcPlugins: Plugin = (m) => {
@@ -38,6 +38,10 @@ export async function jsTransformSwc(
     }
     return m;
   };
+
+  if (minify === "no-optimize") {
+    minify = false;
+  }
 
   const minifyWhitespaces = minify === "simple" || !!(minify && (minify.minify ?? minify.final));
 
@@ -58,7 +62,7 @@ export async function jsTransformSwc(
             jsc: {
               transform: {
                 optimizer: {
-                  simplify: true,
+                  simplify: minify !== "no-optimize",
                 },
                 useDefineForClassFields: false,
                 treatConstEnumAsEnum: false,
@@ -66,7 +70,8 @@ export async function jsTransformSwc(
               },
               keepClassNames: false,
               target: "es2022",
-              minify: minify && minify !== "simple" ? getSwcMinifyOptions(minify) : undefined,
+              minify:
+                minify && minify !== "simple" && minify !== "no-optimize" ? getSwcMinifyOptions(minify) : undefined,
             },
             plugin: transformers && transformers.length > 0 ? swcPlugins : undefined,
           })

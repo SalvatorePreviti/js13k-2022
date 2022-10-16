@@ -34,7 +34,6 @@ import { babelPluginSimple } from "./steps/babel/babel-plugin-simple";
 import { jsEsbuildMinify } from "./steps/js-esbuild";
 import { jsRemoveEndingSemicolons } from "./lib/code-utils";
 import { babelPluginMath } from "./steps/babel/babel-plugin-math";
-import { swcPluginSimpleTransform } from "./steps/swc/transforms/swc-plugin-simple";
 
 const resugarBlockScope = [resugarBlockScopePlugin, { "declarations.block-scope": { disableConst: false } }];
 
@@ -210,13 +209,7 @@ export async function build() {
 
     js = await jsBabel(js, {
       minify: false,
-      plugins: [
-        resugarBlockScope,
-        babelPluginSimple({
-          unmangleableProperties: "transform",
-          floatRound: 6,
-        }),
-      ],
+      plugins: [babelPluginSimple({ unmangleableProperties: "transform", floatRound: 6 })],
     });
 
     if (MINIFY_ENABLED) {
@@ -284,8 +277,6 @@ export async function build() {
         computed_props: true,
       });
 
-      js = await jsTransformSwc(js, false, swcPluginVars({ floatRound: 6 }));
-
       js = await jsUglify(js, {
         varify: false,
         final: true,
@@ -323,7 +314,12 @@ export async function build() {
         computed_props: true,
       });
 
-      js = await jsTransformSwc(js, false, swcPluginSimpleTransform({ constToLet: true, floatRound: 6 }));
+      js = await jsBabel(js, {
+        minify: false,
+        plugins: [babelPluginSimple({ floatRound: 6, constToLet: true })],
+      });
+
+      // js = await jsTransformSwc(js, "no-optimize", swcPluginSimpleTransform({ constToLet: true, floatRound: 6 }));
 
       js = await jsUglify(js, {
         varify: false,
