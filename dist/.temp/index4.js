@@ -314,26 +314,26 @@ let b,
       },
       hC.ontouchstart = l => {
         if (!S) {
-          for (let { pageX: e, pageY: a, identifier: t } of l.changedTouches) {j && e > hC.clientWidth / 2
-              ? void 0 === d && (g = 0, h = e, u = a, d = t, v = f1, p = R)
-              : void 0 === m && (f = 0, i = e, n = a, m = t);}
+          for (let { identifier: e, pageX: a, pageY: t } of l.changedTouches) {j && a > hC.clientWidth / 2
+              ? void 0 === d && (g = 0, h = a, u = t, d = e, v = f1, p = R)
+              : void 0 === m && (f = 0, i = a, n = t, m = e);}
           e = s1;
         }
       },
       hC.ontouchmove = l => {
         if (!S) {
-          for (let { pageX: e, pageY: a, identifier: t } of l.changedTouches) {
+          for (let { identifier: e, pageX: a, pageY: t } of l.changedTouches) {
             var r, s, c, o;
-            d === t && (g = 1, f1 = v + (a - u) / 2.3, R = p + (e - h) / 2.3),
-              m === t
-              && (t = (i - e) / 19,
-                r = W(t),
-                c = W(s = (n - a) / 19),
+            d === e && (g = 1, f1 = v + (t - u) / 2, R = p + (a - h) / 2),
+              m === e
+              && (e = (i - a) / 19,
+                r = W(e),
+                c = W(s = (n - t) / 19),
                 (o = w1(r, c) > .3) && (f = 1),
-                x = U(t, -1) * (o && r > .2),
+                x = U(e, -1) * (o && r > .2),
                 y = U(s, -1) * (o && c > .2),
-                r > 2 && (i = 19 * (0 > t ? -1 : 1) + e),
-                c > 2 && (n = 19 * (0 > s ? -1 : 1) + a));
+                r > 2 && (i = 19 * (0 > e ? -1 : 1) + a),
+                c > 2 && (n = 19 * (0 > s ? -1 : 1) + t));
           }
         }
       },
@@ -358,9 +358,7 @@ let b,
             (e = z(e, 3) || z(e, 2) || z(e, 1) || z(e, 0)) && !a && (I = 1),
             a = e);
       },
-      document.onpointerlockchange = () => {
-        j = !!document.pointerLockElement;
-      },
+      document.onpointerlockchange = () => j = document.pointerLockElement ? 1 : 0,
       document.onvisibilitychange = onblur = onresize = o,
       b(!0);
   },

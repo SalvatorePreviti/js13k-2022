@@ -658,9 +658,9 @@ let page_update = () => {
       if (!mainMenuVisible) {
         for (
           let {
+            identifier,
             pageX,
             pageY,
-            identifier,
           } of e.changedTouches
         ) {
           player_first_person && pageX > hC.clientWidth / 2
@@ -682,16 +682,16 @@ let page_update = () => {
       if (!mainMenuVisible) {
         for (
           let {
+            identifier,
             pageX,
             pageY,
-            identifier,
           } of e.changedTouches
         ) {
           var absDeltaX, deltaY, absDeltaY, m;
           touchRotIdentifier === identifier
           && (touchRotMoved = 1,
-            camera_rotation.x = touchStartCameraRotY + (pageY - touchRotY) / 2.3,
-            camera_rotation.y = touchStartCameraRotX + (pageX - touchRotX) / 2.3),
+            camera_rotation.x = touchStartCameraRotY + (pageY - touchRotY) / 2,
+            camera_rotation.y = touchStartCameraRotX + (pageX - touchRotX) / 2),
             touchPosIdentifier === identifier
             && (identifier = (touchPosStartX - pageX) / 19,
               absDeltaX = abs(identifier),
@@ -739,9 +739,7 @@ let page_update = () => {
           && !gamepadInteractPressed && (interact_pressed = 1),
           gamepadInteractPressed = gamepad);
     },
-    document.onpointerlockchange = () => {
-      player_first_person = !!document.pointerLockElement;
-    },
+    document.onpointerlockchange = () => player_first_person = document.pointerLockElement ? 1 : 0,
     document.onvisibilitychange = onblur = onresize = handleResize,
     mainMenu(!0);
 };

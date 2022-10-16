@@ -814,7 +814,7 @@ let page_update = () => {
   };
   hC.ontouchstart = (e) => {
     if (!mainMenuVisible) {
-      for (const { pageX, pageY, identifier } of e.changedTouches) {
+      for (const { identifier, pageX, pageY } of e.changedTouches) {
         if (player_first_person && pageX > hC.clientWidth / 2) {
           if (touchRotIdentifier === void 0) {
             touchRotMoved = 0;
@@ -839,11 +839,11 @@ let page_update = () => {
   const TOUCH_MOVE_SNAP = 0.2;
   hC.ontouchmove = (e) => {
     if (!mainMenuVisible)
-      for (const { pageX, pageY, identifier } of e.changedTouches) {
+      for (const { identifier, pageX, pageY } of e.changedTouches) {
         if (touchRotIdentifier === identifier) {
           touchRotMoved = 1;
-          camera_rotation.x = touchStartCameraRotY + (pageY - touchRotY) / 2.3;
-          camera_rotation.y = touchStartCameraRotX + (pageX - touchRotX) / 2.3;
+          camera_rotation.x = touchStartCameraRotY + (pageY - touchRotY) / 2;
+          camera_rotation.y = touchStartCameraRotX + (pageX - touchRotX) / 2;
         }
         if (touchPosIdentifier === identifier) {
           const deltaX = (touchPosStartX - pageX) / TOUCH_SIZE;
@@ -907,9 +907,7 @@ let page_update = () => {
       gamepadInteractPressed = interactButtonPressed;
     }
   };
-  document.onpointerlockchange = () => {
-    player_first_person = !!document.pointerLockElement;
-  };
+  document.onpointerlockchange = () => player_first_person = document.pointerLockElement ? 1 : 0;
   document.onvisibilitychange = onblur = onresize = handleResize;
   mainMenu(true);
 };

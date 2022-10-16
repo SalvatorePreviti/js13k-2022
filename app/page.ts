@@ -226,7 +226,7 @@ export let page_update = () => {
 
   hC.ontouchstart = (e) => {
     if (!mainMenuVisible) {
-      for (const { pageX, pageY, identifier } of e.changedTouches) {
+      for (const { identifier, pageX, pageY } of e.changedTouches) {
         if (player_first_person && pageX > hC.clientWidth / 2) {
           if (touchRotIdentifier === undefined) {
             touchRotMoved = 0;
@@ -253,11 +253,11 @@ export let page_update = () => {
 
   hC.ontouchmove = (e) => {
     if (!mainMenuVisible) {
-      for (const { pageX, pageY, identifier } of e.changedTouches) {
+      for (const { identifier, pageX, pageY } of e.changedTouches) {
         if (touchRotIdentifier === identifier) {
           touchRotMoved = 1;
-          camera_rotation.x = touchStartCameraRotY! + (pageY - touchRotY!) / 2.3;
-          camera_rotation.y = touchStartCameraRotX! + (pageX - touchRotX!) / 2.3;
+          camera_rotation.x = touchStartCameraRotY! + (pageY - touchRotY!) / 2;
+          camera_rotation.y = touchStartCameraRotX! + (pageX - touchRotX!) / 2;
         }
         if (touchPosIdentifier === identifier) {
           const deltaX = (touchPosStartX! - pageX) / TOUCH_SIZE;
