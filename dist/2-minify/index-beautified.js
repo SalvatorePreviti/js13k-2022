@@ -358,7 +358,9 @@ let b,
             (e = z(e, 3) || z(e, 2) || z(e, 1) || z(e, 0)) && !a && (I = 1),
             a = e);
       },
-      document.onpointerlockchange = () => j = document.pointerLockElement ? 1 : 0,
+      document.onpointerlockchange = () => {
+        j = !!document.pointerLockElement;
+      },
       document.onvisibilitychange = onblur = onresize = o,
       b(!0);
   },
