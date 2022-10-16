@@ -10,7 +10,6 @@ import {
 } from "./models";
 import { transformsBuffer } from "./transforms-buffer";
 import { gameTime, gameTimeDelta, lerpDamp } from "./game-time";
-import { firstBoatLerp, onFirstBoatLeverPulled, onPlayerPullLever, secondBoatLerp } from "./world-state";
 import { player_update } from "./player";
 import { modelsNextUpdate, modelsResetUpdateCounter, verifyModelsNextUpdate } from "./models-next-update";
 import {
@@ -65,6 +64,7 @@ import {
 import { matrixCopy, matrixToArray } from "../math/matrix";
 import { interact_pressed } from "../page";
 import { distanceToPlayer } from "./distance-to-player";
+import { firstBoatLerp, onFirstBoatLeverPulled, onPlayerPullLever, secondBoatLerp } from "./world-state";
 
 export let shouldRotatePlatforms: number;
 

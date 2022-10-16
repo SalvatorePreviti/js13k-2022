@@ -45,6 +45,10 @@ import { loadStep } from "../load-step";
 export let audioBuffer: AudioBuffer;
 
 export const loadSong = NO_INLINE((done: () => void) => {
+  if (DEBUG && DEBUG_FLAG1) {
+    done();
+    return;
+  }
   const getnotefreq = (n: number) => 0.003959503758 * 2 ** ((n - 256) / 12);
 
   /** oscillator 0 */

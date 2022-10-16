@@ -520,8 +520,8 @@ const song_numChannels = 5;
 const SONG_WORDS = song_patternLen * (song_endPattern + 1) * 2;
 const SONG_TOTAL_WORDS = (song_rowLen0 + song_rowLen1 + song_rowLen2) * SONG_WORDS;
 const loadStep = (fn) => {
-  h4.innerHTML += ".";
   setTimeout(fn);
+  h4.innerHTML += ".";
 };
 let audioBuffer;
 const loadSong = NO_INLINE((done) => {
@@ -733,13 +733,13 @@ let page_update = () => {
       setMainMenuVisible(value);
       handleResize();
       document.body.className = value ? "l m" : "l";
+      updateMusicOnState();
       if (value)
         try {
           document.exitFullscreen().catch(() => false);
           document.exitPointerLock();
         } catch {
         }
-      updateMusicOnState();
     }
   };
   const start = (firstPerson) => {
@@ -758,17 +758,6 @@ let page_update = () => {
     player_first_person = firstPerson;
   };
   oncontextmenu = () => false;
-  b1.onclick = () => start();
-  b2.onclick = () => start(1);
-  b5.onclick = () => mainMenu(true);
-  b4.onclick = () => {
-    music_on = !music_on;
-    updateMusicOnState();
-  };
-  b3.onclick = () => {
-    if (confirm("Restart game?"))
-      resetGame();
-  };
   onclick = (e) => {
     if (!mainMenuVisible) {
       if (e.target === hC)
@@ -779,6 +768,17 @@ let page_update = () => {
         } catch {
         }
     }
+  };
+  b5.onclick = () => mainMenu(true);
+  b2.onclick = () => start(1);
+  b1.onclick = () => start();
+  b4.onclick = () => {
+    music_on = !music_on;
+    updateMusicOnState();
+  };
+  b3.onclick = () => {
+    if (confirm("Restart game?"))
+      resetGame();
   };
   onkeyup = onkeydown = (e) => {
     if (!e.repeat) {
@@ -806,10 +806,10 @@ let page_update = () => {
       }
     }
   };
-  onmousemove = ({ movementX, movementY }) => {
-    if (player_first_person && (movementX || movementY)) {
-      camera_rotation.y += movementX * 0.1;
-      camera_rotation.x += movementY * 0.1;
+  onmousemove = (e) => {
+    if (player_first_person) {
+      camera_rotation.y += 0.1 * e.movementX || 0;
+      camera_rotation.x += 0.1 * e.movementY || 0;
     }
   };
   hC.ontouchstart = (e) => {
@@ -841,9 +841,9 @@ let page_update = () => {
     if (!mainMenuVisible)
       for (const { pageX, pageY, identifier } of e.changedTouches) {
         if (touchRotIdentifier === identifier) {
+          touchRotMoved = 1;
           camera_rotation.x = touchStartCameraRotY + (pageY - touchRotY) / 2.3;
           camera_rotation.y = touchStartCameraRotX + (pageX - touchRotX) / 2.3;
-          touchRotMoved = 1;
         }
         if (touchPosIdentifier === identifier) {
           const deltaX = (touchPosStartX - pageX) / TOUCH_SIZE;
@@ -1858,11 +1858,20 @@ let eppur_si_muove = () => {
 const LIGHT_ROT_X = 298;
 const LIGHT_ROT_Y = 139;
 const startMainLoop = (groundTextureImage) => {
-  const camera_view = new DOMMatrix();
   const csm_tempMatrix = new DOMMatrix();
+  const camera_view = new DOMMatrix();
   const csm_lightSpaceMatrices = new Float32Array(32);
   const csm_tempFrustumCorners = [];
   const csm_framebuffer = gl["c5w"]();
+  const renderModels = (xgl, soulModelId, doNotRenderPlayer) => {
+    if (mainMenuVisible) {
+      if (hC.width > 1100)
+        xgl["d97"](4, allModels[MODEL_ID_PLAYER_LEG1].$vertexEnd - allModels[MODEL_ID_PLAYER_BODY].$vertexBegin, 5123, allModels[MODEL_ID_PLAYER_BODY].$vertexBegin * 2);
+    } else {
+      xgl["das"](4, allModels[soulModelId].$vertexEnd - allModels[soulModelId].$vertexBegin, 5123, allModels[soulModelId].$vertexBegin * 2, souls.length);
+      xgl["d97"](4, allModels[doNotRenderPlayer ? MODEL_ID_PLAYER_BODY : MODEL_ID_PLAYER_LEG1 + 1].$vertexBegin - 3, 5123, 6);
+    }
+  };
   const initShaderProgram = (xgl, sfsSource, vfsSource = code$3) => {
     const loadShader = (source, type) => {
       const shader = xgl["c6x"](type);
@@ -1876,15 +1885,6 @@ const startMainLoop = (groundTextureImage) => {
     xgl["abz"](program, loadShader(sfsSource, 35632));
     xgl["l8l"](program);
     return (name) => name ? uniforms[name] || (uniforms[name] = xgl["gan"](program, name)) : xgl["u7y"](program);
-  };
-  const renderModels = (xgl, soulModelId, doNotRenderPlayer) => {
-    if (mainMenuVisible) {
-      if (hC.width > 1100)
-        xgl["d97"](4, allModels[MODEL_ID_PLAYER_LEG1].$vertexEnd - allModels[MODEL_ID_PLAYER_BODY].$vertexBegin, 5123, allModels[MODEL_ID_PLAYER_BODY].$vertexBegin * 2);
-    } else {
-      xgl["das"](4, allModels[soulModelId].$vertexEnd - allModels[soulModelId].$vertexBegin, 5123, allModels[soulModelId].$vertexBegin * 2, souls.length);
-      xgl["d97"](4, allModels[doNotRenderPlayer ? MODEL_ID_PLAYER_BODY : MODEL_ID_PLAYER_LEG1 + 1].$vertexBegin - 3, 5123, 6);
-    }
   };
   const mainShader = initShaderProgram(gl, code$4);
   const collisionShader = initShaderProgram(cgl, code$2);
@@ -1901,18 +1901,17 @@ const startMainLoop = (groundTextureImage) => {
     gl["t2z"](3553, 10243, 33071);
     gl["t2z"](3553, 10242, 33071);
     return (roundingRadius) => {
-      gl["fas"](36160, 36096, 3553, texture, 0);
-      gl["c4s"](256);
-      matrixCopy().scale3dSelf(roundingRadius *= 1.1).multiplySelf(matrixCopy(csm_projections[split], csm_tempMatrix).multiplySelf(camera_view).invertSelf());
       let tx = 0;
       let ty = 0;
       let tz = 0;
-      for (let i = 0; i < 8; ++i) {
-        const p = csm_tempFrustumCorners[i] ||= {};
+      gl["fas"](36160, 36096, 3553, texture, 0);
+      gl["c4s"](256);
+      matrixCopy().scale3dSelf(roundingRadius *= 1.1).multiplySelf(matrixCopy(csm_projections[split], csm_tempMatrix).multiplySelf(camera_view).invertSelf());
+      for (let i = 0, j = 0; i < 8; ++i) {
         matrixTransformPoint(4 & i ? 1 : -1, 2 & i ? 1 : -1, 1 & i ? 1 : -1);
-        tx -= p.x = (matrixTransformPoint.x | 0) / (roundingRadius * matrixTransformPoint.w);
-        ty -= p.y = (matrixTransformPoint.y | 0) / (roundingRadius * matrixTransformPoint.w);
-        tz -= p.z = (matrixTransformPoint.z | 0) / (roundingRadius * matrixTransformPoint.w);
+        tx -= csm_tempFrustumCorners[j++] = (matrixTransformPoint.x | 0) / (roundingRadius * matrixTransformPoint.w);
+        ty -= csm_tempFrustumCorners[j++] = (matrixTransformPoint.y | 0) / (roundingRadius * matrixTransformPoint.w);
+        tz -= csm_tempFrustumCorners[j++] = (matrixTransformPoint.z | 0) / (roundingRadius * matrixTransformPoint.w);
       }
       matrixCopy().rotateSelf(LIGHT_ROT_X, LIGHT_ROT_Y).translateSelf(tx / 8, ty / 8, tz / 8);
       let right = -Infinity;
@@ -1921,9 +1920,8 @@ const startMainLoop = (groundTextureImage) => {
       let left = Infinity;
       let bottom = Infinity;
       let near = Infinity;
-      for (let i1 = 0; i1 < 8; ++i1) {
-        const { x, y, z } = csm_tempFrustumCorners[i1];
-        matrixTransformPoint(x, y, z);
+      for (let i1 = 0, j1 = 0; i1 < 8; ++i1) {
+        matrixTransformPoint(csm_tempFrustumCorners[j1++], csm_tempFrustumCorners[j1++], csm_tempFrustumCorners[j1++]);
         right = max(right, matrixTransformPoint.x);
         top = max(top, matrixTransformPoint.y);
         far = max(far, matrixTransformPoint.z);
@@ -1931,22 +1929,22 @@ const startMainLoop = (groundTextureImage) => {
         bottom = min(bottom, matrixTransformPoint.y);
         near = min(near, matrixTransformPoint.z);
       }
-      const zMultiplier = 10 + split;
-      near *= near < 0 ? zMultiplier : 1 / zMultiplier;
-      far *= far > 0 ? zMultiplier : 1 / zMultiplier;
+      tz = 10 + split;
+      near *= near < 0 ? tz : 1 / tz;
+      far *= far > 0 ? tz : 1 / tz;
       gl["uae"](mainShader(uniformName_viewMatrix), false, matrixToArray(matrixCopy(identity, csm_tempMatrix).scaleSelf(2 / (right - left), 2 / (top - bottom), 2 / (near - far)).translateSelf((right + left) / -2, (top + bottom) / -2, (near + far) / 2).multiplySelf(tempMatrix), csm_lightSpaceMatrices, split), 16 * split, 16);
     };
   });
   const mainLoop = (globalTime) => {
-    requestAnimationFrame(mainLoop);
     gameTimeUpdate(globalTime);
+    requestAnimationFrame(mainLoop);
     if (gameTimeDelta > 0) {
-      worldStateUpdate();
       page_update();
+      worldStateUpdate();
       eppur_si_muove();
+      cgl["u3a"](collisionShader(uniformName_worldTransforms), transformsBuffer);
       cgl["cbf"](true, true, true, true);
       cgl["c4s"](16640);
-      cgl["u3a"](collisionShader(uniformName_worldTransforms), transformsBuffer);
       cgl["cbf"](true, false, true, false);
       cgl["uae"](collisionShader(uniformName_viewMatrix), false, matrixToArray(matrixCopy().rotateSelf(0, 180).invertSelf().translateSelf(-player_position_final.x, -player_position_final.y, -player_position_final.z + 0.3)));
       renderModels(cgl, MODEL_ID_SOUL_COLLISION, 1);
@@ -2102,14 +2100,13 @@ loadStep(() => {
   };
   image.onload = end;
   image.src = groundTextureSvg;
-  const songLoaded = () => {
+  loadSong(() => {
     loadStep(() => {
       initTriangleBuffers();
       loadGame();
       loadStep(end);
     });
     build_life_the_universe_and_everything();
-  };
-  loadSong(songLoaded);
+  });
 });
 //# sourceMappingURL=index.js.map

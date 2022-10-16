@@ -392,7 +392,7 @@ const DEG_TO_RAD = Math.PI / 180,
   damp = NO_INLINE(speed => 1 - /* @__PURE__ */ Math.exp(-gameTimeDelta * speed)),
   lerpDamp = NO_INLINE((from, to, speed) => lerp(from, to, damp(speed))),
   loadStep = fn => {
-    h4.innerHTML += ".", setTimeout(fn);
+    setTimeout(fn), h4.innerHTML += ".";
   },
   loadSong = NO_INLINE(done => {
     let channelIndex = 0;
@@ -592,13 +592,17 @@ let page_update = () => {
         document.hidden && mainMenu(!0);
     },
     mainMenu = value => {
-      if (mainMenuVisible !== value) {
-        if (mainMenuVisible = value, handleResize(), document.body.className = value ? "l m" : "l", value) {
-          try {
-            document.exitFullscreen().catch(() => !1), document.exitPointerLock();
-          } catch {}
-        }
-        updateMusicOnState();
+      if (
+        mainMenuVisible !== value
+        && (mainMenuVisible = value,
+          handleResize(),
+          document.body.className = value ? "l m" : "l",
+          updateMusicOnState(),
+          value)
+      ) {
+        try {
+          document.exitFullscreen().catch(() => !1), document.exitPointerLock();
+        } catch {}
       }
     },
     start = firstPerson => {
@@ -616,19 +620,21 @@ let page_update = () => {
       gamepad.buttons[index]?.pressed || 0 < gamepad.buttons[index]?.value ? 1 : 0;
 
   oncontextmenu = () => !1,
-    b1.onclick = () => start(),
-    b2.onclick = () => start(1),
+    onclick = e => {
+      if (!mainMenuVisible && (e.target === hC && (interact_pressed = 1), player_first_person)) {
+        try {
+          hC.requestPointerLock();
+        } catch {}
+      }
+    },
     b5.onclick = () => mainMenu(!0),
+    b2.onclick = () => start(1),
+    b1.onclick = () => start(),
     b4.onclick = () => {
       music_on = !music_on, updateMusicOnState();
     },
     b3.onclick = () => {
       confirm("Restart game?") && resetGame();
-    },
-    onclick = e => {
-      if (!mainMenuVisible && (e.target === hC && (interact_pressed = 1), player_first_person)) {try {
-          hC.requestPointerLock();
-        } catch {}}
     },
     onkeyup = onkeydown = e => {
       let mapped;
@@ -649,12 +655,8 @@ let page_update = () => {
         (keyboard_downKeys[mapped] = !!e.type[5] && !0)
         && (mapped === 0 && (interact_pressed = 1), mapped === 1 && mainMenu(!0)));
     },
-    onmousemove = ({
-      movementX,
-      movementY,
-    }) => {
-      player_first_person && (movementX || movementY)
-        && (camera_rotation.y += 0.1 * movementX, camera_rotation.x += 0.1 * movementY);
+    onmousemove = e => {
+      player_first_person && (camera_rotation.y += 0.1 * e.movementX || 0, camera_rotation.x += 0.1 * e.movementY || 0);
     },
     hC.ontouchstart = e => {
       if (!mainMenuVisible) {
@@ -691,9 +693,9 @@ let page_update = () => {
         ) {
           var absDeltaX, deltaY, absDeltaY, m;
           touchRotIdentifier === identifier
-          && (camera_rotation.x = touchStartCameraRotY + (pageY - touchRotY) / 2.3,
-            camera_rotation.y = touchStartCameraRotX + (pageX - touchRotX) / 2.3,
-            touchRotMoved = 1),
+          && (touchRotMoved = 1,
+            camera_rotation.x = touchStartCameraRotY + (pageY - touchRotY) / 2.3,
+            camera_rotation.y = touchStartCameraRotX + (pageX - touchRotX) / 2.3),
             touchPosIdentifier === identifier
             && (identifier = (touchPosStartX - pageX) / 19,
               absDeltaX = abs(identifier),
@@ -1301,24 +1303,6 @@ loadStep(() => {
   const end = () => {
       if (++loadStatus == 2) {
         const csm_tempFrustumCorners = [],
-          initShaderProgram = (
-            xgl,
-            sfsSource,
-            vfsSource = `#version 300 es
-layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 b,a;uniform vec4 j[190];void main(){mat4 r=mat4(1);lowp int i=int(f.w);if(l=d,m=vec4(f.xyz,1),f.w>1.&&f.w<28.)m+=(r[3]=j[i+162]);else if(f.w!=1.){if(i=(i<1?gl_InstanceID-i:i-28)*4,r[0]=j[i],r[1]=j[i+1],r[2]=j[i+2],r[3]=j[i+3],l.w==0.)l=mix(vec4(1,.5,.2,0),l,r[3][3]);r[3][3]=1.,m=r*m;}gl_Position=a*b*m,m.w=f.w,o=r*vec4(e,0),n=f;}`,
-          ) => {
-            const uniforms = {},
-              loadShader = (
-                source,
-                type,
-              ) => (type = xgl["c6x"](type), xgl["s3c"](type, source), xgl["c6a"](type), type),
-              program = xgl["c1h"]();
-
-            return xgl["abz"](program, loadShader(vfsSource, 35633)),
-              xgl["abz"](program, loadShader(sfsSource, 35632)),
-              xgl["l8l"](program),
-              name => name ? uniforms[name] || (uniforms[name] = xgl["gan"](program, name)) : xgl["u7y"](program);
-          },
           renderModels = (xgl, soulModelId, doNotRenderPlayer) => {
             mainMenuVisible
               ? 1100 < hC.width
@@ -1337,27 +1321,45 @@ layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec
               ),
                 xgl["d97"](4, allModels[doNotRenderPlayer ? 53 : 56].$vertexBegin - 3, 5123, 6));
           },
+          initShaderProgram = (
+            xgl,
+            sfsSource,
+            vfsSource = `#version 300 es
+layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec4 d;out vec4 o,m,n,l;uniform mat4 b,a;uniform vec4 j[190];void main(){mat4 r=mat4(1);lowp int i=int(f.w);if(l=d,m=vec4(f.xyz,1),f.w>1.&&f.w<28.)m+=(r[3]=j[i+162]);else if(f.w!=1.){if(i=(i<1?gl_InstanceID-i:i-28)*4,r[0]=j[i],r[1]=j[i+1],r[2]=j[i+2],r[3]=j[i+3],l.w==0.)l=mix(vec4(1,.5,.2,0),l,r[3][3]);r[3][3]=1.,m=r*m;}gl_Position=a*b*m,m.w=f.w,o=r*vec4(e,0),n=f;}`,
+          ) => {
+            const uniforms = {},
+              loadShader = (
+                source,
+                type,
+              ) => (type = xgl["c6x"](type), xgl["s3c"](type, source), xgl["c6a"](type), type),
+              program = xgl["c1h"]();
+
+            return xgl["abz"](program, loadShader(vfsSource, 35633)),
+              xgl["abz"](program, loadShader(sfsSource, 35632)),
+              xgl["l8l"](program),
+              name => name ? uniforms[name] || (uniforms[name] = xgl["gan"](program, name)) : xgl["u7y"](program);
+          },
           mainLoop = globalTime => {
-            requestAnimationFrame(mainLoop);
             const dt = (globalTime - (_globalTime || globalTime)) / 1e3;
             absoluteTime += dt,
               gameTime += gameTimeDelta = mainMenuVisible ? 0 : min(0.055, dt),
               _globalTime = globalTime,
+              requestAnimationFrame(mainLoop),
               0 < gameTimeDelta
-              && (secondBoatLerp = lerpDamp(
-                secondBoatLerp,
-                levers[15].$lerpValue2,
-                0.2 + 0.3 * abs(2 * levers[15].$lerpValue2 - 1),
-              ),
+              && (page_update(),
+                secondBoatLerp = lerpDamp(
+                  secondBoatLerp,
+                  levers[15].$lerpValue2,
+                  0.2 + 0.3 * abs(2 * levers[15].$lerpValue2 - 1),
+                ),
                 firstBoatLerp = game_completed
                   ? (player_first_person = 0, lerpDamp(firstBoatLerp, -9, 0.015))
                   : lerpDamp(firstBoatLerp, clamp(gameTime / 3), 1),
                 _messageEndTime && gameTime > _messageEndTime && (_messageEndTime = 0, h4.innerHTML = ""),
-                page_update(),
                 eppur_si_muove(),
+                cgl["u3a"](collisionShader("j"), transformsBuffer),
                 cgl["cbf"](!0, !0, !0, !0),
                 cgl["c4s"](16640),
-                cgl["u3a"](collisionShader("j"), transformsBuffer),
                 cgl["cbf"](!0, !1, !0, !1),
                 cgl["uae"](
                   collisionShader("b"),
@@ -1430,8 +1432,8 @@ layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec
               gl["ubu"](skyShader("j"), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime),
               gl["d97"](4, 3, 5123, 0);
           },
-          camera_view = new DOMMatrix(),
           csm_tempMatrix = new DOMMatrix(),
+          camera_view = new DOMMatrix(),
           csm_lightSpaceMatrices = new Float32Array(32),
           groundTextureImage = image,
           csm_framebuffer = gl["c5w"](),
@@ -1479,23 +1481,24 @@ in vec4 f;void main(){gl_Position=vec4(f.xy,1,1);}`,
                     matrixCopy(csm_projections[split], csm_tempMatrix).multiplySelf(camera_view).invertSelf(),
                   );
 
-                for (let i = 0; i < 8; ++i) {
-                  const p = csm_tempFrustumCorners[i] ||= {};
+                for (let i = 0, j = 0; i < 8; ++i) {
                   matrixTransformPoint(4 & i ? 1 : -1, 2 & i ? 1 : -1, 1 & i ? 1 : -1),
-                    tx -= p.x = (0 | matrixTransformPoint.x) / (roundingRadius * matrixTransformPoint.w),
-                    ty -= p.y = (0 | matrixTransformPoint.y) / (roundingRadius * matrixTransformPoint.w),
-                    tz -= p.z = (0 | matrixTransformPoint.z) / (roundingRadius * matrixTransformPoint.w);
+                    tx -= csm_tempFrustumCorners[j++] = (0 | matrixTransformPoint.x)
+                      / (roundingRadius * matrixTransformPoint.w),
+                    ty -= csm_tempFrustumCorners[j++] = (0 | matrixTransformPoint.y)
+                      / (roundingRadius * matrixTransformPoint.w),
+                    tz -= csm_tempFrustumCorners[j++] = (0 | matrixTransformPoint.z)
+                      / (roundingRadius * matrixTransformPoint.w);
                 }
 
                 matrixCopy().rotateSelf(298, 139).translateSelf(tx / 8, ty / 8, tz / 8);
 
-                for (let i1 = 0; i1 < 8; ++i1) {
-                  const {
-                    x,
-                    y,
-                    z,
-                  } = csm_tempFrustumCorners[i1];
-                  matrixTransformPoint(x, y, z),
+                for (let i1 = 0, j1 = 0; i1 < 8; ++i1) {
+                  matrixTransformPoint(
+                    csm_tempFrustumCorners[j1++],
+                    csm_tempFrustumCorners[j1++],
+                    csm_tempFrustumCorners[j1++],
+                  ),
                     right = max(right, matrixTransformPoint.x),
                     top = max(top, matrixTransformPoint.y),
                     far = max(far, matrixTransformPoint.z),
@@ -1504,9 +1507,9 @@ in vec4 f;void main(){gl_Position=vec4(f.xy,1,1);}`,
                     near = min(near, matrixTransformPoint.z);
                 }
 
-                const zMultiplier = 10 + split;
-                near *= near < 0 ? zMultiplier : 1 / zMultiplier,
-                  far *= 0 < far ? zMultiplier : 1 / zMultiplier,
+                tz = 10 + split,
+                  near *= near < 0 ? tz : 1 / tz,
+                  far *= 0 < far ? tz : 1 / tz,
                   gl["uae"](
                     mainShader("b"),
                     !1,

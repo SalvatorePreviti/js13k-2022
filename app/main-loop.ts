@@ -25,7 +25,6 @@ import { integers_map } from "./math/integers-map";
 import { identity, matrixCopy, matrixToArray, matrixTransformPoint, tempMatrix } from "./math/matrix";
 import { eppur_si_muove } from "./game/level-update";
 import { max, min } from "./math/math";
-import type { Vec3 } from "./math/vectors";
 import { player_init, camera_position_x, camera_position_y, camera_position_z } from "./game/player";
 import {
   MODEL_ID_PLAYER_BODY,
@@ -48,44 +47,13 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   const camera_view = new DOMMatrix();
 
   const csm_lightSpaceMatrices = new Float32Array(2 * 16);
-  const csm_tempFrustumCorners: Vec3[] = [{}, {}, {}, {}, {}, {}, {}, {}] as any;
+  const csm_tempFrustumCorners: number[] = [];
   const csm_framebuffer = gl.createFramebuffer();
 
   interface WebglProgramAbstraction {
     (name: string): WebGLUniformLocation;
     (): void;
   }
-
-  const initShaderProgram = (
-    xgl: WebGL2RenderingContext,
-    sfsSource: string,
-    vfsSource: string = main_vsSource,
-  ): WebglProgramAbstraction => {
-    const loadShader = (source: string, type: number): WebGLShader => {
-      const shader = xgl.createShader(type)!;
-      xgl.shaderSource(shader, source);
-      xgl.compileShader(shader);
-
-      if (DEBUG && !xgl.getShaderParameter(shader, xgl.COMPILE_STATUS)) {
-        throw new Error("An error occurred compiling the shaders: " + xgl.getShaderInfoLog(shader));
-      }
-
-      return shader;
-    };
-
-    const uniforms: Record<string, WebGLUniformLocation> = {};
-    const program = xgl.createProgram()!;
-    xgl.attachShader(program, loadShader(vfsSource, xgl.VERTEX_SHADER));
-    xgl.attachShader(program, loadShader(sfsSource, xgl.FRAGMENT_SHADER));
-    xgl.linkProgram(program);
-
-    if (DEBUG && !xgl.getProgramParameter(program, xgl.LINK_STATUS)) {
-      throw new Error("Unable to initialize the shader program: " + xgl.getProgramInfoLog(program));
-    }
-
-    return (name?: string): any =>
-      name ? uniforms[name] || (uniforms[name] = xgl.getUniformLocation(program, name)!) : xgl.useProgram(program);
-  };
 
   const renderModels = (
     xgl: WebGL2RenderingContext,
@@ -122,6 +90,37 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     }
   };
 
+  const initShaderProgram = (
+    xgl: WebGL2RenderingContext,
+    sfsSource: string,
+    vfsSource: string = main_vsSource,
+  ): WebglProgramAbstraction => {
+    const loadShader = (source: string, type: number): WebGLShader => {
+      const shader = xgl.createShader(type)!;
+      xgl.shaderSource(shader, source);
+      xgl.compileShader(shader);
+
+      if (DEBUG && !xgl.getShaderParameter(shader, xgl.COMPILE_STATUS)) {
+        throw new Error("An error occurred compiling the shaders: " + xgl.getShaderInfoLog(shader));
+      }
+
+      return shader;
+    };
+
+    const uniforms: Record<string, WebGLUniformLocation> = {};
+    const program = xgl.createProgram()!;
+    xgl.attachShader(program, loadShader(vfsSource, xgl.VERTEX_SHADER));
+    xgl.attachShader(program, loadShader(sfsSource, xgl.FRAGMENT_SHADER));
+    xgl.linkProgram(program);
+
+    if (DEBUG && !xgl.getProgramParameter(program, xgl.LINK_STATUS)) {
+      throw new Error("Unable to initialize the shader program: " + xgl.getProgramInfoLog(program));
+    }
+
+    return (name?: string): any =>
+      name ? uniforms[name] || (uniforms[name] = xgl.getUniformLocation(program, name)!) : xgl.useProgram(program);
+  };
+
   const mainShader = initShaderProgram(gl, main_fsSource);
   const collisionShader = initShaderProgram(cgl, collider_fsSource);
   const skyShader = initShaderProgram(gl, sky_fsSource, sky_vsSource);
@@ -149,6 +148,10 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 
     return (roundingRadius: number) => {
+      let tx = 0;
+      let ty = 0;
+      let tz = 0;
+
       gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, texture, 0);
       gl.clear(gl.DEPTH_BUFFER_BIT);
 
@@ -156,17 +159,12 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
         .scale3dSelf((roundingRadius *= 1.1))
         .multiplySelf(matrixCopy(csm_projections[split], csm_tempMatrix).multiplySelf(camera_view).invertSelf());
 
-      let tx = 0;
-      let ty = 0;
-      let tz = 0;
-
-      for (let i = 0; i < 8; ++i) {
-        const p = csm_tempFrustumCorners[i]!;
+      for (let i = 0, j = 0; i < 8; ++i) {
         matrixTransformPoint(4 & i ? 1 : -1, 2 & i ? 1 : -1, 1 & i ? 1 : -1);
         // Round to reduce shimmering
-        tx -= p.x = (matrixTransformPoint.x | 0) / (roundingRadius * matrixTransformPoint.w);
-        ty -= p.y = (matrixTransformPoint.y | 0) / (roundingRadius * matrixTransformPoint.w);
-        tz -= p.z = (matrixTransformPoint.z | 0) / (roundingRadius * matrixTransformPoint.w);
+        tx -= csm_tempFrustumCorners[j++] = (matrixTransformPoint.x | 0) / (roundingRadius * matrixTransformPoint.w);
+        ty -= csm_tempFrustumCorners[j++] = (matrixTransformPoint.y | 0) / (roundingRadius * matrixTransformPoint.w);
+        tz -= csm_tempFrustumCorners[j++] = (matrixTransformPoint.z | 0) / (roundingRadius * matrixTransformPoint.w);
       }
 
       matrixCopy()
@@ -181,9 +179,8 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
       let near = Infinity;
 
       // Compute the frustum bouding box
-      for (let i = 0; i < 8; ++i) {
-        const { x, y, z } = csm_tempFrustumCorners[i]!;
-        matrixTransformPoint(x, y, z);
+      for (let i = 0, j = 0; i < 8; ++i) {
+        matrixTransformPoint(csm_tempFrustumCorners[j++], csm_tempFrustumCorners[j++], csm_tempFrustumCorners[j++]);
         right = max(right, matrixTransformPoint.x);
         top = max(top, matrixTransformPoint.y);
         far = max(far, matrixTransformPoint.z);
@@ -192,9 +189,9 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
         near = min(near, matrixTransformPoint.z);
       }
 
-      const zMultiplier = 10 + split;
-      near *= near < 0 ? zMultiplier : 1 / zMultiplier;
-      far *= far > 0 ? zMultiplier : 1 / zMultiplier;
+      tz = 10 + split;
+      near *= near < 0 ? tz : 1 / tz;
+      far *= far > 0 ? tz : 1 / tz;
 
       // Build the ortographic matrix, multiply it with the light space view matrix.
 
@@ -216,27 +213,26 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
   });
 
   const mainLoop = (globalTime: number) => {
-    requestAnimationFrame(mainLoop);
-
     gameTimeUpdate(globalTime);
 
-    if (gameTimeDelta > 0) {
-      worldStateUpdate();
+    requestAnimationFrame(mainLoop);
 
+    if (gameTimeDelta > 0) {
       page_update();
+
+      worldStateUpdate();
 
       eppur_si_muove();
 
       // *** COLLISION RENDERER ***
 
-      cgl.colorMask(true, true, true, true);
-      cgl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
       cgl.uniform4fv(collisionShader(uniformName_worldTransforms), transformsBuffer);
 
-      // first collision render
-
+      cgl.colorMask(true, true, true, true);
+      cgl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
       cgl.colorMask(true, false, true, false);
+
+      // first collision render
 
       cgl.uniformMatrix4fv(
         collisionShader(uniformName_viewMatrix),
@@ -255,6 +251,7 @@ export const startMainLoop = (groundTextureImage: HTMLImageElement) => {
 
       cgl.clear(gl.DEPTH_BUFFER_BIT);
       cgl.colorMask(false, true, false, true);
+
       cgl.uniformMatrix4fv(
         collisionShader(uniformName_viewMatrix),
         false,

@@ -106,13 +106,13 @@ export let page_update = () => {
       setMainMenuVisible(value);
       handleResize();
       document.body.className = value ? "l m" : "l";
+      updateMusicOnState();
       if (value) {
         try {
           document.exitFullscreen().catch(() => false);
           document.exitPointerLock();
         } catch {}
       }
-      updateMusicOnState();
     }
   };
 
@@ -142,14 +142,27 @@ export let page_update = () => {
     oncontextmenu = () => false;
   }
 
-  // "Play" button
-  b1.onclick = () => start();
+  onclick = (e) => {
+    if (!mainMenuVisible) {
+      if (e.target === hC) {
+        interact_pressed = 1;
+      }
+      if (player_first_person) {
+        try {
+          hC.requestPointerLock();
+        } catch {}
+      }
+    }
+  };
+
+  // Menu hamburger button
+  b5.onclick = () => mainMenu(true);
 
   // "Play first person" button
   b2.onclick = () => start(1);
 
-  // Menu hamburger button
-  b5.onclick = () => mainMenu(true);
+  // "Play" button
+  b1.onclick = () => start();
 
   // "Music" button
   b4.onclick = () => {
@@ -162,19 +175,6 @@ export let page_update = () => {
     // eslint-disable-next-line no-alert
     if (confirm("Restart game?")) {
       resetGame();
-    }
-  };
-
-  onclick = (e) => {
-    if (!mainMenuVisible) {
-      if (e.target === hC) {
-        interact_pressed = 1;
-      }
-      if (player_first_person) {
-        try {
-          hC.requestPointerLock();
-        } catch {}
-      }
     }
   };
 
@@ -217,10 +217,10 @@ export let page_update = () => {
     }
   };
 
-  onmousemove = ({ movementX, movementY }) => {
-    if (player_first_person && (movementX || movementY)) {
-      camera_rotation.y += movementX * 0.1;
-      camera_rotation.x += movementY * 0.1;
+  onmousemove = (e) => {
+    if (player_first_person) {
+      camera_rotation.y += 0.1 * e.movementX || 0;
+      camera_rotation.x += 0.1 * e.movementY || 0;
     }
   };
 
@@ -255,9 +255,9 @@ export let page_update = () => {
     if (!mainMenuVisible) {
       for (const { pageX, pageY, identifier } of e.changedTouches) {
         if (touchRotIdentifier === identifier) {
+          touchRotMoved = 1;
           camera_rotation.x = touchStartCameraRotY! + (pageY - touchRotY!) / 2.3;
           camera_rotation.y = touchStartCameraRotX! + (pageX - touchRotX!) / 2.3;
-          touchRotMoved = 1;
         }
         if (touchPosIdentifier === identifier) {
           const deltaX = (touchPosStartX! - pageX) / TOUCH_SIZE;

@@ -44,20 +44,14 @@ loadStep(() => {
   image.onload = end;
   image.src = groundTextureSvg;
 
-  const songLoaded = () => {
+  loadSong(() => {
     loadStep(() => {
       initTriangleBuffers();
       loadGame();
       loadStep(end);
     });
     build_life_the_universe_and_everything();
-  };
-
-  if (DEBUG && DEBUG_FLAG1) {
-    songLoaded();
-  } else {
-    loadSong(songLoaded);
-  }
+  });
 
   if (DEBUG) {
     console.timeEnd("boot");
