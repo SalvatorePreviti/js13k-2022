@@ -578,8 +578,8 @@ let page_update = () => {
     },
     handleResize = () => {
       const mx = (hC.height = innerHeight) / (hC.width = innerWidth) * 1.732051;
-      csm_projections = [mat_perspective(0.3, 55, mx, 1.732051), mat_perspective(55, 181, mx, 1.732051)],
-        projection = mat_perspective(0.3, 181, mx, 1.732051),
+      projection = mat_perspective(0.3, 181, mx, 1.732051),
+        csm_projections = [mat_perspective(0.3, 55, mx, 1.732051), mat_perspective(55, 181, mx, 1.732051)],
         touchPosIdentifier = touchRotIdentifier = void 0,
         keyboard_downKeys.length =
           interact_pressed =
@@ -595,7 +595,7 @@ let page_update = () => {
       if (mainMenuVisible !== value) {
         if (mainMenuVisible = value, handleResize(), document.body.className = value ? "l m" : "l", value) {
           try {
-            document.exitFullscreen().catch(() => 0), document.exitPointerLock();
+            document.exitFullscreen().catch(() => !1), document.exitPointerLock();
           } catch {}
         }
         updateMusicOnState();
@@ -607,7 +607,7 @@ let page_update = () => {
         || (audioContext = new AudioContext(),
           (songAudioSource = audioContext.createBufferSource()).buffer = audioBuffer,
           songAudioSource.loop = !0,
-          songAudioSource.start()), document.body.requestFullscreen().catch(() => 0);
+          songAudioSource.start()), document.body.requestFullscreen().catch(() => !1);
       } catch {}
 
       mainMenu(!1), player_first_person = firstPerson;
@@ -888,7 +888,233 @@ const showMessage = (message, duration) => {
   modelsNextUpdate = (x, y = 0, z = 0) => {
     const m = matrixCopy(identity, allModels[++modelsUpdateCounter].$matrix);
     return m.m41 = x, m.m42 = y, m.m43 = z, m;
-  };
+  },
+  player_init = NO_INLINE(() => {
+    let player_look_angle_target,
+      player_look_angle,
+      player_legs_speed,
+      player_on_rotating_platforms,
+      player_fly_velocity_x,
+      player_fly_velocity_z,
+      player_speed,
+      player_speed_collision_limiter,
+      player_model_y,
+      currentModelId,
+      camera_pos_lookat_x,
+      camera_pos_lookat_y,
+      camera_pos_lookat_z,
+      player_position_global_x,
+      player_position_global_y,
+      player_position_global_z,
+      oldModelId = 0,
+      boot = 1,
+      player_respawned = 2,
+      player_gravity = 15;
+
+    const interpolate_with_hysteresis = (previous, desired, hysteresis, speed) =>
+        lerp(
+          previous,
+          desired,
+          boot || (clamp(abs(desired - previous) ** 0.5 - hysteresis) + 1 / 7) * damp(1.5 * speed),
+        ),
+      loadReferenceMatrix = () =>
+        matrixCopy(
+          (player_respawned ? levers[player_last_pulled_lever] : allModels[oldModelId !== 28 ? oldModelId : 0]).$matrix,
+        ),
+      updatePlayerPositionFinal = updateVelocity => {
+        1 < player_respawned
+          ? (matrixCopy(levers[player_last_pulled_lever].$matrix).multiplySelf(
+            levers[player_last_pulled_lever].$transform,
+          ),
+            matrixTransformPoint(0, 0.9 < firstBoatLerp ? 15 : 1, -2.4))
+          : (loadReferenceMatrix(),
+            matrixTransformPoint(player_position_global_x, player_position_global_y, player_position_global_z)),
+          updateVelocity
+          && (player_fly_velocity_x = (matrixTransformPoint.x - player_position_final.x) / gameTimeDelta,
+            player_fly_velocity_z = (matrixTransformPoint.z - player_position_final.z) / gameTimeDelta),
+          player_position_final.x = matrixTransformPoint.x,
+          player_position_final.y = matrixTransformPoint.y,
+          player_position_final.z = matrixTransformPoint.z;
+      },
+      movePlayer = (mx, my, mz) => {
+        loadReferenceMatrix().invertSelf(),
+          matrixTransformPoint(mx, my, mz, 0),
+          player_position_global_x += matrixTransformPoint.x,
+          player_position_global_y += my,
+          player_position_global_z += matrixTransformPoint.z,
+          updatePlayerPositionFinal();
+      },
+      doCollisions = NO_INLINE(() => {
+        let modelACount = 0,
+          modelB = 0,
+          modelBCount = 0,
+          movY = 0,
+          movX = 0,
+          movZ = 0,
+          lineToProcess = -1;
+
+        for (let y = 0; y < 36; ++y) {
+          for (let x = 96, yindex = 512 * y; x < 416; x += 4) {
+            for (let k = 0; k < 2; ++k) {
+              const v = collision_buffer[yindex + x + k],
+                m = collision_buffer[yindex + x + k + 2];
+              v > movY && (movY = v),
+                v + m && (lineToProcess < 0 || lineToProcess === y)
+                && (lineToProcess = y,
+                  m === currentModelId ? ++modelACount : modelB && modelB !== m || (modelB = m, ++modelBCount));
+            }
+          }
+        }
+
+        currentModelId = lineToProcess < 0 ? 0 : modelBCount > 2 * modelACount ? modelB : currentModelId;
+
+        for (let y1 = 36; y1 < 128; ++y1) {
+          let left = 0,
+            right = 0,
+            front = 0,
+            back = 0;
+
+          for (let tx = 0, yindex1 = 512 * y1; tx < 128; ++tx) {
+            let index = yindex1 + 4 * tx,
+              v1 = collision_buffer[index];
+            tx < 64 ? v1 > left && (left = v1) : v1 > right && (right = v1),
+              (v1 = collision_buffer[2 + index]) > front && (front = v1),
+              v1 = collision_buffer[1 + index],
+              64 < tx ? v1 > left && (left = v1) : v1 > right && (right = v1),
+              (v1 = collision_buffer[3 + index]) > back && (back = v1);
+          }
+
+          (right -= left) * right > movX * movX && (movX = right),
+            (back -= front) * back > movZ * movZ && (movZ = back);
+        }
+
+        player_speed_collision_limiter = clamp(1 - 0.01 * max(abs(movX *= 0.7), abs(movZ)), 0.3),
+          movePlayer(movX / 255, movY / 255, movZ / 255);
+      });
+
+    player_update = () => {
+      updatePlayerPositionFinal(currentModelId),
+        cgl["r9r"](0, 0, 128, 128, 6408, 5121, collision_buffer),
+        doCollisions(),
+        !player_respawned && currentModelId === oldModelId
+        || (oldModelId = currentModelId,
+          loadReferenceMatrix().invertSelf(),
+          matrixTransformPoint(player_position_final.x, player_position_final.y, player_position_final.z),
+          player_position_global_x = matrixTransformPoint.x,
+          player_position_global_y = matrixTransformPoint.y,
+          player_position_global_z = matrixTransformPoint.z,
+          player_respawned = player_respawned && (currentModelId ? 0 : 1)),
+        (player_position_final.x < -20 || player_position_final.z < 109 ? -25 : -9) > player_position_final.y
+        && (player_respawned = 2),
+        currentModelId === 1
+        && (levers[15].$value = player_position_final.x < -15 && player_position_final.z < 0 ? 1 : 0),
+        player_on_rotating_platforms = lerpDamp(
+          player_on_rotating_platforms,
+          shouldRotatePlatforms * (30 < currentModelId && currentModelId < 35),
+          2,
+        ),
+        camera_pos_lookat_x = interpolate_with_hysteresis(camera_pos_lookat_x, player_position_final.x, 0.5, 1),
+        camera_pos_lookat_y = interpolate_with_hysteresis(
+          camera_pos_lookat_y,
+          player_model_y = lerp(
+            lerpDamp(player_model_y, player_position_final.y, 2),
+            player_position_final.y,
+            player_respawned || 8 * abs(player_model_y - player_position_final.y),
+          ),
+          2,
+          1,
+        ),
+        camera_pos_lookat_z = interpolate_with_hysteresis(camera_pos_lookat_z, player_position_final.z, 0.5, 1),
+        player_first_person
+          ? (d = player_respawned + damp(18),
+            camera_position_x = lerp(camera_position_x, player_position_final.x, d),
+            camera_position_z = lerp(camera_position_z, player_position_final.z, d),
+            camera_position_y = lerp(camera_position_y, 1.6 + player_model_y, d),
+            camera_rotation.y = angle_wrap_degrees(camera_rotation.y))
+          : (camera_position_x = interpolate_with_hysteresis(
+            camera_position_x,
+            camera_pos_lookat_x,
+            1,
+            2 + player_on_rotating_platforms,
+          ),
+            camera_position_z = interpolate_with_hysteresis(
+              camera_position_z,
+              camera_pos_lookat_z + -18 + 5 * player_on_rotating_platforms,
+              1,
+              2 + player_on_rotating_platforms,
+            ),
+            camera_position_y = interpolate_with_hysteresis(
+              camera_position_y,
+              max(
+                camera_pos_lookat_y + clamp((-60 - player_position_final.z) / 8, 0, 20) + 13
+                  + 9 * player_on_rotating_platforms,
+                6,
+              ),
+              4,
+              2,
+            ),
+            d = min(-6, -abs(camera_pos_lookat_z - camera_position_z)),
+            viewDirDiffx = camera_pos_lookat_x - camera_position_x,
+            camera_rotation.y = angle_lerp_degrees(
+              camera_rotation.y,
+              90 - angle_wrap_degrees(/* @__PURE__ */ Math.atan2(d, viewDirDiffx) / DEG_TO_RAD),
+              boot + damp(10),
+            ),
+            camera_rotation.x = angle_lerp_degrees(
+              camera_rotation.x,
+              90
+                - /* @__PURE__ */ Math.atan2(hypot(d, viewDirDiffx), camera_position_y - camera_pos_lookat_y)
+                  / DEG_TO_RAD,
+              boot + damp(10),
+            )),
+        camera_rotation.x = clamp(camera_rotation.x, -87, 87),
+        boot = 0;
+      var d = clamp(input_forward, -1),
+        viewDirDiffx = clamp(input_strafe, -1),
+        movAmount = threshold(hypot(d, viewDirDiffx) ** 0.5, 0.1),
+        movAngle = /* @__PURE__ */ Math.atan2(d, viewDirDiffx);
+      movAmount && (player_look_angle_target = 90 - movAngle / DEG_TO_RAD),
+        player_legs_speed = lerpDamp(player_legs_speed, movAmount, 10),
+        modelsNextUpdate(
+          player_position_final.x,
+          0.06 * player_speed_collision_limiter * player_legs_speed * /* @__PURE__ */ Math.cos(18.2 * gameTime)
+            + player_model_y,
+          player_position_final.z,
+        ).rotateSelf(0, player_look_angle = angle_lerp_degrees(player_look_angle, player_look_angle_target, damp(8)));
+
+      for (let i = 0; i < 2; ++i) {
+        const t = 9.1 * gameTime - Math.PI * i;
+        matrixCopy(allModels[53].$matrix, modelsNextUpdate(0)).translateSelf(
+          0,
+          player_legs_speed * clamp(0.45 * /* @__PURE__ */ Math.sin(t - Math.PI / 2)),
+        ).rotateSelf(player_legs_speed * /* @__PURE__ */ Math.sin(t) * 0.25 / DEG_TO_RAD, 0);
+      }
+
+      player_gravity = currentModelId
+        ? 5
+        : lerpDamp(player_gravity, player_respawned ? 13 : 19 - 2 * min(0, player_position_final.y + 10), 2.2),
+        player_fly_velocity_x = currentModelId || player_respawned ? 0 : lerpDamp(player_fly_velocity_x, 0, 3),
+        player_fly_velocity_z = currentModelId || player_respawned ? 0 : lerpDamp(player_fly_velocity_z, 0, 3),
+        d = (player_speed = player_respawned
+          ? 0
+          : lerpDamp(
+            player_speed,
+            currentModelId ? 7 * clamp(2 * movAmount) * player_speed_collision_limiter : 0,
+            currentModelId ? 9 : 1,
+          )) * movAmount * abs(d) * /* @__PURE__ */ Math.sin(movAngle),
+        viewDirDiffx = player_speed * movAmount * abs(viewDirDiffx) * /* @__PURE__ */ Math.cos(movAngle),
+        movAngle = player_first_person ? (180 + camera_rotation.y) * DEG_TO_RAD : 0,
+        movePlayer(
+          gameTimeDelta
+            * (player_fly_velocity_x
+              + (/* @__PURE__ */ Math.cos(movAngle) * viewDirDiffx - /* @__PURE__ */ Math.sin(movAngle) * d)),
+          gameTimeDelta * -player_gravity,
+          gameTimeDelta
+            * (player_fly_velocity_z
+              + (/* @__PURE__ */ Math.sin(movAngle) * viewDirDiffx + /* @__PURE__ */ Math.cos(movAngle) * d)),
+        );
+    };
+  });
 
 let eppur_si_muove = () => {
   let rotatingPlatform1Rotation, rotatingPlatform2Rotation, rotatingHexCorridorRotation;
@@ -1074,7 +1300,7 @@ loadStep(() => {
 
   const end = () => {
       if (++loadStatus == 2) {
-        const csm_tempFrustumCorners = [{}, {}, {}, {}, {}, {}, {}, {}],
+        const csm_tempFrustumCorners = [],
           initShaderProgram = (
             xgl,
             sfsSource,
@@ -1204,8 +1430,8 @@ layout(location=0)in vec4 f;layout(location=1)in vec3 e;layout(location=2)in vec
               gl["ubu"](skyShader("j"), gl.drawingBufferWidth, gl.drawingBufferHeight, absoluteTime),
               gl["d97"](4, 3, 5123, 0);
           },
-          csm_tempMatrix = new DOMMatrix(),
           camera_view = new DOMMatrix(),
+          csm_tempMatrix = new DOMMatrix(),
           csm_lightSpaceMatrices = new Float32Array(32),
           groundTextureImage = image,
           csm_framebuffer = gl["c5w"](),
@@ -1254,7 +1480,7 @@ in vec4 f;void main(){gl_Position=vec4(f.xy,1,1);}`,
                   );
 
                 for (let i = 0; i < 8; ++i) {
-                  const p = csm_tempFrustumCorners[i];
+                  const p = csm_tempFrustumCorners[i] ||= {};
                   matrixTransformPoint(4 & i ? 1 : -1, 2 & i ? 1 : -1, 1 & i ? 1 : -1),
                     tx -= p.x = (0 | matrixTransformPoint.x) / (roundingRadius * matrixTransformPoint.w),
                     ty -= p.y = (0 | matrixTransformPoint.y) / (roundingRadius * matrixTransformPoint.w),
@@ -1322,238 +1548,10 @@ in vec4 f;void main(){gl_Position=vec4(f.xy,1,1);}`,
           cgl["e8z"](2884),
           cgl["v5y"](0, 0, 128, 128),
           collisionShader(),
-          cgl["uae"](collisionShader("a"), !1, matrixToArray(mat_perspective(1e-4, 2, 1.2, 0.4)));
-        {
-          let player_look_angle_target,
-            player_look_angle,
-            player_legs_speed,
-            player_on_rotating_platforms,
-            player_fly_velocity_x,
-            player_fly_velocity_z,
-            player_speed,
-            player_speed_collision_limiter,
-            player_model_y,
-            currentModelId,
-            camera_pos_lookat_x,
-            camera_pos_lookat_y,
-            camera_pos_lookat_z,
-            player_position_global_x,
-            player_position_global_y,
-            player_position_global_z,
-            oldModelId = 0,
-            boot = 1,
-            player_respawned = 2,
-            player_gravity = 15;
-
-          const interpolate_with_hysteresis = (previous, desired, hysteresis, speed) =>
-              lerp(
-                previous,
-                desired,
-                boot || (clamp(abs(desired - previous) ** 0.5 - hysteresis) + 1 / 7) * damp(1.5 * speed),
-              ),
-            loadReferenceMatrix = () =>
-              matrixCopy(
-                (player_respawned ? levers[player_last_pulled_lever] : allModels[oldModelId !== 28 ? oldModelId : 0])
-                  .$matrix,
-              ),
-            updatePlayerPositionFinal = updateVelocity => {
-              1 < player_respawned
-                ? (matrixCopy(levers[player_last_pulled_lever].$matrix).multiplySelf(
-                  levers[player_last_pulled_lever].$transform,
-                ),
-                  matrixTransformPoint(0, 0.9 < firstBoatLerp ? 15 : 1, -2.4))
-                : (loadReferenceMatrix(),
-                  matrixTransformPoint(player_position_global_x, player_position_global_y, player_position_global_z)),
-                updateVelocity
-                && (player_fly_velocity_x = (matrixTransformPoint.x - player_position_final.x) / gameTimeDelta,
-                  player_fly_velocity_z = (matrixTransformPoint.z - player_position_final.z) / gameTimeDelta),
-                player_position_final.x = matrixTransformPoint.x,
-                player_position_final.y = matrixTransformPoint.y,
-                player_position_final.z = matrixTransformPoint.z;
-            },
-            movePlayer = (mx, my, mz) => {
-              loadReferenceMatrix().invertSelf(),
-                matrixTransformPoint(mx, my, mz, 0),
-                player_position_global_x += matrixTransformPoint.x,
-                player_position_global_y += my,
-                player_position_global_z += matrixTransformPoint.z,
-                updatePlayerPositionFinal();
-            },
-            doCollisions = NO_INLINE(() => {
-              let modelACount = 0,
-                modelB = 0,
-                modelBCount = 0,
-                movY = 0,
-                movX = 0,
-                movZ = 0,
-                lineToProcess = -1;
-
-              for (let y = 0; y < 36; ++y) {
-                for (let x = 96, yindex = 512 * y; x < 416; x += 4) {
-                  for (let k = 0; k < 2; ++k) {
-                    const v = collision_buffer[yindex + x + k],
-                      m = collision_buffer[yindex + x + k + 2];
-                    v > movY && (movY = v),
-                      v + m && (lineToProcess < 0 || lineToProcess === y)
-                      && (lineToProcess = y,
-                        m === currentModelId ? ++modelACount : modelB && modelB !== m || (modelB = m, ++modelBCount));
-                  }
-                }
-              }
-
-              currentModelId = lineToProcess < 0 ? 0 : modelBCount > 2 * modelACount ? modelB : currentModelId;
-
-              for (let y1 = 36; y1 < 128; ++y1) {
-                let left = 0,
-                  right = 0,
-                  front = 0,
-                  back = 0;
-
-                for (let tx = 0, yindex1 = 512 * y1; tx < 128; ++tx) {
-                  let index = yindex1 + 4 * tx,
-                    v1 = collision_buffer[index];
-                  tx < 64 ? v1 > left && (left = v1) : v1 > right && (right = v1),
-                    (v1 = collision_buffer[2 + index]) > front && (front = v1),
-                    v1 = collision_buffer[1 + index],
-                    64 < tx ? v1 > left && (left = v1) : v1 > right && (right = v1),
-                    (v1 = collision_buffer[3 + index]) > back && (back = v1);
-                }
-
-                (right -= left) * right > movX * movX && (movX = right),
-                  (back -= front) * back > movZ * movZ && (movZ = back);
-              }
-
-              player_speed_collision_limiter = clamp(1 - 0.01 * max(abs(movX *= 0.7), abs(movZ)), 0.3),
-                movePlayer(movX / 255, movY / 255, movZ / 255);
-            });
-
-          player_update = () => {
-            updatePlayerPositionFinal(currentModelId),
-              cgl["r9r"](0, 0, 128, 128, 6408, 5121, collision_buffer),
-              doCollisions(),
-              !player_respawned && currentModelId === oldModelId
-              || (oldModelId = currentModelId,
-                loadReferenceMatrix().invertSelf(),
-                matrixTransformPoint(player_position_final.x, player_position_final.y, player_position_final.z),
-                player_position_global_x = matrixTransformPoint.x,
-                player_position_global_y = matrixTransformPoint.y,
-                player_position_global_z = matrixTransformPoint.z,
-                player_respawned = player_respawned && (currentModelId ? 0 : 1)),
-              (player_position_final.x < -20 || player_position_final.z < 109 ? -25 : -9) > player_position_final.y
-              && (player_respawned = 2),
-              currentModelId === 1
-              && (levers[15].$value = player_position_final.x < -15 && player_position_final.z < 0 ? 1 : 0),
-              player_on_rotating_platforms = lerpDamp(
-                player_on_rotating_platforms,
-                shouldRotatePlatforms * (30 < currentModelId && currentModelId < 35),
-                2,
-              ),
-              camera_pos_lookat_x = interpolate_with_hysteresis(camera_pos_lookat_x, player_position_final.x, 0.5, 1),
-              camera_pos_lookat_y = interpolate_with_hysteresis(
-                camera_pos_lookat_y,
-                player_model_y = lerp(
-                  lerpDamp(player_model_y, player_position_final.y, 2),
-                  player_position_final.y,
-                  player_respawned || 8 * abs(player_model_y - player_position_final.y),
-                ),
-                2,
-                1,
-              ),
-              camera_pos_lookat_z = interpolate_with_hysteresis(camera_pos_lookat_z, player_position_final.z, 0.5, 1),
-              player_first_person
-                ? (d = player_respawned + damp(18),
-                  camera_position_x = lerp(camera_position_x, player_position_final.x, d),
-                  camera_position_z = lerp(camera_position_z, player_position_final.z, d),
-                  camera_position_y = lerp(camera_position_y, 1.6 + player_model_y, d),
-                  camera_rotation.y = angle_wrap_degrees(camera_rotation.y))
-                : (camera_position_x = interpolate_with_hysteresis(
-                  camera_position_x,
-                  camera_pos_lookat_x,
-                  1,
-                  2 + player_on_rotating_platforms,
-                ),
-                  camera_position_z = interpolate_with_hysteresis(
-                    camera_position_z,
-                    camera_pos_lookat_z + -18 + 5 * player_on_rotating_platforms,
-                    1,
-                    2 + player_on_rotating_platforms,
-                  ),
-                  camera_position_y = interpolate_with_hysteresis(
-                    camera_position_y,
-                    max(
-                      camera_pos_lookat_y + clamp((-60 - player_position_final.z) / 8, 0, 20) + 13
-                        + 9 * player_on_rotating_platforms,
-                      6,
-                    ),
-                    4,
-                    2,
-                  ),
-                  d = min(-6, -abs(camera_pos_lookat_z - camera_position_z)),
-                  viewDirDiffx = camera_pos_lookat_x - camera_position_x,
-                  camera_rotation.y = angle_lerp_degrees(
-                    camera_rotation.y,
-                    90 - angle_wrap_degrees(/* @__PURE__ */ Math.atan2(d, viewDirDiffx) / DEG_TO_RAD),
-                    boot + damp(10),
-                  ),
-                  camera_rotation.x = angle_lerp_degrees(
-                    camera_rotation.x,
-                    90
-                      - /* @__PURE__ */ Math.atan2(hypot(d, viewDirDiffx), camera_position_y - camera_pos_lookat_y)
-                        / DEG_TO_RAD,
-                    boot + damp(10),
-                  )),
-              camera_rotation.x = clamp(camera_rotation.x, -87, 87),
-              boot = 0;
-            var d = clamp(input_forward, -1),
-              viewDirDiffx = clamp(input_strafe, -1),
-              movAmount = threshold(hypot(d, viewDirDiffx) ** 0.5, 0.1),
-              movAngle = /* @__PURE__ */ Math.atan2(d, viewDirDiffx);
-            movAmount && (player_look_angle_target = 90 - movAngle / DEG_TO_RAD),
-              player_legs_speed = lerpDamp(player_legs_speed, movAmount, 10),
-              modelsNextUpdate(
-                player_position_final.x,
-                0.06 * player_speed_collision_limiter * player_legs_speed * /* @__PURE__ */ Math.cos(18.2 * gameTime)
-                  + player_model_y,
-                player_position_final.z,
-              ).rotateSelf(
-                0,
-                player_look_angle = angle_lerp_degrees(player_look_angle, player_look_angle_target, damp(8)),
-              );
-
-            for (let i = 0; i < 2; ++i) {
-              const t = 9.1 * gameTime - Math.PI * i;
-              matrixCopy(allModels[53].$matrix, modelsNextUpdate(0)).translateSelf(
-                0,
-                player_legs_speed * clamp(0.45 * /* @__PURE__ */ Math.sin(t - Math.PI / 2)),
-              ).rotateSelf(player_legs_speed * /* @__PURE__ */ Math.sin(t) * 0.25 / DEG_TO_RAD, 0);
-            }
-
-            player_gravity = currentModelId
-              ? 5
-              : lerpDamp(player_gravity, player_respawned ? 13 : 19 - 2 * min(0, player_position_final.y + 10), 2.2),
-              player_fly_velocity_x = currentModelId || player_respawned ? 0 : lerpDamp(player_fly_velocity_x, 0, 3),
-              player_fly_velocity_z = currentModelId || player_respawned ? 0 : lerpDamp(player_fly_velocity_z, 0, 3),
-              d = (player_speed = player_respawned
-                ? 0
-                : lerpDamp(
-                  player_speed,
-                  currentModelId ? 7 * clamp(2 * movAmount) * player_speed_collision_limiter : 0,
-                  currentModelId ? 9 : 1,
-                )) * movAmount * abs(d) * /* @__PURE__ */ Math.sin(movAngle),
-              viewDirDiffx = player_speed * movAmount * abs(viewDirDiffx) * /* @__PURE__ */ Math.cos(movAngle),
-              movAngle = player_first_person ? (180 + camera_rotation.y) * DEG_TO_RAD : 0,
-              movePlayer(
-                gameTimeDelta
-                  * (player_fly_velocity_x
-                    + (/* @__PURE__ */ Math.cos(movAngle) * viewDirDiffx - /* @__PURE__ */ Math.sin(movAngle) * d)),
-                gameTimeDelta * -player_gravity,
-                gameTimeDelta
-                  * (player_fly_velocity_z
-                    + (/* @__PURE__ */ Math.sin(movAngle) * viewDirDiffx + /* @__PURE__ */ Math.cos(movAngle) * d)),
-              );
-          };
-        }
-        page_update(), requestAnimationFrame(mainLoop);
+          cgl["uae"](collisionShader("a"), !1, matrixToArray(mat_perspective(1e-4, 2, 1.2, 0.4))),
+          player_init(),
+          page_update(),
+          requestAnimationFrame(mainLoop);
       }
     },
     image = new Image();
@@ -1722,7 +1720,7 @@ in vec4 f;void main(){gl_Position=vec4(f.xy,1,1);}`,
             integers_map(12, i =>
               polygons_transform(
                 cylinder(),
-                identity.translate(i - 5.5, 4.4).scale(0.1, 0.1, 2),
+                translation(i - 5.5, 4.4).scale(0.1, 0.1, 2),
                 material(0.6, 0.5, 0.3, 0.2),
               )).flat(),
             polygons_transform(

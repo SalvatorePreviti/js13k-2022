@@ -654,7 +654,7 @@ const constDef_zFar = 181;
 const zNear = constDef_zNear;
 const zFar = constDef_zFar;
 const fieldOfViewDegrees = 60;
-const fieldOfViewRadians = fieldOfViewDegrees * DEG_TO_RAD;
+const fieldOfViewRadians = fieldOfViewDegrees * Math.PI / 180;
 const fieldOfViewAmount = 1 / /* @__PURE__ */ Math.tan(fieldOfViewRadians / 2);
 const mat_perspective = (near, far, mx, my) => new DOMMatrix([
   mx,
@@ -675,9 +675,7 @@ const mat_perspective = (near, far, mx, my) => new DOMMatrix([
   0
 ]);
 let interact_pressed;
-const resetInteractPressed = () => {
-  interact_pressed = 0;
-};
+const resetInteractPressed = () => interact_pressed = 0;
 let player_first_person;
 let input_forward = 0;
 let input_strafe = 0;
@@ -719,12 +717,12 @@ let page_update = () => {
     }
   };
   const handleResize = () => {
-    const mx = (hC.height = innerHeight) / (hC.width = innerWidth) * fieldOfViewAmount;
+    const mx = fieldOfViewAmount * ((hC.height = innerHeight) / (hC.width = innerWidth));
+    projection = mat_perspective(zNear, zFar, mx, fieldOfViewAmount);
     csm_projections = [
       mat_perspective(zNear, constDef_CSM_PLANE_DISTANCE, mx, fieldOfViewAmount),
       mat_perspective(constDef_CSM_PLANE_DISTANCE, zFar, mx, fieldOfViewAmount)
     ];
-    projection = mat_perspective(zNear, zFar, mx, fieldOfViewAmount);
     touchPosIdentifier = touchRotIdentifier = void 0;
     keyboard_downKeys.length = interact_pressed = gamepadInteractPressed = touch_movementX = touch_movementY = input_forward = input_strafe = 0;
     if (document.hidden && true)
@@ -737,7 +735,7 @@ let page_update = () => {
       document.body.className = value ? "l m" : "l";
       if (value)
         try {
-          document.exitFullscreen().catch(() => 0);
+          document.exitFullscreen().catch(() => false);
           document.exitPointerLock();
         } catch {
         }
@@ -753,7 +751,7 @@ let page_update = () => {
         songAudioSource.loop = true;
         songAudioSource.start();
       }
-      document.body.requestFullscreen().catch(() => 0);
+      document.body.requestFullscreen().catch(() => false);
     } catch {
     }
     mainMenu(false);
@@ -1140,7 +1138,7 @@ const build_life_the_universe_and_everything = () => {
   const hexCorridor = [
     polygons_transform(cylinder(), translation(0, -3).scale(11, 1.4, 3), material(0.9, 0.9, 0.9, 0.2)),
     polygons_transform(cylinder(), translation(0, -2.2).scale(7.7, 0.5, 4), material(0.5, 0.5, 0.5, 0.2)),
-    integers_map(12, (i) => polygons_transform(cylinder(), identity.translate(i - 5.5, 4.4).scale(0.1, 0.1, 2), material(0.6, 0.5, 0.3, 0.2))).flat(),
+    integers_map(12, (i) => polygons_transform(cylinder(), translation(i - 5.5, 4.4).scale(0.1, 0.1, 2), material(0.6, 0.5, 0.3, 0.2))).flat(),
     polygons_transform(csg_polygons_subtract(polygons_transform(cylinder(6), identity.rotate(90).scale(6, 8, 6)), polygons_transform(cylinder(4, 0, 0.01), translation(0, 6).scale(12, 2, 0.75).rotate(0, 45)), polygons_transform(cylinder(6), identity.rotate(90).scale(5, 12, 5)), ...[
       -5,
       0,
@@ -1593,7 +1591,7 @@ let camera_position_y = 0;
 let camera_position_z = 0;
 const collision_buffer = new Uint8Array(constDef_COLLISION_TEXTURE_SIZE * constDef_COLLISION_TEXTURE_SIZE * 4);
 let player_update;
-const player_init = () => {
+const player_init = NO_INLINE(() => {
   let boot = 1;
   let player_gravity = 15;
   let player_respawned = 2;
@@ -1763,7 +1761,7 @@ const player_init = () => {
     movAngle = player_first_person ? (180 + camera_rotation.y) * DEG_TO_RAD : 0;
     movePlayer(gameTimeDelta * (player_fly_velocity_x + (/* @__PURE__ */ Math.cos(movAngle) * strafe - /* @__PURE__ */ Math.sin(movAngle) * forward)), gameTimeDelta * -player_gravity, gameTimeDelta * (player_fly_velocity_z + (/* @__PURE__ */ Math.sin(movAngle) * strafe + /* @__PURE__ */ Math.cos(movAngle) * forward)));
   };
-};
+});
 let shouldRotatePlatforms;
 let eppur_si_muove = () => {
   let rotatingPlatform1Rotation;
@@ -1860,19 +1858,10 @@ let eppur_si_muove = () => {
 const LIGHT_ROT_X = 298;
 const LIGHT_ROT_Y = 139;
 const startMainLoop = (groundTextureImage) => {
-  const csm_tempMatrix = new DOMMatrix();
   const camera_view = new DOMMatrix();
+  const csm_tempMatrix = new DOMMatrix();
   const csm_lightSpaceMatrices = new Float32Array(32);
-  const csm_tempFrustumCorners = [
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {}
-  ];
+  const csm_tempFrustumCorners = [];
   const csm_framebuffer = gl["c5w"]();
   const initShaderProgram = (xgl, sfsSource, vfsSource = code$3) => {
     const loadShader = (source, type) => {
@@ -1919,7 +1908,7 @@ const startMainLoop = (groundTextureImage) => {
       let ty = 0;
       let tz = 0;
       for (let i = 0; i < 8; ++i) {
-        const p = csm_tempFrustumCorners[i];
+        const p = csm_tempFrustumCorners[i] ||= {};
         matrixTransformPoint(4 & i ? 1 : -1, 2 & i ? 1 : -1, 1 & i ? 1 : -1);
         tx -= p.x = (matrixTransformPoint.x | 0) / (roundingRadius * matrixTransformPoint.w);
         ty -= p.y = (matrixTransformPoint.y | 0) / (roundingRadius * matrixTransformPoint.w);

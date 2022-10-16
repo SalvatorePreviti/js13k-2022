@@ -4,7 +4,7 @@ export const identity: DOMMatrixReadOnly = new DOMMatrix();
 
 export const tempMatrix = new DOMMatrix();
 
-export const float32Array16Temp = new Float32Array(16);
+const float32Array16Temp = new Float32Array(16);
 
 export const matrixToArray = (
   $matrix: DOMMatrixReadOnly,

@@ -26,9 +26,7 @@ import { identity, matrixCopy, matrixToArray, matrixTransformPoint, tempMatrix }
 import { eppur_si_muove } from "./game/level-update";
 import { max, min } from "./math/math";
 import type { Vec3 } from "./math/vectors";
-import { page_update, csm_projections, player_first_person, projection, resetInteractPressed } from "./page";
 import { player_init, camera_position_x, camera_position_y, camera_position_z } from "./game/player";
-import { cgl, gl } from "./gl";
 import {
   MODEL_ID_PLAYER_BODY,
   MODEL_ID_PLAYER_LEG0,
@@ -39,6 +37,8 @@ import {
 import { transformsBuffer } from "./game/transforms-buffer";
 import { allModels, MODELS_WITH_SIMPLE_TRANSFORM, souls } from "./game/models";
 import { mat_perspective, zFar, zNear } from "./math/matrix-perspective";
+import { page_update, csm_projections, player_first_person, projection, resetInteractPressed } from "./page";
+import { cgl, gl } from "./gl";
 
 const LIGHT_ROT_X = 298;
 const LIGHT_ROT_Y = 139;

@@ -18,9 +18,7 @@ import { CSM_PLANE_DISTANCE, fieldOfViewAmount, mat_perspective, zFar, zNear } f
 
 export let interact_pressed: 0 | 1;
 
-export const resetInteractPressed = () => {
-  interact_pressed = 0;
-};
+export const resetInteractPressed = () => (interact_pressed = 0);
 
 export let player_first_person: 0 | 1 | undefined;
 
@@ -80,12 +78,12 @@ export let page_update = () => {
   };
 
   const handleResize = () => {
-    const mx = ((hC.height = innerHeight) / (hC.width = innerWidth)) * fieldOfViewAmount;
+    const mx = fieldOfViewAmount * ((hC.height = innerHeight) / (hC.width = innerWidth));
+    projection = mat_perspective(zNear, zFar, mx, fieldOfViewAmount);
     csm_projections = [
       mat_perspective(zNear, CSM_PLANE_DISTANCE, mx, fieldOfViewAmount),
       mat_perspective(CSM_PLANE_DISTANCE, zFar, mx, fieldOfViewAmount),
     ];
-    projection = mat_perspective(zNear, zFar, mx, fieldOfViewAmount);
 
     touchPosIdentifier = touchRotIdentifier = undefined;
     keyboard_downKeys.length =
@@ -110,7 +108,7 @@ export let page_update = () => {
       document.body.className = value ? "l m" : "l";
       if (value) {
         try {
-          document.exitFullscreen().catch(() => 0);
+          document.exitFullscreen().catch(() => false);
           document.exitPointerLock();
         } catch {}
       }
@@ -134,7 +132,7 @@ export let page_update = () => {
         songAudioSource.start();
       }
 
-      document.body.requestFullscreen().catch(() => 0);
+      document.body.requestFullscreen().catch(() => false);
     } catch {}
     mainMenu(false);
     player_first_person = firstPerson;
