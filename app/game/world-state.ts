@@ -55,7 +55,7 @@ const updateCollectedSoulsCounter = () => {
   h3.innerHTML =
     "Souls: " +
     [0, "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII"][
-      (souls_collected_count = souls.reduce((acc, v) => acc + v.$value, 0))
+      (souls_collected_count = souls.reduce((acc, v) => v.$value + acc, 0))
     ]! +
     " / XIII";
 };

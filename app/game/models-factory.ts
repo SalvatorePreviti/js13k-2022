@@ -24,11 +24,11 @@ export const meshAdd: (
 ) => void = (polygons, transform = identity, color) =>
   currentModelPolygons.push(...polygons_transform(polygons, transform, color));
 
-export const newModel = (name: string): void => {
-  allModels.push({ $matrix: (currentModelMmatrix = new DOMMatrix()), $polygon: (currentModelPolygons = []) });
+export const newModel = (name: string) => {
   if (DEBUG) {
-    devModelsAdd(allModels.length - 1, name);
+    devModelsAdd(allModels.length, name);
   }
+  allModels.push({ $matrix: (currentModelMmatrix = new DOMMatrix()), $polygon: (currentModelPolygons = []) });
 };
 
 const SOUL_SENSITIVITY_RADIUS = 1.6;

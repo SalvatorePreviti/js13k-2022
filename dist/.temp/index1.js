@@ -455,14 +455,6 @@ const loadSong = NO_INLINE((done) => {
   ) =>
     loadStep(() => {
       let mixIndex = 0;
-      const getnotefreq = (n) => 0.003959503758 * 2 ** ((n - 256) / 12);
-      const osc_sin = (value) => /* @__PURE__ */ Math.sin(value * Math.PI * 2);
-      const osc_square = (value) => value % 1 < 0.5 ? 1 : -1;
-      const osc_saw = (value) => 2 * (value % 1) - 1;
-      const osc_tri = (value) => {
-        const v2 = value % 1 * 4;
-        return v2 < 2 ? v2 - 1 : 3 - v2;
-      };
       ENV_RELEASE = ENV_RELEASE ** 2 * 4;
       COLUMNS = COLUMNS.split("+");
       [
@@ -478,14 +470,22 @@ const loadSong = NO_INLINE((done) => {
         let low = 0;
         let band = 0;
         const noteCache = [];
-        const createNote = (note) => {
+        const osc_sin = (value) => /* @__PURE__ */ Math.sin(value * Math.PI * 2);
+        const createNote = NO_INLINE((note) => {
           let o1t;
           let o2t;
           let c1 = 0;
           let c2 = 0;
+          const getnotefreq = (noteFreq) => 0.003959503758 * 2 ** ((noteFreq - 256) / 12);
+          const osc_square = (value) => value % 1 < 0.5 ? 1 : -1;
+          const osc_saw = (value) => 2 * (value % 1) - 1;
+          const osc_tri = (value) => {
+            const v2 = value % 1 * 4;
+            return v2 < 2 ? v2 - 1 : 3 - v2;
+          };
+          const noteBuf = new Int32Array(ENV_ATTACK + ENV_SUSTAIN + ENV_RELEASE);
           const OSC1_WAVEFORM = channelIndex < 2 ? osc_saw : osc_sin;
           const OSC2_WAVEFORM = channelIndex < 2 ? channelIndex < 1 ? osc_square : osc_tri : osc_sin;
-          const noteBuf = new Int32Array(ENV_ATTACK + ENV_SUSTAIN + ENV_RELEASE);
           for (let j1 = 0, j2 = 0; j1 < ENV_ATTACK + ENV_SUSTAIN + ENV_RELEASE; ++j1, ++j2) {
             let e = 1;
             if (j1 < ENV_ATTACK) {
@@ -506,7 +506,7 @@ const loadSong = NO_INLINE((done) => {
                 * e | 0;
           }
           return noteBuf;
-        };
+        });
         const chnBuf = new Int32Array(song_rowLen * SONG_WORDS);
         const lfoFreq = 2 ** (LFO_FREQ - 9) / song_rowLen;
         const panFreq = Math.PI * 2 ** (FX_PAN_FREQ - 8) / song_rowLen;
@@ -1019,7 +1019,7 @@ let game_completed;
 let firstBoatLerp;
 let secondBoatLerp;
 let _messageEndTime = 0.1;
-const LOCAL_STORAGE_SAVED_GAME_KEY = "Dante-22";
+const LOCAL_STORAGE_SAVED_GAME_KEY = "Dante;22";
 const camera_rotation = {
   x: 0,
   y: 180,
@@ -1068,7 +1068,7 @@ const updateCollectedSoulsCounter = () => {
     "XI",
     "XII",
     "XIII",
-  ][souls_collected_count = souls.reduce((acc, v) => acc + v.$value, 0)] + " / XIII";
+  ][souls_collected_count = souls.reduce((acc, v) => v.$value + acc, 0)] + " / XIII";
 };
 const loadGame = () => {
   let _savedLevers = [];
