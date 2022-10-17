@@ -77,9 +77,6 @@ export const player_init = NO_INLINE(() => {
   let player_position_global_y: number;
   let player_position_global_z: number;
 
-  const interpolate_with_hysteresis = (previous: number, desired: number, hysteresis: number, speed: number) =>
-    lerp(previous, desired, boot || (clamp(abs(desired - previous) ** 0.5 - hysteresis) + 1 / 7) * damp(speed * 1.5));
-
   const loadReferenceMatrix = () =>
     matrixCopy(
       (player_respawned
@@ -107,16 +104,17 @@ export const player_init = NO_INLINE(() => {
     player_position_final.z = matrixTransformPoint.z;
   };
 
-  const movePlayer = (mx: number, my: number, mz: number) => {
+  const movePlayer = NO_INLINE((mx: number, my: number, mz: number) => {
     loadReferenceMatrix().invertSelf();
     matrixTransformPoint(mx, my, mz, 0);
     player_position_global_x += matrixTransformPoint.x;
     player_position_global_y += my;
     player_position_global_z += matrixTransformPoint.z;
     updatePlayerPositionFinal();
-  };
+  });
 
   const doCollisions = NO_INLINE(() => {
+    const LEGS_ROWS = 36;
     let modelACount = 0;
     let modelB = 0;
     let modelBCount = 0;
@@ -125,7 +123,7 @@ export const player_init = NO_INLINE(() => {
 
     // vertical collisions
 
-    for (let y = 0; y < 36; ++y) {
+    for (let y = 0; y < LEGS_ROWS; ++y) {
       for (let x = 24 * 4, yindex = y * (COLLISION_TEXTURE_SIZE * 4); x < (COLLISION_TEXTURE_SIZE - 24) * 4; x += 4) {
         for (let k = 0; k < 2; ++k) {
           const v = collision_buffer[yindex + x + k]!;
@@ -152,17 +150,14 @@ export const player_init = NO_INLINE(() => {
 
     let movX = 0;
     let movZ = 0;
-    for (let y = 36; y < COLLISION_TEXTURE_SIZE; ++y) {
+    for (let y = LEGS_ROWS, index = COLLISION_TEXTURE_SIZE * LEGS_ROWS * 4; y < COLLISION_TEXTURE_SIZE; ++y) {
       let left = 0;
       let right = 0;
       let front = 0;
       let back = 0;
-      for (let tx = 0, yindex = COLLISION_TEXTURE_SIZE * 4 * y; tx < COLLISION_TEXTURE_SIZE; ++tx) {
-        const index = yindex + tx * 4;
-
-        let v = collision_buffer[index]!;
-
-        if (tx < COLLISION_TEXTURE_SIZE / 2) {
+      for (let x = 0; x < COLLISION_TEXTURE_SIZE; ++x) {
+        let v = collision_buffer[index++]!;
+        if (x < COLLISION_TEXTURE_SIZE / 2) {
           if (v > left) {
             left = v;
           }
@@ -170,22 +165,21 @@ export const player_init = NO_INLINE(() => {
           right = v;
         }
 
-        v = collision_buffer[index + 2]!;
+        v = collision_buffer[index++]!;
+        if (x > COLLISION_TEXTURE_SIZE / 2) {
+          if (v > left) {
+            left = v;
+          }
+        } else if (v > right) {
+          right = v;
+        }
+
+        v = collision_buffer[index++]!;
         if (v > front) {
           front = v;
         }
 
-        v = collision_buffer[index + 1]!;
-
-        if (tx > COLLISION_TEXTURE_SIZE / 2) {
-          if (v > left) {
-            left = v;
-          }
-        } else if (v > right) {
-          right = v;
-        }
-
-        v = collision_buffer[index + 3]!;
+        v = collision_buffer[index++]!;
         if (v > back) {
           back = v;
         }
@@ -207,6 +201,9 @@ export const player_init = NO_INLINE(() => {
     movePlayer(movX / 255, movY / 255, movZ / 255);
   });
 
+  const interpolate_with_hysteresis = (previous: number, desired: number, hysteresis: number, speed: number) =>
+    lerp(previous, desired, boot || (clamp(abs(desired - previous) ** 0.5 - hysteresis) + 1 / 7) * damp(speed * 1.5));
+
   player_update = () => {
     updatePlayerPositionFinal(currentModelId);
 
@@ -214,35 +211,6 @@ export const player_init = NO_INLINE(() => {
 
     // This is here because we want to read the collision results as late as possible, to give the GPU time to finish
     cgl.readPixels(0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE, gl.RGBA, gl.UNSIGNED_BYTE, collision_buffer);
-
-    // if (DEBUG) {
-    //   const debugCanvas = document.getElementById("debug-canvas") as HTMLCanvasElement;
-
-    //   const buf = new Uint8ClampedArray(COLLISION_TEXTURE_SIZE * COLLISION_TEXTURE_SIZE * 4);
-
-    //   if (debugCanvas) {
-    //     for (let y = 0; y < COLLISION_TEXTURE_SIZE; ++y) {
-    //       for (let x = 0; x < COLLISION_TEXTURE_SIZE; ++x) {
-    //         const i = ((COLLISION_TEXTURE_SIZE - y) * COLLISION_TEXTURE_SIZE + x) * 4;
-    //         const r = collision_buffer[i]!;
-    //         const g = collision_buffer[i + 1]!;
-    //         const b = collision_buffer[i + 2]!;
-
-    //         buf[(y * COLLISION_TEXTURE_SIZE + x) * 4] = r;
-    //         buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 1] = g * 30;
-    //         buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 2] = b ? 200 : 0;
-    //         buf[(y * COLLISION_TEXTURE_SIZE + x) * 4 + 3] = 255;
-    //       }
-    //     }
-
-    //     const imgdata = new ImageData(buf, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
-
-    //     if (!(window as any).debug2dctx) {
-    //       (window as any).debug2dctx = debugCanvas.getContext("2d")!;
-    //     }
-    //     (window as any).debug2dctx.putImageData(imgdata, 0, 0, 0, 0, COLLISION_TEXTURE_SIZE, COLLISION_TEXTURE_SIZE);
-    //   }
-    // }
 
     // ------- process collision renderBuffer -------
 
@@ -261,14 +229,9 @@ export const player_init = NO_INLINE(() => {
       player_position_global_y = matrixTransformPoint.y;
       player_position_global_z = matrixTransformPoint.z;
 
-      if (player_respawned) {
-        player_respawned = currentModelId ? 0 : 1;
-      }
-    }
-
-    if (player_position_final.y < (player_position_final.x < -20 || player_position_final.z < 109 ? -25 : -9)) {
-      // Player fell in lava
-      player_respawned = 2;
+      player_respawned &&= currentModelId ? 0 : 1;
+    } else if (player_position_final.y < (player_position_final.x < -20 || player_position_final.z < 109 ? -25 : -9)) {
+      player_respawned = 2; // Player fell in lava
     }
 
     // Special handling for the second boat LEVER_SECOND_BOAT - the boat must be on the side of the map the player is
@@ -408,11 +371,8 @@ export const player_init = NO_INLINE(() => {
     movAngle = player_first_person ? (180 + camera_rotation.y) * DEG_TO_RAD : 0;
 
     movePlayer(
-      // x
       gameTimeDelta * (player_fly_velocity_x + (Math.cos(movAngle) * strafe - Math.sin(movAngle) * forward)),
-      // y
       gameTimeDelta * -player_gravity,
-      // z
       gameTimeDelta * (player_fly_velocity_z + (Math.sin(movAngle) * strafe + Math.cos(movAngle) * forward)),
     );
   };

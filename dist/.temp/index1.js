@@ -1019,7 +1019,7 @@ let game_completed;
 let firstBoatLerp;
 let secondBoatLerp;
 let _messageEndTime = 0.1;
-const LOCAL_STORAGE_SAVED_GAME_KEY = "Dante;22";
+const LOCAL_STORAGE_SAVED_GAME_KEY = "Dante-22";
 const camera_rotation = {
   x: 0,
   y: 180,
@@ -1163,14 +1163,14 @@ const distanceToPlayer = () => {
 let currentModelMmatrix;
 let currentModelPolygons;
 const SOUL_SENSITIVITY_RADIUS = 1.6;
-const meshAdd = (polygons, transform = identity, color) =>
-  currentModelPolygons.push(...polygons_transform(polygons, transform, color));
 const newModel = (name) => {
   allModels.push({
     $matrix: currentModelMmatrix = new DOMMatrix(),
     $polygon: currentModelPolygons = [],
   });
 };
+const meshAdd = (polygons, transform = identity, color) =>
+  currentModelPolygons.push(polygons_transform(polygons, transform, color));
 const newSoul = (transform, ...walkingPath) => {
   let lookAngle;
   let prevX;
@@ -2149,8 +2149,6 @@ const player_init = NO_INLINE(() => {
   let boot = 1;
   let player_respawned = 2;
   let player_gravity = 15;
-  const interpolate_with_hysteresis = (previous, desired, hysteresis, speed) =>
-    lerp(previous, desired, boot || (clamp(abs(desired - previous) ** 0.5 - hysteresis) + 1 / 7) * damp(speed * 1.5));
   const loadReferenceMatrix = () =>
     matrixCopy(
       (player_respawned
@@ -2173,14 +2171,14 @@ const player_init = NO_INLINE(() => {
     player_position_final.y = matrixTransformPoint.y;
     player_position_final.z = matrixTransformPoint.z;
   };
-  const movePlayer = (mx, my, mz) => {
+  const movePlayer = NO_INLINE((mx, my, mz) => {
     loadReferenceMatrix().invertSelf();
     matrixTransformPoint(mx, my, mz, 0);
     player_position_global_x += matrixTransformPoint.x;
     player_position_global_y += my;
     player_position_global_z += matrixTransformPoint.z;
     updatePlayerPositionFinal();
-  };
+  });
   const doCollisions = NO_INLINE(() => {
     let modelACount = 0;
     let modelB = 0;
@@ -2188,8 +2186,9 @@ const player_init = NO_INLINE(() => {
     let movY = 0;
     let movX = 0;
     let movZ = 0;
+    const LEGS_ROWS = 36;
     let lineToProcess = -1;
-    for (let y = 0; y < 36; ++y) {
+    for (let y = 0; y < LEGS_ROWS; ++y) {
       for (
         let x = 96, yindex = y * (constDef_COLLISION_TEXTURE_SIZE * 4);
         x < (constDef_COLLISION_TEXTURE_SIZE - 24) * 4;
@@ -2214,34 +2213,37 @@ const player_init = NO_INLINE(() => {
       }
     }
     currentModelId = lineToProcess >= 0 ? modelBCount > modelACount * 2 ? modelB : currentModelId : 0;
-    for (let y1 = 36; y1 < constDef_COLLISION_TEXTURE_SIZE; ++y1) {
+    for (
+      let y1 = LEGS_ROWS, index = constDef_COLLISION_TEXTURE_SIZE * LEGS_ROWS * 4;
+      y1 < constDef_COLLISION_TEXTURE_SIZE;
+      ++y1
+    ) {
       let left = 0;
       let right = 0;
       let front = 0;
       let back = 0;
-      for (let tx = 0, yindex1 = constDef_COLLISION_TEXTURE_SIZE * 4 * y1; tx < constDef_COLLISION_TEXTURE_SIZE; ++tx) {
-        const index = yindex1 + tx * 4;
-        let v1 = collision_buffer[index];
-        if (tx < constDef_COLLISION_TEXTURE_SIZE / 2) {
+      for (let x1 = 0; x1 < constDef_COLLISION_TEXTURE_SIZE; ++x1) {
+        let v1 = collision_buffer[index++];
+        if (x1 < constDef_COLLISION_TEXTURE_SIZE / 2) {
           if (v1 > left) {
             left = v1;
           }
         } else if (v1 > right) {
           right = v1;
         }
-        v1 = collision_buffer[index + 2];
+        v1 = collision_buffer[index++];
+        if (x1 > constDef_COLLISION_TEXTURE_SIZE / 2) {
+          if (v1 > left) {
+            left = v1;
+          }
+        } else if (v1 > right) {
+          right = v1;
+        }
+        v1 = collision_buffer[index++];
         if (v1 > front) {
           front = v1;
         }
-        v1 = collision_buffer[index + 1];
-        if (tx > constDef_COLLISION_TEXTURE_SIZE / 2) {
-          if (v1 > left) {
-            left = v1;
-          }
-        } else if (v1 > right) {
-          right = v1;
-        }
-        v1 = collision_buffer[index + 3];
+        v1 = collision_buffer[index++];
         if (v1 > back) {
           back = v1;
         }
@@ -2258,6 +2260,8 @@ const player_init = NO_INLINE(() => {
     player_speed_collision_limiter = clamp(1 - max(abs(movX *= 0.7), abs(movZ)) * 0.01, 0.3);
     movePlayer(movX / 255, movY / 255, movZ / 255);
   });
+  const interpolate_with_hysteresis = (previous, desired, hysteresis, speed) =>
+    lerp(previous, desired, boot || (clamp(abs(desired - previous) ** 0.5 - hysteresis) + 1 / 7) * damp(speed * 1.5));
   player_update = () => {
     updatePlayerPositionFinal(currentModelId);
     cgl["r9r"](0, 0, constDef_COLLISION_TEXTURE_SIZE, constDef_COLLISION_TEXTURE_SIZE, 6408, 5121, collision_buffer);
@@ -2269,11 +2273,8 @@ const player_init = NO_INLINE(() => {
       player_position_global_x = matrixTransformPoint.x;
       player_position_global_y = matrixTransformPoint.y;
       player_position_global_z = matrixTransformPoint.z;
-      if (player_respawned) {
-        player_respawned = currentModelId ? 0 : 1;
-      }
-    }
-    if (player_position_final.y < (player_position_final.x < -20 || player_position_final.z < 109 ? -25 : -9)) {
+      player_respawned &&= currentModelId ? 0 : 1;
+    } else if (player_position_final.y < (player_position_final.x < -20 || player_position_final.z < 109 ? -25 : -9)) {
       player_respawned = 2;
     }
     if (currentModelId === MODEL_ID_STATIC_WORLD) {
@@ -2831,14 +2832,16 @@ const initTriangleBuffers = () => {
       return vertexIndex;
     };
     _vertexFloats[3] = index > MODEL_ID_SOUL_COLLISION - 1 ? -MODELS_WITH_FULL_TRANSFORM : index;
-    for (polygon of model.$polygon) {
-      const { x, y, z } = plane_fromPolygon(polygon);
-      _vertexInts[4] = polygon.$color | 0;
-      _vertexInts[5] = x * 32767;
-      _vertexInts[6] = y * 32767;
-      _vertexInts[7] = z * 32767;
-      for (let i = 2, a = getVertex(0), b = getVertex(1); i < polygon.length; ++i) {
-        _triangleIndices.push(a, b, b = getVertex(i));
+    for (const grp of model.$polygon) {
+      for (polygon of grp) {
+        const { x, y, z } = plane_fromPolygon(polygon);
+        _vertexInts[4] = polygon.$color | 0;
+        _vertexInts[5] = x * 32767;
+        _vertexInts[6] = y * 32767;
+        _vertexInts[7] = z * 32767;
+        for (let i = 2, a = getVertex(0), b = getVertex(1); i < polygon.length; ++i) {
+          _triangleIndices.push(a, b, b = getVertex(i));
+        }
       }
     }
     model.$polygon = 0;
@@ -2849,6 +2852,8 @@ const initTriangleBuffers = () => {
     gl,
     cgl,
   ].map((xgl) => {
+    xgl["b11"](34963, xgl["c1b"]());
+    xgl["b2v"](34963, new Uint16Array(_triangleIndices), 35044);
     xgl["b11"](34962, xgl["c1b"]());
     xgl["b2v"](34962, new Float32Array(_vertexPositions), 35044);
     xgl["v7s"](0, 4, 5126, false, 0, 0);
@@ -2858,8 +2863,6 @@ const initTriangleBuffers = () => {
     xgl["b11"](34962, xgl["c1b"]());
     xgl["b2v"](34962, new Uint32Array(_vertexColors), 35044);
     xgl["v7s"](2, 4, 5121, true, 0, 0);
-    xgl["b11"](34963, xgl["c1b"]());
-    xgl["b2v"](34963, new Uint16Array(_triangleIndices), 35044);
     xgl["e3x"](0);
     xgl["e3x"](1);
     xgl["e3x"](2);

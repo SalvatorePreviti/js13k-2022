@@ -47,14 +47,16 @@ export const initTriangleBuffers = () => {
 
     _vertexFloats[3] = index > MODEL_ID_SOUL_COLLISION - 1 ? -MODELS_WITH_FULL_TRANSFORM : index;
 
-    for (polygon of model.$polygon!) {
-      const { x, y, z } = plane_fromPolygon(polygon);
-      _vertexInts[4] = polygon.$color! | 0;
-      _vertexInts[5] = x * 32767;
-      _vertexInts[6] = y * 32767;
-      _vertexInts[7] = z * 32767;
-      for (let i = 2, a = getVertex(0), b = getVertex(1); i < polygon.length; ++i) {
-        _triangleIndices.push(a, b, (b = getVertex(i)));
+    for (const grp of model.$polygon!) {
+      for (polygon of grp) {
+        const { x, y, z } = plane_fromPolygon(polygon);
+        _vertexInts[4] = polygon.$color! | 0;
+        _vertexInts[5] = x * 32767;
+        _vertexInts[6] = y * 32767;
+        _vertexInts[7] = z * 32767;
+        for (let i = 2, a = getVertex(0), b = getVertex(1); i < polygon.length; ++i) {
+          _triangleIndices.push(a, b, (b = getVertex(i)));
+        }
       }
     }
 
@@ -67,6 +69,9 @@ export const initTriangleBuffers = () => {
   });
 
   [gl, cgl].map((xgl) => {
+    xgl.bindBuffer(xgl.ELEMENT_ARRAY_BUFFER, xgl.createBuffer());
+    xgl.bufferData(xgl.ELEMENT_ARRAY_BUFFER, new Uint16Array(_triangleIndices), xgl.STATIC_DRAW);
+
     xgl.bindBuffer(xgl.ARRAY_BUFFER, xgl.createBuffer());
     xgl.bufferData(xgl.ARRAY_BUFFER, new Float32Array(_vertexPositions), xgl.STATIC_DRAW);
     xgl.vertexAttribPointer(0, 4, xgl.FLOAT, false, 0, 0);
@@ -78,9 +83,6 @@ export const initTriangleBuffers = () => {
     xgl.bindBuffer(xgl.ARRAY_BUFFER, xgl.createBuffer());
     xgl.bufferData(xgl.ARRAY_BUFFER, new Uint32Array(_vertexColors), xgl.STATIC_DRAW);
     xgl.vertexAttribPointer(2, 4, xgl.UNSIGNED_BYTE, true, 0, 0);
-
-    xgl.bindBuffer(xgl.ELEMENT_ARRAY_BUFFER, xgl.createBuffer());
-    xgl.bufferData(xgl.ELEMENT_ARRAY_BUFFER, new Uint16Array(_triangleIndices), xgl.STATIC_DRAW);
 
     xgl.enableVertexAttribArray(0);
     xgl.enableVertexAttribArray(1);

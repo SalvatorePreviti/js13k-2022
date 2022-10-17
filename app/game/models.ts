@@ -4,7 +4,7 @@ export interface Model {
   readonly $matrix: DOMMatrix;
 
   /** The temporary list of polygons, will be cleared out when building triangles */
-  $polygon: Polygon[] | null;
+  $polygon: Polygon[][] | null;
 
   $vertexBegin?: number;
   $vertexEnd?: number;

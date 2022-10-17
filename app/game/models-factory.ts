@@ -15,14 +15,7 @@ import { devModelsAdd } from "../dev-tools/dev-models";
 
 export let currentModelMmatrix: DOMMatrix;
 
-let currentModelPolygons: Polygon[];
-
-export const meshAdd: (
-  polygons: Polygon<Readonly<Vec3Optional>>[],
-  transform?: DOMMatrixReadOnly,
-  color?: number | undefined,
-) => void = (polygons, transform = identity, color) =>
-  currentModelPolygons.push(...polygons_transform(polygons, transform, color));
+let currentModelPolygons: Polygon[][];
 
 export const newModel = (name: string) => {
   if (DEBUG) {
@@ -30,6 +23,12 @@ export const newModel = (name: string) => {
   }
   allModels.push({ $matrix: (currentModelMmatrix = new DOMMatrix()), $polygon: (currentModelPolygons = []) });
 };
+
+export const meshAdd = (
+  polygons: Polygon<Readonly<Vec3Optional>>[],
+  transform: DOMMatrixReadOnly = identity,
+  color?: number | undefined,
+) => currentModelPolygons.push(polygons_transform(polygons, transform, color));
 
 const SOUL_SENSITIVITY_RADIUS = 1.6;
 
