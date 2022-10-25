@@ -7,14 +7,29 @@ It won the first place overall and in the mobile category.
 
 The theme of this year was DEATH, it was announced on the 13th of August, and the deadline of the competition was on the 13th of September 2022.
 
-Spent a pair of days of no code and just thinking on what I could do and trying to find non so obvious ideas. Almost every videogame has death in it, so I wanted to do something different. Went through many ideas and had long chats with my friend [Ben](https://github.com/bencoder). We did do two js13k entries together, [xx142-b2.exe](https://github.com/bencoder/js13k-2019), first place in 2019, and [Island Not Found](https://github.com/SalvatorePreviti/js13k-2020), 13th place in 2020. We had fun working together, but this year he could not join. Nonetheless, he helped me focus and gave me some great ideas as well.
-I thought to move the focus on the afterlife, and my italian origins. Thought about Dante Aligheri's Divine Comedy, that I've read in italian during high school. There are many games that take hell in a not too serious and not too dark way (Doom to start with), so I thought it could be possible to make something fun, not too heavy, and still related to the theme.
-I had a very simple idea: What happens if "Infernal delivery service", like any post service, has a glitch? What happens if a delivery of souls ends up in the wrong place? Who is going to bring them to the right place? "Dante", the little red devil, is going to save the day (no relation to the writer). He is immortal, of course, he is a devil, and he has to catch 13 souls lost in hell, in a twisted 3D world full of levers, traps, and atmospheric and weird infernal structures. Chasing ghosts is of course the opposite of pacman, where you usually run away from them, another element that was fun to play with. Also, thought would have been interesting and fun to add some commentary of our current political and societal situation, like Dante Aligheri did in his work.
+Spent a pair of days of no code and just thinking on what I could do and trying to find non so obvious ideas. Almost every videogame has death in it, so I wanted to do something different.
+
+Went through many ideas and had long chats with my friend [Ben](https://github.com/bencoder). We did do two js13k entries together, [xx142-b2.exe](https://github.com/bencoder/js13k-2019), first place in 2019, and [Island Not Found](https://github.com/SalvatorePreviti/js13k-2020), 13th place in 2020. We had fun working together, but this year he could not join. Nonetheless, he helped me focus and gave me some great ideas as well.
+
+I thought to move the focus on the afterlife, and my italian origins.
+
+Thought about Dante Aligheri's Divine Comedy, that I've read in italian during high school. There are many games that take hell in a not too serious and not too dark way (Doom to start with), so I thought it could be possible to make something fun, not too heavy, and still related to the theme.
+
+I had a very simple idea: What happens if "Infernal delivery service", like any post service, has a glitch? What happens if a delivery of souls ends up in the wrong place? Who is going to bring them to the right place? "Dante", the little red devil, is going to save the day (no relation to the writer). He is immortal, of course, he is a devil, and he has to catch 13 souls lost in hell, in a twisted 3D world full of levers, traps, and atmospheric and weird infernal structures.
+
+Chasing ghosts is of course the opposite of pacman, where you usually run away from them, another element that was fun to play with. Also, thought would have been interesting and fun to add some commentary of our current political and societal situation, like Dante Aligheri did in his work.
+
+---
 
 The graphics gets a bit of inspiration from the 90s. Movies like The Lawnmower, Hackers, and of course games like Doom, Unreal, and the old 90s demoscene. So nothing too fancy and a definitely camp/kitsch. A fun way to remember the 90s, and the time when I was a teenager. Also a bit of inspiration from brutalist and baroque architecture, and a lot of pentagons and hexagons everywhere. Avoided to use pentagrams, too obvious, and I wanted to avoid the obvious. Is quite hard to create a consistent style in so little amount of space, but I think I managed to do it enough.
 
+---
+
 During development I listened to more metal than usual. Went through many artists in my playlist, in particular: Black Sabbath, Slayer, Metallica, Pantera, Sepultura. Two albums of Sepultura (brazilian metal band) got me pretty inspired, Dante XXI (based on Dante's inferno) and A-Lex (based on Clockwork Orange). There is in A-Lex a metal version of Beethoven's Symphony No. 9 that sounded great. Found another great metal execution of Beethoven's ["Moonlight Sonata", Piano Sonata No. 14](https://www.youtube.com/watch?v=r6CTw_a0I14) that sounded just like it was made for the game.
-Not being at all versed in music composition, I had a chat online on JS13K Slack with [Ryan Malm](https://github.com/Rybar), gave him access to a first demo of the game, explained my idea and the sources of inspiration, and in just few hours he made a first short version of the song. And it was amazing! Perfect. That's it. I am very grateful for his work, he left me speachless. The music is a bit metal, a bit 8 bit, a bit 90s, not too serious, not too dark, even a bit funny, and still epic. Just perfect for the game.
+
+Not being at all versed in music composition, I had a chat online on JS13K Slack with [Ryan Malm](https://github.com/Rybar), gave him access to a first demo of the game, explained my idea and the sources of inspiration, and in just few hours he made a first short version of the song. And it was amazing! Perfect. That's it.
+
+I am very grateful for his work, he left me speachless. The music is a bit metal, a bit 8 bit, a bit 90s, not too serious, not too dark, even a bit funny, and still epic. Just perfect for the game.
 
 ## Development
 
@@ -173,19 +188,19 @@ The solution to this was to use batching and instancing.
 
 Vertex shader source code [here](https://github.com/SalvatorePreviti/js13k-2022/blob/main/app/shaders/main-vertex.vert).
 
-The uniform buffer is updated every frame, and it is big enough to contain all the transformations for all the models in the scene except the souls.
+The uniform buffer is updated once every frame, and it is big enough to contain all the transformations for all the models in the scene.
 
 I assign a modelId to every vertex in the scene, encoding it in the W component of the vertex position. This is required by the collision shader to see where the player is walking on and is also used to fetch the right transformation from a big uniform array.
 
-The uniform used to encode transformations is just an array of vec4.
+The uniform array used to encode transformations is just an array of vec4.
 It cannot be an array of mat4 because older devices have a limit of 256 vec4 uniforms for the vertex shader (minimum supported value by webgl2), too little to render the entire level, and I did not want to introduce the use of [Uniform Buffers Objects](https://www.khronos.org/opengl/wiki/Uniform_Buffer_Object), both because slower than uniforms and because they requires a lot of code.
 
 Part of this array contains only translations: If the modelId is less than a specific value, a translation matrix is generated in the vertex shader.
-If the modelId is greater or equal than that value, is a model that requires full transformation (scaling, rotation, translation), so a full mat4 is read from the uniform buffer.
+If the modelId is greater or equal than that value, that is a model that requires full transformation (scaling, rotation, translation), so a full mat4 is read from the uniform buffer. If the modelId is negative, that is a soul and so instead gl_InstanceID is used.
 
 #### Instancing
 
-Souls are instead not rendered using the batching scheme explained above, but using instancing. This is because souls contains too many vertices to be repeated in the vertex buffer 13 times (around 2000 triangles in total to keep it smooth and nice).
+Souls are not rendered using the batching scheme explained above, they are using [instancing](https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext/drawElementsInstanced). This is because souls contains too many vertices to be repeated in the vertex buffer 13 times (around 2000 triangles in total to keep it smooth and nice).
 
 gl_InstanceID is used to find the index of the right transformation matrix from the uniform buffer instead of the modelId encoded in the vertex position, that is negative for souls.
 
