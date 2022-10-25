@@ -11,6 +11,8 @@ Spent a pair of days of no code and just thinking on what I could do and trying 
 
 Went through many ideas and had long chats with my friend [Ben](https://github.com/bencoder). We did do two js13k entries together, [xx142-b2.exe](https://github.com/bencoder/js13k-2019), first place in 2019, and [Island Not Found](https://github.com/SalvatorePreviti/js13k-2020), 13th place in 2020. We had fun working together, but this year he could not join. Nonetheless, he helped me focus and gave me some great ideas as well.
 
+---
+
 I thought to move the focus on the afterlife, and my italian origins.
 
 Thought about Dante Aligheri's Divine Comedy, that I've read in italian during high school. There are many games that take hell in a not too serious and not too dark way (Doom to start with), so I thought it could be possible to make something fun, not too heavy, and still related to the theme.
@@ -21,11 +23,15 @@ Chasing ghosts is of course the opposite of pacman, where you usually run away f
 
 ---
 
-The graphics gets a bit of inspiration from the 90s. Movies like The Lawnmower, Hackers, and of course games like Doom, Unreal, and the old 90s demoscene. So nothing too fancy and a definitely camp/kitsch. A fun way to remember the 90s, and the time when I was a teenager. Also a bit of inspiration from brutalist and baroque architecture, and a lot of pentagons and hexagons everywhere. Avoided to use pentagrams, too obvious, and I wanted to avoid the obvious. Is quite hard to create a consistent style in so little amount of space, but I think I managed to do it enough.
+The graphics gets a bit of inspiration from the 90s. Movies like The Lawnmower, Hackers, B movies CGI, and of course games like Doom, Unreal, and the old 90s demoscene. So nothing too fancy but everything quite camp and kitsch. A fun way to remember the 90s, and the time when I was a teenager. Also a bit of inspiration from brutalist and baroque architecture.
+There are a lot of pentagons and hexagons everywhere, but avoided to use pentagrams, too obvious, and I wanted to avoid the obvious.
+
+Is quite hard to create a consistent style in so little amount of space, but I think I managed to do it enough.
 
 ---
 
-During development I listened to more metal than usual. Went through many artists in my playlist, in particular: Black Sabbath, Slayer, Metallica, Pantera, Sepultura. Two albums of Sepultura (brazilian metal band) got me pretty inspired, Dante XXI (based on Dante's inferno) and A-Lex (based on Clockwork Orange). There is in A-Lex a metal version of Beethoven's Symphony No. 9 that sounded great. Found another great metal execution of Beethoven's ["Moonlight Sonata", Piano Sonata No. 14](https://www.youtube.com/watch?v=r6CTw_a0I14) that sounded just like it was made for the game.
+During development I listened to more metal than usual, due to the theme and the setting of the game seemed a good decision.
+Went through many artists in my playlist, in particular: Black Sabbath, Slayer, Metallica, Pantera, Sepultura. Two albums of Sepultura (brazilian metal band) got me pretty inspired, Dante XXI (based on Dante's inferno) and A-Lex (based on Clockwork Orange). There is in A-Lex a metal version of Beethoven's Symphony No. 9 that sounded great. Found another great metal execution of Beethoven's ["Moonlight Sonata", Piano Sonata No. 14](https://www.youtube.com/watch?v=r6CTw_a0I14) that sounded just like it was made for the game.
 
 Not being at all versed in music composition, I had a chat online on JS13K Slack with [Ryan Malm](https://github.com/Rybar), gave him access to a first demo of the game, explained my idea and the sources of inspiration, and in just few hours he made a first short version of the song. And it was amazing! Perfect. That's it.
 
