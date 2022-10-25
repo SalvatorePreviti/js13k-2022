@@ -101,6 +101,8 @@ Main fragment shader code for light and shadows [here](https://github.com/Salvat
 
 How can you put textures in 13k? Simple, you don't.
 
+First of all, thanks a lot to [Maxime Euziere](xem.github.io) for suggesting trying SVG instead of writing glsl or js code to generate the texture! It was a great idea!
+
 Textures are generated procedurally from a [single SVG file](https://github.com/SalvatorePreviti/js13k-2022/blob/main/app/groundTexture.svg).
 
 In each RGB channel I store a different noise texture and I load the SVG at startup. I am using [feTurbulence](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feTurbulence) filter to do that, it is just perlin/simplex noise but by leveraging this in the SVG instead of writing the texture generation in JavaScript reduced the amount of code required.
@@ -189,3 +191,15 @@ gl_InstanceID is used to find the index of the right transformation matrix from 
 
 So, in the end, two single calls are needed to render the whole world for a given step, code [here](https://github.com/SalvatorePreviti/js13k-2022/blob/96ff2f28196e143bcc5e70be8b58135719d51472/app/main-loop.ts#L58) :
 drawElementsInstanced and drawElements
+
+## Final considerations
+
+There is much more that could be discussed, I did use a lot of tricks to make the game work in so little space. Please feel free reach me out if you want to have some more details, you can find me on twitter https://twitter.com/SN74HC00
+
+Does all this work worth the effort?
+No, because is just crazy and pure madness. And also absolutely yes because is crazy and pure madness! :D
+
+The fun in this competition is creating something, and this year I really had the urge to create something.
+Is great to share it with other people that are passioned about games, game development and coding. A great community, by the way, where everyone is trying to do their best and trying to help each other in the same time. Great thanks to https://twitter.com/end3r for this competition, it has been fun also this year.
+
+It was tiring, but like every year but gave me some hard and new problems to solve. The constraints of time and space are a huge push for creativity and creative solution, is not only educational and fun, is also a big exercise in problem solving.
