@@ -7,33 +7,35 @@ It won the first place overall and in the mobile category.
 
 The theme of this year was DEATH, it was announced on the 13th of August, and the deadline of the competition was on the 13th of September 2022.
 
-Spent a pair of days of no code and just thinking on what I could do and trying to find non so obvious ideas. Almost every videogame has death in it, so I wanted to do something different.
+I didn't code at all for the first two days, spent them thinking on the idea, the style and making a mental plan on how to execute it.
+Almost every videogame has death in it, so I wanted to do something different and not too obvious.
 
-Went through many ideas and had long chats with my friend [Ben](https://github.com/bencoder). We did do two js13k entries together, [xx142-b2.exe](https://github.com/bencoder/js13k-2019), first place in 2019, and [Island Not Found](https://github.com/SalvatorePreviti/js13k-2020), 13th place in 2020. We had fun working together, but this year he could not join. Nonetheless, he helped me focus and gave me some great ideas as well.
+Went through many ideas and had long chats with my friend [Ben](https://github.com/bencoder). We worked together on two js13k entries, [xx142-b2.exe](https://github.com/bencoder/js13k-2019), first place in 2019, and [Island Not Found](https://github.com/SalvatorePreviti/js13k-2020), 13th place in 2020. We had fun working together, but this year he could not join. Nonetheless, he helped me focus and great inputs.
 
 ---
 
 I thought to move the focus on the afterlife, and my italian origins.
 
-Thought about Dante Aligheri's Divine Comedy, that I've read in italian during high school. There are many games that take hell in a not too serious and not too dark way (Doom to start with), so I thought it could be possible to make something fun, not too heavy, and still related to the theme.
+Thought about Dante Aligheri's Divine Comedy. I've read it in italian during high school.
+There are many games that take hell in a not too serious and not too dark way (Doom to start with), so I thought it could be possible to make something fun, not too heavy, and still related to the theme.
 
-I had a very simple idea: What happens if "Infernal delivery service", like any post service, has a glitch? What happens if a delivery of souls ends up in the wrong place? Who is going to bring them to the right place? "Dante", the little red devil, is going to save the day (no relation to the writer). He is immortal, of course, he is a devil, and he has to catch 13 souls lost in hell, in a twisted 3D world full of levers, traps, and atmospheric and weird infernal structures.
+I had a very simple idea: What happens if "Infernal delivery service", like any post service, has a glitch? What happens if a delivery of souls ends up in the wrong place? Who is going to bring them to the right place? "Dante", the little red devil, is going to save the day. He is immortal, of course, he is a devil, and he has to catch 13 souls lost in hell, a twisted 3D world full of levers, traps, and atmospheric and weird infernal structures.
 
-Chasing ghosts is of course the opposite of pacman, where you usually run away from them, another element that was fun to play with. Also, thought would have been interesting and fun to add some commentary of our current political and societal situation, like Dante Aligheri did in his work.
+Chasing ghosts is of course the opposite of pacman, where you usually run away from them, another element that was fun to play with. Another idea I had was to add some commentary of our current political and societal situation, like Dante Aligheri did in his work, in form of a popup message when the player catch a soul.
 
 ---
 
-The graphics gets a bit of inspiration from the 90s. Movies like The Lawnmower, Hackers, B movies CGI, and of course games like Doom, Unreal, and the old 90s demoscene. So nothing too fancy but everything quite camp and kitsch. A fun way to remember the 90s, and the time when I was a teenager. Also a bit of inspiration from brutalist and baroque architecture.
-There are a lot of pentagons and hexagons everywhere, but avoided to use pentagrams, too obvious, and I wanted to avoid the obvious.
+The graphics takes inspiration from the 90s movies like The Lawnmower, Hackers, and the bad CGI of many B movies of the time.
+It takes inspiration from games like Doom, Unreal, and the old 90s demoscene. Graphics had to be nothing too fancy but a bit funny, camp and kitsch, and full of colour. Architecturally the game is inspired roman, medieval, baroque architecture, with a hint of brutalism. I thought of places I lived in in Italy, Palermo and Rome.
+There are a lot of pentagons and hexagons everywhere instead of more classic pentagrams or pop culture "infernal" symbols: I wanted to avoid the obvious.
 
 Is quite hard to create a consistent style in so little amount of space, but I think I managed to do it enough.
 
 ---
 
-During development I listened to more metal than usual, due to the theme and the setting of the game seemed a good decision.
-Went through many artists in my playlist, in particular: Black Sabbath, Slayer, Metallica, Pantera, Sepultura. Two albums of Sepultura (brazilian metal band) got me pretty inspired, Dante XXI (based on Dante's inferno) and A-Lex (based on Clockwork Orange). There is in A-Lex a metal version of Beethoven's Symphony No. 9 that sounded great. Found another great metal execution of Beethoven's ["Moonlight Sonata", Piano Sonata No. 14](https://www.youtube.com/watch?v=r6CTw_a0I14) that sounded just like it was made for the game.
+During development I listened to more metal than usual. Considering the theme and the setting of the game seemed a good musical choice. Went through many artists in my playlist, in particular: Black Sabbath, Slayer, Metallica, Pantera, Sepultura. Two albums of Sepultura (brazilian metal band) got me pretty inspired, Dante XXI (based on Dante's inferno) and A-Lex (based on Clockwork Orange). There is in A-Lex a metal version of Beethoven's Symphony No. 9 that sounded great. Found another great metal execution of Beethoven's ["Moonlight Sonata", Piano Sonata No. 14](https://www.youtube.com/watch?v=r6CTw_a0I14) that sounded just like it was made for the game.
 
-Not being at all versed in music composition, I had a chat online on JS13K Slack with [Ryan Malm](https://github.com/Rybar), gave him access to a first demo of the game, explained my idea and the sources of inspiration, and in just few hours he made a first short version of the song. And it was amazing! Perfect. That's it.
+Not being at all versed in music composition, I had a chat online on JS13K Slack with [Ryan Malm](https://github.com/Rybar), gave him access to a first demo of the game, explained my idea and the sources of inspiration, and in just few hours he made a first short version of the song. And it was amazing! Perfect. That was it.
 
 I am very grateful for his work, he left me speachless. The music is a bit metal, a bit 8 bit, a bit 90s, not too serious, not too dark, even a bit funny, and still epic. Just perfect for the game.
 
@@ -55,11 +57,13 @@ There are many other packages and tools used, but I think these are the most imp
 
 #### Constructive Solid Geometry, [CSG](https://en.wikipedia.org/wiki/Constructive_solid_geometry)
 
-I enjoyed how I and Ben designed Island Not Found, that has a ray marching based renderer, using constructive solid geometry. See the amazing [Inigo Quilez articles](https://iquilezles.org/articles/distfunctions/) for more information. However performance was hard to maintain and decreased quickly with the size and complexity of the world. Glsl compilation time was also a big problem.
+I enjoyed how I and Ben worked on the level design of [Island Not Found](https://github.com/SalvatorePreviti/js13k-2020/wiki/Post-Mortem). It had a ray marching based renderer and used constructive solid geometry.
+See the amazing [Inigo Quilez articles](https://iquilezles.org/articles/distfunctions/) for more information.
+However performance was hard to maintain and decreased quickly with the size and complexity of the world. Glsl compilation time was also a big problem.
 
-Constructive solid geometry is an effective way to define a complex world in code and allows to create complex shapes, with concavity and holes, with just few characters of code.
-
-Some months before the beginning of the competion I decided to spend some time experimenting with new techniques, so I thought to use constructive solid geometry again when building the world for the next game, but this time with triangles. Triangles are in general much more performant on the hardware we use now, they have nice antialiasing out of the box, and performance decreases more or less linearly with the number of vertices.
+Constructive solid geometry is an effective way to define a complex world in code and allows to create complex shapes, with concave solids, holes and complex shapes with just few lines of code.
+I decided to prepare for the competition a small setup based on CSG on polygons.
+Triangles are in general much more performant on the hardware we use now, they have nice antialiasing out of the box, and performance decreases more or less linearly with the number of vertices.
 
 While there are in general more performant solutions to constructive solid geometry, for example based on [BVH](https://en.wikipedia.org/wiki/Bounding_volume_hierarchy) like [three-mesh-bvh](https://github.com/gkjohnson/three-mesh-bvh), I landed on using the classic [Binary Space Partition Trees](https://www.researchgate.net/publication/220721659_Set_operation_on_polyhedra_using_binary_space_partitioning_trees).
 The amount of code required to implement it is incredibly small, even smaller and simpler than I expected.
@@ -67,37 +71,44 @@ The amount of code required to implement it is incredibly small, even smaller an
 Implementation [here](https://github.com/SalvatorePreviti/js13k-2022/blob/main/app/geometry/csg.ts)
 
 Almost everything in software engineering is a trade off.
-BSPs have drawbacks: construction can be slow and suboptimal, finding the perfect construction is an NP-hard problem, it generates more triangles and vertices that what would be needed because every polygon get splitted by planes.
-They have however the great advantage to generate only convex polygons as a result of the boolean operations. A convex polygon splitted by a plane outputs two convex polygons. And the triangulation of a convex polygon is trivial.
-Very little amount of code, just a loop, compared to other methods (Ear clipping, for example, that becomes even more complicated if there are holes involved).
+BSPs have drawbacks:
 
-To reduce the number of resulting triangles, I merge some polygons back after the boolean operation by keeping track of the parent of as split. If both two children of a split are in the resulting set, I can merge recursively them using the parent polygon. This is a very simple and effective way to reduce the number of triangles.
+- construction can be slow and suboptimal
+- the tree might result very unbalanced, causing bad performances
+- finding the perfect construction is an NP-hard problem
+- it generates more triangles and vertices that what would be needed because every polygon get splitted by every plane.
 
-The implementation I wrote relies havily on tail call optimization of all modern JS engine to avoid stack overflow and to stay fast.
+They have however the great advantage to generate only convex polygons as a result of the boolean operations.
+A convex polygon splitted by a plane outputs two convex polygons, and the triangulation of a convex polygon is trivial.
+Triangulation of a convex polygon requires just a loop, compared to other methods, like Ear clipping, for example, that becomes even more complicated if there are holes involved.
+
+To reduce the number of resulting triangles, I merge some polygons back after the boolean operation by keeping track of the parent of as split. If both the two polygons resulting from a split are in the resulting set, I replace both with the common parent, recursively. This is a very simple, cheap and effective way to reduce the number of triangles, also if not perfect.
+
+The implementation I wrote is recursive and relies havily on tail call optimization of all modern JS engine to avoid stack overflow and to stay fast.
 
 Another trick I used is to work only with positions, colors and a flag "smooth" when building the geometry. I do not use directly indices when building the level, this simplified construction and level designs a lot.
-Normals and vertex indices are instead calculated afterwards, when the geometry is finalized and polygons triangulated. I use a hash map to merge vertices together, converting the vertex to a string as key, and the [Newell's algorithm](https://stackoverflow.com/questions/27326636/calculate-normal-vector-of-a-polygon-newells-method) to compute the normal for all the polygons. If a flag "smooth" is on, I average the normals of all the polygons that share the same vertex.
+Normals and vertex indices are instead calculated afterwards, when the geometry is finalized and polygons triangulated. I use a hash map to merge same vertices together, converting the vertex to string as key, and the [Newell's algorithm](https://stackoverflow.com/questions/27326636/calculate-normal-vector-of-a-polygon-newells-method) to compute the normal for all the polygons. If a flag "smooth" is on, I average the normals of all the polygons that share the same vertex.
 
 Implementation [here](https://github.com/SalvatorePreviti/js13k-2022/blob/main/app/game/triangle-buffers.ts)
 
 All this is surprisingly quite fast. The game has in total 24264 unique vertices, 23818 triangles (more are rendered using instancing however), and on my M1 macbook pro it takes 70 milliseconds to generate all the triangles from the level definition.
 
-Note that for performance and memory, I am not using a single BSP tree, I do rely on Z-buffer as well for unioning different unrelated geometries, overdraw is not really a problem for performance.
+Note that for performance and memory, I am not using a single BSP tree, I do rely on Z-buffer as well for unioning different unrelated geometries, overdraw is not really a problem for performance. BSP trees are mainly used to carve holes, substraction and union of coplanar polygons in specific places.
 
 #### Level design
 
 The whole level and models are defined [here](https://github.com/SalvatorePreviti/js13k-2022/blob/main/app/game/level.ts) in 1065 lines of code.
 
-Level design via code is surprisingly easier than it might seem, and seems to be an underappreciated technique. The only editor used for this game was Visual Studio Code.
-In general, we saw this happening in the world outside of game development: react is a great example - code replaced RAD and GUI tools. Level design via code is a great way to create complex levels, and it is also a great way to leverage procedural generation.
-In [this short video](https://twitter.com/SN74HC00/status/1560946345871134720) I posted on twitter you can see how I did build the level via code. The main requirement is - speed! A fast iteration loop between writing code and seeing the result is needed.
+The only editor used for this game was Visual Studio Code. Level design via code is surprisingly easier than it might seem, and seems to be an underappreciated technique. In general, we saw this happening in the world outside of game development: react is a great example - code replaced various RAD and GUI tools. Level design via code is a great way to create complex levels, and it is also a great way to leverage procedural generation.
+In [this short video](https://twitter.com/SN74HC00/status/1560946345871134720) you can see some real time editing. The main requirement is - speed! A fast iteration loop between writing code and seeing the result is needed.
 
 This game uses very simple primitives to build everything: box, cylinder, sphere.
 The horn shape is procedurally generated and is used both for the Dante horns and as decoration in the level. Sphere is used to build Dante's head and body.
 A modified and distorted sphere is used to generate the soul model procedurally.
 
 Shapes are transformed using simple matrix transformations - translation, rotation, scale, skew. The CSG boolean operations are used to substract shapes allowing the creation of holes and complex geometries.
-I used the [DOMMatrix](https://developer.mozilla.org/en-US/docs/Web/API/DOMMatrix) API. It is slow and was not designed for real time 3D graphics, but comes for free in all browsers, there is not really much space in 13k for including gl-matrix or rolling out my own matrix library.
+I used the [DOMMatrix](https://developer.mozilla.org/en-US/docs/Web/API/DOMMatrix) API. It is slow and was not designed for real time 3D graphics, but comes for free in all browsers.
+I preferred to use the space I had to add more game than implementing my own matrix library or using gl-matrix.
 
 #### Shadows and light
 
