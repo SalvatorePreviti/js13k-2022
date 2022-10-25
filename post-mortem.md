@@ -188,15 +188,15 @@ The solution to this was to use batching and instancing.
 
 Vertex shader source code [here](https://github.com/SalvatorePreviti/js13k-2022/blob/main/app/shaders/main-vertex.vert).
 
-The uniform buffer is updated once every frame, and it is big enough to contain all the transformations for all the models in the scene.
+There is a big uniform buffer that contains all the transformations of all the objects in the world. This buffer is updated once every frame per canvas.
 
-I assign a modelId to every vertex in the scene, encoding it in the W component of the vertex position. This is required by the collision shader to see where the player is walking on and is also used to fetch the right transformation from a big uniform array.
+I assign a modelId to every vertex in the scene, writing it in the W component of the vertex position. This is required by the collision shader to see where the player is walking on and is also used to fetch the right transformation from the big uniform array.
 
-The uniform array used to encode transformations is just an array of vec4.
-It cannot be an array of mat4 because older devices have a limit of 256 vec4 uniforms for the vertex shader (minimum supported value by webgl2), too little to render the entire level, and I did not want to introduce the use of [Uniform Buffers Objects](https://www.khronos.org/opengl/wiki/Uniform_Buffer_Object), both because slower than uniforms and because they requires a lot of code.
+The big uniform array is just an array of vec4. It cannot be an array of mat4 because older devices have the limit of 256 vec4 uniforms for the vertex shader (minimum supported value by webgl2), too little to render the entire level.
+I did not want to introduce the use of [Uniform Buffers Objects](https://www.khronos.org/opengl/wiki/Uniform_Buffer_Object), both because slower than uniforms and because they requires a lot of code.
 
 Part of this array contains only translations: If the modelId is less than a specific value, a translation matrix is generated in the vertex shader.
-If the modelId is greater or equal than that value, that is a model that requires full transformation (scaling, rotation, translation), so a full mat4 is read from the uniform buffer. If the modelId is negative, that is a soul and so instead gl_InstanceID is used.
+If the modelId is greater or equal than that value, that is a model that requires full transformation (scaling, rotation, translation), so a full mat4 is read from the big uniform buffer. If the modelId is negative, that is a soul and so instead gl_InstanceID is used as index in the big buffer array to find the right world matrix.
 
 #### Instancing
 
@@ -215,6 +215,6 @@ Does all this work worth the effort?
 No, because is just crazy and pure madness. And also absolutely yes because is crazy and pure madness! :D
 
 The fun in this competition is creating something, and this year I really had the urge to create something.
-Is great to share it with other people that are passioned about games, game development and coding. A great community, by the way, where everyone is trying to do their best and trying to help each other in the same time. Great thanks to https://twitter.com/end3r for this competition, it has been fun also this year.
+Is great to share it with other people that are passioned about games, game development and coding. Is great to exchange knowledge and tricks used in the various games, ideas and play them all. JS13K is a great community - everyone is trying to do their best and trying to help each other in the same time. Great thanks to https://twitter.com/end3r for this competition, it has been fun also this year.
 
-It was tiring, but like every year but gave me some hard and new problems to solve. The constraints of time and space are a huge push for creativity and creative solution, is not only educational and fun, is also a big exercise in problem solving.
+It was tiring, but like every year, but gave me some hard and new problems to solve. The constraints of time and space are a huge push for creativity and creative solutions: is not only educational and fun, is also a big exercise in problem solving.
