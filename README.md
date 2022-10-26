@@ -6,6 +6,8 @@ Play it [here](https://js13kgames.com/public/entries/dante)
 
 Music by [Ryan Malm](https://twitter.com/ryanmalm) and [Beethoven](https://en.wikipedia.org/wiki/Piano_Sonata_No._14_(Beethoven)).
 
+![image](https://user-images.githubusercontent.com/6913178/198019240-5bfa153e-e55c-44e3-bb8d-32278a51af18.png)
+
 Sources and references:
 
 - Constructive Solid Geometry based on Binary Space Partition Trees:
