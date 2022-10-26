@@ -49,7 +49,7 @@ Prepared some tools before the begining of the competition, based on the setup u
 - [roadroller](https://github.com/lifthrasiir/roadroller) A tool written by
   Kang Seonghoon for js13k. I am impressed of what he created, roadroller removes around 1800 bytes from the final zip of Dante, and we would have a much simpler game without this tool.
 - [zopfli](https://en.wikipedia.org/wiki/Zopfli) I monkey patched [adm-zip](https://github.com/cthackers/adm-zip) to use zopfli instead of native nodejs gzip to higher compression rates and squeeze as much as possible.
-- Babel, swc, esbuild, terser, uglify3, closure compiler. Added also some custom plugin for swc and babel to sort variables and do some optimization. The minify code is not the cleanest, and is a result of raw experimentation and empirical observation. Is very hard to preemtively imagine how certain things could generate more compressible code than others, is not so intuitive and generally a very hard problem.
+- Babel, swc, esbuild, terser, uglify3, closure compiler. Added also some custom plugin for swc and babel to sort variables and do some optimization and replace webgl methods with an hash to reduce space. The minify code is not the cleanest, and is a result of raw experimentation and empirical observation. Is very hard to preemtively imagine how certain things could generate more compressible code than others, is not so intuitive and generally a very hard problem.
 - [ViteJS](https://github.com/vitejs/vite), very fast transpilation times reload or hot reload, perfect for local development. It bundles using rollup, and it is very easy to configure.
 - [TypeScript](https://www.typescriptlang.org/), [eslint](https://eslint.org/), linting and typechecking also during the competition helps me write more readable code and avoid bugs. There is not really much time to work on unit tests during a competition instead :)
 
@@ -84,7 +84,7 @@ Triangulation of a convex polygon requires just a loop, compared to other method
 
 To reduce the number of resulting triangles, I merge some polygons back after the boolean operation by keeping track of the parent of as split. If both the two polygons resulting from a split are in the resulting set, I replace both with the common parent, recursively. This is a very simple, cheap and effective way to reduce the number of triangles, also if not perfect.
 
-The implementation I wrote is recursive and relies havily on tail call optimization of all modern JS engine to avoid stack overflow and to stay fast.
+The BSP implementation I wrote is recursive and relies havily on tail call optimization of all modern JS engines to avoid stack overflow and to stay fast.
 
 Another trick I used is to work only with positions, colors and a flag "smooth" when building the geometry. I do not use directly indices when building the level, this simplified construction and level designs a lot.
 Normals and vertex indices are instead calculated afterwards, when the geometry is finalized and polygons triangulated. I use a hash map to merge same vertices together, converting the vertex to string as key, and the [Newell's algorithm](https://stackoverflow.com/questions/27326636/calculate-normal-vector-of-a-polygon-newells-method) to compute the normal for all the polygons. If a flag "smooth" is on, I average the normals of all the polygons that share the same vertex.
@@ -223,6 +223,31 @@ gl_InstanceID is used to find the index of the right transformation matrix from 
 
 So, in the end, two single calls are needed to render the whole world for a given step, code [here](https://github.com/SalvatorePreviti/js13k-2022/blob/96ff2f28196e143bcc5e70be8b58135719d51472/app/main-loop.ts#L58) :
 drawElementsInstanced and drawElements
+
+### Input, gameplay
+
+The game supports first person and platformer view.
+The game can be won playing 100% in first person or platformer view, however some puzzles are definitely easier in first person, some others in platformer view.
+Is up to the player to decide how to play, and I think this is quite fun. I like first person view, but I also like platformer view, and I think that the game is better if the player can choose.
+The game is played with the keyboard, and the mouse is used only to look around in first person view.
+There is support for gamepad and touch screen. Touch screen was much more difficult than I expected. I decided to implement virtual joysticks not visible on screen, and this takes already a lot of space in the final bundle, and actually too much to add visible joysticks or other control mechanisms, and spent a lot of time trying to adjust it for phone and tablet.
+Is not perfect, but is playable on mobile.
+
+I decided to use extremely simple controls: move, switch levers. I did not want to add jump because would have added another input in the touch screen and increased complexity. Many reported that jumping could have improved the game, and I agree. In next one :)
+
+The gameplay is very simple as well, and the difficulty is not too high - is a competition, and there were another 160 games! I did not want to do something too challenging to play.
+Something that most of the player could finish.
+
+Game state is saved in localstorage every time a lever is pulled or a sould catched.
+The game restarts in the last checkpoint if the page gets reloaded.
+A button to clear the localstorage and reload the page is available in the pause menu.
+
+### Audio
+
+[Ryan Malm](https://github.com/Rybar) composed the song, based on ["Moonlight Sonata", Piano Sonata No. 14](https://www.youtube.com/watch?v=r6CTw_a0I14) in [soundbox](https://sb.bitsnbites.eu/).
+There are no sound effects, but the music is rich enough that there was no need. Is hard even to notice that they are not there.
+To reduce the size of the music player and the song as much as possible, I had to spend some time to hardcode and optimize both, so the source code of soundbox player was heavily modified to occupy as little as possible, and can now play only that song.
+There are some interesting minification tricks I used there, source code [here](https://github.com/SalvatorePreviti/js13k-2022/blob/main/app/music/music-player.ts)
 
 ## Final considerations
 
