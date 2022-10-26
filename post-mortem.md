@@ -3,6 +3,12 @@
 Dante is my entry for js13k 2022 competition, an HTML5 game in 13 kilobytes.
 It won the first place overall and in the mobile category.
 
+Source code [here](https://github.com/SalvatorePreviti/js13k-2022)
+
+Game playable [here](https://js13kgames.com/entries/dante)
+
+Github blog [here](https://github.blog/2022-10-06-js13k-2022-winners/)
+
 ## Inspiration and theme
 
 The theme of this year was DEATH, it was announced on the 13th of August, and the deadline of the competition was on the 13th of September 2022.
