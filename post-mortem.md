@@ -141,7 +141,7 @@ Main fragment shader code for light and shadows [here](https://github.com/Salvat
 
 How can you put textures in 13k? Simple, you don't.
 
-First of all, thanks a lot to [Maxime Euziere](xem.github.io) for suggesting trying SVG instead of writing glsl or js code to generate the texture! It was a great idea!
+First of all, thanks a lot to [Maxime Euziere](https://xem.github.io/) for suggesting trying SVG instead of writing glsl or js code to generate the texture! It was a great idea!
 
 Textures are generated procedurally from a [single SVG file](https://github.com/SalvatorePreviti/js13k-2022/blob/main/app/groundTexture.svg).
 
