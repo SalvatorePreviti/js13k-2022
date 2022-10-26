@@ -1,5 +1,7 @@
 # Dante - a post mortem
 
+![image](https://user-images.githubusercontent.com/6913178/198019158-0bb1beff-3f78-47c8-ae43-8924eba2e7d1.png)
+
 Dante is my entry for js13k 2022 competition, an HTML5 game in 13 kilobytes.
 It won the first place overall and in the mobile category.
 
