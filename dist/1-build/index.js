@@ -450,9 +450,9 @@ const loadSong = NO_INLINE((done) => {
                 chnBuf[i] += noteBuf[j];
             }
           }
-          for (let j1 = 0, rsample; j1 < song_rowLen; ++j1) {
+          for (let j = 0, rsample; j < song_rowLen; ++j) {
             let lsample = 0;
-            let k = (rowStartSample + j1) * 2;
+            let k = (rowStartSample + j) * 2;
             rsample = chnBuf[k];
             if (rsample || filterActive) {
               f = FX_FREQ * 0.003079991863530159;
@@ -791,6 +791,15 @@ const LEVER_ID_FLOATING_ELEVATOR = 12;
 const LEVER_ID_DONUT_PAD = 13;
 const LEVER_ID_BOAT0 = 14;
 const LEVER_ID_BOAT1 = 15;
+const MODEL_ID_STATIC_WORLD = 1;
+const MODEL_ID_LEVEL2_ROTATING_HEX_CORRIDOR = 28;
+const MODEL_ID_ROTATING_PLATFORM0 = 31;
+const MODEL_ID_BOAT0 = 35;
+const MODEL_ID_PLAYER_BODY = 53;
+const MODEL_ID_PLAYER_LEG0 = 54;
+const MODEL_ID_PLAYER_LEG1 = 55;
+const MODEL_ID_SOUL_COLLISION = 56;
+const MODEL_ID_SOUL = 57;
 let souls_collected_count;
 let game_completed;
 let firstBoatLerp;
@@ -905,15 +914,6 @@ const onFirstBoatLeverPulled = () => {
   }
 };
 let player_last_pulled_lever = LEVER_ID_BOAT0;
-const MODEL_ID_STATIC_WORLD = 1;
-const MODEL_ID_LEVEL2_ROTATING_HEX_CORRIDOR = 28;
-const MODEL_ID_ROTATING_PLATFORM0 = 31;
-const MODEL_ID_BOAT0 = 35;
-const MODEL_ID_PLAYER_BODY = 53;
-const MODEL_ID_PLAYER_LEG0 = 54;
-const MODEL_ID_PLAYER_LEG1 = 55;
-const MODEL_ID_SOUL_COLLISION = 56;
-const MODEL_ID_SOUL = 57;
 const transformsBuffer = new Float32Array(4 * (4 * (MODELS_WITH_FULL_TRANSFORM + SOULS_COUNT) + MODELS_WITH_SIMPLE_TRANSFORM));
 const distanceToPlayer = () => {
   matrixTransformPoint();
@@ -1529,30 +1529,30 @@ const player_init = NO_INLINE(() => {
         }
     }
     currentModelId = lineToProcess >= 0 ? modelBCount > modelACount * 2 ? modelB : currentModelId : 0;
-    for (let y1 = LEGS_ROWS, index = constDef_COLLISION_TEXTURE_SIZE * LEGS_ROWS * 4; y1 < constDef_COLLISION_TEXTURE_SIZE; ++y1) {
+    for (let y = LEGS_ROWS, index = constDef_COLLISION_TEXTURE_SIZE * LEGS_ROWS * 4; y < constDef_COLLISION_TEXTURE_SIZE; ++y) {
       let left = 0;
       let right = 0;
       let front = 0;
       let back = 0;
-      for (let x1 = 0; x1 < constDef_COLLISION_TEXTURE_SIZE; ++x1) {
-        let v1 = collision_buffer[index++];
-        if (x1 < constDef_COLLISION_TEXTURE_SIZE / 2) {
-          if (v1 > left)
-            left = v1;
-        } else if (v1 > right)
-          right = v1;
-        v1 = collision_buffer[index++];
-        if (x1 > constDef_COLLISION_TEXTURE_SIZE / 2) {
-          if (v1 > left)
-            left = v1;
-        } else if (v1 > right)
-          right = v1;
-        v1 = collision_buffer[index++];
-        if (v1 > front)
-          front = v1;
-        v1 = collision_buffer[index++];
-        if (v1 > back)
-          back = v1;
+      for (let x = 0; x < constDef_COLLISION_TEXTURE_SIZE; ++x) {
+        let v = collision_buffer[index++];
+        if (x < constDef_COLLISION_TEXTURE_SIZE / 2) {
+          if (v > left)
+            left = v;
+        } else if (v > right)
+          right = v;
+        v = collision_buffer[index++];
+        if (x > constDef_COLLISION_TEXTURE_SIZE / 2) {
+          if (v > left)
+            left = v;
+        } else if (v > right)
+          right = v;
+        v = collision_buffer[index++];
+        if (v > front)
+          front = v;
+        v = collision_buffer[index++];
+        if (v > back)
+          back = v;
       }
       right -= left;
       if (right * right > movX * movX)
@@ -1665,8 +1665,8 @@ let eppur_si_muove = () => {
       modelsNextUpdate((i > 2 ? 2 * (1 - hexPadsOscillation) + hexPadsOscillation : 0) - 100, hexPadsOscillation * /* @__PURE__ */ Math.sin(gameTime * 1.3 + i * 1.7) * (3 + i / 3) + 0.7, 115 - 7 * (1 - levers[LEVER_ID_DETOUR].$lerpValue2) * (1 - levers[LEVER_ID_DONUT_PAD].$lerpValue2) * (i & 1 ? -1 : 1) + max(0.05, hexPadsOscillation) * /* @__PURE__ */ Math.cos(gameTime * 1.3 + i * 7) * (4 - 2 * (1 - i / 3)));
     }
     oscillation = lerpneg(levers[LEVER_ID_AFTER_ROTATING_PLATFORMS].$lerpValue2, levers[LEVER_ID_AFTER_JUMPING_PADS].$lerpValue2);
-    for (let i1 = 0; i1 < 3; ++i1) {
-      modelsNextUpdate(0, oscillation * /* @__PURE__ */ Math.sin(gameTime * 1.5 + i1 * 1.5) * 4 + (i1 ? 0 : 3 * (1 - levers[LEVER_ID_AFTER_ROTATING_PLATFORMS].$lerpValue2) * (1 - levers[LEVER_ID_AFTER_JUMPING_PADS].$lerpValue2)));
+    for (let i = 0; i < 3; ++i) {
+      modelsNextUpdate(0, oscillation * /* @__PURE__ */ Math.sin(gameTime * 1.5 + i * 1.5) * 4 + (i ? 0 : 3 * (1 - levers[LEVER_ID_AFTER_ROTATING_PLATFORMS].$lerpValue2) * (1 - levers[LEVER_ID_AFTER_JUMPING_PADS].$lerpValue2)));
     }
     oscillation = lerpneg(lerpneg((levers[LEVER_ID_AFTER_JUMPING_PADS].$lerpValue + levers[LEVER_ID_AFTER_JUMPING_PADS].$lerpValue2) / 2, levers[LEVER_ID_AFTER_ROTATING_PLATFORMS].$lerpValue2), (levers[LEVER_ID_FLOATING_ELEVATOR].$lerpValue + levers[LEVER_ID_FLOATING_ELEVATOR].$lerpValue2) / 2);
     modelsNextUpdate(0, 16 * oscillation, 95 + 8.5 * clamp(oscillation * 2 - 1));
@@ -1683,8 +1683,8 @@ let eppur_si_muove = () => {
     modelsNextUpdate(-50.7, 0.8, 91).rotateSelf(0, 270 + rotatingPlatform2Rotation);
     boatUpdate(-12, 4.2, -66 + 40 * firstBoatLerp);
     boatUpdate(-123, 1.4, 55 - 65 * secondBoatLerp);
-    for (let i2 = 0; i2 < LEVERS_COUNT; ++i2) {
-      const lever = levers[i2];
+    for (let i = 0; i < LEVERS_COUNT; ++i) {
+      const lever = levers[i];
       const lerpValue = lever.$lerpValue = lerpDamp(lever.$lerpValue, lever.$value, 4);
       lever.$lerpValue2 = lerpDamp(lever.$lerpValue2, lever.$value, 1);
       matrixCopy(matrixCopy(lever.$matrix).multiplySelf(lever.$transform), modelsNextUpdate(0)).rotateSelf(50 * lerpValue - 25, 0).translateSelf(0, 1).m44 = lerpValue;
@@ -1692,25 +1692,25 @@ let eppur_si_muove = () => {
         if (lever.$value) {
           if (lerpValue > 0.7) {
             lever.$value = 0;
-            onPlayerPullLever(i2);
+            onPlayerPullLever(i);
           }
         } else if (lerpValue < 0.3) {
           lever.$value = 1;
-          onPlayerPullLever(i2);
+          onPlayerPullLever(i);
         }
       }
-      if (i2 === LEVER_ID_BOAT0 && lever.$value && lerpValue > 0.8) {
+      if (i === LEVER_ID_BOAT0 && lever.$value && lerpValue > 0.8) {
         lever.$value = 0;
         onFirstBoatLeverPulled();
       }
-      if (i2 < SOULS_COUNT)
-        souls[i2]();
+      if (i < SOULS_COUNT)
+        souls[i]();
     }
     player_update();
-    for (let i3 = 0; i3 < MODELS_WITH_FULL_TRANSFORM; ++i3)
-      matrixToArray(allModels[2 + MODELS_WITH_SIMPLE_TRANSFORM + i3].$matrix, transformsBuffer, i3);
-    for (let i4 = 0, j = (MODELS_WITH_FULL_TRANSFORM + SOULS_COUNT) * 16, m; i4 < MODELS_WITH_SIMPLE_TRANSFORM; ++i4, ++j) {
-      m = allModels[2 + i4].$matrix;
+    for (let i = 0; i < MODELS_WITH_FULL_TRANSFORM; ++i)
+      matrixToArray(allModels[2 + MODELS_WITH_SIMPLE_TRANSFORM + i].$matrix, transformsBuffer, i);
+    for (let i = 0, j = (MODELS_WITH_FULL_TRANSFORM + SOULS_COUNT) * 16, m; i < MODELS_WITH_SIMPLE_TRANSFORM; ++i, ++j) {
+      m = allModels[2 + i].$matrix;
       transformsBuffer[j++] = m.m41;
       transformsBuffer[j++] = m.m42;
       transformsBuffer[j++] = m.m43;
@@ -1845,8 +1845,8 @@ const startMainLoop = (groundTextureImage) => {
         tz -= csm_tempFrustumCorners[j++] = (matrixTransformPoint.z | 0) / (roundingRadius * matrixTransformPoint.w);
       }
       matrixCopy().rotateSelf(LIGHT_ROT_X, LIGHT_ROT_Y).translateSelf(tx / 8, ty / 8, tz / 8);
-      for (let i1 = 0, j1 = 0; i1 < 8; ++i1) {
-        matrixTransformPoint(csm_tempFrustumCorners[j1++], csm_tempFrustumCorners[j1++], csm_tempFrustumCorners[j1++]);
+      for (let i = 0, j = 0; i < 8; ++i) {
+        matrixTransformPoint(csm_tempFrustumCorners[j++], csm_tempFrustumCorners[j++], csm_tempFrustumCorners[j++]);
         right = max(right, matrixTransformPoint.x);
         top = max(top, matrixTransformPoint.y);
         far = max(far, matrixTransformPoint.z);

@@ -182,7 +182,17 @@ export async function build() {
         computed_props: true,
       });
 
-      js = await jsTransformSwc(js, false, swcPluginVars());
+      js = await jsTransformSwc(
+        js,
+        {
+          computed_props: true,
+          final: false,
+          evaluate: true,
+          mangle: false,
+          minify: false,
+        },
+        swcPluginVars(),
+      );
 
       js = await jsUglify(js, {
         varify: true,
