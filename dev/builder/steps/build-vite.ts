@@ -13,7 +13,7 @@ import { rollupPluginSwcTransform } from "./build-transform";
 import shadersMangleGlobals from "../../../app/shaders/_mangle_globals";
 import { browserPureFunctions, global_defs } from "../lib/js-config";
 import type { MinifyOptions } from "terser";
-import { optimize as svgoOptimize, type OptimizedSvg } from "svgo";
+import { optimize as svgoOptimize } from "svgo";
 import htmlminifier from "html-minifier-terser";
 import { getHtmlMinifierOptions } from "./html-minify";
 
@@ -224,15 +224,11 @@ function rollupPluginSvg(): PluginOption {
 
       const output = svgoOptimize(extractedSvg, {
         floatPrecision: 5,
-        full: true,
         multipass: true,
         js2svg: { indent: 0, pretty: false },
         plugins: ["preset-default"],
       });
-      if (output.error) {
-        throw output.modernError;
-      }
-      const optimized = (output as OptimizedSvg).data;
+      const optimized = output.data;
       let svg = await htmlminifier.minify(optimized, {
         ...getHtmlMinifierOptions(),
         removeAttributeQuotes: false,
