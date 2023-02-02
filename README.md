@@ -1,5 +1,7 @@
 # "Dante", an Entry for js13k 2022.
 
+## 🎉🎉🎉 First prize in the Overall and Mobile category in JS13K 2022 edition! Play it [here](https://js13kgames.com/public/entries/dante) 🎉🎉🎉
+
 You can read the post mortem [here](https://github.com/SalvatorePreviti/js13k-2022/blob/main/post-mortem.md)
 
 Play it [here](https://js13kgames.com/public/entries/dante)
